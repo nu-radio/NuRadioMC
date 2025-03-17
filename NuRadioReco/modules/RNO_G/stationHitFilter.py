@@ -13,7 +13,7 @@ logger = logging.getLogger('NuRadioReco.RNO_G.stationHitFitter')
 
 class stationHitFilter:
 
-    def __init__(self, complete_time_check=True, complete_hit_check=False, time_window=10.0*units.ns, is_multi_thresholds=False, threshold_multipliers=[6.5, 6.0, 5.5, 5.0, 4.5]):
+    def __init__(self, complete_time_check=False, complete_hit_check=False, time_window=10.0*units.ns, is_multi_thresholds=False, threshold_multipliers=[6.5, 6.0, 5.5, 5.0, 4.5]):
         """
         See if an event is thermal noise based on the coincidence window.
 
@@ -25,22 +25,28 @@ class stationHitFilter:
         and another coincident pair in any group. When the time check fails, the Hit Filter will
         see if there's any in-ice channel that has a high hit (maximum > 6.5*noise_RMS), which is the
         hit checker, and whenever there's a high hit it passed the Hit Filter.
+        Options for the COMPLETENESS of checks:
+        CASE I (default): complete_hit_check=False and complete_time_check=False
+        It's faster, the time checker and the hit checker don't have to go through all channels
+        unless nothing has been found. If an event passed the time checker already,
+        then the hit checker would be skipped.
+        CASE II: complete_hit_check=True and complete_time_check=True
+        All groups and all channels will be checked no matter what,
+        so it will take a little bit more time.
 
         Parameters
         ----------
-        complete_time_check: bool (default: True)
-            Run the time checker first to look for coincident channel pairs. If it fails or if  ``complete_time_check=False``,
-            run the hit checker.
+        complete_time_check: bool (default: False)
+            If users want the time checker to run through all channel groups
         complete_hit_check: bool (default: False)
-            If False, only run the hit checker when the time checker fails or if ``complete_time_check=False``.
-            If True, always run the hit checker.
+            If users want the high hit checker to run through all channels
         time_window: float (default: 10.0*units.ns)
             Coincidence window for two adjacent channels
         is_multi_thresholds: bool (default: False)
             If users want to check with multiple hit thresholds
         threshold_multipliers: 1-D list (default: [6.5, 6.0, 5.5, 5.0, 4.5])
-            Different hit threhold multipliers where a hit threshold is a multiplier times the noise RMS,
-            if not using multiple threholds only the first element (largest multiplier) is used
+            Different hit threshold multipliers where a hit threshold is a multiplier times the noise RMS,
+            if not using multiple thresholds only the first element (largest multiplier) is used
         """
         self._complete_time_check = complete_time_check
         self._complete_hit_check = complete_hit_check
@@ -61,23 +67,26 @@ class stationHitFilter:
         self._n_channels_in_ice = len(self._in_ice_channels)
         self._n_channel_pairs_in_PA = len(self._channel_pairs_in_PA)
 
-        self._envelope_max_time_index = None
-        self._envelope_max_time = None
-        self._noise_RMS = None
-        self._times = None
-        self._traces = None
-        self._envelope_trace = None
-        self._is_over_hit_threshold = None
-        self._hit_thresholds = None
+        self._envelope_max_time_index = np.array([None] * self._n_channels_in_ice)
+        self._envelope_max_time = np.array([None] * self._n_channels_in_ice)
+        self._noise_RMS = np.array([None] * self._n_channels_in_ice)
+        self._times = [[] for i in range(self._n_channels_in_ice)]
+        self._traces = [[] for i in range(self._n_channels_in_ice)]
+        self._envelope_traces = [[] for i in range(self._n_channels_in_ice)]
+        self._hit_thresholds = [[None for _ in range(self._n_thresholds)] for i in range(self._n_channels_in_ice)]
+        self._is_over_hit_threshold = [[None for _ in range(self._n_thresholds)] for i in range(self._n_channels_in_ice)]
 
         ### 2-D list ###
-        # List of all possible channel pairs (n_pairs = (n_channels - 1)**2) per group.
-        # Used for bookkeeping between which channel pairs a coincidence is found.
-        self._in_time_sequence_default = [[None for _ in range(int((len(group) - 1)**2))] for group in self._in_ice_channel_groups]
-
-        self._passed_time_checker = None
-        self._passed_hit_checker = None
-        self._passed_hit_filter = None
+        # This list contains sub-lists for all groups.
+        # Each sub-list contains bool(s) indicating the COINCIDENCE of channel pair(s) in each group
+        # self._is_in_time_window[0] is the PA, it has 6 pairs (6 bools)
+        # Initiating each element with None, it will later be replaced with bool when running the time checker
+        self._is_in_time_window = []
+        for i_group, group in enumerate(self._in_ice_channel_groups):
+            if i_group == 0:
+                self._is_in_time_window.append([None for _ in range(self._n_channel_pairs_in_PA)])
+            else:
+                self._is_in_time_window.append([None for _ in range(len(group)-1)])
 
 
     def _channel_mapping(self, channel_in):
@@ -99,45 +108,15 @@ class stationHitFilter:
         channel_out: int
             Output channel number
         """
-        return channel_in - 9 if channel_in >= 21 else channel_in
-
-
-    def _set_up(self, station, noise_RMS):
-        """
-        Set things up before passing to the Hit Filter.
-
-        This setup function calculates the noise RMS,
-        sets the hit threshold(s),
-        gets the Hilbert envelope,
-        and finds the time when the maximum happens (hit).
-
-        Parameters
-        ----------
-        station: `NuRadioReco.framework.station.Station`
-            The station to use the Hit Filter
-        noise_RMS: 1-D array of floats
-            A set of input noise RMS values of all 24 channels
-        """
-        # This implicitly obeys the channel mapping
-        self._traces = np.array([np.array(channel.get_trace()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
-        self._times = np.array([np.array(channel.get_times()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
-        self._envelope_trace = trace_utilities.get_hilbert_envelope(self._traces)
-        self._envelope_max_time_index = np.argmax(self._envelope_trace, axis=-1)
-        self._envelope_max_time = self._times[range(len(self._times)), self._envelope_max_time_index]
-
-        if noise_RMS is not None:
-            self._noise_RMS = noise_RMS[self._in_ice_channels]  # HACK: use channel IDs to index noise_RMS
-        else:
-            self._noise_RMS = np.array([trace_utilities.get_split_trace_noise_RMS(trace) for trace in self._traces])
-
-        self._hit_thresholds = self._noise_RMS[:, None] * self.get_threshold_multipliers()
+        channel_out = channel_in - 9 if channel_in >= 21 else channel_in
+        return channel_out
 
 
     def _time_checker(self):
         """
         Check the hit times between channels in groups to select coincident pairs.
 
-        See if there are at least 2 coincident pairs in Group 1 (PA),
+        See if there are at least 2 coincident pairs in time sequence in Group 1 (PA),
         and if there's only 1 pair in PA, then find the other pair in other groups;
         otherwise, the input event fails the time checker.
 
@@ -148,44 +127,35 @@ class stationHitFilter:
         """
         self._passed_time_checker = False
         envelope_max_time = self.get_envelope_max_time()
-        coincidences_in_PA = 0
-        self._in_time_sequence = self._in_time_sequence_default.copy()
+        coincidences_in_time_sequence_PA = [False, False, False]
 
         for i_group, group in enumerate(self._in_ice_channel_groups):
-            # Group one is special because we require at least one coincident pair in this group
             if i_group == 0:
-                # For e.g, channel 3 and 0 take 3 times the dT.
-                dT_multipliers = np.diff(self._channel_pairs_in_PA).flatten()
                 for i_channel_pair, channel_pair in enumerate(self._channel_pairs_in_PA):
                     hit_time_difference = abs(envelope_max_time[channel_pair[1]] - envelope_max_time[channel_pair[0]])
-                    is_coincidence = hit_time_difference <= dT_multipliers[i_channel_pair] * self._dT
+                    dT_multiplier = abs(channel_pair[1] - channel_pair[0])
+                    self._is_in_time_window[i_group][i_channel_pair] = hit_time_difference <= dT_multiplier * self._dT
 
-                    if is_coincidence:
-                        coincidences_in_PA += 1
-                        self._in_time_sequence[i_group][i_channel_pair] = is_coincidence
-
-                    if coincidences_in_PA >= 2:
-                        self._passed_time_checker = True
-                        break
-            else:
-                # If the time checker already passed, we can skip the rest of the groups
-                if self._passed_time_checker:
-                    return self._passed_time_checker
-
-                if coincidences_in_PA == 0:
-                    # If there are no coincidences in PA, we can skip the rest of the groups
-                    self._passed_time_checker = False
-                    break
-
-                if len(group) != 2:
-                    raise NotImplementedError("For any channel group other than group 0, only 2 channels are supported for now")
-
-                hit_time_difference = abs(envelope_max_time[self._channel_mapping(group[0])] - envelope_max_time[self._channel_mapping(group[1])])
-                self._in_time_sequence[i_group][0] = hit_time_difference <= self._dT
-
-                if self._in_time_sequence[i_group][0]:
+                    if channel_pair[0] == 0 and self._is_in_time_window[i_group][i_channel_pair]:
+                        coincidences_in_time_sequence_PA[0] = True
+                    elif channel_pair[0] == 1 and self._is_in_time_window[i_group][i_channel_pair]:
+                        coincidences_in_time_sequence_PA[1] = True
+                    elif channel_pair[0] == 2 and self._is_in_time_window[i_group][i_channel_pair]:
+                        coincidences_in_time_sequence_PA[2] = True
+                if sum(coincidences_in_time_sequence_PA) >= 2:
                     self._passed_time_checker = True
+                    if not self._complete_time_check:
+                        break
+                elif not sum(coincidences_in_time_sequence_PA) and not self._complete_time_check:
                     break
+            else:
+                hit_time_difference = abs(envelope_max_time[self._channel_mapping(group[0])] - envelope_max_time[self._channel_mapping(group[1])])
+                self._is_in_time_window[i_group][0] = hit_time_difference <= self._dT
+
+                if self._is_in_time_window[i_group][0] and sum(coincidences_in_time_sequence_PA) >= 1:
+                    self._passed_time_checker = True
+                    if not self._complete_time_check:
+                        break
 
         return self._passed_time_checker
 
@@ -205,11 +175,18 @@ class stationHitFilter:
         self._passed_hit_checker: bool
             Event passes the hit checker or not
         """
-        envelopes = self.get_envelope_trace()
+        self._passed_hit_checker = False
+        envelopes = self.get_envelope_traces()
         hit_thresholds = self.get_hit_thresholds()
+        n_counts_above_threshold = np.zeros(self._n_thresholds)
 
-        self._is_over_hit_threshold = np.amax(envelopes, axis=-1) > hit_thresholds
-        self._passed_hit_checker = np.any(self._is_over_hit_threshold)
+        for i in range(self._n_thresholds):
+            for i_channel in range(self._n_channels_in_ice):
+                self._is_over_hit_threshold[i_channel][i] = np.amax(envelopes[i_channel]) > hit_thresholds[i_channel][i]
+                n_counts_above_threshold[i] += int(self._is_over_hit_threshold[i_channel][i])
+
+            if n_counts_above_threshold[i] > i:
+                self._passed_hit_checker = True
 
         return self._passed_hit_checker
 
@@ -217,6 +194,43 @@ class stationHitFilter:
     def begin(self):
         """(Unused)"""
         pass
+
+
+    def set_up(self, set_of_traces, set_of_times, noise_RMS):
+        """
+        Set things up before passing to the Hit Filter.
+
+        This setup function calculates the noise RMS,
+        sets the hit threshold(s),
+        gets the Hilbert envelope,
+        and finds the time when the maximum happens (hit).
+
+        Parameters
+        ----------
+        set_of_traces: 2-D array of floats
+            A set of input trace arrays of all 24 channels
+        set_of_times: 2-D array of floats
+            A set of input times arrays of all 24 channels
+        noise_RMS: 1-D array of floats
+            A set of input noise RMS values of all 24 channels
+        """
+        self._passed_time_checker = None
+        self._passed_hit_checker = None
+        self._passed_hit_filter = None
+
+        for i, channel in enumerate(self._in_ice_channels):
+            if noise_RMS is not None:
+                self._noise_RMS[i] = noise_RMS[channel]
+            else:
+                self._noise_RMS[i] = trace_utilities.get_split_trace_noise_RMS(set_of_traces[channel])
+
+            self._hit_thresholds[i] = self._noise_RMS[i] * np.array(self.get_threshold_multipliers())
+
+            self._traces[i] = set_of_traces[channel]
+            self._envelope_traces[i] = trace_utilities.get_hilbert_envelope(set_of_traces[channel])
+            self._times[i] = set_of_times[channel]
+            self._envelope_max_time_index[i] = np.array(self._envelope_traces[i]).argmax()
+            self._envelope_max_time[i] = self._times[i][self._envelope_max_time_index[i]]
 
 
     def apply_hit_filter(self):
@@ -229,15 +243,20 @@ class stationHitFilter:
         """
         self._passed_hit_filter = False
 
-        if self._complete_time_check:
-            self._passed_hit_filter = self._time_checker()
+        self._time_checker()
 
-        # If time checker failed or if you anyway want to run the hit checker
-        if not self._passed_hit_filter or self._complete_time_check:
+        if not self._complete_hit_check:
+            if self.is_passed_time_checker():
+                self._passed_hit_filter = True
+                return self._passed_hit_filter
+            else:
+                self._hit_checker()
+                if self.is_passed_hit_checker():
+                    self._passed_hit_filter = True
+        else:
             self._hit_checker()
-            # only update the passed_hit_filter if the time checker did not passed
-            if not self._passed_hit_filter:
-                self._passed_hit_filter = self._passed_hit_checker
+            if self.is_passed_time_checker() or self.is_passed_hit_checker():
+                self._passed_hit_filter = True
 
         return self._passed_hit_filter
 
@@ -262,12 +281,10 @@ class stationHitFilter:
         -------
         self.is_passed_hit_filter(): bool
             Event passed the Hit Filter or not
-
-        See Also
-        --------
-        apply_hit_filter: It sets things up and applies the Hit Filter
         """
-        self._set_up(station, noise_RMS)
+        set_of_traces = np.array([np.array(channel.get_trace()) for channel in station.iter_channels()])
+        set_of_times = np.array([np.array(channel.get_times()) for channel in station.iter_channels()])
+        self.set_up(set_of_traces, set_of_times, noise_RMS)
         self.apply_hit_filter()
 
         return self.is_passed_hit_filter()
@@ -286,8 +303,8 @@ class stationHitFilter:
         """
         Returns
         -------
-        self._threshold_multipliers: 1-D list of floats
-            Threhold multipliers (default: [6.5, 6.0, 5.5, 5.0, 4.5])
+        np.array(self._threshold_multipliers): 1-D numpy array of floats
+            Threshold multipliers (default: np.array([6.5, 6.0, 5.5, 5.0, 4.5]))
         """
         return np.array(self._threshold_multipliers)
 
@@ -305,7 +322,7 @@ class stationHitFilter:
         Returns
         -------
         self._in_ice_channel_groups: Several 1-D lists of ints in a tuple
-            In-ice channel groups in a tuple: ([0, 1, 2, 3], [9, 10], [23, 22], [8, 4], [5], [6], [7], [11], [21])
+            In-ice channel groups in a tuple: ([0, 1, 2, 3], [9, 10], [23, 22], [8, 4])
         """
         return self._in_ice_channel_groups
 
@@ -359,18 +376,18 @@ class stationHitFilter:
         Returns
         -------
         np.array(self._traces): 2-D numpy array of floats
-            Arrays of trace for channels
+            Arrays of traces for channels
         """
         return np.array(self._traces)
 
-    def get_envelope_trace(self):
+    def get_envelope_traces(self):
         """
         Returns
         -------
-        np.array(self._envelope_trace): 2-D numpy array of floats
-            Arrays of envelope trace for channels
+        np.array(self._envelope_traces): 2-D numpy array of floats
+            Arrays of envelope traces for channels
         """
-        return np.array(self._envelope_trace)
+        return np.array(self._envelope_traces)
 
     def get_hit_thresholds(self):
         """
@@ -381,16 +398,17 @@ class stationHitFilter:
         """
         return np.array(self._hit_thresholds)
 
-    def is_in_time_sequence(self):
+    def is_in_time_window(self):
         """
         Returns
         -------
-        self._in_time_sequence: 2-D list of bools
+        self._is_in_time_window: 2-D list of bools
             See if channel pairs passed the time checker in all groups
         """
-        return self._in_time_sequence
+        if self._complete_time_check:
+            return self._is_in_time_window
 
-    def is_in_time_sequence_PA(self):
+    def is_in_time_window_PA(self):
         """
         Returns
         -------
@@ -399,14 +417,14 @@ class stationHitFilter:
             In the dictionary, there are 6 pairs:
             (0,1), (0,2), (0,3), (1,2), (1,3), (2,3)
             To see if a pair is coincident one can do, for example:
-            is_in_time_sequence_PA[(0,1)], then it will be True or False
+            is_in_time_window_PA[(0,1)], then it will be True or False
         """
         dict = {}
         for pair in self._channel_pairs_in_PA:
             i = pair[0]
             j = pair[1]
-            for k in self._in_time_sequence[0]:
-                dict[(i,j)] = self._in_time_sequence[0][k]
+            for k in self._is_in_time_window[0]:
+                dict[(i,j)] = self._is_in_time_window[0][k]
         return dict
 
     def is_over_hit_threshold(self):
@@ -416,7 +434,8 @@ class stationHitFilter:
         self._is_over_hit_threshold: 2-D list of bools
             See if there are high hits in channels
         """
-        return self._is_over_hit_threshold
+        if self._complete_hit_check:
+            return self._is_over_hit_threshold
 
     def is_passed_time_checker(self):
         """
