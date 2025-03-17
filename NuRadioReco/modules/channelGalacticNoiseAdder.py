@@ -236,7 +236,6 @@ class channelGalacticNoiseAdder:
             last_freqs = channel.get_frequencies()
 
         freqs = last_freqs
-        d_f = freqs[2] - freqs[1]
 
         # If we cache the antenna pattern, we need to make sure that the frequencies have not changed
         # between stations. If they have, we need to clear the cache.
@@ -270,7 +269,6 @@ class channelGalacticNoiseAdder:
 
         n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
         n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
-        c_vac = scipy.constants.c * units.m / units.s
 
         channel_spectra = {}
         for channel in station.iter_channels(use_channels=selected_channel_ids):
@@ -283,10 +281,14 @@ class channelGalacticNoiseAdder:
             if zenith > 90. * units.deg:
                 continue
 
-            # consider signal reflection at ice surface
-            t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, 1)
-            t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, 1)
-            fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice, 1.)
+            if n_ice != n_air: # consider signal reflection at ice surface
+                t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, n_air)
+                t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, n_air)
+                fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice, n_air)
+            else: # we are at an in-air site; no refraction
+                t_theta = 1
+                t_phi = 1
+                fresnel_zenith = zenith
 
             if fresnel_zenith is None:
                 continue
@@ -341,9 +343,9 @@ class channelGalacticNoiseAdder:
                 polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
                 channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
-                    1j * delta_phases) * np.cos(polarizations)
+                    1j * delta_phases) * np.cos(polarizations) * curr_t_theta
                 channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
-                    1j * delta_phases) * np.sin(polarizations)
+                    1j * delta_phases) * np.sin(polarizations) * curr_t_phi
 
 
                 # fold electric field with antenna response
@@ -355,8 +357,8 @@ class channelGalacticNoiseAdder:
                         freqs, curr_fresnel_zenith, azimuth, *antenna_orientation)
 
                 channel_noise_spectrum = (
-                    antenna_response['theta'] * channel_noise_spec[1] * curr_t_theta
-                    + antenna_response['phi'] * channel_noise_spec[2] * curr_t_phi
+                    antenna_response['theta'] * channel_noise_spec[1]
+                    + antenna_response['phi'] * channel_noise_spec[2]
                 )
 
                 # add noise spectrum from pixel in the sky to channel spectrum
