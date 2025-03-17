@@ -317,10 +317,10 @@ class BaseTrace:
         """
         Adds the trace of another channel to the trace of this channel.
 
-        The trace of the incoming channel is only added within the time window of the current 
-        channel. If the current channel has an empty trace (i.e., a trace containing zeros) with 
-        a defined trace_start_time, this function can be seen as recording the incoming channel 
-        in the specified readout window. Hence, the current channel is referred to as the "readout" 
+        The trace of the incoming channel is only added within the time window of the current
+        channel. If the current channel has an empty trace (i.e., a trace containing zeros) with
+        a defined trace_start_time, this function can be seen as recording the incoming channel
+        in the specified readout window. Hence, the current channel is referred to as the "readout"
         in the comments of this function.
 
         Parameters
@@ -393,15 +393,15 @@ class BaseTrace:
 
             i_end_readout = floor((t1_channel - t0_readout) * sampling_rate_readout) + 1 # The bin of readout right before channel ends
             i_end_channel = n_samples_channel
-
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
         residual_time_offset = t_start_channel - t_start_readout
         if np.abs(residual_time_offset) >= min_residual_time_offset:
             tmp_channel = copy.deepcopy(channel)
             tmp_channel.apply_time_shift(residual_time_offset)
-            trace_to_add = tmp_channel.get_trace()[i_start_channel:i_end_channel]
+
+            trace_to_add = tmp_channel.get_trace()
         else:
-            trace_to_add = channel.get_trace()[i_start_channel:i_end_channel]
+            trace_to_add = channel.get_trace()
 
         if i_end_readout - i_start_readout != i_end_channel - i_start_channel:
             logger.error("The traces do not have the same length. This should not happen.")
@@ -409,7 +409,11 @@ class BaseTrace:
 
         # Add the trace to the original trace:
         original_trace = self.get_trace()
-        original_trace[i_start_readout:i_end_readout] += trace_to_add
+        if original_trace.ndim == 1:
+            original_trace[i_start_readout:i_end_readout] += trace_to_add[i_start_channel:i_end_channel]
+        else:
+            original_trace[:, i_start_readout:i_end_readout] += trace_to_add[:, i_start_channel:i_end_channel]
+
         self.set_trace(original_trace, sampling_rate_readout)
 
 
