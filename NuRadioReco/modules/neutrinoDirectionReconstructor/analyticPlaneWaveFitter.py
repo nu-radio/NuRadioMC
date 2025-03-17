@@ -13,13 +13,14 @@ SPEED_OF_LIGHT = scipy.constants.c * units.m / units.s # convert to NuRadio unit
 
 def find_threshold_crossing(channels, threshold, offset=5 * units.ns, min_amp=0, debug=False):
     """Find the time where the hilbert envelope of a trace first crosses some threshold
-    
+
     Parameters
     ----------
     channels : list of `NuRadioReco.framework.channel.Channel` objects
         the channels to use in the reconstruction
-    threshold : float
-        the threshold value
+    threshold : float | str
+        If a float, the threshold value. Otherwise, the string "max" can be given,
+        in which case the times of the hilbert envelope maxima are returned.
     offset : float or list of floats, optional
         Time at the start and end of each trace to exclude.
         If a list, the entries are the offsets for the start and end of the trace,
@@ -32,20 +33,19 @@ def find_threshold_crossing(channels, threshold, offset=5 * units.ns, min_amp=0,
         no threshold crossing will be returned for this channel.
     debug : bool, default False
         create some debug plots
-    
+
     Returns
     -------
     threshold_times : np.ndarray of floats
         An array with the threshold crossing times for each channel.
         For channels that do not exceed ``threshold`` (or ``min_amp``),
         this will be ``np.nan``.
-    
     """
     offset = list(offset)
     if len(offset) == 1:
         offset += offset
     if debug:
-        fig, axs = plt.subplots(3, 1, figsize=(4,6))
+        fig, axs = plt.subplots(3, 1, figsize=(4, 6))
 
     threshold_times = np.nan * np.zeros(len(channels))
 
@@ -58,8 +58,10 @@ def find_threshold_crossing(channels, threshold, offset=5 * units.ns, min_amp=0,
             offset_samples[1] = None # needed for correct numpy slicing
 
         hilbert_envelope = channel.get_hilbert_envelope_mag()
-        if threshold == 'pulse_max':
-            threshold_xing = [np.argmax(hilbert_envelope) - offset_samples[0]]
+        if threshold == 'max':
+            threshold_xing = np.argmax(hilbert_envelope[offset_samples[0]:-offset_samples[1]], keepdims=True)
+        elif isinstance(threshold, str):
+            raise ValueError(f'Argument `threshold` has value"{threshold}" but only a float or the string `max` are accepted.')
         else:
             threshold_xing = np.where(
                 hilbert_envelope[offset_samples[0]:-offset_samples[1]] > threshold
@@ -92,16 +94,16 @@ def find_threshold_crossing(channels, threshold, offset=5 * units.ns, min_amp=0,
             plt.show()
         else:
             plt.close()
-        
-    return np.array(threshold_times)
+
+    return np.asarray(threshold_times)
 
 def analytic_plane_wave_fitter(dt, pos, n_index=1.000293):
-    """analytic plane wave fit
-    
-    Given three time delays ``dt`` and three positions 
+    """Analytic plane wave fit
+
+    Given three time delays ``dt`` and three positions
     ``pos``, returns the analytic solution(s) to the
     plane wave fit.
-    
+
     Parameters
     ----------
     dt : (3)-shaped np.array
@@ -110,19 +112,18 @@ def analytic_plane_wave_fitter(dt, pos, n_index=1.000293):
         the 3D positions of the three observers
     n_index : float, default 1.
         the index of refraction
-    
+
     Returns
     -------
     (theta, phi) : tuple of floats
         zenith and azimuth of the analytic solution
-    
+
     Notes
     -----
     Note that the solution returned is not unique; mirroring the direction
     in the plane formed by the three observer positions also gives
     a valid solution. If this plane is the x-y plane (all observers have the same
     z coordinate), the solution coming from above (zenith < pi/2) is returned.
-
     """
     if len(dt) > 3:
         logger.warning("System overdetermined, using only first three time delays & observers")
@@ -140,7 +141,7 @@ def analytic_plane_wave_fitter(dt, pos, n_index=1.000293):
         pos_xy = rot.apply(dpos)[1:3, 0:2]
     else:
         pos_xy = dpos[1:3, 0:2]
-    
+
     ds = SPEED_OF_LIGHT * np.array(dt) / n_index
     ds = ds[1:3] - ds[0]
 
