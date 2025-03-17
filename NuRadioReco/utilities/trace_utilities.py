@@ -115,13 +115,14 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
     times : numpy.ndarray
         The time grid for the electric field trace
     signal_window_mask : numpy.ndarray
-        A boolean mask that selects the signal window
+        A boolean mask that selects the signal window in which the energy fluence is calculated
     noise_window_mask : numpy.ndarray
         A boolean mask that selects the noise window. Only used if method is "noise_subtraction"
     return_uncertainty : bool
         If True, the uncertainty of the energy fluence is returned
     method : str
-        The method to use for the energy fluence calculation. Can be either "noise_subtraction" or "rice_distribution" (also "rice_disttribution_sara" but this will be removed in future commits)
+        The method to use for the energy fluence calculation. Can be either "noise_subtraction" or "rice_distribution".
+        The Rice distribution is method implementation is based on the code published alongside S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
     """
 
     dt = times[1] - times[0]
