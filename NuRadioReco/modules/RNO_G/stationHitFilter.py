@@ -65,7 +65,7 @@ class stationHitFilter:
         self._envelope_max_time = None
         self._noise_RMS = None
         self._times = None
-        self._trace = None
+        self._traces = None
         self._envelope_trace = None
         self._is_over_hit_threshold = None
         self._hit_thresholds = None
@@ -119,16 +119,16 @@ class stationHitFilter:
             A set of input noise RMS values of all 24 channels
         """
         # This implicitly obeys the channel mapping
-        self._trace = np.array([np.array(channel.get_trace()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
+        self._traces = np.array([np.array(channel.get_trace()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
         self._times = np.array([np.array(channel.get_times()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
-
+        self._envelope_trace = trace_utilities.get_hilbert_envelope(self._traces)
         self._envelope_max_time_index = np.argmax(self._envelope_trace, axis=-1)
         self._envelope_max_time = self._times[range(len(self._times)), self._envelope_max_time_index]
 
         if noise_RMS is not None:
             self._noise_RMS = noise_RMS[self._in_ice_channels]  # HACK: use channel IDs to index noise_RMS
         else:
-            self._noise_RMS = np.array([trace_utilities.get_split_trace_noise_RMS(trace) for trace in self._trace])
+            self._noise_RMS = np.array([trace_utilities.get_split_trace_noise_RMS(trace) for trace in self._traces])
 
         self._hit_thresholds = self._noise_RMS[:, None] * self.get_threshold_multipliers()
 
@@ -354,14 +354,14 @@ class stationHitFilter:
         """
         return np.array(self._times)
 
-    def get_trace(self):
+    def get_traces(self):
         """
         Returns
         -------
-        np.array(self._trace): 2-D numpy array of floats
+        np.array(self._traces): 2-D numpy array of floats
             Arrays of trace for channels
         """
-        return np.array(self._trace)
+        return np.array(self._traces)
 
     def get_envelope_trace(self):
         """
