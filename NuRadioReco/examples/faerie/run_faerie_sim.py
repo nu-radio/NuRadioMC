@@ -5,6 +5,7 @@ from NuRadioReco.detector import detector
 from NuRadioReco.utilities import units, signal_processing
 
 from NuRadioReco.framework.parameters import showerParameters as shp
+from NuRadioReco.framework.base_trace import BaseTrace
 
 from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import \
     detector_simulation_with_data_driven_noise, rnog_flower_board_high_low_trigger_simulations
@@ -21,6 +22,39 @@ import numpy as np
 import logging
 import argparse
 import copy
+
+
+def pad_traces(event, pad_before=20 * units.ns, pad_after=20 * units.ns):
+    sim_station = event.get_station().get_sim_station()
+
+    tstarts = []
+    tends = []
+    for electric_field in sim_station.get_electric_fields():
+        times = electric_field.get_times()
+        tstarts.append(times[0])
+        tends.append(times[-1])
+
+    tstart = np.min(tstarts) + pad_before
+    tend = np.max(tends) + pad_after
+
+    t_readout_window = det.get_number_of_samples(sim_station.get_id(), 0) / \
+        det.get_sampling_frequency(sim_station.get_id(), 0)
+
+    if tend - tstart < t_readout_window:
+        tend = tstart + t_readout_window + pad_after * units.ns
+
+    # assumes all efields have the same sampling rate
+    n_samples = int((tend - tstart) * electric_field.get_sampling_rate())
+    if n_samples % 2 != 0:
+        n_samples += 1
+
+    for electric_field in sim_station.get_electric_fields():
+        readout = BaseTrace()
+        readout.set_trace(np.zeros((3, n_samples)), electric_field.get_sampling_rate(), tstart)
+
+        readout.add_to_trace(electric_field)
+        electric_field.set_trace(readout.get_trace(), "same", tstart)
+
 
 
 def split_events(event, det, trigger_channels):
@@ -157,6 +191,8 @@ for combined_event in readFAERIEShower.run(depth=args.depth, station_id=args.sta
 
     for edx, event in enumerate(split_events(combined_event, det, trigger_channels)):
         det.set_event(event)
+
+        pad_traces(event)
 
         shower = event.get_first_sim_shower()
         for sdx, station in enumerate(event.get_stations()):
