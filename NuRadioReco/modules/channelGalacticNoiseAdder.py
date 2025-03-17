@@ -244,11 +244,17 @@ class channelGalacticNoiseAdder:
             if self.__freqs is None:
                 self.__freqs = freqs
             else:
-                if not np.allclose(self.__freqs, freqs, rtol=0, atol=0.01 * units.MHz):
+                if len(self.__freqs) != len(freqs):
                     self.__freqs = freqs
                     self._get_cached_antenna_response.cache_clear()
                     logger.warning(
-                        "Frequencies have changed. Clearing antenna response cache. "
+                        "Frequencies have changed (array length). Clearing antenna response cache. "
+                        "(If this happens often, something might be wrong...")
+                elif not np.allclose(self.__freqs, freqs, rtol=0, atol=0.01 * units.MHz):
+                    self.__freqs = freqs
+                    self._get_cached_antenna_response.cache_clear()
+                    logger.warning(
+                        "Frequencies have changed (values). Clearing antenna response cache. "
                         "(If this happens often, something might be wrong...")
 
 

@@ -2,8 +2,11 @@ from NuRadioReco.utilities import units, ice, geometryUtilities as geo_utl, fft
 import NuRadioReco.framework.base_trace
 
 import numpy as np
-import scipy.constants
+import scipy.stats
 import scipy.signal
+import scipy.ndimage
+import scipy.constants
+
 import logging
 logger = logging.getLogger('NuRadioReco.trace_utilities')
 
@@ -30,36 +33,23 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
         incoming direction of the signal. Note that refraction and reflection at the ice/air boundary are taken into account
     antenna_pattern_provider: AntennaPatternProvider
     """
-    n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
+
     efield_antenna_factor = np.zeros((len(channels), 2, len(frequencies)), dtype=complex)  # from antenna model in e_theta, e_phi
     for iCh, channel_id in enumerate(channels):
-        zenith_antenna = zenith
-        t_theta = 1.
-        t_phi = 1.
-        # first check case if signal comes from above
-        if zenith <= 0.5 * np.pi and station.is_cosmic_ray():
-            # is antenna below surface?
-            position = detector.get_relative_position(station.get_id(), channel_id)
-            if position[2] <= 0:
-                zenith_antenna = geo_utl.get_fresnel_angle(zenith, n_ice, 1)
-                t_theta = geo_utl.get_fresnel_t_p(zenith, n_ice, 1)
-                t_phi = geo_utl.get_fresnel_t_s(zenith, n_ice, 1)
-                logger.info("channel {:d}: electric field is refracted into the firn. theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) {:.2f} s (ePhi) {:.2f}".format(iCh, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi))
-        else:
-            # now the signal is coming from below, do we have an antenna above the surface?
-            position = detector.get_relative_position(station.get_id(), channel_id)
-            if(position[2] > 0):
-                zenith_antenna = geo_utl.get_fresnel_angle(zenith, 1., n_ice)
-        if(zenith_antenna is None):
-            logger.warning("fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible")
+        zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith)
+
+        if zenith_antenna is None:
+            logger.warning("Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible")
             return None
 
-        logger.debug("angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)))
+        logger.debug("angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(
+            np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)))
         antenna_model = detector.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
         antenna_pattern = antenna_pattern_provider.load_antenna_pattern(antenna_model)
         ori = detector.get_antenna_orientation(station.get_id(), channel_id)
         VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_antenna, azimuth, *ori)
         efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
+
     return efield_antenna_factor
 
 
@@ -431,3 +421,310 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
                     "Consider cropping the trace to remove these samples.")
 
         return delayed_trace
+
+
+def peak_to_peak_amplitudes(trace, coincidence_window_size):
+    """
+    Calculates all local peak to peak amplitudes of a given trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Array containing the trace
+    coincidence_window_size: int
+        Length along which to calculate minimum
+
+    Returns
+    -------
+    amplitudes: array of floats (same length as the input trace)
+        Local peak to peak amplitudes
+    """
+    amplitudes = scipy.ndimage.maximum_filter1d(trace, coincidence_window_size) - scipy.ndimage.minimum_filter1d(trace, coincidence_window_size)
+
+    return amplitudes
+
+def get_split_trace_noise_RMS(trace, segments=4, lowest=2):
+    """
+    Calculates the noise root mean square (RMS) of a given trace.
+
+    This method splits the trace into segments,
+    then calculates the RMS of each segment,
+    and then takes the mean of the lowest few segemts' RMS values.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Array containing the trace
+    segments: int
+        Amount of segments to cut the trace int
+    lowest: int
+        Amount of lowest segment rms values to use when calculating the mean RMS end result
+
+    Returns
+    -------
+    noise_root_mean_square: float
+        The mean of the lowest few segments' RMS values
+    """
+    split_array = np.array_split(trace, segments)
+    split_array = np.array(split_array, dtype="object") #Objectify dtype to allow timetraces indivisible by amount of segments
+    rms_of_splits = [np.std(split) for split in split_array]
+    ordered_rmss = np.sort(rms_of_splits)
+    lowest_rmss = ordered_rmss[:lowest]
+    noise_root_mean_square = np.mean(lowest_rmss)
+
+    return noise_root_mean_square
+
+def get_signal_to_noise_ratio(trace, noise_rms, window_size=3):
+    """
+    Computes the Signal to Noise Ratio (SNR) of a given trace.
+
+    The signal to noise ratio is calculated as the peak to peak amplitude
+    within a given window size divided by twice the noise root mean square (RMS).
+
+    Parameters
+    ----------
+    trace : array of floats
+        Trace of a waveform
+    noise_rms: float
+        Noise root mean square (RMS)
+    window_size: int
+        Coincidence window size (default: 3)
+
+    Returns
+    -------
+    signal_to_noise_ratio: float
+        Signal to Noise Ratio (SNR) value
+    """
+    if not window_size >= 2:
+        logger.error(f"Window size must be greater-equal 2 (but is {window_size})")
+        raise ValueError(f"Window size must be greater-equal 2 (but is {window_size})")
+
+    p2p = np.amax(peak_to_peak_amplitudes(trace, window_size))
+    signal_to_noise_ratio = p2p / (2 * noise_rms)
+
+    return signal_to_noise_ratio
+
+def get_root_power_ratio(trace, times, noise_rms):
+    """
+    Computes the Root Power Ratio (RPR) of a given trace.
+
+    It compares the peak signal strength to the baseline noise.
+    The waveform’s power is smoothed using a 25 ns sliding window,
+    and the square root of this smoothed power gives the rolling root power.
+    The RPR is the maximum root power divided by the noise RMS
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+    times: array of floats
+        Times of a waveform
+    noise_rms: float
+        noise root mean square (RMS)
+
+    Returns
+    -------
+    root_power_ratio: float
+        Root Power Ratio (RPR) value
+    """
+
+    # Calculating RPR (Root Power Ratio)
+    if noise_rms == 0:
+        root_power_ratio = np.inf
+    else:
+        wf_len = len(trace)
+        channel_wf = trace ** 2
+
+        # Calculate the smoothing window size based on sampling rate
+        dt = times[1] - times[0]
+        sum_win = 25  # Smoothing window in ns
+        sum_win_idx = int(np.round(sum_win / dt))  # Convert window size to sample points
+
+        channel_wf = np.sqrt(scipy.ndimage.uniform_filter1d(channel_wf, size=sum_win_idx, mode='constant'))
+
+        # Find the maximum value of the smoothed waveform
+        max_bin = np.argmax(channel_wf)
+        max_val = channel_wf[max_bin]
+
+        root_power_ratio = max_val / noise_rms
+
+    return root_power_ratio
+
+def get_hilbert_envelope(trace):
+    """
+    Applies the Hilbert Tranform to a given waveform trace,
+    then it will give us an envelope trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+
+    Returns
+    -------
+    envelope: array of floats
+        Hilbert envelope of the waveform trace
+    """
+    # Get the Hilbert envelope of the waveform trace
+    envelope = np.abs(scipy.signal.hilbert(trace))
+
+    return envelope
+
+def get_impulsivity(trace):
+    """
+    Calculates the impulsivity of a signal (trace).
+
+    This function computes the impulsivity of a trace by first performing the Hilbert Transform
+    to obtain an analytic signal (Hilbert envelope) and then determining the
+    cumulative distribution function (CDF) of the square of the sorted envelope values i.e. power values based on their
+    closeness to the maximum value. The average of the CDF is then scaled and returned
+    as the impulsivity value.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+
+    Returns
+    -------
+    impulsivity: float
+        Impulsivity of the signal (scaled between 0 and 1)
+    """
+
+    envelope = get_hilbert_envelope(trace)
+    maxv = np.argmax(envelope)
+    envelope_indexes = np.arange(len(envelope)) ## just a list of indices the same length as the array
+    closeness = list(
+        np.abs(envelope_indexes - maxv)
+    )  ## create an array containing index distance to max voltage (lower the value, the closer it is)
+
+    sorted_envelope = np.array([x for _, x in sorted(zip(closeness, envelope))])
+    cdf = np.cumsum(sorted_envelope**2)
+    cdf = cdf / cdf[-1]
+
+    impulsivity = (np.mean(np.asarray([cdf])) * 2.0) - 1.0
+    if impulsivity < 0:
+        impulsivity = 0.0
+
+    return impulsivity
+
+def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
+    """
+    Generates the coherently-summed waveform (CSW) of a sets of traces.
+
+    This function finds the correlation between each trace from a set and the reference trace,
+    then rolls all traces to align with the reference trace,
+    and then add them up to get the CSW.
+
+    Parameters
+    ----------
+    trace_set: 2-D array of floats
+        Traces of multiple channel waveforms without the reference trace
+    ref_trace: 1-D array of floats
+        Trace of the reference channel
+    use_envelope: bool
+        See if users would like to find the correlation between envelopes or just normal traces (default: False)
+
+    Returns
+    -------
+    sum_trace: 1-D array of floats
+        CSW of the set of traces
+    """
+    sum_trace = ref_trace
+
+    for idx, trace in enumerate(trace_set):
+        if use_envelope:
+            sig_ref = get_hilbert_envelope(ref_trace)
+            sig_i = get_hilbert_envelope(trace)
+        else:
+            sig_ref = ref_trace
+            sig_i = trace
+        cor = scipy.signal.correlate(sig_ref, sig_i, mode = "full")
+        lag = int(np.argmax((cor)) - (np.size(cor)/2.))
+
+        aligned_trace = np.roll(trace, lag)
+        sum_trace += aligned_trace
+
+    return sum_trace
+
+def get_entropy(trace, n_hist_bins = 50):
+    """
+    Calculates the shannon entropy (randomness measurement) of a trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+    n_hist_bins: int
+        Number of bins for the histogram (default: 50)
+
+    Returns
+    -------
+    entropy: float
+        Shannon entropy of the signal (trace)
+    """
+
+    # Step 1: Discretize the signal into bins
+    # If density = True, the result is the value of the probability density function at the bin,
+    # normalized such that the integral over the range is 1.
+    hist, bin_edges = np.histogram(trace, bins = n_hist_bins, density = True)
+
+    # Step 2: Calculate the probability distribution (normalized)
+    probabilities = hist / np.sum(hist)
+
+    # Step 3: Calculate Shannon Entropy
+    # Using base = 2 for entropy in bits
+    entropy = scipy.stats.entropy(probabilities, base = 2)
+
+    return entropy
+
+def get_kurtosis(trace):
+    """
+    Calculates the kurtosis (tailedness) of a trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+
+    Returns
+    -------
+    kurtosis: float
+        Kurtosis of the signal (trace)
+    """
+    kurtosis = scipy.stats.kurtosis(trace)
+
+    return kurtosis
+
+def is_NAN_or_INF(trace):
+    """
+    To see if a trace has any NAN or INF.
+
+    If there's any NAN or any INF,
+    this function will tell us how many points of NAN and INF there are.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+
+    Returns
+    -------
+    is_bad_trace: bool
+        True if there's any or False if the trace doesn't have any unreadable point
+    npoints_NAN: int
+        Number of NAN points
+    npoints_INF: int
+        Number of INF points
+    """
+    is_bad_trace = False
+
+    trace = np.array(trace)
+
+    npoints_NAN = len(np.argwhere(np.isnan(trace)))
+    npoints_INF = len(np.argwhere(np.isinf(trace)))
+
+    if npoints_NAN or npoints_INF:
+       is_bad_trace = True
+
+    return is_bad_trace, npoints_NAN, npoints_INF
