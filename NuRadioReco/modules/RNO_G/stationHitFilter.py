@@ -71,11 +71,9 @@ class stationHitFilter:
         self._hit_thresholds = None
 
         ### 2-D list ###
-        # This list contains sub-lists for all groups.
-        # Each sub-list contains bool(s) indicating the COINCIDENCE of channel pair(s) in each group
-        # self._in_time_sequence[0] is the PA, it has 6 pairs (6 bools)
-        # Initiating each element with None, it will later be replaced with bool when running the time checker
-        self._in_time_sequence = [[None for _ in range(int((len(group) - 1)**2))] for group in self._in_ice_channel_groups]
+        # List of all possible channel pairs (n_pairs = (n_channels - 1)**2) per group.
+        # Used for bookkeeping between which channel pairs a coincidence is found.
+        self._in_time_sequence_default = [[None for _ in range(int((len(group) - 1)**2))] for group in self._in_ice_channel_groups]
 
         self._passed_time_checker = None
         self._passed_hit_checker = None
@@ -150,35 +148,44 @@ class stationHitFilter:
         """
         self._passed_time_checker = False
         envelope_max_time = self.get_envelope_max_time()
-        is_coincident_in_PA = [False, False, False]
+        coincidences_in_PA = 0
+        self._in_time_sequence = self._in_time_sequence_default.copy()
 
         for i_group, group in enumerate(self._in_ice_channel_groups):
+            # Group one is special because we require at least one coincident pair in this group
             if i_group == 0:
+                # For e.g, channel 3 and 0 take 3 times the dT.
+                dT_multipliers = np.diff(self._channel_pairs_in_PA).flatten()
                 for i_channel_pair, channel_pair in enumerate(self._channel_pairs_in_PA):
                     hit_time_difference = abs(envelope_max_time[channel_pair[1]] - envelope_max_time[channel_pair[0]])
-                    dT_multiplier = abs(channel_pair[1] - channel_pair[0])
-                    self._in_time_sequence[i_group][i_channel_pair] = hit_time_difference <= dT_multiplier * self._dT
+                    is_coincidence = hit_time_difference <= dT_multipliers[i_channel_pair] * self._dT
 
-                    if channel_pair[0] == 0 and self._in_time_sequence[i_group][i_channel_pair]:
-                        is_coincident_in_PA[0] = True
-                    elif channel_pair[0] == 1 and self._in_time_sequence[i_group][i_channel_pair]:
-                        is_coincident_in_PA[1] = True
-                    elif channel_pair[0] == 2 and self._in_time_sequence[i_group][i_channel_pair]:
-                        is_coincident_in_PA[2] = True
-                if sum(is_coincident_in_PA) >= 2:
-                    self._passed_time_checker = True
-                    if not self._complete_time_check:
+                    if is_coincidence:
+                        coincidences_in_PA += 1
+                        self._in_time_sequence[i_group][i_channel_pair] = is_coincidence
+
+                    if coincidences_in_PA >= 2:
+                        self._passed_time_checker = True
                         break
-                elif not sum(is_coincident_in_PA) and not self._complete_time_check:
-                    break
             else:
+                # If the time checker already passed, we can skip the rest of the groups
+                if self._passed_time_checker:
+                    return self._passed_time_checker
+
+                if coincidences_in_PA == 0:
+                    # If there are no coincidences in PA, we can skip the rest of the groups
+                    self._passed_time_checker = False
+                    break
+
+                if len(group) != 2:
+                    raise NotImplementedError("For any channel group other than group 0, only 2 channels are supported for now")
+
                 hit_time_difference = abs(envelope_max_time[self._channel_mapping(group[0])] - envelope_max_time[self._channel_mapping(group[1])])
                 self._in_time_sequence[i_group][0] = hit_time_difference <= self._dT
 
-                if self._in_time_sequence[i_group][0] and sum(is_coincident_in_PA) >= 1:
+                if self._in_time_sequence[i_group][0]:
                     self._passed_time_checker = True
-                    if not self._complete_time_check:
-                        break
+                    break
 
         return self._passed_time_checker
 
