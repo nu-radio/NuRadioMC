@@ -8,6 +8,7 @@ from NuRadioReco.utilities import trace_utilities, units
 
 import numpy as np
 import logging
+import math
 
 logger = logging.getLogger('NuRadioReco.RNO_G.stationHitFitter')
 
@@ -73,7 +74,8 @@ class stationHitFilter:
         ### 2-D list ###
         # List of all possible channel pairs (n_pairs = (n_channels - 1)**2) per group.
         # Used for bookkeeping between which channel pairs a coincidence is found.
-        self._in_time_sequence_default = [[None for _ in range(int((len(group) - 1)**2))] for group in self._in_ice_channel_groups]
+        self._in_time_sequence_default = [
+            [None for _ in range(math.factorial(len(group) - 1))] for group in self._in_ice_channel_groups]
 
         self._passed_time_checker = None
         self._passed_hit_checker = None
@@ -208,7 +210,8 @@ class stationHitFilter:
         envelopes = self.get_envelope_trace()
         hit_thresholds = self.get_hit_thresholds()
 
-        self._is_over_hit_threshold = np.amax(envelopes, axis=-1) > hit_thresholds
+        self._is_over_hit_threshold = np.squeeze(np.amax(envelopes, axis=-1)[:, None] > hit_thresholds)
+
         self._passed_hit_checker = np.any(self._is_over_hit_threshold)
 
         return self._passed_hit_checker
