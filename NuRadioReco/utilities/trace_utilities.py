@@ -149,22 +149,22 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
             signal_window_duration = sum(signal_window_mask) * dt if signal_window_mask is not None else len(times) * dt
             signal_energy_fluence_error = (4 * np.abs(signal_energy_fluence / conversion_factor_integrated_signal) * RMSNoise ** 2 * dt + 2 * signal_window_duration * RMSNoise ** 4 * dt) ** 0.5  * conversion_factor_integrated_signal
         else:
-            pass #signal_energy_fluence_error = np.zeros(3)
+            signal_energy_fluence_error = np.zeros(3)
     
     elif method == "rice_disttribution":
         signal_energy_fluence = np.zeros(len(electric_field_trace))
         signal_energy_fluence_error = np.zeros(len(electric_field_trace))
         for i_pol in range(len(electric_field_trace)):
             noise_estimators, frequencies_window = get_noise_fluence_estimators(
-                trace = electric_field_trace[i_pol,:],
+                trace = electric_field_trace[i_pol, :],
                 times = times,
                 signal_window_mask = signal_window_mask,
-                spacing_noise_signal = 20,
+                spacing_noise_signal = 20 * units.ns,
                 relative_taper_width = 0.142857143,
-                use_median_value = True
+                use_median_value = False
                 )
             estimators, variances = get_signal_fluence_estimators(
-                trace = electric_field_trace[i_pol,:],
+                trace = electric_field_trace[i_pol, :],
                 times = times,
                 signal_window_mask = signal_window_mask,
                 noise_estimators = noise_estimators,
@@ -175,7 +175,7 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
             delta_f = frequencies_window[1] - frequencies_window[0]
 
             #to convert the amplitudes squared into energy fluence units
-            conversion_factor = conversion_factor_integrated_signal #scipy.constants.epsilon_0 * scipy.constants.c / scipy.constants.e
+            conversion_factor = conversion_factor_integrated_signal
 
             #correcting for selecting positive frequencies
             one_side_spectrum_corr_factor = 1 #np.sqrt(2)
@@ -205,7 +205,7 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
                 window_length_tot_ns = sum(signal_window_mask) * dt,
                 relative_taper_width = 0.142857143,
                 dt_ns=dt,
-                use_median_value = True
+                use_median_value = False
                 )
             estimators, variances = get_signal_fluence_estimators_sara(
                 time_trace = electric_field_trace[i_pol,:],
