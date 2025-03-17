@@ -1,8 +1,12 @@
-from NuRadioReco.modules.channelGalacticNoiseAdder import *
-
+from NuRadioReco.utilities import units, ice, geometryUtilities, trace_utilities
+from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.modules.channelGalacticNoiseAdder import channelGalacticNoiseAdder, get_local_coordinates
+import numpy as np
+import scipy.interpolate
+import logging
+import healpy
 
 logger = logging.getLogger('NuRadioReco.efieldGalacticNoiseAdder')
-
 
 class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
     """
@@ -18,8 +22,13 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
     of the brightness temperature is interpolated in between.
 
     This module is largely equivalent to the channelGalacticNoiseAdder, but operates on ``ElectricField``
-    instead of ``Channel`` objects. Note that as of March 2025, ice properties are not taken into account in
-    this module.
+    instead of ``Channel`` objects.
+
+    See Also
+    --------
+    NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder
+        Similar class that directly adds the noise to ``Channel`` (voltage trace) objects
+        instead of ``ElectricField``s.
     """
 
     def __init__(self):
@@ -76,7 +85,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
 
         local_coordinates = get_local_coordinates((site_latitude, site_longitude), station_time, self.__n_side)
 
-        # n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
+        n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
         n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
 
         field_spectra = {}
@@ -90,6 +99,18 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
             if zenith > 90. * units.deg:
                 continue
 
+            if n_ice != n_air: # consider signal reflection at ice surface
+                t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, n_air)
+                t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, n_air)
+                fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice, n_air)
+            else: # we are at an in-air site; no refraction
+                t_theta = 1
+                t_phi = 1
+                fresnel_zenith = zenith
+
+            if fresnel_zenith is None:
+                continue
+
             temperature_interpolator = scipy.interpolate.interp1d(
                 self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
             noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
@@ -98,7 +119,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
                                                                                    noise_temperature, self.solid_angle)
 
             # assign random phases to electric field
-            noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex128)
+            noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
             phases = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
             noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
@@ -107,24 +128,38 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
             efield_noise_spec = np.zeros_like(noise_spectrum)
 
             for field in station.get_electric_fields():
-                field_pos = field.get_position()
-                if field_pos[2] < -0.01:
-                    logger.warning(
-                        f"ElectricField {field.get_unique_identifier()} has field position {field_pos} below the surface."
-                        f"This is not yet supported, as ice properties are not implemented in this module.")
 
+                field_pos = field.get_position()
+                if field_pos[2] < 0:
+                    curr_t_theta = t_theta
+                    curr_t_phi = t_phi
+                    curr_fresnel_zenith = fresnel_zenith
+                    curr_n = n_ice
+                else: # we are in air
+                    curr_t_theta = 1
+                    curr_t_phi = 1
+                    curr_fresnel_zenith = zenith
+                    curr_n = n_air
+
+                # calculate the phase offset in comparison to station center
+                # consider additional distance in air & ice
+                # assume for air & ice constant index of refraction
                 dt = geometryUtilities.get_time_delay_from_direction(
-                    zenith, azimuth, field_pos, n=n_air
-                )
+                    curr_fresnel_zenith, azimuth, field_pos, n=curr_n)
+                if field_pos[2] < -5:
+                    logger.warning(
+                        "Galactic noise cannot be simulated accurately for deep in-ice channels. "
+                        "Coherence and arrival direction of noise are probably inaccurate.")
+
                 delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
                 # add random polarizations and phase to electric field
                 polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
                 efield_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
-                    1j * delta_phases) * np.cos(polarizations)
+                    1j * delta_phases) * np.cos(polarizations) * curr_t_theta
                 efield_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
-                    1j * delta_phases) * np.sin(polarizations)
+                    1j * delta_phases) * np.sin(polarizations) * curr_t_phi
 
                 # add noise spectrum from this to field freq spectrum (which is in on-sky CS -> no noise in R-direction)
                 field_spectra[field.get_unique_identifier()] += efield_noise_spec
