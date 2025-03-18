@@ -213,9 +213,9 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, declination=0):
         observer_pos[:, 1] * -1,
         observer_pos[:, 0],
         observer_pos[:, 2]
-    ]).T * units.cm
+    ]) * units.cm
 
-    obs_positions = np.array([hp.rotate_vector_in_2d(obs_pos, -declination) for obs_pos in obs_positions])
+    obs_positions = hp.rotate_vector_in_2d(obs_positions, -declination).T
 
     return np.squeeze(obs_positions)
 
