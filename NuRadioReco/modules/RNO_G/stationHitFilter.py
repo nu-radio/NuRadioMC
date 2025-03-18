@@ -71,12 +71,6 @@ class stationHitFilter:
         self._is_over_hit_threshold = None
         self._hit_thresholds = None
 
-        ### 2-D list ###
-        # List of all possible channel pairs (n_pairs = (n_channels - 1)**2) per group.
-        # Used for bookkeeping between which channel pairs a coincidence is found.
-        self._in_time_sequence_default = [
-            [None for _ in range(math.factorial(len(group) - 1))] for group in self._in_ice_channel_groups]
-
         self._passed_time_checker = None
         self._passed_hit_checker = None
         self._passed_hit_filter = None
@@ -150,9 +144,8 @@ class stationHitFilter:
         """
         self._passed_time_checker = False
         envelope_max_time = self.get_envelope_max_time()
-        coincidences_in_PA = 0
-        self._in_time_sequence = self._in_time_sequence_default.copy()
 
+        coincidences_in_PA = [False, False, False]
         for i_group, group in enumerate(self._in_ice_channel_groups):
             # Group one is special because we require at least one coincident pair in this group
             if i_group == 0:
@@ -162,19 +155,19 @@ class stationHitFilter:
                     hit_time_difference = abs(envelope_max_time[channel_pair[1]] - envelope_max_time[channel_pair[0]])
                     is_coincidence = hit_time_difference <= dT_multipliers[i_channel_pair] * self._dT
 
+                    # this condition assures the the conicidence pairs are somewhat neighboring
                     if is_coincidence:
-                        coincidences_in_PA += 1
-                        self._in_time_sequence[i_group][i_channel_pair] = is_coincidence
+                        coincidences_in_PA[channel_pair[0]] = is_coincidence
 
-                    if coincidences_in_PA >= 2:
-                        self._passed_time_checker = True
-                        break
+                if np.sum(coincidences_in_PA) >= 2:
+                    self._passed_time_checker = True
+                    break
             else:
                 # If the time checker already passed, we can skip the rest of the groups
                 if self._passed_time_checker:
                     return self._passed_time_checker
 
-                if coincidences_in_PA == 0:
+                if not np.any(coincidences_in_PA):
                     # If there are no coincidences in PA, we can skip the rest of the groups
                     self._passed_time_checker = False
                     break
@@ -183,9 +176,9 @@ class stationHitFilter:
                     raise NotImplementedError("For any channel group other than group 0, only 2 channels are supported for now")
 
                 hit_time_difference = abs(envelope_max_time[self._channel_mapping(group[0])] - envelope_max_time[self._channel_mapping(group[1])])
-                self._in_time_sequence[i_group][0] = hit_time_difference <= self._dT
+                is_coincidence = hit_time_difference <= self._dT
 
-                if self._in_time_sequence[i_group][0]:
+                if is_coincidence:
                     self._passed_time_checker = True
                     break
 
@@ -194,7 +187,7 @@ class stationHitFilter:
 
     def _hit_checker(self):
         """
-        Find a high hit (maximum > 6.5*noise_RMS) in all 15 in-ice channels.
+        Find a high hit in all 15 in-ice channels.
 
         See if there's at least 1 high hit in all input channels,
         if yes then the event passes the hit checker.
