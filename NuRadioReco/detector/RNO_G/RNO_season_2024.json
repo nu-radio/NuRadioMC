@@ -3202,7 +3202,7 @@
       "adc_sampling_frequency": 2.4,
       "commission_time": "{TinyDate}:2024-07-02T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
-      "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
+      "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
     "178": {
       "station_id": 14,
