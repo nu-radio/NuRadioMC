@@ -25,6 +25,7 @@ import copy
 
 
 def pad_traces(event, pad_before=20 * units.ns, pad_after=20 * units.ns):
+    """ Makes sure all traces have the same length and starting time. """
     sim_station = event.get_station().get_sim_station()
 
     tstarts = []
@@ -58,27 +59,39 @@ def pad_traces(event, pad_before=20 * units.ns, pad_after=20 * units.ns):
 
 
 def split_events(event, det, trigger_channels):
+    """ Split an event with more than 4 channels into multiple events with 4 channels. """
+
     det.set_event(event)
     station = event.get_station()
-    if (len(det.get_channel_ids(station.get_id())) == 4 and
+    if (len(det.get_channel_ids(station.get_id())) == len(trigger_channels) and
         np.all(det.get_channel_ids(station.get_id()) == trigger_channels)):
         return [event]
 
-    if len(det.get_channel_ids(station.get_id())) == 4:
+    if len(det.get_channel_ids(station.get_id())) == len(trigger_channels):
         raise ValueError("Some thing unexpected happend. The event has only 4 channels but "
                          f"the channel ids {det.get_channel_ids(station.get_id())} do not "
                          f"match the trigger channels ({trigger_channels})")
 
     # Split the event into multiple events
     sim_channel_ids = np.unique([efields.get_channel_ids() for efields in station.get_sim_station().get_electric_fields()])
+    channel_positions = np.array([det.get_relative_position(station.get_id(), sim_channel_id) for sim_channel_id in sim_channel_ids])
 
-    if len(sim_channel_ids) % 4 != 0:
-        raise ValueError(f"Expected a multiple of 4 sim channels, got {len(sim_channel_ids)}")
+    unique_xy_positions = np.unique(channel_positions[:, :2], axis=0)
+    n_batches = len(unique_xy_positions)
+
+    sim_channel_ids_batches = [[] for _ in range(n_batches)]
+    for sim_channel_id, xy_position in zip(sim_channel_ids, channel_positions[:, :2]):
+        idx = np.arange(n_batches)[np.all(unique_xy_positions == xy_position, axis=1)][0]
+        sim_channel_ids_batches[idx].append(sim_channel_id)
 
     events = []
-    sim_channel_ids_batches = np.split(sim_channel_ids, 4)
     for sim_channel_ids_batch in sim_channel_ids_batches:
         new_event = copy.deepcopy(event)
+
+
+        if len(sim_channel_ids_batch) != len(trigger_channels):
+            raise ValueError("Some thing unexpected happend. The batch has not the same number of channels as the trigger channels "
+                             f"sim_channel_ids_batch: {sim_channel_ids_batch}, trigger_channels: {trigger_channels}")
 
         new_sim_station = NuRadioReco.framework.sim_station.SimStation(station.get_id())  # set sim station id to 0
         new_sim_station.set_is_neutrino() # HACK: Since the sim. efields are always at the exact positions as the antenna(channels).
@@ -90,30 +103,16 @@ def split_events(event, det, trigger_channels):
         depth = np.array([det.get_relative_position(station.get_id(), sim_channel_id)[2] for sim_channel_id in sim_channel_ids_batch])
         sort = np.argsort(depth)
 
-        for sim_channel_id, new_id in zip(sim_channel_ids_batch[sort], trigger_channels):
+        sorted_sim_channel_ids_batch = np.array(sim_channel_ids_batch)[sort]
+        for sim_channel_id, new_id in zip(sorted_sim_channel_ids_batch, trigger_channels):
             for efield in station.get_sim_station().get_electric_fields_for_channels([sim_channel_id]):
-                efield.set_channel_ids([new_id])
-                new_sim_station.add_electric_field(efield)
+                efield_new = copy.deepcopy(efield)
+                efield_new.set_channel_ids([new_id])
+                new_sim_station.add_electric_field(efield_new)
 
 
     return events
 
-
-def plot_traces(event):
-    station = event.get_station()
-    sim_station = station.get_sim_station()
-    channel = next(station.iter_channels())
-
-    fig, ax = plt.subplots()
-    ax.plot(channel.get_times(), channel.get_trace(), lw=2, color='k')
-
-    for sim_channel in sim_station.iter_channels():
-        print(sim_channel.get_id(), channel.get_id())
-        if sim_channel.get_id() == channel.get_id():
-            ax.plot(sim_channel.get_times(), sim_channel.get_trace(), lw=1)
-
-    fig.tight_layout()
-    plt.show()
 
 
 # Parse eventfile as argument
