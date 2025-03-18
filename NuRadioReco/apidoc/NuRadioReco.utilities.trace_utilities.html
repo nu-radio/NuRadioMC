@@ -318,6 +318,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.correlationDirectionFitter.html">NuRadioReco.modules.correlationDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.cosmicRayEnergyReconstructor.html">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.efieldAirToIcePropagator.html">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.efieldGalacticNoiseAdder.html">NuRadioReco.modules.efieldGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.efieldRadioInterferometricReconstruction.html">NuRadioReco.modules.efieldRadioInterferometricReconstruction module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.efieldTimeDirectionFitter.html">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.efieldToVoltageConverter.html">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
@@ -677,6 +678,33 @@ at the air/ice boundary are already being taken into account.</p>
 <dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_electric_field_energy_fluence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">electric_field_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_electric_field_energy_fluence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_electric_field_from_temperature">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_electric_field_from_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solid_angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_electric_field_from_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_electric_field_from_temperature" title="Link to this definition"></a></dt>
+<dd><p>Calculate the electric field amplitude from the radiance of a radio signal.</p>
+<p>The radiance is calculated using the Rayleigh-Jeans law per frequency bin, by adjusting
+the value with the frequency spacing. After this, the electric field amplitude per bin
+is calculated using the radiance and the vacuum permittivity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>frequencies: array of floats</strong></dt><dd><p>The frequencies at which to calculate the electric field amplitude</p>
+</dd>
+<dt><strong>noise_temperature: float</strong></dt><dd><p>The noise temperature to use in the Rayleigh-Jeans law</p>
+</dd>
+<dt><strong>solid_angle: float</strong></dt><dd><p>The solid angle over which the radiance is integrated</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>efield_amplitude: array of floats</dt><dd><p>The electric field amplitude at each frequency</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_stokes">

@@ -1,0 +1,7 @@
+NuRadioReco.modules.efieldGalacticNoiseAdder module
+===================================================
+
+.. automodule:: NuRadioReco.modules.efieldGalacticNoiseAdder
+   :members:
+   :undoc-members:
+   :show-inheritance:
