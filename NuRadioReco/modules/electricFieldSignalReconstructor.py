@@ -45,13 +45,13 @@ class electricFieldSignalReconstructor:
 
         det: detector
 
-        signal_search_window: tuple
+        signal_search_window: tuple (optional)
             search window for signal in ns
 
-        fluence_method: str
+        fluence_method: str (optional)
             method to calculate fluence ("noise_subtraction" or "rice_distribution")
 
-        debug: bool
+        debug: bool (optional)
             set debug
 
         """
