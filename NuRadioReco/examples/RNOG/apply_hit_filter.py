@@ -1,8 +1,9 @@
 """
-Example applying RNO-G Hit Filter (this script was modified from data_analysis_example_advanced.py).
+Applying RNO-G Hit Filter (this script was modified from data_analysis_example_advanced.py).
 
 Use the standard RNO-G data processing and apply the Hit Filter,
-then save events that passed the filter.
+exclude forced triggers,
+then save RF events that passed the filter.
 """
 
 import argparse
@@ -44,6 +45,7 @@ if __name__ == "__main__":
     # Initialize io modules
     dataProviderRNOG = NuRadioReco.modules.RNO_G.dataProviderRNOG.dataProviderRNOG()
     dataProviderRNOG.begin(files=args.filenames, det=det)
+    info = dataProviderRNOG.reader.get_events_information(keys=["station", "run", "eventNumber", "triggerType"])
 
     eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
     eventWriter.begin(filename=args.outputfile)
@@ -65,7 +67,8 @@ if __name__ == "__main__":
     stationHitFilter = NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter()
     stationHitFilter.begin()
 
-    # Count events passed Hit Filter
+    # Count events
+    n_events_FT = 0
     n_events_passed = 0
 
     # Loop over all events
@@ -74,35 +77,41 @@ if __name__ == "__main__":
         if (idx + 1) % 50 == 0:
             print(f'Processed events: {idx + 1}')
 
-        station = evt.get_station()
+        is_FT = info[idx].get('triggerType') == "FORCE"
+        n_events_FT += int(is_FT)
 
-        det.update(station.get_station_time())
+        if not is_FT:
+            station = evt.get_station()
 
-        channelResampler.run(evt, station, det, sampling_rate=5 * units.GHz)
+            det.update(station.get_station_time())
 
-        channelBandPassFilter.run(
-            evt, station, det,
-            passband=[0.1 * units.GHz, 0.6 * units.GHz],
-            filter_type='butter', order=10)
+            channelResampler.run(evt, station, det, sampling_rate=5 * units.GHz)
 
-        hardwareResponseIncorporator.run(evt, station, det, sim_to_data=False, mode='phase_only')
+            channelBandPassFilter.run(
+                evt, station, det,
+                passband=[0.1 * units.GHz, 0.6 * units.GHz],
+                filter_type='butter', order=10)
 
-        channelCWNotchFilter.run(evt, station, det)
+            hardwareResponseIncorporator.run(evt, station, det, sim_to_data=False, mode='phase_only')
 
-        # Hit Filter
-        is_passed_HF = stationHitFilter.run(evt, station, det)
-        n_events_passed += int(is_passed_HF)
+            channelCWNotchFilter.run(evt, station, det)
 
-        # Down sample before saving
-        channelResampler.run(evt, station, det, sampling_rate=2 * units.GHz)
+            # Hit Filter
+            is_passed_HF = stationHitFilter.run(evt, station, det)
+            n_events_passed += int(is_passed_HF)
 
-        # Write out events
-        if is_passed_HF:
-            eventWriter.run(evt, det=None, mode={'Channels':True, "ElectricFields":True})
+            # Down sample before saving
+            channelResampler.run(evt, station, det, sampling_rate=2 * units.GHz)
+
+            # Write out events
+            if is_passed_HF:
+                eventWriter.run(evt, det=None, mode={'Channels':True, "ElectricFields":True})
 
     dataProviderRNOG.end()
     eventWriter.end()
 
     logger.status(
-        f"\nProcessed total: {idx + 1} events"
-        f"\nPassed Hit Filter: {n_events_passed} events")
+        f"\nTotal: {idx + 1} events"
+        f"\nForced Triggers: {n_events_FT} events"
+        f"\nRF Triggers: {idx + 1 - n_events_FT} events"
+        f"\nRF Passed Hit Filter: {n_events_passed} events")
