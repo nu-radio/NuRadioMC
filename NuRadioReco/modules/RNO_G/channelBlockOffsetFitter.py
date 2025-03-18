@@ -1,8 +1,8 @@
 """
 Module to remove 'block offsets' from RNO-G voltage traces.
 
-The function ``fit_block_offsets`` can be used standalone to perform an out-of-band
-fit to the block offsets. Alternatively, the ``channelBlockOffsets`` class contains convenience
+The function `fit_block_offsets` can be used standalone to perform an out-of-band
+fit to the block offsets. Alternatively, the `channelBlockOffsets` class contains convenience
 ``add_offsets`` (to add block offsets in simulation) and ``remove_offsets`` methods that can be run
 directly on a NuRadioMC/imported ``Event``. The added/removed block offsets are stored per channel
 in the `NuRadioReco.framework.parameters.channelParameters.block_offsets` parameter.
@@ -113,7 +113,7 @@ class channelBlockOffsets:
         event : `NuRadioReco.framework.event.Event` | None
         station : `NuRadioReco.framework.station.Station`
             The station to remove the block offsets from
-        mode: str {'auto', 'fit', 'approximate', 'stored'}, optional
+        mode: str {'auto', 'fit', 'approximate', 'stored', 'median'}, optional
 
             - 'fit': fit the block offsets with a minimizer
             - 'approximate' : use the first guess from the out-of-band component,
@@ -123,6 +123,9 @@ class channelBlockOffsets:
             - 'stored': use the block offsets already stored in the
               ``channelParameters.block_offsets`` parameter. Will raise an error
               if this parameter is not present.
+            - 'median': remove the block offsets by calculating the median
+              of each block. This is faster than fitting, but less accurate.
+              Not recommended!
 
         channel_ids: list | None
             List of channel ids to remove offsets from. If None (default),
@@ -202,7 +205,7 @@ class channelBlockOffsets:
               if this parameter is not present.
             - 'median': remove the block offsets by calculating the median
               of each block. This is faster than fitting, but less accurate.
-              Not recommanded to be used!
+              Not recommended to be used!
 
         channel_ids : list | None
             List of channel ids to remove offsets from. If None (default),
@@ -362,7 +365,7 @@ def _calculate_block_offsets(traces, block_size=128, func=np.median, return_trac
     """
     Simple baseline correction function.
 
-    Determines baseline in discrete chuncks of "block_size" with using a
+    Determines baseline in discrete chunks of "block_size" with a
     configurable function (default: median).
 
     Parameters
@@ -370,7 +373,7 @@ def _calculate_block_offsets(traces, block_size=128, func=np.median, return_trac
     traces: np.array(n_events, n_channels, n_samples)
         Waveforms of several events/channels.
     block_size: int (default: 128)
-        Number of samples/bins in one "chunck". If None, calculate median/mean over entire trace.
+        Number of samples/bins in one "chunk". If None, calculate median/mean over entire trace.
     func: callable (default: np.median)
         Function to calculate pedestal.
     return_trace: bool (default: False)
@@ -382,6 +385,12 @@ def _calculate_block_offsets(traces, block_size=128, func=np.median, return_trac
         Baseline/pedestal corrected waveforms
     baseline_values: np.array of shape (n_samples // block_size, n_events, n_channels)
         (Only if return_offsets==True) The baseline offsets
+
+    See Also
+    --------
+    fit_block_offsets :
+        Function that uses an FFT to do an out-of-band removal of block offsets.
+        This is generally much more accurate than this function.
     """
 
     num_samples = traces.shape[-1]
