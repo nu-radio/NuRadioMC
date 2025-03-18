@@ -12,6 +12,9 @@ from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import \
 
 import NuRadioReco.modules.channelReadoutWindowCutter
 import NuRadioReco.modules.channelResampler
+import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.channelGenericNoiseAdder
+import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 
 from NuRadioReco.examples.faerie.detector import FAERIEDetector
 
@@ -114,115 +117,139 @@ def split_events(event, det, trigger_channels):
     return events
 
 
-
-# Parse eventfile as argument
-parser = argparse.ArgumentParser(description='')
-parser.add_argument('inputfilename', type=str, nargs='*',
-                    help='path to NuRadioMC simulation result')
-
-
-parser.add_argument('--add_noise', action='store_true', help='Add noise to the traces')
-parser.add_argument('--plot_traces', action='store_true', help='Plot the traces')
-parser.add_argument('--depth', nargs="?", type=float, default=None, help='If specified, used to select simulated pulses at a given depth.')
-
-parser.add_argument('--detector_file', type=str, nargs='?',
-                    default=None,
-                    help='path to detectordescription')
-
-parser.add_argument('--output_file', type=str, nargs='?',
-                    default=None,
-                    help='path to detectordescription')
-
-parser.add_argument('--station', type=int, nargs='?',
-                    default=11,
-                    help='station to simulate')
-
-args = parser.parse_args()
+if __name__ == "__main__":
+    # Parse eventfile as argument
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('inputfilename', type=str, nargs='*',
+                        help='path to NuRadioMC simulation result')
 
 
-# Load the real detector response
-det_rnog = detector.rnog_detector.Detector(
-    select_stations=[args.station], detector_file=args.detector_file, database_connection="RNOG_public", always_query_entire_description=False)
-det_rnog.update(dt.datetime(2023, 8, 1))
+    parser.add_argument('--add_noise', action='store_true', help='Add noise to the traces')
 
-trigger_channels = np.array([0, 1, 2, 3])
-thresholds = {
-    "hilo_sigma_3": 3,
-    "hilo_sigma_3.8": 3.8,
-    "hilo_sigma_4": 4,
-}
+    parser.add_argument('--depth', nargs="?", type=float, default=None, help='If specified, used to select simulated pulses at a given depth.')
 
-# rnog_resp_ch0 = det_rnog.get_signal_chain_response(args.station, 0, trigger=True)
-# vrms_thermal = signal_processing.calculate_vrms_from_temperature(300 * units.kelvin, response=rnog_resp_ch0)
-# print(f"Thermal noise amplitude: {vrms_thermal / units.mV} mV")
+    parser.add_argument('--detector_file', type=str, nargs='?',
+                        default=None,
+                        help='path to detectordescription')
 
-channelReadoutWindowCutter = NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter()
-channelReadoutWindowCutter.begin()
+    parser.add_argument('--noise_type', type=str, nargs='?',
+                        default="rayleigh",
+                        help='Specify noise type')
 
-channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-channelResampler.begin()
+    parser.add_argument('--output_file', type=str, nargs='?',
+                        default=None,
+                        help='path to detectordescription')
 
-eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-if args.output_file is not None:
-    outputfilename = args.output_file
-else:
-    outputfilename = args.inputfilename[0].replace(".hdf5", ".nur")
+    parser.add_argument('--station', type=int, nargs='?',
+                        default=11,
+                        help='station to simulate')
 
-eventWriter.begin(filename=outputfilename, max_file_size=1024 * 3)
+    args = parser.parse_args()
 
-readFAERIEShower = NuRadioReco.modules.io.coreas.readFAERIEShower.readFAERIEShower()
-readFAERIEShower.begin(
-    args.inputfilename, logger_level=logging.INFO
-)
 
-det = FAERIEDetector()
+    # Load the real detector response
+    det_rnog = detector.rnog_detector.Detector(
+        select_stations=[args.station], detector_file=args.detector_file, database_connection="RNOG_public", always_query_entire_description=False)
+    det_rnog.update(dt.datetime(2023, 8, 1))
 
-data = defaultdict(list)
+    trigger_channels = np.array([0, 1, 2, 3])
+    thresholds = {
+        "hilo_sigma_3": 3,
+        "hilo_sigma_3.8": 3.8,
+        "hilo_sigma_4": 4,
+    }
 
-mode = {
-    'Channels': True,
-    'ElectricFields': False,
-    'SimChannels': False,
-    'SimElectricFields': False
-}
+    # rnog_resp_ch0 = det_rnog.get_signal_chain_response(args.station, 0, trigger=True)
+    # vrms_thermal = signal_processing.calculate_vrms_from_temperature(300 * units.kelvin, response=rnog_resp_ch0)
+    # print(f"Thermal noise amplitude: {vrms_thermal / units.mV} mV")
+    min_freq = 10 * units.MHz
+    max_freq = 1200 * units.MHz
+    vrms_300K_in_min_max = signal_processing.calculate_vrms_from_temperature(
+        300 * units.kelvin, bandwidth=[min_freq, max_freq])
 
-for combined_event in readFAERIEShower.run(depth=args.depth, station_id=args.station):
+    channelReadoutWindowCutter = NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter()
+    channelReadoutWindowCutter.begin()
 
-    for edx, event in enumerate(split_events(combined_event, det, trigger_channels)):
-        det.set_event(event)
+    channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
+    channelResampler.begin()
 
-        pad_traces(event)
+    eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
+    if args.output_file is not None:
+        outputfilename = args.output_file
+    else:
+        outputfilename = args.inputfilename[0].replace(".hdf5", ".nur")
 
-        shower = event.get_first_sim_shower()
-        for sdx, station in enumerate(event.get_stations()):
-            sim_station = station.get_sim_station()
+    eventWriter.begin(filename=outputfilename, max_file_size=1024 * 3)
 
-            if (edx + sdx) % 100 == 0:
-                print(f"Processing event: {event.get_id()} station {station.get_id()}")
-                print(f"Energy: {shower.get_parameter(shp.energy) / units.PeV} PeV, "
-                    f"Zenith: {shower.get_parameter(shp.zenith) / units.deg}, "
-                    f"Azimuth: {shower.get_parameter(shp.azimuth) / units.deg}")
+    readFAERIEShower = NuRadioReco.modules.io.coreas.readFAERIEShower.readFAERIEShower()
+    readFAERIEShower.begin(
+        args.inputfilename, logger_level=logging.INFO
+    )
 
-            # Temporary sanity checks - to apply the correct noise and filter the event
-            # can only have 4 channels with IDs [0, 1, 2, 3] (and they should be at the
-            # correct depths)
-            assert np.all(det.get_channel_ids(station.get_id()) == trigger_channels), "Expected channels [0, 1, 2, 3]"
-            channel_depths = np.array([det.get_relative_position(
-                station.get_id(), channel_id)[2] for channel_id in det.get_channel_ids(station.get_id())])
-            assert np.all(np.argsort(channel_depths) == trigger_channels), "Expected channels to be sorted by depth"
+    efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
+    efieldToVoltageConverter.begin()
 
-            detector_simulation_with_data_driven_noise(
-                event, station, det_rnog, trigger_channels=trigger_channels)
+    rnogHarwareResponse = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
+    rnogHarwareResponse.begin(trigger_channels=trigger_channels)
 
-            rnog_flower_board_high_low_trigger_simulations(
-                event, station, det_rnog, trigger_channels=trigger_channels,
-                trigger_channel_noise_vrms=None,
-                high_low_trigger_thresholds=thresholds)
+    channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+    channelGenericNoiseAdder.begin()
 
-            channelReadoutWindowCutter.run(event, station, det)
-            channelResampler.run(event, station, det)
+    det = FAERIEDetector()
 
-            if args.plot_traces:
-                plot_traces(event)
+    mode = {
+        'Channels': True,
+        'ElectricFields': False,
+        'SimChannels': False,
+        'SimElectricFields': False
+    }
 
-        eventWriter.run(event, mode=mode)
+    for combined_event in readFAERIEShower.run(depth=args.depth, station_id=args.station):
+
+        for edx, event in enumerate(split_events(combined_event, det, trigger_channels)):
+            det.set_event(event)
+            pad_traces(event)
+
+            shower = event.get_first_sim_shower()
+            for sdx, station in enumerate(event.get_stations()):
+                sim_station = station.get_sim_station()
+
+                if (edx + sdx) % 100 == 0:
+                    print(f"Processing event: {event.get_id()} station {station.get_id()}")
+                    print(f"Energy: {shower.get_parameter(shp.energy) / units.PeV} PeV, "
+                        f"Zenith: {shower.get_parameter(shp.zenith) / units.deg}, "
+                        f"Azimuth: {shower.get_parameter(shp.azimuth) / units.deg}")
+
+                # Temporary sanity checks - to apply the correct noise and filter the event
+                # can only have 4 channels with IDs [0, 1, 2, 3] (and they should be at the
+                # correct depths)
+                assert np.all(det.get_channel_ids(station.get_id()) == trigger_channels), "Expected channels [0, 1, 2, 3]"
+                channel_depths = np.array([det.get_relative_position(
+                    station.get_id(), channel_id)[2] for channel_id in det.get_channel_ids(station.get_id())])
+                assert np.all(np.argsort(channel_depths) == trigger_channels), "Expected channels to be sorted by depth"
+
+                if args.add_noise and args.noise_type == "data-driven":
+                    detector_simulation_with_data_driven_noise(
+                        event, station, det_rnog, trigger_channels=trigger_channels)
+                else:
+                    assert args.noise_type == "rayleigh", "Only 'rayleigh' and 'data-driven' noise is supported."
+                    efieldToVoltageConverter.run(event, station, det)
+
+                    if args.add_noise:
+                        channelGenericNoiseAdder.run(
+                            event, station, det_rnog,
+                            amplitude=vrms_300K_in_min_max, min_freq=min_freq, max_freq=max_freq,
+                            type='rayleigh')
+
+                    rnogHarwareResponse.run(event, station, det_rnog, sim_to_data=True)
+
+
+                rnog_flower_board_high_low_trigger_simulations(
+                    event, station, det_rnog, trigger_channels=trigger_channels,
+                    trigger_channel_noise_vrms=None,
+                    high_low_trigger_thresholds=thresholds)
+
+                channelReadoutWindowCutter.run(event, station, det)
+                channelResampler.run(event, station, det)
+
+            eventWriter.run(event, mode=mode)
