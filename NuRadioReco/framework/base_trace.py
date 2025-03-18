@@ -409,10 +409,8 @@ class BaseTrace:
 
         # Add the trace to the original trace:
         original_trace = self.get_trace()
-        if original_trace.ndim == 1:
-            original_trace[i_start_readout:i_end_readout] += trace_to_add[i_start_channel:i_end_channel]
-        else:
-            original_trace[:, i_start_readout:i_end_readout] += trace_to_add[:, i_start_channel:i_end_channel]
+        # arr[..., start:stop] works for any dimension: 1, 2, 3, ...
+        original_trace[..., i_start_readout:i_end_readout] += trace_to_add[..., i_start_channel:i_end_channel]
 
         self.set_trace(original_trace, sampling_rate_readout)
 
