@@ -410,7 +410,7 @@ class NoiseModel:
         """
         return -2*self.calculate_delta_llh(data, signal=signal, frequency_domain=frequency_domain)
     
-    def calculate_minus_two_delta_llh_channels(self, channel_list_data, channel_list_sim, time_grid, frequency_domain=False, plot=True, return_traces=False):
+    def calculate_minus_two_delta_llh_channels_deprecated(self, channel_list_data, channel_list_sim, time_grid, frequency_domain=False, plot=True, return_traces=False):
         """
         Calculates the minus two delta log likelihood with NuRadioReco channels as input. Each entry in channel_list_sim can have
         several elements, e.g. different ray-tracing solutions, that will be added up. By providing a time_grid, the likelihood
@@ -425,7 +425,7 @@ class NoiseModel:
                 e.g. different ray-tracing solutions.
             time_grid : numpy.ndarray
                 Array (or single number) containing time offsets between the data and the signal to calculate the likelihood for. The time offset is
-                the time between the start of the data cahannel of the first antenna and the start of the signal/sim channel (first solution) of the 
+                the time between the start of the data cahannel of the first antenna and the start of the signal/sim channel (first solution) of the
                 first antenna.
             frequency_domain : bool, optional
                 If True, calculate the delta log likelihood in the frequency domain, which is faster.
@@ -505,7 +505,7 @@ class NoiseModel:
         else:
             return llh_best, t_best, LLH_array
         
-    def calculate_minus_two_delta_llh_stations(self, station, sim_station_list, time_grid, use_channels = None, frequency_domain=False, plot=True, return_traces=False):
+    def calculate_minus_two_delta_llh_stations_deprecated(self, station, sim_station_list, time_grid=None, use_channels = None, frequency_domain=False, plot=True, return_traces=False):
         """
         Calculates the minus two delta log likelihood with NuRadioReco stations as input. The sim_station_list is a list containing sim stations for ech channel from
         station to be used in the calculation. By providing a time_grid, the likelihood can be calculated for different time offsets between the data and the signal.
@@ -521,7 +521,7 @@ class NoiseModel:
                 List of channel ids of station to use in the calculation
             time_grid : numpy.ndarray
                 Array (or single number) containing time offsets between the data and the signal to calculate the likelihood for. The time offset is
-                the time between the start of the data cahannel of the first antenna and the start of the signal/sim channel (first solution) of the 
+                the time between the start of the data cahannel of the first antenna and the start of the signal/sim channel (first solution) of the
                 first antenna.
             frequency_domain : bool, optional
                 If True, calculate the delta log likelihood in the frequency domain, which is faster.
@@ -540,10 +540,28 @@ class NoiseModel:
             numpy.ndarray, optional
                 Array containing the signal traces for the best time offset. Only returned if return_traces is True.
         """
+
         if use_channels is None:
-            use_channels = station.get_number_of_channels()
+            use_channels = station.get_channel_ids()
         assert len(use_channels) == self.n_antennas, f"Number of channels ({len(use_channels)}) does not match the number of antennas ({self.n_antennas})"
         assert len(sim_station_list) == self.n_antennas, f"Number of channels ({len(sim_station_list)}) does not match the number of antennas ({self.n_antennas})"
+
+        if time_grid is None:
+            data_times = list(station.iter_channels())[0].get_times()
+            data_duration = data_times[-1] - data_times[0]
+            simulation_times = list(sim_station_list[0].iter_channels())[0].get_times()
+            duration_simulation = simulation_times[-1] - simulation_times[0]
+            time_grid_coarse = np.arange(-duration_simulation, data_duration, 0.5 * 1/self.sampling_rate)
+            llh_best, t_best, LLH_array = self.calculate_minus_two_delta_llh_stations(station, sim_station_list, time_grid=time_grid_coarse, use_channels = use_channels, frequency_domain=frequency_domain, plot=plot, return_traces=False)
+            time_grid = np.linspace(t_best - 2 * 1/self.sampling_rate, t_best + 2 * 1/self.sampling_rate, 100)
+
+            # plt.figure(figsize=(20,5))
+            # plt.plot(time_grid_coarse, LLH_array, ".",ls="-")
+            # plt.xlabel("Time [ns]")
+            # plt.ylabel(r"$-2\Delta \ln\mathcal{L}$")
+            # plt.yscale("log")
+            # plt.show()
+            # plt.close()
 
         data_array = np.zeros([self.n_antennas, self.n_samples])
 
@@ -585,15 +603,27 @@ class NoiseModel:
 
             LLH_array[i_time] = self.calculate_minus_two_delta_llh(data_array, signal_arrays[i_time,:,:], frequency_domain=frequency_domain)
 
-            if plot:
-                fig, ax = plt.subplots(self.n_antennas, figsize=[10,2*self.n_antennas])
-                for i_ant in range(self.n_antennas):
-                    ax[i_ant].plot(data_array[i_ant,:], "k-", label="Data")
-                    ax[i_ant].plot(signal_arrays[i_time,i_ant,:], "b--", label="Signal")
-                    ax[i_ant].set_xlabel("Time bin")
-                    ax[i_ant].set_ylabel("Voltage [V]")
-                    ax[i_ant].legend()
-                fig.tight_layout()
+        if plot:
+
+            plt.figure(figsize=(20,5))
+            plt.plot(time_grid, LLH_array, ".",ls="-")
+            plt.xlabel("Time [ns]")
+            plt.ylabel(r"$-2\Delta \ln\mathcal{L}$")
+            plt.yscale("log")
+            plt.tight_layout()
+            plt.show()
+            plt.close()
+
+            fig, ax = plt.subplots(self.n_antennas, figsize=[10,2*self.n_antennas])
+            for i_ant in range(self.n_antennas):
+                ax[i_ant].plot(list(station.iter_channels())[0].get_times(), data_array[i_ant,:], "k-", label="Data")
+                ax[i_ant].plot(list(station.iter_channels())[0].get_times(), signal_arrays[np.argmin(LLH_array),i_ant,:], "b--", label="Signal")
+                ax[i_ant].set_xlabel("Time [ns]")
+                ax[i_ant].set_ylabel("Voltage [V]")
+                ax[i_ant].legend()
+            fig.tight_layout()
+            plt.show()
+            plt.close()
 
         llh_best = np.min(LLH_array)
         t_best = time_grid[np.argmin(LLH_array)]
@@ -604,6 +634,127 @@ class NoiseModel:
             return llh_best, t_best, LLH_array
 
 
+    def calculate_minus_two_delta_llh_station(self, station, sim_station, time_grid=None, use_channels = None, frequency_domain=False, plot=True, return_traces=False):
+        """
+        Calculates the minus two delta log likelihood with a NuRadioReco station containing the data channels, i.e., with noise, and a sim station that contains the noiseless traces.
+        This function should correctly loop over the antennas and add together different ray-tracing solutions in the readout window of the data with the desired time offset between the
+        sim noiseless traces and data. By providing a time_grid, the likelihood can be calculated for different time offsets between the data and the signal.
+
+        Parameters
+        ----------
+            station : NuRadioReco.framework.base_station.Station
+                Station containing the data channels
+            sim_station : NuRadioReco.framework.base_station.Station
+                sim station containing channels for the signal for all antennas and all ray-tracing solutions.
+            use_channels : list
+                List of channel ids of station to use in the calculation
+            time_grid : numpy.ndarray
+                Array (or single number) containing time offsets between the data and the signal to calculate the likelihood for. The time offset is
+                the time between the start of the data cahannel of the first antenna and the start of the signal/sim channel (first solution) of the
+                first antenna. If the time_grid is not provided, the function will calculate the likelihood for a coarse time grid and then refine the
+                time grid around the best time offset.
+            frequency_domain : bool, optional
+                If True, calculate the delta log likelihood in the frequency domain, which is faster.
+            plot : bool, optional
+                If True, plot the data and signal for each time offset in the time_grid.
+        Returns
+        -------
+            float
+                Best minus two delta log likelihood
+            float
+                Best time offset
+            numpy.ndarray
+                Array containing the minus two delta log likelihood for each time offset in the time_grid
+            numpy.ndarray, optional
+                Array containing the data traces. Only returned if return_traces is True.
+            numpy.ndarray, optional
+                Array containing the signal traces for the best time offset. Only returned if return_traces is True.
+        """
+
+        if use_channels is None:
+            use_channels = station.get_channel_ids()
+        assert len(use_channels) == self.n_antennas, f"Number of channels to use ({len(use_channels)}) does not match the number of antennas ({self.n_antennas}) in the noise model"
+
+        if time_grid is None:
+            data_times = list(station.iter_channels())[0].get_times()
+            data_duration = data_times[-1] - data_times[0]
+            simulation_times = list(sim_station.iter_channels())[0].get_times()
+            duration_simulation = simulation_times[-1] - simulation_times[0]
+            time_grid_coarse = np.arange(-duration_simulation, data_duration, 0.5 * 1/self.sampling_rate)
+            llh_best, t_best, LLH_array = self.calculate_minus_two_delta_llh_station(station, sim_station, time_grid=time_grid_coarse, use_channels = use_channels, frequency_domain=frequency_domain, plot=plot, return_traces=False)
+            time_grid = np.linspace(t_best - 2 * 1/self.sampling_rate, t_best + 2 * 1/self.sampling_rate, 100)
+
+        data_array = np.zeros([self.n_antennas, self.n_samples])
+
+        # We use the time difference between the start of the data and first solution in the first antenna as a reference
+        t_0_data = station.get_channel(use_channels[0]).get_trace_start_time()
+        t_0_sim = list(sim_station.iter_channels())[0].get_trace_start_time() # There is probably a better way to do this
+
+        referece_time_offset = t_0_sim - t_0_data
+
+        trace_start_times = np.zeros(self.n_antennas)
+        for i_ant, channel in enumerate(station.iter_channels()):
+            if not channel.get_id() in use_channels:
+                continue
+            assert channel.get_number_of_samples() == self.n_samples, f"Number of samples in data channel {i_ant} ({channel.get_number_of_samples()}) does not match the number of samples in the noise model ({self.n_samples})"
+            data_array[i_ant,:] = channel.get_trace()
+            trace_start_times[i_ant]  = channel.get_trace_start_time()
+
+        # Loop over the times in the time_grid:
+        LLH_array = np.zeros(len(np.atleast_1d(time_grid)))
+        signal_arrays = np.zeros([len(time_grid), self.n_antennas, self.n_samples])
+        for i_time, time_offset in enumerate(np.atleast_1d(time_grid)):
+
+            for i_ant, channel_id in enumerate(use_channels):
+
+                # Make empty channel:
+                signal_readout_channel = NuRadioReco.framework.channel.Channel(1)
+                signal_readout_channel.set_trace(np.zeros(self.n_samples), self.sampling_rate)
+
+                # Set trace start time of the readout window so it keeps track of the relative readout times
+                # of the data windows, but moved to where the signal is located:
+                signal_readout_channel.set_trace_start_time(trace_start_times[i_ant] + referece_time_offset - time_offset) # a positive time_offset moves the signal to the right relative to the data
+
+                # Now add the simulation to the readout window:
+                for i_channel, sim_channel in enumerate(sim_station.get_channels_by_channel_id(channel_id)):
+                    signal_readout_channel.add_to_trace(sim_channel)
+
+                signal_arrays[i_time,i_ant,:] = signal_readout_channel.get_trace()
+
+            LLH_array[i_time] = self.calculate_minus_two_delta_llh(data_array, signal_arrays[i_time,:,:], frequency_domain=frequency_domain)
+
+        if plot:
+
+            plt.figure(figsize=(20,5))
+            plt.plot(time_grid, LLH_array, ".",ls="-")
+            plt.xlabel("Time [ns]")
+            plt.ylabel(r"$-2\Delta \ln\mathcal{L}$")
+            plt.title(f"Likelihood for different time offsets")
+            plt.yscale("log")
+            plt.tight_layout()
+            plt.show()
+            plt.close()
+
+            fig, ax = plt.subplots(self.n_antennas, figsize=[10,2*self.n_antennas])
+            for i_ant in range(self.n_antennas):
+                ax[i_ant].plot(list(station.iter_channels())[0].get_times(), data_array[i_ant,:], "k-", label="Data")
+                ax[i_ant].plot(list(station.iter_channels())[0].get_times(), signal_arrays[np.argmin(LLH_array),i_ant,:], "b--", label="Signal (best time offset)")
+                ax[i_ant].set_xlabel("Time [ns]")
+                ax[i_ant].set_ylabel("Voltage [V]")
+                ax[i_ant].legend()
+                if i_ant == 0:
+                    ax[i_ant].set_title(f"Best time offset: {time_grid[np.argmin(LLH_array)]} ns")
+            fig.tight_layout()
+            plt.show()
+            plt.close()
+
+        llh_best = np.min(LLH_array)
+        t_best = time_grid[np.argmin(LLH_array)]
+
+        if return_traces:
+            return llh_best, t_best, LLH_array, data_array, signal_arrays[np.argmin(LLH_array),:,:]
+        else:
+            return llh_best, t_best, LLH_array
 
 
     def get_minus_two_delta_llh_function(self, data_to_fit, signal_function, frequency_domain=False):
