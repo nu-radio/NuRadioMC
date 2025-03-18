@@ -48,6 +48,7 @@ numpydoc = {version = "*", optional = true}
 proposal = {version = "7.6.2", optional = true}
 pygdsm = {git = "https://github.com/telegraphic/pygdsm", optional = true}
 pylfmap = {version = "*", optional = true}
+healpy = {version = "*", optional = true}
 nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5", optional = true}
 pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft", optional = true}
 MCEq = {version = "*", optional = true}
@@ -63,10 +64,10 @@ pre-commit = "*"
 [tool.poetry.extras]
 dev = ["pre-commit", "Sphinx", "sphinx-rtd-theme", "numpydoc"]
 proposal = ["proposal"]
-galacticnoise = ['pygdsm', 'pylfmap']
+galacticnoise = ['pygdsm', 'pylfmap', 'healpy']
 ift-reco = ['nifty5', 'pypocketfft']
 muon-flux = ['MCEq', 'crflux']
 RNO-G = ["mattak"]
 RNO-G-extras = ["rnog-runtable"]
 cr_interpolator = ["cr-pulse-interpolator"]
-ALL = ["proposal", "pygdsm", 'pylfmap', "nifty5", "pypocketfft", "MCEq", "crflux", "mattak", "cr-pulse-interpolator"]
+ALL = ["proposal", "pygdsm", "pylfmap", "healpy", "nifty5", "pypocketfft", "MCEq", "crflux", "mattak", "cr-pulse-interpolator"]
