@@ -35,9 +35,9 @@ cpp_available = False
 try:
     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
     cpp_available = True
-    logger.status("CPP version of ray tracer is available")
+    print("CPP version of ray tracer is available")
 except:
-    logger.info("trying to compile the CPP extension on-the-fly")
+    print("trying to compile the CPP extension on-the-fly")
     try:
         import subprocess
         import os
@@ -45,22 +45,12 @@ except:
                                  "install.sh"))
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
         cpp_available = True
-        logger.status("compilation was successful, CPP version of ray tracer is available")
+        print("compilation was successful, CPP version of ray tracer is available")
     except:
-        logger.warning(
-            "Compilation was not successful, using python version of ray tracer. "
-            "Check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation.")
+        print("compilation was not successful, using python version of ray tracer")
+        print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
         cpp_available = False
 
-numba_available = False
-
-try:
-    from numba import jit, njit
-    numba_available = True
-    logger.status("Numba version of raytracer is available")
-except ImportError:
-    logger.warning("Numba is not available")
-    numba_available = False
 
 """
 analytic ray tracing solution
@@ -108,282 +98,14 @@ def get_z_deep(ice_params):
     return res
 
 
-def get_C0_from_log(logC0, n_ice):
-    """
-    transforms the fit parameter C_0 so that the likelihood looks better
-    """
-    return np.exp(logC0) + 1. / n_ice
-
-def get_y(gamma, C_0, C_1, n_ice, b, z_0):
-    """
-    analytic form of the ray tracing part given an exponential index of refraction profile
-
-    Parameters
-    ----------
-    gamma: (float or array)
-        gamma is a function of the depth z
-    C_0: (float)
-        first parameter
-    C_1: (float)
-        second parameter
-    """
-    c = n_ice ** 2 - C_0 ** -2
-    # we take the absolute number here but we only evaluate the equation for
-    # positive outcome. This is to prevent rounding errors making the root
-    # negative
-    root = np.abs(gamma ** 2 - gamma * b + c)
-    logargument = gamma / (2 * c ** 0.5 * (root) ** 0.5 - b * gamma + 2 * c)
-    result = z_0 * (n_ice ** 2 * C_0 ** 2 - 1) ** -0.5 * np.log(logargument) + C_1
-    return result
-
-def get_gamma(z, delta_n, z_0):
-    """
-    transforms z coordinate into gamma
-    """
-    return delta_n * (np.exp(z / z_0))
-
-def get_turning_point(c, b, z_0, delta_n):
-    """
-    calculate the turning point, i.e. the maximum of the ray tracing path;
-    parameter is c = self.medium.n_ice ** 2 - C_0 ** -2
-
-    This is either the point of reflection off the ice surface
-    or the point where the saddle point of the ray (transition from upward to downward going)
-
-    Technically, the turning point is set to z=0 if the saddle point is above the surface.
-
-    Parameters
-    ----------
-    c: float
-        related to C_0 parameter via c = self.medium.n_ice ** 2 - C_0 ** -2
-
-    Returns
-    -------
-    typle (gamma, z coordinate of turning point)
-    """
-    gamma2 = np.array([b * 0.5 - (0.25 * b ** 2 - c) ** 0.5])  # first solution discarded
-    z2 = np.log(gamma2 / delta_n) * z_0
-    if(z2 > 0):
-        z2 = np.array([0], dtype=np.float64)  # a reflection is just a turning point at z = 0, i.e. cases 2) and 3) are the same
-        gamma2 = get_gamma(z2, delta_n, z_0)
-
-    return gamma2  , z2
-
-def get_y_with_z_mirror(z, C_0, n_ice, b, delta_n, z_0, C_1=0.0):
-    """
-    analytic form of the ray tracing part given an exponential index of refraction profile
-
-    this function automatically mirrors z values that are above the turning point,
-    so that this function is defined for all z
-
-    Parameters
-    ----------
-    z: (float or array)
-        depth z
-    C_0: (float)
-        first parameter
-    C_1: (float)
-        second parameter
-    """
-    c = n_ice ** 2 - C_0 ** -2
-    gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
-    y_turn = get_y(gamma_turn, C_0, C_1, n_ice, b, z_0)
-    if(z < z_turn):
-        gamma = get_gamma(np.array([1])*z, delta_n, z_0)
-        return get_y(gamma, C_0, C_1, n_ice, b, z_0)
-    else:
-        gamma = get_gamma(2 * z_turn - z, delta_n, z_0)
-        return 2 * y_turn - get_y(gamma, C_0, C_1, n_ice, b, z_0)
-
-def get_y_turn( C_0, x1, n_ice, b, delta_n, z_0):
-    """
-    calculates the y-coordinate of the turning point. This is either the point of reflection off the ice surface
-    or the point where the saddle point of the ray (transition from upward to downward going)
-
-    Parameters
-    ----------
-    C_0: float
-        C_0 parameter of function
-    x1: typle
-        (y, z) start position of ray
-    """
-    c = n_ice ** 2 - C_0 ** -2
-    gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
-    C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, n_ice, b, delta_n, z_0)[0]
-    y_turn = get_y(gamma_turn[0], C_0, C_1, n_ice, b, z_0) 
-    return y_turn
-
-def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=(-1.0,-1.0), reflection=0, reflection_case=2):
-    """
-    calculates the difference in the y position between the analytic ray tracing path
-    specified by C_0 at the position x2
-    """
-    C_0_first = C_0
-
-    if C0range[0] == -1.0 and C0range[1] == -1.0:
-        C0range = (1. / n_ice, np.inf)
-    else:
-        C0range = (float(C0range[0]), float(C0range[1]))
-    Corange_array = np.array(C0range ,  dtype=np.float64)
-    if((C_0_first < Corange_array[0]) or(C_0_first > Corange_array[1])):
-        return -np.inf
-    c = n_ice ** 2 - C_0 ** -2
-    # we consider two cases here,
-    # 1) the rays start rising -> the default case
-    # 2) the rays start decreasing -> we need to find the position left of the start point that
-    #    that has rising rays that go through the point x1
-    if(reflection > 0 and reflection_case == 2):
-        y_turn = get_y_turn(C_0_first, x1, n_ice, b, delta_n, z_0)
-        dy = y_turn - x1[0]
-        x1[0] = x1[0] - 2.0 * dy
-
-    for i in range(reflection):
-        # we take account reflections at the bottom layer into account via
-        # 1) calculating the point where the reflection happens
-        # 2) starting a ray tracing from this new point
-
-        # determine y translation first
-        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0_first, n_ice, b, delta_n, z_0)[0]
-
-        x1 = get_reflection_point(C_0, C_1, n_ice, medium_reflection, b, z_0, delta_n)
-
-    # determine y translation first
-    C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0_first, n_ice, b, delta_n, z_0)[0]
-
-    # for a given c_0, 3 cases are possible to reach the y position of x2
-    # 1) direct ray, i.e., before the turning point
-    # 2) refracted ray, i.e. after the turning point but not touching the surface
-    # 3) reflected ray, i.e. after the ray reaches the surface
-    gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
-    y_turn = get_y(gamma_turn, C_0_first, C_1, n_ice, b, z_0)
-    if(z_turn < x2[1]):  # turning points is deeper that x2 positions, can't reach target
-        # the minimizer has problems finding the minimum if inf is returned here. Therefore, we return the distance
-        # between the turning point and the target point + 10 x the distance between the z position of the turning points
-        # and the target position. This results in a objective function that has the solutions as the only minima and
-        # is smooth in C_0
-        diff = ((z_turn - x2[1]) ** 2 + (y_turn - x2[0]) ** 2) ** 0.5 + 10 * np.abs(z_turn - x2[1])
-        return -diff[0]
-#             return -np.inf
-    if(y_turn > x2[0]):  # we always propagate from left to right
-        # direct ray
-        y2_fit = get_y(get_gamma(x2[1], delta_n, z_0), C_0_first, C_1, n_ice, b, z_0)  # calculate y position at get_path position
-        diff = (x2[0] - y2_fit)
-        #if(hasattr(diff, '__len__')):
-        #    diff = diff[0]
-
-        return diff
-    else:
-        # now it's a bit more complicated. we need to transform the coordinates to
-        # be on the mirrored part of the function
-        z_mirrored = x2[1]
-        gamma = get_gamma(z_mirrored, delta_n, z_0)
-        y2_raw = get_y(gamma, C_0_first, C_1, n_ice, b, z_0)
-        y2_fit = 2 * y_turn - y2_raw
-        diff = (x2[0] - y2_fit)
-
-        return -1 * diff[0]
-
-def obj_delta_y_square( logC_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, reflection=0, reflection_case=2):
-    """
-    objective function to find solution for C0
-    """
-    C_0 = get_C0_from_log(logC_0[0], n_ice)
-    return get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, (-1.0,-1.0), reflection=reflection, reflection_case=reflection_case) ** 2
-
-def get_reflection_point(C_0, C_1, n_ice, medium_reflection, b, z_0, delta_n):
-    """
-    calculates the point where the signal gets reflected off the bottom of the ice shelf
-
-    Returns tuple (y,z)
-    """
-    c = n_ice ** 2 - C_0 ** -2
-    _gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
-    x2 = np.array([0, medium_reflection],dtype = np.float64)
-    x2[0]  = get_y_with_z_mirror(-x2[1] + 2 * z_turn, C_0, n_ice, b, delta_n, z_0, C_1)[0]
-    return x2
-
-def get_z_unmirrored(z, C_0, n_ice, b, z_0, delta_n):
-    """
-    calculates the unmirrored z position
-    """
-    c = n_ice ** 2 - C_0 ** -2
-    gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
-    gamma_turn = gamma_turn[0]
-    z_turn = z_turn[0]
-    z_unmirrored = z
-    if(z > z_turn):
-        z_unmirrored = 2 * z_turn - z
-    return z_unmirrored
-
-def get_y_diff(z_raw, C_0, n_ice, b, z_0, delta_n, in_air=False):
-    """
-    derivative dy(z)/dz
-
-    Uses equation C.12 from [1]_
-
-    References
-    ----------
-    .. [1] https://arxiv.org/abs/1906.01670
-    """
-    correct_for_air = False
-    # if we are above the ice surface, the analytic expression below
-    # does not apply. Therefore, we instead calculate dy/dz at z=0 where it is still valid
-    # and then correct this using Snell's law
-    if (not in_air) or (z_raw < 0):
-        z = get_z_unmirrored(z_raw, C_0, n_ice, b, z_0, delta_n)
-    else: # we are above the ice surface, where the below expression does not apply
-        z = 0
-        correct_for_air = True
-    # There are two expressions for dy/dz in the NuRadioMC paper: C.12 and C.38
-    # For some reason, C.38 was used initially, and is still included below in
-    # case someone wants to verify they're equivalent. C.12 is much simpler and therefore used currently.
-    #
-    # c = n_ice ** 2 - C_0 ** -2
-    # B = (0.2e1 * np.sqrt(c) * np.sqrt(-b * delta_n * np.exp(z / z_0) + delta_n **
-    #                                   2 * np.exp(0.2e1 * z / z_0) + c) - b * delta_n * np.exp(z / z_0) + 0.2e1 * c)
-    # D = n_ice ** 2 * C_0 ** 2 - 1
-    # E1 = -b * delta_n * np.exp(z / z_0)
-    # E2 = delta_n ** 2 * np.exp(0.2e1 * z / z_0)
-    # E = (E1 + E2 + c)
-    # res = (-np.sqrt(c) * np.exp(z / z_0) * b * delta_n + 0.2e1 * np.sqrt(-b * delta_n * np.exp(z /
-    #          z_0) + delta_n ** 2 * np.exp(0.2e1 * z / z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
-
-    n_z = n(z, n_ice, delta_n, z_0)
-    res = 1 / np.sqrt(C_0**2 * n_z**2 - 1)
-
-    if correct_for_air:
-        n_surface = n(0, n_ice, delta_n, z_0)
-        theta_ice = np.arctan(res)
-        theta_air = np.arcsin(n_surface * np.sin(theta_ice))
-        res = np.tan(theta_air)
-    if(z != z_raw):
-        res *= -1
-    return res
-
-
-def n(z, n_ice, delta_n, z_0):
-    """
-    refractive index as a function of depth
-    """
-    res = n_ice - delta_n * np.exp(z / z_0)
-#     if(type(z) is float):
-#         if(z > 0):
-#             return 1.
-#         else:
-#             return res
-#     else:
-#         res[z > 0] = 1.
-    return res
-
 class ray_tracing_2D(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model="SP1",
-                 log_level=logging.NOTSET,
+                 log_level=logging.WARNING,
                  n_frequencies_integration=25,
                  use_optimized_start_values=False,
                  overwrite_speedup=None,
-                 use_cpp=cpp_available,
-                 compile_numba=False):
+                 use_cpp=cpp_available):
         """
         initialize 2D analytic ray tracing class
 
@@ -394,7 +116,7 @@ class ray_tracing_2D(ray_tracing_base):
         attenuation_model: string
             specifies which attenuation model to use (default 'SP1')
         log_level: logging.loglevel object
-            Overrides verbosity (default NOTSET)
+            controls verbosity (default WARNING)
         n_frequencies_integration: int
             specifies for how many frequencies the signal attenuation is being calculated
         use_optimized_start_value: bool
@@ -402,24 +124,21 @@ class ray_tracing_2D(ray_tracing_base):
             (default: False)
         overwrite_speedup: bool
             The signal attenuation is calculated using a numerical integration
-            along the ray path. This calculation can be computational inefficient depending on the details of 
+            along the ray path. This calculation can be computational inefficient depending on the details of
             the ice model. An optimization is implemented approximating the integral with a discrete sum with the loss
-            of some accuracy, See PR #507. This optimization is used for all ice models listed in 
+            of some accuracy, See PR #507. This optimization is used for all ice models listed in
             speedup_attenuation_models (i.e., "GL3"). With this argument you can explicitly activate or deactivate
             (True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
             listed in speedup_attenuation_models)
         use_cpp: bool
             if True, use CPP implementation of minimization routines
             default: True if CPP version is available
-            
+
         """
         self.medium = medium
         if(not hasattr(self.medium, "reflection")):
             self.medium.reflection = None
-        # This variable is needed for numba optimization as numba cannot associate None to a type
-        self.reflection = 100
-        if(self.medium.reflection is not None) :
-            self.reflection = self.medium.reflection
+
         self.attenuation_model = attenuation_model
         if(not self.attenuation_model in attenuation_util.model_to_int):
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
@@ -434,48 +153,201 @@ class ray_tracing_2D(ray_tracing_base):
         if overwrite_speedup is not None:
             self._use_optimized_calculation = overwrite_speedup
         self.use_cpp = use_cpp
-        if compile_numba:
-            if numba_available:
-                global get_reflection_point,obj_delta_y_square,get_delta_y
-                global get_y_turn, get_y_with_z_mirror,get_turning_point
-                global get_gamma, get_y, get_C0_from_log
-                global  get_z_unmirrored, get_y_diff, n
-                try:
-                    get_reflection_point = jit(get_reflection_point, nopython=True, cache=True)
-                    obj_delta_y_square = jit(obj_delta_y_square, nopython=True, cache=True)
-                    get_delta_y = jit(get_delta_y, nopython=True, cache=True)
-                    get_y_turn = jit(get_y_turn, nopython=True, cache=True)
-                    get_y_with_z_mirror = jit(get_y_with_z_mirror, nopython=True, cache=True)
-                    get_turning_point = jit(get_turning_point, nopython=True, cache=True)
-                    get_gamma = jit(get_gamma, nopython=True, cache=True)
-                    get_y = jit(get_y, nopython=True, cache=True)
-                    get_C0_from_log = jit(get_C0_from_log, nopython=True, cache=True)
-                    get_z_unmirrored = jit(get_z_unmirrored, nopython=True, cache=True)
-                    n = jit(n, nopython=True, cache=True)
-                    self.use_cpp = False
-                except: 
-                    self.__logger.warning("Error in compiling methods using jit - proceeding without numba")
-                    compile_numba = False
+
+    def n(self, z):
+        """
+        refractive index as a function of depth
+        """
+        res = self.medium.n_ice - self.medium.delta_n * np.exp(z / self.medium.z_0)
+    #     if(type(z) is float):
+    #         if(z > 0):
+    #             return 1.
+    #         else:
+    #             return res
+    #     else:
+    #         res[z > 0] = 1.
+        return res
+
+    def get_gamma(self, z):
+        """
+        transforms z coordinate into gamma
+        """
+        return self.medium.delta_n * np.exp(z / self.medium.z_0)
+
+    def get_turning_point(self, c):
+        """
+        calculate the turning point, i.e. the maximum of the ray tracing path;
+        parameter is c = self.medium.n_ice ** 2 - C_0 ** -2
+
+        This is either the point of reflection off the ice surface
+        or the point where the saddle point of the ray (transition from upward to downward going)
+
+        Technically, the turning point is set to z=0 if the saddle point is above the surface.
+
+        Parameters
+        ----------
+        c: float
+            related to C_0 parameter via c = self.medium.n_ice ** 2 - C_0 ** -2
+
+        Returns
+        -------
+        typle (gamma, z coordinate of turning point)
+        """
+        gamma2 = self.__b * 0.5 - (0.25 * self.__b ** 2 - c) ** 0.5  # first solution discarded
+        z2 = np.log(gamma2 / self.medium.delta_n) * self.medium.z_0
+
+        if(z2 > 0):
+            z2 = 0  # a reflection is just a turning point at z = 0, i.e. cases 2) and 3) are the same
+            gamma2 = self.get_gamma(z2)
+
+        return gamma2, z2
+
+    def get_y_turn(self, C_0, x1):
+        """
+        calculates the y-coordinate of the turning point. This is either the point of reflection off the ice surface
+        or the point where the saddle point of the ray (transition from upward to downward going)
+
+        Parameters
+        ----------
+        C_0: float
+            C_0 parameter of function
+        x1: typle
+            (y, z) start position of ray
+        """
+        c = self.medium.n_ice ** 2 - C_0 ** -2
+        gamma_turn, z_turn = self.get_turning_point(c)
+        C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+        y_turn = self.get_y(gamma_turn, C_0, C_1)
+        return y_turn
 
     def get_C_1(self, x1, C_0):
         """
         calculates constant C_1 for a given C_0 and start point x1
         """
-        return x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
+        return x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
 
     def get_c(self, C_0):
         return self.medium.n_ice ** 2 - C_0 ** -2
+
+    def get_C0_from_log(self, logC0):
+        """
+        transforms the fit parameter C_0 so that the likelihood looks better
+        """
+        return np.exp(logC0) + 1. / self.medium.n_ice
+
+    def get_y(self, gamma, C_0, C_1):
+        """
+        analytic form of the ray tracing part given an exponential index of refraction profile
+
+        Parameters
+        ----------
+        gamma: (float or array)
+            gamma is a function of the depth z
+        C_0: (float)
+            first parameter
+        C_1: (float)
+            second parameter
+        """
+        c = self.medium.n_ice ** 2 - C_0 ** -2
+        # we take the absolute number here but we only evaluate the equation for
+        # positive outcome. This is to prevent rounding errors making the root
+        # negative
+        root = np.abs(gamma ** 2 - gamma * self.__b + c)
+        logargument = gamma / (2 * c ** 0.5 * (root) ** 0.5 - self.__b * gamma + 2 * c)
+        if(np.sum(logargument <= 0)):
+            self.__logger.debug('log = {}'.format(logargument))
+        result = self.medium.z_0 * (self.medium.n_ice ** 2 * C_0 ** 2 - 1) ** -0.5 * np.log(logargument) + C_1
+        return result
+
+    def get_y_diff(self, z_raw, C_0, in_air=False):
+        """
+        derivative dy(z)/dz
+        """
+        correct_for_air = False
+        # if we are above the ice surface, the analytic expression below
+        # does not apply. Therefore, we instead calculate dy/dz at z=0 where it is still valid
+        # and then correct this using Snell's law
+        if (not in_air) or (z_raw < 0):
+            z = self.get_z_unmirrored(z_raw, C_0)
+        else: # we are above the ice surface, where the below expression does not apply
+            z = 0
+            correct_for_air = True
+
+        # There are two expressions for dy/dz in the NuRadioMC paper: C.12 and C.38
+        # For some reason, C.38 was used initially, and is still included below in
+        # case someone wants to verify they're equivalent. C.12 is much simpler and therefore used currently.
+        #
+        # c = self.medium.n_ice ** 2 - C_0 ** -2
+        # B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n **
+        #                                   2 * np.exp(0.2e1 * z / self.medium.z_0) + c) - self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + 0.2e1 * c)
+        # D = self.medium.n_ice ** 2 * C_0 ** 2 - 1
+        # E1 = -self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0)
+        # E2 = self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0)
+        # E = (E1 + E2 + c)
+        # res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z /
+        #                                                                                                                                              self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
+
+        n_z = self.n(z)
+        res = 1 / np.sqrt(C_0**2 * n_z**2 - 1)
+
+        if correct_for_air:
+            n_surface = self.n(0)
+            theta_ice = np.arctan(res)
+            theta_air = np.arcsin(n_surface * np.sin(theta_ice))
+            res = np.tan(theta_air)
+        if(z != z_raw):
+            res *= -1
+        return res
+
+    def get_y_with_z_mirror(self, z, C_0, C_1=0):
+        """
+        analytic form of the ray tracing part given an exponential index of refraction profile
+
+        this function automatically mirrors z values that are above the turning point,
+        so that this function is defined for all z
+
+        Parameters
+        ----------
+        z: (float or array)
+            depth z
+        C_0: (float)
+            first parameter
+        C_1: (float)
+            second parameter
+        """
+        c = self.medium.n_ice ** 2 - C_0 ** -2
+        gamma_turn, z_turn = self.get_turning_point(c)
+        y_turn = self.get_y(gamma_turn, C_0, C_1)
+        if(not hasattr(z, '__len__')):
+            if(z < z_turn):
+                gamma = self.get_gamma(z)
+                return self.get_y(gamma, C_0, C_1)
+            else:
+                gamma = self.get_gamma(2 * z_turn - z)
+                return 2 * y_turn - self.get_y(gamma, C_0, C_1)
+        else:
+            mask = z < z_turn
+            res = np.zeros_like(z)
+            zs = np.zeros_like(z)
+            gamma = self.get_gamma(z[mask])
+            zs[mask] = z[mask]
+            res[mask] = self.get_y(gamma, C_0, C_1)
+            gamma = self.get_gamma(2 * z_turn - z[~mask])
+            res[~mask] = 2 * y_turn - self.get_y(gamma, C_0, C_1)
+            zs[~mask] = 2 * z_turn - z[~mask]
+
+            self.__logger.debug('turning points for C_0 = {:.2f}, b= {:.2f}, gamma = {:.4f}, z = {:.1f}, y_turn = {:.0f}'.format(
+                C_0, self.__b, gamma_turn, z_turn, y_turn))
+            return res, zs
 
     def get_z_mirrored(self, x1, x2, C_0):
         """
         calculates the mirrored x2 position so that y(z) can be used as a continuous function
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
-        gamma_turn, z_turn = get_turning_point(c, self.__b, self.medium.z_0, self.medium.delta_n)
-        gamma_turn = gamma_turn[0]
-        z_turn = z_turn[0]
-        y_turn = get_y(gamma_turn, C_0, C_1, self.medium.n_ice, self.__b, self.medium.z_0)
+        C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+        gamma_turn, z_turn = self.get_turning_point(c)
+        y_turn = self.get_y(gamma_turn, C_0, C_1)
         zstart = x1[1]
         zstop = x2[1]
         if(y_turn < x2[0]):
@@ -483,11 +355,22 @@ class ray_tracing_2D(ray_tracing_base):
         x2_mirrored = [x2[0], zstop]
         return x2_mirrored
 
+    def get_z_unmirrored(self, z, C_0):
+        """
+        calculates the unmirrored z position
+        """
+        c = self.medium.n_ice ** 2 - C_0 ** -2
+        gamma_turn, z_turn = self.get_turning_point(c)
+        z_unmirrored = z
+        if(z > z_turn):
+            z_unmirrored = 2 * z_turn - z
+        return z_unmirrored
+
     def ds(self, t, C_0):
         """
         helper to calculate line integral
         """
-        return (get_y_diff(t, C_0, self.medium.n_ice, self.__b, self.medium.z_0, self.medium.delta_n) ** 2 + 1) ** 0.5
+        return (self.get_y_diff(t, C_0) ** 2 + 1) ** 0.5
 
     def get_path_length(self, x1, x2, C_0, reflection=0, reflection_case=1):
         tmp = 0
@@ -502,22 +385,21 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-                
+
             # first treat special case of ice to air propagation
             z_int = None
             points = None
             if(x2[1] > 0):
                 # we need to integrat only until the ray touches the surface
                 z_turn = 0
-                y_turn = get_y(get_gamma(z_turn, self.medium.delta_n, self.medium.z_0), C_0, self.get_C_1(x1, C_0), self.medium.n_ice, self.__b, self.medium.z_0)
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
                 d_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5
                 tmp += d_air
                 z_int = z_turn
                 self.__logger.info(f"adding additional propagation path through air of {d_air/units.m:.1f}m")
             else:
                 x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-                gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
-                z_turn = z_turn[0]
+                gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
                 if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
                     points = [z_turn]
                 z_int = x2_mirrored[1]
@@ -542,7 +424,7 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-                
+
             # first treat special case of ice to air propagation
             z_int = None
             points = None
@@ -550,20 +432,19 @@ class ray_tracing_2D(ray_tracing_base):
             if(x2[1] > 0):
                 # we need to integrat only until the ray touches the surface
                 z_turn = 0
-                y_turn = get_y(get_gamma(z_turn, self.medium.delta_n, self.medium.z_0), C_0, self.get_C_1(x1, C_0), self.medium.n_ice, self.__b, self.medium.z_0)
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
                 T_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5 / speed_of_light
                 tmp += T_air
                 z_int = z_turn
                 self.__logger.info(f"adding additional propagation path through air of {T_air/units.ns:.1f}ns")
             else:
-                gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
-                z_turn = z_turn[0]
+                gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
                 if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
                     points = [z_turn]
                 z_int = x2_mirrored[1]
             def dt(t, C_0):
-                z = get_z_unmirrored(t, C_0, self.medium.n_ice, self.__b, self.medium.z_0, self.medium.delta_n)
-                return self.ds(t, C_0) / speed_of_light * n(z, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
+                z = self.get_z_unmirrored(t, C_0)
+                return self.ds(t, C_0) / speed_of_light * self.n(z)
             travel_time = integrate.quad(dt, x1[1], z_int, args=(C_0), points=points,
                                          epsabs=1e-10, epsrel=1.49e-08, limit=500)
             self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(
@@ -573,29 +454,8 @@ class ray_tracing_2D(ray_tracing_base):
 
 
     def get_path_length_analytic(self, x1, x2, C_0, reflection=0, reflection_case=1):
-        r"""
+        """
         Analytic solution for the path length
-
-        Notes
-        -----
-        Based on the equation in Sjoerd Bouma's PhD thesis, reproduced below.
-        For an analytic ice model :math:`n(z) = n_\mathrm{ice} - \Delta n e^{z/z_0}`,
-        a ray launched from depth :math:`z_s` at angle :math:`\theta_s`, and using the notation
-
-        .. math::
-
-          \beta &= n(z_s) \sin \theta_s, \\
-	      \alpha &= n^2_\mathrm{ice} - \beta^2,\\
-	      \gamma(z) &= n(z)^2 - \beta^2, \\
-	      k_1(z) &= \sqrt{\alpha\gamma(z)} + n_\mathrm{ice} n(z) - \beta^2,
-
-        the path length for one segment is given by
-
-        .. math::
-
-          s &= \int \frac{dz}{\cos{\theta}} = \int dz \sec\left[\arcsin\left(\frac{\beta}{n(z)}\right)\right] \\
-	      &= \frac{n_\mathrm{ice}}{\sqrt{\alpha}} \left[z - z_0 \log \left(k_1(z)\right)\right] + z_0 \log \left(\sqrt{\gamma(z)} + n(z)\right) + C.
-
 
         """
         s = 0
@@ -620,21 +480,20 @@ class ray_tracing_2D(ray_tracing_base):
             launch_angle = self.get_launch_angle(x1, C_0, reflection, reflection_case)
 
             # define some constants and helper functions
+            n1 = self.n(x1[1])
             n_ice = self.medium.n_ice
-            delta_n = self.medium.delta_n
             z_0 = self.medium.z_0
-            n1 = n(x1[1], n_ice, delta_n, z_0)
             beta = n1 * np.sin(launch_angle)
             alpha = n_ice**2 - beta**2
 
             def gamma(z):
-                return np.max([0, n(z, n_ice, delta_n, z_0)**2 - beta**2]) # due to numerical precision, could otherwise get slightly negative
+                return np.max([0, self.n(z)**2 - beta**2]) # due to numerical precision, could otherwise get slightly negative
 
             def l1(z):
-                return np.sqrt(alpha * gamma(z)) + n_ice * n(z, n_ice, delta_n, z_0) - beta**2
+                return np.sqrt(alpha * gamma(z)) + n_ice * self.n(z) - beta**2
 
             def l2(z):
-                return np.sqrt(gamma(z)) + n(z, n_ice, delta_n, z_0)
+                return np.sqrt(gamma(z)) + self.n(z)
 
             def get_s(z):
                 s = n_ice / np.sqrt(alpha) * (z - z_0 * np.log(l1(z))) + z_0 * np.log(l2(z))
@@ -644,7 +503,7 @@ class ray_tracing_2D(ray_tracing_base):
             if(x2[1] > 0): # ice-to-air case
                 # we need to integrate only until the ray touches the surface
                 z_turn = 0
-                y_turn = get_y(get_gamma(z_turn, delta_n, z_0), C_0, self.get_C_1(x1, C_0), self.__b, z_0)
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
                 d_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5
 
                 s += get_s(0) - get_s(z1) + d_air
@@ -656,37 +515,15 @@ class ray_tracing_2D(ray_tracing_base):
                     if(solution_type == 3):
                         z_turn = 0
                     else:
-                        gamma_turn, z_turn = get_turning_point(n_ice ** 2 - C_0 ** -2, self.__b, z_0, delta_n)
-                        z_turn = z_turn[0]
+                        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
         #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
                     s += 2 * get_s(z_turn) - get_s(z1) - get_s(z2)
 
         return s
 
     def get_travel_time_analytic(self, x1, x2, C_0, reflection=0, reflection_case=1):
-        r"""
-        Analytic solution for the travel time
-
-        Notes
-        -----
-        Based on the equation in Sjoerd Bouma's PhD thesis, reproduced below.
-        For an analytic ice model :math:`n(z) = n_\mathrm{ice} - \Delta n e^{z/z_0}`,
-        a ray launched from depth :math:`z_s` at angle :math:`\theta_s`, and using the notation
-
-        .. math::
-
-          \beta &= n(z_s) \sin \theta_s, \\
-	      \alpha &= n^2_\mathrm{ice} - \beta^2,\\
-	      \gamma(z) &= n(z)^2 - \beta^2, \\
-	      k_1(z) &= \sqrt{\alpha\gamma(z)} + n_\mathrm{ice} n(z) - \beta^2,
-
-        the propagation time along one ray segment is given by:
-
-        .. math::
-
-            ct &= \int \frac{n(z)dz}{\cos{\theta}} \\
-            &= \frac{n_\mathrm{ice}^2}{\sqrt{\alpha}} \left[z - z_0 \log \left(k_1(z)\right) \right]
-            + z_0 \left[\sqrt{\gamma(z)} + n_\mathrm{ice} \log\left(\sqrt{\gamma(z)} + n(z) \right)\right] + C'.
+        """
+        Analytic solution for the path length
 
         """
         ct = 0
@@ -710,21 +547,20 @@ class ray_tracing_2D(ray_tracing_base):
             launch_angle = self.get_launch_angle(x1, C_0, reflection, reflection_case)
 
             # define some constants and helper functions
+            n1 = self.n(x1[1])
             n_ice = self.medium.n_ice
-            delta_n = self.medium.delta_n
             z_0 = self.medium.z_0
-            n1 = n(x1[1], n_ice=n_ice, delta_n=delta_n, z_0=z_0)
             beta = n1 * np.sin(launch_angle)
             alpha = n_ice**2 - beta**2
 
             def gamma(z):
-                return np.max([n(z, n_ice, delta_n, z_0)**2 - beta**2, 0])
+                return np.max([self.n(z)**2 - beta**2, 0])
 
             def l1(z):
-                return np.sqrt(alpha * gamma(z)) + n_ice * n(z, n_ice, delta_n, z_0) - beta**2
+                return np.sqrt(alpha * gamma(z)) + n_ice * self.n(z) - beta**2
 
             def l2(z):
-                return np.sqrt(gamma(z)) + n(z, n_ice, delta_n, z_0)
+                return np.sqrt(gamma(z)) + self.n(z)
 
             def get_ct(z):
                 ct = z_0 * (
@@ -736,7 +572,7 @@ class ray_tracing_2D(ray_tracing_base):
             if(x2[1] > 0): # ice-to-air case
                 # we need to integrate only until the ray touches the surface
                 z_turn = 0
-                y_turn = get_y(get_gamma(z_turn, delta_n, z_0), C_0, self.get_C_1(x1, C_0), n_ice, self.__b, z_0)
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
                 d_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5
 
                 ct += get_ct(0) - get_ct(z1) + d_air
@@ -748,8 +584,7 @@ class ray_tracing_2D(ray_tracing_base):
                     if(solution_type == 3):
                         z_turn = 0
                     else:
-                        gamma_turn, z_turn = get_turning_point(n_ice ** 2 - C_0 ** -2, self.__b, z_0, delta_n)
-                        z_turn = z_turn[0]
+                        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
         #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
 
                     ct += 2 * get_ct(z_turn) - get_ct(z1) - get_ct(z2)
@@ -760,13 +595,6 @@ class ray_tracing_2D(ray_tracing_base):
     def get_focusing_analytic(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
         Analytic solution to calculate the focusing factor
-
-        .. warning::
-
-            Note that this solution is unstable for a refracted ray trajectory
-            as the focusing integral diverges when the ray trajectory becomes horizontal!
-
-        Based on the appendix of Sjoerd Bouma's PhD thesis.
 
         """
 
@@ -779,12 +607,10 @@ class ray_tracing_2D(ray_tracing_base):
         w_phi = 0
         w_theta = 0
 
-
+        n1 = self.n(x1[1])
+        n2 = self.n(x2[1])
         n_ice = self.medium.n_ice
-        delta_n = self.medium.delta_n
         z_0 = self.medium.z_0
-        n1 = n(x1[1], n_ice, delta_n, z_0)
-        n2 = n(x2[1], n_ice, delta_n, z_0)
         beta = n1 * np.sin(launch_angle)
         alpha = n_ice**2 - beta**2
 
@@ -890,12 +716,12 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-                
-            # treat special ice to air case. Attenuation in air can be neglected, so only 
+
+            # treat special ice to air case. Attenuation in air can be neglected, so only
             # calculate attenuation until the ray reaches the surface
             if x2[1] > 0:
                 z_turn = 0
-                y_turn = get_y(get_gamma(z_turn, self.medium.delta_n, self.medium.z_0), C_0, self.get_C_1(x1, C_0), self.medium.n_ice, self.__b, self.medium.z_0)
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
                 x2 = [y_turn, z_turn]
 
             if self.use_cpp:
@@ -906,10 +732,6 @@ class ray_tracing_2D(ray_tracing_base):
                     tmp[i] = wrapper.get_attenuation_along_path(
                         x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n,
                         self.medium.z_0, self.attenuation_model_int)
-                if(np.sum(np.isnan(tmp)) > 0):
-                    self.__logger.warning(f"attenuation calculation failed for {np.sum(np.isnan(tmp))}/{len(tmp)} frequencies," + \
-                                            "setting attenuation to 0, i.e., no attenuation in these bins")
-                    tmp[np.isnan(tmp)] = 1
 
                 self.__logger.debug(tmp)
                 tmp_attenuation = np.ones_like(frequency)
@@ -920,15 +742,14 @@ class ray_tracing_2D(ray_tracing_base):
                 x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
 
                 def dt(t, C_0, frequency):
-                    z = get_z_unmirrored(t, C_0, self.medium.n_ice, self.__b, self.medium.z_0, self.medium.delta_n)
+                    z = self.get_z_unmirrored(t, C_0)
                     return self.ds(t, C_0) / attenuation_util.get_attenuation_length(z, frequency, self.attenuation_model)
 
                 # to speed up things we only calculate the attenuation for a few frequencies
                 # and interpolate linearly between them
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
-                gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
-                z_turn = z_turn[0]
+                gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
                 self.__logger.info(f"_use_optimized_calculation {self._use_optimized_calculation}")
 
                 if self._use_optimized_calculation:
@@ -987,11 +808,10 @@ class ray_tracing_2D(ray_tracing_base):
                             idx -= 1
                         elif idx == -1:
                             idx = 0
-                        
-                        integrand = integrate.quad(self.ds, segments[idx], segments[idx + 1], args=(C_0), epsrel=1e-2, points=[z_turn])[0]
-                        attenuation = (attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs)
+
                         att_int = np.array(
-                            [integrand, attenuation])
+                            [integrate.quad(self.ds, segments[idx], segments[idx + 1], args=(C_0), epsrel=1e-2, points=[z_turn])[0] /
+                            attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs])
 
                         attenuation_exp_tmp[:, idx] = att_int
 
@@ -1001,9 +821,11 @@ class ray_tracing_2D(ray_tracing_base):
                 else:
                     points = None
                     if x1[1] < z_turn and z_turn < x2_mirrored[1]:
-                        points = [z_turn]                        
+                        points = [z_turn]
+
                     attenuation_exp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
                         C_0, f), epsrel=1e-2, points=points)[0] for f in freqs])
+
                 tmp = np.exp(-1 * attenuation_exp)
 
                 tmp_attenuation = np.ones_like(frequency)
@@ -1057,7 +879,7 @@ class ray_tracing_2D(ray_tracing_base):
         if(reflection_case == 2):
             # the code only allows upward going rays, thus we find a point left from x1 that has an upward going ray
             # that will produce a downward going ray through x1
-            y_turn = get_y_turn(C_0, x1, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
+            y_turn = self.get_y_turn(C_0, x1)
             dy = y_turn - x1[0]
             self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
             x1[0] = x1[0] - 2 * dy
@@ -1065,7 +887,7 @@ class ray_tracing_2D(ray_tracing_base):
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i + 1))
             C_1 = self.get_C_1(x1, C_0)
-            x2 = get_reflection_point(C_0, C_1, self.medium.n_ice, self.reflection, self.__b, self.medium.z_0, self.medium.delta_n)
+            x2 = self.get_reflection_point(C_0, C_1)
             stop_loop = False
             if(x2[0] > x22[0]):
                 stop_loop = True
@@ -1108,7 +930,7 @@ class ray_tracing_2D(ray_tracing_base):
             z = x[1]
         else:
             z = self.get_z_mirrored(x_start, x, C_0)[1]
-        dy = get_y_diff(z, C_0, self.medium.n_ice, self.__b, self.medium.z_0, self.medium.delta_n, in_air=in_air)
+        dy = self.get_y_diff(z, C_0, in_air=in_air)
         angle = np.arctan(dy)
         if(angle < 0):
             angle = np.pi + angle
@@ -1146,9 +968,8 @@ class ray_tracing_2D(ray_tracing_base):
         c = self.medium.n_ice ** 2 - C_0 ** -2
         for segment in self.get_path_segments(x1, x2, C_0, reflection, reflection_case):
             x11, x1, x22, x2, C_0, C_1 = segment
-            gamma_turn, z_turn = get_turning_point(c,self.__b, self.medium.z_0, self.medium.delta_n)
-            z_turn = z_turn[0]
-            y_turn = get_y_turn(C_0, x1, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
+            gamma_turn, z_turn = self.get_turning_point(c)
+            y_turn = self.get_y_turn(C_0, x1)
             if((z_turn >= 0) and (y_turn > x11[0]) and (y_turn < x22[0])):  # for the first track segment we need to check if turning point is right of start point (otherwise we have a downward going ray that does not have a turning point), and for the last track segment we need to check that the turning point is left of the stop position.
                 r = self.get_angle(np.array([y_turn, 0]), x1, C_0)
                 self.__logger.debug(
@@ -1183,20 +1004,18 @@ class ray_tracing_2D(ray_tracing_base):
             the z coordinates of the ray tracing path
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
-        gamma_turn, z_turn = get_turning_point(c, self.__b, self.medium.z_0, self.medium.delta_n)
-        gamma_turn = gamma_turn[0]
-        z_turn = z_turn[0]
-        y_turn = get_y(gamma_turn, C_0, C_1, self.medium.n_ice, self.__b, self.medium.z_0)
+        C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+        gamma_turn, z_turn = self.get_turning_point(c)
+        y_turn = self.get_y(gamma_turn, C_0, C_1)
         zstart = x1[1]
         zstop = self.get_z_mirrored(x1, x2, C_0)[1]
         z = np.linspace(zstart, zstop, n_points)
         mask = z < z_turn
         res = np.zeros_like(z)
         zs = np.zeros_like(z)
-        gamma = get_gamma(z[mask], self.medium.delta_n, self.medium.z_0)
+        gamma = self.get_gamma(z[mask])
         zs[mask] = z[mask]
-        res[mask] = get_y(gamma, C_0, C_1, self.medium.n_ice, self.__b, self.medium.z_0)
+        res[mask] = self.get_y(gamma, C_0, C_1)
         if x2[1] > 0:  # treat ice to air case
             zenith_reflection = self.get_reflection_angle(x1, x2, C_0)
             n_1 = self.medium.get_index_of_refraction([y_turn, 0, z_turn])
@@ -1204,8 +1023,8 @@ class ray_tracing_2D(ray_tracing_base):
             zs[~mask] = z[~mask]
             res[~mask] = zs[~mask] * np.tan(zenith_air) + y_turn
         else:
-            gamma = get_gamma(2 * z_turn - z[~mask], self.medium.delta_n, self.medium.z_0)
-            res[~mask] = 2 * y_turn - get_y(gamma, C_0, C_1, self.medium.n_ice, self.__b, self.medium.z_0)
+            gamma = self.get_gamma(2 * z_turn - z[~mask])
+            res[~mask] = 2 * y_turn - self.get_y(gamma, C_0, C_1)
             zs[~mask] = 2 * z_turn - z[~mask]
 
         self.__logger.debug('turning points for C_0 = {:.2f}, b= {:.2f}, gamma = {:.4f}, z = {:.1f}, y_turn = {:.0f}'.format(
@@ -1250,7 +1069,7 @@ class ray_tracing_2D(ray_tracing_base):
         if(reflection and reflection_case == 2):
             # the code only allows upward going rays, thus we find a point left from x1 that has an upward going ray
             # that will produce a downward going ray through x1
-            y_turn = get_y_turn(C_0, x1, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
+            y_turn = self.get_y_turn(C_0, x1)
             dy = y_turn - x1[0]
             self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
             x1[0] = x1[0] - 2 * dy
@@ -1261,8 +1080,8 @@ class ray_tracing_2D(ray_tracing_base):
         x22 = copy.copy(x2)
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i))
-            C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0,self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
-            x2 = get_reflection_point(C_0, C_1,  self.medium.n_ice, self.reflection, self.__b, self.medium.z_0, self.medium.delta_n)
+            C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+            x2 = self.get_reflection_point(C_0, C_1)
             if(x2[0] > x22[0]):
                 x2 = x22
             yyy, zzz = self.get_path(x1, x2, C_0, n_points)
@@ -1276,13 +1095,140 @@ class ray_tracing_2D(ray_tracing_base):
         mask = yy > x11[0]
         return yy[mask], zz[mask]
 
+    def get_reflection_point(self, C_0, C_1):
+        """
+        calculates the point where the signal gets reflected off the bottom of the ice shelf
+
+        Returns tuple (y,z)
+        """
+        c = self.medium.n_ice ** 2 - C_0 ** -2
+        gamma_turn, z_turn = self.get_turning_point(c)
+        x2 = [0, self.medium.reflection]
+        x2[0] = self.get_y_with_z_mirror(-x2[1] + 2 * z_turn, C_0, C_1)
+        return x2
+
+    def obj_delta_y_square(self, logC_0, x1, x2, reflection=0, reflection_case=2):
+        """
+        objective function to find solution for C0
+        """
+        C_0 = self.get_C0_from_log(logC_0)
+        return self.get_delta_y(C_0, copy.copy(x1), x2, reflection=reflection, reflection_case=reflection_case) ** 2
+
     def obj_delta_y(self, logC_0, x1, x2, reflection=0, reflection_case=2):
         """
         function to find solution for C0, returns distance in y between function and x2 position
         result is signed! (important to use a root finder)
         """
-        C_0 = get_C0_from_log(logC_0,self.medium.n_ice)
-        return get_delta_y(C_0, np.array(x1), np.array(x2),self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0, self.reflection, (-1.0,-1.0), reflection, reflection_case)
+        C_0 = self.get_C0_from_log(logC_0)
+        return self.get_delta_y(C_0, copy.copy(x1), x2, reflection=reflection, reflection_case=reflection_case)
+
+    def get_delta_y(self, C_0, x1, x2, C0range=None, reflection=0, reflection_case=2):
+        """
+        calculates the difference in the y position between the analytic ray tracing path
+        specified by C_0 at the position x2
+        """
+        if(C0range is None):
+            C0range = [1. / self.medium.n_ice, np.inf]
+        if(hasattr(C_0, '__len__')):
+            C_0 = C_0[0]
+        if((C_0 < C0range[0]) or(C_0 > C0range[1])):
+            self.__logger.debug('C0 = {:.4f} out of range {:.0f} - {:.2f}'.format(C_0, C0range[0], C0range[1]))
+            return -np.inf
+        c = self.medium.n_ice ** 2 - C_0 ** -2
+
+        # we consider two cases here,
+        # 1) the rays start rising -> the default case
+        # 2) the rays start decreasing -> we need to find the position left of the start point that
+        #    that has rising rays that go through the point x1
+        if(reflection > 0 and reflection_case == 2):
+            y_turn = self.get_y_turn(C_0, x1)
+            dy = y_turn - x1[0]
+            self.__logger.debug("reflection case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
+            x1[0] = x1[0] - 2 * dy
+
+        for i in range(reflection):
+            # we take account reflections at the bottom layer into account via
+            # 1) calculating the point where the reflection happens
+            # 2) starting a ray tracing from this new point
+
+            # determine y translation first
+            C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+            if(hasattr(C_1, '__len__')):
+                C_1 = C_1[0]
+
+            self.__logger.debug("C_0 = {:.4f}, C_1 = {:.1f}".format(C_0, C_1))
+            x1 = self.get_reflection_point(C_0, C_1)
+
+        # determine y translation first
+        C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+        if(hasattr(C_1, '__len__')):
+            C_1 = C_1[0]
+
+        self.__logger.debug("C_0 = {:.4f}, C_1 = {:.1f}".format(C_0, C_1))
+
+        # for a given c_0, 3 cases are possible to reach the y position of x2
+        # 1) direct ray, i.e., before the turning point
+        # 2) refracted ray, i.e. after the turning point but not touching the surface
+        # 3) reflected ray, i.e. after the ray reaches the surface
+        gamma_turn, z_turn = self.get_turning_point(c)
+        y_turn = self.get_y(gamma_turn, C_0, C_1)
+        if(z_turn < min(x2[1], 0)):  # turning points is deeper that x2 positions, can't reach target
+            # the minimizer has problems finding the minimum if inf is returned here. Therefore, we return the distance
+            # between the turning point and the target point + 10 x the distance between the z position of the turning points
+            # and the target position. This results in a objective function that has the solutions as the only minima and
+            # is smooth in C_0
+
+            diff = ((z_turn - x2[1]) ** 2 + (y_turn - x2[0]) ** 2) ** 0.5 + 10 * np.abs(z_turn - x2[1])
+            self.__logger.debug(
+                "turning points (zturn = {:.4g} is deeper than x2 positon z2 = {:.0f}, setting distance to target position to {:.1f}".format(z_turn, x2[1], -diff))
+            return -diff
+#             return -np.inf
+        self.__logger.debug('turning points is z = {:.1f}, y =  {:.1f}'.format(z_turn, y_turn))
+
+        if(x2[1] > 0):  # first treat the ice to air case
+            # Do nothing if ray is refracted. If ray is reflected, don't mirror but do straight line upwards
+            if(z_turn == 0):
+                zenith_reflection = self.get_reflection_angle(x1, x2, C_0, reflection, reflection_case)
+                if(zenith_reflection == None):
+                    diff = x2[1]
+                    self.__logger.debug(f"not refracting into air")
+                    return diff
+                n_1 = self.medium.get_index_of_refraction([y_turn, 0, z_turn])
+                zenith_air = NuRadioReco.utilities.geometryUtilities.get_fresnel_angle(zenith_reflection, n_1=n_1, n_2=1)
+                if(zenith_air is None):
+                    diff = x2[1]
+                    self.__logger.debug(f"not refracting into air")
+                    return diff
+                z = (x2[0] - y_turn) / np.tan(zenith_air)
+                diff = x2[1] - z
+                self.__logger.debug(f"touching surface at {zenith_reflection/units.deg:.1f}deg -> {zenith_air/units.deg:.1f}deg -> x2 = {x2} diff {diff:.2f}")
+                return diff
+        if(y_turn > x2[0]):  # we always propagate from left to right
+            # direct ray
+            y2_fit = self.get_y(self.get_gamma(x2[1]), C_0, C_1)  # calculate y position at get_path position
+            diff = (x2[0] - y2_fit)
+            if(hasattr(diff, '__len__')):
+                diff = diff[0]
+            if(hasattr(x2[0], '__len__')):
+                x2[0] = x2[0][0]
+
+            self.__logger.debug(
+                'we have a direct ray, y({:.1f}) = {:.1f} -> {:.1f} away from {:.1f}, turning point = y={:.1f}, z={:.2f}, x0 = {:.1f} {:.1f}'.format(x2[1], y2_fit, diff, x2[0], y_turn, z_turn, x1[0], x1[1]))
+            return diff
+        else:
+            # now it's a bit more complicated. we need to transform the coordinates to
+            # be on the mirrored part of the function
+            z_mirrored = x2[1]
+            gamma = self.get_gamma(z_mirrored)
+            self.__logger.debug("get_y( {}, {}, {})".format(gamma, C_0, C_1))
+            y2_raw = self.get_y(gamma, C_0, C_1)
+            y2_fit = 2 * y_turn - y2_raw
+            diff = (x2[0] - y2_fit)
+
+            self.__logger.debug('we have a reflected/refracted ray, y({:.1f}) = {:.1f} ({:.1f}) -> {:.1f} away from {:.1f} (gamma = {:.5g})'.format(
+                z_mirrored, y2_fit, y2_raw, diff, x2[0], gamma))
+
+            return -1 * diff
 
     def determine_solution_type(self, x1, x2, C_0):
         """ returns the type of the solution
@@ -1306,11 +1252,9 @@ class ray_tracing_2D(ray_tracing_base):
 
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
-        C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)[0]
-        gamma_turn, z_turn = get_turning_point(c, self.__b, self.medium.z_0, self.medium.delta_n)
-        gamma_turn = gamma_turn[0]
-        z_turn = z_turn[0]
-        y_turn = get_y(gamma_turn, C_0, C_1, self.medium.n_ice, self.__b, self.medium.z_0)
+        C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
+        gamma_turn, z_turn = self.get_turning_point(c)
+        y_turn = self.get_y(gamma_turn, C_0, C_1)
         if(x2[0] < y_turn):
             return solution_types_revert['direct']
         else:
@@ -1373,7 +1317,7 @@ class ray_tracing_2D(ray_tracing_base):
                     return results
                 result = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
 
-                C_0 = get_C0_from_log(result, self.medium.n_ice)
+                C_0 = self.get_C0_from_log(result)
                 C0s.append(C_0)
                 solution_type = self.determine_solution_type(x1, x2, C_0)
                 self.__logger.info("found {} solution C0 = {:.2f} (internal logC = {:.2f})".format(solution_types[solution_type], C_0, result))
@@ -1400,16 +1344,17 @@ class ray_tracing_2D(ray_tracing_base):
                     'starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(logC_0_start, C_0_start))
             else:
                 logC_0_start = -1
-            obj_delta_y_sqr = obj_delta_y_square
-            result = optimize.root(obj_delta_y_sqr, x0=logC_0_start, args=(np.array(x1), np.array(x2),self.medium.n_ice,self.__b, self.medium.delta_n, self.medium.z_0, self.reflection, reflection, reflection_case), tol=tol)
+
+            result = optimize.root(self.obj_delta_y_square, x0=logC_0_start, args=(x1, x2, reflection, reflection_case), tol=tol)
+
             if(plot):
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(1, 1)
             if(result.fun < 1e-7):
                 if(plot):
-                    self.plot_result(x1, x2, get_C0_from_log(result.x[0], self.medium.n_ice), ax)
+                    self.plot_result(x1, x2, self.get_C0_from_log(result.x[0]), ax)
                 if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
-                    C_0 = get_C0_from_log(result.x[0], self.medium.n_ice)
+                    C_0 = self.get_C0_from_log(result.x[0])
                     C0s.append(C_0)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
@@ -1429,9 +1374,9 @@ class ray_tracing_2D(ray_tracing_base):
                 self.__logger.info("solution with logC0 > {:.3f} exists".format(result.x[0]))
                 result2 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
                 if(plot):
-                    self.plot_result(x1, x2, get_C0_from_log(result2, self.medium.n_ice), ax)
+                    self.plot_result(x1, x2, self.get_C0_from_log(result2), ax)
                 if(np.round(result2, 3) not in np.round(C0s, 3)):
-                    C_0 = get_C0_from_log(result2, self.medium.n_ice)
+                    C_0 = self.get_C0_from_log(result2)
                     C0s.append(C_0)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
@@ -1453,9 +1398,9 @@ class ray_tracing_2D(ray_tracing_base):
                 result3 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
 
                 if(plot):
-                    self.plot_result(x1, x2, get_C0_from_log(result3, self.medium.n_ice), ax)
+                    self.plot_result(x1, x2, self.get_C0_from_log(result3), ax)
                 if(np.round(result3, 3) not in np.round(C0s, 3)):
-                    C_0 = get_C0_from_log(result3, self.medium.n_ice)
+                    C_0 = self.get_C0_from_log(result3)
                     C0s.append(C_0)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
@@ -1480,9 +1425,7 @@ class ray_tracing_2D(ray_tracing_base):
         C_1 = self.get_C_1(x1, C_0)
 
         zs = np.linspace(x1[1], x1[1] + np.abs(x1[1]) + np.abs(x2[1]), 1000)
-        yz = get_y_with_z_mirror(zs, C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0, C_1)
-        yy = yz[0] 
-        zz = yz[1]        
+        yy, zz = self.get_y_with_z_mirror(zs, C_0, C_1)
         ax.plot(yy, zz, '-', label='C0 = {:.3f}'.format(C_0))
         ax.plot(x1[0], x1[1], 'ko')
         ax.plot(x2[0], x2[1], 'd')
@@ -1517,9 +1460,9 @@ class ray_tracing_2D(ray_tracing_base):
             angle corresponding to C_0, minus offset angoff
         '''
 
-        C_0 = get_C0_from_log(logC_0, self.medium.n_ice)
+        C_0 = self.get_C0_from_log(logC_0)
 
-        dydz = get_y_diff(z_pos, C_0, self.medium.n_ice, self.__b, self.medium.z_0, self.medium.delta_n, in_air=in_air)
+        dydz = self.get_y_diff(z_pos, C_0, in_air=in_air)
 #        dydz = self.get_dydz_analytic(C_0, z_pos)
         angle = np.arctan(dydz)
 
@@ -1555,7 +1498,7 @@ class ray_tracing_2D(ray_tracing_base):
         # want to return the complete instance of the result class; result value result.x[0] is logC_0,
         # but we want C_0, so replace it in the result class. This may not be good practice but it seems to be
         # more user-friendly than to return the value logC_0
-        result.x[0] = copy.copy(get_C0_from_log(result.x[0], self.medium.n_ice))
+        result.x[0] = copy.copy(self.get_C0_from_log(result.x[0]))
 
         return result
 
@@ -1598,10 +1541,10 @@ class ray_tracing_2D(ray_tracing_base):
             critical angle
         '''
 
-        nlaunch = n(x1[1], self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
+        nlaunch = self.n(x1[1])
         # by definition, z of critical angle is at surface, i.e. z=0
         zcrit = 0.
-        nsurf = n(zcrit, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
+        nsurf = self.n(zcrit)
 
         sinthcrit = nsurf / nlaunch
         if sinthcrit <= 1:
@@ -1648,7 +1591,7 @@ class ray_tracing_2D(ray_tracing_base):
         # z_crit = 0 and hence gamma_crit = delta_n by definition
         gcrit = self.medium.delta_n
         # the y-value where the ray hits z=0
-        ycrit = get_y(gcrit, C0crit, self.get_C_1(x1, C0crit), self.medium.n_ice, self.__b, self.medium.z_0)
+        ycrit = self.get_y(gcrit, C0crit, self.get_C_1(x1, C0crit))
 
         if plot:
             import matplotlib.pyplot as plt
@@ -1670,9 +1613,9 @@ class ray_tracing_2D(ray_tracing_base):
             # theoretically this is not quite unterstood
             C0check = self.get_C_0_from_angle(np.pi / 2., 0)
             C0check = C0check.x[0]
-            gcheck = get_gamma(x2[1], self.medium.delta_n, self.medium.z_0)
+            gcheck = self.get_gamma(x2[1])
             # print('C0check, gcheck',C0check,gcheck)
-            ycheck = -get_y(gcheck, C0check, self.get_C_1([ycrit, 0], C0check), self.medium.n_ice, self.__b, self.medium.z_0) + 2 * ycrit
+            ycheck = -self.get_y(gcheck, C0check, self.get_C_1([ycrit, 0], C0check)) + 2 * ycrit
             # print('ycheck, x2[1]',ycheck,x2[1])
             if x2[0] < ycheck:
                 refraction = True
@@ -1709,14 +1652,14 @@ class ray_tracing_2D(ray_tracing_base):
             n_ice * dz - delta_n * z_0 * (np.exp(x2[1] / z_0) - np.exp(x1[1] / z_0))
             )
         else:
-            return n(x2[1], self.medium.n_ice, self.medium.delta_n, self.medium.z_0) / speed_of_light * dx
+            return self.n(x2[1]) / speed_of_light * dx
 
     def get_surface_pulse(self, x1, x2, infirn=False, angle='critical', chdraw=None, label=None):
 
         '''
         Calculate the time for a ray to travel from x1 to the surface and arriving at the surface
         with (a) critical angle or (b) Brewster angle, propagating in a straight line along the surface
-        in air (n=1) in the firn at z=0 (n=n(0, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)) and then reaching the receiver by returning into the
+        in air (n=1) in the firn at z=0 (n=self.n(0)) and then reaching the receiver by returning into the
         firn just at the point to reach the receiver at x2, entering the firn at the surface at the same
         angle it reached the surface from x1..
 
@@ -1745,19 +1688,19 @@ class ray_tracing_2D(ray_tracing_base):
         if infirn == False:
             nlayer = 1.  # index of refraction at surface, default is n=1 for air
         else:
-            nlayer = n(0, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
+            nlayer = self.n(0)
 
         if angle == 'critical':
             # sin(th)=1,
             nxsin = 1.
         elif angle == 'Brewster':
-            nxsin = np.sin(np.arctan(1. / n(0, self.medium.n_ice, self.medium.delta_n, self.medium.z_0))) * n(0, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
+            nxsin = np.sin(np.arctan(1. / self.n(0))) * self.n(0)
         else:
             self.__logger.warning(' unknown input angle=={}, using critical angle!!!'.format(angle))
             nxsin = 1.
 
         zsurf = 0
-        gamma = get_gamma(zsurf, self.medium.delta_n, self.medium.z_0)
+        gamma = self.get_gamma(zsurf)
 
         # print('nxsin = ',nxsin)
         # find emission angle for starting point x1 to hit the surface at the specified angle
@@ -1767,7 +1710,7 @@ class ray_tracing_2D(ray_tracing_base):
         tice = 0
         sice = 0
         for x in [x1, x2]:
-            sinthemit = nxsin / n(x[1], self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
+            sinthemit = nxsin / self.n(x[1])
             th_emit = np.arcsin(sinthemit)
             C0result = self.get_C_0_from_angle(th_emit, x[1])
             C0_emit = C0result.x[0]
@@ -1777,7 +1720,7 @@ class ray_tracing_2D(ray_tracing_base):
 
             # x-coordinate where ray reaches surface; is always bigger than the x-position of the emitter
             # (i.e. ray travels "to the right")
-            xsurf = get_y(gamma, C0_emit, self.get_C_1(x, C0_emit), self.medium.n_ice, self.__b, self.medium.z_0)
+            xsurf = self.get_y(gamma, C0_emit, self.get_C_1(x, C0_emit))
             sice += xsurf - x[0]
             self.__logger.info(' air pulse starting at x={}, z={} reaches surface at x={}'.format(x[0], x[1], xsurf))
             ttosurf = self.get_travel_time_analytic(x, [xsurf, zsurf], C0_emit)
@@ -1787,7 +1730,7 @@ class ray_tracing_2D(ray_tracing_base):
             if draw:
                 import matplotlib.pyplot as plt
                 z = np.linspace(x[1], zsurf, 1000, endpoint=True)
-                y = get_y(get_gamma(z, self.medium.delta_n, self.medium.z_0), C0_emit, self.medium.n_ice, self.__b, self.medium.z_0, C_1=self.get_C_1(x, C0_emit))
+                y = self.get_y(self.get_gamma(z), C0_emit, C_1=self.get_C_1(x, C0_emit))
                 if x == x1:
                     ysurf = [y[-1]]
                 else:
@@ -1866,10 +1809,10 @@ class ray_tracing(ray_tracing_base):
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
 
-    def __init__(self, medium, attenuation_model="SP1", log_level=logging.NOTSET,
+    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=100, n_reflections=0, config=None,
                  detector=None, ray_tracing_2D_kwards={},
-                 use_cpp=cpp_available, compile_numba=False):
+                 use_cpp=cpp_available):
         """
         class initilization
 
@@ -1877,13 +1820,13 @@ class ray_tracing(ray_tracing_base):
         ----------
         medium: medium class
             class describing the index-of-refraction profile
-        
+
         attenuation_model: string
             signal attenuation model
-        
+
         log_name:  string
             name under which things should be logged
-        
+
         log_level: logging object
             specify the log level of the ray tracing class
 
@@ -1892,16 +1835,16 @@ class ray_tracing(ray_tracing_base):
             * logging.INFO
             * logging.DEBUG
 
-            default is NOTSET (global control)
-        
+            default is WARNING
+
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
-        
+
         n_reflections: int (default 0)
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
-        
+
         config: dict
             a dictionary with the optional config settings. If None, the config is intialized with default values,
             which is needed to avoid any "key not available" errors. The default settings are
@@ -1913,14 +1856,14 @@ class ray_tracing(ray_tracing_base):
                 * self._config['propagation']['birefringence'] = False
 
         detector: detector object
-        
+
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
-            
+
         use_cpp: bool
             if True, use CPP implementation of minimization routines
             default: True if CPP version is available
-            
+
         """
         self.__logger = logging.getLogger('NuRadioMC.ray_tracing_analytic')
         self.__logger.setLevel(log_level)
@@ -1938,16 +1881,16 @@ class ray_tracing(ray_tracing_base):
                          config=config,
                          detector=detector)
         self.set_config(config=config)
-        
+
         self.use_cpp = use_cpp
         if use_cpp:
-            self.__logger.status(f"using CPP version of ray tracer")
+            self.__logger.debug(f"using CPP version of ray tracer")
         else:
-            self.__logger.status(f"using python version of ray tracer")
+            self.__logger.debug(f"using python version of ray tracer")
 
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self._n_frequencies_integration,
-                                    **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+                                    **ray_tracing_2D_kwards, use_cpp=use_cpp)
 
         self._swap = None
         self._dPhi = None
@@ -2000,8 +1943,8 @@ class ray_tracing(ray_tracing_base):
         self.__logger.debug("X1 = {}, X2 = {}".format(self._X1, self._X2))
         self.__logger.debug('dphi = {:.1f}'.format(self._dPhi / units.deg))
         self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self._X2 - self._X1, X1r, X2r))
-        self._x1 = np.array([X1r[0], X1r[2]])
-        self._x2 = np.array([X2r[0], X2r[2]])
+        self._x1 = np.array([0, X1r[2]])
+        self._x2 = np.array([X2r[0] - X1r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self._x1, self._x2))
 
     def set_solution(self, raytracing_results):
@@ -2079,7 +2022,7 @@ class ray_tracing(ray_tracing_base):
     def get_effective_index_birefringence(self, direction, nx, ny, nz):
 
         """
-        Function to find the analytical solutions for the effective refractive indices. 
+        Function to find the analytical solutions for the effective refractive indices.
         The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
 
         Parameters
@@ -2103,21 +2046,21 @@ class ray_tracing(ray_tracing_base):
         sy = direction[1]
         sz = direction[2]
 
-        n1 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) / 
-                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2)) 
-                      - np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2) 
-                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2) 
-                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2)) 
-                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) 
-                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2) 
+        n1 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) /
+                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2))
+                      - np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2)
+                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2)
+                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2))
+                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2)
+                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2)
                                                                     + ny ** 2 * ( - 1 + sz ** 2))) ** 2)))
-        n2 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) / 
-                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2)) 
-                      + np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2) 
-                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2) 
-                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2)) 
-                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) 
-                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2) 
+        n2 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) /
+                     (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2))
+                      + np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2)
+                                                                    + ny ** 2 * (-1 + sx ** 2 + sz ** 2)
+                                                                    + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2))
+                                                                    + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2)
+                                                                    + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2)
                                                                     + ny ** 2 * ( - 1 + sz ** 2))) ** 2)))
 
         return np.array([n1, n2])
@@ -2181,7 +2124,7 @@ class ray_tracing(ray_tracing_base):
         efield : np.ndarray of shape (2, 3)
             normalized e-field vector in spherical coordinates for both birefringence solutions
         """
-        
+
         narrow_check = 1e-9
         wide_check = 1e-10
 
@@ -2191,7 +2134,7 @@ class ray_tracing(ray_tracing_base):
                 self.__logger.warning("warning: Polarization vectors not computable")
                 sky_polarization_1 = np.array([0, 0, 0])
                 sky_polarization_2 = np.array([0, 0, 0])
-            
+
             elif np.isclose(N1, nx, rtol=0, atol=wide_check):
 
                 if direction[0] < 0:
@@ -2203,7 +2146,7 @@ class ray_tracing(ray_tracing_base):
                     sky_polarization_2 = np.array([0, 1, 0])
 
             elif np.isclose(N1, ny, rtol=0, atol=narrow_check):
-                
+
                 if direction[1] < 0:
                     sky_polarization_1 = np.array([0, 0, 1])
                     sky_polarization_2 = np.array([0, 1, 0])
@@ -2249,12 +2192,12 @@ class ray_tracing(ray_tracing_base):
             sky_polarization_2 = self.on_sky_birefringence(zenith, azimuth, polarization_2)
 
         return np.vstack((sky_polarization_1, sky_polarization_2))
-    
+
     def on_sky_birefringence(self, theta, phi, polarization):
 
         """
         Function for the normalized e-field vector from cartesian to spherical coordinates.
-        The function does the same as the following radiotool functions, only faster:             
+        The function does the same as the following radiotool functions, only faster:
         from radiotools import coordinatesystems
         cs = coordinatesystems.cstrafo(theta, phi)
         sky = cs.transform_from_ground_to_onsky(p)
@@ -2274,16 +2217,16 @@ class ray_tracing(ray_tracing_base):
             normalized e-field vector in spherical coordinates
         """
 
-        transform = np.array([  [np.sin(theta) * np.cos(phi) , np.sin(theta) * np.sin(phi)   , np.cos(theta)    ], 
-                                [np.cos(theta) * np.cos(phi) , np.cos(theta) * np.sin(phi)   , - np.sin(theta)  ], 
+        transform = np.array([  [np.sin(theta) * np.cos(phi) , np.sin(theta) * np.sin(phi)   , np.cos(theta)    ],
+                                [np.cos(theta) * np.cos(phi) , np.cos(theta) * np.sin(phi)   , - np.sin(theta)  ],
                                 [- np.sin(phi)               , np.cos(phi)                   , 0                ]       ])
 
         return transform.dot(polarization)
 
     def get_pulse_propagation_birefringence(self, pulse, samp_rate, i_solution, bire_model = 'southpole_A'):
-        
+
         """
-        Function for the time trace propagation according to the polarization change due to birefringence. 
+        Function for the time trace propagation according to the polarization change due to birefringence.
         The trace propagation is explained in this paper: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
 
         Parameters
@@ -2327,7 +2270,7 @@ class ray_tracing(ray_tracing_base):
             refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
 
             nx, ny, nz = refractive_index + refractive_index_birefringence - 1.78
-            dD = path[i + 1] - path[i]     
+            dD = path[i + 1] - path[i]
 
             direction = np.array(dD)
             len_diff = np.linalg.norm(direction)
@@ -2347,17 +2290,17 @@ class ray_tracing(ray_tracing_base):
 
             R = np.matrix([[a, b], [c, d]])
 
-            birefringent_base = R * pulse[1:] 
+            birefringent_base = R * pulse[1:]
 
             t_fast.set_frequency_spectrum(birefringent_base[1], sampling_rate=samp_rate)
             t_fast.apply_time_shift(t_1 - t_0)
             birefringent_base[1] = t_fast.get_frequency_spectrum()
-            
+
             Rtransp = np.matrix.transpose(R)
             pulse[1:]  = Rtransp * birefringent_base
 
         return pulse
-    
+
     def get_path_properties_birefringence(self, i_solution, bire_model = 'southpole_A'):
 
         """
@@ -2378,7 +2321,7 @@ class ray_tracing(ray_tracing_base):
 
         path_properties: dict
             a dictionary containing the following keys:
-            
+
             * 'path': np.ndarray - propagation path in x, y, z with the same granularity as the nirefringent propagation
             * 'nominal_refractive_index': np.ndarray - nominal refractive index if only density effects were taken into account
             * 'refractive_index_x': np.ndarray - refractive index for the x-direction
@@ -2399,7 +2342,7 @@ class ray_tracing(ray_tracing_base):
 
         acc = int(self.get_path_length(i_solution) / units.m)
         path = self.get_path(i_solution, n_points=acc)
-        
+
         if 'angle_to_iceflow' in self._config['propagation']:
             rotation_angle = self._config['propagation']['angle_to_iceflow'] * units.deg
             rot = np.matrix([[np.cos(rotation_angle), -np.sin(rotation_angle)], [np.sin(rotation_angle), np.cos(rotation_angle)]])
@@ -2426,7 +2369,7 @@ class ray_tracing(ray_tracing_base):
             refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
 
             nx, ny, nz = refractive_index + refractive_index_birefringence - 1.78
-            dD = path[i + 1] - path[i]   
+            dD = path[i + 1] - path[i]
 
             direction = np.array(dD)
             len_diff = np.linalg.norm(direction)
@@ -2578,12 +2521,6 @@ class ray_tracing(ray_tracing_base):
         -------
         distance: float
             distance from x1 to x2 along the ray path
-
-        Notes
-        -----
-        The analytic solution is based on the equation in the appendix of Sjoerd Bouma's PhD thesis.
-        For more details, see there, or see the notes of `ray_tracing_2D.get_path_length_analytic`.
-
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
@@ -2614,23 +2551,17 @@ class ray_tracing(ray_tracing_base):
 
         Parameters
         ----------
-        iS : int
+        iS: int
             choose for which solution to compute the launch vector, counting
             starts at zero
 
-        analytic : bool
+        analytic: bool
             If True the analytic solution is used. If False, a numerical integration is used. (default: True)
 
         Returns
         -------
         time: float
             travel time
-
-        Notes
-        -----
-        The analytic solution is based on the equation in the appendix of Sjoerd Bouma's PhD thesis.
-        For more details, see there, or see the notes of `ray_tracing_2D.get_travel_time_analytic`.
-
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
@@ -2645,7 +2576,7 @@ class ray_tracing(ray_tracing_base):
                                                                 reflection_case=result['reflection_case'])
                 if (analytic_time != None):
                     return analytic_time
-            except KeyError:
+            except:
                 self.__logger.warning("analytic calculation of travel time failed, switching to numerical integration")
                 return self._r2d.get_travel_time(self._x1, self._x2, result['C0'],
                                                   reflection=result['reflection'],
@@ -2787,7 +2718,7 @@ class ray_tracing(ray_tracing_base):
                 n2 = self._medium.get_index_of_refraction(self._X2)  # receiver
             f =  focusing * (n1 / n2) ** 0.5
 
-        # for ice-to-air transmission, the fresnel amplitude coefficients include an impedance factor 
+        # for ice-to-air transmission, the fresnel amplitude coefficients include an impedance factor
         # as well as a correction for the focusing for a plane wave. We have already included these
         # in the focusing factor f, so we should correct for this:
         if recPos[-1] > 0: # receiver in air
@@ -2815,23 +2746,6 @@ class ray_tracing(ray_tracing_base):
         ]
 
     def get_raytracing_output(self, i_solution):
-        """
-        Get the output of the ray tracing for a specific solution
-
-        Parameters
-        ----------
-        i_solution: int
-            Index of the raytracing solution
-
-        Returns
-        -------
-        output_dict: dict
-            Dictionary containing the output of the ray tracing.
-            The C_0 and C_1 parameters are the parameters of the analytic function that describes the ray path.
-            The solution type is the type of the solution (1: direct, 2:refracted, 3: reflected off the surface).
-            The reflection parameter specifies the number of bottom reflections (in case of reflective layers in the ice).
-            The reflection case specifies if the ray starts upward or downward (1: upward, 2: downward) (only relevant if bottom reflection > 0).
-        """
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
         else:
@@ -2866,7 +2780,7 @@ class ray_tracing(ray_tracing_base):
         s_rate = efield.get_sampling_rate()
         spec = efield.get_frequency_spectrum()
 
-        
+
         apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
             if self._max_detector_frequency is None:
@@ -2905,6 +2819,7 @@ class ray_tracing(ray_tracing_base):
                     zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                 efield[efp.reflection_coefficient_theta] = r_theta
                 efield[efp.reflection_coefficient_phi] = r_phi
+
                 spec[1] *= r_theta
                 spec[2] *= r_phi
                 self.__logger.info(
@@ -2926,7 +2841,7 @@ class ray_tracing(ray_tracing_base):
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
             spec[1:] *= focusing
-        
+
         # apply the birefringence effect
         if self._config['propagation']['birefringence']:
             bire_model = self._config['propagation']['birefringence_model']
@@ -2940,7 +2855,7 @@ class ray_tracing(ray_tracing_base):
                 radiopropa_rays = radioproparaytracing.radiopropa_ray_tracing(self._medium)
                 radiopropa_rays.set_start_and_end_point(self._X1, self._X2)
                 spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate) #, bire_model = bire_model --> has to be implemented
-                
+
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
 
@@ -2960,7 +2875,7 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['focusing_limit'] = 2
             self._config['propagation']['focusing'] = False
             self._config['propagation']['birefringence'] = False
-            
+
 
         else:
             self._config = config

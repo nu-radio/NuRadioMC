@@ -123,12 +123,14 @@ class channelGenericNoiseAdder:
             self.logger.error("When selecting data-driven noise, the station and channel ids should be passed to bandlimeted noise")
             raise ValueError
 
-        scale_parameter_path = f"thermal_noise_scale_parameters_s{station_id}_season23.json"
+        scale_parameter_path = f"thermal_noise_scale_parameters_st{station_id}_season23.json"
         if scale_parameter_path in self.scale_parameter_paths:
             scale_parameter_full_path = self.scale_parameter_dir + "/" + scale_parameter_path
         else:
-            raise NotImplementedError("Other station parameters are being generated")
-        
+            raise FileNotFoundError(f"Could not find {scale_parameter_path} in {self.scale_parameter_dir}. "
+                                    "Available files in this folder are:\n"
+                                    f"{self.scale_parameter_paths}")
+
         nbinsactive = np.sum(selection)
         scale_parameters = load_scale_parameters(scale_parameter_full_path)
         fsigma = scale_parameters[channel_id](frequencies[selection])
@@ -480,14 +482,16 @@ class channelGenericNoiseAdder:
         self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
+
         self.scale_parameter_paths = []
         if scale_parameter_dir is not None:
             self.scale_parameter_dir = scale_parameter_dir
             self.scale_parameter_paths = [scale_param_json for scale_param_json in os.listdir(scale_parameter_dir)
                                           if (scale_param_json.endswith(".json") and
                                               scale_param_json.startswith("thermal_noise_scale_parameters"))]
+
             if len(self.scale_parameter_paths) == 0:
-                raise OSError(f"No scale parameter json files found in {self.scale_parameter_dir}")
+                self.logger.warning(f"No scale parameter json files found in {self.scale_parameter_dir}")
 
     @register_run()
     def run(self, event, station, detector,
@@ -521,7 +525,7 @@ class channelGenericNoiseAdder:
         type: string
             perfect_white: flat frequency spectrum
             rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
-            data-driven: Amplitude of each frequency bin is drawn from a data-informed Rayleigh distribution 
+            data-driven: Amplitude of each frequency bin is drawn from a data-informed Rayleigh distribution
         excluded_channels: list of ints
             the channels ids of channels where no noise will be added, default is that no channel is excluded
         bandwidth: float or None (default)
@@ -605,7 +609,7 @@ if __name__ == "__main__":
         station.add_channel(channel)
         event.set_station(station)
         return event, station
-    
+
 
 
     log_level = logging.DEBUG
@@ -627,7 +631,7 @@ if __name__ == "__main__":
 
     generic_noise_adder = channelGenericNoiseAdder()
     generic_noise_adder.begin(scale_parameter_dir=scale_parameter_dir)
-    
+
     channel = station.get_channel(args.channel)
     # noise = generic_noise_adder.bandlimited_noise(0, 1.6, nr_samples, sampling_rate, amplitude=None, type="data-driven", time_domain=False,
     #                                               station_id=args.station, channel_id=args.channel)
