@@ -1,6 +1,5 @@
 from NuRadioReco.utilities import units, ice, geometryUtilities as geo_utl, fft
 import NuRadioReco.framework.base_trace
-from NuRadioReco.utilities.fluence_rice_dist_estimator import get_signal_fluence_estimators, get_noise_fluence_estimators
 
 import numpy as np
 import scipy.constants
@@ -108,13 +107,13 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
         The electric field trace to calculate the energy fluence for
     times : numpy.ndarray
         The time grid for the electric field trace
-    signal_window_mask : numpy.ndarray
+    signal_window_mask : numpy.ndarray (optional)
         A boolean mask that selects the signal window in which the energy fluence is calculated
-    noise_window_mask : numpy.ndarray
+    noise_window_mask : numpy.ndarray (optional)
         A boolean mask that selects the noise window. Only used if method is "noise_subtraction"
-    return_uncertainty : bool
+    return_uncertainty : bool (optional)
         If True, the uncertainty of the energy fluence is returned
-    method : str
+    method : str (optional)
         The method to use for the energy fluence calculation. Can be either "noise_subtraction" or "rice_distribution".
         The Rice distribution is method implementation is based on the code published alongside S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
 
@@ -198,6 +197,134 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
         return signal_energy_fluence, signal_energy_fluence_error
     else:
         return signal_energy_fluence
+
+def get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False):
+    """
+    Estimate the noise fluence from the trace.
+
+    Parameters
+    ----------
+    trace : np.ndarray
+        Trace to estimate the noise fluence from.
+    times : np.ndarray
+        Time grid for the trace.
+    signal_window_mask : np.ndarray
+        Boolean mask for the signal window.
+    spacing_noise_signal : float (optional)
+        Spacing between noise windows and signal window. Makes sure no signal leaks into the noise windows.
+    relative_taper_width : float (optional)
+        Width of the taper region for the Tukey window relative to the full window length.
+    use_median_value : bool (optional)
+        If True, the median of the squared spectra of the noise windows is used as estimator. Otherwise, the mean is used.
+
+    Returns
+    -------
+    np.ndarray
+        Estimators for the noise fluence.
+    np.ndarray
+        Frequencies corresponding to the estimators.
+    """
+
+    dt = times[1] - times[0]
+    n_samples_window = sum(signal_window_mask)
+    signal_start = times[signal_window_mask][0] - spacing_noise_signal
+    signal_stop = times[signal_window_mask][-1] + spacing_noise_signal
+    list_ffts_squared = []
+
+    #generate Tukey window
+    window = scipy.signal.windows.tukey(n_samples_window, relative_taper_width * 2)
+
+    #loop over the trace defining noise windows (excluding the signal window)
+    noise_start = times[0]
+    while noise_start < times[-1]:
+
+        noise_stop = noise_start + n_samples_window * dt
+        if noise_stop > times[-1]:
+            break
+
+        elif (noise_stop <= signal_start and noise_start < signal_start) or (noise_stop > signal_stop and noise_start >= signal_stop):
+
+            #clipping the noise window (rounding is needed because noise_stop = noise_start + n_samples_window * dt has numerical uncertainties)
+            mask_time = np.all([np.round(times, 5) >= np.round(noise_start, 5), np.round(times, 5) < np.round(noise_stop, 5)], axis=0)
+            time_trace_clipped = trace[mask_time]
+
+            #applying the Tukey window
+            windowed_trace = time_trace_clipped * window
+
+            #calculating the spectrum and frequencies
+            frequencies_window = np.fft.rfftfreq(len(windowed_trace), d=dt)
+            spectrum_window = np.abs(fft.time2freq(windowed_trace, 1/dt))
+
+            list_ffts_squared.append(spectrum_window**2)
+            noise_start = noise_stop
+
+        elif noise_stop > signal_start and noise_start <= signal_start:
+            noise_start = signal_stop
+
+        else:
+            print("Your peak is at zero or negative time...! ")
+            break
+
+    list_ffts_squared = np.array(list_ffts_squared, dtype=float)
+
+    if use_median_value:
+        #robust estimator in presence of outliers from the noise windows
+        estimators = np.median(list_ffts_squared, axis=0) / 1.405 #from chi2 distribution
+    else:
+        #it works well in presence of small number of outliers
+        estimators=np.mean(list_ffts_squared, axis=0)
+
+    return estimators, frequencies_window
+
+def get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estimators, relative_taper_width=0.142857143):
+    """
+    Estimate the signal fluence from the trace.
+
+    Parameters
+    ----------
+    trace : np.ndarray
+        Trace to estimate the signal fluence from.
+    times : np.ndarray
+        Time grid for the trace.
+    signal_window_mask : np.ndarray
+        Boolean mask for the signal window.
+    noise_estimators : np.ndarray
+        Estimators for the noise fluence.
+    relative_taper_width : float (optional)
+        Width of the taper region for the Tukey window relative to the full window length.
+
+    Returns
+    -------
+    np.ndarray
+        Estimators for the signal fluence.
+    np.ndarray
+        Variance of the signal fluence estimators.
+    """
+
+    dt = times[1] - times[0]
+    n_samples_window = sum(signal_window_mask)
+    signal_start = times[signal_window_mask][0]
+    signal_stop = times[signal_window_mask][-1] + dt
+
+    #generate Tukey window
+    window = scipy.signal.windows.tukey(n_samples_window, relative_taper_width * 2)
+
+    #clipping the signal window around the pulse position
+    mask_time = np.all([times >= signal_start, times < signal_stop], axis=0)
+    trace_clipped = trace[mask_time]
+
+    #applying the Tukey window
+    windowed_trace = trace_clipped * window
+
+    #calculating the spectrum and frequencies
+    spectrum_window = np.abs(fft.time2freq(windowed_trace, 1/dt))
+
+    #signal estimator and variance for each frequency bin
+    signal_estimators = spectrum_window**2 - noise_estimators
+    signal_estimators[signal_estimators < 0] = 0
+    variances = noise_estimators * (noise_estimators + 2*signal_estimators)
+
+    return signal_estimators, variances
 
 def get_stokes(trace_u, trace_v, window_samples=128, squeeze=True):
     """
