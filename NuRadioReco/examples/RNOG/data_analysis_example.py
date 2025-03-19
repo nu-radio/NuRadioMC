@@ -59,7 +59,8 @@ if __name__ == "__main__":
     t_total = 0
     # Count events
     n_events_FT = 0
-    n_events_passed = 0
+    n_events_FT_passed = 0
+    n_events_RF_passed = 0
 
     # Loop over all events (the reader module has options to select events -
     # see class documentation or module arguements in config file)
@@ -117,14 +118,12 @@ if __name__ == "__main__":
             fig.savefig(f'channel_traces_{idx}.png')
             plt.close(fig)
 
-        # Check the trigger type in data, we want to skip forced triggers and apply the Hit Filter only to non-FT events
+        # Check the trigger type in data, we want to separate forced triggers from other events
         is_FT = info[idx].get('triggerType') == "FORCE"
         n_events_FT += int(is_FT)
-        is_passed_HF = False
-        if not is_FT:
-            # Apply the Hit Filter to non-FT events
-            is_passed_HF = stationHitFilter.run(evt, station, det)
-            n_events_passed += int(is_passed_HF)
+
+        # Apply the Hit Filter
+        is_passed_HF = stationHitFilter.run(evt, station, det)
 
         # before saving events to disk, it is advisable to downsample back to the two-times the maximum frequency available in the data, i.e., back to the Nquist frequency
         # this will save disk space and make the data processing faster. The preprocessing applied a 600MHz low-pass filter, so we can downsample to 2GHz without losing information
@@ -132,16 +131,21 @@ if __name__ == "__main__":
 
         # it is advisable to only save the full waveform information for events that pass certain analysis cuts
         # this will save disk space and make the data processing faster
-        # Here, we save only events that passed the Hit Filter
+        # Here, we save only non-FT events that passed the Hit Filter
         # Write event - the RNO-G detector class is not stored within the nur files.
-        if is_passed_HF:
+        if not is_FT and is_passed_HF:
             # save full waveform information
             #print("saving full waveform information")
             eventWriter.run(evt, det=None, mode={'Channels':True, "ElectricFields":True})
+            # count RF events passes Hit Filter
+            n_events_RF_passed += int(is_passed_HF)
         else:
             # only save meta information but no traces to save disk space
             #print("saving only meta information")
             eventWriter.run(evt, det=None, mode={'Channels':False, "ElectricFields":False})
+            if is_passed_HF:
+                # count FT events passes Hit Filter
+                n_events_FT_passed += int(is_passed_HF)
 
         logger.debug("Time for event: %f", time.time() - t0)
         t_total += time.time() - t0
@@ -154,5 +158,6 @@ if __name__ == "__main__":
         f"\n\tTotal time: {t_total:.2f}s"
         f"\n\tTime per event: {t_total / (idx + 1):.2f}s"
         f"\nForced Triggers: {n_events_FT} events"
+        f"\nFT Passed Hit Filter: {n_events_FT_passed} events"
         f"\nRF Triggers: {idx + 1 - n_events_FT} events"
-        f"\nRF Passed Hit Filter: {n_events_passed} events")
+        f"\nRF Passed Hit Filter: {n_events_RF_passed} events")
