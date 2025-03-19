@@ -231,6 +231,12 @@ def get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise
     signal_stop = times[signal_window_mask][-1] + spacing_noise_signal
     list_ffts_squared = []
 
+    if signal_start < times[0]:
+        signal_start = times[0]
+        logger.warning("The signal window overlaps with the start of the trace. The efield pulse may be partialy outside the trace.")
+    elif signal_stop > times[-1]:
+        logger.warning("The signal window overlaps with the end of the trace. The efield pulse may be partialy outside the trace.")
+
     #generate Tukey window
     window = scipy.signal.windows.tukey(n_samples_window, relative_taper_width * 2)
 
@@ -262,8 +268,8 @@ def get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise
             noise_start = signal_stop
 
         else:
-            print("Your peak is at zero or negative time...! ")
-            break
+            logger.error("The noise window does not fulfill any of the conditions. This should not happen.")
+            raise RuntimeError("The noise window does not fulfill any of the conditions. This should not happen.")
 
     list_ffts_squared = np.array(list_ffts_squared, dtype=float)
 
