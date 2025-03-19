@@ -120,6 +120,7 @@ if __name__ == "__main__":
         # Check the trigger type in data, we want to skip forced triggers and apply the Hit Filter only to non-FT events
         is_FT = info[idx].get('triggerType') == "FORCE"
         n_events_FT += int(is_FT)
+        is_passed_HF = False
         if not is_FT:
             # Apply the Hit Filter to non-FT events
             is_passed_HF = stationHitFilter.run(evt, station, det)
