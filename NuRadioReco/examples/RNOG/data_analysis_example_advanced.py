@@ -20,6 +20,7 @@ import NuRadioReco.modules.channelCWNotchFilter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.detector.RNO_G.rnog_detector
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
+import NuRadioReco.modules.RNO_G.stationHitFilter
 from NuRadioReco.utilities import units, logging as nulogging
 
 
@@ -32,7 +33,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Run standard RNO-G data processing')
 
-    parser.add_argument('filenames', type=str, nargs="*", 
+    parser.add_argument('filenames', type=str, nargs="*",
                         help='Specify root data files if not specified in the config file')
     parser.add_argument('--outputfile', type=str, required=True, help='Specify the output file')
     parser.add_argument('--detectorfile', type=str, nargs=1, default=None,
@@ -40,7 +41,7 @@ if __name__ == "__main__":
                         "the description is queried from the database.")
 
     args = parser.parse_args()
-    nulogging.set_general_log_level(logging.WARNING)
+    nulogging.set_general_log_level(logging.ERROR)
     args.outputfile = args.outputfile
 
     logger.status(f"writing output to {args.outputfile}")
@@ -51,6 +52,7 @@ if __name__ == "__main__":
     # Initialize io modules
     dataProviderRNOG = NuRadioReco.modules.RNO_G.dataProviderRNOG.dataProviderRNOG()
     dataProviderRNOG.begin(files=args.filenames, det=det)
+    info = dataProviderRNOG.reader.get_events_information(keys=["station", "run", "eventNumber", "triggerType"])
 
     eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
     eventWriter.begin(filename=args.outputfile)
@@ -71,15 +73,22 @@ if __name__ == "__main__":
     channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor(log_level=logging.WARNING)
     channelSignalReconstructor.begin()
 
+    # Initialize Hit Filter
+    stationHitFilter = NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter()
+    stationHitFilter.begin()
+
     # For time logging
     t_total = 0
+    # Count events
+    n_events_FT = 0
+    n_events_passed = 0
 
     # Loop over all events (the reader module has options to select events -
     # see class documentation or module arguements in config file)
     for idx, evt in enumerate(dataProviderRNOG.run()):
 
         if (idx + 1) % 50 == 0:
-            logger.info(f'"Processing events: {idx + 1}\r')
+            print(f'Processed events: {idx + 1}')
 
         t0 = time.time()
 
@@ -113,7 +122,7 @@ if __name__ == "__main__":
             filter_type='butter', order=10)
 
         # The signal chain amplifies and disperses the signal. This module will correct for the effects of the
-        # analog signal chain, i.e., everything between the antenna and the ADC. This will typically increase the 
+        # analog signal chain, i.e., everything between the antenna and the ADC. This will typically increase the
         # signal-to-noise ratio and make the signal more visible.
         hardwareResponseIncorporator.run(evt, station, det, sim_to_data=False, mode='phase_only')
 
@@ -149,8 +158,8 @@ if __name__ == "__main__":
             signal_amplitude = channel[chp.maximum_amplitude_envelope]
             signal_time = channel[chp.signal_time]
 
-            print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude / units.mV:.2f}mV, "
-                  f"signal time={signal_time / units.ns:.2f}ns")
+            #print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude / units.mV:.2f}mV, "
+                  #f"signal time={signal_time / units.ns:.2f}ns")
 
 
         # the following code is just an example of how to access the channel waveforms and plot them
@@ -170,24 +179,29 @@ if __name__ == "__main__":
             fig.savefig(f'channel_traces_{idx}.png')
             plt.close(fig)
 
+        # Check the trigger type in data, we want to skip forced triggers and apply the Hit Filter only to non-FT events
+        is_FT = info[idx].get('triggerType') == "FORCE"
+        n_events_FT += int(is_FT)
+        if not is_FT:
+            # Apply the Hit Filter to non-FT events
+            is_passed_HF = stationHitFilter.run(evt, station, det)
+            n_events_passed += int(is_passed_HF)
+
         # before saving events to disk, it is advisable to downsample back to the two-times the maximum frequency available in the data, i.e., back to the Nquist frequency
         # this will save disk space and make the data processing faster. The preprocessing applied a 600MHz low-pass filter, so we can downsample to 2GHz without losing information
         channelResampler.run(evt, station, det, sampling_rate=2 * units.GHz)
 
         # it is advisable to only save the full waveform information for events that pass certain analysis cuts
         # this will save disk space and make the data processing faster
-        # Here, we implement a simple SNR cut as an example
-        interesting_event = False
-        if max_SNR > 5:
-            interesting_event = True  #determined by some analysis cuts
+        # Here, we save only events that passed the Hit Filter
         # Write event - the RNO-G detector class is not stored within the nur files.
-        if interesting_event:
+        if is_passed_HF:
             # save full waveform information
-            print("saving full waveform information")
+            #print("saving full waveform information")
             eventWriter.run(evt, det=None, mode={'Channels':True, "ElectricFields":True})
         else:
             # only save meta information but no traces to save disk space
-            print("saving only meta information")
+            #print("saving only meta information")
             eventWriter.run(evt, det=None, mode={'Channels':False, "ElectricFields":False})
 
         logger.debug("Time for event: %f", time.time() - t0)
@@ -197,6 +211,9 @@ if __name__ == "__main__":
     eventWriter.end()
 
     logger.status(
-        f"Processed {idx + 1} events:"
+        f"\nTotal: {idx + 1} events"
         f"\n\tTotal time: {t_total:.2f}s"
-        f"\n\tTime per event: {t_total / (idx + 1):.2f}s")
+        f"\n\tTime per event: {t_total / (idx + 1):.2f}s"
+        f"\nForced Triggers: {n_events_FT} events"
+        f"\nRF Triggers: {idx + 1 - n_events_FT} events"
+        f"\nRF Passed Hit Filter: {n_events_passed} events")
