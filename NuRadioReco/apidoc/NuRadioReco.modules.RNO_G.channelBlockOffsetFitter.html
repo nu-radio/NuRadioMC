@@ -632,8 +632,8 @@
   <section id="module-NuRadioReco.modules.RNO_G.channelBlockOffsetFitter">
 <span id="nuradioreco-modules-rno-g-channelblockoffsetfitter-module"></span><h1>NuRadioReco.modules.RNO_G.channelBlockOffsetFitter module<a class="headerlink" href="#module-NuRadioReco.modules.RNO_G.channelBlockOffsetFitter" title="Link to this heading"></a></h1>
 <p>Module to remove ‘block offsets’ from RNO-G voltage traces.</p>
-<p>The function <code class="docutils literal notranslate"><span class="pre">fit_block_offsets</span></code> can be used standalone to perform an out-of-band
-fit to the block offsets. Alternatively, the <code class="docutils literal notranslate"><span class="pre">channelBlockOffsets</span></code> class contains convenience
+<p>The function <a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.fit_block_offsets" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.fit_block_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_block_offsets</span></code></a> can be used standalone to perform an out-of-band
+fit to the block offsets. Alternatively, the <a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">channelBlockOffsets</span></code></a> class contains convenience
 <code class="docutils literal notranslate"><span class="pre">add_offsets</span></code> (to add block offsets in simulation) and <code class="docutils literal notranslate"><span class="pre">remove_offsets</span></code> methods that can be run
 directly on a NuRadioMC/imported <code class="docutils literal notranslate"><span class="pre">Event</span></code>. The added/removed block offsets are stored per channel
 in the <a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.channelParameters.block_offsets" title="NuRadioReco.framework.parameters.channelParameters.block_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.parameters.channelParameters.block_offsets</span></code></a> parameter.</p>
@@ -721,7 +721,7 @@ parameter.</p>
 <dt><strong>event</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.event.Event</span></code></a> | None</span></dt><dd></dd>
 <dt><strong>station</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station" title="NuRadioReco.framework.station.Station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.station.Station</span></code></a></span></dt><dd><p>The station to remove the block offsets from</p>
 </dd>
-<dt><strong>mode: str {‘auto’, ‘fit’, ‘approximate’, ‘stored’}, optional</strong></dt><dd><ul class="simple">
+<dt><strong>mode: str {‘auto’, ‘fit’, ‘approximate’, ‘stored’, ‘median’}, optional</strong></dt><dd><ul class="simple">
 <li><p>‘fit’: fit the block offsets with a minimizer</p></li>
 <li><p>‘approximate’ : use the first guess from the out-of-band component,
 without any fitting (slightly faster)</p></li>
@@ -730,6 +730,9 @@ based on the estimated size of the block offsets.</p></li>
 <li><p>‘stored’: use the block offsets already stored in the
 <code class="docutils literal notranslate"><span class="pre">channelParameters.block_offsets</span></code> parameter. Will raise an error
 if this parameter is not present.</p></li>
+<li><p>‘median’: remove the block offsets by calculating the median
+of each block. This is faster than fitting, but less accurate.
+Not recommended!</p></li>
 </ul>
 </dd>
 <dt><strong>channel_ids: list | None</strong></dt><dd><p>List of channel ids to remove offsets from. If None (default),
@@ -777,7 +780,7 @@ NuRadio classes.</p>
 <dt><strong>det</strong><span class="classifier">Detector object, optional</span></dt><dd><p>Detector object (not used in this method,
 included to have the same signature as other NuRadio classes)</p>
 </dd>
-<dt><strong>mode</strong><span class="classifier">str {‘auto’, ‘fit’, ‘approximate’, ‘stored’}, optional</span></dt><dd><ul class="simple">
+<dt><strong>mode</strong><span class="classifier">str {‘auto’, ‘fit’, ‘approximate’, ‘stored’, ‘median’}, optional</span></dt><dd><ul class="simple">
 <li><p>‘fit’: fit the block offsets with a minimizer</p></li>
 <li><p>‘approximate’ : use the first guess from the out-of-band component,
 without any fitting (slightly faster)</p></li>
@@ -786,6 +789,9 @@ based on the estimated size of the block offsets.</p></li>
 <li><p>‘stored’: use the block offsets already stored in the
 <code class="docutils literal notranslate"><span class="pre">channelParameters.block_offsets</span></code> parameter. Will raise an error
 if this parameter is not present.</p></li>
+<li><p>‘median’: remove the block offsets by calculating the median
+of each block. This is faster than fitting, but less accurate.
+Not recommended to be used!</p></li>
 </ul>
 </dd>
 <dt><strong>channel_ids</strong><span class="classifier">list | None</span></dt><dd><p>List of channel ids to remove offsets from. If None (default),

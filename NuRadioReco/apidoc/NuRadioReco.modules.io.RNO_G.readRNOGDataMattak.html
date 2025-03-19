@@ -811,7 +811,7 @@ They are used for event filtering.</p>
 <dt><strong>selectors: list of Callables</strong></dt><dd><p>List of Callable(eventInfo) -&gt; bool to pass to mattak.Dataset.iterate to select events.
 Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == “FORCE”</p>
 </dd>
-<dt><strong>select_triggers: str or list(str)</strong></dt><dd><p>Names of triggers which should be selected. Convenience interface instead of passing a selector. (Default: None)</p>
+<dt><strong>select_triggers: str or list(str) (Default: None)</strong></dt><dd><p>Names of triggers which should be selected. Convenience interface instead of passing a selector.</p>
 </dd>
 </dl>
 </dd>
@@ -825,13 +825,12 @@ Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == “FORCE�
 selectors, which may have been specified, are returned.</p>
 <p>This function is useful to make a pre-selection of events before actually reading them in combination with
 self.read_event().</p>
-<dl class="field-list">
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
-<dt><strong>keys</strong><span class="classifier">str or list(str) or None</span></dt><dd><p>List of the information to receive from each event. Have to match the attributes (member variables)
-of the mattak.Dataset.EventInfo class (examples are “station”, “run”, “triggerTime”, “triggerType”, “eventNumber”, …).</p>
-<p>If None, read in all keys present in the EventInfo class.
-(Default: [“station”, “run”, “eventNumber”])</p>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>keys</strong><span class="classifier">str or list(str) or None (Default: [“station”, “run”, “eventNumber”])</span></dt><dd><p>List of the information to receive from each event. Have to match the attributes (member variables)
+of the mattak.Dataset.EventInfo class (examples are “station”, “run”, “triggerTime”, “triggerType”, “eventNumber”, …).
+If None, read in all keys present in the EventInfo class.</p>
 </dd>
 </dl>
 </dd>
@@ -849,16 +848,15 @@ them self containing the information specified with “keys” parameter.</p>
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms">
 <span class="sig-name descname"><span class="pre">get_waveforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">apply_baseline_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_events</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_waveforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms" title="Link to this definition"></a></dt>
 <dd><p>Return waveforms of events passing the selectors which may have been specified</p>
-<dl class="field-list">
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
+<dd class="field-odd"><dl class="simple">
 <dt><strong>apply_baseline_correction: str | None</strong></dt><dd><p>If not None, apply a different baseline correction algorithm than specified in the
 <a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a> method. Otherwise (default), use the same setting as specified there.</p>
 </dd>
-<dt><strong>max_events</strong><span class="classifier">int | None</span></dt><dd><p>The maximum number of waveforms to return.</p>
-<p>If None, return all waveforms in all datasets. Note that this may cause a crash
+<dt><strong>max_events</strong><span class="classifier">int | None (default: 1000)</span></dt><dd><p>The maximum number of waveforms to return.
+If None, return all waveforms in all datasets. Note that this may cause a crash
 due to memory overflow if too many waveforms are selected.</p>
-<p>Default: 1000</p>
 </dd>
 </dl>
 </dd>

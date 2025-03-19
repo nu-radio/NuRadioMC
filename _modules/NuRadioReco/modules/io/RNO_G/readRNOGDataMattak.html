@@ -633,7 +633,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">inspect</span><span class="w"> </span><span class="kn">import</span> <span class="n">signature</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter</span><span class="w"> </span><span class="kn">import</span> <span class="n">channelBlockOffsets</span><span class="p">,</span> <span class="n">fit_block_offsets</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter</span><span class="w"> </span><span class="kn">import</span> \
+    <span class="n">channelBlockOffsets</span><span class="p">,</span> <span class="n">fit_block_offsets</span><span class="p">,</span> <span class="n">_calculate_block_offsets</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.event</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.station</span>
@@ -643,61 +644,6 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">mattak.Dataset</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_baseline_correction</span><span class="p">(</span><span class="n">wfs</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">,</span> <span class="n">return_offsets</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Simple baseline correction function.</span>
-
-<span class="sd">    Determines baseline in discrete chuncks of &quot;n_bins&quot; with</span>
-<span class="sd">    the function specified (i.e., mean or median).</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-
-<span class="sd">    wfs: np.array(n_events, n_channels, n_samples)</span>
-<span class="sd">        Waveforms of several events/channels.</span>
-
-<span class="sd">    n_bins: int</span>
-<span class="sd">        Number of samples/bins in one &quot;chunck&quot;. If None, calculate median/mean over entire trace. (Default: 128)</span>
-
-<span class="sd">    func: np.mean or np.median</span>
-<span class="sd">        Function to calculate pedestal</span>
-
-<span class="sd">    return_offsets: bool, default False</span>
-<span class="sd">        if True, additionally return the baseline offsets</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-
-<span class="sd">    wfs_corrected: np.array(n_events, n_channels, n_samples)</span>
-<span class="sd">        Baseline/pedestal corrected waveforms</span>
-
-<span class="sd">    baseline_values: np.array of shape (n_samples // n_bins, n_events, n_channels)</span>
-<span class="sd">        (Only if return_offsets==True) The baseline offsets</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># Example: Get baselines in chunks of 128 bins</span>
-    <span class="c1"># wfs in (n_events, n_channels, 2048)</span>
-    <span class="c1"># np.split -&gt; (16, n_events, n_channels, 128) each waveform split in 16 chuncks</span>
-    <span class="c1"># func -&gt; (16, n_events, n_channels) pedestal for each chunck</span>
-    <span class="k">if</span> <span class="n">n_bins</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">baseline_values</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">wfs</span><span class="p">,</span> <span class="mi">2048</span> <span class="o">//</span> <span class="n">n_bins</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-
-        <span class="c1"># np.repeat -&gt; (2048, n_events, n_channels) concatenate the 16 chuncks to one baseline</span>
-        <span class="n">baseline_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">baseline_values</span><span class="p">,</span> <span class="n">n_bins</span> <span class="o">%</span> <span class="mi">2048</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">baseline_values</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">wfs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="c1"># np.repeat -&gt; (2048, n_events, n_channels) concatenate the 16 chuncks to one baseline</span>
-        <span class="n">baseline_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">baseline_values</span><span class="p">,</span> <span class="mi">2048</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-    <span class="c1"># np.moveaxis -&gt; (n_events, n_channels, 2048)</span>
-    <span class="n">baseline_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">baseline_traces</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">return_offsets</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">wfs</span> <span class="o">-</span> <span class="n">baseline_traces</span><span class="p">,</span> <span class="n">baseline_values</span>
-
-    <span class="k">return</span> <span class="n">wfs</span> <span class="o">-</span> <span class="n">baseline_traces</span>
 
 
 <div class="viewcode-block" id="get_time_offset">
@@ -713,13 +659,11 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-
 <span class="sd">    trigger_type: str</span>
 <span class="sd">        Trigger type encoded as string from Mattak</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-
 <span class="sd">    time_offset: float</span>
 <span class="sd">        trace_start_time = trigger_time - time_offset</span>
 
@@ -753,13 +697,11 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-
 <span class="sd">    mattak_dir: str</span>
 <span class="sd">        Path to a mattak directory</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-
 <span class="sd">    all_there: bool</span>
 <span class="sd">        True, if all &quot;req_files&quot; are there and waveforms.root or combined.root. Otherwise returns False.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -796,7 +738,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        run_table_path: str | None</span>
 <span class="sd">            Path to a run_table.csv file. If None, the run table is queried from the DB. (Default: None)</span>
 
@@ -809,7 +750,6 @@
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
-
 <span class="sd">        .. code-block::</span>
 
 <span class="sd">            reader = readRNOGDataMattak.readRNOGData() # initialize reader</span>
@@ -822,7 +762,6 @@
 <span class="sd">            for evt in reader.run(): # loop over all events in file</span>
 <span class="sd">                # perform some analysis</span>
 <span class="sd">                pass</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.RNOG.readRNOGData&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
@@ -885,7 +824,6 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        dirs_files: str, list(str)</span>
 <span class="sd">            Path to run directories (i.e. &quot;.../stationXX/runXXX/&quot;) or path to root files (have to be &quot;combined&quot; mattak files).</span>
 
@@ -904,7 +842,6 @@
 
 <span class="sd">        Other Parameters</span>
 <span class="sd">        ----------------</span>
-
 <span class="sd">        apply_baseline_correction: str {&#39;auto&#39;, &#39;fit&#39;, &#39;approximate&#39;, &#39;median&#39;, &#39;none&#39;}, optional</span>
 <span class="sd">            Removes the DC (baseline) block offsets (pedestals).</span>
 <span class="sd">            Options are, in order of decreasing precision and increasing performance:</span>
@@ -1002,8 +939,8 @@
 
         <span class="k">if</span> <span class="n">select_runs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_table</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Select runs with type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_types</span><span class="p">))</span> <span class="o">+</span>
-                                 <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Select runs with max. trigger rate of </span><span class="si">{</span><span class="n">max_trigger_rate</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="si">}</span><span class="s2"> Hz&quot;</span>
-                                 <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Select runs which are between </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_low</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_high</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Select runs with max. trigger rate of </span><span class="si">{</span><span class="n">max_trigger_rate</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="si">}</span><span class="s2"> Hz&quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Select runs which are between </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_low</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_high</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_selectors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_check_for_valid_information_in_event_info</span><span class="p">)</span>
@@ -1088,13 +1025,12 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        selectors: list of Callables</span>
 <span class="sd">            List of Callable(eventInfo) -&gt; bool to pass to mattak.Dataset.iterate to select events.</span>
 <span class="sd">            Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == &quot;FORCE&quot;</span>
 
-<span class="sd">        select_triggers: str or list(str)</span>
-<span class="sd">            Names of triggers which should be selected. Convenience interface instead of passing a selector. (Default: None)</span>
+<span class="sd">        select_triggers: str or list(str) (Default: None)</span>
+<span class="sd">            Names of triggers which should be selected. Convenience interface instead of passing a selector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Initialize selectors for event filtering</span>
@@ -1122,7 +1058,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        dataset: mattak.Dataset.Dataset</span>
 
 <span class="sd">        select: bool</span>
@@ -1181,13 +1116,11 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        event_index: int</span>
 <span class="sd">            Same as in read_event().</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        dataset: mattak.Dataset.Dataset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># find correct dataset</span>
@@ -1205,16 +1138,13 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        event_info: mattak.Dataset.EventInfo</span>
 <span class="sd">            The event info object for one event.</span>
 
-<span class="sd">        event_index: int</span>
-<span class="sd">            Same as in read_event(). Only use for logger.info(). (Default: None)</span>
-
+<span class="sd">        event_index: int (Default: None)</span>
+<span class="sd">            Same as in read_event(). Only use for logger.info().</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        skip: bool</span>
 <span class="sd">            Returns False to skip/reject event, return True to keep/read event</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1244,17 +1174,13 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
-<span class="sd">        keys : str or list(str) or None</span>
+<span class="sd">        keys : str or list(str) or None (Default: [&quot;station&quot;, &quot;run&quot;, &quot;eventNumber&quot;])</span>
 <span class="sd">            List of the information to receive from each event. Have to match the attributes (member variables)</span>
 <span class="sd">            of the mattak.Dataset.EventInfo class (examples are &quot;station&quot;, &quot;run&quot;, &quot;triggerTime&quot;, &quot;triggerType&quot;, &quot;eventNumber&quot;, ...).</span>
-
 <span class="sd">            If None, read in all keys present in the EventInfo class.</span>
-<span class="sd">            (Default: [&quot;station&quot;, &quot;run&quot;, &quot;eventNumber&quot;])</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        data: dict</span>
 <span class="sd">            Keys of the dict are the event indecies (as used in self.read_event(event_index)). The values are dictinaries</span>
 <span class="sd">            them self containing the information specified with &quot;keys&quot; parameter.</span>
@@ -1306,22 +1232,17 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        apply_baseline_correction: str | None</span>
 <span class="sd">            If not None, apply a different baseline correction algorithm than specified in the</span>
 <span class="sd">            `begin` method. Otherwise (default), use the same setting as specified there.</span>
 
-<span class="sd">        max_events : int | None</span>
+<span class="sd">        max_events : int | None (default: 1000)</span>
 <span class="sd">            The maximum number of waveforms to return.</span>
-
 <span class="sd">            If None, return all waveforms in all datasets. Note that this may cause a crash</span>
 <span class="sd">            due to memory overflow if too many waveforms are selected.</span>
 
-<span class="sd">            Default: 1000</span>
-
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        wfs: np.array</span>
 <span class="sd">            Waveforms of all &quot;selected&quot; events. The wavefroms are either calibrated or not</span>
 <span class="sd">            based on the class config.</span>
@@ -1355,7 +1276,7 @@
                         <span class="n">wfs</span> <span class="o">=</span> <span class="n">wfs</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_adc_ref_voltage_range</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_adc_n_bits</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
 
                 <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
-                    <span class="n">wfs</span> <span class="o">=</span> <span class="n">_baseline_correction</span><span class="p">(</span><span class="n">wfs</span><span class="p">)</span>
+                    <span class="n">wfs</span> <span class="o">=</span> <span class="n">_calculate_block_offsets</span><span class="p">(</span><span class="n">wfs</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span>
                     <span class="n">wfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span>
                         <span class="n">fit_block_offsets</span><span class="p">(</span>
@@ -1380,12 +1301,10 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        event_info: mattak.Dataset.EventInfo</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        is_valid: bool</span>
 <span class="sd">            Returns True if all information valid, false otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1413,7 +1332,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        event_info: mattak.Dataset.EventInfo</span>
 <span class="sd">            The event info object for one event.</span>
 
@@ -1422,7 +1340,6 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        evt: NuRadioReco.framework.event</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># use the readout time if the trigger time is infinity</span>
@@ -1447,10 +1364,6 @@
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">()</span>
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># The trigger time is relative to the event/station time</span>
         <span class="n">station</span><span class="o">.</span><span class="n">set_trigger</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span>
-        <span class="n">block_offsets</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
-            <span class="n">waveforms</span><span class="p">,</span> <span class="n">block_offsets</span> <span class="o">=</span> <span class="n">_baseline_correction</span><span class="p">(</span><span class="n">waveforms</span><span class="p">,</span> <span class="n">return_offsets</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">readout_delays</span> <span class="o">=</span> <span class="n">event_info</span><span class="o">.</span><span class="n">readoutDelay</span>
         <span class="k">for</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">wf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">waveforms</span><span class="p">):</span>
@@ -1468,13 +1381,11 @@
 
             <span class="n">time_offset</span> <span class="o">=</span> <span class="n">get_time_offset</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">triggerType</span><span class="p">)</span> <span class="o">+</span> <span class="n">readout_delays</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
             <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="o">-</span><span class="n">time_offset</span><span class="p">)</span>  <span class="c1"># relative to event/trigger time</span>
-            <span class="k">if</span> <span class="n">block_offsets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">channel</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">block_offsets</span><span class="p">,</span> <span class="n">block_offsets</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">channel_id</span><span class="p">])</span>
 
             <span class="n">station</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
 
         <span class="n">evt</span><span class="o">.</span><span class="n">set_station</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span><span class="o">.</span><span class="n">remove_offsets</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">evt</span>
@@ -1489,7 +1400,6 @@
 
 <span class="sd">        Yields</span>
 <span class="sd">        ------</span>
-
 <span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1515,14 +1425,12 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        event_index: int</span>
 <span class="sd">            The index of a particluar event. The index is the chronological number from 0 to</span>
 <span class="sd">            number of total events (across all datasets).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1554,7 +1462,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        run_nr: int</span>
 <span class="sd">            Run number</span>
 
@@ -1563,7 +1470,6 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
