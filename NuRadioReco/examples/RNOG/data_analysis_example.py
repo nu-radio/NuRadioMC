@@ -137,14 +137,14 @@ if __name__ == "__main__":
             # save full waveform information
             #print("saving full waveform information")
             eventWriter.run(evt, det=None, mode={'Channels':True, "ElectricFields":True})
-            # count RF events passes Hit Filter
+            # count RF events passed Hit Filter
             n_events_RF_passed += int(is_passed_HF)
         else:
             # only save meta information but no traces to save disk space
             #print("saving only meta information")
             eventWriter.run(evt, det=None, mode={'Channels':False, "ElectricFields":False})
             if is_passed_HF:
-                # count FT events passes Hit Filter
+                # count FT events passed Hit Filter
                 n_events_FT_passed += int(is_passed_HF)
 
         logger.debug("Time for event: %f", time.time() - t0)
