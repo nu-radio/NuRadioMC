@@ -754,7 +754,7 @@ where (x, y, z) is the NuRadio CS.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.convert_obs_positions_to_nuradio_on_ground">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">convert_obs_positions_to_nuradio_on_ground</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observer_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnetic_field_vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#convert_obs_positions_to_nuradio_on_ground"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.convert_obs_positions_to_nuradio_on_ground" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">convert_obs_positions_to_nuradio_on_ground</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observer_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">declination</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#convert_obs_positions_to_nuradio_on_ground"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.convert_obs_positions_to_nuradio_on_ground" title="Link to this definition"></a></dt>
 <dd><p>Convert observer positions from the CORSIKA CS to the NRR ground CS.</p>
 <p>First, the observer position is converted to the NRR coordinate conventions (i.e. x pointing East,
 y pointing North, z pointing up). Then, the observer position is corrected for magnetic north
@@ -766,11 +766,7 @@ If multiple observers are to be converted, the <em class="xref py py-obj">observ
 <dd class="field-odd"><dl class="simple">
 <dt><strong>observer_pos</strong><span class="classifier">np.ndarray</span></dt><dd><p>The observer’s position as extracted from the HDF5 file, e.g. corsika[‘CoREAS’][‘my_observer’].attrs[‘position’]</p>
 </dd>
-<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>zenith angle (in internal units)</p>
-</dd>
-<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>azimuth angle (in internal units)</p>
-</dd>
-<dt><strong>magnetic_field_vector</strong><span class="classifier">np.ndarray</span></dt><dd><p>magnetic field vector</p>
+<dt><strong>declination</strong><span class="classifier">float (default: 0)</span></dt><dd><p>Declination of the magnetic field.</p>
 </dd>
 </dl>
 </dd>

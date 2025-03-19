@@ -825,7 +825,7 @@
 
 <div class="viewcode-block" id="convert_obs_positions_to_nuradio_on_ground">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.convert_obs_positions_to_nuradio_on_ground">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">convert_obs_positions_to_nuradio_on_ground</span><span class="p">(</span><span class="n">observer_pos</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_obs_positions_to_nuradio_on_ground</span><span class="p">(</span><span class="n">observer_pos</span><span class="p">,</span> <span class="n">declination</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert observer positions from the CORSIKA CS to the NRR ground CS.</span>
 
@@ -839,24 +839,14 @@
 <span class="sd">    ----------</span>
 <span class="sd">    observer_pos : np.ndarray</span>
 <span class="sd">        The observer&#39;s position as extracted from the HDF5 file, e.g. corsika[&#39;CoREAS&#39;][&#39;my_observer&#39;].attrs[&#39;position&#39;]</span>
-<span class="sd">    zenith : float</span>
-<span class="sd">        zenith angle (in internal units)</span>
-<span class="sd">    azimuth : float</span>
-<span class="sd">        azimuth angle (in internal units)</span>
-<span class="sd">    magnetic_field_vector : np.ndarray</span>
-<span class="sd">        magnetic field vector</span>
+<span class="sd">    declination : float (default: 0)</span>
+<span class="sd">        Declination of the magnetic field.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    obs_positions_geo: np.ndarray</span>
 <span class="sd">        observer positions in geographic coordinates, shaped as (n_observers, 3).</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cs</span> <span class="o">=</span> <span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span>
-        <span class="n">zenith</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">azimuth</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
-        <span class="n">magnetic_field_vector</span>
-    <span class="p">)</span>
-
     <span class="c1"># If single position is given, make sure it has the right shape (3,) -&gt; (1, 3)</span>
     <span class="k">if</span> <span class="n">observer_pos</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">observer_pos</span> <span class="o">=</span> <span class="n">observer_pos</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
@@ -867,10 +857,9 @@
         <span class="n">observer_pos</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
     <span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span>
 
-    <span class="c1"># second to last dimension has to be 3 for the transformation</span>
-    <span class="n">obs_positions_geo</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_from_magnetic_to_geographic</span><span class="p">(</span><span class="n">obs_positions</span><span class="p">)</span>
+    <span class="n">obs_positions</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">rotate_vector_in_2d</span><span class="p">(</span><span class="n">obs_positions</span><span class="p">,</span> <span class="o">-</span><span class="n">declination</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
 
-    <span class="k">return</span> <span class="n">obs_positions_geo</span><span class="o">.</span><span class="n">T</span></div>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">obs_positions</span><span class="p">)</span></div>
 
 
 <span class="c1"># READER FUNCTIONS</span>
@@ -940,8 +929,9 @@
 
     <span class="k">for</span> <span class="n">j_obs</span><span class="p">,</span> <span class="n">observer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">corsika</span><span class="p">[</span><span class="s1">&#39;CoREAS&#39;</span><span class="p">][</span><span class="s1">&#39;observers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
         <span class="n">obs_positions_geo</span> <span class="o">=</span> <span class="n">convert_obs_positions_to_nuradio_on_ground</span><span class="p">(</span>
-            <span class="n">observer</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">],</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span>
+            <span class="n">observer</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">],</span> <span class="n">declination</span>
         <span class="p">)</span>
+
         <span class="n">efield</span><span class="p">,</span> <span class="n">efield_time</span> <span class="o">=</span> <span class="n">convert_obs_to_nuradio_efield</span><span class="p">(</span>
             <span class="n">observer</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span>
         <span class="p">)</span>
