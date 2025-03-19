@@ -97,7 +97,7 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
         return np.real(voltage_trace)
 
 
-def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask=None, noise_window_mask=None, return_uncertainty=False, method="noise_subtraction"):
+def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask=None, noise_window_mask=None, return_uncertainty=False, method="noise_subtraction", estimator_kwargs={}):
     """
     Returns the energy fluence of each component of a 3-dimensional electric field trace.
 
@@ -160,16 +160,14 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
                 trace = electric_field_trace[i_pol, :],
                 times = times,
                 signal_window_mask = signal_window_mask,
-                spacing_noise_signal = 20 * units.ns,
-                relative_taper_width = 0.142857143,
-                use_median_value = False
+                **estimator_kwargs
                 )
             estimators, variances = get_signal_fluence_estimators(
                 trace = electric_field_trace[i_pol, :],
                 times = times,
                 signal_window_mask = signal_window_mask,
                 noise_estimators = noise_estimators,
-                relative_taper_width = 0.142857143,
+                **estimator_kwargs
                 )
 
             #sample frequency (after the windowing) in MHz
@@ -282,7 +280,7 @@ def get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise
 
     return estimators, frequencies_window
 
-def get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estimators, relative_taper_width=0.142857143):
+def get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estimators, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False):
     """
     Estimate the signal fluence from the trace.
 
@@ -296,8 +294,12 @@ def get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estima
         Boolean mask for the signal window.
     noise_estimators : np.ndarray
         Estimators for the noise fluence.
+    spacing_noise_signal : float (optional)
+        Not used in this function. Indroduced for compatibility with get_noise_fluence_estimators.
     relative_taper_width : float (optional)
         Width of the taper region for the Tukey window relative to the full window length.
+    use_median_value : bool (optional)
+        Not used in this function. Indroduced for compatibility with get_noise_fluence_estimators.
 
     Returns
     -------
