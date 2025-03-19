@@ -1000,10 +1000,10 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds the trace of another channel to the trace of this channel.</span>
 
-<span class="sd">        The trace of the incoming channel is only added within the time window of the current </span>
-<span class="sd">        channel. If the current channel has an empty trace (i.e., a trace containing zeros) with </span>
-<span class="sd">        a defined trace_start_time, this function can be seen as recording the incoming channel </span>
-<span class="sd">        in the specified readout window. Hence, the current channel is referred to as the &quot;readout&quot; </span>
+<span class="sd">        The trace of the incoming channel is only added within the time window of the current</span>
+<span class="sd">        channel. If the current channel has an empty trace (i.e., a trace containing zeros) with</span>
+<span class="sd">        a defined trace_start_time, this function can be seen as recording the incoming channel</span>
+<span class="sd">        in the specified readout window. Hence, the current channel is referred to as the &quot;readout&quot;</span>
 <span class="sd">        in the comments of this function.</span>
 
 <span class="sd">        Parameters</span>
@@ -1076,15 +1076,15 @@
 
             <span class="n">i_end_readout</span> <span class="o">=</span> <span class="n">floor</span><span class="p">((</span><span class="n">t1_channel</span> <span class="o">-</span> <span class="n">t0_readout</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_readout</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1"># The bin of readout right before channel ends</span>
             <span class="n">i_end_channel</span> <span class="o">=</span> <span class="n">n_samples_channel</span>
-
         <span class="c1"># Determine the remaining time between the binning of the two traces and use time shift as interpolation:</span>
         <span class="n">residual_time_offset</span> <span class="o">=</span> <span class="n">t_start_channel</span> <span class="o">-</span> <span class="n">t_start_readout</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">residual_time_offset</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_residual_time_offset</span><span class="p">:</span>
             <span class="n">tmp_channel</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
             <span class="n">tmp_channel</span><span class="o">.</span><span class="n">apply_time_shift</span><span class="p">(</span><span class="n">residual_time_offset</span><span class="p">)</span>
-            <span class="n">trace_to_add</span> <span class="o">=</span> <span class="n">tmp_channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()[</span><span class="n">i_start_channel</span><span class="p">:</span><span class="n">i_end_channel</span><span class="p">]</span>
+
+            <span class="n">trace_to_add</span> <span class="o">=</span> <span class="n">tmp_channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">trace_to_add</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()[</span><span class="n">i_start_channel</span><span class="p">:</span><span class="n">i_end_channel</span><span class="p">]</span>
+            <span class="n">trace_to_add</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">i_end_readout</span> <span class="o">-</span> <span class="n">i_start_readout</span> <span class="o">!=</span> <span class="n">i_end_channel</span> <span class="o">-</span> <span class="n">i_start_channel</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The traces do not have the same length. This should not happen.&quot;</span><span class="p">)</span>
@@ -1092,7 +1092,9 @@
 
         <span class="c1"># Add the trace to the original trace:</span>
         <span class="n">original_trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
-        <span class="n">original_trace</span><span class="p">[</span><span class="n">i_start_readout</span><span class="p">:</span><span class="n">i_end_readout</span><span class="p">]</span> <span class="o">+=</span> <span class="n">trace_to_add</span>
+        <span class="c1"># arr[..., start:stop] works for any dimension: 1, 2, 3, ...</span>
+        <span class="n">original_trace</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i_start_readout</span><span class="p">:</span><span class="n">i_end_readout</span><span class="p">]</span> <span class="o">+=</span> <span class="n">trace_to_add</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i_start_channel</span><span class="p">:</span><span class="n">i_end_channel</span><span class="p">]</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">original_trace</span><span class="p">,</span> <span class="n">sampling_rate_readout</span><span class="p">)</span></div>
 
 

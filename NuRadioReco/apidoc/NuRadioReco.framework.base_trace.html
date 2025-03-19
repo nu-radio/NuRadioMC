@@ -925,10 +925,10 @@ shift theorem to save time and avoid numerical errors in the Fourier transforms.
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.add_to_trace">
 <span class="sig-name descname"><span class="pre">add_to_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_residual_time_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.add_to_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.add_to_trace" title="Link to this definition"></a></dt>
 <dd><p>Adds the trace of another channel to the trace of this channel.</p>
-<p>The trace of the incoming channel is only added within the time window of the current 
-channel. If the current channel has an empty trace (i.e., a trace containing zeros) with 
-a defined trace_start_time, this function can be seen as recording the incoming channel 
-in the specified readout window. Hence, the current channel is referred to as the “readout” 
+<p>The trace of the incoming channel is only added within the time window of the current
+channel. If the current channel has an empty trace (i.e., a trace containing zeros) with
+a defined trace_start_time, this function can be seen as recording the incoming channel
+in the specified readout window. Hence, the current channel is referred to as the “readout”
 in the comments of this function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
