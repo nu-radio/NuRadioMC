@@ -75,7 +75,7 @@ class stationCoherentlySummedWaveforms:
         sum_trace = trace_utilities.get_coherent_sum(trace_set, ref_trace, use_envelope)
         rms = trace_utilities.get_split_trace_noise_RMS(sum_trace, segments=4, lowest=2)
         snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=coincidence_window_size_bins_ref)
-        impulsivity = trace_utilities.impulsivity(sum_trace)
+        impulsivity = trace_utilities.get_impulsivity(sum_trace)
         entropy = trace_utilities.get_entropy(sum_trace)
         kurtosis = trace_utilities.get_kurtosis(sum_trace)
         
