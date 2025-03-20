@@ -1607,7 +1607,7 @@ class simulation:
                 # we loop through all non-trigger channels and simulate the electric fields for all showers.
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
                 non_trigger_channels = list(set(self._det.get_channel_ids(station_id)) - set(channel_ids))
-                if len(non_trigger_channels)>0 and self._outputfilenameNuRadioReco is not None:
+                if len(non_trigger_channels)>0 and self._config['speedup']['simulate_non_trigger_channels']:
                     logger.status(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
                         if particle_mode:
