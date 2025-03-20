@@ -9,7 +9,10 @@ import astropy.time
 from datetime import datetime
 import six  # # used for compatibility between py2 and py3
 import warnings
-from erfa import ErfaWarning
+try:
+    from erfa import ErfaWarning
+except ImportError: # users with astropy < 4.2 may not have pyerfa installed
+    from astropy.utils.exceptions import ErfaWarning
 import NuRadioReco.utilities.metaclasses
 
 import json
@@ -601,9 +604,10 @@ class DetectorBase(object):
             'mooresbay': (-78.74, 165.09),
             'southpole': (-90., 0.),
             'summit': (72.57, -38.46),
-            'lofar': (52.92, 6.87)
+            'lofar': (52.92, 6.87),
+            'ska': (-26.825, 116.764),
         }
-        site = self.get_site(station_id)
+        site = self.get_site(station_id).lower()
         if site in sites.keys():
             return sites[site]
         return (None, None)
@@ -970,7 +974,7 @@ class DetectorBase(object):
         
     def get_antenna_mode(self, station_id, channel_id):
         """
-        returns the antenna mode of a given channel - this is specific to LOFAR antennae, as they operate in either inner or outer mode.
+        returns the antenna mode of a given channel - this is specific to LOFAR antennas, as they operate in either inner or outer mode.
 
         Parameters
         ----------

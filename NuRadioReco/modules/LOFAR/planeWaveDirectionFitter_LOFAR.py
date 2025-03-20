@@ -17,6 +17,56 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.LOFAR.beamforming_utilities import geometric_delay_far_field, lightspeed
 
 
+def average_direction(event, detector, mode='normal'):
+    """
+    Calculate the average direction for an event based on the plane wave directions of the individual stations.
+
+    Parameters
+    ----------
+    event : Event object
+        The event for which to calculate the average direction.
+    detector : Detector object
+        The detector for which to calculate the average direction.
+    mode : str, default='normal'
+        The mode to use for the calculation. Can be 'normal' (just raw mean) or 'weighted'
+        (with number of good antennas as weight per station).
+
+    Returns
+    -------
+    avg_zenith : float
+        The average zenith angle for the event.
+    avg_azimuth : float
+        The average azimuth angle for the event.
+    """
+    zeniths = []
+    azimuths = []
+    num_good_antennas = []
+    for station in event.get_stations():
+        if station.get_parameter(stationParameters.triggered):
+            flagged_channels = station.get_parameter(stationParameters.flagged_channels)
+            num_good_antennas.append(
+                detector.get_number_of_channels(station.get_id()) - len(flagged_channels)
+            )
+            zeniths.append(station.get_parameter(stationParameters.cr_zenith))
+            azimuths.append(station.get_parameter(stationParameters.cr_azimuth))
+
+    zeniths = np.array(zeniths)
+    azimuths = np.array(azimuths)
+    num_good_antennas = np.array(num_good_antennas)
+
+    # Calculate the average direction: 
+    if mode == 'normal':
+        avg_zenith = np.mean(zeniths)
+        avg_azimuth = np.mean(azimuths)
+    elif mode == 'weighted':
+        avg_zenith = np.sum(zeniths * num_good_antennas) / np.sum(num_good_antennas)
+        avg_azimuth = np.sum(azimuths * num_good_antennas) / np.sum(num_good_antennas)
+    else:
+        raise ValueError(f"Unknown mode: {mode}")
+
+    return avg_zenith, avg_azimuth
+
+
 class planeWaveDirectionFitter:
     """
     Fits the direction per station using timing differences of channels under the assumption of an incoming plane wave.
@@ -356,11 +406,11 @@ class planeWaveDirectionFitter:
             event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times
         )
         planeWaveDirectionFitter.__debug_residuals(
-            event, good_antennas, residual_delays, station
+            event, good_antennas, residual_delays, station, niter
         )
 
     @staticmethod
-    def __debug_residuals(event, good_antennas, residual_delays, station):
+    def __debug_residuals(event, good_antennas, residual_delays, station, niter):
         """
         Show the residuals per antenna and mark SNR
         """
@@ -381,13 +431,13 @@ class planeWaveDirectionFitter:
         ax.set_title(f'Residuals for station {station.get_id()}')
 
         fig.savefig(
-            f"pipeline_planewavefit_residuals_CS{station.get_id():03d}_{event.get_id()}.png",
+            f"pipeline_planewavefit_residuals_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.png",
             dpi=250, bbox_inches='tight'
         )
-        fig.savefig(
-            f"pipeline_planewavefit_residuals_CS{station.get_id():03d}_{event.get_id()}.svg",
-            dpi=250, bbox_inches='tight'
-        )
+        # fig.savefig(
+        #     f"pipeline_planewavefit_residuals_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.svg",
+        #     dpi=250, bbox_inches='tight'
+        # )
         plt.close(fig)
 
     @staticmethod
@@ -457,13 +507,13 @@ class planeWaveDirectionFitter:
         axd['residuals'].set_aspect('equal')
 
         fig.savefig(
-            f"pipeline_planewavefit_debug_CS{station.get_id():03d}_{event.get_id()}.png",
+            f"pipeline_planewavefit_debug_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.png",
             dpi=250, bbox_inches='tight'
         )
-        fig.savefig(
-            f"pipeline_planewavefit_debug_CS{station.get_id():03d}_{event.get_id()}.svg",
-            dpi=250, bbox_inches='tight'
-        )
+        # fig.savefig(
+        #     f"pipeline_planewavefit_debug_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.svg",
+        #     dpi=250, bbox_inches='tight'
+        # )
 
         plt.close(fig)
 

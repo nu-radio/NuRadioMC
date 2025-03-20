@@ -41,12 +41,12 @@ def get_refractive_index(depth, site='southpole'):
         returns n_ice=1.3 or n_air depending on the depth.
 
     """
-    if site.lower() in ['lofar', 'auger']:
+    if site.lower() in ['lofar', 'auger', 'ska']:
         return 1.000293
     else:
-        if not site.lower() in ['southpole', 'mooresbay', 'summit']:
-            logger.warning(f"site '{site}' unknown, assuming in-ice detector")
-        if(depth <= 0):
+        if not site.lower() in ['southpole', 'mooresbay', 'summit', 'greenland', 'sp']:
+            logger.warning(f"Site '{site}' unknown, assuming in-ice detector")
+        if depth <= 0:
             return 1.3
         else:
             return 1.000293

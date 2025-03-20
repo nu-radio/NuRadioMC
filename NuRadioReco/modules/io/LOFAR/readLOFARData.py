@@ -7,6 +7,7 @@ import logging
 from collections import defaultdict
 
 import numpy as np
+import radiotools.helper as hp
 
 # from datetime import datetime
 from astropy.time import Time
@@ -222,7 +223,7 @@ def nrrID_to_tbbID(channel_id):
     fourth element of the channelID with a "0".
 
     Parameters
-    ------------
+    ----------
     channel_id: str or int
         Channel ID
 
@@ -550,7 +551,7 @@ class readLOFARData:
 
         # Read in energy estimate from LORA
         energy = lora_dict["LORA"]["energy_GeV"]
-        
+
         # The LORA coordinate system has x pointing East -> set this through magnetic field vector (values from 2015)
         self.__hybrid_shower.set_parameter(showerParameters.magnetic_field_vector,
                                            np.array([0.004675, 0.186270, -0.456412]))
@@ -560,7 +561,7 @@ class readLOFARData:
         # Add LORA core and energy to parameters. The z-Position of the core is always at 7.6m for LOFAR
         self.__hybrid_shower.set_parameter(showerParameters.core, np.array([core_pos_x * units.m, core_pos_y * units.m, 7.6 * units.m]))
         self.__hybrid_shower.set_parameter(showerParameters.energy, energy * units.GeV)
-        
+
         # Go through TBB directory and identify all files for this event
         tbb_filename_pattern = tbb_filetag_from_unix(self.__lora_timestamp)
 
@@ -720,11 +721,13 @@ class readLOFARData:
             evt.set_station(station)
 
             lofar_trace_access.close_file()
-            
+
         # Add general event radio shower to event to store reconstruction values later
         radio_shower = NuRadioReco.framework.radio_shower.RadioShower(
             shower_id=evt.get_id(), station_ids=evt.get_station_ids()
         )
+        radio_shower.set_parameter(showerParameters.observation_level, 760*units.cm)
+        radio_shower.set_parameter(showerParameters.magnetic_field_vector, hp.get_magnetic_field_vector("lofar"))
         evt.add_shower(radio_shower)
         yield evt
 
