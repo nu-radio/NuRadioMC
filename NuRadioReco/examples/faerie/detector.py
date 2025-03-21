@@ -34,26 +34,26 @@ class FAERIEDetector():
         """ Return the station position """
         return np.array([0, 0, 0])
 
-    def get_cable_delay(self, station_id=None, channel_id=None):
-        return 0
+    # def get_cable_delay(self, station_id=None, channel_id=None):
+    #     return 0
 
-    def get_site(self, station_id=None):
-        return "summit"
+    # def get_site(self, station_id=None):
+    #     return "summit"
 
-    def get_antenna_model(self, station_id=None, channel_id=None, zenith_antenna=None):
-        """ Returns the antenna model """
-        return "RNOG_vpol_4inch_center_n1.73"
+    # def get_antenna_model(self, station_id=None, channel_id=None, zenith_antenna=None):
+    #     """ Returns the antenna model """
+    #     return "RNOG_vpol_4inch_center_n1.73"
 
-    def get_antenna_orientation(self, station_id=None, channel_id=None):
-        """ Returns the channel's 4 orientation angles in rad """
-        return np.deg2rad([0, 0, 90, 90])
+    # def get_antenna_orientation(self, station_id=None, channel_id=None):
+    #     """ Returns the channel's 4 orientation angles in rad """
+    #     return np.deg2rad([0, 0, 90, 90])
 
-    def get_site_coordinates(self, station_id=None):
-        """ Returns latitude and longitude of SKA in degrees """
-        return 72.57, -38.46
+    # def get_site_coordinates(self, station_id=None):
+    #     """ Returns latitude and longitude of SKA in degrees """
+    #     return 72.57, -38.46
 
-    def get_number_of_samples(self, station_id=None, channel_id=None):
-        return 2048
+    # def get_number_of_samples(self, station_id=None, channel_id=None):
+    #     return 2048
 
-    def get_sampling_frequency(self, station_id=None, channel_id=None):
-        return 3.2 * units.GHz
+    # def get_sampling_frequency(self, station_id=None, channel_id=None):
+    #     return 3.2 * units.GHz

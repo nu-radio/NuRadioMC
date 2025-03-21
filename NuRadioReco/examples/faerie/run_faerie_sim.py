@@ -25,7 +25,7 @@ import argparse
 import copy
 
 
-def pad_traces(event, pad_before=20 * units.ns, pad_after=20 * units.ns):
+def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns):
     """ Makes sure all traces have the same length and starting time. """
     sim_station = event.get_station().get_sim_station()
 
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
     channelGenericNoiseAdder.begin()
 
-    det = FAERIEDetector()
+    dummy_detector_for_positions_only = FAERIEDetector()
 
     mode = {
         'Channels': True,
@@ -204,9 +204,9 @@ if __name__ == "__main__":
 
     for combined_event in readFAERIEShower.run(depth=args.depth, station_id=args.station):
 
-        for edx, event in enumerate(split_events(combined_event, det, trigger_channels)):
-            det.set_event(event)
-            pad_traces(event)
+        for edx, event in enumerate(split_events(combined_event, dummy_detector_for_positions_only, trigger_channels)):
+            dummy_detector_for_positions_only.set_event(event)
+            pad_traces(event, det_rnog)
 
             shower = event.get_first_sim_shower()
             for sdx, station in enumerate(event.get_stations()):
@@ -221,9 +221,9 @@ if __name__ == "__main__":
                 # Temporary sanity checks - to apply the correct noise and filter the event
                 # can only have 4 channels with IDs [0, 1, 2, 3] (and they should be at the
                 # correct depths)
-                assert np.all(det.get_channel_ids(station.get_id()) == trigger_channels), "Expected channels [0, 1, 2, 3]"
-                channel_depths = np.array([det.get_relative_position(
-                    station.get_id(), channel_id)[2] for channel_id in det.get_channel_ids(station.get_id())])
+                assert np.all(dummy_detector_for_positions_only.get_channel_ids(station.get_id()) == trigger_channels), "Expected channels [0, 1, 2, 3]"
+                channel_depths = np.array([dummy_detector_for_positions_only.get_relative_position(
+                    station.get_id(), channel_id)[2] for channel_id in dummy_detector_for_positions_only.get_channel_ids(station.get_id())])
                 assert np.all(np.argsort(channel_depths) == trigger_channels), "Expected channels to be sorted by depth"
 
                 if args.add_noise and args.noise_type == "data-driven":
