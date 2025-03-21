@@ -1,9 +1,12 @@
 from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
-from NuRadioReco.framework.sim_station import SimStation
 
 from scipy.signal.windows import hann
+from scipy import constants, signal
 import numpy as np
+import fractions
+import decimal
+import copy
 
 
 def half_hann_window(length, half_percent=None, hann_window_length=None):
@@ -82,3 +85,25 @@ def add_cable_delay(station, det, sim_to_data=None, trigger=False, logger=None):
                         f"of cable delay to channel {channel.get_id()}")
 
         channel.add_trace_start_time(add_or_subtract * cable_delay)
+
+
+def resample(trace, sampling_factor):
+    """
+    Resample the trace to the sampling rate of the detector.
+    """
+    resampling_factor = fractions.Fraction(decimal.Decimal(sampling_factor)).limit_denominator(5000)
+    n_samples = trace.shape[-1]
+    resampled_trace = copy.copy(trace)
+
+    if resampling_factor.numerator != 1:
+        # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
+        resampled_trace = signal.resample(resampled_trace, resampling_factor.numerator * n_samples, axis=-1)
+
+    if resampling_factor.denominator != 1:
+        # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
+        resampled_trace = signal.resample(resampled_trace, np.shape(resampled_trace)[-1] // resampling_factor.denominator, axis=-1)
+
+    if resampled_trace.shape[-1] % 2 != 0:
+        resampled_trace = resampled_trace.T[:-1].T
+
+    return resampled_trace

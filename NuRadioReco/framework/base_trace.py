@@ -2,15 +2,11 @@ from __future__ import absolute_import, division, print_function
 
 from NuRadioReco.utilities import fft, bandpass_filter
 import NuRadioReco.detector.response
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 
 import numpy as np
 import logging
-import fractions
-import decimal
 import numbers
-import functools
-import scipy.signal
 import copy
 import pickle
 logger = logging.getLogger("NuRadioReco.BaseTrace")
@@ -279,22 +275,17 @@ class BaseTrace:
             self.set_frequency_spectrum(spec, self.get_sampling_rate())
 
     def resample(self, sampling_rate):
+        """ Resamples the trace to a new sampling rate.
+
+        Parameters
+        ----------
+        sampling_rate: float
+            The new sampling rate.
+        """
         if sampling_rate == self.get_sampling_rate():
             return
-        resampling_factor = fractions.Fraction(decimal.Decimal(sampling_rate / self.get_sampling_rate())).limit_denominator(5000)
 
-        resampled_trace = self.get_trace()
-        if resampling_factor.numerator != 1:
-            # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
-            resampled_trace = scipy.signal.resample(resampled_trace, resampling_factor.numerator * self.get_number_of_samples(), axis=-1)
-
-        if resampling_factor.denominator != 1:
-            # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
-            resampled_trace = scipy.signal.resample(resampled_trace, np.shape(resampled_trace)[-1] // resampling_factor.denominator, axis=-1)
-
-        if resampled_trace.shape[-1] % 2 != 0:
-            resampled_trace = resampled_trace.T[:-1].T
-
+        resampled_trace = signal_processing.resample(self.get_trace(), sampling_rate / self.get_sampling_rate())
         self.set_trace(resampled_trace, sampling_rate)
 
     def serialize(self):
