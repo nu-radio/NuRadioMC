@@ -78,49 +78,6 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
     return f_signal * dt * conversion_factor_integrated_signal
 
 
-def get_electric_field_from_temperature(frequencies, noise_temperature, solid_angle):
-    """
-    Calculate the electric field amplitude from the radiance of a radio signal.
-
-    The radiance is calculated using the Rayleigh-Jeans law per frequency bin, by adjusting
-    the value with the frequency spacing. After this, the electric field amplitude per bin
-    is calculated using the radiance and the vacuum permittivity.
-
-    Parameters
-    ----------
-    frequencies: array of floats
-        The frequencies at which to calculate the electric field amplitude
-    noise_temperature: float
-        The noise temperature to use in the Rayleigh-Jeans law
-    solid_angle: float
-        The solid angle over which the radiance is integrated
-
-    Returns
-    -------
-    efield_amplitude: array of floats
-        The electric field amplitude at each frequency
-    """
-    # Get constants in correct units
-    boltzmann = scipy.constants.Boltzmann * units.joule / units.kelvin
-    epsilon_0 = scipy.constants.epsilon_0 * (units.coulomb / units.V / units.m)
-    c_vac = scipy.constants.c * units.m / units.s
-
-    # Calculate frequency spacing
-    d_f = frequencies[2] - frequencies[1]
-
-    # Calculate spectral radiance of radio signal using Rayleigh-Jeans law
-    spectral_radiance = 2. * boltzmann * frequencies ** 2 * noise_temperature * solid_angle / c_vac ** 2
-    spectral_radiance[np.isnan(spectral_radiance)] = 0
-
-    # calculate radiance per energy bin
-    spectral_radiance_per_bin = spectral_radiance * d_f
-
-    # calculate electric field per energy bin from the radiance per bin
-    efield_amplitude = np.sqrt(spectral_radiance_per_bin / (c_vac * epsilon_0)) / d_f
-
-    return efield_amplitude
-
-
 def get_stokes(trace_u, trace_v, window_samples=128, squeeze=True):
     """
     Compute the stokes parameters for electric field traces
