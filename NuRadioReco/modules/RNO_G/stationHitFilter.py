@@ -10,7 +10,6 @@ import numpy as np
 import logging
 import math
 
-logger = logging.getLogger('NuRadioReco.RNO_G.stationHitFitter')
 
 class stationHitFilter:
 
@@ -190,9 +189,37 @@ class stationHitFilter:
         return self._passed_hit_checker
 
 
-    def begin(self):
-        """(Unused)"""
-        pass
+    def begin(self, event_info=None, log_level=logging.INFO):
+        """
+        Begin with event information.
+
+        Parameters
+        ----------
+        event_info: dict (default: None)
+            Event information from the event reader
+        log_level: enum
+            Set verbosity level of logger (default: logging.INFO)
+        """
+        self.logger = logging.getLogger('NuRadioReco.RNO_G.stationHitFitter')
+        self.logger.setLevel(log_level)
+
+        self.__FT_count = 0
+        self.__FT_passed_count = 0
+        self.__RF_passed_count = 0
+        self.__processed_passed_count = 0
+        self.__event_count = 0
+        self.__n_events_in_run = 0
+        self.__is_trigger_type_found = False
+        self.__is_FT = None
+        self.__event_info = event_info
+
+        if self.__event_info is None:
+            self.logger.info("Event info is not given.")
+        elif 'triggerType' not in self.__event_info[0]:
+            self.logger.warning("'triggerType' is NOT found in event info!")
+        else:
+            self.__is_trigger_type_found = True
+            self.__n_events_in_run = len(self.__event_info)
 
 
     def set_up(self, set_of_traces, set_of_times, noise_RMS):
@@ -299,12 +326,33 @@ class stationHitFilter:
         self.set_up(traces, times, noise_RMS)
         self.apply_hit_filter()
 
+        if self.__is_trigger_type_found:
+            if self.__event_info[self.__event_count].get('triggerType') == "FORCE":
+                self.__is_FT = True
+                self.__FT_count += int(self.is_forced_trigger())
+                self.__FT_passed_count += int(self.is_passed_hit_filter())
+            else:
+                self.__is_FT = False
+                self.__RF_passed_count += int(self.is_passed_hit_filter())
+
+        self.__event_count += 1
+        self.__processed_passed_count += int(self.is_passed_hit_filter())
+
         return self.is_passed_hit_filter()
 
 
     def end(self):
-        """(Unused)"""
-        pass
+        if self.__event_count == self.__n_events_in_run:
+            self.logger.info(
+                f"\nTotal: {self.__event_count} events"
+                f"\n\tNumber of FT: {self.__FT_count} events"
+                f"\n\tFT Passed Hit Filter: {self.__FT_passed_count} events"
+                f"\n\tNumber of RF: {self.__event_count - self.__FT_count} events"
+                f"\n\tRF Passed Hit Filter: {self.__RF_passed_count} events")
+        else:
+            self.logger.info(
+                f"\n\tHit Filter Processed: {self.__event_count} events"
+                f"\n\tPassed Hit Filter: {self.__processed_passed_count} events")
 
 
     #####################
@@ -463,6 +511,18 @@ class stationHitFilter:
             return self._is_in_time_window
         else:
             raise NotImplementedError("Cannot call is_in_time_window() when complete_time_check is False.")
+
+    def is_forced_trigger(self):
+        """
+        Returns
+        -------
+        self.__is_FT: bool
+            See if event is forced trigger
+        """
+        if self.__is_FT is not None:
+            return self.__is_FT
+        else:
+            raise NotImplementedError("Cannot call is_forced_trigger() when self.__is_FT is None.")
 
     def is_in_time_window_PA(self):
         """
