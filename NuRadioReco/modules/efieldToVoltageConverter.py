@@ -13,6 +13,8 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import units, fft, ice, signal_processing, geometryUtilities as geo_utl
 
+logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
+
 
 class efieldToVoltageConverter():
     """
@@ -34,8 +36,7 @@ class efieldToVoltageConverter():
         self.__post_pulse_time = None
         self.__max_upsampling_factor = None
         self.__antenna_provider = None
-        self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
-        self.logger.setLevel(log_level)
+        logger.setLevel(log_level)
         self.begin()
 
 
@@ -72,7 +73,7 @@ class efieldToVoltageConverter():
         """
 
         if time_resolution is not None:
-            self.logger.warning("`time_resolution` is deprecated and will be removed in the future. "
+            logger.warning("`time_resolution` is deprecated and will be removed in the future. "
                                 "The argument is ignored.")
         self.__caching = caching
         self.__freqs = None
@@ -95,7 +96,7 @@ class efieldToVoltageConverter():
 
     @property
     def antenna_provider(self):
-        self.logger.warning("Deprecation warning: `antenna_provider` is deprecated.")
+        logger.warning("Deprecation warning: `antenna_provider` is deprecated.")
         return self.__antenna_provider
 
     @functools.lru_cache(maxsize=1024)
@@ -141,7 +142,7 @@ class efieldToVoltageConverter():
                     # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
-                    self.logger.debug("trace start time {}, cable delay {}, tracelength {}".format(
+                    logger.debug("trace start time {}, cable delay {}, tracelength {}".format(
                         electric_field.get_trace_start_time(), cab_delay,
                         electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
 
@@ -160,7 +161,7 @@ class efieldToVoltageConverter():
         if trace_length_samples % 2 != 0:
             trace_length_samples += 1
 
-        self.logger.debug(
+        logger.debug(
             "smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(
                 times_min, times_max, trace_length_samples, trace_length / units.ns))
 
@@ -171,7 +172,7 @@ class efieldToVoltageConverter():
             # so we loop over all simulated channels with the same id,
             # convolve each trace with the antenna response for the given angles
             # and everything up in the time domain
-            self.logger.debug('channel id {}'.format(channel_id))
+            logger.debug('channel id {}'.format(channel_id))
             channel = NuRadioReco.framework.channel.Channel(channel_id)
 
             if self.__debug:
@@ -204,7 +205,7 @@ class efieldToVoltageConverter():
 
                     # calculate error by using discret bins
                     time_remainder = start_time - start_bin * time_resolution
-                    self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(
+                    logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(
                         channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
 
                     new_efield = NuRadioReco.framework.base_trace.BaseTrace()  # create new data structure with new efield length
@@ -217,13 +218,13 @@ class efieldToVoltageConverter():
                     # if checks should never be true...
                     if stop_bin > np.shape(new_trace)[-1]:
                         # ensure new efield does not extend beyond end of trace although this should not happen
-                        self.logger.warning("electric field trace extends beyond the end of the trace and will be cut.")
+                        logger.warning("electric field trace extends beyond the end of the trace and will be cut.")
                         stop_bin = np.shape(new_trace)[-1]
                         tr = np.atleast_2d(tr)[:, :stop_bin-start_bin]
 
                     if start_bin < 0:
                         # ensure new efield does not extend beyond start of trace although this should not happen
-                        self.logger.warning("electric field trace extends beyond the beginning of the trace and will be cut.")
+                        logger.warning("electric field trace extends beyond the beginning of the trace and will be cut.")
                         tr = np.atleast_2d(tr)[:, -start_bin:]
                         start_bin = 0
 
@@ -253,13 +254,13 @@ class efieldToVoltageConverter():
                         if len(self.__freqs) != len(ff):
                             self.__freqs = ff
                             self._get_cached_antenna_response.cache_clear()
-                            self.logger.warning(
+                            logger.warning(
                                 "Frequencies have changed (array length). Clearing antenna response cache. "
                                 "(If this happens often, something might be wrong...")
                         elif not np.allclose(self.__freqs, ff, rtol=0, atol=0.01 * units.MHz):
                             self.__freqs = ff
                             self._get_cached_antenna_response.cache_clear()
-                            self.logger.warning(
+                            logger.warning(
                                 "Frequencies have changed (values). Clearing antenna response cache. "
                                 "(If this happens often, something might be wrong...")
 
@@ -321,9 +322,9 @@ class efieldToVoltageConverter():
 
     def end(self):
         from datetime import timedelta
-        self.logger.setLevel(logging.INFO)
+        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
+        logger.info("total time used by this module is {}".format(dt))
         return dt
 
 def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id):
@@ -355,6 +356,11 @@ def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id):
         index_of_refraction = ice.get_refractive_index(1, site)
 
     antenna_position_rel = det.get_relative_position(station_id, channel_id) - efield.get_position()
+
+    if np.linalg.norm(antenna_position_rel) > 5 * units.m:
+        logger.warning("Calculate an additional time shift for an electric field that is more than 5 meters "
+                       "away from the antenna position.")
+
     travel_time_shift = geo_utl.get_time_delay_from_direction(
         efield.get_parameter(efp.zenith),
         efield.get_parameter(efp.azimuth),
