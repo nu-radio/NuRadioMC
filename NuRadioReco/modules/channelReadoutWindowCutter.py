@@ -1,6 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.channel
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 
 import numpy as np
 import logging
@@ -165,20 +165,26 @@ def _get_number_of_samples(sampling_rate, detector_sampling_rate, detector_n_sam
     # the number of samples after resampling will be correct
     valid_sampling_rate = sampling_rate % detector_sampling_rate < 1e-8
 
-    if issue_warning and not valid_sampling_rate:
-        logger.warning(
-            'The current sampling rate '
-            f'({sampling_rate/units.GHz:.3f} GHz) is not a multiple of '
-            f'the target detector sampling rate ({detector_sampling_rate/units.GHz:.3f} GHz). '
-            'Traces may not have the correct trace length after resampling.'
-        )
-
     # this should ensure that 1) the number of samples is even and
     # 2) resampling to the detector sampling rate results in the correct number of samples
     # (note that 2) can only be guaranteed if the detector sampling rate is lower than the
     # current sampling rate)
     number_of_samples = int(
         2 * np.ceil(detector_n_samples / 2 * sampling_rate / detector_sampling_rate))
+
+    if not valid_sampling_rate:
+        # actually check if the number of samples is correct after resampling
+        n_final = len(signal_processing.resample(np.zeros(number_of_samples), detector_sampling_rate / sampling_rate))
+        valid_sampling_rate = n_final == detector_n_samples
+
+        if not valid_sampling_rate and issue_warning:
+            logger.warning(
+                'The current sampling rate '
+                f'({sampling_rate/units.GHz:.3f} GHz) is not a multiple of '
+                f'the target detector sampling rate ({detector_sampling_rate/units.GHz:.3f} GHz). '
+                f'Traces may not have the correct trace length after resampling. Desired number of samples: {detector_n_samples}, '
+                f'expected number of samples after resampling: {n_final}.'
+            )
 
     return number_of_samples, valid_sampling_rate
 
