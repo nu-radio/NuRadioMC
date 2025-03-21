@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units, ice, geometryUtilities, trace_utilities
+from NuRadioReco.utilities import units, ice, geometryUtilities, signal_processing
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
@@ -176,10 +176,10 @@ class channelGalacticNoiseAdder:
 
     @functools.lru_cache(maxsize=1024)
     def _get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
-        """ 
-        Returns the cached antenna reponse for a given antenna patter, antenna orientation 
+        """
+        Returns the cached antenna reponse for a given antenna patter, antenna orientation
         and signal arrival direction. This wrapper is necessary as arrays and list are not
-        hashable (i.e., can not be used as arguments in functions one wants to cache). 
+        hashable (i.e., can not be used as arguments in functions one wants to cache).
         This module ensures that the cache is clearied if the vector `self.__freqs` changes.
         """
         return ant_pattern.get_antenna_response_vectorized(self.__freqs, zen, azi, *ant_orient)
@@ -297,8 +297,8 @@ class channelGalacticNoiseAdder:
                 self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
             noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
 
-            efield_amplitude = trace_utilities.get_electric_field_from_temperature(freqs[passband_filter],
-                                                                                   noise_temperature, self.solid_angle)
+            efield_amplitude = signal_processing.get_electric_field_from_temperature(
+                freqs[passband_filter], noise_temperature, self.solid_angle)
 
             # assign random phases to electric field
             noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
