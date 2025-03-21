@@ -1,8 +1,8 @@
 """
 Module to remove 'block offsets' from RNO-G voltage traces.
 
-The function ``fit_block_offsets`` can be used standalone to perform an out-of-band
-fit to the block offsets. Alternatively, the ``channelBlockOffsets`` class contains convenience
+The function `fit_block_offsets` can be used standalone to perform an out-of-band
+fit to the block offsets. Alternatively, the `channelBlockOffsets` class contains convenience
 ``add_offsets`` (to add block offsets in simulation) and ``remove_offsets`` methods that can be run
 directly on a NuRadioMC/imported ``Event``. The added/removed block offsets are stored per channel
 in the `NuRadioReco.framework.parameters.channelParameters.block_offsets` parameter.
@@ -113,7 +113,7 @@ class channelBlockOffsets:
         event : `NuRadioReco.framework.event.Event` | None
         station : `NuRadioReco.framework.station.Station`
             The station to remove the block offsets from
-        mode: str {'auto', 'fit', 'approximate', 'stored'}, optional
+        mode: str {'auto', 'fit', 'approximate', 'stored', 'median'}, optional
 
             - 'fit': fit the block offsets with a minimizer
             - 'approximate' : use the first guess from the out-of-band component,
@@ -123,6 +123,9 @@ class channelBlockOffsets:
             - 'stored': use the block offsets already stored in the
               ``channelParameters.block_offsets`` parameter. Will raise an error
               if this parameter is not present.
+            - 'median': remove the block offsets by calculating the median
+              of each block. This is faster than fitting, but less accurate.
+              Not recommended!
 
         channel_ids: list | None
             List of channel ids to remove offsets from. If None (default),
@@ -150,11 +153,17 @@ class channelBlockOffsets:
                 channel = station.get_channel(channel_id)
                 trace = channel.get_trace()
 
-                block_offsets = fit_block_offsets(
-                    trace, self.block_size,
-                    channel.get_sampling_rate(), self._max_frequency,
-                    mode=mode, maxiter=maxiter
-                )
+                if mode == "median":
+                    block_offsets = _calculate_block_offsets(
+                        trace, block_size=self.block_size, func=np.median
+                    )
+                else:
+                    block_offsets = fit_block_offsets(
+                        trace, self.block_size,
+                        channel.get_sampling_rate(), self._max_frequency,
+                        mode=mode, maxiter=maxiter
+                    )
+
                 offsets[channel_id] = -block_offsets
 
         self.add_offsets(event, station, offsets, channel_ids)
@@ -184,7 +193,7 @@ class channelBlockOffsets:
         det : Detector object, optional
             Detector object (not used in this method,
             included to have the same signature as other NuRadio classes)
-        mode : str {'auto', 'fit', 'approximate', 'stored'}, optional
+        mode : str {'auto', 'fit', 'approximate', 'stored', 'median'}, optional
 
             - 'fit': fit the block offsets with a minimizer
             - 'approximate' : use the first guess from the out-of-band component,
@@ -194,6 +203,9 @@ class channelBlockOffsets:
             - 'stored': use the block offsets already stored in the
               ``channelParameters.block_offsets`` parameter. Will raise an error
               if this parameter is not present.
+            - 'median': remove the block offsets by calculating the median
+              of each block. This is faster than fitting, but less accurate.
+              Not recommended to be used!
 
         channel_ids : list | None
             List of channel ids to remove offsets from. If None (default),
@@ -215,7 +227,7 @@ class channelBlockOffsets:
 
 def fit_block_offsets(
         trace, block_size=128, sampling_rate=3.2*units.GHz,
-        max_frequency=50*units.MHz, mode='auto', return_trace = False,
+        max_frequency=50*units.MHz, mode='auto', return_trace=False,
         maxiter=5, tol=1e-6):
     """
     Fit 'block' offsets for a voltage trace
@@ -321,19 +333,19 @@ def fit_block_offsets(
         const_fft_term = (
                 1 / sampling_rate * np.sqrt(2) # NuRadio FFT normalization
             * np.exp(pre_factor_exponent)
-            * np.sin(np.pi*frequencies_oob*block_size*dt)[None]
-            / np.sin(np.pi*frequencies_oob*dt)[None]
+            * np.sin(np.pi * frequencies_oob * block_size * dt)[None]
+            / np.sin(np.pi * frequencies_oob * dt)[None]
         )
 
         def pedestal_fit(a):
             fit = np.sum(a[:, None] * const_fft_term, axis=0)
-            chi2 = np.sum(np.abs(fit-spectrum_oob)**2)
+            chi2 = np.sum(np.abs(fit - spectrum_oob)**2)
             return chi2
 
         res = scipy.optimize.minimize(pedestal_fit, a_guess, tol=tol, options=dict(maxiter=maxiter)).x
         logger.debug(
             "Fit shifted estimated block offsets by {:.2f} ({:.0f}%)".format(
-                np.median(res-a_guess), 100*np.median((res-a_guess)/res)))
+                np.median(res - a_guess), 100 * np.median((res - a_guess) / res)))
 
         # the fit is not sensitive to an overall shift,
         # so we include the zero-meaning here
@@ -345,5 +357,54 @@ def fit_block_offsets(
     if return_trace:
         output_trace = trace - np.repeat(block_offsets, block_size)
         return block_offsets, output_trace
+
+    return block_offsets
+
+
+def _calculate_block_offsets(traces, block_size=128, func=np.median, return_trace=False):
+    """
+    Simple baseline correction function.
+
+    Determines baseline in discrete chunks of "block_size" with a
+    configurable function (default: median).
+
+    Parameters
+    ----------
+    traces: np.array(n_events, n_channels, n_samples)
+        Waveforms of several events/channels.
+    block_size: int (default: 128)
+        Number of samples/bins in one "chunk". If None, calculate median/mean over entire trace.
+    func: callable (default: np.median)
+        Function to calculate pedestal.
+    return_trace: bool (default: False)
+        If True, return the corrected waveforms in addition to the block offsets.
+
+    Returns
+    -------
+    wfs_corrected: np.array(n_events, n_channels, n_samples)
+        Baseline/pedestal corrected waveforms
+    baseline_values: np.array of shape (n_samples // block_size, n_events, n_channels)
+        (Only if return_offsets==True) The baseline offsets
+
+    See Also
+    --------
+    fit_block_offsets :
+        Function that uses an FFT to do an out-of-band removal of block offsets.
+        This is generally much more accurate than this function.
+    """
+
+    num_samples = traces.shape[-1]
+    n_cuncks = num_samples // block_size
+
+    # traces -> (n_events (optional), n_channels (optional), num_samples)
+    # block_offsets -> (n_cuncks, n_events, n_channels) pedestal for each chunck
+    block_offsets = func(np.split(traces, n_cuncks, axis=-1), axis=-1)
+
+    # (n_cuncks, n_events, n_channels) -> (n_events, n_channels, n_cuncks)
+    block_offsets = np.moveaxis(block_offsets, 0, -1)
+
+    if return_trace:
+        output_traces = traces - np.repeat(block_offsets, block_size, axis=-1)
+        return block_offsets, output_traces
 
     return block_offsets
