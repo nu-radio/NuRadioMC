@@ -88,8 +88,19 @@ def add_cable_delay(station, det, sim_to_data=None, trigger=False, logger=None):
 
 
 def resample(trace, sampling_factor):
-    """
-    Resample the trace to the sampling rate of the detector.
+    """ Resample a trace by a given resampling factor.
+
+    Parameters
+    ----------
+    trace : ndarray
+        The trace to resample. Can have multiple dimensions, but the last dimension should be the one to resample.
+    sampling_factor : float
+        The resampling factor. If the factor is a fraction, the denominator should be less than 5000.
+
+    Returns
+    -------
+    resampled_trace : ndarray
+        The resampled trace.
     """
     resampling_factor = fractions.Fraction(decimal.Decimal(sampling_factor)).limit_denominator(5000)
     n_samples = trace.shape[-1]
