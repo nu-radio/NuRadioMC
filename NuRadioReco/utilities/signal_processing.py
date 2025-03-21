@@ -1,8 +1,10 @@
 from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft
 
 from NuRadioReco.detector import detector
+import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
+from scipy import signal
 import numpy as np
 
 import logging
@@ -86,6 +88,252 @@ def add_cable_delay(station, det, sim_to_data=None, trigger=False, logger=None):
                         f"of cable delay to channel {channel.get_id()}")
 
         channel.add_trace_start_time(add_or_subtract * cable_delay)
+
+
+
+def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 7):
+    """
+    This function performs an upsampling by inserting a number of zeroes
+    between samples and then applying a finite impulse response (FIR) filter.
+
+    Parameters
+    ----------
+
+    trace: array of floats
+        Trace to be upsampled
+    original_sampling_frequency: float
+        Sampling frequency of the input trace
+    int_factor: integer
+        Upsampling factor. The resulting trace will have a sampling frequency
+        int_factor times higher than the original one
+    ntaps: integer
+        Number of taps (order) of the FIR filter
+
+    Returns
+    -------
+    upsampled_trace: array of floats
+        The upsampled trace
+    """
+
+    if (np.abs(int(int_factor) - int_factor) > 1e-3):
+        warning_msg = "The input upsampling factor does not seem to be close to an integer."
+        warning_msg += "It has been rounded to {}".format(int(int_factor))
+        logger.warning(warning_msg)
+
+    int_factor = int(int_factor)
+
+    if (int_factor <= 1):
+        error_msg = "Upsampling factor is less or equal to 1. Upsampling will not be performed."
+        raise ValueError(error_msg)
+
+    zeroed_trace = np.zeros(len(trace) * int_factor)
+    for i_point, point in enumerate(trace[:-1]):
+        zeroed_trace[i_point * int_factor] = point
+
+    upsampled_delta_time = 1 / (int_factor * original_sampling_frequency)
+    upsampled_times = np.arange(0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time)
+
+    cutoff = 1. / int_factor
+    fir_coeffs = signal.firwin(ntaps, cutoff, window='boxcar')
+    upsampled_trace = np.convolve(zeroed_trace, fir_coeffs)[:len(upsampled_times)] * int_factor
+
+    return upsampled_trace
+
+
+def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
+    """
+    Filters a trace using a Butterworth filter.
+
+    Parameters
+    ----------
+
+    trace: array of floats
+        Trace to be filtered
+    sampling_frequency: float
+        Sampling frequency
+    passband: (float, float) tuple
+        Tuple indicating the cutoff frequencies
+    order: integer
+        Filter order
+
+    Returns
+    -------
+
+    filtered_trace: array of floats
+        The filtered trace
+    """
+
+    n_samples = len(trace)
+
+    spectrum = fft.time2freq(trace, sampling_frequency)
+    frequencies = fft.freqs(n_samples, sampling_frequency)
+
+    filtered_spectrum = apply_butterworth(spectrum, frequencies, passband, order)
+    filtered_trace = fft.freq2time(filtered_spectrum, sampling_frequency)
+
+    return filtered_trace
+
+
+def apply_butterworth(spectrum, frequencies, passband, order=8):
+    """
+    Calculates the response from a Butterworth filter and applies it to the
+    input spectrum
+
+    Parameters
+    ----------
+    spectrum: array of complex
+        Fourier spectrum to be filtere
+    frequencies: array of floats
+        Frequencies of the input spectrum
+    passband: (float, float) tuple
+        Tuple indicating the cutoff frequencies
+    order: integer
+        Filter order
+
+    Returns
+    -------
+    filtered_spectrum: array of complex
+        The filtered spectrum
+    """
+
+    f = np.zeros_like(frequencies, dtype=complex)
+    mask = frequencies > 0
+    b, a = signal.butter(order, passband, 'bandpass', analog=True)
+    w, h = signal.freqs(b, a, frequencies[mask])
+    f[mask] = h
+
+    filtered_spectrum = f * spectrum
+
+    return filtered_spectrum
+
+
+def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
+    """
+    Delays a trace by transforming it to frequency and multiplying by phases.
+
+    A positive delay means that the trace is shifted to the right, i.e., its delayed.
+    A negative delay would mean that the trace is shifted to the left. Since this
+    method is cyclic, the delayed trace will have unphysical samples at either the
+    beginning (delayed, positive `time_delay`) or at the end (negative `time_delay`).
+    Those samples can be cropped (optional, default=True).
+
+    Parameters
+    ----------
+    trace: array of floats or `NuRadioReco.framework.base_trace.BaseTrace`
+        Array containing the trace
+    sampling_frequency: float
+        Sampling rate for the trace
+    time_delay: float
+        Time delay used for transforming the trace. Must be positive or 0
+    crop_trace: bool (default: True)
+        If True, the trace is cropped to remove samples what are unphysical
+        after delaying (rolling) the trace.
+
+    Returns
+    -------
+    delayed_trace: array of floats
+        The delayed, cropped trace
+    dt_start: float (optional)
+        The delta t of the trace start time. Only returned if crop_trace is True.
+    """
+    # Do nothing if time_delay is 0
+    if not time_delay:
+        if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+            if crop_trace:
+                return trace.get_trace(), 0
+            else:
+                return trace.get_trace()
+        else:
+            if crop_trace:
+                return trace, 0
+            else:
+                return trace
+
+    if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+        spectrum = trace.get_frequency_spectrum()
+        frequencies = trace.get_frequencies()
+        if trace.get_sampling_rate() != sampling_frequency:
+            raise ValueError("The sampling frequency of the trace does not match the given sampling frequency.")
+    else:
+        n_samples = len(trace)
+        spectrum = fft.time2freq(trace, sampling_frequency)
+        frequencies = fft.freqs(n_samples, sampling_frequency)
+
+    spectrum *= np.exp(-1j * 2 * np.pi * frequencies * time_delay)
+
+    delayed_trace = fft.freq2time(spectrum, sampling_frequency)
+    cycled_samples = int(round(time_delay * sampling_frequency))
+
+    if crop_trace:
+        # according to a NuRadio convention, traces should have an even number of samples.
+        # Make sure that after cropping the trace has an even number of samples (assuming that it was even before).
+        if cycled_samples % 2 != 0:
+            cycled_samples += 1
+
+        if time_delay >= 0:
+            delayed_trace = delayed_trace[cycled_samples:]
+            dt_start = cycled_samples * sampling_frequency
+        else:
+            delayed_trace = delayed_trace[:-cycled_samples]
+            dt_start = 0
+
+        return delayed_trace, dt_start
+
+    else:
+        # Check if unphysical samples contain any signal and if so, throw a warning
+        if time_delay > 0:
+            if np.any(np.abs(delayed_trace[:cycled_samples]) > 0.01 * units.microvolt):
+                logger.warning("The delayed trace has unphysical samples that contain signal. "
+                    "Consider cropping the trace to remove these samples.")
+        else:
+            if np.any(np.abs(delayed_trace[-cycled_samples:]) > 0.01 * units.microvolt):
+                logger.warning("The delayed trace has unphysical samples that contain signal. "
+                    "Consider cropping the trace to remove these samples.")
+
+        return delayed_trace
+
+
+def get_electric_field_from_temperature(frequencies, noise_temperature, solid_angle):
+    """
+    Calculate the electric field amplitude from the radiance of a radio signal.
+
+    The radiance is calculated using the Rayleigh-Jeans law per frequency bin, by adjusting
+    the value with the frequency spacing. After this, the electric field amplitude per bin
+    is calculated using the radiance and the vacuum permittivity.
+
+    Parameters
+    ----------
+    frequencies: array of floats
+        The frequencies at which to calculate the electric field amplitude
+    noise_temperature: float
+        The noise temperature to use in the Rayleigh-Jeans law
+    solid_angle: float
+        The solid angle over which the radiance is integrated
+
+    Returns
+    -------
+    efield_amplitude: array of floats
+        The electric field amplitude at each frequency
+    """
+    # Get constants in correct units
+    boltzmann = scipy.constants.Boltzmann * units.joule / units.kelvin
+    epsilon_0 = scipy.constants.epsilon_0 * (units.coulomb / units.V / units.m)
+    c_vac = scipy.constants.c * units.m / units.s
+
+    # Calculate frequency spacing
+    d_f = frequencies[2] - frequencies[1]
+
+    # Calculate spectral radiance of radio signal using Rayleigh-Jeans law
+    spectral_radiance = 2. * boltzmann * frequencies ** 2 * noise_temperature * solid_angle / c_vac ** 2
+    spectral_radiance[np.isnan(spectral_radiance)] = 0
+
+    # calculate radiance per energy bin
+    spectral_radiance_per_bin = spectral_radiance * d_f
+
+    # calculate electric field per energy bin from the radiance per bin
+    efield_amplitude = np.sqrt(spectral_radiance_per_bin / (c_vac * epsilon_0)) / d_f
+
+    return efield_amplitude
 
 
 def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider):

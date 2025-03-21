@@ -56,7 +56,7 @@ from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import NuRadioReco.modules.analogToDigitalConverter
-from NuRadioReco.utilities.trace_utilities import butterworth_filter_trace
+from NuRadioReco.utilities.signal_processing import butterworth_filter_trace
 from scipy import constants
 import numpy as np
 import json
