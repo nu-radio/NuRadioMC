@@ -4,7 +4,7 @@ from NuRadioReco.detector import detector
 import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
-from scipy import signal
+from scipy import signal, constants
 import numpy as np
 
 import logging
@@ -316,9 +316,9 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
         The electric field amplitude at each frequency
     """
     # Get constants in correct units
-    boltzmann = scipy.constants.Boltzmann * units.joule / units.kelvin
-    epsilon_0 = scipy.constants.epsilon_0 * (units.coulomb / units.V / units.m)
-    c_vac = scipy.constants.c * units.m / units.s
+    boltzmann = constants.Boltzmann * units.joule / units.kelvin
+    epsilon_0 = constants.epsilon_0 * (units.coulomb / units.V / units.m)
+    c_vac = constants.c * units.m / units.s
 
     # Calculate frequency spacing
     d_f = frequencies[2] - frequencies[1]
