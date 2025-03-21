@@ -1,9 +1,12 @@
-from NuRadioReco.utilities import units, fft, signal_processing
-import NuRadioReco.framework.base_trace
+from NuRadioReco.utilities import units, signal_processing
 
 import numpy as np
-import scipy.constants
+import scipy.stats
 import scipy.signal
+import scipy.ndimage
+import scipy.constants
+import warnings
+
 import logging
 logger = logging.getLogger('NuRadioReco.trace_utilities')
 
@@ -13,13 +16,33 @@ conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilo
 # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
 
 def get_efield_antenna_factor(*args, **kwargs):
-    logger.warning("get_efield_antenna_factor is moved to NuRadioReco.utilities.signal_processing.get_efield_antenna_factor")
+    warnings.warn("get_efield_antenna_factor is moved to NuRadioReco.utilities.signal_processing.get_efield_antenna_factor", DeprecationWarning)
     return signal_processing.get_efield_antenna_factor(*args, **kwargs)
 
 
 def get_channel_voltage_from_efield(*args, **kwargs):
-    logger.warning("get_channel_voltage_from_efield is moved to NuRadioReco.utilities.signal_processing.get_channel_voltage_from_efield")
+    warnings.warn("get_channel_voltage_from_efield is moved to NuRadioReco.utilities.signal_processing.get_channel_voltage_from_efield", DeprecationWarning)
     return signal_processing.get_channel_voltage_from_efield(*args, **kwargs)
+
+def upsampling_fir(*args, **kwargs):
+    warnings.warn("upsampling_fir is moved to NuRadioReco.utilities.signal_processing.upsampling_fir", DeprecationWarning)
+    return signal_processing.upsampling_fir(*args, **kwargs)
+
+
+def butterworth_filter_trace(*args, **kwargs):
+    warnings.warn("butterworth_filter_trace is moved to NuRadioReco.utilities.signal_processing.butterworth_filter_trace", DeprecationWarning)
+    return signal_processing.butterworth_filter_trace(*args, **kwargs)
+
+
+def apply_butterworth(*args, **kwargs):
+    warnings.warn("apply_butterworth is moved to NuRadioReco.utilities.signal_processing.apply_butterworth", DeprecationWarning)
+    return signal_processing.apply_butterworth(*args, **kwargs)
+
+
+def delay_trace(*args, **kwargs):
+    warnings.warn("delay_trace is moved to NuRadioReco.utilities.signal_processing.delay_trace", DeprecationWarning)
+    return signal_processing.delay_trace(*args, **kwargs)
+
 
 
 def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask=None, noise_window_mask=None):
@@ -132,203 +155,317 @@ def get_stokes(trace_u, trace_v, window_samples=128, squeeze=True):
     return stokes
 
 
-def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 7):
+def peak_to_peak_amplitudes(trace, coincidence_window_size):
     """
-    This function performs an upsampling by inserting a number of zeroes
-    between samples and then applying a finite impulse response (FIR) filter.
+    Calculates all local peak to peak amplitudes of a given trace.
 
     Parameters
     ----------
-
     trace: array of floats
-        Trace to be upsampled
-    original_sampling_frequency: float
-        Sampling frequency of the input trace
-    int_factor: integer
-        Upsampling factor. The resulting trace will have a sampling frequency
-        int_factor times higher than the original one
-    ntaps: integer
-        Number of taps (order) of the FIR filter
-
-    Returns
-    -------
-    upsampled_trace: array of floats
-        The upsampled trace
-    """
-
-    if (np.abs(int(int_factor) - int_factor) > 1e-3):
-        warning_msg = "The input upsampling factor does not seem to be close to an integer."
-        warning_msg += "It has been rounded to {}".format(int(int_factor))
-        logger.warning(warning_msg)
-
-    int_factor = int(int_factor)
-
-    if (int_factor <= 1):
-        error_msg = "Upsampling factor is less or equal to 1. Upsampling will not be performed."
-        raise ValueError(error_msg)
-
-    zeroed_trace = np.zeros(len(trace) * int_factor)
-    for i_point, point in enumerate(trace[:-1]):
-        zeroed_trace[i_point * int_factor] = point
-
-    upsampled_delta_time = 1 / (int_factor * original_sampling_frequency)
-    upsampled_times = np.arange(0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time)
-
-    cutoff = 1. / int_factor
-    fir_coeffs = scipy.signal.firwin(ntaps, cutoff, window='boxcar')
-    upsampled_trace = np.convolve(zeroed_trace, fir_coeffs)[:len(upsampled_times)] * int_factor
-
-    return upsampled_trace
-
-
-def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
-    """
-    Filters a trace using a Butterworth filter.
-
-    Parameters
-    ----------
-
-    trace: array of floats
-        Trace to be filtered
-    sampling_frequency: float
-        Sampling frequency
-    passband: (float, float) tuple
-        Tuple indicating the cutoff frequencies
-    order: integer
-        Filter order
-
-    Returns
-    -------
-
-    filtered_trace: array of floats
-        The filtered trace
-    """
-
-    n_samples = len(trace)
-
-    spectrum = fft.time2freq(trace, sampling_frequency)
-    frequencies = fft.freqs(n_samples, sampling_frequency)
-
-    filtered_spectrum = apply_butterworth(spectrum, frequencies, passband, order)
-    filtered_trace = fft.freq2time(filtered_spectrum, sampling_frequency)
-
-    return filtered_trace
-
-
-def apply_butterworth(spectrum, frequencies, passband, order=8):
-    """
-    Calculates the response from a Butterworth filter and applies it to the
-    input spectrum
-
-    Parameters
-    ----------
-    spectrum: array of complex
-        Fourier spectrum to be filtere
-    frequencies: array of floats
-        Frequencies of the input spectrum
-    passband: (float, float) tuple
-        Tuple indicating the cutoff frequencies
-    order: integer
-        Filter order
-
-    Returns
-    -------
-    filtered_spectrum: array of complex
-        The filtered spectrum
-    """
-
-    f = np.zeros_like(frequencies, dtype=complex)
-    mask = frequencies > 0
-    b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
-    w, h = scipy.signal.freqs(b, a, frequencies[mask])
-    f[mask] = h
-
-    filtered_spectrum = f * spectrum
-
-    return filtered_spectrum
-
-
-def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
-    """
-    Delays a trace by transforming it to frequency and multiplying by phases.
-
-    A positive delay means that the trace is shifted to the right, i.e., its delayed.
-    A negative delay would mean that the trace is shifted to the left. Since this
-    method is cyclic, the delayed trace will have unphysical samples at either the
-    beginning (delayed, positive `time_delay`) or at the end (negative `time_delay`).
-    Those samples can be cropped (optional, default=True).
-
-    Parameters
-    ----------
-    trace: array of floats or `NuRadioReco.framework.base_trace.BaseTrace`
         Array containing the trace
-    sampling_frequency: float
-        Sampling rate for the trace
-    time_delay: float
-        Time delay used for transforming the trace. Must be positive or 0
-    crop_trace: bool (default: True)
-        If True, the trace is cropped to remove samples what are unphysical
-        after delaying (rolling) the trace.
+    coincidence_window_size: int
+        Length along which to calculate minimum
 
     Returns
     -------
-    delayed_trace: array of floats
-        The delayed, cropped trace
-    dt_start: float (optional)
-        The delta t of the trace start time. Only returned if crop_trace is True.
+    amplitudes: array of floats (same length as the input trace)
+        Local peak to peak amplitudes
     """
-    # Do nothing if time_delay is 0
-    if not time_delay:
-        if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
-            if crop_trace:
-                return trace.get_trace(), 0
-            else:
-                return trace.get_trace()
-        else:
-            if crop_trace:
-                return trace, 0
-            else:
-                return trace
+    amplitudes = scipy.ndimage.maximum_filter1d(trace, coincidence_window_size) - scipy.ndimage.minimum_filter1d(trace, coincidence_window_size)
 
-    if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
-        spectrum = trace.get_frequency_spectrum()
-        frequencies = trace.get_frequencies()
-        if trace.get_sampling_rate() != sampling_frequency:
-            raise ValueError("The sampling frequency of the trace does not match the given sampling frequency.")
+    return amplitudes
+
+
+def get_split_trace_noise_RMS(trace, segments=4, lowest=2):
+    """
+    Calculates the noise root mean square (RMS) of a given trace.
+
+    This method splits the trace into segments,
+    then calculates the RMS of each segment,
+    and then takes the mean of the lowest few segemts' RMS values.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Array containing the trace
+    segments: int
+        Amount of segments to cut the trace int
+    lowest: int
+        Amount of lowest segment rms values to use when calculating the mean RMS end result
+
+    Returns
+    -------
+    noise_root_mean_square: float
+        The mean of the lowest few segments' RMS values
+    """
+    split_array = np.array_split(trace, segments)
+    split_array = np.array(split_array, dtype="object") #Objectify dtype to allow timetraces indivisible by amount of segments
+    rms_of_splits = [np.std(split) for split in split_array]
+    ordered_rmss = np.sort(rms_of_splits)
+    lowest_rmss = ordered_rmss[:lowest]
+    noise_root_mean_square = np.mean(lowest_rmss)
+
+    return noise_root_mean_square
+
+
+def get_signal_to_noise_ratio(trace, noise_rms, window_size=3):
+    """
+    Computes the Signal to Noise Ratio (SNR) of a given trace.
+
+    The signal to noise ratio is calculated as the peak to peak amplitude
+    within a given window size divided by twice the noise root mean square (RMS).
+
+    Parameters
+    ----------
+    trace : array of floats
+        Trace of a waveform
+    noise_rms: float
+        Noise root mean square (RMS)
+    window_size: int
+        Coincidence window size (default: 3)
+
+    Returns
+    -------
+    signal_to_noise_ratio: float
+        Signal to Noise Ratio (SNR) value
+    """
+    if not window_size >= 2:
+        logger.error(f"Window size must be greater-equal 2 (but is {window_size})")
+        raise ValueError(f"Window size must be greater-equal 2 (but is {window_size})")
+
+    p2p = np.amax(peak_to_peak_amplitudes(trace, window_size))
+    signal_to_noise_ratio = p2p / (2 * noise_rms)
+
+    return signal_to_noise_ratio
+
+
+def get_root_power_ratio(trace, times, noise_rms):
+    """
+    Computes the Root Power Ratio (RPR) of a given trace.
+
+    It compares the peak signal strength to the baseline noise.
+    The waveform’s power is smoothed using a 25 ns sliding window,
+    and the square root of this smoothed power gives the rolling root power.
+    The RPR is the maximum root power divided by the noise RMS
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+    times: array of floats
+        Times of a waveform
+    noise_rms: float
+        noise root mean square (RMS)
+
+    Returns
+    -------
+    root_power_ratio: float
+        Root Power Ratio (RPR) value
+    """
+
+    # Calculating RPR (Root Power Ratio)
+    if noise_rms == 0:
+        root_power_ratio = np.inf
     else:
-        n_samples = len(trace)
-        spectrum = fft.time2freq(trace, sampling_frequency)
-        frequencies = fft.freqs(n_samples, sampling_frequency)
+        wf_len = len(trace)
+        channel_wf = trace ** 2
 
-    spectrum *= np.exp(-1j * 2 * np.pi * frequencies * time_delay)
+        # Calculate the smoothing window size based on sampling rate
+        dt = times[1] - times[0]
+        sum_win = 25  # Smoothing window in ns
+        sum_win_idx = int(np.round(sum_win / dt))  # Convert window size to sample points
 
-    delayed_trace = fft.freq2time(spectrum, sampling_frequency)
-    cycled_samples = int(round(time_delay * sampling_frequency))
+        channel_wf = np.sqrt(scipy.ndimage.uniform_filter1d(channel_wf, size=sum_win_idx, mode='constant'))
 
-    if crop_trace:
-        # according to a NuRadio convention, traces should have an even number of samples.
-        # Make sure that after cropping the trace has an even number of samples (assuming that it was even before).
-        if cycled_samples % 2 != 0:
-            cycled_samples += 1
+        # Find the maximum value of the smoothed waveform
+        max_bin = np.argmax(channel_wf)
+        max_val = channel_wf[max_bin]
 
-        if time_delay >= 0:
-            delayed_trace = delayed_trace[cycled_samples:]
-            dt_start = cycled_samples * sampling_frequency
+        root_power_ratio = max_val / noise_rms
+
+    return root_power_ratio
+
+
+def get_hilbert_envelope(trace):
+    """
+    Applies the Hilbert Tranform to a given waveform trace,
+    then it will give us an envelope trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+
+    Returns
+    -------
+    envelope: array of floats
+        Hilbert envelope of the waveform trace
+    """
+    # Get the Hilbert envelope of the waveform trace
+    envelope = np.abs(scipy.signal.hilbert(trace))
+
+    return envelope
+
+
+def get_impulsivity(trace):
+    """
+    Calculates the impulsivity of a signal (trace).
+
+    This function computes the impulsivity of a trace by first performing the Hilbert Transform
+    to obtain an analytic signal (Hilbert envelope) and then determining the
+    cumulative distribution function (CDF) of the square of the sorted envelope values i.e. power values based on their
+    closeness to the maximum value. The average of the CDF is then scaled and returned
+    as the impulsivity value.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+
+    Returns
+    -------
+    impulsivity: float
+        Impulsivity of the signal (scaled between 0 and 1)
+    """
+
+    envelope = get_hilbert_envelope(trace)
+    maxv = np.argmax(envelope)
+    envelope_indexes = np.arange(len(envelope)) ## just a list of indices the same length as the array
+    closeness = list(
+        np.abs(envelope_indexes - maxv)
+    )  ## create an array containing index distance to max voltage (lower the value, the closer it is)
+
+    sorted_envelope = np.array([x for _, x in sorted(zip(closeness, envelope))])
+    cdf = np.cumsum(sorted_envelope**2)
+    cdf = cdf / cdf[-1]
+
+    impulsivity = (np.mean(np.asarray([cdf])) * 2.0) - 1.0
+    if impulsivity < 0:
+        impulsivity = 0.0
+
+    return impulsivity
+
+
+def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
+    """
+    Generates the coherently-summed waveform (CSW) of a sets of traces.
+
+    This function finds the correlation between each trace from a set and the reference trace,
+    then rolls all traces to align with the reference trace,
+    and then add them up to get the CSW.
+
+    Parameters
+    ----------
+    trace_set: 2-D array of floats
+        Traces of multiple channel waveforms without the reference trace
+    ref_trace: 1-D array of floats
+        Trace of the reference channel
+    use_envelope: bool
+        See if users would like to find the correlation between envelopes or just normal traces (default: False)
+
+    Returns
+    -------
+    sum_trace: 1-D array of floats
+        CSW of the set of traces
+    """
+    sum_trace = ref_trace
+
+    for idx, trace in enumerate(trace_set):
+        if use_envelope:
+            sig_ref = get_hilbert_envelope(ref_trace)
+            sig_i = get_hilbert_envelope(trace)
         else:
-            delayed_trace = delayed_trace[:-cycled_samples]
-            dt_start = 0
+            sig_ref = ref_trace
+            sig_i = trace
+        cor = scipy.signal.correlate(sig_ref, sig_i, mode = "full")
+        lag = int(np.argmax((cor)) - (np.size(cor)/2.))
 
-        return delayed_trace, dt_start
+        aligned_trace = np.roll(trace, lag)
+        sum_trace += aligned_trace
 
-    else:
-        # Check if unphysical samples contain any signal and if so, throw a warning
-        if time_delay > 0:
-            if np.any(np.abs(delayed_trace[:cycled_samples]) > 0.01 * units.microvolt):
-                logger.warning("The delayed trace has unphysical samples that contain signal. "
-                    "Consider cropping the trace to remove these samples.")
-        else:
-            if np.any(np.abs(delayed_trace[-cycled_samples:]) > 0.01 * units.microvolt):
-                logger.warning("The delayed trace has unphysical samples that contain signal. "
-                    "Consider cropping the trace to remove these samples.")
+    return sum_trace
 
-        return delayed_trace
+
+def get_entropy(trace, n_hist_bins = 50):
+    """
+    Calculates the shannon entropy (randomness measurement) of a trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+    n_hist_bins: int
+        Number of bins for the histogram (default: 50)
+
+    Returns
+    -------
+    entropy: float
+        Shannon entropy of the signal (trace)
+    """
+
+    # Step 1: Discretize the signal into bins
+    # If density = True, the result is the value of the probability density function at the bin,
+    # normalized such that the integral over the range is 1.
+    hist, bin_edges = np.histogram(trace, bins = n_hist_bins, density = True)
+
+    # Step 2: Calculate the probability distribution (normalized)
+    probabilities = hist / np.sum(hist)
+
+    # Step 3: Calculate Shannon Entropy
+    # Using base = 2 for entropy in bits
+    entropy = scipy.stats.entropy(probabilities, base = 2)
+
+    return entropy
+
+
+def get_kurtosis(trace):
+    """
+    Calculates the kurtosis (tailedness) of a trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+
+    Returns
+    -------
+    kurtosis: float
+        Kurtosis of the signal (trace)
+    """
+    kurtosis = scipy.stats.kurtosis(trace)
+
+    return kurtosis
+
+
+def is_NAN_or_INF(trace):
+    """
+    To see if a trace has any NAN or INF.
+
+    If there's any NAN or any INF,
+    this function will tell us how many points of NAN and INF there are.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+
+    Returns
+    -------
+    is_bad_trace: bool
+        True if there's any or False if the trace doesn't have any unreadable point
+    npoints_NAN: int
+        Number of NAN points
+    npoints_INF: int
+        Number of INF points
+    """
+    is_bad_trace = False
+
+    trace = np.array(trace)
+
+    npoints_NAN = len(np.argwhere(np.isnan(trace)))
+    npoints_INF = len(np.argwhere(np.isinf(trace)))
+
+    if npoints_NAN or npoints_INF:
+        is_bad_trace = True
+
+    return is_bad_trace, npoints_NAN, npoints_INF
