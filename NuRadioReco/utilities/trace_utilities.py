@@ -6,6 +6,7 @@ import scipy.stats
 import scipy.signal
 import scipy.ndimage
 import scipy.constants
+import warnings
 
 import logging
 logger = logging.getLogger('NuRadioReco.trace_utilities')
@@ -16,12 +17,12 @@ conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilo
 # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
 
 def get_efield_antenna_factor(*args, **kwargs):
-    logger.warning("get_efield_antenna_factor is moved to NuRadioReco.utilities.signal_processing.get_efield_antenna_factor")
+    warnings.warn("get_efield_antenna_factor is moved to NuRadioReco.utilities.signal_processing.get_efield_antenna_factor", DeprecationWarning)
     return signal_processing.get_efield_antenna_factor(*args, **kwargs)
 
 
 def get_channel_voltage_from_efield(*args, **kwargs):
-    logger.warning("get_channel_voltage_from_efield is moved to NuRadioReco.utilities.signal_processing.get_channel_voltage_from_efield")
+    warnings.warn("get_channel_voltage_from_efield is moved to NuRadioReco.utilities.signal_processing.get_channel_voltage_from_efield", DeprecationWarning)
     return signal_processing.get_channel_voltage_from_efield(*args, **kwargs)
 
 
@@ -400,6 +401,7 @@ def peak_to_peak_amplitudes(trace, coincidence_window_size):
 
     return amplitudes
 
+
 def get_split_trace_noise_RMS(trace, segments=4, lowest=2):
     """
     Calculates the noise root mean square (RMS) of a given trace.
@@ -431,6 +433,7 @@ def get_split_trace_noise_RMS(trace, segments=4, lowest=2):
 
     return noise_root_mean_square
 
+
 def get_signal_to_noise_ratio(trace, noise_rms, window_size=3):
     """
     Computes the Signal to Noise Ratio (SNR) of a given trace.
@@ -460,6 +463,7 @@ def get_signal_to_noise_ratio(trace, noise_rms, window_size=3):
     signal_to_noise_ratio = p2p / (2 * noise_rms)
 
     return signal_to_noise_ratio
+
 
 def get_root_power_ratio(trace, times, noise_rms):
     """
@@ -507,6 +511,7 @@ def get_root_power_ratio(trace, times, noise_rms):
 
     return root_power_ratio
 
+
 def get_hilbert_envelope(trace):
     """
     Applies the Hilbert Tranform to a given waveform trace,
@@ -526,6 +531,7 @@ def get_hilbert_envelope(trace):
     envelope = np.abs(scipy.signal.hilbert(trace))
 
     return envelope
+
 
 def get_impulsivity(trace):
     """
@@ -564,6 +570,7 @@ def get_impulsivity(trace):
         impulsivity = 0.0
 
     return impulsivity
+
 
 def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
     """
@@ -604,6 +611,7 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
 
     return sum_trace
 
+
 def get_entropy(trace, n_hist_bins = 50):
     """
     Calculates the shannon entropy (randomness measurement) of a trace.
@@ -635,6 +643,7 @@ def get_entropy(trace, n_hist_bins = 50):
 
     return entropy
 
+
 def get_kurtosis(trace):
     """
     Calculates the kurtosis (tailedness) of a trace.
@@ -652,6 +661,7 @@ def get_kurtosis(trace):
     kurtosis = scipy.stats.kurtosis(trace)
 
     return kurtosis
+
 
 def is_NAN_or_INF(trace):
     """
@@ -682,6 +692,6 @@ def is_NAN_or_INF(trace):
     npoints_INF = len(np.argwhere(np.isinf(trace)))
 
     if npoints_NAN or npoints_INF:
-       is_bad_trace = True
+        is_bad_trace = True
 
     return is_bad_trace, npoints_NAN, npoints_INF
