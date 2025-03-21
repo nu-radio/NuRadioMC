@@ -1,4 +1,5 @@
 from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.detector import detector
 from NuRadioReco.utilities import units
 import logging
 
