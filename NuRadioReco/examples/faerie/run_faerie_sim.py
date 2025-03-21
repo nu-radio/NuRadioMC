@@ -18,8 +18,6 @@ import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 
 from NuRadioReco.examples.faerie.detector import FAERIEDetector
 
-from matplotlib import pyplot as plt
-from collections import defaultdict
 import datetime as dt
 import numpy as np
 import logging
@@ -233,7 +231,7 @@ if __name__ == "__main__":
                         event, station, det_rnog, trigger_channels=trigger_channels)
                 else:
                     assert args.noise_type == "rayleigh", "Only 'rayleigh' and 'data-driven' noise is supported."
-                    efieldToVoltageConverter.run(event, station, det)
+                    efieldToVoltageConverter.run(event, station, det_rnog)
 
                     if args.add_noise:
                         channelGenericNoiseAdder.run(
@@ -249,7 +247,7 @@ if __name__ == "__main__":
                     trigger_channel_noise_vrms=None,
                     high_low_trigger_thresholds=thresholds)
 
-                channelReadoutWindowCutter.run(event, station, det)
-                channelResampler.run(event, station, det)
+                channelReadoutWindowCutter.run(event, station, det_rnog)
+                channelResampler.run(event, station, det_rnog)
 
             eventWriter.run(event, mode=mode)
