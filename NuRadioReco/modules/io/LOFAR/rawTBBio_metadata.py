@@ -11,6 +11,7 @@ import logging
 import numpy as np
 
 from NuRadioReco.modules.io.LOFAR.rawTBBio_utilities import SId_to_Sname
+from NuRadioReco.utilities import units
 
 
 logger = logging.getLogger('NuRadioReco.LOFAR.rawTBBio_metadata')
@@ -439,7 +440,7 @@ def getStationPhaseCalibration(
     return complexdata.transpose()
 
 
-def convertPhase_to_Timing(phase_calibration, sample_time=5.0e-9):
+def convertPhase_to_Timing(phase_calibration, sample_time=5.0*units.ns):
     """
     Given the phase calibration of the 512 LOFAR subbands,
     such as the output of getStationPhaseCalibration,
@@ -464,7 +465,7 @@ def getClockCorrectionFromParsetAddition(metadata_dir):
     infile = open(parsetFilename, "r")
     for line in infile:
         s = line.split("=")
-        value = s[1]
+        value = s[1] * units.s
         params = s[0].split(".")
         thisStation = params[2][0:5]
         thisAntennaSet = params[3]
@@ -505,69 +506,69 @@ def getClockCorrections(antenna_set="LBA", time=1383264000 - 1000, metadata_dir=
     if "LBA" in antenna_set:
         if time < (1383264000):
             # Values before 1 Nov 2013, eventID-time 120960000, Unix time: add 1262304000.
-            clockcorrection["CS002"] = 8.32233e-06  # definition, global offset
+            clockcorrection["CS002"] = 8.32233e-06  * units.s # definition, global offset
             # Addition is the finetuning using Smilde from 1 or 2 random events, to about +/- 0.2 ns.
             # TODO: Need to check constancy over time.
-            clockcorrection["CS003"] = 6.921444e-06 + 0.35e-9
-            clockcorrection["CS004"] = 7.884847e-06 + 1.0e-9
-            clockcorrection["CS005"] = 8.537828e-06 + 0.14e-9
-            clockcorrection["CS006"] = 7.880705e-06 - 0.24e-9
-            clockcorrection["CS007"] = 7.916458e-06 - 0.22e-9
+            clockcorrection["CS003"] = (6.921444e-06 + 0.35e-9) * units.s
+            clockcorrection["CS004"] = (7.884847e-06 + 1.0e-9) * units.s
+            clockcorrection["CS005"] = (8.537828e-06 + 0.14e-9) * units.s
+            clockcorrection["CS006"] = (7.880705e-06 - 0.24e-9) * units.s
+            clockcorrection["CS007"] = (7.916458e-06 - 0.22e-9) * units.s
 
-            clockcorrection["CS001"] = 4.755947e-06
-            clockcorrection["CS011"] = 7.55500e-06 - 0.3e-9
-            clockcorrection["CS013"] = 9.47910e-06
-            clockcorrection["CS017"] = 1.540812e-05 - 0.87e-9
-            clockcorrection["CS021"] = 6.044335e-06 + 1.12e-9
-            clockcorrection["CS024"] = 4.66335e-06 - 1.24e-9
-            clockcorrection["CS026"] = 1.620482e-05 - 1.88e-9
-            clockcorrection["CS028"] = 1.6967048e-05 + 1.28e-9
-            clockcorrection["CS030"] = 9.7110576e-06 + 3.9e-9
-            clockcorrection["CS031"] = 6.375533e-06 + 1.87e-9
-            clockcorrection["CS032"] = 8.541675e-06 + 1.1e-9
-            clockcorrection["CS101"] = 1.5155471e-05
-            clockcorrection["CS103"] = 3.5503206e-05
-            clockcorrection["CS201"] = 1.745439e-05
-            clockcorrection["CS301"] = 7.685249e-06
-            clockcorrection["CS302"] = 1.2317004e-05
-            clockcorrection["CS401"] = 8.052200e-06
-            clockcorrection["CS501"] = 1.65797e-05
+            clockcorrection["CS001"] = 4.755947e-06 * units.s
+            clockcorrection["CS011"] = 7.55500e-06 - 0.3e-9 * units.s
+            clockcorrection["CS013"] = 9.47910e-06 * units.s
+            clockcorrection["CS017"] = (1.540812e-05 - 0.87e-9) * units.s
+            clockcorrection["CS021"] = (6.044335e-06 + 1.12e-9) * units.s
+            clockcorrection["CS024"] = (4.66335e-06 - 1.24e-9) * units.s
+            clockcorrection["CS026"] = (1.620482e-05 - 1.88e-9) * units.s
+            clockcorrection["CS028"] = (1.6967048e-05 + 1.28e-9) * units.s
+            clockcorrection["CS030"] = (9.7110576e-06 + 3.9e-9) * units.s
+            clockcorrection["CS031"] = (6.375533e-06 + 1.87e-9) * units.s
+            clockcorrection["CS032"] = (8.541675e-06 + 1.1e-9) * units.s
+            clockcorrection["CS101"] = 1.5155471e-05 * units.s
+            clockcorrection["CS103"] = 3.5503206e-05 * units.s
+            clockcorrection["CS201"] = 1.745439e-05 * units.s
+            clockcorrection["CS301"] = 7.685249e-06 * units.s
+            clockcorrection["CS302"] = 1.2317004e-05 * units.s
+            clockcorrection["CS401"] = 8.052200e-06 * units.s
+            clockcorrection["CS501"] = 1.65797e-05 * units.s
         else:
             clockcorrection = getClockCorrectionFromParsetAddition(metadata_dir)
-            clockcorrection["CS003"] = clockcorrection["CS003"] - 1.7e-9 + 2.0e-9
-            clockcorrection["CS004"] = clockcorrection["CS004"] - 9.5e-9 + 4.2e-9
-            clockcorrection["CS005"] = clockcorrection["CS005"] - 6.9e-9 + 0.4e-9
-            clockcorrection["CS006"] = clockcorrection["CS006"] - 8.3e-9 + 3.8e-9
-            clockcorrection["CS007"] = clockcorrection["CS007"] - 3.6e-9 + 3.4e-9
-            clockcorrection["CS011"] = clockcorrection["CS011"] - 18.7e-9 + 0.6e-9
+            clockcorrection["CS003"] = clockcorrection["CS003"] - (1.7e-9 + 2.0e-9) * units.s
+            clockcorrection["CS004"] = clockcorrection["CS004"] - (9.5e-9 + 4.2e-9) * units.s
+            clockcorrection["CS005"] = clockcorrection["CS005"] - (6.9e-9 + 0.4e-9) * units.s
+            clockcorrection["CS006"] = clockcorrection["CS006"] - (8.3e-9 + 3.8e-9) * units.s
+            clockcorrection["CS007"] = clockcorrection["CS007"] - (3.6e-9 + 3.4e-9) * units.s
+            clockcorrection["CS011"] = clockcorrection["CS011"] - (18.7e-9 + 0.6e-9) * units.s
 
     # Old values were
     elif "HBA" in antenna_set:
         # Correct to 2013-03-26 values from parset L111421
-        clockcorrection["CS001"] = 4.759754e-06
-        clockcorrection["CS002"] = 8.318834e-06
-        clockcorrection["CS003"] = 6.917926e-06
-        clockcorrection["CS004"] = 7.889961e-06
-        clockcorrection["CS005"] = 8.542093e-06
-        clockcorrection["CS006"] = 7.882892e-06
-        clockcorrection["CS007"] = 7.913020e-06
-        clockcorrection["CS011"] = 7.55852e-06
-        clockcorrection["CS013"] = 9.47910e-06
-        clockcorrection["CS017"] = 1.541095e-05
-        clockcorrection["CS021"] = 6.04963e-06
-        clockcorrection["CS024"] = 4.65857e-06
-        clockcorrection["CS026"] = 1.619948e-05
-        clockcorrection["CS028"] = 1.6962571e-05
-        clockcorrection["CS030"] = 9.7160576e-06
-        clockcorrection["CS031"] = 6.370090e-06
-        clockcorrection["CS032"] = 8.546255e-06
-        clockcorrection["CS101"] = 1.5157971e-05
-        clockcorrection["CS103"] = 3.5500922e-05
-        clockcorrection["CS201"] = 1.744924e-05
-        clockcorrection["CS301"] = 7.690431e-06
-        clockcorrection["CS302"] = 1.2321604e-05
-        clockcorrection["CS401"] = 8.057504e-06
-        clockcorrection["CS501"] = 1.65842e-05
+        clockcorrection["CS001"] = 4.759754e-06 * units.s
+        clockcorrection["CS002"] = 8.318834e-06 * units.s
+        clockcorrection["CS003"] = 6.917926e-06 * units.s
+        clockcorrection["CS004"] = 7.889961e-06 * units.s
+        clockcorrection["CS005"] = 8.542093e-06 * units.s
+        clockcorrection["CS006"] = 7.882892e-06 * units.s
+        clockcorrection["CS007"] = 7.913020e-06 * units.s
+        clockcorrection["CS011"] = 7.55852e-06 * units.s
+        clockcorrection["CS013"] = 9.47910e-06 * units.s
+        clockcorrection["CS017"] = 1.541095e-05 * units.s
+        clockcorrection["CS021"] = 6.04963e-06 * units.s
+        clockcorrection["CS024"] = 4.65857e-06 * units.s
+        clockcorrection["CS026"] = 1.619948e-05 * units.s
+        clockcorrection["CS028"] = 1.6962571e-05 * units.s
+        clockcorrection["CS030"] = 9.7160576e-06 * units.s
+        clockcorrection["CS031"] = 6.370090e-06 * units.s
+        clockcorrection["CS032"] = 8.546255e-06 * units.s
+        clockcorrection["CS101"] = 1.5157971e-05 * units.s
+        clockcorrection["CS103"] = 3.5500922e-05 * units.s
+        clockcorrection["CS201"] = 1.744924e-05 * units.s
+        clockcorrection["CS301"] = 7.690431e-06 * units.s
+        clockcorrection["CS302"] = 1.2321604e-05 * units.s
+        clockcorrection["CS401"] = 8.057504e-06 * units.s
+        clockcorrection["CS501"] = 1.65842e-05 * units.s
 
     else:
         print("ERROR: no clock offsets available for this antennaset: ", antenna_set)
