@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     # Initialize Hit Filter
     stationHitFilter = NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter()
-    stationHitFilter.begin(info)
+    stationHitFilter.begin()
 
     # For time logging
     t_total = 0
@@ -187,9 +187,9 @@ if __name__ == "__main__":
 
         # it is advisable to only save the full waveform information for events that pass certain analysis cuts
         # this will save disk space and make the data processing faster
-        # Here, we save only non-FT events that passed the Hit Filter
+        # Here, we save events that passed the Hit Filter and exclude forced trigger events and RADIANT trigger events
         # Write event - the RNO-G detector class is not stored within the nur files.
-        if is_passed_HF and not stationHitFilter.is_forced_trigger():
+        if is_passed_HF and stationHitFilter.is_wanted_trigger_type():
             # save full waveform information
             #print("saving full waveform information")
             eventWriter.run(evt, det=None, mode={'Channels':True, "ElectricFields":True})
