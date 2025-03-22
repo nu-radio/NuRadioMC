@@ -13,18 +13,18 @@ import math
 
 class stationHitFilter:
 
-    def __init__(self, complete_time_check=False, complete_hit_check=False, time_window=10.0*units.ns, is_multi_thresholds=False, threshold_multipliers=[6.5, 6.0, 5.5, 5.0, 4.5]):
+    def __init__(self, complete_time_check=False, complete_hit_check=False, time_window=10.0*units.ns, threshold_multiplier=6.5):
         """
         See if an event is thermal noise based on the coincidence window.
 
-        It deals with all the in-ice channels (15 waveforms) for an RNO-G station,
+        Hit Filter deals with all the in-ice channels (15 waveforms) for an RNO-G station,
         adjacent channels are put into groups: G1:(0,1,2,3); G2:(9,10); G3:(23,22); G4:(8,4).
-        It applies the Hilbert Transform to each waveform and finds their maximum (hit)
-        and get the time when the hit happens, then it checks to see if hits in each group
+        It applies the Hilbert Transform to each waveform and finds their maximum (hit),
+        and gets the time when the hit happens, then it checks to see if hits in each channel group
         are in the coincidence window. This time checker requires at least 1 coincident pair in G1
         and another coincident pair in any group. When the time check fails, the Hit Filter will
         see if there's any in-ice channel that has a high hit (maximum > 6.5*noise_RMS), which is the
-        hit checker, and whenever there's a high hit it passes the Hit Filter.
+        hit checker, and whenever there's a high hit the event passes the Hit Filter.
 
         Parameters
         ----------
@@ -35,28 +35,19 @@ class stationHitFilter:
             If False, only run the hit checker when the time checker fails.
             If True, always run the hit checker.
         time_window: float (default: 10.0*units.ns)
-            Coincidence window for two adjacent channels
-        is_multi_thresholds: bool (default: False)
-            If users want to check with multiple hit thresholds
-        threshold_multipliers: 1-D list (default: [6.5, 6.0, 5.5, 5.0, 4.5])
-            Different hit threshold multipliers where a hit threshold is a multiplier times the noise RMS,
-            if not using multiple thresholds only the first element (largest multiplier) is used
+            Coincidence window for two adjacent channels.
+        threshold_multiplier: float (default: 6.5)
+            High hit threshold multiplier, where a hit threshold is the multiplier times the noise RMS.
         """
         self._complete_time_check = complete_time_check
         self._complete_hit_check = complete_hit_check
         self._dT = time_window
-        self._is_multi_thresholds = is_multi_thresholds
-
-        if self._is_multi_thresholds:
-            self._threshold_multipliers = threshold_multipliers
-        else:
-            self._threshold_multipliers = [threshold_multipliers[0]]
+        self._threshold_multiplier = threshold_multiplier
 
         self._in_ice_channels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 21, 22, 23]
         self._in_ice_channel_groups = ([0, 1, 2, 3], [9, 10], [23, 22], [8, 4])
         self._channel_pairs_in_PA = ([0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3])
 
-        self._n_thresholds = len(self._threshold_multipliers)
         self._n_channels_in_ice = len(self._in_ice_channels)
 
         self._envelope_max_time_index = None
@@ -85,9 +76,8 @@ class stationHitFilter:
         """
         Channel Mappings for specifically channels on Helper String 2
 
-        The Hit Filter works only on all 15 in-ice channels,
-        but it takes all 24 channels as the input to avoid any possible confusion on channel order.
-        This function maps channels 21, 22, 23 to indices 12, 13, 14 in the output array
+        The Hit Filter works only on all 15 in-ice channels.
+        This function maps channels 21, 22, 23 to indices 12, 13, 14
         (Skip surface channels 12 ~ 20).
 
         Parameters
@@ -115,7 +105,7 @@ class stationHitFilter:
         Returns
         -------
         self._passed_time_checker: bool
-            Event passes the time checker or not
+            Event passed the time checker or not
         """
         self._passed_time_checker = False
         envelope_max_time = self.get_envelope_max_time()
@@ -162,64 +152,44 @@ class stationHitFilter:
 
     def _hit_checker(self):
         """
-        Find high hits in all 15 in-ice channels.
+        Find a high hit within all 15 in-ice channels.
 
-        See if there's at least 1 high hit in all input channels,
+        See if there's at least 1 high hit within channels,
         if yes then the event passes the hit checker.
-        When multiple thresholds are used, the hit checker then becomes more loose;
-        for example, if there are two hits above the second-highest threshold but below the highest threshold,
-        the event will pass the hit checker too (when is_multi_thresholds = True).
 
         Returns
         -------
         self._passed_hit_checker: bool
-            Event passes the hit checker or not
+            Event passed the hit checker or not
         """
-        envelopes = self.get_envelope_traces()
-        hit_thresholds = self.get_hit_thresholds()
-
-        max_envelopes = np.amax(envelopes, axis=-1)
-
-        self._is_over_hit_threshold = max_envelopes[:, None] > hit_thresholds
-
-        n_counts_above_threshold = np.sum(self._is_over_hit_threshold, axis=0)
-
-        self._passed_hit_checker = np.any(n_counts_above_threshold > np.arange(self._n_thresholds))
+        self._is_over_hit_threshold = np.amax(self.get_envelope_traces(), axis=-1) > self.get_hit_thresholds()
+        self._passed_hit_checker = np.any(self._is_over_hit_threshold)
 
         return self._passed_hit_checker
 
 
-    def begin(self, event_info=None, log_level=logging.INFO):
+    def begin(self, log_level=logging.INFO):
         """
-        Begin with event information.
+        Set up logging info.
 
         Parameters
         ----------
-        event_info: dict (default: None)
-            Event information from the event reader
         log_level: enum
             Set verbosity level of logger (default: logging.INFO)
         """
         self.logger = logging.getLogger('NuRadioReco.RNO_G.stationHitFitter')
         self.logger.setLevel(log_level)
 
-        self.__FT_count = 0
-        self.__FT_passed_count = 0
-        self.__RF_passed_count = 0
-        self.__processed_passed_count = 0
+        self.__count_FT = 0
+        self.__count_passed_FT = 0
+        self.__count_RADIANT = 0
+        self.__count_passed_RADIANT = 0
+        self.__count_UNKNOWN = 0
+        self.__count_passed_UNKNOWN = 0
+        self.__count_RF = 0
+        self.__count_passed_RF = 0
         self.__event_count = 0
-        self.__n_events_in_run = 0
-        self.__is_trigger_type_found = False
-        self.__is_FT = None
-        self.__event_info = event_info
-
-        if self.__event_info is None:
-            self.logger.info("Event info is not given.")
-        elif 'triggerType' not in self.__event_info[0]:
-            self.logger.warning("'triggerType' is NOT found in event info!")
-        else:
-            self.__is_trigger_type_found = True
-            self.__n_events_in_run = len(self.__event_info)
+        self.__is_wanted_trigger_type = None
 
 
     def set_up(self, set_of_traces, set_of_times, noise_RMS):
@@ -227,10 +197,10 @@ class stationHitFilter:
         Set things up before passing to the Hit Filter.
 
         This setup function calculates the noise RMS,
-        sets the hit threshold(s), gets the Hilbert envelope,
+        sets the high hit threshold for each channel, gets the Hilbert envelope,
         and finds the time when the maximum happens (hit).
         IMPORTANT: If you use this function by yourself,
-        make sure your inputs come from all 15 in-ice channels only,
+        make sure your inputs come from all 15 in-ice channels in order only,
         rather than all 24 channels.
 
         Parameters
@@ -260,7 +230,7 @@ class stationHitFilter:
         else:
             self._noise_RMS = np.array([trace_utilities.get_split_trace_noise_RMS(trace) for trace in self._traces])
 
-        self._hit_thresholds = self._noise_RMS[:, None] * self.get_threshold_multipliers()
+        self._hit_thresholds = self._noise_RMS * self.get_threshold_multiplier()
 
 
     def apply_hit_filter(self):
@@ -269,12 +239,13 @@ class stationHitFilter:
 
         After the setup, it first checks with the time checker,
         if event passed the time checker then it passes the Hit Filter;
-        if event failed the time checker, then checks with the hit checker.
+        if event failed the time checker, then checks with the
+        hit checker to find a high hit.
 
         Returns
         -------
         self._passed_hit_filter: bool
-            If event passed the Hit Filter or not
+            Event passed the Hit Filter or not
         """
         self._passed_hit_filter = self._time_checker()
 
@@ -296,9 +267,10 @@ class stationHitFilter:
 
         Parameters
         ----------
-        evt: `NuRadioReco.framework.event.Event` | None
+        evt: `NuRadioReco.framework.event.Event`
+            Using the event object to get the trigger type
         station: `NuRadioReco.framework.station.Station`
-            The station to use the Hit Filter
+            The station to use the Hit Filter on
         det: Detector object | None
             Detector object (not used in this method,
             included to have the same signature as other NuRadio classes)
@@ -309,10 +281,6 @@ class stationHitFilter:
         -------
         self.is_passed_hit_filter(): bool
             Event passed the Hit Filter or not
-
-        See Also
-        --------
-        apply_hit_filter: It sets things up and applies the Hit Filter
         """
         # This implicitly obeys the channel mapping
         traces = np.array([np.array(channel.get_trace()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
@@ -326,47 +294,61 @@ class stationHitFilter:
         self.set_up(traces, times, noise_RMS)
         self.apply_hit_filter()
 
-        if self.__is_trigger_type_found:
-            if self.__event_info[self.__event_count].get('triggerType') == "FORCE":
-                self.__is_FT = True
-                self.__FT_count += int(self.is_forced_trigger())
-                self.__FT_passed_count += int(self.is_passed_hit_filter())
-            else:
-                self.__is_FT = False
-                self.__RF_passed_count += int(self.is_passed_hit_filter())
+        trigger_type = evt.get_station().get_first_trigger().get_name()
+
+        if trigger_type == "FORCE":
+            self.__count_FT += 1
+            self.__count_passed_FT += int(self.is_passed_hit_filter())
+            self.__is_wanted_trigger_type = False
+        elif "RADIANT" in trigger_type:
+            self.__count_RADIANT += 1
+            self.__count_passed_RADIANT += int(self.is_passed_hit_filter())
+            self.__is_wanted_trigger_type = False
+        elif trigger_type == "UNKNOWN":
+            self.__count_UNKNOWN += 1
+            self.__count_passed_UNKNOWN += int(self.is_passed_hit_filter())
+            self.__is_wanted_trigger_type = True
+        else:
+            self.__count_RF += 1
+            self.__count_passed_RF += int(self.is_passed_hit_filter())
+            self.__is_wanted_trigger_type = True
 
         self.__event_count += 1
-        self.__processed_passed_count += int(self.is_passed_hit_filter())
 
         return self.is_passed_hit_filter()
 
 
     def end(self):
-        if self.__event_count == self.__n_events_in_run:
-            self.logger.info(
-                f"\nTotal: {self.__event_count} events"
-                f"\n\tNumber of FT: {self.__FT_count} events"
-                f"\n\tFT Passed Hit Filter: {self.__FT_passed_count} events"
-                f"\n\tNumber of RF: {self.__event_count - self.__FT_count} events"
-                f"\n\tRF Passed Hit Filter: {self.__RF_passed_count} events")
-        else:
-            self.logger.info(
-                f"\n\tHit Filter Processed: {self.__event_count} events"
-                f"\n\tPassed Hit Filter: {self.__processed_passed_count} events")
+        counts = f"\nProcessed Total: {self.__event_count} events"
+
+        if self.__count_FT:
+            counts += f"\n\tForced Triggers: {self.__count_FT} events"
+            counts += f"\n\tForced Triggers Passed Hit Filter: {self.__count_passed_FT} events"
+        if self.__count_RADIANT:
+            counts += f"\n\tRADIANT Triggers: {self.__count_RADIANT} events"
+            counts += f"\n\tRADIANT Triggers Passed Hit Filter: {self.__count_passed_RADIANT} events"
+        if self.__count_UNKNOWN:
+            counts += f"\n\tUnknown Triggers: {self.__count_UNKNOWN} events"
+            counts += f"\n\tUnknown Triggers Passed Hit Filter: {self.__count_passed_UNKNOWN} events"
+        if self.__count_RF:
+            counts += f"\n\tRF Triggers: {self.__count_RF} events"
+            counts += f"\n\tRF Triggers Passed Hit Filter: {self.__count_passed_RF} events"
+
+        self.logger.info(counts)
 
 
     #####################
     ###### Getters ######
     #####################
 
-    def get_threshold_multipliers(self):
+    def get_threshold_multiplier(self):
         """
         Returns
         -------
-        np.array(self._threshold_multipliers): 1-D numpy array of floats
-            Threshold multipliers (default: np.array([6.5, 6.0, 5.5, 5.0, 4.5]))
+        self._threshold_multiplier: float
+            High hit threshold multiplier (default: 6.5)
         """
-        return np.array(self._threshold_multipliers)
+        return self._threshold_multiplier
 
     def get_in_ice_channels(self):
         """
@@ -400,7 +382,7 @@ class stationHitFilter:
         Returns
         -------
         self._envelope_max_time_index: 1-D numpy array of ints
-            Time indices of hits for channels
+            Hit time index of each channel
         """
         return self._envelope_max_time_index
 
@@ -409,7 +391,7 @@ class stationHitFilter:
         Returns
         -------
         self._envelope_max_time: 1-D numpy array of floats
-            Times of hits for channels
+            Hit time of each channel
         """
         return self._envelope_max_time
 
@@ -453,8 +435,8 @@ class stationHitFilter:
         """
         Returns
         -------
-        self._hit_thresholds: 2-D numpy array of floats
-            Arrays of hit thresholds for channels
+        self._hit_thresholds: 1-D numpy array of floats
+            Hit threshold of each channel
         """
         return self._hit_thresholds
 
@@ -492,8 +474,8 @@ class stationHitFilter:
         """
         Returns
         -------
-        self._is_over_hit_threshold: 2-D list of bools
-            See if there are high hits in channels
+        self._is_over_hit_threshold: 1-D numpy array of bools
+            See if there's a high hit in each channel
         """
         if self._complete_hit_check:
             return self._is_over_hit_threshold
@@ -505,31 +487,31 @@ class stationHitFilter:
         Returns
         -------
         self._is_in_time_window: 2-D list of bools
-            See if channel pairs passed the time checker in all groups
+            See if a channel pair is coincident in the group
         """
         if self._complete_time_check:
             return self._is_in_time_window
         else:
             raise NotImplementedError("Cannot call is_in_time_window() when complete_time_check is False.")
 
-    def is_forced_trigger(self):
+    def is_wanted_trigger_type(self):
         """
         Returns
         -------
-        self.__is_FT: bool
-            See if event is forced trigger
+        self.__is_wanted_trigger_type: bool
+            When we want to exclude forced triggers and RADIANT triggers but others
         """
-        if self.__is_FT is not None:
-            return self.__is_FT
+        if self.__is_wanted_trigger_type is not None:
+            return self.__is_wanted_trigger_type
         else:
-            raise NotImplementedError("Cannot call is_forced_trigger() when self.__is_FT is None.")
+            raise NotImplementedError("Cannot call is_wanted_trigger_type() when self.__is_wanted_trigger_type is None.")
 
     def is_in_time_window_PA(self):
         """
         Returns
         -------
         dict: dictionary of bools
-            See if channel pairs passed the time checker in group 1 (PA)
+            See if channel pairs are coincident or not in group 1 (PA)
             In the dictionary, there are 6 pairs:
             (0,1), (0,2), (0,3), (1,2), (1,3), (2,3)
             To see if a pair is coincident one can do, for example:
