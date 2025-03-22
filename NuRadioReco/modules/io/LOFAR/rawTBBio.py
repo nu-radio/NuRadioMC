@@ -64,18 +64,20 @@ import numpy as np
 
 import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as md
 import NuRadioReco.modules.io.LOFAR.rawTBBio_utilities as util
+from NuRadioReco.utilities import units
 
 
 logger = logging.getLogger('NuRadioReco.LOFAR.rawTBBio')
 
 
 # nyquist_zone = {'LBA_10_90' : 1, 'LBA_30_90' : 1, 'HBA_110_190' : 2, 'HBA_170_230' : 3, 'HBA_210_250' : 3}
+# The sampling rate is stored with its unit; here we convert this to NuRadio units
 conversion_dict = {
-    "": 1.0,
-    "kHz": 1000.0,
-    "MHz": 10.0 ** 6,
-    "GHz": 10.0 ** 9,
-    "THz": 10.0 ** 12,
+    "": units.Hz,
+    "kHz": units.kHz,
+    "MHz": units.MHz,
+    "GHz": units.GHz,
+    "THz": units.tera * units.Hz,
 }
 
 
@@ -129,7 +131,8 @@ def read_antenna_delays(fname):
 
     def parse_line_v1(line):
         ant_name, pol_E_delay, pol_O_delay = line.split()[0:3]
-        additional_ant_delays[ant_name] = [float(pol_E_delay), float(pol_O_delay)]
+        additional_ant_delays[ant_name] = [float(pol_E_delay) * units, float(pol_O_delay) * units.s]
+        logger.debug("parsed antenna delays {} with parse_v1".format(additional_ant_delays[ant_name]))
 
     def parse_line_v2(line):
         ant_name, delay = line.split()[0:2]
@@ -141,7 +144,9 @@ def read_antenna_delays(fname):
         if ant_name not in additional_ant_delays:
             additional_ant_delays[ant_name] = [0.0, 0.0]
 
-        additional_ant_delays[ant_name][pol] = float(delay)
+        additional_ant_delays[ant_name][pol] = float(delay) * units.s
+        logger.debug("parsed antenna delays {} with parse_v2".format(additional_ant_delays[ant_name]))
+
 
     parse_function = parse_line_v1
     with open(fname) as fin:
@@ -298,7 +303,7 @@ class TBBData_Dal1:
             for i, dipole in enumerate(self.dipoleNames):
                 self.calibrationDelays[i] = self.file[self.stationKey][dipole].attrs[
                     "DIPOLE_CALIBRATION_DELAY_VALUE"
-                ]
+                ] * units.s # calibration delays are stored in s
 
         # get the offset, in number of samples, needed so that each antenna starts at the same time #
         self.nominal_sample_number = np.max(self.SampleNumbers)
@@ -691,7 +696,7 @@ class MultiFile_Dal1:
         """set the station delay, should be a number"""
         self.station_delay = station_delay
 
-    def find_and_set_polarization_delay(self, verbose=False, tolerance=1e-9):
+    def find_and_set_polarization_delay(self, verbose=False, tolerance=1*units.ns):
         fpath = os.path.dirname(self.files[0].filename) + "/" + self.StationName
         phase_calibration = md.getStationPhaseCalibration(self.StationName, self.antennaSet,
                                                           metadata_dir=self.metadata_dir, file_location=fpath)
@@ -899,7 +904,7 @@ class MultiFile_Dal1:
         offset), 'corrected time' will be otherwise. """
 
         delays = self.get_timing_callibration_delays(out)
-        delays += self.station_delay - self.get_nominal_sample_number() * 5.0e-9
+        delays += self.station_delay - self.get_nominal_sample_number() / self.SampleFrequency
 
         return delays
 
