@@ -21,13 +21,13 @@ class stationHitFilter:
         """
         Passes event through "hit filter". Looks for temporal coincidence in multiple channel pairs.
 
-        Currently this module is designed specifically for the deep component of an RNO-G station and uses only
-        the deep in-ice channels. The modules checks for temporal coincidences in multiple channel pairs (uses only
-        antenna at ~100 depth for this - i.e., not the shallow v-pols). Adjacent channels are put into groups:
+        Currently this module is designed specifically for the deep components of an RNO-G station and uses only
+        the deep in-ice channels. The module checks for temporal coincidences in multiple channel pairs (uses only
+        antennas at ~100 depth; i.e., not the shallow v-pols). Adjacent channels are put into groups:
         G0: (0,1,2,3); G1: (9,10); G2: (23,22); G3: (8,4). To determine the timing and amplitude of a "hit" in every channel,
         the Hilbert Transform is applied to the waveform and the maximum is found. The time of the maximum is then used to
         check for coincidences in each group. This "time checker" requires at least 1 coincident pair in G0 (PA),
-        and another coincident pair in any other group (including G0 - with a additional requirement that channel
+        and another coincident pair in any other group (including G0 - with an additional requirement that channel
         pairs need to be connected). When the time check fails, by default, a "hit checker" will see if there's
         any in-ice channel that has a high hit (maximum > threshold_multiplier * noise_RMS) and whenever there's
         a high hit the event passes the module.
@@ -46,7 +46,7 @@ class stationHitFilter:
             High hit threshold multiplier, where a hit threshold is the multiplier times the noise RMS.
         select_trigger: str (default: None)
             Select a specific trigger type to run this filter on. If None, all triggers will be evaluated.
-            If you select a specific trigger, events with other triggers will treated as if they have passed
+            If you select a specific trigger, events with other triggers will be treated as if they have passed
             the module (but not counted).
         """
         self._complete_time_check = complete_time_check
@@ -107,7 +107,7 @@ class stationHitFilter:
         """
         Check the hit times between channels in groups to select coincident pairs.
 
-        See if there are at least 2 coincident pairs in time sequence in Group 1 (PA),
+        See if there are at least 2 coincident pairs in time sequence in Group 0 (PA),
         and if there's only 1 pair in PA, then find the other pair in other groups;
         otherwise, the input event fails the time checker.
 
@@ -122,7 +122,7 @@ class stationHitFilter:
 
         self._is_in_time_window = copy.deepcopy(self._is_in_time_window_template)
         for i_group, group in enumerate(self._in_ice_channel_groups):
-            # Group 1 is special because we require at least one coincident pair in this group
+            # Group 0 is special because we require at least one coincident pair in this group
             if i_group == 0:
                 # For e.g, channel 3 and 0 take 3 times the dT.
                 dT_multipliers = np.diff(self._channel_pairs_in_PA).flatten()
@@ -148,7 +148,7 @@ class stationHitFilter:
                     break
 
                 if len(group) != 2:
-                    raise NotImplementedError("For any channel group other than group 1 (PA), only 2 channels are supported for now.")
+                    raise NotImplementedError("For any channel group other than Group 0 (PA), only 2 channels are supported for now.")
 
                 hit_time_difference = abs(envelope_max_time[self._channel_mapping(group[0])] - envelope_max_time[self._channel_mapping(group[1])])
                 self._is_in_time_window[i_group][0] = hit_time_difference <= self._dT
@@ -288,7 +288,7 @@ class stationHitFilter:
         t0 = time.time()
         trigger_type = evt.get_station().get_first_trigger().get_name()
 
-        # only actually run the module on selected trigger type
+        # Only run the module on selected trigger type
         if self._select_trigger is not None and trigger_type != self._select_trigger:
             self._passed_hit_filter = True
             return True
@@ -489,7 +489,7 @@ class stationHitFilter:
         Returns
         -------
         self.__is_wanted_trigger_type: bool
-            When we want to exclude forced triggers and RADIANT triggers but others
+            When we want to select only events with low threshold triggers.
         """
         if self.__is_wanted_trigger_type is not None:
             return self.__is_wanted_trigger_type
@@ -501,7 +501,7 @@ class stationHitFilter:
         Returns
         -------
         dict: dictionary of bools
-            See if channel pairs are coincident or not in group 1 (PA)
+            See if channel pairs are coincident or not in Group 0 (PA)
             In the dictionary, there are 6 pairs:
             (0,1), (0,2), (0,3), (1,2), (1,3), (2,3)
             To see if a pair is coincident one can do, for example:
