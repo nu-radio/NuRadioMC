@@ -120,7 +120,7 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
     if impedance > 1000 * units.ohm:
         logger.warning(f"Impedance is {impedance / units.ohm:.2f} Ohm, did you forget to specify the unit?")
 
-    k_boltzmann = constants.k * units.J / units.K
+    k_boltzmann = constants.k * units.joule / units.kelvin
 
     if response is None:
         if isinstance(bandwidth, (float, int)):
