@@ -131,7 +131,7 @@ def read_antenna_delays(fname):
 
     def parse_line_v1(line):
         ant_name, pol_E_delay, pol_O_delay = line.split()[0:3]
-        additional_ant_delays[ant_name] = [float(pol_E_delay) * units.s, float(pol_O_delay) * units.s]
+        additional_ant_delays[ant_name] = [float(pol_E_delay) * units, float(pol_O_delay) * units.s]
         logger.debug("parsed antenna delays {} with parse_v1".format(additional_ant_delays[ant_name]))
 
     def parse_line_v2(line):
