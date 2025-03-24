@@ -9,7 +9,6 @@ from collections import defaultdict
 import numpy as np
 import radiotools.helper as hp
 
-# from datetime import datetime
 from astropy.time import Time
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
@@ -39,6 +38,16 @@ def get_metadata(filenames, metadata_dir):
     metadata_dir : str
         Path to the TBB metadata directory
 
+    Returns
+    -------
+    station_name : str
+    antenna_set : str
+    time_unix : int
+    time_ns : float
+    clock_frequency : float
+    positions : ndarray
+    dipole_ids : list
+    calibration_delays : ndarray
     """
     logger.info("Getting metadata from filename: %s" % filenames)
     tbb_file = rawTBBio.MultiFile_Dal1(filenames, metadata_dir=metadata_dir)
@@ -48,7 +57,7 @@ def get_metadata(filenames, metadata_dir):
 
     ns_per_sample = units.ns / clock_frequency
     logger.info("The file contains %3.2f ns per sample" % ns_per_sample)  # test
-    time_s = tbb_file.get_timestamp()
+    time_unix = tbb_file.get_timestamp()
     time_ns = ns_per_sample * tbb_file.get_nominal_sample_number()
 
     positions = tbb_file.get_LOFAR_centered_positions()
@@ -62,7 +71,7 @@ def get_metadata(filenames, metadata_dir):
     return (
         station_name,
         antenna_set,
-        time_s,
+        time_unix,
         time_ns,
         clock_frequency,
         positions,
@@ -100,10 +109,12 @@ def lora_timestamp_to_blocknumber(
     sampling_frequency : float, default=200 * units.MHz
         Sampling frequency of LOFAR
 
-
     Returns
     -------
-    A tuple containing `blocknumber` and `samplenumber`, in this order.
+    blocknumber : int
+        Index of block corresponding to LORA timestamp
+    samplenumber : int
+        Index of sample corresponding to LORA timestamp, within block ``blocknumber``
     """
 
     lora_samplenumber = (
@@ -170,9 +181,10 @@ def tbb_filetag_from_unix(timestamp):
 
 def tbbID_to_nrrID(channel_id, mode):
     """
-    Converts a TBB channel ID to the corresponding NRR channel ID given the antenna mode. This simply adds a "9" as
-    the fourth element of the channelID, if the antenna mode is "LBA_inner". The function :func:`nrrID_to_tbbID`
-    can be used to do the opposite.
+    Converts a TBB channel ID to the corresponding NRR channel ID given the antenna mode.
+
+    This simply adds a "9" as the fourth element of the channelID, if the antenna mode is "LBA_inner".
+    The function :func:`nrrID_to_tbbID` can be used to do the opposite.
 
     As of February 2024, this function only supports "LBA_INNER" and "LBA_OUTER" as possible antenna modes.
     Note that the antenna mode is always converted to lowercase, so the comparison is case-insensitive (i.e.
@@ -218,7 +230,9 @@ def tbbID_to_nrrID(channel_id, mode):
 
 def nrrID_to_tbbID(channel_id):
     """
-    This function does the opposite of :func:`tbbID_to_nrrID` . It returns the TBB channel ID given a NRR channel ID.
+    This function does the opposite of :func:`tbbID_to_nrrID`.
+
+    It returns the TBB channel ID given a NRR channel ID.
     Following the convention used in the LOFAR detector description as of February 2024, this simply replaces the
     fourth element of the channelID with a "0".
 
@@ -256,7 +270,7 @@ class getLOFARtraces:
         Parameters
         ----------
         time_s: int
-            Event trigger timestamp in seconds
+            Event trigger timestamp in (UNIX) seconds
         time_ns: int
             Event trigger timestamp in ns past UTC second
         trace_length_nbins : int
@@ -270,7 +284,7 @@ class getLOFARtraces:
         self.block_number = None
         self.sample_number_in_block = None
         self.tbb_file = None
-        self.time_s = time_s
+        self.time_unix = time_s
         self.time_ns = time_ns
         self.alignment_shift = None
 
@@ -293,7 +307,7 @@ class getLOFARtraces:
         this_clock_offset = station_clock_offsets[this_station_name]  # kept constant at 1e4 in PyCRTools
         logger.info("Clock offset is %1.4e ns" % (this_clock_offset / units.ns))
 
-        packet = lora_timestamp_to_blocknumber(self.time_s, self.time_ns, timestamp, sample_number,
+        packet = lora_timestamp_to_blocknumber(self.time_unix, self.time_ns, timestamp, sample_number,
                                                clock_offset=this_clock_offset, block_size=self.trace_length_nbins)
 
         self.block_number, self.sample_number_in_block = packet
@@ -383,12 +397,16 @@ class getLOFARtraces:
 
 class readLOFARData:
     """
-    This class reads in the data from the TBB files and puts them into an Event structure. It relies on the KRATOS
-    package. If the directory paths are not provided, they default to the ones on COMA.
+    This class reads in the data from the TBB files and puts them into an Event structure.
+
+    If the directory paths are not provided, they default to the ones on COMA.
 
     Parameters
     ----------
-    tbb_directory: Path-like str, default="/vol/astro3/lofar/vhecr/lora_triggered/data/"
+    restricted_station_set : list, optional
+        Only read in data for stations in ``restricted_station_set``. If not provided,
+        read in all stations for which TBB files can be found.
+    tbb_directory: Path-like str, default="/vol/astro5/lofar/astro3/vhecr/lora_triggered/data/"
         The path to the directory containing the TBB files.
     json_directory: Path-like str, default="/vol/astro7/lofar/kratos_files/json"
         The path to the directory containing the JSON files from LORA.
@@ -457,19 +475,19 @@ class readLOFARData:
 
         Returns
         -------
-            stations : dict
-                Dictionary with station names as keys and dictionaries as values, who have a `files` key with as
-                value a list of TBB filepaths and a `metadata` key which has a list with metadat as value.
+        stations : dict
+            Dictionary with station names as keys and dictionaries as values, who have a ``files`` key with as
+            value a list of TBB filepaths and a ``metadata`` key which has a list with metadata as value.
 
         Notes
         -----
-        The metadata key is only set in the `readLOFARData.begin()` function, to avoid setting it multiple times if
+        The metadata key is only set in the `readLOFARData.begin` function, to avoid setting it multiple times if
         there is more than 1 TBB file for a given station.
 
         Metadata is a list containing (in this order):
             1. station name
             2. antenna set
-            3. tbb timestamp (seconds)
+            3. tbb timestamp (unix)
             4. tbb timestamp (nanoseconds after last second)
             5. station clock frequency
             6. positions of antennas
@@ -480,8 +498,9 @@ class readLOFARData:
 
     def get_station_calibration_delays(self, station_id):
         """
-        Make a dictionary of channel ids and their corresponding calibration delays,
-        to avoid misapplying the delays to the wrong channel. Also converts the list
+        Make a dictionary of channel ids and their corresponding calibration delays.
+
+        This is done to avoid misapplying the delays to the wrong channel. Also converts the list
         of channel IDs pulled from the TBB metadata to their NRR channel ID counterpart.
 
         Parameters
@@ -510,8 +529,10 @@ class readLOFARData:
 
     def begin(self, event_id, logger_level=logging.NOTSET):
         """
-        Prepare the reader to ingest the event with ID `event_id`. This resets the internal representation of the
-        stations as well as the event ID. The timestamps are read from the LORA JSON file corresponding to the event.
+        Prepare the reader to ingest the event with ID ``event_id``.
+
+        This resets the internal representation of the stations as well as the event ID.
+        The timestamps are read from the LORA JSON file corresponding to the event.
         The function then globs through the TBB directory to find all files corresponding to the event and adds them to
         the corresponding station file list. It also loads the metadata for every station.
 
@@ -594,7 +615,9 @@ class readLOFARData:
     @register_run()
     def run(self, detector, trace_length=65536):
         """
-        Runs the reader with the provided detector. For every station that has files associated with it, a Station
+        Runs the reader with the provided detector.
+
+        For every station that has files associated with it, a Station
         object is created together with its channels (pulled from the detector description, depending on the antenna
         set (LBA_OUTER/INNER)). Every channel also gets a group ID which is retrieved from the Detector description.
         For LOFAR we use the integer value of the even dipole number, so channels '001000000' and '001000001',
