@@ -93,7 +93,7 @@ class channelGenericNoiseAdder:
 
         return np.fft.ifft(f).real
 
-    def _add_data_driven_noise(self, frequencies, n_samples, station_id=None, channel_id=None):
+    def _add_data_driven_noise(self, frequencies, n_samples, sampling_rate, station_id=None, channel_id=None):
         """
         Function to add data driven noise to a selection range of a given array of amplitudes
 
@@ -101,6 +101,10 @@ class channelGenericNoiseAdder:
         ----------
         frequencies: np.ndarray
             list of frequencies to query data-driven parameters
+        n_samples: int
+            number of samples in the time domain
+        sampling_rate: float
+            desired sampling rate of data
         station_id: int
             station from which to query data to drive noise generation
         channel_id: int
@@ -129,8 +133,11 @@ class channelGenericNoiseAdder:
         scale_parameters = load_scale_parameters(scale_parameter_full_path)
         fsigma = scale_parameters[channel_id](frequencies)
 
-        # Apply normalization to amplitude. Not complete here (sampling rate is still multiplied later)
-        fsigma = fsigma * 3.2 * units.GHz * n_samples / 2048
+        # Apply normalization to amplitudes for varying number of samples and sampling rate. The
+        # noise spectra were parameterized with 3.2 GHz and 2048 samoles. For more details see
+        # PR https://github.com/nu-radio/NuRadioMC/pull/863 for more details.
+        # (The amplitudes are later devided by the sampling rate - this is why they have the unit second here)
+        fsigma = fsigma * np.sqrt(3.2 * units.GHz * sampling_rate) * np.sqrt(n_samples / 2048)
 
         ampl = self.__random_generator.rayleigh(fsigma, len(frequencies))
         return ampl
@@ -222,7 +229,7 @@ class channelGenericNoiseAdder:
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
         elif type == "data-driven":
-            ampl[selection] = self._add_data_driven_noise(frequencies[selection], n_samples, station_id, channel_id)
+            ampl[selection] = self._add_data_driven_noise(frequencies[selection], n_samples, sampling_rate, station_id, channel_id)
         # FIXME: amplitude normalization is not correct for 'white'
         # elif type == 'white':
         #   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
@@ -231,6 +238,7 @@ class channelGenericNoiseAdder:
             raise NotImplementedError("Other types of noise not yet implemented.")
 
         noise = self.add_random_phases(ampl, n_samples) / sampling_rate
+
         if time_domain:
             return fft.freq2time(noise, sampling_rate, n=n_samples)
         else:
@@ -437,7 +445,7 @@ class channelGenericNoiseAdder:
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, n_samples_freq)
         elif type == "data-driven":
-            ampl[selection] = self._add_data_driven_noise(frequencies[selection], n_samples, station_id, channel_id)
+            ampl[selection] = self._add_data_driven_noise(frequencies[selection], n_samples, sampling_rate, station_id, channel_id)
 
         else:
             self.logger.error("Other types of noise not yet implemented.")
@@ -445,6 +453,7 @@ class channelGenericNoiseAdder:
 
         noise = self.add_random_phases(ampl, n_samples) / sampling_rate
 
+        # The data-driven noise is already normalized to the desired amplitude
         if type != "data-driven":
             noise *= spectrum
 
