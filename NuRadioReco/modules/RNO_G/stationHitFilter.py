@@ -518,9 +518,8 @@ class stationHitFilter:
             is_in_time_window_PA[(0,1)], then it will be True or False
         """
         dict = {}
-        for pair in self._channel_pairs_in_PA:
+        for i_pair, pair in enumerate(self._channel_pairs_in_PA):
             i = pair[0]
             j = pair[1]
-            for k in self._is_in_time_window[0]:
-                dict[(i,j)] = self._is_in_time_window[0][k]
+            dict[(i,j)] = self._is_in_time_window[0][i_pair]
         return dict
