@@ -11,11 +11,13 @@ import numpy as np
 import logging
 import math
 import copy
+import time
 
 
 class stationHitFilter:
 
-    def __init__(self, complete_time_check=False, complete_hit_check=False, time_window=10.0*units.ns, threshold_multiplier=6.5):
+    def __init__(self, complete_time_check=False, complete_hit_check=False, time_window=10.0*units.ns, threshold_multiplier=6.5,
+                 select_trigger=None):
         """
         Passes event through "hit filter". Looks for temporal coincidence in multiple channel pairs.
 
@@ -42,11 +44,16 @@ class stationHitFilter:
             Coincidence window for two adjacent channels.
         threshold_multiplier: float (default: 6.5)
             High hit threshold multiplier, where a hit threshold is the multiplier times the noise RMS.
+        select_trigger: str (default: None)
+            Select a specific trigger type to run this filter on. If None, all triggers will be evaluated.
+            If you select a specific trigger, events with other triggers will treated as if they have passed
+            the module (but not counted).
         """
         self._complete_time_check = complete_time_check
         self._complete_hit_check = complete_hit_check
         self._dT = time_window
         self._threshold_multiplier = threshold_multiplier
+        self._select_trigger = select_trigger
 
         self._in_ice_channels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 21, 22, 23]
         self._in_ice_channel_groups = ([0, 1, 2, 3], [9, 10], [23, 22], [8, 4])
@@ -185,6 +192,7 @@ class stationHitFilter:
         self.logger.setLevel(log_level)
         self.__counting_dict = defaultdict(int)
         self.__is_wanted_trigger_type = None
+        self.__total_run_time = 0
 
 
     def set_up(self, set_of_traces, set_of_times, noise_RMS):
@@ -277,6 +285,14 @@ class stationHitFilter:
         self.is_passed_hit_filter(): bool
             Event passed the Hit Filter or not
         """
+        t0 = time.time()
+        trigger_type = evt.get_station().get_first_trigger().get_name()
+
+        # only actually run the module on selected trigger type
+        if self._select_trigger is not None and trigger_type != self._select_trigger:
+            self._passed_hit_filter = True
+            return True
+
         # This implicitly obeys the channel mapping
         traces = np.array([np.array(channel.get_trace()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
         times = np.array([np.array(channel.get_times()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
@@ -289,23 +305,24 @@ class stationHitFilter:
         self.set_up(traces, times, noise_RMS)
         self.apply_hit_filter()
 
-        trigger_type = evt.get_station().get_first_trigger().get_name()
-
         self.__is_wanted_trigger_type = trigger_type == "LT"
         self.__counting_dict[trigger_type] += 1
-        self.__counting_dict[f"{trigger_type}_passed"] += 1
+        self.__counting_dict[f"{trigger_type}_passed"] += int(self.is_passed_hit_filter())
         self.__counting_dict["total"] += 1
 
+        self.__total_run_time += time.time() - t0
         return self.is_passed_hit_filter()
 
 
     def end(self):
         event_count = self.__counting_dict.pop("total")
-        counts = f"Processed Total: {event_count} events"
+        counts = (f"Processed Total: {event_count} events. Total run time: {self.__total_run_time:.2f} s, "
+            f"Time per event: {self.__total_run_time / event_count * 1000:.2f} ms")
 
         trigger_types = np.unique([key.strip("_passed") for key in self.__counting_dict.keys()])
         for trigger_type in trigger_types:
-            counts += f"\n\t{trigger_type} triggers: {self.__counting_dict[f'{trigger_type}_passed']} / {self.__counting_dict[trigger_type]} events"
+            counts += (f"\n\t{trigger_type:<25} triggers: {self.__counting_dict[f'{trigger_type}_passed']} / {self.__counting_dict[trigger_type]} events "
+                f"{self.__counting_dict[f'{trigger_type}_passed'] / self.__counting_dict[trigger_type] * 100:.2f}%)")
 
         self.logger.info(counts)
 
