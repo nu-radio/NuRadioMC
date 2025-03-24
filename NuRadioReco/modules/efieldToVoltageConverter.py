@@ -33,15 +33,14 @@ class efieldToVoltageConverter():
         self.__pre_pulse_time = None
         self.__post_pulse_time = None
         self.__antenna_provider = None
+
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
         self.logger.setLevel(log_level)
         self.begin()
 
 
-    def begin(self, debug=False, uncertainty=None,
-              time_resolution=None,
-              pre_pulse_time=200 * units.ns,
-              post_pulse_time=400 * units.ns,
+    def begin(self, debug=False, uncertainty=None, time_resolution=None,
+              pre_pulse_time=200 * units.ns, post_pulse_time=400 * units.ns,
               caching=True
               ):
         """
@@ -61,7 +60,8 @@ class efieldToVoltageConverter():
                 specify value as relative difference of linear gain
              * 'amp': statistical uncertainty of the amplifier aplification,
                 specify value as relative difference of linear gain
-
+        time_resolution: float
+            Deprecated.
         pre_pulse_time: float
             length of empty samples that is added before the first pulse
         post_pulse_time: float
@@ -123,13 +123,7 @@ class efieldToVoltageConverter():
         if channel_ids is None:
             channel_ids = det.get_channel_ids(sim_station_id)
 
-        max_channel_trace_lenght = 0
         for channel_id in channel_ids:
-            # Determine the maximum length of the "readout window"
-            channel_trace_lenght = (det.get_number_of_samples(station.get_id(), channel_id) /
-                                    det.get_sampling_frequency(station.get_id(), channel_id))
-            if max_channel_trace_lenght < channel_trace_lenght:
-                max_channel_trace_lenght = channel_trace_lenght
 
             for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
                 cab_delay = det.get_cable_delay(sim_station_id, channel_id)
@@ -151,16 +145,18 @@ class efieldToVoltageConverter():
         times_min = np.min(times_min)
         times_max = np.max(times_max)
 
-        # pad event times by pre/post pulse time
-        while True:
-            # Add post_pulse_time as long as we reach the minimum required trace length
-            times_max += self.__post_pulse_time
-            tmp_trace_length = times_max - times_min
-            if tmp_trace_length > max_channel_trace_lenght:
-                break
+        # Determine the maximum length of the "readout window"
+        max_channel_trace_lenght = np.max([
+            det.get_number_of_samples(station.get_id(), channel_id) / det.get_sampling_frequency(station.get_id(), channel_id)
+            for channel_id in channel_ids])
 
-        # still add pre_pulse_time to the beginning
+        # pad event times by pre/post pulse time
         times_min -= self.__pre_pulse_time
+        times_max += self.__post_pulse_time
+
+        # Add post_pulse_time as long as we reach the minimum required trace length
+        while times_max - times_min < max_channel_trace_lenght:
+            times_max += self.__post_pulse_time
 
         # assumes that all electric fields have the same sampling rate
         time_resolution = 1. / electric_field.get_sampling_rate()

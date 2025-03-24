@@ -325,8 +325,8 @@ class readRNOGData:
             the data in batches based on this number.
             NOTE: This is only relevant for the mattak uproot backend
         use_fallback_time: bool
-            If True and if the trigger time is infinity, the readout time will be used instead of the trigger time. 
-            Otherwise, the event will be skipped in the case of infinite trigger times.  
+            If True and if the trigger time is infinity, the readout time will be used instead of the trigger time.
+            Otherwise, the event will be skipped in the case of infinite trigger times.
             (Default=True)
         """
         t0 = time.time()

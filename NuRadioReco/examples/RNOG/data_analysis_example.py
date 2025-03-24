@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Run standard RNO-G data processing')
 
-    parser.add_argument('filenames', type=str, nargs="*", 
+    parser.add_argument('filenames', type=str, nargs="*",
                         help='Specify root data files if not specified in the config file')
     parser.add_argument('--outputfile', type=str, required=True, help='Specify the output file')
     parser.add_argument('--detectorfile', type=str, nargs=1, default=None,

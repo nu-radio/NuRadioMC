@@ -1425,12 +1425,11 @@ class simulation:
                                                     self._propagator.get_number_of_raytracing_solutions(),
                                                     particle_mode=particle_mode)
 
-        efieldToVoltageConverter.begin()
-
         # Only needed for data-driven noise
         scale_dir = os.path.join(os.path.dirname(__file__), "../examples/../examples/08_RNO_G_trigger_simulation/data_driven_noise_files")
         channelGenericNoiseAdder.begin(seed=self._config['seed'], scale_parameter_dir=scale_dir)
 
+        efieldToVoltageConverter.begin()
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
 

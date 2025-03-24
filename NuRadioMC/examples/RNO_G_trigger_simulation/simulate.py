@@ -14,6 +14,7 @@ from NuRadioMC.simulation import simulation
 from NuRadioReco.utilities import units, signal_processing
 
 from NuRadioReco.detector.RNO_G import rnog_detector
+from NuRadioReco.detector.response import Response
 
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -164,17 +165,25 @@ def rnog_flower_board_high_low_trigger_simulations(evt, station, det, trigger_ch
 
 
 @functools.lru_cache(maxsize=128)  # this is dangerous if the detector changes it will not notice it!
-def get_response_conversion(det, station_id, channel_id):
+def get_response_conversion(det, station_id, channel_id, gain_in_dB=3.5):
     radiant_channel = det.get_signal_chain_response(station_id, channel_id, trigger=False)
     flower_channel = det.get_signal_chain_response(station_id, channel_id, trigger=True)
 
-    radiant = radiant_channel.get("radiant_response")
+    # radiant = radiant_channel.get("radiant_response")
     radiant_coax = radiant_channel.get("coax_cable")
 
     flower = flower_channel.get("radiant_response")  # yep we use the same collection name...
     flower_coax = flower_channel.get("coax_cable")
 
-    conversion = flower * flower_coax / (radiant * radiant_coax)
+    # we are not using the radiant because we would devide by ~0 out of band
+    conversion = flower * flower_coax / radiant_coax
+
+    if gain_in_dB is not None:
+        freqs = np.arange(10, 1200, 1) * units.MHz
+        gain = np.full_like(freqs, gain_in_dB)
+        phase = np.zeros_like(freqs)
+        fake_radiant = Response(freqs, [gain, phase], ["dB", "rad"], name="fake_radiant", station_id=-1, channel_id=-1)
+        conversion *= fake_radiant
 
     return conversion
 

@@ -93,19 +93,18 @@ class channelGenericNoiseAdder:
 
         return np.fft.ifft(f).real
 
-    def add_data_driven_noise(self, ampl, selection, frequencies, station_id=None, channel_id=None):
+    def _add_data_driven_noise(self, frequencies, n_samples, sampling_rate, station_id=None, channel_id=None):
         """
         Function to add data driven noise to a selection range of a given array of amplitudes
 
         Parameters
         ----------
-
-        ampl: np.ndarray
-            array of amplitudes to which to add noise
-        selection: list
-            selection of amplitudes to which to add noise in the form of a list of the same length as ampl filled with booleans
         frequencies: np.ndarray
             list of frequencies to query data-driven parameters
+        n_samples: int
+            number of samples in the time domain
+        sampling_rate: float
+            desired sampling rate of data
         station_id: int
             station from which to query data to drive noise generation
         channel_id: int
@@ -131,16 +130,22 @@ class channelGenericNoiseAdder:
                                     "Available files in this folder are:\n"
                                     f"{self.scale_parameter_paths}")
 
-        nbinsactive = np.sum(selection)
         scale_parameters = load_scale_parameters(scale_parameter_full_path)
-        fsigma = scale_parameters[channel_id](frequencies[selection])
-        ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
+        fsigma = scale_parameters[channel_id](frequencies)
+
+        # Apply normalization to amplitudes for varying number of samples and sampling rate. The
+        # noise spectra were parameterized with 3.2 GHz and 2048 samoles. For more details see
+        # PR https://github.com/nu-radio/NuRadioMC/pull/863 for more details.
+        # (The amplitudes are later devided by the sampling rate - this is why they have the unit second here)
+        fsigma = fsigma * np.sqrt(3.2 * units.GHz * sampling_rate) * np.sqrt(n_samples / 2048)
+
+        ampl = self.__random_generator.rayleigh(fsigma, len(frequencies))
         return ampl
 
     def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='perfect_white',
                           time_domain=True, bandwidth=None, station_id=None, channel_id=None):
         """
-        Generating noise of n_samples in a bandwidth [min_freq,max_freq].
+        Generating noise of n_samples in a bandwidth [min_freq, max_freq].
 
         Parameters
         ----------
@@ -185,7 +190,6 @@ class channelGenericNoiseAdder:
 
         """
         frequencies = fft.freqs(n_samples, sampling_rate)
-
         n_samples_freq = len(frequencies)
 
         if min_freq is None or min_freq == 0:
@@ -225,7 +229,7 @@ class channelGenericNoiseAdder:
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
         elif type == "data-driven":
-            ampl = self.add_data_driven_noise(ampl, selection, frequencies, station_id, channel_id)
+            ampl[selection] = self._add_data_driven_noise(frequencies[selection], n_samples, sampling_rate, station_id, channel_id)
         # FIXME: amplitude normalization is not correct for 'white'
         # elif type == 'white':
         #   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
@@ -233,12 +237,8 @@ class channelGenericNoiseAdder:
             self.logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
-        if type == "data-driven":
-            # data-driven parameters were sampled from spectra that follow the NuRadio conventions
-            # and were hence already divide by the sampling rate
-            noise = self.add_random_phases(ampl, n_samples)
-        else:
-            noise = self.add_random_phases(ampl, n_samples) / sampling_rate
+        noise = self.add_random_phases(ampl, n_samples) / sampling_rate
+
         if time_domain:
             return fft.freq2time(noise, sampling_rate, n=n_samples)
         else:
@@ -445,19 +445,18 @@ class channelGenericNoiseAdder:
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, n_samples_freq)
         elif type == "data-driven":
-            ampl = self.add_data_driven_noise(ampl, selection, frequencies, station_id, channel_id)
+            ampl[selection] = self._add_data_driven_noise(frequencies[selection], n_samples, sampling_rate, station_id, channel_id)
 
         else:
             self.logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
-        if type == "data-driven":
-            # data-driven parameters were sampled from spectra that follow the NuRadio conventions
-            # and were hence already divide by the sampling rate
-            noise = self.add_random_phases(ampl, n_samples)
-        else:
-            noise = self.add_random_phases(ampl, n_samples) / sampling_rate
-        noise *= spectrum
+        noise = self.add_random_phases(ampl, n_samples) / sampling_rate
+
+        # The data-driven noise is already normalized to the desired amplitude
+        if type != "data-driven":
+            noise *= spectrum
+
         if time_domain:
             return fft.freq2time(noise, sampling_rate, n=n_samples)
         else:
@@ -485,13 +484,18 @@ class channelGenericNoiseAdder:
 
         self.scale_parameter_paths = []
         if scale_parameter_dir is not None:
-            self.scale_parameter_dir = scale_parameter_dir
-            self.scale_parameter_paths = [scale_param_json for scale_param_json in os.listdir(scale_parameter_dir)
-                                          if (scale_param_json.endswith(".json") and
-                                              scale_param_json.startswith("thermal_noise_scale_parameters"))]
+            if os.path.exists(scale_parameter_dir):
+                self.scale_parameter_dir = scale_parameter_dir
+                self.scale_parameter_paths = [
+                    scale_param_json for scale_param_json in os.listdir(scale_parameter_dir)
+                    if (scale_param_json.endswith(".json") and
+                        scale_param_json.startswith("thermal_noise_scale_parameters"))
+                ]
 
-            if len(self.scale_parameter_paths) == 0:
-                self.logger.warning(f"No scale parameter json files found in {self.scale_parameter_dir}")
+                if len(self.scale_parameter_paths) == 0:
+                    self.logger.warning(f"No scale parameter json files found in {self.scale_parameter_dir}")
+            else:
+                self.logger.warning(f"Path {scale_parameter_dir} does not exist. No data-driven noise available.")
 
     @register_run()
     def run(self, event, station, detector,

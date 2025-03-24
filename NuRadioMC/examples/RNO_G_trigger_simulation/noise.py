@@ -10,9 +10,10 @@ from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoard
 from NuRadioReco.modules.trigger import highLowThreshold
 import NuRadioReco.modules.channelGenericNoiseAdder
 
+from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import get_response_conversion
+
 from matplotlib import pyplot as plt
 from collections import defaultdict
-from scipy import constants
 import datetime as dt
 import numpy as np
 import argparse
@@ -20,6 +21,7 @@ import copy
 import time
 import json
 import sys
+import os
 
 
 import NuRadioMC  # to init the logger
@@ -45,6 +47,7 @@ This script produces a json file with the total simulation time, the number of t
 and a few other meta data which are necessary to interpret the results.
 """
 
+
 # define the deep trigger channels
 deep_trigger_channels = np.array([0, 1, 2, 3])
 
@@ -66,6 +69,8 @@ hardwareResponse.begin(trigger_channels=deep_trigger_channels)
 sigma_thresholds = np.linspace(3.2, 4, 20)
 high_low_trigger_thresholds = {s: s for s in sigma_thresholds}
 
+scale_parameter_dir = os.path.join(os.path.dirname(__file__), "data_driven_noise_files")
+
 
 def get_vrms_per_channel(args, noise_kwargs, det, filters):
     """
@@ -74,6 +79,7 @@ def get_vrms_per_channel(args, noise_kwargs, det, filters):
     """
     # It is important to create a new noiseAdder for each run (when using ray). Otherwise the noise is not random.
     noiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+    noiseAdder.begin(scale_parameter_dir=scale_parameter_dir)
 
     vrms_per_channel = defaultdict(list)
     for _ in range(args.nevents):
@@ -141,7 +147,8 @@ def get_noise_event(noiseAdder, det, channel_ids, noise_kwargs):
         # as specified with `min_freq` and `max_freq`
 
         noise_spec = noiseAdder.bandlimited_noise(
-            sampling_rate=sampling_rate, type='rayleigh', time_domain=False, **noise_kwargs)
+            sampling_rate=sampling_rate, time_domain=False,
+            station_id=station_id, channel_id=channel_id, **noise_kwargs)
 
         channel.set_frequency_spectrum(noise_spec, sampling_rate)
         station.add_channel(channel)
@@ -252,7 +259,7 @@ def process(det, filters, n_events, noise_kwargs, noiseAdder=None):
     # It is important to create a new noiseAdder for each run (when using ray). Otherwise the noise is not random.
     noiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
     seed = np.random.randint(0, 2**32)
-    noiseAdder.begin(seed=seed)
+    noiseAdder.begin(seed=seed, scale_parameter_dir=scale_parameter_dir)
 
     # take out the argument again which is not meant to be used for the
     # noise adder module.
@@ -291,6 +298,7 @@ if __name__ == "__main__":
     parser.add_argument("--index", type=int, default=0, help="")
     parser.add_argument("--ray", action="store_true")
     parser.add_argument("--label", type=str, default="")
+    parser.add_argument("--noise_type", type=str, default="rayleigh", help="Specify the noise type (rayleigh, data-driven)")
     parser.add_argument("--running_vrms", action="store_true")
 
     args = parser.parse_args()
@@ -319,27 +327,35 @@ if __name__ == "__main__":
         "min_freq": bandwidth[0],
         "max_freq": bandwidth[1],
         "n_samples": args.n_samples,
+        "type": args.noise_type,
     }
 
     freqs = fft.freqs(noise_kwargs['n_samples'], det.get_sampling_frequency(args.station_id, None, trigger=True))
-    filters = {channel_id: det.get_signal_chain_response(args.station_id, channel_id, trigger=True)(freqs)
-        for channel_id in deep_trigger_channels}
+    if args.noise_type == "rayleigh":
+        filters = {channel_id: det.get_signal_chain_response(args.station_id, channel_id, trigger=True)(freqs)
+            for channel_id in deep_trigger_channels}
 
-    if not args.running_vrms:
-        # this might return slightly different results than the function get_vrms_per_channel
-        # because of the frequency resolution with which the spectra are sampled.
-        vrms_per_channel = np.array(
-            [signal_processing.calculate_vrms_from_temperature(
-                300 * units.kelvin,
-                response=det.get_signal_chain_response(args.station_id, channel_id, trigger=True))
-            for channel_id in deep_trigger_channels]
-        )
+        if not args.running_vrms:
+            # this might return slightly different results than the function get_vrms_per_channel
+            # because of the frequency resolution with which the spectra are sampled.
+            vrms_per_channel = np.array(
+                [signal_processing.calculate_vrms_from_temperature(
+                    300 * units.kelvin,
+                    response=det.get_signal_chain_response(args.station_id, channel_id, trigger=True))
+                for channel_id in deep_trigger_channels]
+            )
 
-        # We are highjacking this dict to carry arguments for the triggerBoardResponse module
-        # This vrms (with amplification) is used to calculate the FLOWER gain. This argument
-        # also effects the realized trigger thresholds.
-        logger.info(f"VRMS per channel (incl. amplifier): {np.around(vrms_per_channel / units.mV, 2)} mV")
-        noise_kwargs["vrms_per_channel"] = vrms_per_channel
+            # We are highjacking this dict to carry arguments for the triggerBoardResponse module
+            # This vrms (with amplification) is used to calculate the FLOWER gain. This argument
+            # also effects the realized trigger thresholds.
+            logger.info(f"VRMS per channel (incl. amplifier): {np.around(vrms_per_channel / units.mV, 2)} mV")
+            noise_kwargs["vrms_per_channel"] = vrms_per_channel
+
+    elif args.noise_type == "data-driven":
+        filters = {channel_id: get_response_conversion(det, station_id=args.station_id, channel_id=channel_id)(freqs)
+            for channel_id in deep_trigger_channels}
+        assert args.running_vrms, "For data-driven noise the running vrms is required"
+        noise_kwargs["vrms_per_channel"] = None
 
     n_events = args.nevents
     t0 = time.time()
