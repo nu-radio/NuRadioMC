@@ -55,7 +55,7 @@ def get_metadata(filenames, metadata_dir):
     antenna_set = tbb_file.get_antenna_set()
     clock_frequency = tbb_file.SampleFrequency
 
-    ns_per_sample = units.ns / clock_frequency
+    ns_per_sample = 1.0e9 / clock_frequency
     logger.info("The file contains %3.2f ns per sample" % ns_per_sample)  # test
     time_unix = tbb_file.get_timestamp()
     time_ns = ns_per_sample * tbb_file.get_nominal_sample_number()
@@ -304,7 +304,7 @@ class getLOFARtraces:
         this_station_name = self.tbb_file.get_station_name()
 
         logger.info("Getting clock offset for station %s" % this_station_name)
-        this_clock_offset = station_clock_offsets[this_station_name]  # kept constant at 1e4 in PyCRTools
+        this_clock_offset = station_clock_offsets[this_station_name] * units.s  # kept constant at 1e4 in PyCRTools
         logger.info("Clock offset is %1.4e ns" % (this_clock_offset / units.ns))
 
         packet = lora_timestamp_to_blocknumber(self.time_unix, self.time_ns, timestamp, sample_number,
@@ -489,7 +489,7 @@ class readLOFARData:
             2. antenna set
             3. tbb timestamp (unix)
             4. tbb timestamp (nanoseconds after last second)
-            5. station clock frequency
+            5. station clock frequency (Hz)
             6. positions of antennas
             7. dipole IDs
             8. calibration delays per dipole
@@ -715,7 +715,7 @@ class readLOFARData:
                 channel_group: int = detector.get_channel_group_id(station_id, channel_id)
 
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
-                channel.set_trace(this_trace, station_dict['metadata'][4] * units.GHz)
+                channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
                 station.add_channel(channel)
 
             # Check both channels from the flagged group IDs are removed from station
