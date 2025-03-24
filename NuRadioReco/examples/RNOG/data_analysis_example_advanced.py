@@ -41,7 +41,6 @@ if __name__ == "__main__":
                         "the description is queried from the database.")
 
     args = parser.parse_args()
-    nulogging.set_general_log_level(logging.ERROR)
     args.outputfile = args.outputfile
 
     logger.status(f"writing output to {args.outputfile}")
@@ -52,7 +51,6 @@ if __name__ == "__main__":
     # Initialize io modules
     dataProviderRNOG = NuRadioReco.modules.RNO_G.dataProviderRNOG.dataProviderRNOG()
     dataProviderRNOG.begin(files=args.filenames, det=det)
-    info = dataProviderRNOG.reader.get_events_information(keys=["station", "run", "eventNumber", "triggerType"])
 
     eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
     eventWriter.begin(filename=args.outputfile)
@@ -85,7 +83,7 @@ if __name__ == "__main__":
     for idx, evt in enumerate(dataProviderRNOG.run()):
 
         if (idx + 1) % 50 == 0:
-            print(f'Processed events: {idx + 1}')
+            print(f'Processed events: {idx + 1}', end='\r')
 
         t0 = time.time()
 
@@ -106,7 +104,6 @@ if __name__ == "__main__":
         # Also remember to always downsample the data again before saving it to disk to avoid unnecessary
         # large files.
         channelResampler.run(evt, station, det, sampling_rate=5 * units.GHz)
-
 
         # Our antennas are only sensitive in a certain frequency range. Hence, we should apply a bandpass filter
         # in the range where the antennas are sensitive. This will reduce the noise in the data and make the

@@ -321,8 +321,8 @@ class stationHitFilter:
 
         trigger_types = np.unique([key.strip("_passed") for key in self.__counting_dict.keys()])
         for trigger_type in trigger_types:
-            counts += (f"\n\t{trigger_type:<25} triggers: {self.__counting_dict[f'{trigger_type}_passed']} / {self.__counting_dict[trigger_type]} events "
-                f"{self.__counting_dict[f'{trigger_type}_passed'] / self.__counting_dict[trigger_type] * 100:.2f}%)")
+            counts += (f"\n{trigger_type:>10} triggers: {self.__counting_dict[f'{trigger_type}_passed']:4d} / {self.__counting_dict[trigger_type]:4d} events "
+                f"({self.__counting_dict[f'{trigger_type}_passed'] / self.__counting_dict[trigger_type] * 100:.2f} %)")
 
         self.logger.info(counts)
 

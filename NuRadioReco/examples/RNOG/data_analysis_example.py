@@ -13,7 +13,6 @@ import numpy as np
 import argparse
 import logging
 import time
-import os
 
 logger = logging.getLogger("NuRadioReco.example.RNOG.rnog_standard_data_processing")
 logger.setLevel(nulogging.LOGGING_STATUS)
@@ -31,9 +30,8 @@ if __name__ == "__main__":
                         "the description is queried from the database.")
 
     args = parser.parse_args()
-    nulogging.set_general_log_level(logging.ERROR)
     args.outputfile = args.outputfile
-
+    nulogging.set_general_log_level(logging.INFO)
     logger.status(f"writing output to {args.outputfile}")
 
     # Initialize detector class
@@ -42,7 +40,6 @@ if __name__ == "__main__":
     # Initialize io modules
     dataProviderRNOG = NuRadioReco.modules.RNO_G.dataProviderRNOG.dataProviderRNOG()
     dataProviderRNOG.begin(files=args.filenames, det=det)
-    info = dataProviderRNOG.reader.get_events_information(keys=["station", "run", "eventNumber", "triggerType"])
 
     eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
     eventWriter.begin(filename=args.outputfile)
@@ -63,7 +60,7 @@ if __name__ == "__main__":
     for idx, evt in enumerate(dataProviderRNOG.run()):
 
         if (idx + 1) % 50 == 0:
-            print(f'Processed events: {idx + 1}')
+            print(f'Processing events: {idx + 1}', end='\r')
 
         t0 = time.time()
         # perform standard RNO-G data processing
