@@ -6,25 +6,29 @@ The main purpose is to reject thermal events in data.
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import trace_utilities, units
 
+from collections import defaultdict
 import numpy as np
 import logging
 import math
+import copy
 
 
 class stationHitFilter:
 
     def __init__(self, complete_time_check=False, complete_hit_check=False, time_window=10.0*units.ns, threshold_multiplier=6.5):
         """
-        See if an event is thermal noise based on the coincidence window.
+        Passes event through "hit filter". Looks for temporal coincidence in multiple channel pairs.
 
-        Hit Filter deals with all the in-ice channels (15 waveforms) for an RNO-G station,
-        adjacent channels are put into groups: G1:(0,1,2,3); G2:(9,10); G3:(23,22); G4:(8,4).
-        It applies the Hilbert Transform to each waveform and finds their maximum (hit),
-        and gets the time when the hit happens, then it checks to see if hits in each channel group
-        are in the coincidence window. This time checker requires at least 1 coincident pair in G1
-        and another coincident pair in any group. When the time check fails, the Hit Filter will
-        see if there's any in-ice channel that has a high hit (maximum > 6.5*noise_RMS), which is the
-        hit checker, and whenever there's a high hit the event passes the Hit Filter.
+        Currently this module is designed specifically for the deep component of an RNO-G station and uses only
+        the deep in-ice channels. The modules checks for temporal coincidences in multiple channel pairs (uses only
+        antenna at ~100 depth for this - i.e., not the shallow v-pols). Adjacent channels are put into groups:
+        G0: (0,1,2,3); G1: (9,10); G2: (23,22); G3: (8,4). To determine the timing and amplitude of a "hit" in every channel,
+        the Hilbert Transform is applied to the waveform and the maximum is found. The time of the maximum is then used to
+        check for coincidences in each group. This "time checker" requires at least 1 coincident pair in G0 (PA),
+        and another coincident pair in any other group (including G0 - with a additional requirement that channel
+        pairs need to be connected). When the time check fails, by default, a "hit checker" will see if there's
+        any in-ice channel that has a high hit (maximum > threshold_multiplier * noise_RMS) and whenever there's
+        a high hit the event passes the module.
 
         Parameters
         ----------
@@ -67,9 +71,7 @@ class stationHitFilter:
         # Each sub-list contains bool(s) indicating the COINCIDENCE of channel pair(s) in each group
         # self._is_in_time_window[0] is the PA, it has 6 pairs (6 bools)
         # Initiating each element with None, it will later be replaced with bool when running the time checker
-        self._is_in_time_window = []
-        for group in self._in_ice_channel_groups:
-            self._is_in_time_window.append([None for _ in range(math.factorial(len(group)-1))])
+        self._is_in_time_window_template = [[None for _ in range(math.factorial(len(group)-1))] for group in self._in_ice_channel_groups]
 
 
     def _channel_mapping(self, channel_in):
@@ -111,6 +113,7 @@ class stationHitFilter:
         envelope_max_time = self.get_envelope_max_time()
         coincidences_in_time_sequence_PA = [False, False, False]
 
+        self._is_in_time_window = copy.deepcopy(self._is_in_time_window_template)
         for i_group, group in enumerate(self._in_ice_channel_groups):
             # Group 1 is special because we require at least one coincident pair in this group
             if i_group == 0:
@@ -120,7 +123,8 @@ class stationHitFilter:
                     hit_time_difference = abs(envelope_max_time[channel_pair[1]] - envelope_max_time[channel_pair[0]])
                     self._is_in_time_window[i_group][i_channel_pair] = hit_time_difference <= dT_multipliers[i_channel_pair] * self._dT
 
-                    # This condition assures that the conicident pairs are in time sequence
+                    # This condition assures that the conicident pairs are in time sequence. For example:
+                    # Having a conicdence only in pairs (0, 1) and (0, 3) is not valid. But having (0, 1) and (1, 3) is valid.
                     if self._is_in_time_window[i_group][i_channel_pair]:
                         coincidences_in_time_sequence_PA[channel_pair[0]] = self._is_in_time_window[i_group][i_channel_pair]
 
@@ -179,16 +183,7 @@ class stationHitFilter:
         """
         self.logger = logging.getLogger('NuRadioReco.RNO_G.stationHitFitter')
         self.logger.setLevel(log_level)
-
-        self.__count_FT = 0
-        self.__count_passed_FT = 0
-        self.__count_RADIANT = 0
-        self.__count_passed_RADIANT = 0
-        self.__count_UNKNOWN = 0
-        self.__count_passed_UNKNOWN = 0
-        self.__count_RF = 0
-        self.__count_passed_RF = 0
-        self.__event_count = 0
+        self.__counting_dict = defaultdict(int)
         self.__is_wanted_trigger_type = None
 
 
@@ -296,43 +291,21 @@ class stationHitFilter:
 
         trigger_type = evt.get_station().get_first_trigger().get_name()
 
-        if trigger_type == "FORCE":
-            self.__count_FT += 1
-            self.__count_passed_FT += int(self.is_passed_hit_filter())
-            self.__is_wanted_trigger_type = False
-        elif "RADIANT" in trigger_type:
-            self.__count_RADIANT += 1
-            self.__count_passed_RADIANT += int(self.is_passed_hit_filter())
-            self.__is_wanted_trigger_type = False
-        elif trigger_type == "UNKNOWN":
-            self.__count_UNKNOWN += 1
-            self.__count_passed_UNKNOWN += int(self.is_passed_hit_filter())
-            self.__is_wanted_trigger_type = True
-        else:
-            self.__count_RF += 1
-            self.__count_passed_RF += int(self.is_passed_hit_filter())
-            self.__is_wanted_trigger_type = True
-
-        self.__event_count += 1
+        self.__is_wanted_trigger_type = trigger_type == "LT"
+        self.__counting_dict[trigger_type] += 1
+        self.__counting_dict[f"{trigger_type}_passed"] += 1
+        self.__counting_dict["total"] += 1
 
         return self.is_passed_hit_filter()
 
 
     def end(self):
-        counts = f"\nProcessed Total: {self.__event_count} events"
+        event_count = self.__counting_dict.pop("total")
+        counts = f"Processed Total: {event_count} events"
 
-        if self.__count_FT:
-            counts += f"\n\tForced Triggers: {self.__count_FT} events"
-            counts += f"\n\tForced Triggers Passed Hit Filter: {self.__count_passed_FT} events"
-        if self.__count_RADIANT:
-            counts += f"\n\tRADIANT Triggers: {self.__count_RADIANT} events"
-            counts += f"\n\tRADIANT Triggers Passed Hit Filter: {self.__count_passed_RADIANT} events"
-        if self.__count_UNKNOWN:
-            counts += f"\n\tUnknown Triggers: {self.__count_UNKNOWN} events"
-            counts += f"\n\tUnknown Triggers Passed Hit Filter: {self.__count_passed_UNKNOWN} events"
-        if self.__count_RF:
-            counts += f"\n\tRF Triggers: {self.__count_RF} events"
-            counts += f"\n\tRF Triggers Passed Hit Filter: {self.__count_passed_RF} events"
+        trigger_types = np.unique([key.strip("_passed") for key in self.__counting_dict.keys()])
+        for trigger_type in trigger_types:
+            counts += f"\n\t{trigger_type} triggers: {self.__counting_dict[f'{trigger_type}_passed']} / {self.__counting_dict[trigger_type]} events"
 
         self.logger.info(counts)
 
