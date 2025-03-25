@@ -18,7 +18,7 @@ from NuRadioMC.SignalGen import askaryan, emitter as emitter_signalgen
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
-from NuRadioReco.utilities import units, signal_processing
+from NuRadioReco.utilities import units, signal_processing, trace_utilities
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 import NuRadioReco.modules.io.eventWriter
@@ -1427,10 +1427,10 @@ class simulation:
 
 
         # Only needed for data-driven noise
-        scale_dir = os.path.join(os.path.dirname(__file__), "../examples/../examples/08_RNO_G_trigger_simulation/data_driven_noise_files")
+        scale_dir = os.path.join(os.path.dirname(__file__), "../examples/RNO_G_trigger_simulation/data_driven_noise_files")
         channelGenericNoiseAdder.begin(seed=self._config['seed'], scale_parameter_dir=scale_dir)
 
-        efieldToVoltageConverter.begin()
+        efieldToVoltageConverter.begin(caching=False)
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
 
