@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
-from NuRadioReco.utilities import fft, bandpass_filter
+from NuRadioReco.utilities import fft, signal_processing
 import NuRadioReco.detector.response
 from NuRadioReco.utilities import units, signal_processing
 
@@ -69,7 +69,7 @@ class BaseTrace:
         """
         spec = copy.copy(self.get_frequency_spectrum())
         freq = self.get_frequencies()
-        filter_response = bandpass_filter.get_filter_response(freq, passband, filter_type, order, rp)
+        filter_response = signal_processing.get_filter_response(freq, passband, filter_type, order, rp)
         spec *= filter_response
         return fft.freq2time(spec, self.get_sampling_rate())
 
