@@ -11,7 +11,7 @@ from scipy import constants
 
 from NuRadioMC.EvtGen import generator
 from NuRadioMC.simulation import simulation
-from NuRadioReco.utilities import units, signal_processing
+from NuRadioReco.utilities import units, signal_processing, fft
 
 from NuRadioReco.detector.RNO_G import rnog_detector
 from NuRadioReco.detector.response import Response
@@ -43,6 +43,43 @@ rnogHardwareResponse.begin(trigger_channels=deep_trigger_channels)
 highLowThreshold = highLowThreshold.triggerSimulator()
 rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
 rnogADCResponse.begin(clock_offset=0, adc_output="counts")
+
+def get_average_vrms_from_data_driven_noise(station_id, channels, trigger=False):
+    """ Get the average vrms from the data-driven noise.
+
+    This function calculates the average vrms from the data-driven noise for the given channels.
+
+    Parameters
+    ----------
+    station_id : int
+        The station id.
+    channels : list
+        The channels to calculate the average vrms for.
+    trigger : bool, optional
+        If True, calculate the average vrms for the trigger channels. If False, calculate the average vrms for the RADIANT channels.
+
+    Returns
+    -------
+    vrms: array of float
+        The average vrms.
+    """
+    vrms = []
+
+    for channel_id in channels:
+        noise_spec = channelGenericNoiseAdder.bandlimited_noise(
+            min_freq=10 * units.MHz, max_freq=1000 * units.MHz,
+            n_samples=2048 * 100, sampling_rate=3.2 * units.GHz,
+            amplitude=None, type='data-driven', time_domain=False,
+            station_id=station_id, channel_id=channel_id)
+
+        if trigger:
+            freqs = fft.freqs(2048 * 100, 3.2 * units.GHz)
+            noise_spec = noise_spec * get_response_conversion(det, station_id, channel_id)(freqs)
+
+        noise_trace = fft.freq2time(noise_spec, 3.2 * units.GHz)
+        vrms.append(np.sqrt(np.mean(noise_trace**2)))
+
+    return np.array(vrms)
 
 
 def detector_simulation_with_data_driven_noise(evt, station, det):
@@ -163,6 +200,7 @@ def rnog_flower_board_high_low_trigger_simulations(evt, station, det, trigger_ch
 
 @functools.lru_cache(maxsize=128)  # this is dangerous if the detector changes it will not notice it!
 def get_response_conversion(det, station_id, channel_id, gain_in_dB=3.5):
+    """ Get the response conversion between DAQ (RADIANT) and trigger (FLOWER) channel for the given station and channel. """
     radiant_channel = det.get_signal_chain_response(station_id, channel_id, trigger=False)
     flower_channel = det.get_signal_chain_response(station_id, channel_id, trigger=True)
 
@@ -186,7 +224,7 @@ def get_response_conversion(det, station_id, channel_id, gain_in_dB=3.5):
 
 
 def get_vrms_from_temperature_for_trigger_channels(det, station_id, trigger_channels, temperature):
-
+    """ Get the vrms from the temperature for the trigger channels. """
     vrms_per_channel = []
     for channel_id in trigger_channels:
         resp = det.get_signal_chain_response(station_id, channel_id, trigger=True)
@@ -194,7 +232,7 @@ def get_vrms_from_temperature_for_trigger_channels(det, station_id, trigger_chan
             signal_processing.calculate_vrms_from_temperature(temperature=temperature, response=resp)
         )
 
-    return vrms_per_channel
+    return np.array(vrms_per_channel)
 
 
 def get_fiducial_volume(energy):
@@ -314,9 +352,15 @@ if __name__ == "__main__":
     det.update(dt.datetime(2023, 8, 3))
     config = simulation.get_config(args.config)
 
-    # Get the trigger channel noise vrms
-    trigger_channel_noise_vrms = get_vrms_from_temperature_for_trigger_channels(
-        det, args.station_id, deep_trigger_channels, config['trigger']['noise_temperature'])
+    if config["noise_type"] == "data-driven":
+        trigger_channel_noise_vrms = get_average_vrms_from_data_driven_noise(
+            args.station_id, deep_trigger_channels, trigger=True)
+    else:
+        # Get the trigger channel noise vrms
+        trigger_channel_noise_vrms = get_vrms_from_temperature_for_trigger_channels(
+            det, args.station_id, deep_trigger_channels, config['trigger']['noise_temperature'])
+
+    logger.info(f"Trigger channel noise vrms (used for the definition of the trigger threshold): {np.around(trigger_channel_noise_vrms / units.mV, 2)} mV")
 
     # Simulate fiducial volume around station
     volume = get_fiducial_volume(args.energy)
