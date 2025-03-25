@@ -45,7 +45,7 @@ rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
 rnogADCResponse.begin(clock_offset=0, adc_output="counts")
 
 
-def detector_simulation_with_data_driven_noise(evt, station, det, trigger_channels=None):
+def detector_simulation_with_data_driven_noise(evt, station, det):
     """ Run the detector simulation with data-driven noise.
 
     This function is a wrapper around the detector simulation that adds data-driven noise to the channels.
@@ -66,8 +66,7 @@ def detector_simulation_with_data_driven_noise(evt, station, det, trigger_channe
         The extra trigger channels (FLOWER) to simulate. If not given only the RADIANT channels are simulated.
     """
 
-    efieldToVoltageConverter.run(evt, station, det)
-    rnogHardwareResponse.begin(trigger_channels=trigger_channels)  # this function does nothing else than setting the trigger channels
+    efieldToVoltageConverter.run(evt, station, det, channel_ids=deep_trigger_channels)
     rnogHardwareResponse.run(evt, station, det, sim_to_data=True)
 
     for channel in station.iter_channels():
@@ -80,7 +79,8 @@ def detector_simulation_with_data_driven_noise(evt, station, det, trigger_channe
 
         channel.set_frequency_spectrum(
             channel.get_frequency_spectrum() + noise_spec, "same")
-        if trigger_channels is not None and channel_id in trigger_channels:
+
+        if deep_trigger_channels is not None and channel_id in deep_trigger_channels:
             trigger_noise_spec = noise_spec * get_response_conversion(det, station.get_id(), channel_id)(channel.get_frequencies())
             trigger_channel = channel.get_trigger_channel()
             trigger_channel.set_frequency_spectrum(
