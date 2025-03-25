@@ -33,7 +33,7 @@ class efieldToVoltageConverter():
         self.__pre_pulse_time = None
         self.__post_pulse_time = None
         self.__antenna_provider = None
-        
+
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
         self.logger.setLevel(log_level)
         self.begin()
@@ -129,7 +129,7 @@ class efieldToVoltageConverter():
                 cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                 t0 = electric_field.get_trace_start_time() + cab_delay
 
-                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account 
+                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
                 if sim_station.is_cosmic_ray():
                     travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
                     t0 += travel_time_shift
@@ -231,7 +231,7 @@ class efieldToVoltageConverter():
                         start_bin = 0
 
                     new_trace[:, start_bin:stop_bin] = tr
-                
+
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / time_resolution)
 
@@ -258,13 +258,13 @@ class efieldToVoltageConverter():
                             self._get_cached_antenna_response.cache_clear()
                             self.logger.warning(
                                 "Frequencies have changed (array length). Clearing antenna response cache. "
-                                "(If this happens often, something might be wrong...")
+                                "(If this happens often, something might be wrong...)")
                         elif not np.allclose(self.__freqs, ff, rtol=0, atol=0.01 * units.MHz):
                             self.__freqs = ff
                             self._get_cached_antenna_response.cache_clear()
                             self.logger.warning(
                                 "Frequencies have changed (values). Clearing antenna response cache. "
-                                "(If this happens often, something might be wrong...")
+                                "(If this happens often, something might be wrong...)")
 
 
                 if self.__caching:
