@@ -8,7 +8,7 @@ import NuRadioReco.framework.electric_field
 import NuRadioReco.detector.antennapattern
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.utilities import trace_utilities, fft, bandpass_filter
+from NuRadioReco.utilities import signal_processing, fft, bandpass_filter
 import radiotools.helper as hp
 
 
@@ -185,7 +185,7 @@ class neutrino3DVertexReconstructor:
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
             channel_1 = station.get_channel(channel_pair[0])
             channel_2 = station.get_channel(channel_pair[1])
-            antenna_response = trace_utilities.get_efield_antenna_factor(
+            antenna_response = signal_processing.get_efield_antenna_factor(
                 station=station,
                 frequencies=self.__electric_field_template.get_frequencies(),
                 channels=[channel_pair[0]],
@@ -340,7 +340,7 @@ class neutrino3DVertexReconstructor:
         self_correlation_sum = np.zeros_like(z_coords)
         for i_channel, channel_id in enumerate(self.__channel_ids):
             channel = station.get_channel(channel_id)
-            antenna_response = trace_utilities.get_efield_antenna_factor(
+            antenna_response = signal_processing.get_efield_antenna_factor(
                 station=station,
                 frequencies=self.__electric_field_template.get_frequencies(),
                 channels=[channel_id],
