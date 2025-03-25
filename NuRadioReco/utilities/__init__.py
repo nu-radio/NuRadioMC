@@ -1,0 +1,1 @@
+from NuRadioReco.utilities._deprecated import bandpass_filter

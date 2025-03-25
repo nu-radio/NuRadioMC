@@ -1,5 +1,5 @@
 import numpy as np
-from NuRadioReco.utilities import units, fft, trace_utilities, bandpass_filter, signal_processing
+from NuRadioReco.utilities import units, fft, trace_utilities, signal_processing
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.detector.RNO_G.analog_components
 import NuRadioReco.detector.ARIANNA.analog_components
@@ -81,7 +81,7 @@ class IftElectricFieldReconstructor:
             waveforms and the IFT model. If None is passed, no filter is applied
         filter_type: string
             Name of the filter type to be used. Has to be implemented in the NuRadioReco.utilities.
-            bandpass_filter.get_filter_response function. Only used if passband is not None
+            signal_processing.get_filter_response function. Only used if passband is not None
         amp_dct: dictionary
             Dictionary containing the prior settings for the electric field spectrum
         pulse_time_prior: float
@@ -675,7 +675,7 @@ class IftElectricFieldReconstructor:
                 polarization_stat_calculator.add(np.arctan(np.sqrt(energy_fluences[2]) / np.sqrt(energy_fluences[1])))
             e_fluences = np.zeros((len(self.__energy_fluence_passbands), 3))
             for i_passband, passband in enumerate(self.__energy_fluence_passbands):
-                filter_response = bandpass_filter.get_filter_response(freqs, passband, 'butter', 10)
+                filter_response = signal_processing.get_filter_response(freqs, passband, 'butter', 10)
                 e_fluence = trace_utilities.get_electric_field_energy_fluence(
                     fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
                     times
@@ -685,13 +685,13 @@ class IftElectricFieldReconstructor:
             energy_fluence_stat_calculator.add(e_fluences)
             slopes = np.zeros((len(self.__slope_passbands), 3))
             for i_passband, passbands in enumerate(self.__slope_passbands):
-                filter_response_1 = bandpass_filter.get_filter_response(freqs, passbands[0], 'butter', 10)
+                filter_response_1 = signal_processing.get_filter_response(freqs, passbands[0], 'butter', 10)
                 e_fluence_1 = trace_utilities.get_electric_field_energy_fluence(
                     fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response_1, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
                     times
                 )
                 e_fluence_1[0] = np.sum(np.abs(e_fluence_1))
-                filter_response_2 = bandpass_filter.get_filter_response(freqs, passbands[1], 'butter', 10)
+                filter_response_2 = signal_processing.get_filter_response(freqs, passbands[1], 'butter', 10)
                 e_fluence_2 = trace_utilities.get_electric_field_energy_fluence(
                     fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response_2, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
                     times

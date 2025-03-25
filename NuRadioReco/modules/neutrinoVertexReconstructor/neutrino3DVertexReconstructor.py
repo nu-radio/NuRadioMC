@@ -8,7 +8,7 @@ import NuRadioReco.framework.electric_field
 import NuRadioReco.detector.antennapattern
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.utilities import signal_processing, fft, bandpass_filter
+from NuRadioReco.utilities import signal_processing, fft
 import radiotools.helper as hp
 
 
@@ -198,7 +198,7 @@ class neutrino3DVertexReconstructor:
                 antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() + antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
             ) * det.get_amplifier_response(station.get_id(), channel_pair[0], self.__electric_field_template.get_frequencies())
             if self.__passband is not None:
-                voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butterabs', 10)
+                voltage_spec *= signal_processing.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butterabs', 10)
             voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
             voltage_template /= np.max(np.abs(voltage_template))
             if self.__passband is None:
@@ -353,7 +353,7 @@ class neutrino3DVertexReconstructor:
                 antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() + antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
             ) * det.get_amplifier_response(station.get_id(), channel_id, self.__electric_field_template.get_frequencies())
             if self.__passband is not None:
-                voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butter', 10)
+                voltage_spec *= signal_processing.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butter', 10)
             voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
             voltage_template /= np.max(np.abs(voltage_template))
             if self.__passband is None:
