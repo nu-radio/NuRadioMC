@@ -1,7 +1,13 @@
-import numpy as np
-from scipy import constants
+"""
+This module contains utility functions for geometry calculations. Inparticular to
+calculate time delays between positions for a given arrival direction and to simulate
+reflection and refraction at boundaries between different media.
+"""
+
 from NuRadioReco.utilities import units, ice
 from numpy.lib import scimath as SM
+from scipy import constants
+import numpy as np
 import logging
 logger = logging.getLogger('NuRadioReco.geometryUtilities')
 
@@ -88,7 +94,7 @@ def get_efield_in_spherical_coords(efield, theta, phi):
         Zenith angle of the arriving signal
     phi: float
         Azimuth angle of the arriving signal
-    
+
     Returns
     -------
     np.array
@@ -101,19 +107,15 @@ def get_efield_in_spherical_coords(efield, theta, phi):
     e1 = np.array([st * cp, st * sp, ct])
     e2 = np.array([ct * cp, ct * sp, -st])
     e3 = np.array([-sp, cp, 0])
-#     e1 /= linalg.norm(e1)
-#     e2 /= linalg.norm(e2)
-#     e3 /= linalg.norm(e3)
 
     transformation_matrix = np.matrix([e1, e2, e3])
-#     inverse_transformation_matrix = np.linalg.inv(transformation_matrix)
 
     efield_2 = np.squeeze(np.asarray(np.dot(transformation_matrix, efield)))
     return efield_2
 
 
 def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.):
-    """ Apply Snell's law for given zenith angle, when a signal travels from n1 to n2 
+    """ Apply Snell's law for given zenith angle, when a signal travels from n1 to n2
 
     Parameters
     ----------
@@ -131,11 +133,13 @@ def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.):
     """
     t = n_1 / n_2 * np.sin(zenith_incoming)
     if t > 1:
-        logger.debug('Fresnel refraction results in unphysical values, refraction from {n1} to {n2} with incoming angle {zenith:.1f}, returning None'.format(n1=n_1, n2=n_2, zenith=np.rad2deg(zenith_incoming)))
+        logger.debug('Fresnel refraction results in unphysical values, refraction from {n1} to {n2} with incoming angle {zenith:.1f}, returning None'.format(
+            n1=n_1, n2=n_2, zenith=np.rad2deg(zenith_incoming)))
         return None
     else:
-        if(zenith_incoming > 0.5 * np.pi):
+        if zenith_incoming > 0.5 * np.pi:
             return np.pi - np.arcsin(t)
+
         return np.arcsin(t)
 
 
@@ -164,8 +168,9 @@ def get_fresnel_t_p(zenith_incoming, n_2=1.3, n_1=1.):
         Fresnel coefficient t for theta (parallel) polarization
     """
     zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
-    if(zenith_outgoing is None):    #check for total internal reflection
+    if zenith_outgoing is None:    #check for total internal reflection
         return 0
+
     t = 2 * n_1 * np.cos(zenith_incoming) / (n_1 * np.cos(zenith_outgoing) + n_2 * np.cos(zenith_incoming))
     return t
 
@@ -195,8 +200,9 @@ def get_fresnel_t_s(zenith_incoming, n_2=1.3, n_1=1.):
         Fresnel coefficient t for phi (perpendicular) polarization
     """
     zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
-    if(zenith_outgoing is None):    #check for total internal reflection
+    if zenith_outgoing is None:    #check for total internal reflection
         return 0
+
     t = 2 * n_1 * np.cos(zenith_incoming) / (n_1 * np.cos(zenith_incoming) + n_2 * np.cos(zenith_outgoing))
     return t
 
@@ -261,9 +267,9 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
 
 def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     """
-    Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel) 
-    and phi (perpendicular) polarization. Handles potential refraction into the firn if that 
-    applies to the antenna position. 
+    Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel)
+    and phi (perpendicular) polarization. Handles potential refraction into the firn if that
+    applies to the antenna position.
     WARNING: for deeper channels this function might be inacccurate. Consider using raytracing.
 
     parallel and perpendicular refers to the signal's polarization with respect
@@ -281,7 +287,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
         Channel ID of the desired channel
     zenith: float
         Zenith angle of the incoming signal
-    
+
     Returns
     -------
     zenith_antenna: float
