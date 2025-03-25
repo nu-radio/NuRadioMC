@@ -1,3 +1,8 @@
+"""
+This module contains various functions for signal processing, such as filtering,
+delaying, and upsampling traces.
+"""
+
 from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft
 
 from NuRadioReco.detector import detector
@@ -14,8 +19,8 @@ logger = logging.getLogger('NuRadioReco.signal_processing')
 
 def half_hann_window(length, half_percent=None, hann_window_length=None):
     """
-    Produce a half-Hann window. This is the Hann window from SciPY with ones inserted in the middle to make the window
-    `length` long. Note that this is different from a Hamming window.
+    Produce a half-Hann window. This is the Hann window from SciPY with ones inserted in the
+    middle to make the window `length` long. Note that this is different from a Hamming window.
 
     Parameters
     ----------
