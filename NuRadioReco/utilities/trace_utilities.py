@@ -1,3 +1,15 @@
+"""
+This module contains utility functions to compute various observables from
+waveforms, i.e., traces, such as the energy fluence, the signal to noise ratio, etc.
+
+All functions in this module do not depend on the NuRadioReco framework
+and can be used independently.
+
+The functions do not alter the input traces, but only compute observables from them.
+See the module `NuRadioReco.utilities.signal_processing` for functions that
+modify traces, e.g., by filtering, delaying, etc.
+"""
+
 from NuRadioReco.utilities import units, signal_processing
 
 import numpy as np
@@ -152,6 +164,7 @@ def get_stokes(trace_u, trace_v, window_samples=128, squeeze=True):
 
     if squeeze:
         return np.squeeze(stokes)
+
     return stokes
 
 
@@ -172,7 +185,6 @@ def peak_to_peak_amplitudes(trace, coincidence_window_size):
         Local peak to peak amplitudes
     """
     amplitudes = scipy.ndimage.maximum_filter1d(trace, coincidence_window_size) - scipy.ndimage.minimum_filter1d(trace, coincidence_window_size)
-
     return amplitudes
 
 
@@ -267,7 +279,6 @@ def get_root_power_ratio(trace, times, noise_rms):
     if noise_rms == 0:
         root_power_ratio = np.inf
     else:
-        wf_len = len(trace)
         channel_wf = trace ** 2
 
         # Calculate the smoothing window size based on sampling rate
@@ -303,7 +314,6 @@ def get_hilbert_envelope(trace):
     """
     # Get the Hilbert envelope of the waveform trace
     envelope = np.abs(scipy.signal.hilbert(trace))
-
     return envelope
 
 
@@ -433,7 +443,6 @@ def get_kurtosis(trace):
         Kurtosis of the signal (trace)
     """
     kurtosis = scipy.stats.kurtosis(trace)
-
     return kurtosis
 
 
