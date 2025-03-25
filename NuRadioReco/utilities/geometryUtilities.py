@@ -8,10 +8,11 @@ logger = logging.getLogger('NuRadioReco.geometryUtilities')
 
 def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
     """
-    Calculate the time delay between given positions for an arrival direction (plane wave)
+    Calculate the time delay between given positions for an arrival direction
 
     Parameters
     ----------
+
     zenith: float [rad]
         Zenith angle in convention up = 0
     azimuth: float [rad]
@@ -298,11 +299,11 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     t_phi = 1.
 
     position = detector.get_relative_position(station.get_id(), channel_id)
-    if position[2] < -3 * units.m:
-        logger.warning("This function might return inaccurate results for deep in-ice antennas. Consider using raytracing instead.")
-
     # first check case if signal comes from above
     if (zenith <= 0.5 * np.pi) and station.is_cosmic_ray() and (position[2] <= 0):
+        if position[2] < -3 * units.m:
+            logger.warning("This function might return inaccurate results for deep in-ice antennas. Consider using raytracing instead.")
+
         # is antenna below surface?
         zenith_antenna = get_fresnel_angle(zenith, n_ice, 1)
         t_theta = get_fresnel_t_p(zenith, n_ice, 1)

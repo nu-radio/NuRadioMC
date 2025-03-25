@@ -189,12 +189,16 @@ class efieldToVoltageConverter():
                 # to achieve a good time resolution, we upsample the trace first.
                 new_trace = np.zeros((3, trace_length_samples))
 
+
+                dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position())
+                efield_is_at_antenna = dist_channel_efield / units.mm < 0.01
+
                 # calculate the start bin
                 if not np.isnan(electric_field.get_trace_start_time()):
                     cab_delay = det.get_cable_delay(sim_station_id, channel_id)
 
                     dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position())
-                    if dist_channel_efield / units.mm > 0.01:
+                    if not efield_is_at_antenna:
                         travel_time_shift = calculate_time_shift_for_cosmic_ray(
                             det, sim_station, electric_field, channel_id)
                     else:
@@ -266,7 +270,13 @@ class efieldToVoltageConverter():
 
 
                 if self.__caching:
-                    zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(det, sim_station, channel_id, zenith)
+                    if not efield_is_at_antenna:
+                        zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(det, sim_station, channel_id, zenith)
+                    else:
+                        zenith_antenna = zenith
+                        t_theta = 1
+                        t_phi = 1
+
                     antenna_model = det.get_antenna_model(sim_station.get_id(), channel_id, zenith_antenna)
                     antenna_pattern = self.__antenna_provider.load_antenna_pattern(antenna_model)
                     ant_orient = det.get_antenna_orientation(sim_station.get_id(), channel_id)
@@ -276,7 +286,7 @@ class efieldToVoltageConverter():
                 else:
                     # get antenna pattern for current channel
                     VEL = signal_processing.get_efield_antenna_factor(
-                        sim_station, ff, [channel_id], det, zenith, azimuth, self.__antenna_provider)
+                        sim_station, ff, [channel_id], det, zenith, azimuth, self.__antenna_provider, efield_is_at_antenna)
 
                 if VEL is None:  # this can happen if there is not signal path to the antenna
                     voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros

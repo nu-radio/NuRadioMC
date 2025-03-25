@@ -1,3 +1,8 @@
+"""
+This module contains various functions for signal processing, such as filtering,
+delaying, and upsampling traces.
+"""
+
 from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft
 
 from NuRadioReco.detector import detector
@@ -14,8 +19,8 @@ logger = logging.getLogger('NuRadioReco.signal_processing')
 
 def half_hann_window(length, half_percent=None, hann_window_length=None):
     """
-    Produce a half-Hann window. This is the Hann window from SciPY with ones inserted in the middle to make the window
-    `length` long. Note that this is different from a Hamming window.
+    Produce a half-Hann window. This is the Hann window from SciPY with ones inserted in the
+    middle to make the window `length` long. Note that this is different from a Hamming window.
 
     Parameters
     ----------
@@ -98,7 +103,6 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 
 
     Parameters
     ----------
-
     trace: array of floats
         Trace to be upsampled
     original_sampling_frequency: float
@@ -146,7 +150,6 @@ def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
 
     Parameters
     ----------
-
     trace: array of floats
         Trace to be filtered
     sampling_frequency: float
@@ -336,13 +339,12 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     return efield_amplitude
 
 
-def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider):
+def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=True):
     """
     Returns the antenna response to a radio signal coming from a specific direction
 
     Parameters
     ----------
-
     station: Station
     frequencies: array of complex
         frequencies of the radio signal for which the antenna response is needed
@@ -352,11 +354,18 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
     zenith, azimuth: float, float
         incoming direction of the signal. Note that refraction and reflection at the ice/air boundary are taken into account
     antenna_pattern_provider: AntennaPatternProvider
+    efield_is_at_antenna: bool (defaul: True)
+        if True, the electric field is assumed to be at the antenna. If False, the effects of an air-ice boundary are taken into account.
     """
 
     efield_antenna_factor = np.zeros((len(channels), 2, len(frequencies)), dtype=complex)  # from antenna model in e_theta, e_phi
     for iCh, channel_id in enumerate(channels):
-        zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith)
+        if not efield_is_at_antenna:
+            zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith)
+        else:
+            zenith_antenna = zenith
+            t_theta = 1
+            t_phi = 1
 
         if zenith_antenna is None:
             logger.warning("Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible")
@@ -364,6 +373,7 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
 
         logger.debug("angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(
             np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)))
+
         antenna_model = detector.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
         antenna_pattern = antenna_pattern_provider.load_antenna_pattern(antenna_model)
         ori = detector.get_antenna_orientation(station.get_id(), channel_id)
