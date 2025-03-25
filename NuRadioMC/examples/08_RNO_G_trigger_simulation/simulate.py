@@ -84,8 +84,8 @@ class mySimulation(simulation.simulation):
 
     def __init__(self, *args, trigger_channel_noise_vrms=None, **kwargs):
         # this module is needed in super().__init__ to calculate the vrms
-        self.rnogHarwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
-        self.rnogHarwareResponse.begin(trigger_channels=kwargs['trigger_channels'])
+        self.rnogHardwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
+        self.rnogHardwareResponse.begin(trigger_channels=kwargs['trigger_channels'])
 
         super().__init__(*args, **kwargs)
         self.logger = logger
@@ -117,7 +117,7 @@ class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
         # apply the amplifiers and filters to get to RADIANT-level
-        self.rnogHarwareResponse.run(evt, station, det, sim_to_data=True)
+        self.rnogHardwareResponse.run(evt, station, det, sim_to_data=True)
 
     def _detector_simulation_trigger(self, evt, station, det):
 
