@@ -18,7 +18,7 @@ from NuRadioMC.SignalGen import askaryan, emitter as emitter_signalgen
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, trace_utilities
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 import NuRadioReco.modules.io.eventWriter
