@@ -533,7 +533,7 @@ class readLOFARData:
         """
         return self.__stations.copy()
 
-    def get_station_calibration_delays(self, station_id):
+    def _get_station_calibration_delays(self, station_id):
         """
         Make a dictionary of channel ids and their corresponding calibration delays.
 
@@ -676,6 +676,9 @@ class readLOFARData:
         -----
         For each LOFAR station, one `Station <NuRadioReco.framework.station.Station>`
         with the corresponding station_id will be created, which contains the voltage traces.
+        Note that these voltage traces are already corrected for the calibration delays,
+        using the corresponding delays stored in the input TBB file.
+
         Additionally, the LORA reconstruction data is stored in
         the `HybridShower <NuRadioReco.framework.hybrid_shower.HybridShower>`, and an
         (empty) `RadioShower <NuRadioReco.framework.radio_shower.RadioShower>` is created
@@ -702,6 +705,7 @@ class readLOFARData:
 
             # The metadata is only defined if there are files in the station
             antenna_set = station_dict['metadata'][1]
+            station_calibration_delays = self._get_station_calibration_delays(station_id)
 
             station = NuRadioReco.framework.station.Station(station_id)
             station.set_station_time(time)
@@ -763,6 +767,7 @@ class readLOFARData:
 
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
                 channel.set_trace(this_trace, station_dict['metadata'][4])
+                channel.apply_time_shift(-1 * station_calibration_delays[channel_id]) # apply the calibration delays
                 station.add_channel(channel)
 
             # Check both channels from the flagged group IDs are removed from station
