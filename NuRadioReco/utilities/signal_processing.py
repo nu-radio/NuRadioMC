@@ -120,21 +120,12 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
     if impedance > 1000 * units.ohm:
         logger.warning(f"Impedance is {impedance / units.ohm:.2f} Ohm, did you forget to specify the unit?")
 
-    k_boltzmann = constants.k * units.joule / units.kelvin
-
+    # (effective) bandwidth, i.e., \Delta f in equation
     if response is None:
-        if isinstance(bandwidth, (float, int)):
-            vrms_per_channel = (temperature * impedance * k_boltzmann * bandwidth / units.Hz) ** 0.5
-        else:
-            vrms_per_channel = (temperature * impedance * k_boltzmann *
-                                (bandwidth[1] - bandwidth[0]) / units.Hz) ** 0.5
+        if not isinstance(bandwidth, (float, int)):
+            bandwidth = bandwidth[1] - bandwidth[0]
     else:
-        if freqs is None:
-            freqs = np.arange(0, 2500, 0.1) * units.MHz
+        freqs = freqs or np.arange(0, 2500, 0.1) * units.MHz
+        bandwidth = np.trapz(np.abs(response(freqs)) ** 2, freqs)
 
-        # Bandwidth, i.e., \Delta f in equation
-        integrated_channel_response = np.trapz(np.abs(response(freqs)) ** 2, freqs)
-        vrms_per_channel = (temperature * impedance * k_boltzmann *
-                            integrated_channel_response / units.Hz) ** 0.5
-
-    return vrms_per_channel
+    return (temperature * impedance * bandwidth * constants.k * units.joule / units.kelvin) ** 0.5
