@@ -1,6 +1,5 @@
 import numpy as np
-from NuRadioReco.utilities import units, fft, trace_utilities, bandpass_filter
-import NuRadioReco.utilities.trace_utilities
+from NuRadioReco.utilities import units, fft, trace_utilities, bandpass_filter, signal_processing
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.detector.RNO_G.analog_components
 import NuRadioReco.detector.ARIANNA.analog_components
@@ -511,7 +510,7 @@ class IftElectricFieldReconstructor:
                 receive_azimuth = channel.get_parameter(chp.signal_receiving_azimuth)
             else:
                 receive_azimuth = 0.
-            antenna_response = NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor(station, frequencies, [channel_id], detector, receiving_zenith, receive_azimuth, self.__antenna_pattern_provider)[0]
+            antenna_response = signal_processing.get_efield_antenna_factor(station, frequencies, [channel_id], detector, receiving_zenith, receive_azimuth, self.__antenna_pattern_provider)[0]
             amp_response = detector.get_amplifier_response(station.get_id(), channel_id, frequencies)
             amp_gain = np.abs(amp_response)
             amp_phase = np.unwrap(np.angle(amp_response))
