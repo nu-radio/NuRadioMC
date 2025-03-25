@@ -1,3 +1,9 @@
+"""
+Reader module for LOFAR data
+
+This module contains the reader class `readLOFARData` for LOFAR data (similar to the `eventReader <NuRadioReco.modules.io.eventReader>`).
+This class converts raw TBB (.h5) data to the NuRadioReco `Event <NuRadioReco.framework.event.Event>` structure.
+"""
 import re
 import os
 import glob
@@ -20,8 +26,8 @@ import NuRadioReco.framework.hybrid_shower
 import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import stationParameters, showerParameters
 
-import NuRadioReco.modules.io.LOFAR.rawTBBio as rawTBBio
-import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as rawTBBio_metadata
+import NuRadioReco.modules.io.LOFAR._rawTBBio as rawTBBio
+import NuRadioReco.modules.io.LOFAR._rawTBBio_metadata as rawTBBio_metadata
 
 
 logger = logging.getLogger('NuRadioReco.LOFAR.readLOFARData')
@@ -262,14 +268,21 @@ def nrrID_to_tbbID(channel_id):
 
 class getLOFARtraces:
     def __init__(
-            self, tbb_h5_filename, metadata_dir, time_s, time_ns, trace_length_nbins
+            self, tbb_h5_filename, metadata_dir, time_unix, time_ns, trace_length_nbins
     ):
         """
-        A Class to facilitate getting traces from LOFAR TBB HDF5 Files
+        A class to facilitate getting traces from LOFAR TBB HDF5 Files.
+
+        This class is used internally by `readLOFARData` to read in LOFAR traces.
+        Most users will want to use the `readLOFARData` to be able to use the
 
         Parameters
         ----------
-        time_s: int
+        tbb_h5_filename : str
+            The TBB (.h5) file to read in.
+        metadata_dir : str
+            The path where the metadata for the desired event are stored.
+        time_unix: int
             Event trigger timestamp in (UNIX) seconds
         time_ns: int
             Event trigger timestamp in ns past UTC second
@@ -284,7 +297,7 @@ class getLOFARtraces:
         self.block_number = None
         self.sample_number_in_block = None
         self.tbb_file = None
-        self.time_unix = time_s
+        self.time_unix = time_unix
         self.time_ns = time_ns
         self.alignment_shift = None
 
@@ -293,7 +306,8 @@ class getLOFARtraces:
     def setup_trace_loading(self):
         """
         Opens the file and sets some variables.
-        so that get_trace() can be called repeatedly for different dipoles.
+
+        This enables `get_trace` to be called repeatedly for different dipoles.
         """
         self.tbb_file = rawTBBio.MultiFile_Dal1(self.data_filename, metadata_dir=self.metadata_dir)
         sample_number = self.tbb_file.get_nominal_sample_number()
@@ -324,6 +338,18 @@ class getLOFARtraces:
     def check_trace_quality(self):
         """
         Check all traces recorded from the TBB against quality requirements.
+
+        Returns two sets. The first is a list of dipole ids failing any of the following
+        three requirements:
+
+        #. The starting sample number deviates by more than 25% (of the trace length)
+           from the median starting sample number;
+        #. The starting sample number is later than the median starting sample number;
+        #. The length of the recorded trace deviates by more than 10% from the median
+           trace length.
+
+        The second set corresponds to all dipole ids for which the matching dipole
+        (with the other polarization) is missing.
 
         Returns
         -------
@@ -375,10 +401,17 @@ class getLOFARtraces:
 
     def get_trace(self, dipole_id):
         """
+        Return the trace for antenna ``dipole_id``
+
         Parameters
         ----------
         dipole_id: str
             The dipole id
+
+        Returns
+        -------
+        trace : np.ndarray
+            The trace for antenna ``dipole_id``
         """
 
         start_sample = self.trace_length_nbins * self.block_number
@@ -391,6 +424,9 @@ class getLOFARtraces:
         return trace
 
     def close_file(self):
+        """
+        Closes the currently opened TBB file.
+        """
         self.tbb_file.close_file()
         return
 
@@ -399,6 +435,7 @@ class readLOFARData:
     """
     This class reads in the data from the TBB files and puts them into an Event structure.
 
+    This class uses the raw TBB file, (processed) LORA json and LOFAR metadata.
     If the directory paths are not provided, they default to the ones on COMA.
 
     Parameters
@@ -634,6 +671,16 @@ class readLOFARData:
         ------
         evt: Event object
             The event containing all the loaded traces.
+
+        Notes
+        -----
+        For each LOFAR station, one `Station <NuRadioReco.framework.station.Station>`
+        with the corresponding station_id will be created, which contains the voltage traces.
+        Additionally, the LORA reconstruction data is stored in
+        the `HybridShower <NuRadioReco.framework.hybrid_shower.HybridShower>`, and an
+        (empty) `RadioShower <NuRadioReco.framework.radio_shower.RadioShower>` is created
+        to store the output of additional reconstruction modules.
+
         """
         # Create an empty with 1 run, as only 1 shower per event
         evt = NuRadioReco.framework.event.Event(1, self.__event_id)
