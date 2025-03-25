@@ -88,7 +88,7 @@ def get_efield_in_spherical_coords(efield, theta, phi):
         Zenith angle of the arriving signal
     phi: float
         Azimuth angle of the arriving signal
-    
+
     Returns
     -------
     np.array
@@ -113,7 +113,7 @@ def get_efield_in_spherical_coords(efield, theta, phi):
 
 
 def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.):
-    """ Apply Snell's law for given zenith angle, when a signal travels from n1 to n2 
+    """ Apply Snell's law for given zenith angle, when a signal travels from n1 to n2
 
     Parameters
     ----------
@@ -261,9 +261,9 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
 
 def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     """
-    Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel) 
-    and phi (perpendicular) polarization. Handles potential refraction into the firn if that 
-    applies to the antenna position. 
+    Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel)
+    and phi (perpendicular) polarization. Handles potential refraction into the firn if that
+    applies to the antenna position.
     WARNING: for deeper channels this function might be inacccurate. Consider using raytracing.
 
     parallel and perpendicular refers to the signal's polarization with respect
@@ -281,7 +281,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
         Channel ID of the desired channel
     zenith: float
         Zenith angle of the incoming signal
-    
+
     Returns
     -------
     zenith_antenna: float
@@ -299,11 +299,12 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     t_phi = 1.
 
     position = detector.get_relative_position(station.get_id(), channel_id)
-    if position[2] < -3 * units.m:
-        logger.warning("This function might return inaccurate results for deep in-ice antennas. Consider using raytracing instead.")
-
     # first check case if signal comes from above
     if (zenith <= 0.5 * np.pi) and station.is_cosmic_ray() and (position[2] <= 0):
+        if position[2] < -3 * units.m:
+            logger.warning("This function might return inaccurate results for deep in-ice antennas. Consider using raytracing instead.")
+
+
         # is antenna below surface?
         zenith_antenna = get_fresnel_angle(zenith, n_ice, 1)
         t_theta = get_fresnel_t_p(zenith, n_ice, 1)

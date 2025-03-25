@@ -37,7 +37,7 @@ def download_from_dataserver(remote_path, target_path, unpack_tarball=True, data
 
     lockfile = target_path+".lock"
     lock = filelock.FileLock(lockfile)
-   
+
     logger.warning(f"Assuring no other process is downloading. Will wait until {lockfile} is unlocked.")
     with lock:
         if os.path.isfile(target_path):
