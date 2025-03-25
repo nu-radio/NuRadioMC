@@ -18,4 +18,5 @@ Submodules
    NuRadioReco.modules.RNO_G.dataProviderRNOG
    NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
    NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms
+   NuRadioReco.modules.RNO_G.stationHitFilter
    NuRadioReco.modules.RNO_G.triggerBoardResponse

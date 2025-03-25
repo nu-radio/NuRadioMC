@@ -1,0 +1,7 @@
+NuRadioReco.modules.RNO\_G.stationHitFilter module
+==================================================
+
+.. automodule:: NuRadioReco.modules.RNO_G.stationHitFilter
+   :members:
+   :undoc-members:
+   :show-inheritance:

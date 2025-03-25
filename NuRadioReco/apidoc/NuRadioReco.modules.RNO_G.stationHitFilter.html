@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.RNO_G package &mdash; NuRadio 3.0.0-dev documentation</title>
+  <title>NuRadioReco.modules.RNO_G.stationHitFilter module &mdash; NuRadio 3.0.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
@@ -20,8 +20,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter module" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html" />
-    <link rel="prev" title="NuRadioReco.modules.LOFAR.stationRFIFilter module" href="NuRadioReco.modules.LOFAR.stationRFIFilter.html" /> 
+    <link rel="next" title="NuRadioReco.modules.RNO_G.triggerBoardResponse module" href="NuRadioReco.modules.RNO_G.triggerBoardResponse.html" />
+    <link rel="prev" title="NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms module" href="NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -286,7 +286,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
-<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.modules.RNO_G package</a></li>
+<li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
@@ -619,9 +619,10 @@
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.modules.RNO_G package</li>
+          <li class="breadcrumb-item"><a href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.RNO_G.stationHitFilter module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.stationHitFilter.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -629,31 +630,459 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.RNO_G">
-<span id="nuradioreco-modules-rno-g-package"></span><h1>NuRadioReco.modules.RNO_G package<a class="headerlink" href="#module-NuRadioReco.modules.RNO_G" title="Link to this heading"></a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.RNO_G.channelGlitchDetector.html">NuRadioReco.modules.RNO_G.channelGlitchDetector module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.RNO_G.crRNOGTemplateCreator.html">NuRadioReco.modules.RNO_G.crRNOGTemplateCreator module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.RNO_G.dataProviderRNOG.html">NuRadioReco.modules.RNO_G.dataProviderRNOG module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html">NuRadioReco.modules.RNO_G.hardwareResponseIncorporator module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.html">NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.RNO_G.stationHitFilter.html">NuRadioReco.modules.RNO_G.stationHitFilter module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.RNO_G.triggerBoardResponse.html">NuRadioReco.modules.RNO_G.triggerBoardResponse module</a></li>
-</ul>
-</div>
-</section>
+  <section id="module-NuRadioReco.modules.RNO_G.stationHitFilter">
+<span id="nuradioreco-modules-rno-g-stationhitfilter-module"></span><h1>NuRadioReco.modules.RNO_G.stationHitFilter module<a class="headerlink" href="#module-NuRadioReco.modules.RNO_G.stationHitFilter" title="Link to this heading"></a></h1>
+<p>Hit Filter Module (RNO-G specific, can be upgraded to more general use in the future)
+The main purpose is to reject thermal events in data.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.stationHitFilter.</span></span><span class="sig-name descname"><span class="pre">stationHitFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">complete_time_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complete_hit_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_multiplier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Passes event through “hit filter”. Looks for temporal coincidence in multiple channel pairs.</p>
+<p>Currently this module is designed specifically for the deep components of an RNO-G station and uses only
+the deep in-ice channels. The module checks for temporal coincidences in multiple channel pairs (uses only
+antennas at ~100 depth; i.e., not the shallow v-pols). Adjacent channels are put into groups:
+G0: (0,1,2,3); G1: (9,10); G2: (23,22); G3: (8,4). To determine the timing and amplitude of a “hit” in every channel,
+the Hilbert Transform is applied to the waveform and the maximum is found. The time of the maximum is then used to
+check for coincidences in each group. This “time checker” requires at least 1 coincident pair in G0 (PA),
+and another coincident pair in any other group (including G0 - with an additional requirement that channel
+pairs need to be connected). When the time check fails, by default, a “hit checker” will see if there’s
+any in-ice channel that has a high hit (maximum &gt; threshold_multiplier * noise_RMS) and whenever there’s
+a high hit the event passes the module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>complete_time_check: bool (default: False)</strong></dt><dd><p>If False, time checker will stop early whenever criteria are satisfied.
+If True, time checker will run through all channel groups no matter what.</p>
+</dd>
+<dt><strong>complete_hit_check: bool (default: False)</strong></dt><dd><p>If False, only run the hit checker when the time checker fails.
+If True, always run the hit checker.</p>
+</dd>
+<dt><strong>time_window: float (default: 10.0*units.ns)</strong></dt><dd><p>Coincidence window for two adjacent channels.</p>
+</dd>
+<dt><strong>threshold_multiplier: float (default: 6.5)</strong></dt><dd><p>High hit threshold multiplier, where a hit threshold is the multiplier times the noise RMS.</p>
+</dd>
+<dt><strong>select_trigger: str (default: None)</strong></dt><dd><p>Select a specific trigger type to run this filter on. If None, all triggers will be evaluated.
+If you select a specific trigger, events with other triggers will be treated as if they have passed
+the module (but not counted).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.apply_hit_filter" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.apply_hit_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_hit_filter</span></code></a>()</p></td>
+<td><p>See if the input event will survive the Hit Filter or not.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.begin" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([log_level])</p></td>
+<td><p>Set up logging info.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_channel_pairs_in_PA" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_channel_pairs_in_PA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_pairs_in_PA</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_max_time" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_max_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_envelope_max_time</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_max_time_index" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_max_time_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_envelope_max_time_index</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_traces" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_traces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_envelope_traces</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_hit_thresholds" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_hit_thresholds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_hit_thresholds</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channel_groups" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channel_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_in_ice_channel_groups</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channels" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_in_ice_channels</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channels_noise_RMS" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channels_noise_RMS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_in_ice_channels_noise_RMS</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_threshold_multiplier" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_threshold_multiplier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_threshold_multiplier</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_times" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_times</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_traces" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_traces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_traces</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_in_time_window" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_in_time_window"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_in_time_window</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_in_time_window_PA" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_in_time_window_PA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_in_time_window_PA</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_over_hit_threshold" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_over_hit_threshold"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_over_hit_threshold</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_hit_checker" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_hit_checker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_passed_hit_checker</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_hit_filter" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_hit_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_passed_hit_filter</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_time_checker" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_time_checker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_passed_time_checker</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_wanted_trigger_type" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_wanted_trigger_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_wanted_trigger_type</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.run" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station[, det, noise_RMS_all])</p></td>
+<td><p>Runs the Hit Filter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.set_up" title="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.set_up"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_up</span></code></a>(set_of_traces, set_of_times, noise_RMS)</p></td>
+<td><p>Set things up before passing to the Hit Filter.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>end</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.begin">
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.begin" title="Link to this definition"></a></dt>
+<dd><p>Set up logging info.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>log_level: enum</strong></dt><dd><p>Set verbosity level of logger (default: logging.INFO)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.set_up">
+<span class="sig-name descname"><span class="pre">set_up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">set_of_traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_of_times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_RMS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.set_up"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.set_up" title="Link to this definition"></a></dt>
+<dd><p>Set things up before passing to the Hit Filter.</p>
+<p>This setup function calculates the noise RMS,
+sets the high hit threshold for each channel, gets the Hilbert envelope,
+and finds the time when the maximum happens (hit).
+IMPORTANT: If you use this function by yourself,
+make sure your inputs come from all 15 in-ice channels in order only,
+rather than all 24 channels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>set_of_traces: 2-D array of floats</strong></dt><dd><p>A set of input trace arrays of all 15 in-ice channels</p>
+</dd>
+<dt><strong>set_of_times: 2-D array of floats</strong></dt><dd><p>A set of input times arrays of all 15 in-ice channels</p>
+</dd>
+<dt><strong>noise_RMS: 1-D array of floats</strong></dt><dd><p>A set of input noise RMS values of all 15 in-ice channels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.apply_hit_filter">
+<span class="sig-name descname"><span class="pre">apply_hit_filter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.apply_hit_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.apply_hit_filter" title="Link to this definition"></a></dt>
+<dd><p>See if the input event will survive the Hit Filter or not.</p>
+<p>After the setup, it first checks with the time checker,
+if event passed the time checker then it passes the Hit Filter;
+if event failed the time checker, then checks with the
+hit checker to find a high hit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._passed_hit_filter: bool</dt><dd><p>Event passed the Hit Filter or not</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_RMS_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.run" title="Link to this definition"></a></dt>
+<dd><p>Runs the Hit Filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>evt: `NuRadioReco.framework.event.Event`</strong></dt><dd><p>Using the event object to get the trigger type</p>
+</dd>
+<dt><strong>station: `NuRadioReco.framework.station.Station`</strong></dt><dd><p>The station to use the Hit Filter on</p>
+</dd>
+<dt><strong>det: Detector object | None</strong></dt><dd><p>Detector object (not used in this method,
+included to have the same signature as other NuRadio classes)</p>
+</dd>
+<dt><strong>noise_RMS_all: 1-D numpy array (default: None)</strong></dt><dd><p>Noise RMS values of all 24 channels, if not given the Hit Filter will calculate them for the 15 in-ice channels</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>self.is_passed_hit_filter(): bool</dt><dd><p>Event passed the Hit Filter or not</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.end" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_threshold_multiplier">
+<span class="sig-name descname"><span class="pre">get_threshold_multiplier</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.get_threshold_multiplier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_threshold_multiplier" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._threshold_multiplier: float</dt><dd><p>High hit threshold multiplier (default: 6.5)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channels">
+<span class="sig-name descname"><span class="pre">get_in_ice_channels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.get_in_ice_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channels" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._in_ice_channels: 1-D list of ints</dt><dd><p>In-ice channel IDs in a list: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 21, 22, 23]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channel_groups">
+<span class="sig-name descname"><span class="pre">get_in_ice_channel_groups</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.get_in_ice_channel_groups"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channel_groups" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._in_ice_channel_groups: Several 1-D lists of ints in a tuple</dt><dd><p>In-ice channel groups in a tuple: ([0, 1, 2, 3], [9, 10], [23, 22], [8, 4])</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_channel_pairs_in_PA">
+<span class="sig-name descname"><span class="pre">get_channel_pairs_in_PA</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.get_channel_pairs_in_PA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_channel_pairs_in_PA" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._channel_pairs_in_PA: Several 1-D lists of ints in a tuple</dt><dd><p>Channel pairs of the PA in a tuple: ([0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3])</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_max_time_index">
+<span class="sig-name descname"><span class="pre">get_envelope_max_time_index</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.get_envelope_max_time_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_max_time_index" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._envelope_max_time_index: 1-D numpy array of ints</dt><dd><p>Hit time index of each channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_max_time">
+<span class="sig-name descname"><span class="pre">get_envelope_max_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.get_envelope_max_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_max_time" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._envelope_max_time: 1-D numpy array of floats</dt><dd><p>Hit time of each channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channels_noise_RMS">
+<span class="sig-name descname"><span class="pre">get_in_ice_channels_noise_RMS</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.get_in_ice_channels_noise_RMS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_in_ice_channels_noise_RMS" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._noise_RMS: 1-D numpy array of floats</dt><dd><p>Noise RMS values for channels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_times">
+<span class="sig-name descname"><span class="pre">get_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.get_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_times" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._times: 2-D numpy array of floats</dt><dd><p>Arrays of times for channels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_traces">
+<span class="sig-name descname"><span class="pre">get_traces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.get_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_traces" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._traces: 2-D numpy array of floats</dt><dd><p>Arrays of traces for channels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_traces">
+<span class="sig-name descname"><span class="pre">get_envelope_traces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.get_envelope_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_envelope_traces" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._envelope_traces: 2-D numpy array of floats</dt><dd><p>Arrays of envelope traces for channels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_hit_thresholds">
+<span class="sig-name descname"><span class="pre">get_hit_thresholds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.get_hit_thresholds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.get_hit_thresholds" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._hit_thresholds: 1-D numpy array of floats</dt><dd><p>Hit threshold of each channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_hit_filter">
+<span class="sig-name descname"><span class="pre">is_passed_hit_filter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.is_passed_hit_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_hit_filter" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._passed_hit_filter: bool</dt><dd><p>See if event passed the Hit Filter</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_time_checker">
+<span class="sig-name descname"><span class="pre">is_passed_time_checker</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.is_passed_time_checker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_time_checker" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._passed_time_checker: bool</dt><dd><p>See if event passed the time checker</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_hit_checker">
+<span class="sig-name descname"><span class="pre">is_passed_hit_checker</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.is_passed_hit_checker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_passed_hit_checker" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._passed_hit_checker: bool</dt><dd><p>See if event passed the hit checker</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_over_hit_threshold">
+<span class="sig-name descname"><span class="pre">is_over_hit_threshold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.is_over_hit_threshold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_over_hit_threshold" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._is_over_hit_threshold: 1-D numpy array of bools</dt><dd><p>See if there’s a high hit in each channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_in_time_window">
+<span class="sig-name descname"><span class="pre">is_in_time_window</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.is_in_time_window"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_in_time_window" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self._is_in_time_window: 2-D list of bools</dt><dd><p>See if a channel pair is coincident in the group</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_wanted_trigger_type">
+<span class="sig-name descname"><span class="pre">is_wanted_trigger_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.is_wanted_trigger_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_wanted_trigger_type" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>self.__is_wanted_trigger_type: bool</dt><dd><p>When we want to select only events with low threshold triggers.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_in_time_window_PA">
+<span class="sig-name descname"><span class="pre">is_in_time_window_PA</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/stationHitFilter.html#stationHitFilter.is_in_time_window_PA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.is_in_time_window_PA" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>dict: dictionary of bools</dt><dd><p>See if channel pairs are coincident or not in Group 0 (PA)
+In the dictionary, there are 6 pairs:
+(0,1), (0,2), (0,3), (1,2), (1,3), (2,3)
+To see if a pair is coincident one can do, for example:
+is_in_time_window_PA[(0,1)], then it will be True or False</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.LOFAR.stationRFIFilter.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.LOFAR.stationRFIFilter module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.RNO_G.triggerBoardResponse.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.RNO_G.triggerBoardResponse module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
