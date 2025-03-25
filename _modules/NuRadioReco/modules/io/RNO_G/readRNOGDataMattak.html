@@ -728,7 +728,7 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">readRNOGData</span><span class="p">:</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_table_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">load_run_table</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_table_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">load_run_table</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reader for RNO-G ``.root`` files</span>
 
@@ -742,7 +742,7 @@
 <span class="sd">            Path to a run_table.csv file. If None, the run table is queried from the DB. (Default: None)</span>
 
 <span class="sd">        load_run_table: bool</span>
-<span class="sd">            If True, try to load the run_table from run_table_path. Otherwise, skip this.</span>
+<span class="sd">            If True, try to load the run_table from run_table_path. Otherwise, skip this. (Default: False)</span>
 
 <span class="sd">        log_level: enum</span>
 <span class="sd">            Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).</span>
@@ -894,8 +894,8 @@
 <span class="sd">            the data in batches based on this number.</span>
 <span class="sd">            NOTE: This is only relevant for the mattak uproot backend</span>
 <span class="sd">        use_fallback_time: bool</span>
-<span class="sd">            If True and if the trigger time is infinity, the readout time will be used instead of the trigger time. </span>
-<span class="sd">            Otherwise, the event will be skipped in the case of infinite trigger times.  </span>
+<span class="sd">            If True and if the trigger time is infinity, the readout time will be used instead of the trigger time.</span>
+<span class="sd">            Otherwise, the event will be skipped in the case of infinite trigger times.</span>
 <span class="sd">            (Default=True)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
