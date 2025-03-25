@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units, ice, geometryUtilities
+from NuRadioReco.utilities import units, ice, geometryUtilities, trace_utilities
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
@@ -42,6 +42,7 @@ except IndexError: # this is a common error if cfitsio is not found... there are
     logger.error(
         "pylfmap import failed. This might be because you do not have a working "
         "installation of cfitsio. See https://github.com/F-Tomas/pylfmap/issues/2 for potential tips")
+
 
 class channelGalacticNoiseAdder:
     """
@@ -190,7 +191,8 @@ class channelGalacticNoiseAdder:
             event,
             station,
             detector,
-            passband=None
+            passband=None,
+            excluded_channels=None
     ):
 
         """
@@ -207,7 +209,16 @@ class channelGalacticNoiseAdder:
         passband: list of float, optional
             Lower and upper bound of the frequency range in which noise shall be
             added. The default (no passband specified) is [10, 1000] MHz
+        excluded_channels: list, default=None
+            A list containing the channels IDs to exclude per station.
+            If None, all channels of the selected station in the detector are used.
         """
+        if excluded_channels is None:
+            selected_channel_ids = station.get_channel_ids()
+            logger.debug(f"Using all channels: {selected_channel_ids}")
+        else:
+            selected_channel_ids = [channel_id for channel_id in station.get_channel_ids() if channel_id not in excluded_channels]
+            logger.debug(f"Using selected channel ids: {selected_channel_ids}")
 
         if self.__noise_temperatures is None: # check if .begin has been called, give helpful error message if not
             msg = "channelGalacticNoiseAdder was not initialized correctly. Maybe you forgot to call `.begin()`?"
@@ -216,7 +227,7 @@ class channelGalacticNoiseAdder:
 
         # check that or all channels channel.get_frequencies() is identical
         last_freqs = None
-        for channel in station.iter_channels():
+        for channel in station.iter_channels(use_channels=selected_channel_ids):
             if last_freqs is not None and (
                     not np.allclose(last_freqs, channel.get_frequencies(), rtol=0, atol=0.1 * units.MHz)):
                 logger.error("The frequencies of each channel must be the same, but they are not!")
@@ -225,7 +236,6 @@ class channelGalacticNoiseAdder:
             last_freqs = channel.get_frequencies()
 
         freqs = last_freqs
-        d_f = freqs[2] - freqs[1]
 
         # If we cache the antenna pattern, we need to make sure that the frequencies have not changed
         # between stations. If they have, we need to clear the cache.
@@ -233,11 +243,17 @@ class channelGalacticNoiseAdder:
             if self.__freqs is None:
                 self.__freqs = freqs
             else:
-                if not np.allclose(self.__freqs, freqs, rtol=0, atol=0.01 * units.MHz):
+                if len(self.__freqs) != len(freqs):
                     self.__freqs = freqs
                     self._get_cached_antenna_response.cache_clear()
                     logger.warning(
-                        "Frequencies have changed. Clearing antenna response cache. "
+                        "Frequencies have changed (array length). Clearing antenna response cache. "
+                        "(If this happens often, something might be wrong...")
+                elif not np.allclose(self.__freqs, freqs, rtol=0, atol=0.01 * units.MHz):
+                    self.__freqs = freqs
+                    self._get_cached_antenna_response.cache_clear()
+                    logger.warning(
+                        "Frequencies have changed (values). Clearing antenna response cache. "
                         "(If this happens often, something might be wrong...")
 
 
@@ -253,10 +269,9 @@ class channelGalacticNoiseAdder:
 
         n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
         n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
-        c_vac = scipy.constants.c * units.m / units.s
 
         channel_spectra = {}
-        for channel in station.iter_channels():
+        for channel in station.iter_channels(use_channels=selected_channel_ids):
             channel_spectra[channel.get_id()] = channel.get_frequency_spectrum()
 
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
@@ -266,10 +281,14 @@ class channelGalacticNoiseAdder:
             if zenith > 90. * units.deg:
                 continue
 
-            # consider signal reflection at ice surface
-            t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, 1)
-            t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, 1)
-            fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice, 1.)
+            if n_ice != n_air: # consider signal reflection at ice surface
+                t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, n_air)
+                t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, n_air)
+                fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice, n_air)
+            else: # we are at an in-air site; no refraction
+                t_theta = 1
+                t_phi = 1
+                fresnel_zenith = zenith
 
             if fresnel_zenith is None:
                 continue
@@ -278,29 +297,19 @@ class channelGalacticNoiseAdder:
                 self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
             noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
 
-            # calculate spectral radiance of radio signal using rayleigh-jeans law
-            spectral_radiance = (2. * (scipy.constants.Boltzmann * units.joule / units.kelvin)
-                * freqs[passband_filter] ** 2 * noise_temperature * self.solid_angle / c_vac ** 2)
-            spectral_radiance[np.isnan(spectral_radiance)] = 0
-
-            # calculate radiance per energy bin
-            spectral_radiance_per_bin = spectral_radiance * d_f
-
-            # calculate electric field per frequency bin from the radiance per bin
-            efield_amplitude = np.sqrt(
-                spectral_radiance_per_bin / (c_vac * scipy.constants.epsilon_0 * (
-                        units.coulomb / units.V / units.m))) / d_f
+            efield_amplitude = trace_utilities.get_electric_field_from_temperature(freqs[passband_filter],
+                                                                                   noise_temperature, self.solid_angle)
 
             # assign random phases to electric field
             noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
-            phases = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
+            phases = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
             noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
             noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
 
             channel_noise_spec = np.zeros_like(noise_spectrum)
 
-            for channel in station.iter_channels():
+            for channel in station.iter_channels(use_channels=selected_channel_ids):
 
                 channel_pos = detector.get_relative_position(station.get_id(), channel.get_id())
                 if channel_pos[2] < 0:
@@ -331,12 +340,12 @@ class channelGalacticNoiseAdder:
                 delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
                 # add random polarizations and phase to electric field
-                polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
+                polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
                 channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
-                    1j * delta_phases) * np.cos(polarizations)
+                    1j * delta_phases) * np.cos(polarizations) * curr_t_theta
                 channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
-                    1j * delta_phases) * np.sin(polarizations)
+                    1j * delta_phases) * np.sin(polarizations) * curr_t_phi
 
 
                 # fold electric field with antenna response
@@ -348,15 +357,15 @@ class channelGalacticNoiseAdder:
                         freqs, curr_fresnel_zenith, azimuth, *antenna_orientation)
 
                 channel_noise_spectrum = (
-                    antenna_response['theta'] * channel_noise_spec[1] * curr_t_theta
-                    + antenna_response['phi'] * channel_noise_spec[2] * curr_t_phi
+                    antenna_response['theta'] * channel_noise_spec[1]
+                    + antenna_response['phi'] * channel_noise_spec[2]
                 )
 
                 # add noise spectrum from pixel in the sky to channel spectrum
                 channel_spectra[channel.get_id()] += channel_noise_spectrum
 
         # store the updated channel spectra
-        for channel in station.iter_channels():
+        for channel in station.iter_channels(use_channels=selected_channel_ids):
             channel.set_frequency_spectrum(channel_spectra[channel.get_id()], "same")
 
 
