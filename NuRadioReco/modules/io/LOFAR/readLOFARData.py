@@ -53,9 +53,9 @@ def get_metadata(filenames, metadata_dir):
     tbb_file = rawTBBio.MultiFile_Dal1(filenames, metadata_dir=metadata_dir)
     station_name = tbb_file.get_station_name()
     antenna_set = tbb_file.get_antenna_set()
-    clock_frequency = tbb_file.SampleFrequency
+    clock_frequency = tbb_file.SampleFrequency * units.Hz # rawTBBio uses s and Hz as base units
 
-    ns_per_sample = 1.0e9 / clock_frequency
+    ns_per_sample = units.ns / clock_frequency
     logger.info("The file contains %3.2f ns per sample" % ns_per_sample)  # test
     time_unix = tbb_file.get_timestamp()
     time_ns = ns_per_sample * tbb_file.get_nominal_sample_number()
@@ -64,7 +64,7 @@ def get_metadata(filenames, metadata_dir):
     dipole_ids = tbb_file.get_antenna_names()
 
     # Try to extract calibration delays from TBB metadata
-    calibration_delays = tbb_file.get_timing_callibration_delays(force_file_delays=True)
+    calibration_delays = tbb_file.get_timing_callibration_delays(force_file_delays=True) * units.s # rawTBBio uses s and Hz as base units
 
     tbb_file.close_file()
 
@@ -489,7 +489,7 @@ class readLOFARData:
             2. antenna set
             3. tbb timestamp (unix)
             4. tbb timestamp (nanoseconds after last second)
-            5. station clock frequency (Hz)
+            5. station clock frequency
             6. positions of antennas
             7. dipole IDs
             8. calibration delays per dipole
@@ -715,7 +715,7 @@ class readLOFARData:
                 channel_group: int = detector.get_channel_group_id(station_id, channel_id)
 
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
-                channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
+                channel.set_trace(this_trace, station_dict['metadata'][4])
                 station.add_channel(channel)
 
             # Check both channels from the flagged group IDs are removed from station
