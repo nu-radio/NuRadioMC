@@ -4,13 +4,14 @@ delaying, and upsampling traces.
 """
 
 from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft
-
-from NuRadioReco.detector import detector
 import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
 from scipy import signal, constants
 import numpy as np
+import fractions
+import decimal
+import copy
 
 import logging
 logger = logging.getLogger('NuRadioReco.signal_processing')
@@ -44,56 +45,37 @@ def half_hann_window(length, half_percent=None, hann_window_length=None):
     return half_hann_widow
 
 
-def add_cable_delay(station, det, sim_to_data=None, trigger=False, logger=None):
-    """
-    Add or subtract cable delay by modifying the ``trace_start_time``.
+def resample(trace, sampling_factor):
+    """ Resample a trace by a given resampling factor.
 
     Parameters
     ----------
-    station: Station
-        The station to add the cable delay to.
+    trace : ndarray
+        The trace to resample. Can have multiple dimensions, but the last dimension should be the one to resample.
+    sampling_factor : float
+        The resampling factor. If the factor is a fraction, the denominator should be less than 5000.
 
-    det: Detector
-        The detector description
-
-    trigger: bool
-        If True, take the time delay from the trigger channel response.
-        Only possible if ``det`` is of type `rnog_detector.Detector`. (Default: False)
-
-    logger: logging.Logger, default=None
-        If set, use ``logger.debug(..)`` to log the cable delay.
-
-    See Also
-    --------
-    NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay : module that automatically applies / corrects for cable delays.
+    Returns
+    -------
+    resampled_trace : ndarray
+        The resampled trace.
     """
-    assert sim_to_data is not None, "``sim_to_data`` is None, please specify."
+    resampling_factor = fractions.Fraction(decimal.Decimal(sampling_factor)).limit_denominator(5000)
+    n_samples = trace.shape[-1]
+    resampled_trace = copy.copy(trace)
 
-    add_or_subtract = 1 if sim_to_data else -1
-    msg = "Add" if sim_to_data else "Subtract"
+    if resampling_factor.numerator != 1:
+        # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
+        resampled_trace = signal.resample(resampled_trace, resampling_factor.numerator * n_samples, axis=-1)
 
-    if trigger and not isinstance(det, detector.rnog_detector.Detector):
-        raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
+    if resampling_factor.denominator != 1:
+        # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
+        resampled_trace = signal.resample(resampled_trace, np.shape(resampled_trace)[-1] // resampling_factor.denominator, axis=-1)
 
-    for channel in station.iter_channels():
+    if resampled_trace.shape[-1] % 2 != 0:
+        resampled_trace = resampled_trace.T[:-1].T
 
-        if trigger:
-            if not channel.has_extra_trigger_channel():
-                continue
-
-            channel = channel.get_trigger_channel()
-            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id(), trigger=True)
-
-        else:
-            # Only the RNOG detector has the argument `trigger`. Default is false
-            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-
-        if logger is not None:
-            logger.debug(f"{msg} {cable_delay / units.ns:.2f}ns "
-                        f"of cable delay to channel {channel.get_id()}")
-
-        channel.add_trace_start_time(add_or_subtract * cable_delay)
-
+    return resampled_trace
 
 
 def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 7):
