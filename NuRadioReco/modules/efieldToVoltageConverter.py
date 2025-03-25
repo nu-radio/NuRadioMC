@@ -33,7 +33,7 @@ class efieldToVoltageConverter():
         self.__pre_pulse_time = None
         self.__post_pulse_time = None
         self.__antenna_provider = None
-        
+
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
         self.logger.setLevel(log_level)
         self.begin()
@@ -129,7 +129,7 @@ class efieldToVoltageConverter():
                 cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                 t0 = electric_field.get_trace_start_time() + cab_delay
 
-                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account 
+                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
                 if sim_station.is_cosmic_ray():
                     travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
                     t0 += travel_time_shift
@@ -146,7 +146,7 @@ class efieldToVoltageConverter():
         times_max = np.max(times_max)
 
         # Determine the maximum length of the "readout window"
-        max_channel_trace_lenght = np.max([
+        max_channel_trace_length = np.max([
             det.get_number_of_samples(station.get_id(), channel_id) / det.get_sampling_frequency(station.get_id(), channel_id)
             for channel_id in channel_ids])
 
@@ -155,7 +155,7 @@ class efieldToVoltageConverter():
         times_max += self.__post_pulse_time
 
         # Add post_pulse_time as long as we reach the minimum required trace length
-        while times_max - times_min < max_channel_trace_lenght:
+        while times_max - times_min < max_channel_trace_length:
             times_max += self.__post_pulse_time
 
         # assumes that all electric fields have the same sampling rate
@@ -231,7 +231,7 @@ class efieldToVoltageConverter():
                         start_bin = 0
 
                     new_trace[:, start_bin:stop_bin] = tr
-                
+
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / time_resolution)
 
