@@ -146,7 +146,7 @@ class efieldToVoltageConverter():
         times_max = np.max(times_max)
 
         # Determine the maximum length of the "readout window"
-        max_channel_trace_lenght = np.max([
+        max_channel_trace_length = np.max([
             det.get_number_of_samples(station.get_id(), channel_id) / det.get_sampling_frequency(station.get_id(), channel_id)
             for channel_id in channel_ids])
 
@@ -155,7 +155,7 @@ class efieldToVoltageConverter():
         times_max += self.__post_pulse_time
 
         # Add post_pulse_time as long as we reach the minimum required trace length
-        while times_max - times_min < max_channel_trace_lenght:
+        while times_max - times_min < max_channel_trace_length:
             times_max += self.__post_pulse_time
 
         # assumes that all electric fields have the same sampling rate
