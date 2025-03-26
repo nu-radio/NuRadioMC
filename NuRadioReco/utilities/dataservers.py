@@ -20,10 +20,12 @@ def get_available_dataservers_by_responsetime(dataservers=dataservers):
         try:
             response = requests.get(testdir, timeout=5)
             response.raise_for_status()
-        except:
+        except Exception as _:
             continue
+
         response_times.append(response.elapsed)
         available_dataservers.append(dataserver)
+
     ranked_dataservers = [x for _, x in sorted(zip(response_times, available_dataservers))]
     return ranked_dataservers
 
@@ -37,7 +39,7 @@ def download_from_dataserver(remote_path, target_path, unpack_tarball=True, data
 
     lockfile = target_path+".lock"
     lock = filelock.FileLock(lockfile)
-   
+
     logger.warning(f"Assuring no other process is downloading. Will wait until {lockfile} is unlocked.")
     with lock:
         if os.path.isfile(target_path):
@@ -62,13 +64,13 @@ def download_from_dataserver(remote_path, target_path, unpack_tarball=True, data
                 r.raise_for_status()
                 requests_status = r.status_code
                 break
-            except requests.exceptions.HTTPError as errh:
+            except requests.exceptions.HTTPError as _:
                 logger.warning(f"HTTP Error for {dataserver}. Does the file {remote_path} exist on the server?")
                 pass
-            except requests.exceptions.ConnectionError as errc:
+            except requests.exceptions.ConnectionError as _:
                 logger.warning(f"Error Connecting to {dataserver}. Maybe you don't have internet... or the server is down?")
                 pass
-            except requests.exceptions.Timeout as errt:
+            except requests.exceptions.Timeout as _:
                 logger.warning(f"Timeout Error for {dataserver}.")
                 pass
             except requests.exceptions.RequestException as err:
