@@ -2,6 +2,7 @@ import NuRadioReco.modules.RNO_G.dataProviderRNOG
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.detector.RNO_G.rnog_detector
+import NuRadioReco.modules.RNO_G.stationHitFilter
 from NuRadioReco.utilities import units, logging as nulogging
 
 from NuRadioReco.examples.RNOG.processing import process_event
@@ -12,7 +13,6 @@ import numpy as np
 import argparse
 import logging
 import time
-import os
 
 logger = logging.getLogger("NuRadioReco.example.RNOG.rnog_standard_data_processing")
 logger.setLevel(nulogging.LOGGING_STATUS)
@@ -30,9 +30,8 @@ if __name__ == "__main__":
                         "the description is queried from the database.")
 
     args = parser.parse_args()
-    nulogging.set_general_log_level(logging.WARNING)
     args.outputfile = args.outputfile
-
+    nulogging.set_general_log_level(logging.INFO)
     logger.status(f"writing output to {args.outputfile}")
 
     # Initialize detector class
@@ -49,6 +48,10 @@ if __name__ == "__main__":
     channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
     channelResampler.begin()
 
+    # Initialize Hit Filter
+    stationHitFilter = NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter()
+    stationHitFilter.begin()
+
     # For time logging
     t_total = 0
 
@@ -57,7 +60,7 @@ if __name__ == "__main__":
     for idx, evt in enumerate(dataProviderRNOG.run()):
 
         if (idx + 1) % 50 == 0:
-            logger.info(f'"Processing events: {idx + 1}\r')
+            print(f'Processing events: {idx + 1}', end='\r')
 
         t0 = time.time()
         # perform standard RNO-G data processing
@@ -87,8 +90,8 @@ if __name__ == "__main__":
             signal_amplitude = channel[chp.maximum_amplitude_envelope]
             signal_time = channel[chp.signal_time]
 
-            print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude / units.mV:.2f}mV, "
-                  f"signal time={signal_time / units.ns:.2f}ns")
+            #print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude / units.mV:.2f}mV, "
+                  #f"signal time={signal_time / units.ns:.2f}ns")
 
 
         # the following code is just an example of how to access the channel waveforms and plot them
@@ -108,33 +111,37 @@ if __name__ == "__main__":
             fig.savefig(f'channel_traces_{idx}.png')
             plt.close(fig)
 
+
+        # Apply the Hit Filter
+        is_passed_HF = stationHitFilter.run(evt, station, det)
+
         # before saving events to disk, it is advisable to downsample back to the two-times the maximum frequency available in the data, i.e., back to the Nquist frequency
         # this will save disk space and make the data processing faster. The preprocessing applied a 600MHz low-pass filter, so we can downsample to 2GHz without losing information
         channelResampler.run(evt, station, det, sampling_rate=2 * units.GHz)
 
+
         # it is advisable to only save the full waveform information for events that pass certain analysis cuts
         # this will save disk space and make the data processing faster
-        # Here, we implement a simple SNR cut as an example
-        interesting_event = False
-        if max_SNR > 5:
-            interesting_event = True  #determined by some analysis cuts
+        # Here, we save events that passed the Hit Filter and exclude forced trigger events and RADIANT trigger events
         # Write event - the RNO-G detector class is not stored within the nur files.
-        if interesting_event:
+        if is_passed_HF and stationHitFilter.is_wanted_trigger_type():
             # save full waveform information
-            print("saving full waveform information")
+            #print("saving full waveform information")
             eventWriter.run(evt, det=None, mode={'Channels':True, "ElectricFields":True})
         else:
             # only save meta information but no traces to save disk space
-            print("saving only meta information")
+            #print("saving only meta information")
             eventWriter.run(evt, det=None, mode={'Channels':False, "ElectricFields":False})
+
 
         logger.debug("Time for event: %f", time.time() - t0)
         t_total += time.time() - t0
 
     dataProviderRNOG.end()
     eventWriter.end()
+    stationHitFilter.end()
 
     logger.status(
-        f"Processed {idx + 1} events:"
+        f"\nProcessed {idx + 1} events:"
         f"\n\tTotal time: {t_total:.2f}s"
         f"\n\tTime per event: {t_total / (idx + 1):.2f}s")
