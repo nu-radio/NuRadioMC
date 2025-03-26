@@ -29,12 +29,7 @@ def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
     """
     shower_axis = np.array([np.sin(zenith) * np.cos(azimuth), np.sin(zenith) * np.sin(azimuth), np.cos(zenith)])
 
-    if positions.ndim == 1:
-        times = -(1 / (constants.c / n)) * np.dot(shower_axis, positions) * units.s
-    else:
-        times = np.zeros(positions.shape[0])
-        for i in range(positions.shape[0]):
-            times[i] = -(1 / (constants.c / n)) * np.dot(shower_axis, positions[i, :]) * units.s
+    times = -(1 / (constants.c / n)) * np.dot(shower_axis, positions.T) * units.s
 
     return times
 
