@@ -298,13 +298,13 @@ class BaseTrace:
         self.set_trace(resampled_trace, sampling_rate)
 
     def serialize(self):
-        if (self._time_trace) is None and (self._frequency_spectrum is None):
+        if (self._time_trace is None) and (self._frequency_spectrum is None):
             return None
-        if (self._time_trace is not None) == (self._frequency_spectrum is not None):
+        if (self._time_trace is not None) and (self._frequency_spectrum is not None):
             raise ValueError("Both time trace and frequency spectrum are stored only one of the two should be kept")
         data = {'sampling_rate': self.get_sampling_rate(),
-                'time_trace' : self._time_trace,
-                'frequency_spectrum' : self._frequency_spectrum,
+                'time_trace': self._time_trace,
+                'frequency_spectrum': self._frequency_spectrum,
                 'trace_start_time': self.get_trace_start_time()}
         return pickle.dumps(data, protocol=4)
 
