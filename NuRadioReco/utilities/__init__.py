@@ -1,1 +1,5 @@
-from NuRadioReco.utilities._deprecated import bandpass_filter, variableWindowSizeCorrelation
+from ._deprecated import *
+import sys
+
+for module in _deprecated.__all__:
+    sys.modules['NuRadioReco.utilities.' + module] = _deprecated.__dict__[module]
