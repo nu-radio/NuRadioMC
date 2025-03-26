@@ -1,3 +1,15 @@
+"""
+This package contains many useful utility functions that are used in the NuRadio package
+but some can also be used independently to analyze radio data.
+
+List of (most relevant) modules for users of NuRadio are:
+- NuRadioReco.utilities.signal_processing
+- NuRadioReco.utilities.trace_utilities
+- NuRadioReco.utilities.units
+- NuRadioReco.utilities.geometryUtilities
+- NuRadioReco.utilities.fft
+"""
+
 from ._deprecated import *
 import sys
 
