@@ -1302,11 +1302,11 @@ class Detector():
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel
 
-        Important note
-        --------------
-        The value returned by this function does *not* directly correspond to the overall time delay / cable delay
-        of the requested channel! A residual group delay may be present and is accounted for by the response
-        provided by `get_amplifier_response`.
+        Notes
+        -----
+        IMPORTANT: The value returned by this function does *not* directly correspond to the overall time
+        delay / cable delay of the requested channel! A residual group delay may be present and is accounted for
+        by the response provided by `get_amplifier_response`.
         
         See Also
         --------
