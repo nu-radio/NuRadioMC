@@ -2,7 +2,9 @@ import numpy as np
 import sys
 from scipy import signal, constants
 from radiotools import helper as hp
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, geometryUtilities as geo
+import warnings
+
 
 # to convert V**2/m**2 * ns -> V**2/m**2 * s -> J/m**2 -> eV/m**2
 conversion_factor_integrated_signal = 1 / units.s * \
@@ -239,8 +241,8 @@ def get_time_shifts_plane(positions, zenith, azimuth, n0):
                     [0, 0, 1]])
 
     # Rotation around x-axis -> rotation into "shower plane"
-    c = np.cos(-zenith)
-    s = np.sin(-zenith)
+    c = np.cos(zenith + np.pi)
+    s = np.sin(zenith + np.pi)
     e2 = np.matrix([[1, 0, 0],
                     [0, c, -s],
                     [0, s, c]])
