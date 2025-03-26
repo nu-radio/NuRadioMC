@@ -678,6 +678,38 @@ Only possible if <code class="docutils literal notranslate"><span class="pre">de
 </div>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.signal_processing.calculate_vrms_from_temperature">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">calculate_vrms_from_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">impedance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8.01088231e-09</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#calculate_vrms_from_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.calculate_vrms_from_temperature" title="Link to this definition"></a></dt>
+<dd><p>Helper function to calculate the noise vrms from a given noise temperature and bandwidth.</p>
+<p>For details see <a class="reference external" href="https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise">https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise</a>
+(sec. “Maximum transfer of noise power”) or our wiki
+<a class="reference external" href="https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html">https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>temperature: float</strong></dt><dd><p>The noise temperature of the channel in Kelvin</p>
+</dd>
+<dt><strong>bandwidth: float or tuple of 2 floats (list of 2 floats) (default: None)</strong></dt><dd><p>If single float, this argument is interpreted as the effective bandwidth. If tuple, the argument is
+interpreted as the lower and upper frequency of the bandwidth. Can be <em class="xref py py-obj">None</em> if <em class="xref py py-obj">response</em> is specified.</p>
+</dd>
+<dt><strong>response: `NuRadioReco.detector.response.Response` (default: None)</strong></dt><dd><p>If not None, the response of the channel is taken into account to calculate the noise vrms.</p>
+</dd>
+<dt><strong>impedance: float (default: 50)</strong></dt><dd><p>Electrical impedance of the channel in Ohm.</p>
+</dd>
+<dt><strong>freqs: array_like (default: None -&gt; np.arange(0, 2500, 0.1) * units.MHz)</strong></dt><dd><p>Frequencies at which the response is evaluated. Only used if <em class="xref py py-obj">response</em> is not None.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>vrms_per_channel: float</dt><dd><p>The vrms of the channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 

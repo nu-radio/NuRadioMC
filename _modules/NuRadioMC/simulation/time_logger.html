@@ -759,7 +759,7 @@
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.start_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">start_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Start counting times for a specific category. </span>
+<span class="sd">        Start counting times for a specific category.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -813,7 +813,7 @@
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.show_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_event_groups</span><span class="p">,</span> <span class="n">i_event_group</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Display the progress information of a simulation run. </span>
+<span class="sd">        Display the progress information of a simulation run.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            n_event_groups (int): Total number of event groups.</span>
@@ -836,7 +836,7 @@
                 <span class="n">time_account_string</span> <span class="o">=</span> <span class="n">time_account_string</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> = </span><span class="si">{:.0f}</span><span class="s1">%, &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">/</span> <span class="n">elapsed_time</span><span class="o">.</span><span class="n">sec</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
             <span class="n">time_account_string</span> <span class="o">=</span> <span class="n">time_account_string</span> <span class="o">+</span> <span class="s1">&#39;unaccounted: </span><span class="si">{:.0f}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="n">elapsed_time</span><span class="o">.</span><span class="n">sec</span> <span class="o">-</span> <span class="n">total_accounted_time</span><span class="p">)</span> <span class="o">/</span> <span class="n">elapsed_time</span><span class="o">.</span><span class="n">sec</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span>
-                <span class="s1">&#39;processing event group </span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">. ETA: </span><span class="si">{}</span><span class="s1">, time consumption: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="s1">&#39;Processing event group </span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">. ETA: </span><span class="si">{}</span><span class="s1">, time consumption: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">i_event_group</span><span class="p">,</span>
                     <span class="n">n_event_groups</span><span class="p">,</span>
                     <span class="n">pretty_time_delta</span><span class="p">(</span><span class="n">projected_time</span><span class="o">.</span><span class="n">sec</span><span class="p">),</span>
