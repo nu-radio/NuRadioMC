@@ -480,25 +480,26 @@ def is_NAN_or_INF(trace):
     return is_bad_trace, npoints_NAN, npoints_INF
 
 
-def get_variable_window_size_correlation(dataTrace, templateTrace, window_size, sampling_rate=3.2*units.GHz, return_time_difference=False, debug=False):
+def get_variable_window_size_correlation(data_trace, template_trace, window_size, sampling_rate=3.2*units.GHz, return_time_difference=False, debug=False):
     """
-    calculate the correlation between to traces using a variable window size and matrix multiplication
+    Calculate the correlation between two traces using a variable window size and matrix multiplication
 
     Parameters
     ----------
-    dataTrace: array
+    data_trace: array
         full trace of the data event
-    templateTrace: array
+    template_trace: array
         full trace of the template
-    window_size: int
-        size of the template window, used for the correlation (should be given in units.ns)
+    window_size: float
+        Size of the template window in nanoseconds
     sampling_rate: float
         sampling rate of the data and template trace
     return_time_difference: boolean
-        if true, the time difference (for the maximal correlation value) between the starting of the data trace and the starting of the (cut) template trace is returned (returned time is in units.ns)
+        if true, the time difference (for the maximal correlation value) between the starting of the data
+        trace and the starting of the (cut) template trace is returned (returned time is in units.ns)
     debug: boolean
         if true, debug plots are created
-        
+
     Returns
     -------
     correlation : array of floats
@@ -506,50 +507,51 @@ def get_variable_window_size_correlation(dataTrace, templateTrace, window_size, 
         The time difference of the maximal correlation value. Returned only if ``return_time_difference==True``
     """
     # preparing the traces
-    dataTrace = np.float32(dataTrace)
-    templateTrace = np.float32(templateTrace)
+    data_trace = np.asarray(data_trace, dtype=float)
+    template_trace = np.asarray(template_trace, dtype=float)
 
     # create the template window
-    window_steps = window_size * (sampling_rate * units.GHz)
+    window_steps = int(window_size * sampling_rate)
 
-    max_amp = max(abs(templateTrace))
-    max_amp_i = np.where(abs(templateTrace) == max_amp)[0][0]
+    max_amp = np.max(abs(template_trace))
+    max_amp_i = np.where(abs(template_trace) == max_amp)[0][0]
     lower_bound = int(max_amp_i - window_steps / 3)
     upper_bound = int(max_amp_i + 2 * window_steps / 3)
-    templateTrace = templateTrace[lower_bound:upper_bound]
+    template_trace = template_trace[lower_bound:upper_bound]
 
     # zero padding on the data trace
-    dataTrace = np.append(np.zeros(len(templateTrace) - 1), dataTrace)
-    dataTrace = np.append(dataTrace, np.zeros(len(templateTrace) - 1))
+    data_trace = np.append(np.zeros(len(template_trace) - 1), data_trace)
+    data_trace = np.append(data_trace, np.zeros(len(template_trace) - 1))
+
+    if debug:
+        plot_data_trace = data_trace.copy()
 
     # only calculate the correlation of the part of the trace where at least 10% of the maximum is visible (fastens the calculation)
-    plot_data_trace = dataTrace
-    max_amp_data = max(abs(dataTrace))
-    help_val = np.where(abs(dataTrace) >= 0.1 * max_amp_data)[0]
-    lower_bound_data = help_val[0] - (len(templateTrace) - 1)
-    upper_bound_data = help_val[len(help_val) - 1] + (len(templateTrace) - 1)
-    dataTrace = dataTrace[lower_bound_data:upper_bound_data]
+    max_amp_data = np.max(abs(data_trace))
+    help_val = np.where(abs(data_trace) >= 0.1 * max_amp_data)[0]
+    lower_bound_data = help_val[0] - (len(template_trace) - 1)
+    upper_bound_data = help_val[len(help_val) - 1] + (len(template_trace) - 1)
+    data_trace = data_trace[lower_bound_data:upper_bound_data]
 
     # run the correlation using matrix multiplication
-    dataMatrix = np.lib.stride_tricks.sliding_window_view(dataTrace, len(templateTrace))
-    corr_numerator = dataMatrix.dot(templateTrace)
+    dataMatrix = np.lib.stride_tricks.sliding_window_view(data_trace, len(template_trace))
+    corr_numerator = dataMatrix.dot(template_trace)
     norm_dataMatrix = np.linalg.norm(dataMatrix, axis=1)
-    norm_templateTrace = np.linalg.norm(templateTrace)
-    corr_denominator = norm_dataMatrix * norm_templateTrace
+    norm_template_trace = np.linalg.norm(template_trace)
+    corr_denominator = norm_dataMatrix * norm_template_trace
     correlation = corr_numerator / corr_denominator
 
-    max_correlation = max(abs(correlation))
+    max_correlation = np.max(abs(correlation))
     max_corr_i = np.where(abs(np.asarray(correlation)) == max_correlation)[0][0]
 
     if return_time_difference:
         # calculate the time difference between the beginning of the template and data trace for the largest correlation value
         # time difference is given in ns
-        time_diff = (max_corr_i + (lower_bound_data - len(templateTrace))) / sampling_rate
+        time_diff = (max_corr_i + (lower_bound_data - len(template_trace))) / sampling_rate
 
-
-    logger.debug(f'max correlation: {max_correlation}')
+    logger.debug('max correlation: {}'.format(max_correlation))
     if return_time_difference:
-        logger.debug(f'time difference: {time_diff} ns')
+        logger.debug('time difference: {:.2f} ns'.format(time_diff))
 
     if debug:
         import matplotlib.pyplot as plt
@@ -560,12 +562,12 @@ def get_variable_window_size_correlation(dataTrace, templateTrace, window_size, 
         axs[0].set_ylabel(r"$\chi$")
         axs[0].set_xlabel('N')
         axs[1].plot(plot_data_trace, label='complete data trace')
-        x_data = np.arange(0, len(dataTrace), 1)
+        x_data = np.arange(0, len(data_trace), 1)
         x_data = x_data + lower_bound_data
-        axs[1].plot(x_data, dataTrace, label='scanned data trace')
-        x_template = np.arange(0, len(templateTrace), 1)
+        axs[1].plot(x_data, data_trace, label='scanned data trace')
+        x_template = np.arange(0, len(template_trace), 1)
         x_template = x_template + max_corr_i + lower_bound_data
-        axs[1].plot(x_template, templateTrace, label='template')
+        axs[1].plot(x_template, template_trace, label='template')
         axs[1].set_xlabel('time')
         axs[1].set_ylabel('amplitude')
         axs[1].legend()
