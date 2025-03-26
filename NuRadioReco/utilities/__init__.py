@@ -1,1 +1,1 @@
-from NuRadioReco.utilities._deprecated import bandpass_filter
+from NuRadioReco.utilities._deprecated import bandpass_filter, variableWindowSizeCorrelation
