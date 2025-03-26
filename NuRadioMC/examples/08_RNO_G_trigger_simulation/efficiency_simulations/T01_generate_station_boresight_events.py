@@ -26,7 +26,7 @@ parser.add_argument('--station_id', type=int, default=0, help='station id')
 args = parser.parse_args()
 
 if not os.path.exists(f"data/input/station{args.station_id}"):
-    os.mkdir(f"data/input/station{args.station_id}")
+    os.makedirs(f"data/input/station{args.station_id}")
 
 pos=[0,0]
 z=-95.5
@@ -56,9 +56,9 @@ obs_angles = np.linspace(-10., 10., 41) * units.deg
 # Elevation of the vertex point seen from the middle point of the array
 theta_file=[]
 for obs_angle in obs_angles:
-    
+
     zmin = z12 - 0.001 * units.m
-    zmax = z12 
+    zmax = z12
     rmin = rho
     rmax = rho + 0.1 * units.m
 
@@ -70,7 +70,7 @@ for obs_angle in obs_angles:
         'fiducial_zmax': zmax,
         'fiducial_ymin': -.001*units.m,
         'fiducial_ymax': 0.001*units.m,
-        'x0':pos[0], 
+        'x0':pos[0],
         'y0':pos[1]
 
     }
@@ -135,9 +135,4 @@ for obs_angle in obs_angles:
             )
 
 theta_file=theta_file[::-1]
-for i in range(len(theta_file)):
-    print(theta_file[i])
-
-# Save angle to a file for command line args
-np.savetxt("boresight_angles.txt", theta_file[i])
-#print(np.array(theta_file)[::-1])
+np.savetxt("boresight_angles.txt", theta_file, fmt="%.1f")

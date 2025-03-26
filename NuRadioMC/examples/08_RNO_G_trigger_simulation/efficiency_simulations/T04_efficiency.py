@@ -72,7 +72,7 @@ parser.add_argument('--step', type=int, help='power trigger step in units of ups
 parser.add_argument('--beam_number', type=int, help='', default=12)
 
 parser.add_argument('inputfilename', type=str, help='path to NuRadioMC input event list')
-parser.add_argument('--config', type=str, default='../config.yaml', help='NuRadioMC yaml config file')
+parser.add_argument('--config', type=str, default='config.yaml', help='NuRadioMC yaml config file')
 parser.add_argument('outputfilename', type=str, help='hdf5 output filename')
 parser.add_argument('outputSNR', type=str, help='outputfilename for the snr files')
 parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None, help='outputfilename of NuRadioReco detector sim file')
@@ -250,7 +250,7 @@ class mySimulation(simulation.simulation):
 
             # Pick the right threshold to pass and round to an int.
             if args.trigger=="power":
-                trigger_threshold=np.rint(power_vrms*11.7)
+                trigger_threshold=np.rint(power_vrms*9.01)
             elif args.trigger=="envelope":
                 trigger_threshold=np.rint(voltage_rms*6.7)
             else: trigger_threshold=None
@@ -309,7 +309,7 @@ class mySimulation(simulation.simulation):
             voltage_rms=np.sqrt(power_vrms)
 
             if args.trigger=="power":
-                trigger_threshold=np.rint(power_vrms*11.7)
+                trigger_threshold=np.rint(power_vrms*9.01)
             elif args.trigger=="envelope":
                 trigger_threshold=np.rint(voltage_rms*6.7)
             else: trigger_threshold=None
