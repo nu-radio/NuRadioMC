@@ -425,15 +425,21 @@ Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
 
 Last updated: 2020
 
-RNOG_vpol_v2_5inch_center_n1.75
+RNOG_vpol_v3_5inch_center_n1.74
 -------------------------------
-XFdtd simulations for the RNO-G VPol in an 11.2 inch diameter borehole with index of refraction of ice n=1.75.
-The antenna is placed in the center (x, y) of the borehole. An extra cubic interpolation is performed in frequencies (5 MHz step).
-Theta range [0, 180] Phi range [0, 360] Freq range [0, 700]MHz.
+XFdtd simulations for the RNO-G VPol in an 11.2 inch diameter borehole with index of refraction of ice n=1.74. The antenna is placed in the center (x, y) of the borehole. Theta range [0, 180] Phi range [0, 360] Freq range [0, 1000]MHz. No power feed-through cable included.
 
 Note: Simulation ran with Theta range [0, 90] and Phi range [0, 90] due to simulation size constraints and was extended to range noted above using symmetry.
 
-Last updated: 2024
+Last updated: 2025
+
+RNOG_hpol_v4_8inch_center_n1.74
+-------------------------------
+XFdtd simulations for the RNO-G HPol in an 11.2 inch diameter borehole with index of refraction of ice n=1.74. The antenna is placed in the center (x, y) of the borehole. Theta range [0, 180] Phi range [0, 360] Freq range [0, 1000]MHz. No power feed-through cable included.
+
+Note: Simulation ran with Theta range [0, 90] and Phi range [0, 90] due to simulation size constraints and was extended to range noted above using symmetry.
+
+Last updated: 2025
 
 RNOG_quadslot_v1_n1.74
 -----------------------

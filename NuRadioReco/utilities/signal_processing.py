@@ -16,8 +16,7 @@ import decimal
 import copy
 
 import logging
-logger = logging.getLogger('NuRadioReco.signal_processing')
-
+logger = logging.getLogger("NuRadioReco.utilities.signal_processing")
 
 
 def half_hann_window(length, half_percent=None, hann_window_length=None):
