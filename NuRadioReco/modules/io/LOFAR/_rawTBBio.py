@@ -1,6 +1,16 @@
 """
 This module implements an interface for reading LOFAR TBB data.
 
+Adapted from https://github.com/Bhare8972/LOFAR-LIM/blob/master/LoLIM/IO/raw_tbb_IO.py;
+original module description is included below.
+Most users will not want to use this module directly, but instead use the
+`readLOFARData <NuRadioReco.modules.io.LOFAR.readLOFARData>` module, which converts the
+TBB data to the NuRadio ``Event`` format, taking care to use the correct units etc.
+Note that to minimize changes, **this** module adheres to the LOFAR internal units (seconds / Hz)
+rather than using the NuRadio unit system.
+
+Original description
+--------------------
 This module is strongly based on pyCRtools module tbb.py by Pim Schellart, Tobias Winchen, and others.
 However, it has been completely re-written for use with LOFAR-LIM
 
@@ -62,8 +72,8 @@ import logging
 import h5py
 import numpy as np
 
-import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as md
-import NuRadioReco.modules.io.LOFAR.rawTBBio_utilities as util
+import NuRadioReco.modules.io.LOFAR._rawTBBio_metadata as md
+import NuRadioReco.modules.io.LOFAR._rawTBBio_utilities as util
 
 
 logger = logging.getLogger('NuRadioReco.LOFAR.rawTBBio')
