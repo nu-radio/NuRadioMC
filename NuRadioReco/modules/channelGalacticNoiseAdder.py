@@ -275,7 +275,6 @@ class channelGalacticNoiseAdder:
             temperature_interpolator = scipy.interpolate.interp1d(
                 self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
             noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
-            noise_temperatures.append(noise_temperature)
 
             # calculate spectral radiance of radio signal using rayleigh-jeans law
             spectral_radiance = (2. * (scipy.constants.Boltzmann * units.joule / units.kelvin)
