@@ -624,7 +624,13 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.io.LOFAR.readLOFARData</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Reader module for LOFAR data</span>
+
+<span class="sd">This module contains the reader class `readLOFARData` for LOFAR data (similar to the `eventReader &lt;NuRadioReco.modules.io.eventReader&gt;`).</span>
+<span class="sd">This class converts raw TBB (.h5) data to the NuRadioReco `Event &lt;NuRadioReco.framework.event.Event&gt;` structure.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
@@ -635,7 +641,6 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">radiotools.helper</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hp</span>
 
-<span class="c1"># from datetime import datetime</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.time</span><span class="w"> </span><span class="kn">import</span> <span class="n">Time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
@@ -647,8 +652,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.radio_shower</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span><span class="p">,</span> <span class="n">showerParameters</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.LOFAR.rawTBBio</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">rawTBBio</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">rawTBBio_metadata</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.LOFAR._rawTBBio</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">rawTBBio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.LOFAR._rawTBBio_metadata</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">rawTBBio_metadata</span>
 
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.LOFAR.readLOFARData&#39;</span><span class="p">)</span>
@@ -667,30 +672,40 @@
 <span class="sd">    metadata_dir : str</span>
 <span class="sd">        Path to the TBB metadata directory</span>
 
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    station_name : str</span>
+<span class="sd">    antenna_set : str</span>
+<span class="sd">    time_unix : int</span>
+<span class="sd">    time_ns : float</span>
+<span class="sd">    clock_frequency : float</span>
+<span class="sd">    positions : ndarray</span>
+<span class="sd">    dipole_ids : list</span>
+<span class="sd">    calibration_delays : ndarray</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Getting metadata from filename: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filenames</span><span class="p">)</span>
     <span class="n">tbb_file</span> <span class="o">=</span> <span class="n">rawTBBio</span><span class="o">.</span><span class="n">MultiFile_Dal1</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">metadata_dir</span><span class="o">=</span><span class="n">metadata_dir</span><span class="p">)</span>
     <span class="n">station_name</span> <span class="o">=</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">get_station_name</span><span class="p">()</span>
     <span class="n">antenna_set</span> <span class="o">=</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">get_antenna_set</span><span class="p">()</span>
-    <span class="n">clock_frequency</span> <span class="o">=</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">SampleFrequency</span>
+    <span class="n">clock_frequency</span> <span class="o">=</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">SampleFrequency</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span> <span class="c1"># rawTBBio uses s and Hz as base units</span>
 
-    <span class="n">ns_per_sample</span> <span class="o">=</span> <span class="mf">1.0e9</span> <span class="o">/</span> <span class="n">clock_frequency</span>
+    <span class="n">ns_per_sample</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span> <span class="o">/</span> <span class="n">clock_frequency</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The file contains </span><span class="si">%3.2f</span><span class="s2"> ns per sample&quot;</span> <span class="o">%</span> <span class="n">ns_per_sample</span><span class="p">)</span>  <span class="c1"># test</span>
-    <span class="n">time_s</span> <span class="o">=</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">()</span>
+    <span class="n">time_unix</span> <span class="o">=</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">()</span>
     <span class="n">time_ns</span> <span class="o">=</span> <span class="n">ns_per_sample</span> <span class="o">*</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">get_nominal_sample_number</span><span class="p">()</span>
 
     <span class="n">positions</span> <span class="o">=</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">get_LOFAR_centered_positions</span><span class="p">()</span>
     <span class="n">dipole_ids</span> <span class="o">=</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">get_antenna_names</span><span class="p">()</span>
 
     <span class="c1"># Try to extract calibration delays from TBB metadata</span>
-    <span class="n">calibration_delays</span> <span class="o">=</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">get_timing_callibration_delays</span><span class="p">(</span><span class="n">force_file_delays</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">calibration_delays</span> <span class="o">=</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">get_timing_callibration_delays</span><span class="p">(</span><span class="n">force_file_delays</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span> <span class="c1"># rawTBBio uses s and Hz as base units</span>
 
     <span class="n">tbb_file</span><span class="o">.</span><span class="n">close_file</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="p">(</span>
         <span class="n">station_name</span><span class="p">,</span>
         <span class="n">antenna_set</span><span class="p">,</span>
-        <span class="n">time_s</span><span class="p">,</span>
+        <span class="n">time_unix</span><span class="p">,</span>
         <span class="n">time_ns</span><span class="p">,</span>
         <span class="n">clock_frequency</span><span class="p">,</span>
         <span class="n">positions</span><span class="p">,</span>
@@ -731,10 +746,12 @@
 <span class="sd">    sampling_frequency : float, default=200 * units.MHz</span>
 <span class="sd">        Sampling frequency of LOFAR</span>
 
-
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    A tuple containing `blocknumber` and `samplenumber`, in this order.</span>
+<span class="sd">    blocknumber : int</span>
+<span class="sd">        Index of block corresponding to LORA timestamp</span>
+<span class="sd">    samplenumber : int</span>
+<span class="sd">        Index of sample corresponding to LORA timestamp, within block ``blocknumber``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">lora_samplenumber</span> <span class="o">=</span> <span class="p">(</span>
@@ -810,9 +827,10 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.tbbID_to_nrrID">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">tbbID_to_nrrID</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Converts a TBB channel ID to the corresponding NRR channel ID given the antenna mode. This simply adds a &quot;9&quot; as</span>
-<span class="sd">    the fourth element of the channelID, if the antenna mode is &quot;LBA_inner&quot;. The function :func:`nrrID_to_tbbID`</span>
-<span class="sd">    can be used to do the opposite.</span>
+<span class="sd">    Converts a TBB channel ID to the corresponding NRR channel ID given the antenna mode.</span>
+
+<span class="sd">    This simply adds a &quot;9&quot; as the fourth element of the channelID, if the antenna mode is &quot;LBA_inner&quot;.</span>
+<span class="sd">    The function :func:`nrrID_to_tbbID` can be used to do the opposite.</span>
 
 <span class="sd">    As of February 2024, this function only supports &quot;LBA_INNER&quot; and &quot;LBA_OUTER&quot; as possible antenna modes.</span>
 <span class="sd">    Note that the antenna mode is always converted to lowercase, so the comparison is case-insensitive (i.e.</span>
@@ -861,7 +879,9 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.nrrID_to_tbbID">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">nrrID_to_tbbID</span><span class="p">(</span><span class="n">channel_id</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This function does the opposite of :func:`tbbID_to_nrrID` . It returns the TBB channel ID given a NRR channel ID.</span>
+<span class="sd">    This function does the opposite of :func:`tbbID_to_nrrID`.</span>
+
+<span class="sd">    It returns the TBB channel ID given a NRR channel ID.</span>
 <span class="sd">    Following the convention used in the LOFAR detector description as of February 2024, this simply replaces the</span>
 <span class="sd">    fourth element of the channelID with a &quot;0&quot;.</span>
 
@@ -894,15 +914,22 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.getLOFARtraces">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">getLOFARtraces</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">tbb_h5_filename</span><span class="p">,</span> <span class="n">metadata_dir</span><span class="p">,</span> <span class="n">time_s</span><span class="p">,</span> <span class="n">time_ns</span><span class="p">,</span> <span class="n">trace_length_nbins</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">tbb_h5_filename</span><span class="p">,</span> <span class="n">metadata_dir</span><span class="p">,</span> <span class="n">time_unix</span><span class="p">,</span> <span class="n">time_ns</span><span class="p">,</span> <span class="n">trace_length_nbins</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        A Class to facilitate getting traces from LOFAR TBB HDF5 Files</span>
+<span class="sd">        A class to facilitate getting traces from LOFAR TBB HDF5 Files.</span>
+
+<span class="sd">        This class is used internally by `readLOFARData` to read in LOFAR traces.</span>
+<span class="sd">        Most users will want to use the `readLOFARData` to be able to use the</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        time_s: int</span>
-<span class="sd">            Event trigger timestamp in seconds</span>
+<span class="sd">        tbb_h5_filename : str</span>
+<span class="sd">            The TBB (.h5) file to read in.</span>
+<span class="sd">        metadata_dir : str</span>
+<span class="sd">            The path where the metadata for the desired event are stored.</span>
+<span class="sd">        time_unix: int</span>
+<span class="sd">            Event trigger timestamp in (UNIX) seconds</span>
 <span class="sd">        time_ns: int</span>
 <span class="sd">            Event trigger timestamp in ns past UTC second</span>
 <span class="sd">        trace_length_nbins : int</span>
@@ -916,7 +943,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">block_number</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sample_number_in_block</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tbb_file</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">time_s</span> <span class="o">=</span> <span class="n">time_s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_unix</span> <span class="o">=</span> <span class="n">time_unix</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time_ns</span> <span class="o">=</span> <span class="n">time_ns</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alignment_shift</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -927,7 +954,8 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">setup_trace_loading</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens the file and sets some variables.</span>
-<span class="sd">        so that get_trace() can be called repeatedly for different dipoles.</span>
+
+<span class="sd">        This enables `get_trace` to be called repeatedly for different dipoles.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tbb_file</span> <span class="o">=</span> <span class="n">rawTBBio</span><span class="o">.</span><span class="n">MultiFile_Dal1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_filename</span><span class="p">,</span> <span class="n">metadata_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_dir</span><span class="p">)</span>
         <span class="n">sample_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tbb_file</span><span class="o">.</span><span class="n">get_nominal_sample_number</span><span class="p">()</span>
@@ -941,7 +969,7 @@
         <span class="n">this_clock_offset</span> <span class="o">=</span> <span class="n">station_clock_offsets</span><span class="p">[</span><span class="n">this_station_name</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span>  <span class="c1"># kept constant at 1e4 in PyCRTools</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Clock offset is </span><span class="si">%1.4e</span><span class="s2"> ns&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">this_clock_offset</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
 
-        <span class="n">packet</span> <span class="o">=</span> <span class="n">lora_timestamp_to_blocknumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_ns</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">sample_number</span><span class="p">,</span>
+        <span class="n">packet</span> <span class="o">=</span> <span class="n">lora_timestamp_to_blocknumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_unix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_ns</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">sample_number</span><span class="p">,</span>
                                                <span class="n">clock_offset</span><span class="o">=</span><span class="n">this_clock_offset</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">trace_length_nbins</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">block_number</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_number_in_block</span> <span class="o">=</span> <span class="n">packet</span>
@@ -961,6 +989,18 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">check_trace_quality</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check all traces recorded from the TBB against quality requirements.</span>
+
+<span class="sd">        Returns two sets. The first is a list of dipole ids failing any of the following</span>
+<span class="sd">        three requirements:</span>
+
+<span class="sd">        #. The starting sample number deviates by more than 25% (of the trace length)</span>
+<span class="sd">           from the median starting sample number;</span>
+<span class="sd">        #. The starting sample number is later than the median starting sample number;</span>
+<span class="sd">        #. The length of the recorded trace deviates by more than 10% from the median</span>
+<span class="sd">           trace length.</span>
+
+<span class="sd">        The second set corresponds to all dipole ids for which the matching dipole</span>
+<span class="sd">        (with the other polarization) is missing.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1015,10 +1055,17 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.getLOFARtraces.get_trace">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dipole_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the trace for antenna ``dipole_id``</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        dipole_id: str</span>
 <span class="sd">            The dipole id</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        trace : np.ndarray</span>
+<span class="sd">            The trace for antenna ``dipole_id``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">start_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace_length_nbins</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_number</span>
@@ -1034,6 +1081,9 @@
 <div class="viewcode-block" id="getLOFARtraces.close_file">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.getLOFARtraces.close_file">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">close_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Closes the currently opened TBB file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tbb_file</span><span class="o">.</span><span class="n">close_file</span><span class="p">()</span>
         <span class="k">return</span></div>
 </div>
@@ -1044,12 +1094,17 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.readLOFARData">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">readLOFARData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This class reads in the data from the TBB files and puts them into an Event structure. It relies on the KRATOS</span>
-<span class="sd">    package. If the directory paths are not provided, they default to the ones on COMA.</span>
+<span class="sd">    This class reads in the data from the TBB files and puts them into an Event structure.</span>
+
+<span class="sd">    This class uses the raw TBB file, (processed) LORA json and LOFAR metadata.</span>
+<span class="sd">    If the directory paths are not provided, they default to the ones on COMA.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    tbb_directory: Path-like str, default=&quot;/vol/astro3/lofar/vhecr/lora_triggered/data/&quot;</span>
+<span class="sd">    restricted_station_set : list, optional</span>
+<span class="sd">        Only read in data for stations in ``restricted_station_set``. If not provided,</span>
+<span class="sd">        read in all stations for which TBB files can be found.</span>
+<span class="sd">    tbb_directory: Path-like str, default=&quot;/vol/astro5/lofar/astro3/vhecr/lora_triggered/data/&quot;</span>
 <span class="sd">        The path to the directory containing the TBB files.</span>
 <span class="sd">    json_directory: Path-like str, default=&quot;/vol/astro7/lofar/kratos_files/json&quot;</span>
 <span class="sd">        The path to the directory containing the JSON files from LORA.</span>
@@ -1120,21 +1175,21 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">            stations : dict</span>
-<span class="sd">                Dictionary with station names as keys and dictionaries as values, who have a `files` key with as</span>
-<span class="sd">                value a list of TBB filepaths and a `metadata` key which has a list with metadat as value.</span>
+<span class="sd">        stations : dict</span>
+<span class="sd">            Dictionary with station names as keys and dictionaries as values, who have a ``files`` key with as</span>
+<span class="sd">            value a list of TBB filepaths and a ``metadata`` key which has a list with metadata as value.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        The metadata key is only set in the `readLOFARData.begin()` function, to avoid setting it multiple times if</span>
+<span class="sd">        The metadata key is only set in the `readLOFARData.begin` function, to avoid setting it multiple times if</span>
 <span class="sd">        there is more than 1 TBB file for a given station.</span>
 
 <span class="sd">        Metadata is a list containing (in this order):</span>
 <span class="sd">            1. station name</span>
 <span class="sd">            2. antenna set</span>
-<span class="sd">            3. tbb timestamp (seconds)</span>
+<span class="sd">            3. tbb timestamp (unix)</span>
 <span class="sd">            4. tbb timestamp (nanoseconds after last second)</span>
-<span class="sd">            5. station clock frequency (Hz)</span>
+<span class="sd">            5. station clock frequency</span>
 <span class="sd">            6. positions of antennas</span>
 <span class="sd">            7. dipole IDs</span>
 <span class="sd">            8. calibration delays per dipole</span>
@@ -1142,12 +1197,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="readLOFARData.get_station_calibration_delays">
-<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.readLOFARData.get_station_calibration_delays">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_calibration_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_station_calibration_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Make a dictionary of channel ids and their corresponding calibration delays,</span>
-<span class="sd">        to avoid misapplying the delays to the wrong channel. Also converts the list</span>
+<span class="sd">        Make a dictionary of channel ids and their corresponding calibration delays.</span>
+
+<span class="sd">        This is done to avoid misapplying the delays to the wrong channel. Also converts the list</span>
 <span class="sd">        of channel IDs pulled from the TBB metadata to their NRR channel ID counterpart.</span>
 
 <span class="sd">        Parameters</span>
@@ -1172,15 +1226,16 @@
             <span class="p">)</span>
         <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">station_calibration_delays</span></div>
-
+        <span class="k">return</span> <span class="n">station_calibration_delays</span>
 
 <div class="viewcode-block" id="readLOFARData.begin">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.readLOFARData.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_id</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Prepare the reader to ingest the event with ID `event_id`. This resets the internal representation of the</span>
-<span class="sd">        stations as well as the event ID. The timestamps are read from the LORA JSON file corresponding to the event.</span>
+<span class="sd">        Prepare the reader to ingest the event with ID ``event_id``.</span>
+
+<span class="sd">        This resets the internal representation of the stations as well as the event ID.</span>
+<span class="sd">        The timestamps are read from the LORA JSON file corresponding to the event.</span>
 <span class="sd">        The function then globs through the TBB directory to find all files corresponding to the event and adds them to</span>
 <span class="sd">        the corresponding station file list. It also loads the metadata for every station.</span>
 
@@ -1266,7 +1321,9 @@
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">trace_length</span><span class="o">=</span><span class="mi">65536</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Runs the reader with the provided detector. For every station that has files associated with it, a Station</span>
+<span class="sd">        Runs the reader with the provided detector.</span>
+
+<span class="sd">        For every station that has files associated with it, a Station</span>
 <span class="sd">        object is created together with its channels (pulled from the detector description, depending on the antenna</span>
 <span class="sd">        set (LBA_OUTER/INNER)). Every channel also gets a group ID which is retrieved from the Detector description.</span>
 <span class="sd">        For LOFAR we use the integer value of the even dipole number, so channels &#39;001000000&#39; and &#39;001000001&#39;,</span>
@@ -1283,6 +1340,19 @@
 <span class="sd">        ------</span>
 <span class="sd">        evt: Event object</span>
 <span class="sd">            The event containing all the loaded traces.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        For each LOFAR station, one `Station &lt;NuRadioReco.framework.station.Station&gt;`</span>
+<span class="sd">        with the corresponding station_id will be created, which contains the voltage traces.</span>
+<span class="sd">        Note that these voltage traces are already corrected for the calibration delays,</span>
+<span class="sd">        using the corresponding delays stored in the input TBB file.</span>
+
+<span class="sd">        Additionally, the LORA reconstruction data is stored in</span>
+<span class="sd">        the `HybridShower &lt;NuRadioReco.framework.hybrid_shower.HybridShower&gt;`, and an</span>
+<span class="sd">        (empty) `RadioShower &lt;NuRadioReco.framework.radio_shower.RadioShower&gt;` is created</span>
+<span class="sd">        to store the output of additional reconstruction modules.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Create an empty with 1 run, as only 1 shower per event</span>
         <span class="n">evt</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_id</span><span class="p">)</span>
@@ -1304,6 +1374,7 @@
 
             <span class="c1"># The metadata is only defined if there are files in the station</span>
             <span class="n">antenna_set</span> <span class="o">=</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">station_calibration_delays</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_station_calibration_delays</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
 
             <span class="n">station</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">station</span><span class="o">.</span><span class="n">Station</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
             <span class="n">station</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
@@ -1364,7 +1435,8 @@
                 <span class="n">channel_group</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_channel_group_id</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
                 <span class="n">channel</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">channel_group_id</span><span class="o">=</span><span class="n">channel_group</span><span class="p">)</span>
-                <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">this_trace</span><span class="p">,</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">)</span>
+                <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">this_trace</span><span class="p">,</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">])</span>
+                <span class="n">channel</span><span class="o">.</span><span class="n">apply_time_shift</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">station_calibration_delays</span><span class="p">[</span><span class="n">channel_id</span><span class="p">])</span> <span class="c1"># apply the calibration delays</span>
                 <span class="n">station</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
 
             <span class="c1"># Check both channels from the flagged group IDs are removed from station</span>

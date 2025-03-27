@@ -1,7 +1,0 @@
-NuRadioReco.modules.io.LOFAR.rawTBBio module
-============================================
-
-.. automodule:: NuRadioReco.modules.io.LOFAR.rawTBBio
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -20,7 +20,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.io.LOFAR.rawTBBio module" href="NuRadioReco.modules.io.LOFAR.rawTBBio.html" />
+    <link rel="next" title="NuRadioReco.modules.io.LOFAR.readLOFARData module" href="NuRadioReco.modules.io.LOFAR.readLOFARData.html" />
     <link rel="prev" title="NuRadioReco.modules.io package" href="NuRadioReco.modules.io.html" /> 
 </head>
 
@@ -632,13 +632,18 @@
              
   <section id="module-NuRadioReco.modules.io.LOFAR">
 <span id="nuradioreco-modules-io-lofar-package"></span><h1>NuRadioReco.modules.io.LOFAR package<a class="headerlink" href="#module-NuRadioReco.modules.io.LOFAR" title="Link to this heading"></a></h1>
+<p>Package with modules related to the read-in of LOFAR (.h5) data files</p>
+<p>Most users will only be interested in the <a class="reference internal" href="NuRadioReco.modules.io.LOFAR.readLOFARData.html#NuRadioReco.modules.io.LOFAR.readLOFARData.readLOFARData" title="NuRadioReco.modules.io.LOFAR.readLOFARData.readLOFARData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">readLOFARData.readLOFARData</span></code></a> class,
+which directly converts the raw LOFAR data to the NuRadioReco
+<a class="reference internal" href="NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Event</span></code></a> structure.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">_rawTBBio</span></code> modules contain several helper functions and classes that enable this,
+which are adapted from <a class="reference external" href="https://github.com/Bhare8972/LOFAR-LIM/tree/master/LoLIM/IO">https://github.com/Bhare8972/LOFAR-LIM/tree/master/LoLIM/IO</a>.
+It shouldn’t generally be necessary to interact with these directly
+if you’re just trying to read in LOFAR data.</p>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.LOFAR.rawTBBio.html">NuRadioReco.modules.io.LOFAR.rawTBBio module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.LOFAR.rawTBBio_metadata.html">NuRadioReco.modules.io.LOFAR.rawTBBio_metadata module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.LOFAR.rawTBBio_utilities.html">NuRadioReco.modules.io.LOFAR.rawTBBio_utilities module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.LOFAR.readLOFARData.html">NuRadioReco.modules.io.LOFAR.readLOFARData module</a></li>
 </ul>
 </div>
@@ -650,7 +655,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="NuRadioReco.modules.io.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.io.LOFAR.rawTBBio.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.LOFAR.rawTBBio module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.io.LOFAR.readLOFARData.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.LOFAR.readLOFARData module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
