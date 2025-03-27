@@ -10,7 +10,7 @@ from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoard
 from NuRadioReco.modules.trigger import highLowThreshold
 import NuRadioReco.modules.channelGenericNoiseAdder
 
-from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import get_response_conversion
+from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import get_response_conversion, get_average_vrms_from_data_driven_noise
 
 from matplotlib import pyplot as plt
 from collections import defaultdict
@@ -332,6 +332,8 @@ if __name__ == "__main__":
 
     freqs = fft.freqs(noise_kwargs['n_samples'], det.get_sampling_frequency(args.station_id, None, trigger=True))
     if args.noise_type == "rayleigh":
+        logger.info("Simulating rayleigh noise ...")
+
         filters = {channel_id: det.get_signal_chain_response(args.station_id, channel_id, trigger=True)(freqs)
             for channel_id in deep_trigger_channels}
 
@@ -352,10 +354,15 @@ if __name__ == "__main__":
             noise_kwargs["vrms_per_channel"] = vrms_per_channel
 
     elif args.noise_type == "data-driven":
+        logger.info("Simulating data-driven noise ...")
         filters = {channel_id: get_response_conversion(det, station_id=args.station_id, channel_id=channel_id)(freqs)
             for channel_id in deep_trigger_channels}
-        assert args.running_vrms, "For data-driven noise the running vrms is required"
-        noise_kwargs["vrms_per_channel"] = None
+        if not args.running_vrms:
+            noise_kwargs["vrms_per_channel"] = get_average_vrms_from_data_driven_noise(
+                det, args.station_id, deep_trigger_channels, trigger=True)
+
+    if not args.running_vrms:
+        logger.info(f"Use a vrms of {np.around(noise_kwargs['vrms_per_channel'] / units.mV, 2)} mV to define the trigger thresholds")
 
     n_events = args.nevents
     t0 = time.time()
@@ -417,10 +424,15 @@ if __name__ == "__main__":
 
     max_rate = 1 / dt
 
+    # to save the vrms as a list in the json file
+    if not args.running_vrms:
+        noise_kwargs["vrms_per_channel"] = noise_kwargs["vrms_per_channel"].tolist()
+
     data = {
         "vrms": vrms,
         "total_time": total_time,
-        "tot_nevents": n_events * args.nruns
+        "tot_nevents": n_events * args.nruns,
+        "noise_kwargs": noise_kwargs,
     }
 
     for trigger_name, trigger_data in triggers.items():
@@ -442,6 +454,7 @@ if __name__ == "__main__":
                     f"({trigger_rate / units.Hz:.2f} +- {e_trigger_rate / units.Hz:.2f} Hz)")
 
     vrms_label = 'running_vrms' if args.running_vrms else 'fixed_vrms'
-    with open(f"trigger_rates_st{args.station_id}_{adc_output}_{vrms_label}_{noise_kwargs['n_samples']}_{sigma_thresholds[0]:.2f}-"
-              f"{sigma_thresholds[-1]:.2f}_{total_time / units.s:.1f}s{args.label}.json", "w") as f:
+    with open(f"trigger_rates_st{args.station_id}_{adc_output}_{vrms_label}_{noise_kwargs['n_samples']}_"
+              f"{args.noise_type}_{sigma_thresholds[0]:.2f}-{sigma_thresholds[-1]:.2f}_"
+              f"{total_time / units.s:.1f}s{args.label}.json", "w") as f:
         json.dump(data, f)
