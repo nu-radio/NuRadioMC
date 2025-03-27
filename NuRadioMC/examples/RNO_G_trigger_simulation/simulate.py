@@ -44,7 +44,7 @@ highLowThreshold = highLowThreshold.triggerSimulator()
 rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
 rnogADCResponse.begin(clock_offset=0, adc_output="counts")
 
-def get_average_vrms_from_data_driven_noise(station_id, channels, trigger=False):
+def get_average_vrms_from_data_driven_noise(det, station_id, channels, trigger=False):
     """ Get the average vrms from the data-driven noise.
 
     This function calculates the average vrms from the data-driven noise for the given channels.
@@ -354,7 +354,7 @@ if __name__ == "__main__":
 
     if config["noise_type"] == "data-driven":
         trigger_channel_noise_vrms = get_average_vrms_from_data_driven_noise(
-            args.station_id, deep_trigger_channels, trigger=True)
+            det, args.station_id, deep_trigger_channels, trigger=True)
     else:
         # Get the trigger channel noise vrms
         trigger_channel_noise_vrms = get_vrms_from_temperature_for_trigger_channels(
