@@ -11,7 +11,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import units, fft, ice, signal_processing, geometryUtilities as geo_utl
+from NuRadioReco.utilities import units, fft, ice, geometryUtilities as geo_utl
 
 logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
 
@@ -268,32 +268,35 @@ class efieldToVoltageConverter():
                                 "Frequencies have changed (values). Clearing antenna response cache. "
                                 "(If this happens often, something might be wrong...")
 
-
-                if self.__caching:
-                    if not efield_is_at_antenna:
-                        zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(det, sim_station, channel_id, zenith)
-                    else:
-                        zenith_antenna = zenith
-                        t_theta = 1
-                        t_phi = 1
-
-                    antenna_model = det.get_antenna_model(sim_station.get_id(), channel_id, zenith_antenna)
-                    antenna_pattern = self.__antenna_provider.load_antenna_pattern(antenna_model)
-                    ant_orient = det.get_antenna_orientation(sim_station.get_id(), channel_id)
-
-                    vel_tmp = self._get_cached_antenna_response(antenna_pattern, zenith_antenna, azimuth, *ant_orient)
-                    VEL = [np.array([vel_tmp['theta'] * t_theta, vel_tmp['phi'] * t_phi])]
+                # If the electric field is not at the antenna, we may need to change the
+                # signal arrival direction (due to refraction into the ice) and account for
+                # missing power due to the Fresnel factors.
+                if not efield_is_at_antenna:
+                    zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(
+                        det, sim_station, channel_id, zenith)
                 else:
-                    # get antenna pattern for current channel
-                    VEL = signal_processing.get_efield_antenna_factor(
-                        sim_station, ff, [channel_id], det, zenith, azimuth, self.__antenna_provider, efield_is_at_antenna)
+                    zenith_antenna = zenith
+                    t_theta = 1
+                    t_phi = 1
 
-                if VEL is None:  # this can happen if there is not signal path to the antenna
+                # Get the antenna pattern and orientation for the current channel
+                antenna_pattern, antenna_orientation = self.get_antenna_pattern_and_orientation(
+                    det, sim_station, channel_id, zenith_antenna)
+
+                # Get antenna sensitivity for the given direction
+                if self.__caching:
+                    vel = self._get_cached_antenna_response(
+                        antenna_pattern, zenith_antenna, azimuth, *antenna_orientation)
+                else:
+                    vel = antenna_pattern.get_antenna_response_vectorized(
+                        ff, zenith_antenna, azimuth, *antenna_orientation)
+
+                if vel is None:  # this can happen if there is not signal path to the antenna
                     voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros
                 else:
                     # Apply antenna response to electric field
-                    VEL = VEL[0]  # we only requested the VEL for one channel, so selecting it
-                    voltage_fft = np.sum(VEL * np.array([efield_fft[1], efield_fft[2]]), axis=0)
+                    vel = np.array([vel['theta'] * t_theta, vel['phi'] * t_phi])
+                    voltage_fft = np.sum(vel * np.array([efield_fft[1], efield_fft[2]]), axis=0)
 
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
@@ -336,6 +339,34 @@ class efieldToVoltageConverter():
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt
+
+    def get_antenna_pattern_and_orientation(self, det, station, channel_id, zenith):
+        """ Get the antenna pattern and orientation for a given channel and zenith angle.
+
+        Parameters
+        ----------
+        det: Detector
+            Detector object
+        station: Station
+            Station object
+        channel_id: int
+            Channel id of the channel
+        zenith: float
+            Zenith angle in radians. For some antenna models, the zenith angle is needed
+            to get the correct antenna pattern.
+
+        Returns
+        -------
+        antenna_pattern: AntennaPattern
+            Antenna pattern object
+        antenna_orientation: list
+            Antenna orientation in radians
+        """
+        antenna_model = det.get_antenna_model(station.get_id(), channel_id, zenith)
+        antenna_pattern = self.__antenna_provider.load_antenna_pattern(antenna_model)
+        antenna_orientation = det.get_antenna_orientation(station.get_id(), channel_id)
+        return antenna_pattern, antenna_orientation
+
 
 def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id):
     """
