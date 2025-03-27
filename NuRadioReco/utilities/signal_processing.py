@@ -339,7 +339,7 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     return efield_amplitude
 
 
-def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=True):
+def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=False):
     """
     Returns the antenna response to a radio signal coming from a specific direction
 
@@ -354,21 +354,35 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
     zenith, azimuth: float, float
         incoming direction of the signal. Note that refraction and reflection at the ice/air boundary are taken into account
     antenna_pattern_provider: AntennaPatternProvider
-    efield_is_at_antenna: bool (defaul: True)
-        if True, the electric field is assumed to be at the antenna. If False, the effects of an air-ice boundary are taken into account.
+    efield_is_at_antenna: bool (defaul: False)
+        If True, the electric field is assumed to be at the antenna.
+        If False, the effects of an air-ice boundary are taken into account if necessary.
+        The default is set to False to keep backwards compatibility.
+
+    Returns
+    -------
+    efield_antenna_factor: list of array of complex values
+        The antenna response for each channel at each frequency
+
+    See Also
+    --------
+    NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith : function that calculates the Fresnel factors
     """
 
     efield_antenna_factor = np.zeros((len(channels), 2, len(frequencies)), dtype=complex)  # from antenna model in e_theta, e_phi
     for iCh, channel_id in enumerate(channels):
         if not efield_is_at_antenna:
-            zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith)
+            zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(
+                detector, station, channel_id, zenith)
         else:
             zenith_antenna = zenith
             t_theta = 1
             t_phi = 1
 
         if zenith_antenna is None:
-            logger.warning("Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible")
+            logger.warning(
+                "Fresnel reflection at air-firn boundary leads to unphysical results, "
+                "no reconstruction possible")
             return None
 
         logger.debug("angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(
@@ -391,7 +405,6 @@ def get_channel_voltage_from_efield(
 
     Parameters
     ----------
-
     station: Station
     electric_field: ElectricField
     channels: array of int
@@ -407,17 +420,15 @@ def get_channel_voltage_from_efield(
 
     frequencies = electric_field.get_frequencies()
     spectrum = electric_field.get_frequency_spectrum()
-    efield_antenna_factor = get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider)
+    efield_antenna_factor = get_efield_antenna_factor(
+        station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider)
+
+    voltage_spectrum = np.array([
+        np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0)
+        for i_ch, _ in enumerate(channels)])
+
     if return_spectrum:
-        voltage_spectrum = np.zeros((len(channels), len(frequencies)), dtype=complex)
-        for i_ch, ch in enumerate(channels):
-            voltage_spectrum[i_ch] = np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0)
         return voltage_spectrum
     else:
-        voltage_trace = np.zeros((len(channels), 2 * (len(frequencies) - 1)), dtype=complex)
-        for i_ch, ch in enumerate(channels):
-            voltage_trace[i_ch] = fft.freq2time(
-                np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0),
-                electric_field.get_sampling_rate())
-
+        voltage_trace = fft.freq2time(voltage_spectrum, electric_field.get_sampling_rate())
         return np.real(voltage_trace)
