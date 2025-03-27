@@ -98,7 +98,7 @@ def _convert_to_astropy_time(t):
 
 class readRNOGData:
 
-    def __init__(self, run_table_path=None, load_run_table=True, log_level=logging.NOTSET):
+    def __init__(self, run_table_path=None, load_run_table=False, log_level=logging.NOTSET):
         """
         Reader for RNO-G ``.root`` files
 
@@ -112,7 +112,7 @@ class readRNOGData:
             Path to a run_table.csv file. If None, the run table is queried from the DB. (Default: None)
 
         load_run_table: bool
-            If True, try to load the run_table from run_table_path. Otherwise, skip this.
+            If True, try to load the run_table from run_table_path. Otherwise, skip this. (Default: False)
 
         log_level: enum
             Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
@@ -262,8 +262,8 @@ class readRNOGData:
             the data in batches based on this number.
             NOTE: This is only relevant for the mattak uproot backend
         use_fallback_time: bool
-            If True and if the trigger time is infinity, the readout time will be used instead of the trigger time. 
-            Otherwise, the event will be skipped in the case of infinite trigger times.  
+            If True and if the trigger time is infinity, the readout time will be used instead of the trigger time.
+            Otherwise, the event will be skipped in the case of infinite trigger times.
             (Default=True)
         """
         t0 = time.time()
