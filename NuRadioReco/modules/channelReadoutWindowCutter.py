@@ -188,7 +188,6 @@ def _get_number_of_samples(sampling_rate, detector_sampling_rate, detector_n_sam
     return number_of_samples, valid_sampling_rate
 
 
-
 def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     """
     Returns a channel with a trace containing zeros.
@@ -229,6 +228,7 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     channel.set_trace_start_time(channel_trace_start_time)
 
     return channel
+
 
 @functools.lru_cache(maxsize=1024)
 def _get_resampled_number_of_samples(number_of_samples, sampling_rate, detector_sampling_rate):
