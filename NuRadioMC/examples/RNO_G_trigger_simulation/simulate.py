@@ -371,7 +371,7 @@ if __name__ == "__main__":
     output_path = f"{args.data_dir}/station_{args.station_id}/nu_{args.flavor}_{args.interaction_type}"
 
     if not os.path.exists(output_path):
-        logger.info("Making dirs", output_path)
+        logger.debug(f"Create output directory: {output_path}")
         os.makedirs(output_path, exist_ok=True)
 
     output_filename = (f"{output_path}/{args.flavor}_{args.interaction_type}"
