@@ -59,6 +59,7 @@ class NoiseModel:
         self.cov_inv = None
         self.cov_log_det = None
         self.t_array = np.arange(n_samples) * 1.0 / sampling_rate
+        self.data_saved = None
 
     def initialize_with_spectra(self, spectra, Vrms=None):
         """
@@ -384,8 +385,17 @@ class NoiseModel:
                 if frequency_domain:
                     x_minus_mu_fft = fft.time2freq(data[i,j,:]-means[j,:], self.sampling_rate)
                     LLH += self._log_multivariate_normal_freq(x_minus_mu_fft=x_minus_mu_fft, noise_psd=self.noise_psd[j])
-            
             LLH_array[i] = LLH
+
+        # Print warining if the data contains frequencies not present in the assumed noise spectrum:
+        if not (data == self.data_saved).all():
+            self.data_saved = np.copy(data)
+            for i in range(n_datasets):
+                for j in range(self.n_antennas):
+                    if any(np.abs(fft.time2freq(data[i,j,:], self.sampling_rate))[self.spectra[j,:] > np.max(self.spectra[j,:]) * self.threshold_amplitude] / self.spectra[j,:][self.spectra[j,:] > np.max(self.spectra[j,:]) * self.threshold_amplitude] > 100):
+                        print(f"Warning: The ratio of the Fourier transform of the data and the spectra of the noise model is larger than 100. This indicates that the noise model is initialized with a wrong spectrum.")
+                        print(f"Max ratio: {np.max(np.abs(fft.time2freq(data[i,j,:], self.sampling_rate))[self.spectra[j,:] > np.max(self.spectra[j,:]) * self.threshold_amplitude] / self.spectra[j,:][self.spectra[j,:] > np.max(self.spectra[j,:]) * self.threshold_amplitude])}")
+
 
         return LLH_array - LLH_best
     
