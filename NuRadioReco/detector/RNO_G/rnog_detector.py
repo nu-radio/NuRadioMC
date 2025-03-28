@@ -1216,7 +1216,7 @@ class Detector():
     def get_cable_delay(self, station_id, channel_id, use_stored=True, trigger=False):
         """ Same as `get_time_delay`. Only here to keep the same interface as the other detector classes. """
         # FS: For the RNO-G detector description it is not easy to determine the cable delay alone
-        # because it is not clear which reference components may need to be substraced.
+        # because it is not clear which reference components may need to be subtracted.
         # However, having the cable delay without amplifiers is anyway weird.
         return self.get_time_delay(station_id, channel_id, use_stored=use_stored, trigger=trigger)
 
@@ -1316,9 +1316,15 @@ class Detector():
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel
 
+        Notes
+        -----
+        IMPORTANT: The value returned by this function does *not* directly correspond to the overall time
+        delay / cable delay of the requested channel! A residual group delay may be present and is accounted for
+        by the response provided by `get_amplifier_response`.
+        
         See Also
         --------
-        get_cable_delay
+        get_cable_delay, get_amplifier_response
         """
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
