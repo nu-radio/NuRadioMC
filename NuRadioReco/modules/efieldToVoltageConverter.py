@@ -11,7 +11,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import units, fft, ice, trace_utilities, geometryUtilities as geo_utl
+from NuRadioReco.utilities import units, fft, ice, signal_processing, geometryUtilities as geo_utl
 
 
 class efieldToVoltageConverter():
@@ -277,7 +277,7 @@ class efieldToVoltageConverter():
                     VEL = [np.array([vel_tmp['theta'] * t_theta, vel_tmp['phi'] * t_phi])]
                 else:
                     # get antenna pattern for current channel
-                    VEL = trace_utilities.get_efield_antenna_factor(
+                    VEL = signal_processing.get_efield_antenna_factor(
                         sim_station, ff, [channel_id], det, zenith, azimuth, self.__antenna_provider)
 
                 if VEL is None:  # this can happen if there is not signal path to the antenna
