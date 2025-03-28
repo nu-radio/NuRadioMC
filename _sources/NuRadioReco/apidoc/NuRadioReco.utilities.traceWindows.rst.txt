@@ -1,7 +1,0 @@
-NuRadioReco.utilities.traceWindows module
-=========================================
-
-.. automodule:: NuRadioReco.utilities.traceWindows
-   :members:
-   :undoc-members:
-   :show-inheritance:

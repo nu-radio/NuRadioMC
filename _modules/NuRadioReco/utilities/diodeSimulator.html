@@ -362,7 +362,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.bandpass_filter.html">NuRadioReco.utilities.bandpass_filter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html">NuRadioReco.utilities.cr_flux module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html">NuRadioReco.utilities.diodeSimulator module</a></li>
@@ -379,10 +378,8 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.variableWindowSizeCorrelation.html">NuRadioReco.utilities.variableWindowSizeCorrelation module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
 </ul>
 </li>
@@ -623,14 +620,14 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.diodeSimulator</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span></span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelGenericNoiseAdder</span><span class="w"> </span><span class="kn">import</span> <span class="n">channelGenericNoiseAdder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.channel</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.signal</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelGenericNoiseAdder</span><span class="w"> </span><span class="kn">import</span> <span class="n">channelGenericNoiseAdder</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.fft</span><span class="w"> </span><span class="kn">import</span> <span class="n">time2freq</span><span class="p">,</span> <span class="n">freq2time</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.signal</span><span class="w"> </span><span class="kn">import</span> <span class="n">butter</span><span class="p">,</span> <span class="n">freqs</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.channel</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.diodeSimulator&#39;</span><span class="p">)</span>
 
@@ -715,8 +712,9 @@
         <span class="n">diode_resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_td_fdown1</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_td_fdown2</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
         <span class="n">t_slice</span> <span class="o">=</span> <span class="n">times</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_td_args</span><span class="p">[</span><span class="s1">&#39;up&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">diode_resp</span><span class="p">[</span><span class="n">t_slice</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_td_fup</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">t_slice</span><span class="p">])</span>
-        <span class="n">conv</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">antenna_resistance</span><span class="p">,</span>
-                                     <span class="n">diode_resp</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)</span>
+        <span class="n">conv</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">antenna_resistance</span><span class="p">,</span> <span class="n">diode_resp</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)</span>
+
         <span class="c1"># conv multiplied by dt so that the amplitude stays constant for</span>
         <span class="c1"># varying dts (determined emperically, see ARVZAskaryanSignal comments)</span>
         <span class="c1"># Setting output</span>
@@ -727,14 +725,14 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_passband</span> <span class="o">!=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
 
             <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
-            <span class="n">trace_spectrum</span> <span class="o">=</span> <span class="n">time2freq</span><span class="p">(</span><span class="n">trace_after_tunnel_diode</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
+            <span class="n">trace_spectrum</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">trace_after_tunnel_diode</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
             <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sampling_rate</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace_spectrum</span><span class="p">))</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_passband</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">butter</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_passband</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;lowpass&#39;</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_passband</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;lowpass&#39;</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">butter</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_passband</span><span class="p">,</span> <span class="s1">&#39;bandpass&#39;</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">)</span>
-            <span class="n">trace_after_tunnel_diode</span> <span class="o">=</span> <span class="n">freq2time</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">trace_spectrum</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
+                <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_passband</span><span class="p">,</span> <span class="s1">&#39;bandpass&#39;</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">)</span>
+            <span class="n">trace_after_tunnel_diode</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">trace_spectrum</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">trace_after_tunnel_diode</span></div>
 
@@ -782,15 +780,16 @@
         <span class="n">power_std_list</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">i_try</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_tries</span><span class="p">):</span>
-
             <span class="n">noise</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
-            <span class="n">long_noise</span> <span class="o">=</span> <span class="n">channelGenericNoiseAdder</span><span class="p">()</span><span class="o">.</span><span class="n">bandlimited_noise</span><span class="p">(</span><span class="n">min_freq</span><span class="o">=</span><span class="n">min_freq</span><span class="p">,</span>
-                                                                      <span class="n">max_freq</span><span class="o">=</span><span class="n">max_freq</span><span class="p">,</span>
-                                                                      <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
-                                                                      <span class="n">sampling_rate</span><span class="o">=</span><span class="n">sampling_rate</span><span class="p">,</span>
-                                                                      <span class="n">amplitude</span><span class="o">=</span><span class="n">amplitude</span><span class="p">,</span>
-                                                                      <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">)</span>
+            <span class="n">long_noise</span> <span class="o">=</span> <span class="n">channelGenericNoiseAdder</span><span class="p">()</span><span class="o">.</span><span class="n">bandlimited_noise</span><span class="p">(</span>
+                <span class="n">min_freq</span><span class="o">=</span><span class="n">min_freq</span><span class="p">,</span>
+                <span class="n">max_freq</span><span class="o">=</span><span class="n">max_freq</span><span class="p">,</span>
+                <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
+                <span class="n">sampling_rate</span><span class="o">=</span><span class="n">sampling_rate</span><span class="p">,</span>
+                <span class="n">amplitude</span><span class="o">=</span><span class="n">amplitude</span><span class="p">,</span>
+                <span class="nb">type</span><span class="o">=</span><span class="nb">type</span>
+            <span class="p">)</span>
 
             <span class="n">noise</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">long_noise</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
             <span class="n">power_noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tunnel_diode</span><span class="p">(</span><span class="n">noise</span><span class="p">)</span>
@@ -807,9 +806,90 @@
 <div class="viewcode-block" id="diodeSimulator.end">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html#NuRadioReco.utilities.diodeSimulator.diodeSimulator.end">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
         <span class="k">pass</span></div>
 </div>
+
+
+
+<div class="viewcode-block" id="get_window_around_maximum">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html#NuRadioReco.utilities.diodeSimulator.get_window_around_maximum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_window_around_maximum</span><span class="p">(</span><span class="n">station</span><span class="p">,</span>
+                              <span class="n">diode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">ratio</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                              <span class="n">edge</span><span class="o">=</span><span class="mi">20</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function filters the signal using a diode model and calculates</span>
+<span class="sd">    the times around the filtered maximum where the signal is the ratio</span>
+<span class="sd">    parameter times the maximum. Then, it creates a time window by substracting</span>
+<span class="sd">    and adding the edge parameter to these times. This function is useful</span>
+<span class="sd">    for reducing the probability of noise-triggered events while using the</span>
+<span class="sd">    envelope phased array, although it can also be applied to the standard</span>
+<span class="sd">    phased array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    station: NuRadioReco station</span>
+<span class="sd">        Station containing the information on the detector</span>
+<span class="sd">    diode: diodeSimulator or None</span>
+<span class="sd">        Diode model to be applied. If None, a diode with an output 200 MHz low-pass</span>
+<span class="sd">        filter is chosen</span>
+<span class="sd">    triggered_channels: array of integers</span>
+<span class="sd">        Channels used for the trigger, and also for creating the window</span>
+<span class="sd">    ratio: float</span>
+<span class="sd">        Cut parameter</span>
+<span class="sd">    edge: float</span>
+<span class="sd">        Times to be sustracted from the points defined by the ratio cut to</span>
+<span class="sd">        create the window</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (left_time, right_time): (float, float) tuple</span>
+<span class="sd">        Tuple containing the edges of the time window</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">diode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">diode_passband</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)</span>
+        <span class="n">diode</span> <span class="o">=</span> <span class="n">diodeSimulator</span><span class="p">(</span><span class="n">diode_passband</span><span class="p">)</span>
+
+    <span class="n">left_times</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">right_times</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">triggered_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">triggered_channels</span> <span class="o">=</span> <span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">_id</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">()]</span>
+
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>  <span class="c1"># loop over all channels (i.e. antennas) of the station</span>
+
+        <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">triggered_channels</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">times</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>
+
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">diode</span><span class="o">.</span><span class="n">tunnel_diode</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">trace_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">trace</span><span class="p">))</span>
+        <span class="n">argmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+        <span class="n">argmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">argmin</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">argmin</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">argmin</span> <span class="o">==</span> <span class="n">argmax</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">argmin</span> <span class="o">+</span> <span class="mi">5</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)):</span>
+                <span class="n">argmax</span> <span class="o">=</span> <span class="n">argmin</span> <span class="o">+</span> <span class="mi">5</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">argmax</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">argmin</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">argmin</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">left_bin</span> <span class="o">=</span> <span class="n">argmin</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">argmin</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">ratio</span> <span class="o">*</span> <span class="n">trace_max</span><span class="p">))</span>
+        <span class="n">left_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">left_bin</span><span class="p">])</span>
+
+        <span class="n">right_bin</span> <span class="o">=</span> <span class="n">argmax</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">argmax</span><span class="p">:</span><span class="kc">None</span><span class="p">]</span> <span class="o">-</span> <span class="n">ratio</span> <span class="o">*</span> <span class="n">trace_max</span><span class="p">))</span>
+        <span class="n">right_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">right_bin</span><span class="p">])</span>
+
+    <span class="n">left_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">left_times</span><span class="p">)</span> <span class="o">-</span> <span class="n">edge</span>
+    <span class="n">right_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">right_times</span><span class="p">)</span> <span class="o">+</span> <span class="n">edge</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">left_time</span><span class="p">,</span> <span class="n">right_time</span><span class="p">)</span></div>
 
 </pre></div>
 

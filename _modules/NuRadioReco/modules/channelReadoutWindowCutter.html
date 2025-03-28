@@ -362,7 +362,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.bandpass_filter.html">NuRadioReco.utilities.bandpass_filter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html">NuRadioReco.utilities.cr_flux module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html">NuRadioReco.utilities.diodeSimulator module</a></li>
@@ -379,10 +378,8 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.variableWindowSizeCorrelation.html">NuRadioReco.utilities.variableWindowSizeCorrelation module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
 </ul>
 </li>
@@ -625,9 +622,10 @@
   <h1>Source code for NuRadioReco.modules.channelReadoutWindowCutter</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.channel</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">signal_processing</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.channelReadoutWindowCutter&#39;</span><span class="p">)</span>
 
@@ -649,7 +647,7 @@
 <div class="viewcode-block" id="channelReadoutWindowCutter.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_warning_issued</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_error_issued</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">pass</span></div>
 
 
@@ -705,11 +703,11 @@
 
             <span class="n">number_of_samples</span><span class="p">,</span> <span class="n">valid_sampling_rate</span> <span class="o">=</span> <span class="n">_get_number_of_samples</span><span class="p">(</span>
                 <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">detector_n_samples</span><span class="p">,</span>
-                <span class="n">issue_warning</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_warning_issued</span>
+                <span class="n">issue_error</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_error_issued</span>
                 <span class="p">)</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_warning_issued</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_warning_issued</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">valid_sampling_rate</span> <span class="c1"># this ensures the warning is printed only once</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_error_issued</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_error_issued</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">valid_sampling_rate</span> <span class="c1"># this ensures the warning is printed only once</span>
 
             <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">number_of_samples</span> <span class="o">&gt;</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
@@ -767,7 +765,7 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_get_number_of_samples</span><span class="p">(</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">detector_n_samples</span><span class="p">,</span> <span class="n">issue_warning</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_number_of_samples</span><span class="p">(</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">detector_n_samples</span><span class="p">,</span> <span class="n">issue_error</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the number of samples that will result in the correct number of samples after resampling.</span>
 
@@ -779,11 +777,9 @@
 <span class="sd">        The target sampling rate</span>
 <span class="sd">    detector_n_samples : int</span>
 <span class="sd">        The target number of samples after resampling to `detector_sampling_rate`</span>
-<span class="sd">    issue_warning : bool, optional</span>
-<span class="sd">        Print a warning if the sampling rate is not an integer multiple</span>
-<span class="sd">        of the target `detector_sampling_rate`; in this case the number of samples</span>
-<span class="sd">        returned cannot be guaranteed to result in the desired number of samples</span>
-<span class="sd">        after resampling.</span>
+<span class="sd">    issue_error : bool, optional (default: True)</span>
+<span class="sd">        Print an error (but does not raise one) if, after resampling, the desired</span>
+<span class="sd">        number of samples can not be achieved.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -799,14 +795,6 @@
     <span class="c1"># the number of samples after resampling will be correct</span>
     <span class="n">valid_sampling_rate</span> <span class="o">=</span> <span class="n">sampling_rate</span> <span class="o">%</span> <span class="n">detector_sampling_rate</span> <span class="o">&lt;</span> <span class="mf">1e-8</span>
 
-    <span class="k">if</span> <span class="n">issue_warning</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">valid_sampling_rate</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-            <span class="s1">&#39;The current sampling rate &#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">sampling_rate</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> GHz) is not a multiple of &#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;the target detector sampling rate (</span><span class="si">{</span><span class="n">detector_sampling_rate</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> GHz). &#39;</span>
-            <span class="s1">&#39;Traces may not have the correct trace length after resampling.&#39;</span>
-        <span class="p">)</span>
-
     <span class="c1"># this should ensure that 1) the number of samples is even and</span>
     <span class="c1"># 2) resampling to the detector sampling rate results in the correct number of samples</span>
     <span class="c1"># (note that 2) can only be guaranteed if the detector sampling rate is lower than the</span>
@@ -814,8 +802,21 @@
     <span class="n">number_of_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
         <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">detector_n_samples</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sampling_rate</span> <span class="o">/</span> <span class="n">detector_sampling_rate</span><span class="p">))</span>
 
-    <span class="k">return</span> <span class="n">number_of_samples</span><span class="p">,</span> <span class="n">valid_sampling_rate</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_sampling_rate</span><span class="p">:</span>
+        <span class="c1"># actually check if the number of samples is correct after resampling</span>
+        <span class="n">final_number_of_samples</span> <span class="o">=</span> <span class="n">_get_resampled_number_of_samples</span><span class="p">(</span><span class="n">number_of_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">)</span>
+        <span class="n">valid_sampling_rate</span> <span class="o">=</span> <span class="n">final_number_of_samples</span> <span class="o">==</span> <span class="n">detector_n_samples</span>
 
+        <span class="k">if</span> <span class="n">issue_error</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">valid_sampling_rate</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;The current sampling rate &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">sampling_rate</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> GHz) is not a multiple of &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;the target detector sampling rate (</span><span class="si">{</span><span class="n">detector_sampling_rate</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> GHz). &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;Traces will not have the correct trace length after resampling. Desired number of samples: </span><span class="si">{</span><span class="n">detector_n_samples</span><span class="si">}</span><span class="s1">, &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;expected number of samples after resampling: </span><span class="si">{</span><span class="n">final_number_of_samples</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">number_of_samples</span><span class="p">,</span> <span class="n">valid_sampling_rate</span>
 
 
 <div class="viewcode-block" id="get_empty_channel">
@@ -851,7 +852,7 @@
     <span class="n">detector_sampling_rate</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
     <span class="n">n_samples</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_get_number_of_samples</span><span class="p">(</span>
-        <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">detector_n_samples</span><span class="p">,</span> <span class="n">issue_warning</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">detector_n_samples</span><span class="p">,</span> <span class="n">issue_error</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="c1"># get the correct trace start time taking into account different `pre_trigger_times`</span>
     <span class="n">channel_trace_start_time</span> <span class="o">=</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_pre_trigger_time_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
@@ -861,6 +862,28 @@
 
     <span class="k">return</span> <span class="n">channel</span></div>
 
+
+
+<span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_resampled_number_of_samples</span><span class="p">(</span><span class="n">number_of_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the number of samples after resampling.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    number_of_samples : int</span>
+<span class="sd">        The number of samples at the current sampling rate</span>
+<span class="sd">    sampling_rate : float</span>
+<span class="sd">        The current sampling rate</span>
+<span class="sd">    detector_sampling_rate : float</span>
+<span class="sd">        The target sampling rate</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    final_number_of_samples : int</span>
+<span class="sd">        The number of samples after resampling</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">signal_processing</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">number_of_samples</span><span class="p">),</span> <span class="n">detector_sampling_rate</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">))</span>
 </pre></div>
 
            </div>

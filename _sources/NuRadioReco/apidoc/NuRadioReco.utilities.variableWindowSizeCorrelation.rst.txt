@@ -1,7 +1,0 @@
-NuRadioReco.utilities.variableWindowSizeCorrelation module
-==========================================================
-
-.. automodule:: NuRadioReco.utilities.variableWindowSizeCorrelation
-   :members:
-   :undoc-members:
-   :show-inheritance:

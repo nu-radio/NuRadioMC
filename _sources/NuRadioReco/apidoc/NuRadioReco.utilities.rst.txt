@@ -13,7 +13,6 @@ Submodules
    :maxdepth: 1
 
    NuRadioReco.utilities.analytic_pulse
-   NuRadioReco.utilities.bandpass_filter
    NuRadioReco.utilities.cr_flux
    NuRadioReco.utilities.dataservers
    NuRadioReco.utilities.diodeSimulator
@@ -30,8 +29,6 @@ Submodules
    NuRadioReco.utilities.signal_processing
    NuRadioReco.utilities.templates
    NuRadioReco.utilities.timing
-   NuRadioReco.utilities.traceWindows
    NuRadioReco.utilities.trace_utilities
    NuRadioReco.utilities.units
-   NuRadioReco.utilities.variableWindowSizeCorrelation
    NuRadioReco.utilities.version
