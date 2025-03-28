@@ -735,7 +735,7 @@ class NoiseModel:
             plt.show()
             plt.close()
 
-            fig, ax = plt.subplots(self.n_antennas, figsize=[10,2*self.n_antennas])
+            fig, ax = plt.subplots(self.n_antennas, figsize=[10, 2*self.n_antennas])
             for i_ant in range(self.n_antennas):
                 ax[i_ant].plot(list(station.iter_channels())[0].get_times(), data_array[i_ant,:], "k-", label="Data")
                 ax[i_ant].plot(list(station.iter_channels())[0].get_times(), signal_arrays[np.argmin(LLH_array),i_ant,:], "b--", label="Signal (best time offset)")
@@ -745,6 +745,23 @@ class NoiseModel:
                 if i_ant == 0:
                     ax[i_ant].set_title(f"Best time offset: {time_grid[np.argmin(LLH_array)]} ns")
             fig.tight_layout()
+            plt.show()
+            plt.close()
+
+            fig, ax = plt.subplots(self.n_antennas, figsize=[10, 2*self.n_antennas])
+            for i_ant in range(self.n_antennas):
+                data_fft = fft.time2freq(data_array[i_ant,:], self.sampling_rate)
+                signal_fft = fft.time2freq(signal_arrays[np.argmin(LLH_array),i_ant,:], self.sampling_rate)
+                ax[i_ant].plot(self.frequencies, abs(data_fft[:]), "k-", label="Data FFT")
+                ax[i_ant].plot(self.frequencies, abs(signal_fft[:]), "b-", label="Signal FFT")
+                ax[i_ant].plot(self.frequencies, abs(self.spectra[i_ant,:]), "r-", label="Assumed noise spectrum")
+                if i_ant == self.n_antennas - 1: ax[i_ant].set_xlabel("Frequency [Hz]")
+                ax[i_ant].set_ylabel("Amplitude [V/GHz]")
+                if i_ant == 0:
+                    ax[i_ant].legend()
+                ax[i_ant].set_title(f"Antenna {i_ant}")
+            fig.tight_layout()
+            plt.savefig("debug_llh_spectra.png")
             plt.show()
             plt.close()
 
