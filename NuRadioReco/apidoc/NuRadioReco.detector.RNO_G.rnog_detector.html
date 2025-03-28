@@ -1333,9 +1333,13 @@ it here for consistency with other detector classes.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code></a></dt><dd></dd>
+<dt><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code></a>, <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code></a></dt><dd></dd>
 </dl>
 </div>
+<p class="rubric">Notes</p>
+<p>IMPORTANT: The value returned by this function does <em>not</em> directly correspond to the overall time
+delay / cable delay of the requested channel! A residual group delay may be present and is accounted for
+by the response provided by <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py method">

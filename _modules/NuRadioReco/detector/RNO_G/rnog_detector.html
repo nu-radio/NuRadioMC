@@ -1924,7 +1924,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_cable_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Same as `get_time_delay`. Only here to keep the same interface as the other detector classes. &quot;&quot;&quot;</span>
         <span class="c1"># FS: For the RNO-G detector description it is not easy to determine the cable delay alone</span>
-        <span class="c1"># because it is not clear which reference components may need to be substraced.</span>
+        <span class="c1"># because it is not clear which reference components may need to be subtracted.</span>
         <span class="c1"># However, having the cable delay without amplifiers is anyway weird.</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time_delay</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">use_stored</span><span class="o">=</span><span class="n">use_stored</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger</span><span class="p">)</span></div>
 
@@ -2027,9 +2027,15 @@
 <span class="sd">        time_delay: float</span>
 <span class="sd">            Sum of the time delays of all components in the signal chain for one channel</span>
 
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        IMPORTANT: The value returned by this function does *not* directly correspond to the overall time</span>
+<span class="sd">        delay / cable delay of the requested channel! A residual group delay may be present and is accounted for</span>
+<span class="sd">        by the response provided by `get_amplifier_response`.</span>
+<span class="sd">        </span>
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
-<span class="sd">        get_cable_delay</span>
+<span class="sd">        get_cable_delay, get_amplifier_response</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">signal_chain_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel_signal_chain</span><span class="p">(</span>
             <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
