@@ -1,8 +1,9 @@
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.channel
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 
 import numpy as np
+import functools
 import logging
 logger = logging.getLogger('NuRadioReco.channelReadoutWindowCutter')
 
@@ -20,7 +21,7 @@ class channelReadoutWindowCutter:
         self.begin()
 
     def begin(self):
-        self.__sampling_rate_warning_issued = False
+        self.__sampling_rate_error_issued = False
         pass
 
     @register_run()
@@ -73,11 +74,11 @@ class channelReadoutWindowCutter:
 
             number_of_samples, valid_sampling_rate = _get_number_of_samples(
                 sampling_rate, detector_sampling_rate, detector_n_samples,
-                issue_warning=not self.__sampling_rate_warning_issued
+                issue_error=not self.__sampling_rate_error_issued
                 )
 
-            if not self.__sampling_rate_warning_issued:
-                self.__sampling_rate_warning_issued = not valid_sampling_rate # this ensures the warning is printed only once
+            if not self.__sampling_rate_error_issued:
+                self.__sampling_rate_error_issued = not valid_sampling_rate # this ensures the warning is printed only once
 
             trace = channel.get_trace()
             if number_of_samples > trace.shape[0]:
@@ -94,25 +95,32 @@ class channelReadoutWindowCutter:
 
             # throw error if the trigger time is outside the trace or warnings if the readout window is partially outside the trace
             trace_length = len(trace)
-            if trigger_time < channel.get_trace_start_time() or trigger_time > channel.get_trace_start_time() + trace_length / sampling_rate:
-                msg = ("trigger time outside trace (trigger time = {:.2f}ns, start of trace {:.2f}ns, end of trace {:.2f}ns, "
-                       "this would result in rolling over the edge of the trace and is not the intended use of "
-                       "this function").format(
-                            trigger_time, channel.get_trace_start_time(), channel.get_trace_start_time() + trace_length / sampling_rate)
+            if (trigger_time < channel.get_trace_start_time() or
+                trigger_time > channel.get_trace_start_time() + trace_length / sampling_rate):
+                msg = ("Trigger time outside trace for station.channel {}.{} (trigger time = {:.2f}ns, "
+                       "start of trace {:.2f}ns, end of trace {:.2f}ns, this would result in rolling over "
+                       "the edge of the trace and is not the intended use of this function").format(
+                        station.get_id(), channel_id, trigger_time, channel.get_trace_start_time(),
+                        channel.get_trace_start_time() + trace_length / sampling_rate)
                 logger.error(msg)
                 raise AttributeError(msg)
             elif pre_trigger_time_channel < 0:
-                msg = ("Start of the readout window is before the start of the trace (trigger time = {:.2f}ns, "
-                       "pre-trigger time = {:.2f}ns, start of trace {:.2f}ns, requested time before trace = {:.2f}ns), "
-                       "the trace will be rolled over the edge to fit in the readout window").format(
-                            trigger_time, pre_trigger_time, channel.get_trace_start_time(), pre_trigger_time_channel)
+                msg = ("Start of the readout window is before the start of the trace for station.channel {}.{}. "
+                       "This can happen with an accidental noise trigger but should not happen otherwise. "
+                       "(trigger time = {:.2f}ns, pre-trigger time = {:.2f}ns, start of trace {:.2f}ns, "
+                       "requested time before trace = {:.2f}ns), the trace will be rolled over the edge to "
+                       "fit in the readout window").format(
+                        station.get_id(), channel_id, trigger_time, pre_trigger_time,
+                        channel.get_trace_start_time(), pre_trigger_time_channel)
                 logger.warning(msg)
             elif pre_trigger_time_channel + number_of_samples / sampling_rate > trace_length / sampling_rate:
-                msg = ("End of the readout window is outside the end of the trace (trigger time = {:.2f}ns, "
-                       "pre-trigger time = {:.2f}ns, length of readout window {:.2f}ns, end of trace {:.2f}, requested time after trace = {:.2f}ns), "
-                       "the trace will be rolled over the edge to fit in the readout window").format(
-                            trigger_time, pre_trigger_time, number_of_samples/sampling_rate, channel.get_trace_start_time() + trace_length/sampling_rate,
-                            pre_trigger_time_channel + number_of_samples / sampling_rate - trace_length / sampling_rate)
+                msg = ("End of the readout window is outside the end of the trace for station.channel {}.{}. "
+                       "(trigger time = {:.2f}ns, pre-trigger time = {:.2f}ns, start of sim. trace = {:.2f}ns, "
+                       "end of sim. trace {:.2f}, length of readout window {:.2f}ns, requested time after trace = "
+                       "{:.2f}ns), the trace will be rolled over the edge to fit in the readout window").format(
+                        station.get_id(), channel_id, trigger_time, pre_trigger_time, channel.get_trace_start_time(),
+                        channel.get_trace_start_time() + trace_length / sampling_rate, number_of_samples / sampling_rate,
+                        pre_trigger_time_channel + number_of_samples / sampling_rate - trace_length / sampling_rate)
                 logger.warning(msg)
 
             # "roll" the start of the readout window to the start of the trace
@@ -126,7 +134,7 @@ class channelReadoutWindowCutter:
             channel.set_trace_start_time(trigger_time - pre_trigger_time)
 
 
-def _get_number_of_samples(sampling_rate, detector_sampling_rate, detector_n_samples, issue_warning=True):
+def _get_number_of_samples(sampling_rate, detector_sampling_rate, detector_n_samples, issue_error=True):
     """
     Calculate the number of samples that will result in the correct number of samples after resampling.
 
@@ -138,11 +146,9 @@ def _get_number_of_samples(sampling_rate, detector_sampling_rate, detector_n_sam
         The target sampling rate
     detector_n_samples : int
         The target number of samples after resampling to `detector_sampling_rate`
-    issue_warning : bool, optional
-        Print a warning if the sampling rate is not an integer multiple
-        of the target `detector_sampling_rate`; in this case the number of samples
-        returned cannot be guaranteed to result in the desired number of samples
-        after resampling.
+    issue_error : bool, optional (default: True)
+        Print an error (but does not raise one) if, after resampling, the desired
+        number of samples can not be achieved.
 
     Returns
     -------
@@ -158,14 +164,6 @@ def _get_number_of_samples(sampling_rate, detector_sampling_rate, detector_n_sam
     # the number of samples after resampling will be correct
     valid_sampling_rate = sampling_rate % detector_sampling_rate < 1e-8
 
-    if issue_warning and not valid_sampling_rate:
-            logger.warning(
-                'The current sampling rate '
-                f'({sampling_rate/units.GHz:.3f} GHz) is not a multiple of '
-                f'the target detector sampling rate ({detector_sampling_rate/units.GHz:.3f} GHz). '
-                'Traces may not have the correct trace length after resampling.'
-            )
-
     # this should ensure that 1) the number of samples is even and
     # 2) resampling to the detector sampling rate results in the correct number of samples
     # (note that 2) can only be guaranteed if the detector sampling rate is lower than the
@@ -173,8 +171,21 @@ def _get_number_of_samples(sampling_rate, detector_sampling_rate, detector_n_sam
     number_of_samples = int(
         2 * np.ceil(detector_n_samples / 2 * sampling_rate / detector_sampling_rate))
 
-    return number_of_samples, valid_sampling_rate
+    if not valid_sampling_rate:
+        # actually check if the number of samples is correct after resampling
+        final_number_of_samples = _get_resampled_number_of_samples(number_of_samples, sampling_rate, detector_sampling_rate)
+        valid_sampling_rate = final_number_of_samples == detector_n_samples
 
+        if issue_error and not valid_sampling_rate:
+            logger.error(
+                'The current sampling rate '
+                f'({sampling_rate/units.GHz:.3f} GHz) is not a multiple of '
+                f'the target detector sampling rate ({detector_sampling_rate/units.GHz:.3f} GHz). '
+                f'Traces will not have the correct trace length after resampling. Desired number of samples: {detector_n_samples}, '
+                f'expected number of samples after resampling: {final_number_of_samples}.'
+            )
+
+    return number_of_samples, valid_sampling_rate
 
 
 def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
@@ -182,14 +193,14 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     Returns a channel with a trace containing zeros.
 
     The trace start time is given by the trigger,
-    the duration of the trace is determined by the detector description, and the number of samples 
+    the duration of the trace is determined by the detector description, and the number of samples
     determined by the duration and the given sampling rate.
 
     Parameters
     ----------
     station_id: int
         The station id
-    
+
     channel_id: int
         The channel id
 
@@ -208,7 +219,7 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     detector_sampling_rate = detector.get_sampling_frequency(station_id, channel_id)
 
     n_samples, _ = _get_number_of_samples(
-        sampling_rate, detector_sampling_rate, detector_n_samples, issue_warning=False)
+        sampling_rate, detector_sampling_rate, detector_n_samples, issue_error=False)
 
     # get the correct trace start time taking into account different `pre_trigger_times`
     channel_trace_start_time = trigger.get_trigger_time() - trigger.get_pre_trigger_time_channel(channel_id)
@@ -217,3 +228,25 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     channel.set_trace_start_time(channel_trace_start_time)
 
     return channel
+
+
+@functools.lru_cache(maxsize=1024)
+def _get_resampled_number_of_samples(number_of_samples, sampling_rate, detector_sampling_rate):
+    """
+    Calculate the number of samples after resampling.
+
+    Parameters
+    ----------
+    number_of_samples : int
+        The number of samples at the current sampling rate
+    sampling_rate : float
+        The current sampling rate
+    detector_sampling_rate : float
+        The target sampling rate
+
+    Returns
+    -------
+    final_number_of_samples : int
+        The number of samples after resampling
+    """
+    return len(signal_processing.resample(np.zeros(number_of_samples), detector_sampling_rate / sampling_rate))

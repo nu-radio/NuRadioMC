@@ -1,8 +1,8 @@
-import numpy as np
 from NuRadioReco.utilities import units
 from scipy import interpolate as intp
-import os
+import numpy as np
 import glob
+import os
 
 
 def get_filter_response_mini_circuits(frequencies, filter_name):
