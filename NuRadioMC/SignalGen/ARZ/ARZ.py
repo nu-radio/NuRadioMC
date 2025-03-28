@@ -337,7 +337,7 @@ class ARZ(object):
         self.__check_and_get_library()
         self.__set_model_parameters(arz_version)
 
-        logger.warning("loading shower library ({}) into memory".format(library))
+        logger.status("Loading shower library ({}) into memory".format(library))
         self._library = io_utilities.read_pickle(library)
         self._use_numba = use_numba
         if use_numba & (not numba_available):
