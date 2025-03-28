@@ -185,7 +185,7 @@ if __name__ == "__main__":
     )
 
     efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-    efieldToVoltageConverter.begin()
+    efieldToVoltageConverter.begin(post_pulse_time=0 * units.ns, pre_pulse_time=50 * units.ns)
 
     rnogHarwareResponse = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
     rnogHarwareResponse.begin(trigger_channels=trigger_channels)
@@ -240,7 +240,6 @@ if __name__ == "__main__":
                             type='rayleigh')
 
                     rnogHarwareResponse.run(event, station, det_rnog, sim_to_data=True)
-
 
                 rnog_flower_board_high_low_trigger_simulations(
                     event, station, det_rnog, trigger_channels=trigger_channels,
