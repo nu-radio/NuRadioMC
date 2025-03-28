@@ -51,7 +51,6 @@ Submodules
    NuRadioReco.modules.channelTimeWindow
    NuRadioReco.modules.correlationDirectionFitter
    NuRadioReco.modules.cosmicRayEnergyReconstructor
-   NuRadioReco.modules.efieldAirToIcePropagator
    NuRadioReco.modules.efieldGalacticNoiseAdder
    NuRadioReco.modules.efieldRadioInterferometricReconstruction
    NuRadioReco.modules.efieldTimeDirectionFitter
