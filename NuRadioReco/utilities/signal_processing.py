@@ -1,6 +1,8 @@
 """
-This module contains various functions for signal processing, such as filtering,
-delaying, and upsampling traces. Examples include:
+This module contains various functions for signal processing.
+
+Functions for filtering, delaying, and upsampling traces:
+
 - `half_hann_window`
 - `resample`
 - `upsampling_fir`
@@ -11,8 +13,14 @@ delaying, and upsampling traces. Examples include:
 
 It also contains functions to calculate the electric field or voltage amplitude
 from a given noise temperature and bandwidth:
+
 - `get_electric_field_from_temperature`
 - `calculate_vrms_from_temperature`
+
+See Also
+--------
+`NuRadioReco.utilities.trace_utilities`
+    Contains functions to calculate observables from traces.
 """
 
 from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft
@@ -28,6 +36,7 @@ import decimal
 import copy
 
 import logging
+
 logger = logging.getLogger("NuRadioReco.utilities.signal_processing")
 
 
@@ -59,7 +68,7 @@ def half_hann_window(length, half_percent=None, hann_window_length=None):
 
 
 def resample(trace, sampling_factor):
-    """ Resample a trace by a given resampling factor.
+    """Resample a trace by a given resampling factor.
 
     Parameters
     ----------
@@ -73,17 +82,25 @@ def resample(trace, sampling_factor):
     resampled_trace : ndarray
         The resampled trace.
     """
-    resampling_factor = fractions.Fraction(decimal.Decimal(sampling_factor)).limit_denominator(5000)
+    resampling_factor = fractions.Fraction(
+        decimal.Decimal(sampling_factor)
+    ).limit_denominator(5000)
     n_samples = trace.shape[-1]
     resampled_trace = copy.copy(trace)
 
     if resampling_factor.numerator != 1:
         # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
-        resampled_trace = signal.resample(resampled_trace, resampling_factor.numerator * n_samples, axis=-1)
+        resampled_trace = signal.resample(
+            resampled_trace, resampling_factor.numerator * n_samples, axis=-1
+        )
 
     if resampling_factor.denominator != 1:
         # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
-        resampled_trace = signal.resample(resampled_trace, np.shape(resampled_trace)[-1] // resampling_factor.denominator, axis=-1)
+        resampled_trace = signal.resample(
+            resampled_trace,
+            np.shape(resampled_trace)[-1] // resampling_factor.denominator,
+            axis=-1,
+        )
 
     if resampled_trace.shape[-1] % 2 != 0:
         resampled_trace = resampled_trace.T[:-1].T
@@ -91,7 +108,7 @@ def resample(trace, sampling_factor):
     return resampled_trace
 
 
-def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 7):
+def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7):
     """
     This function performs an upsampling by inserting a number of zeroes
     between samples and then applying a finite impulse response (FIR) filter.
@@ -115,15 +132,19 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 
         The upsampled trace
     """
 
-    if (np.abs(int(int_factor) - int_factor) > 1e-3):
-        warning_msg = "The input upsampling factor does not seem to be close to an integer."
+    if np.abs(int(int_factor) - int_factor) > 1e-3:
+        warning_msg = (
+            "The input upsampling factor does not seem to be close to an integer."
+        )
         warning_msg += "It has been rounded to {}".format(int(int_factor))
         logger.warning(warning_msg)
 
     int_factor = int(int_factor)
 
-    if (int_factor <= 1):
-        error_msg = "Upsampling factor is less or equal to 1. Upsampling will not be performed."
+    if int_factor <= 1:
+        error_msg = (
+            "Upsampling factor is less or equal to 1. Upsampling will not be performed."
+        )
         raise ValueError(error_msg)
 
     zeroed_trace = np.zeros(len(trace) * int_factor)
@@ -131,16 +152,22 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 
         zeroed_trace[i_point * int_factor] = point
 
     upsampled_delta_time = 1 / (int_factor * original_sampling_frequency)
-    upsampled_times = np.arange(0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time)
+    upsampled_times = np.arange(
+        0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time
+    )
 
-    cutoff = 1. / int_factor
-    fir_coeffs = signal.firwin(ntaps, cutoff, window='boxcar')
-    upsampled_trace = np.convolve(zeroed_trace, fir_coeffs)[:len(upsampled_times)] * int_factor
+    cutoff = 1.0 / int_factor
+    fir_coeffs = signal.firwin(ntaps, cutoff, window="boxcar")
+    upsampled_trace = (
+        np.convolve(zeroed_trace, fir_coeffs)[: len(upsampled_times)] * int_factor
+    )
 
     return upsampled_trace
 
 
-def get_filter_response(frequencies, passband, filter_type, order, rp=None, roll_width=None):
+def get_filter_response(
+    frequencies, passband, filter_type, order, rp=None, roll_width=None
+):
     """
     Convenience function to obtain a bandpass filter response
 
@@ -176,18 +203,18 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None, roll
 
     """
 
-    if filter_type == 'rectangular':
+    if filter_type == "rectangular":
         mask = np.all([passband[0] <= frequencies, frequencies <= passband[1]], axis=0)
         return np.where(mask, 1, 0)
 
     # we need to specify if we have a lowpass filter
     # otherwise scipy>=1.8.0 raises an error
     if passband[0] == 0:
-        scipy_args = [passband[1], 'lowpass']
+        scipy_args = [passband[1], "lowpass"]
     else:
-        scipy_args = [passband, 'bandpass']
+        scipy_args = [passband, "bandpass"]
 
-    if filter_type == 'butter':
+    if filter_type == "butter":
         f = np.zeros_like(frequencies, dtype=complex)
         mask = frequencies > 0
         b, a = signal.butter(order, *scipy_args, analog=True)
@@ -195,7 +222,7 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None, roll
         f[mask] = h
         return f
 
-    elif filter_type == 'butterabs':
+    elif filter_type == "butterabs":
         f = np.zeros_like(frequencies, dtype=complex)
         mask = frequencies > 0
         b, a = signal.butter(order, *scipy_args, analog=True)
@@ -203,7 +230,7 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None, roll
         f[mask] = h
         return np.abs(f)
 
-    elif filter_type == 'cheby1':
+    elif filter_type == "cheby1":
         f = np.zeros_like(frequencies, dtype=complex)
         mask = frequencies > 0
         b, a = signal.cheby1(order, rp, *scipy_args, analog=True)
@@ -211,10 +238,10 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None, roll
         f[mask] = h
         return f
 
-    elif filter_type == 'gaussian_tapered':
+    elif filter_type == "gaussian_tapered":
         f = np.ones_like(frequencies, dtype=complex)
-        f[np.where(frequencies < passband[0])] = 0.
-        f[np.where(frequencies > passband[1])] = 0.
+        f[np.where(frequencies < passband[0])] = 0.0
+        f[np.where(frequencies > passband[1])] = 0.0
 
         gaussian_weights = signal.windows.gaussian(
             len(frequencies), int(round(roll_width / (frequencies[1] - frequencies[0])))
@@ -224,10 +251,10 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None, roll
         f /= np.max(f)  # convolution changes peak value
         return f
 
-    elif filter_type.find('FIR') >= 0:
+    elif filter_type.find("FIR") >= 0:
         raise NotImplementedError("FIR filter not yet implemented")
 
-    elif filter_type == 'hann_tapered':
+    elif filter_type == "hann_tapered":
         raise NotImplementedError(
             "'hann_tapered' is a time-domain filter, cannot return frequency response"
         )
@@ -294,7 +321,7 @@ def apply_butterworth(spectrum, frequencies, passband, order=8):
 
     f = np.zeros_like(frequencies, dtype=complex)
     mask = frequencies > 0
-    b, a = signal.butter(order, passband, 'bandpass', analog=True)
+    b, a = signal.butter(order, passband, "bandpass", analog=True)
     w, h = signal.freqs(b, a, frequencies[mask])
     f[mask] = h
 
@@ -349,7 +376,9 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
         spectrum = trace.get_frequency_spectrum()
         frequencies = trace.get_frequencies()
         if trace.get_sampling_rate() != sampling_frequency:
-            raise ValueError("The sampling frequency of the trace does not match the given sampling frequency.")
+            raise ValueError(
+                "The sampling frequency of the trace does not match the given sampling frequency."
+            )
     else:
         n_samples = len(trace)
         spectrum = fft.time2freq(trace, sampling_frequency)
@@ -379,12 +408,16 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
         # Check if unphysical samples contain any signal and if so, throw a warning
         if time_delay > 0:
             if np.any(np.abs(delayed_trace[:cycled_samples]) > 0.01 * units.microvolt):
-                logger.warning("The delayed trace has unphysical samples that contain signal. "
-                    "Consider cropping the trace to remove these samples.")
+                logger.warning(
+                    "The delayed trace has unphysical samples that contain signal. "
+                    "Consider cropping the trace to remove these samples."
+                )
         else:
             if np.any(np.abs(delayed_trace[-cycled_samples:]) > 0.01 * units.microvolt):
-                logger.warning("The delayed trace has unphysical samples that contain signal. "
-                    "Consider cropping the trace to remove these samples.")
+                logger.warning(
+                    "The delayed trace has unphysical samples that contain signal. "
+                    "Consider cropping the trace to remove these samples."
+                )
 
         return delayed_trace
 
@@ -420,7 +453,9 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     d_f = frequencies[2] - frequencies[1]
 
     # Calculate spectral radiance of radio signal using Rayleigh-Jeans law
-    spectral_radiance = 2. * boltzmann * frequencies ** 2 * noise_temperature * solid_angle / c_vac ** 2
+    spectral_radiance = (
+        2.0 * boltzmann * frequencies**2 * noise_temperature * solid_angle / c_vac**2
+    )
     spectral_radiance[np.isnan(spectral_radiance)] = 0
 
     # calculate radiance per energy bin
@@ -432,8 +467,10 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     return efield_amplitude
 
 
-def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, impedance=50 * units.ohm, freqs=None):
-    """ Helper function to calculate the noise vrms from a given noise temperature and bandwidth.
+def calculate_vrms_from_temperature(
+    temperature, bandwidth=None, response=None, impedance=50 * units.ohm, freqs=None
+):
+    """Helper function to calculate the noise vrms from a given noise temperature and bandwidth.
 
     For details see https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
     (sec. "Maximum transfer of noise power") or our wiki
@@ -462,7 +499,9 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
         raise ValueError("Please specify bandwidth or response")
 
     if impedance > 1000 * units.ohm:
-        logger.warning(f"Impedance is {impedance / units.ohm:.2f} Ohm, did you forget to specify the unit?")
+        logger.warning(
+            f"Impedance is {impedance / units.ohm:.2f} Ohm, did you forget to specify the unit?"
+        )
 
     # (effective) bandwidth, i.e., \Delta f in equation
     if response is None:
@@ -472,10 +511,14 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
         freqs = freqs or np.arange(0, 2500, 0.1) * units.MHz
         bandwidth = np.trapz(np.abs(response(freqs)) ** 2, freqs)
 
-    return (temperature * impedance * bandwidth * constants.k * units.joule / units.kelvin) ** 0.5
+    return (
+        temperature * impedance * bandwidth * constants.k * units.joule / units.kelvin
+    ) ** 0.5
 
 
-def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider):
+def get_efield_antenna_factor(
+    station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider
+):
     """
     Returns the antenna response to a radio signal coming from a specific direction
 
@@ -493,28 +536,50 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
     antenna_pattern_provider: AntennaPatternProvider
     """
 
-    efield_antenna_factor = np.zeros((len(channels), 2, len(frequencies)), dtype=complex)  # from antenna model in e_theta, e_phi
+    efield_antenna_factor = np.zeros(
+        (len(channels), 2, len(frequencies)), dtype=complex
+    )  # from antenna model in e_theta, e_phi
     for iCh, channel_id in enumerate(channels):
-        zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith)
+        zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(
+            detector, station, channel_id, zenith
+        )
 
         if zenith_antenna is None:
-            logger.warning("Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible")
+            logger.warning(
+                "Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible"
+            )
             return None
 
-        logger.debug("angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(
-            np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)))
-        antenna_model = detector.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
+        logger.debug(
+            "angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(
+                np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)
+            )
+        )
+        antenna_model = detector.get_antenna_model(
+            station.get_id(), channel_id, zenith_antenna
+        )
         antenna_pattern = antenna_pattern_provider.load_antenna_pattern(antenna_model)
         ori = detector.get_antenna_orientation(station.get_id(), channel_id)
-        VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_antenna, azimuth, *ori)
-        efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
+        VEL = antenna_pattern.get_antenna_response_vectorized(
+            frequencies, zenith_antenna, azimuth, *ori
+        )
+        efield_antenna_factor[iCh] = np.array(
+            [VEL["theta"] * t_theta, VEL["phi"] * t_phi]
+        )
 
     return efield_antenna_factor
 
 
 def get_channel_voltage_from_efield(
-        station, electric_field, channels, detector,
-        zenith, azimuth, antenna_pattern_provider, return_spectrum=True):
+    station,
+    electric_field,
+    channels,
+    detector,
+    zenith,
+    azimuth,
+    antenna_pattern_provider,
+    return_spectrum=True,
+):
     """
     Returns the voltage traces that would result in the channels from the station's E-field.
 
@@ -536,17 +601,34 @@ def get_channel_voltage_from_efield(
 
     frequencies = electric_field.get_frequencies()
     spectrum = electric_field.get_frequency_spectrum()
-    efield_antenna_factor = get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider)
+    efield_antenna_factor = get_efield_antenna_factor(
+        station,
+        frequencies,
+        channels,
+        detector,
+        zenith,
+        azimuth,
+        antenna_pattern_provider,
+    )
     if return_spectrum:
         voltage_spectrum = np.zeros((len(channels), len(frequencies)), dtype=complex)
         for i_ch, ch in enumerate(channels):
-            voltage_spectrum[i_ch] = np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0)
+            voltage_spectrum[i_ch] = np.sum(
+                efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]),
+                axis=0,
+            )
         return voltage_spectrum
     else:
-        voltage_trace = np.zeros((len(channels), 2 * (len(frequencies) - 1)), dtype=complex)
+        voltage_trace = np.zeros(
+            (len(channels), 2 * (len(frequencies) - 1)), dtype=complex
+        )
         for i_ch, ch in enumerate(channels):
             voltage_trace[i_ch] = fft.freq2time(
-                np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0),
-                electric_field.get_sampling_rate())
+                np.sum(
+                    efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]),
+                    axis=0,
+                ),
+                electric_field.get_sampling_rate(),
+            )
 
         return np.real(voltage_trace)

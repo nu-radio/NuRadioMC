@@ -1,7 +1,8 @@
 """
-This module contains utility functions for geometry calculations. Inparticular to
-calculate time delays between positions for a given arrival direction and to simulate
-reflection and refraction at boundaries between different media.
+This module contains utility functions for geometry calculations.
+
+Inparticular to calculate time delays between positions for a given arrival
+direction and to simulate reflection and refraction at boundaries between different media.
 """
 
 from NuRadioReco.utilities import units, ice
