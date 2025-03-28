@@ -1,6 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
-from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import signal_processing
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
@@ -12,9 +12,9 @@ import logging
 
 class voltageToEfieldConverterPerChannelGroup:
     """
-    This module is intended to reconstruct the electric field from dual-polarized antennas, 
-    i.e., two antennas with orthogonal polarizations combined in one mechanical structure. 
-    This is the typical case for air-shower detectors such as Auger and LOFAR. 
+    This module is intended to reconstruct the electric field from dual-polarized antennas,
+    i.e., two antennas with orthogonal polarizations combined in one mechanical structure.
+    This is the typical case for air-shower detectors such as Auger and LOFAR.
 
     Converts voltage trace to electric field per channel group.
     """
@@ -77,7 +77,7 @@ class voltageToEfieldConverterPerChannelGroup:
                 pos.append(det.get_relative_position(station.get_id(), channel_id))
             pos = np.array(pos)
             pos = np.average(pos, axis=0)
-            efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det,
+            efield_antenna_factor = signal_processing.get_efield_antenna_factor(station, frequencies, use_channels, det,
                                                                             zenith, azimuth, self.antenna_provider)
             V = np.zeros((len(use_channels), len(frequencies)), dtype=complex)
             for i_ch, channel_id in enumerate(use_channels):

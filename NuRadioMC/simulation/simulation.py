@@ -18,7 +18,8 @@ from NuRadioMC.SignalGen import askaryan, emitter as emitter_signalgen
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
-from NuRadioReco.utilities import units, trace_utilities
+
+from NuRadioReco.utilities import units, signal_processing, trace_utilities
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 import NuRadioReco.modules.io.eventWriter
@@ -1168,7 +1169,7 @@ class simulation:
                         "This can be inefficient. Processing time can be saved by specifying the trigger channels.")
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
-        self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
+        self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger, update_interval=60)  # sec
 
         self._config = get_config(config_file)
         if self._config['seed'] is None:
@@ -1354,8 +1355,9 @@ class simulation:
                     # Bandwidth, i.e., \Delta f in equation
                     integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
                     max_amplification = self._max_amplification_per_channel[station_id][channel_id]
+                    vrms_per_channel = signal_processing.calculate_vrms_from_temperature(noise_temp_channel, bandwidth=integrated_channel_response)
 
-                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
+                    self._Vrms_per_channel[station_id][channel_id] = vrms_per_channel
                     self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / max_amplification / units.m  # VEL = 1m
 
                     # for logging
@@ -1604,7 +1606,7 @@ class simulation:
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
                 non_trigger_channels = list(set(self._det.get_channel_ids(station_id)) - set(channel_ids))
                 if len(non_trigger_channels):
-                    logger.status(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
+                    logger.debug(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
                         if particle_mode:
                             sim_station = calculate_sim_efield(
@@ -1632,6 +1634,7 @@ class simulation:
                                         f"{len(sim_station.get_electric_fields())} efields, skipping to next channel")
                             continue
 
+                            
                         # applies the detector response to the electric fields (the antennas are defined
                         # in the json detector description file)
                         apply_det_response_sim(
