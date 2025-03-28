@@ -1221,7 +1221,7 @@ class simulation:
             raise ValueError(err_msg)
 
         # If you want to simulate data-driven noise you have to provide the detector_simulation_part2 function
-        if self._config["noise_type"] == "data-driven" and self.detector_simulation_part2 is None:
+        if self._config['noise_kwargs']["noise_type"] == "data-driven" and self.detector_simulation_part2 is None:
             logger.error("Data-driven noise is enabled but no detector_simulation_part2 function is provided.")
             raise ValueError("Data-driven noise is enabled but no detector_simulation_part2 function is provided.")
 
@@ -1421,14 +1421,14 @@ class simulation:
             self._get_distance_cut = get_distance_cut
 
         particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
-        self._output_writer_hdf5 = outputWriterHDF5(self._outputfilename, self._config, self._det, self._station_ids,
-                                                    self._propagator.get_number_of_raytracing_solutions(),
-                                                    particle_mode=particle_mode)
+        self._output_writer_hdf5 = outputWriterHDF5(
+            self._outputfilename, self._config, self._det, self._station_ids,
+            self._propagator.get_number_of_raytracing_solutions(),
+            particle_mode=particle_mode)
 
-
-        # Only needed for data-driven noise
-        scale_dir = os.path.join(os.path.dirname(__file__), "../examples/RNO_G_trigger_simulation/data_driven_noise_files")
-        channelGenericNoiseAdder.begin(seed=self._config['seed'], scale_parameter_dir=scale_dir)
+        channelGenericNoiseAdder.begin(
+            seed=self._config['seed'],
+            scale_parameter_dir=self._config['noise_kwargs']["parameterization_directory"])
 
         efieldToVoltageConverter.begin(caching=False)
         if self._outputfilenameNuRadioReco is not None:
@@ -1688,7 +1688,7 @@ class simulation:
                     # was already applied to.
                     if bool(self._config['noise']):
                         self.add_filtered_noise_to_channels(
-                            evt, station, non_trigger_channels, noise_type=self._config['noise_type'])
+                            evt, station, non_trigger_channels, noise_type=self._config['noise_kwargs']['noise_type'])
 
                     channelSignalReconstructor.run(evt, station, self._det)
                     self._set_event_station_parameters(evt)
