@@ -11,35 +11,40 @@ from NuRadioReco.modules.base.module import register_run
 @functools.lru_cache(maxsize=128)
 def load_scale_parameters(scale_parameter_path):
     """
-    Returns interpolated scale parameters ifo frequency per channel
+    Returns scale parameters as a function of frequency per channel
 
     Parameters
     ----------
-
     scale_parameter_path : str
-        path to the scale parameter json file
+        Path to the scale parameter json file
 
     Returns
     -------
     scale_parameters : list
         list of interpolated scale parameters per channel
+    samping_rate : float
+        The sampling rate of the data used to generate the scale parameters
+    number_of_samples : int
+        The number of samples of the data used to generate the scale parameters
     """
     with open(scale_parameter_path, "r") as scale_parameter_file:
         scale_parameters_dictionary = json.load(scale_parameter_file)
         frequencies = scale_parameters_dictionary["freq"]
         scale_parameters = scale_parameters_dictionary["scale_parameters"]
-        scale_parameters = [interp1d(frequencies, scale_parameter,
-                                     bounds_error=False, fill_value=0.)
-                                     for scale_parameter in scale_parameters]
-    return scale_parameters
+        scale_parameters = [interp1d(
+            frequencies, scale_parameter, bounds_error=False, fill_value=0.)
+            for scale_parameter in scale_parameters]
+
+        sampling_rate = scale_parameters_dictionary["header"]["sampling_rate"]
+        number_of_samples = scale_parameters_dictionary["header"]["number_of_samples"]
+
+    return scale_parameters, sampling_rate, number_of_samples
 
 
 
 class channelGenericNoiseAdder:
     """
     Module that generates noise in some generic fashion (not based on measured data), which can be added to data.
-
-
     """
 
     def add_random_phases(self, amps, n_samples_time_domain):
@@ -130,14 +135,14 @@ class channelGenericNoiseAdder:
                                     "Available files in this folder are:\n"
                                     f"{self.scale_parameter_paths}")
 
-        scale_parameters = load_scale_parameters(scale_parameter_full_path)
+        scale_parameters, sampling_rate_param, number_of_samples_param = load_scale_parameters(scale_parameter_full_path)
         fsigma = scale_parameters[channel_id](frequencies)
 
         # Apply normalization to amplitudes for varying number of samples and sampling rate. The
-        # noise spectra were parameterized with 3.2 GHz and 2048 samoles. For more details see
+        # noise spectra were parameterized with sampling_rate_param and number_of_samples_param samoles. For more details see
         # PR https://github.com/nu-radio/NuRadioMC/pull/863 for more details.
         # (The amplitudes are later devided by the sampling rate - this is why they have the unit second here)
-        fsigma = fsigma * np.sqrt(3.2 * units.GHz * sampling_rate) * np.sqrt(n_samples / 2048)
+        fsigma = fsigma * np.sqrt(sampling_rate_param * sampling_rate) * np.sqrt(n_samples / number_of_samples_param)
 
         ampl = self.__random_generator.rayleigh(fsigma, len(frequencies))
         return ampl
