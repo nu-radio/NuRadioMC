@@ -18,7 +18,7 @@ from NuRadioMC.SignalGen import askaryan, emitter as emitter_signalgen
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 import NuRadioReco.modules.io.eventWriter
@@ -590,10 +590,6 @@ def apply_det_response(
         # convolve efield with antenna pattern and add cable delay (this is also done in the efieldToVoltageConverter
         # (unlike the efieldToVoltageConverterPEREFIELD))
         efieldToVoltageConverter.run(evt, station, det, channel_ids=channel_ids)
-
-        # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
-        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
-        channelResampler.run(evt, station, det, sampling_rate=1. / dt)
 
         if add_noise:
             max_freq = 0.5 / dt
@@ -1172,7 +1168,7 @@ class simulation:
                         "This can be inefficient. Processing time can be saved by specifying the trigger channels.")
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
-        self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
+        self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger, update_interval=60)  # sec
 
         self._config = get_config(config_file)
         if self._config['seed'] is None:
@@ -1358,8 +1354,9 @@ class simulation:
                     # Bandwidth, i.e., \Delta f in equation
                     integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
                     max_amplification = self._max_amplification_per_channel[station_id][channel_id]
+                    vrms_per_channel = signal_processing.calculate_vrms_from_temperature(noise_temp_channel, bandwidth=integrated_channel_response)
 
-                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
+                    self._Vrms_per_channel[station_id][channel_id] = vrms_per_channel
                     self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / max_amplification / units.m  # VEL = 1m
 
                     # for logging
@@ -1420,7 +1417,7 @@ class simulation:
                                                     self._propagator.get_number_of_raytracing_solutions(),
                                                     particle_mode=particle_mode)
 
-        efieldToVoltageConverter.begin(time_resolution=self._config['speedup']['time_res_efieldconverter'])
+        efieldToVoltageConverter.begin()
         channelGenericNoiseAdder.begin(seed=self._config['seed'])
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
@@ -1608,7 +1605,7 @@ class simulation:
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
                 non_trigger_channels = list(set(self._det.get_channel_ids(station_id)) - set(channel_ids))
                 if len(non_trigger_channels):
-                    logger.status(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
+                    logger.debug(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
                         if particle_mode:
                             sim_station = calculate_sim_efield(
