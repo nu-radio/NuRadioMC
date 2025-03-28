@@ -231,7 +231,7 @@ if __name__ == "__main__":
                         event, station, det_rnog, trigger_channels=trigger_channels)
                 else:
                     assert args.noise_type == "rayleigh", "Only 'rayleigh' and 'data-driven' noise is supported."
-                    efieldToVoltageConverter.run(event, station, det_rnog)
+                    efieldToVoltageConverter.run(event, station, det_rnog, channel_ids=trigger_channels)
 
                     if args.add_noise:
                         channelGenericNoiseAdder.run(
