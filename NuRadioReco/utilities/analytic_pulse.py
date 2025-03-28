@@ -1,3 +1,13 @@
+"""
+This utility module defines an analytic approximation of air-shower radio pulses.
+
+See section 7.3. of the NuRadioReco paper (https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5#Sec23) for more details
+
+as well as
+
+C. Welling, C. Glaser and A. Nelles, “Reconstructing the cosmic-ray energy from the radio signal measured in one single station”, Journal of Cosmology and Astroparticle Physics 10(2019)075, doi:10.1088/1475-7516/2019/10/075, arXiv:1905.11185
+"""
+
 import numpy as np
 import scipy.signal
 from NuRadioReco.utilities import fft

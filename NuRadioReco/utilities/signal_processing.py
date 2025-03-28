@@ -1,18 +1,42 @@
 """
-This module contains various functions for signal processing, such as filtering,
-delaying, and upsampling traces.
+This module contains various functions for signal processing.
+
+Functions for filtering, delaying, and upsampling traces:
+
+- `half_hann_window`
+- `resample`
+- `upsampling_fir`
+- `get_filter_response`
+- `butterworth_filter_trace`
+- `apply_butterworth`
+- `delay_trace`
+
+It also contains functions to calculate the electric field or voltage amplitude
+from a given noise temperature and bandwidth:
+
+- `get_electric_field_from_temperature`
+- `calculate_vrms_from_temperature`
+
+See Also
+--------
+`NuRadioReco.utilities.trace_utilities`
+    Contains functions to calculate observables from traces.
 """
 
 from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft
 
-from NuRadioReco.detector import detector
+from NuRadioReco.detector import filterresponse
 import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
 from scipy import signal, constants
 import numpy as np
+import fractions
+import decimal
+import copy
 
 import logging
+
 logger = logging.getLogger("NuRadioReco.utilities.signal_processing")
 
 
@@ -43,58 +67,48 @@ def half_hann_window(length, half_percent=None, hann_window_length=None):
     return half_hann_widow
 
 
-def add_cable_delay(station, det, sim_to_data=None, trigger=False, logger=None):
-    """
-    Add or subtract cable delay by modifying the ``trace_start_time``.
+def resample(trace, sampling_factor):
+    """Resample a trace by a given resampling factor.
 
     Parameters
     ----------
-    station: Station
-        The station to add the cable delay to.
+    trace : ndarray
+        The trace to resample. Can have multiple dimensions, but the last dimension should be the one to resample.
+    sampling_factor : float
+        The resampling factor. If the factor is a fraction, the denominator should be less than 5000.
 
-    det: Detector
-        The detector description
-
-    trigger: bool
-        If True, take the time delay from the trigger channel response.
-        Only possible if ``det`` is of type `rnog_detector.Detector`. (Default: False)
-
-    logger: logging.Logger, default=None
-        If set, use ``logger.debug(..)`` to log the cable delay.
-
-    See Also
-    --------
-    NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay : module that automatically applies / corrects for cable delays.
+    Returns
+    -------
+    resampled_trace : ndarray
+        The resampled trace.
     """
-    assert sim_to_data is not None, "``sim_to_data`` is None, please specify."
+    resampling_factor = fractions.Fraction(
+        decimal.Decimal(sampling_factor)
+    ).limit_denominator(5000)
+    n_samples = trace.shape[-1]
+    resampled_trace = copy.copy(trace)
 
-    add_or_subtract = 1 if sim_to_data else -1
-    msg = "Add" if sim_to_data else "Subtract"
+    if resampling_factor.numerator != 1:
+        # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
+        resampled_trace = signal.resample(
+            resampled_trace, resampling_factor.numerator * n_samples, axis=-1
+        )
 
-    if trigger and not isinstance(det, detector.rnog_detector.Detector):
-        raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
+    if resampling_factor.denominator != 1:
+        # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
+        resampled_trace = signal.resample(
+            resampled_trace,
+            np.shape(resampled_trace)[-1] // resampling_factor.denominator,
+            axis=-1,
+        )
 
-    for channel in station.iter_channels():
+    if resampled_trace.shape[-1] % 2 != 0:
+        resampled_trace = resampled_trace.T[:-1].T
 
-        if trigger:
-            if not channel.has_extra_trigger_channel():
-                continue
-
-            channel = channel.get_trigger_channel()
-            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id(), trigger=True)
-
-        else:
-            # Only the RNOG detector has the argument `trigger`. Default is false
-            cable_delay = det.get_cable_delay(station.get_id(), channel.get_id())
-
-        if logger is not None:
-            logger.debug(f"{msg} {cable_delay / units.ns:.2f}ns "
-                        f"of cable delay to channel {channel.get_id()}")
-
-        channel.add_trace_start_time(add_or_subtract * cable_delay)
+    return resampled_trace
 
 
-def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 7):
+def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7):
     """
     This function performs an upsampling by inserting a number of zeroes
     between samples and then applying a finite impulse response (FIR) filter.
@@ -117,15 +131,19 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 
         The upsampled trace
     """
 
-    if (np.abs(int(int_factor) - int_factor) > 1e-3):
-        warning_msg = "The input upsampling factor does not seem to be close to an integer."
+    if np.abs(int(int_factor) - int_factor) > 1e-3:
+        warning_msg = (
+            "The input upsampling factor does not seem to be close to an integer."
+        )
         warning_msg += "It has been rounded to {}".format(int(int_factor))
         logger.warning(warning_msg)
 
     int_factor = int(int_factor)
 
-    if (int_factor <= 1):
-        error_msg = "Upsampling factor is less or equal to 1. Upsampling will not be performed."
+    if int_factor <= 1:
+        error_msg = (
+            "Upsampling factor is less or equal to 1. Upsampling will not be performed."
+        )
         raise ValueError(error_msg)
 
     zeroed_trace = np.zeros(len(trace) * int_factor)
@@ -133,13 +151,115 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 
         zeroed_trace[i_point * int_factor] = point
 
     upsampled_delta_time = 1 / (int_factor * original_sampling_frequency)
-    upsampled_times = np.arange(0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time)
+    upsampled_times = np.arange(
+        0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time
+    )
 
-    cutoff = 1. / int_factor
-    fir_coeffs = signal.firwin(ntaps, cutoff, window='boxcar')
-    upsampled_trace = np.convolve(zeroed_trace, fir_coeffs)[:len(upsampled_times)] * int_factor
+    cutoff = 1.0 / int_factor
+    fir_coeffs = signal.firwin(ntaps, cutoff, window="boxcar")
+    upsampled_trace = (
+        np.convolve(zeroed_trace, fir_coeffs)[: len(upsampled_times)] * int_factor
+    )
 
     return upsampled_trace
+
+
+def get_filter_response(
+    frequencies, passband, filter_type, order, rp=None, roll_width=None
+):
+    """
+    Convenience function to obtain a bandpass filter response
+
+    Parameters
+    ----------
+    frequencies: array of floats
+        the frequencies the filter is requested for
+    passband: list
+        passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
+    filter_type: string or dict
+
+        * 'rectangular': perfect straight line filter
+        * 'butter': butterworth filter from scipy
+        * 'butterabs': absolute of butterworth filter from scipy
+        * 'gaussian_tapered' : a rectangular bandpass filter convolved with a Gaussian
+
+        or any filter that is implemented in :mod:`NuRadioReco.detector.filterresponse`.
+        In this case the passband parameter is ignored
+    order: int
+        for a butterworth filter: specifies the order of the filter
+    rp: float
+        The maximum ripple allowed below unity gain in the passband.
+        Specified in decibels, as a positive number.
+        (Relevant for chebyshev filter)
+    roll_width : float, default=None
+        Determines the sigma of the Gaussian to be used in the convolution of the rectangular filter.
+        (Relevant for the Gaussian tapered filter)
+
+    Returns
+    -------
+    f: array of floats
+        The bandpass filter response. Has the same shape as ``frequencies``.
+
+    """
+
+    if filter_type == "rectangular":
+        mask = np.all([passband[0] <= frequencies, frequencies <= passband[1]], axis=0)
+        return np.where(mask, 1, 0)
+
+    # we need to specify if we have a lowpass filter
+    # otherwise scipy>=1.8.0 raises an error
+    if passband[0] == 0:
+        scipy_args = [passband[1], "lowpass"]
+    else:
+        scipy_args = [passband, "bandpass"]
+
+    if filter_type == "butter":
+        f = np.zeros_like(frequencies, dtype=complex)
+        mask = frequencies > 0
+        b, a = signal.butter(order, *scipy_args, analog=True)
+        w, h = signal.freqs(b, a, frequencies[mask])
+        f[mask] = h
+        return f
+
+    elif filter_type == "butterabs":
+        f = np.zeros_like(frequencies, dtype=complex)
+        mask = frequencies > 0
+        b, a = signal.butter(order, *scipy_args, analog=True)
+        w, h = signal.freqs(b, a, frequencies[mask])
+        f[mask] = h
+        return np.abs(f)
+
+    elif filter_type == "cheby1":
+        f = np.zeros_like(frequencies, dtype=complex)
+        mask = frequencies > 0
+        b, a = signal.cheby1(order, rp, *scipy_args, analog=True)
+        w, h = signal.freqs(b, a, frequencies[mask])
+        f[mask] = h
+        return f
+
+    elif filter_type == "gaussian_tapered":
+        f = np.ones_like(frequencies, dtype=complex)
+        f[np.where(frequencies < passband[0])] = 0.0
+        f[np.where(frequencies > passband[1])] = 0.0
+
+        gaussian_weights = signal.windows.gaussian(
+            len(frequencies), int(round(roll_width / (frequencies[1] - frequencies[0])))
+        )
+
+        f = signal.convolve(f, gaussian_weights, mode="same")
+        f /= np.max(f)  # convolution changes peak value
+        return f
+
+    elif filter_type.find("FIR") >= 0:
+        raise NotImplementedError("FIR filter not yet implemented")
+
+    elif filter_type == "hann_tapered":
+        raise NotImplementedError(
+            "'hann_tapered' is a time-domain filter, cannot return frequency response"
+        )
+
+    else:
+        return filterresponse.get_filter_response(frequencies, filter_type)
 
 
 def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
@@ -199,7 +319,7 @@ def apply_butterworth(spectrum, frequencies, passband, order=8):
 
     f = np.zeros_like(frequencies, dtype=complex)
     mask = frequencies > 0
-    b, a = signal.butter(order, passband, 'bandpass', analog=True)
+    b, a = signal.butter(order, passband, "bandpass", analog=True)
     w, h = signal.freqs(b, a, frequencies[mask])
     f[mask] = h
 
@@ -254,7 +374,9 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
         spectrum = trace.get_frequency_spectrum()
         frequencies = trace.get_frequencies()
         if trace.get_sampling_rate() != sampling_frequency:
-            raise ValueError("The sampling frequency of the trace does not match the given sampling frequency.")
+            raise ValueError(
+                "The sampling frequency of the trace does not match the given sampling frequency."
+            )
     else:
         n_samples = len(trace)
         spectrum = fft.time2freq(trace, sampling_frequency)
@@ -284,12 +406,16 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
         # Check if unphysical samples contain any signal and if so, throw a warning
         if time_delay > 0:
             if np.any(np.abs(delayed_trace[:cycled_samples]) > 0.01 * units.microvolt):
-                logger.warning("The delayed trace has unphysical samples that contain signal. "
-                    "Consider cropping the trace to remove these samples.")
+                logger.warning(
+                    "The delayed trace has unphysical samples that contain signal. "
+                    "Consider cropping the trace to remove these samples."
+                )
         else:
             if np.any(np.abs(delayed_trace[-cycled_samples:]) > 0.01 * units.microvolt):
-                logger.warning("The delayed trace has unphysical samples that contain signal. "
-                    "Consider cropping the trace to remove these samples.")
+                logger.warning(
+                    "The delayed trace has unphysical samples that contain signal. "
+                    "Consider cropping the trace to remove these samples."
+                )
 
         return delayed_trace
 
@@ -325,7 +451,9 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     d_f = frequencies[2] - frequencies[1]
 
     # Calculate spectral radiance of radio signal using Rayleigh-Jeans law
-    spectral_radiance = 2. * boltzmann * frequencies ** 2 * noise_temperature * solid_angle / c_vac ** 2
+    spectral_radiance = (
+        2.0 * boltzmann * frequencies**2 * noise_temperature * solid_angle / c_vac**2
+    )
     spectral_radiance[np.isnan(spectral_radiance)] = 0
 
     # calculate radiance per energy bin
@@ -335,6 +463,51 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     efield_amplitude = np.sqrt(spectral_radiance_per_bin / (c_vac * epsilon_0)) / d_f
 
     return efield_amplitude
+
+
+def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, impedance=50 * units.ohm, freqs=None):
+    """ Helper function to calculate the noise vrms from a given noise temperature and bandwidth.
+
+    For details see https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
+    (sec. "Maximum transfer of noise power") or our wiki
+    https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
+
+    Parameters
+    ----------
+    temperature: float
+        The noise temperature of the channel in Kelvin
+    bandwidth: float or tuple of 2 floats (list of 2 floats) (default: None)
+        If single float, this argument is interpreted as the effective bandwidth. If tuple, the argument is
+        interpreted as the lower and upper frequency of the bandwidth. Can be `None` if `response` is specified.
+    response: `NuRadioReco.detector.response.Response` (default: None)
+        If not None, the response of the channel is taken into account to calculate the noise vrms.
+    impedance: float (default: 50)
+        Electrical impedance of the channel in Ohm.
+    freqs: array_like (default: None -> np.arange(0, 2500, 0.1) * units.MHz)
+        Frequencies at which the response is evaluated. Only used if `response` is not None.
+
+    Returns
+    -------
+    vrms_per_channel: float
+        The vrms of the channel
+    """
+    if bandwidth is None and response is None:
+        raise ValueError("Please specify bandwidth or response")
+
+    if impedance > 1000 * units.ohm:
+        logger.warning(
+            f"Impedance is {impedance / units.ohm:.2f} Ohm, did you forget to specify the unit?"
+        )
+
+    # (effective) bandwidth, i.e., \Delta f in equation
+    if response is None:
+        if not isinstance(bandwidth, (float, int)):
+            bandwidth = bandwidth[1] - bandwidth[0]
+    else:
+        freqs = freqs or np.arange(0, 2500, 0.1) * units.MHz
+        bandwidth = np.trapz(np.abs(response(freqs)) ** 2, freqs)
+
+    return (temperature * impedance * bandwidth * constants.k * units.joule / units.kelvin) ** 0.5
 
 
 def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=False):
@@ -430,46 +603,3 @@ def get_channel_voltage_from_efield(
     else:
         voltage_trace = fft.freq2time(voltage_spectrum, electric_field.get_sampling_rate())
         return np.real(voltage_trace)
-
-      
-def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, impedance=50 * units.ohm, freqs=None):
-    """ Helper function to calculate the noise vrms from a given noise temperature and bandwidth.
-
-    For details see https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
-    (sec. "Maximum transfer of noise power") or our wiki
-    https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
-
-    Parameters
-    ----------
-    temperature: float
-        The noise temperature of the channel in Kelvin
-    bandwidth: float or tuple of 2 floats (list of 2 floats) (default: None)
-        If single float, this argument is interpreted as the effective bandwidth. If tuple, the argument is
-        interpreted as the lower and upper frequency of the bandwidth. Can be `None` if `response` is specified.
-    response: `NuRadioReco.detector.response.Response` (default: None)
-        If not None, the response of the channel is taken into account to calculate the noise vrms.
-    impedance: float (default: 50)
-        Electrical impedance of the channel in Ohm.
-    freqs: array_like (default: None -> np.arange(0, 2500, 0.1) * units.MHz)
-        Frequencies at which the response is evaluated. Only used if `response` is not None.
-
-    Returns
-    -------
-    vrms_per_channel: float
-        The vrms of the channel
-    """
-    if bandwidth is None and response is None:
-        raise ValueError("Please specify bandwidth or response")
-
-    if impedance > 1000 * units.ohm:
-        logger.warning(f"Impedance is {impedance / units.ohm:.2f} Ohm, did you forget to specify the unit?")
-
-    # (effective) bandwidth, i.e., \Delta f in equation
-    if response is None:
-        if not isinstance(bandwidth, (float, int)):
-            bandwidth = bandwidth[1] - bandwidth[0]
-    else:
-        freqs = freqs or np.arange(0, 2500, 0.1) * units.MHz
-        bandwidth = np.trapz(np.abs(response(freqs)) ** 2, freqs)
-
-    return (temperature * impedance * bandwidth * constants.k * units.joule / units.kelvin) ** 0.5
