@@ -62,7 +62,8 @@ class ray_tracing_base:
         self._medium = medium
         self._attenuation_model = attenuation_model
         self._n_frequencies_integration = n_frequencies_integration
-        if(n_reflections):
+
+        if n_reflections:
             if(not hasattr(self._medium, "reflection") or self._medium.reflection is None):
                 self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
                 n_reflections = 0
@@ -72,28 +73,34 @@ class ray_tracing_base:
         if self._config is not None:
             if 'n_freq' in self._config['propagation']:
                 if n_frequencies_integration is not None:
-                    self.__logger.warning(f"overriding n_frequencies_integration from config file from {n_frequencies_integration} to {self._config['propagation']['n_freq']}")
+                    self.__logger.warning(f"overriding n_frequencies_integration via config file from {n_frequencies_integration} to {self._config['propagation']['n_freq']}")
                 self._n_frequencies_integration = self._config['propagation']['n_freq']
+
             if 'n_reflections' in self._config['propagation']:
                 if n_reflections is not None:
-                    self.__logger.warning(f"overriding n_reflections from config file from {n_reflections} to {self._config['propagation']['n_reflections']}")
+                    self.__logger.warning(f"overriding n_reflections via config file from {n_reflections} to {self._config['propagation']['n_reflections']}")
                 self._n_reflections = self._config['propagation']['n_reflections']
+
             if 'attenuation_model' in self._config['propagation']:
                 if attenuation_model is not None:
-                    self.__logger.warning(f"overriding attenuation_model from config file from {attenuation_model} to {self._config['propagation']['attenuation_model']}")
+                    self.__logger.warning(f"overriding attenuation_model via config file from {attenuation_model} to {self._config['propagation']['attenuation_model']}")
                 self._attenuation_model = self._config['propagation']['attenuation_model']
+
         self._detector = detector
         self._max_detector_frequency = None
         if self._detector is not None:
             for station_id in self._detector.get_station_ids():
                 channel_id_1st = self._detector.get_channel_ids(station_id)[0]
                 sampling_frequency = self._detector.get_sampling_frequency(station_id, channel_id_1st)
+
                 for channel_id in self._detector.get_channel_ids(station_id):
                     if self._detector.get_sampling_frequency(station_id, channel_id) != sampling_frequency:
-                        self.__logger.warning(f"Different channels have different sampling frequencies. Channel {channel_id} has sampling frequency" \
-                                               f"{self._detector.get_sampling_frequency(station_id, channel_id)/units.GHz:.1f}." \
-                                                f"Using the sampoing frequency of the first channel with id {channel_id_1st} with {sampling_frequency/units.GHz:.1f} GHz." \
-                                                    "to calculate the maximum relevant frequency for calculating signal attenuation.")
+                        self.__logger.warning(
+                            f"Different channels have different sampling frequencies. Channel {channel_id} has sampling frequency"
+                            f"{self._detector.get_sampling_frequency(station_id, channel_id)/units.GHz:.1f}. Using the sampoing "
+                            f"frequency of the first channel with id {channel_id_1st} with {sampling_frequency/units.GHz:.1f} GHz."
+                            "to calculate the maximum relevant frequency for calculating signal attenuation.")
+
                 if self._max_detector_frequency is None or sampling_frequency * .5 > self._max_detector_frequency:
                     self._max_detector_frequency = sampling_frequency * .5
 

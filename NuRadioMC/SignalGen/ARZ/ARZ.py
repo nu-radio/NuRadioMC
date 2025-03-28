@@ -320,19 +320,20 @@ class ARZ(object):
 
     def __init__(self, seed=1234, interp_factor=1, interp_factor2=100, library=None,
                  arz_version='ARZ2020', use_numba=True):
-        logger.warning("setting seed to {}".format(seed, interp_factor))
+        logger.status("Setting seed to {}".format(seed))
         self._random_generator = np.random.RandomState(seed)
         self._interp_factor = interp_factor
         self._interp_factor2 = interp_factor2
         self._random_numbers = {}
         self._version = (1, 2)
-        # # load shower library into memory
-        if(library is None):
-            library = os.path.join(os.path.dirname(__file__), "shower_library/library_v{:d}.{:d}.pkl".format(*self._version))
-        else:
-            if(not os.path.exists(library)):
-                logger.error("user specified shower library {} not found.".format(library))
-                raise FileNotFoundError("user specified shower library {} not found.".format(library))
+
+        # load shower library into memory
+        library = library or os.path.join(os.path.dirname(__file__), "shower_library/library_v{:d}.{:d}.pkl".format(*self._version))
+
+        if not os.path.exists(library):
+            logger.error("user specified shower library {} not found.".format(library))
+            raise FileNotFoundError("user specified shower library {} not found.".format(library))
+
         self.__check_and_get_library()
         self.__set_model_parameters(arz_version)
 
@@ -342,7 +343,8 @@ class ARZ(object):
         if use_numba & (not numba_available):
             logger.warning('Numba implementation was requested, but Numba is unavailable. Using Python implementation instead.')
             self._use_numba = False
-        logger.info("Using {} implementation to calculate ARZ vector potentials".format(["Python", "Numba"][self._use_numba]))
+
+        logger.status("Using {} implementation to calculate ARZ vector potentials".format(["Python", "Numba"][self._use_numba]))
 
     def __check_and_get_library(self):
         """
@@ -378,6 +380,7 @@ class ARZ(object):
                         download_file = True
                 else:
                     logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
+
         if not download_file:
             return True
         else:
@@ -549,7 +552,7 @@ class ARZ(object):
         efield_trace: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
         """
-        if not shower_type in self._library.keys():
+        if shower_type not in self._library.keys():
             raise KeyError("shower type {} not present in library. Available shower types are {}".format(shower_type, *self._library.keys()))
 
         # determine closes available energy in shower library
@@ -557,9 +560,11 @@ class ARZ(object):
             energies = np.array([*self._library[shower_type]])
             iE = np.argmin(np.abs(energies - shower_energy))
             rescaling_factor = shower_energy / energies[iE]
-            logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
-            profiles = self._library[shower_type][energies[iE]]
+            logger.info(("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. "
+                        "The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}").format(
+                        shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
 
+            profiles = self._library[shower_type][energies[iE]]
             N_profiles = len(profiles['charge_excess'])
 
             if(iN is None or np.isnan(iN)):
@@ -956,14 +961,7 @@ class ARZ(object):
 
         tt = np.arange(0, (N + 1) * dt, dt)
         tt = tt + 0.5 * dt - tt.mean()
-    #     tmin = tt.min()
-    #     tmax = tt.max()
 
-    #     tmin = -100 * units.ns
-    #     tmax = 100 * units.ns
-
-    #     tt = np.arange(tmin, tmax, dt)
-    #     tt += 0.5 * dt
         N = len(tt)
 
         xn = n_index
