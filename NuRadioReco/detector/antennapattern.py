@@ -595,7 +595,7 @@ def get_pickle_antenna_response(path):
         antenna_directory = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(antenna_directory, 'antenna_models_hash.json'), 'r') as fin:
             antenna_hashs = json.load(fin)
-            logger.info('search for', os.path.basename(path))
+            logger.info('search for {}'.format(os.path.basename(path)))
             if os.path.basename(path) in antenna_hashs.keys():
                 if sha1.hexdigest() != antenna_hashs[os.path.basename(path)]:
                     logger.status("antenna model {} has changed on the server. downloading newest version...".format(
