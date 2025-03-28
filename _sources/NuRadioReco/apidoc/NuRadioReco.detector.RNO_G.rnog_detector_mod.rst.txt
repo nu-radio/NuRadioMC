@@ -1,0 +1,7 @@
+NuRadioReco.detector.RNO\_G.rnog\_detector\_mod module
+======================================================
+
+.. automodule:: NuRadioReco.detector.RNO_G.rnog_detector_mod
+   :members:
+   :undoc-members:
+   :show-inheritance:

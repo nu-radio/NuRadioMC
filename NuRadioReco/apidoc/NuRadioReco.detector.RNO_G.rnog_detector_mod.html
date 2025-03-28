@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.detector.RNO_G.rnog_detector module &mdash; NuRadio 3.0.0-dev documentation</title>
+  <title>NuRadioReco.detector.RNO_G.rnog_detector_mod module &mdash; NuRadio 3.0.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
@@ -20,8 +20,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.detector.RNO_G.rnog_detector_mod module" href="NuRadioReco.detector.RNO_G.rnog_detector_mod.html" />
-    <link rel="prev" title="NuRadioReco.detector.RNO_G.db_mongo_write module" href="NuRadioReco.detector.RNO_G.db_mongo_write.html" /> 
+    <link rel="next" title="NuRadioReco.detector.amp module" href="NuRadioReco.detector.amp.html" />
+    <link rel="prev" title="NuRadioReco.detector.RNO_G.rnog_detector module" href="NuRadioReco.detector.RNO_G.rnog_detector.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -616,9 +616,9 @@
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.detector.html">NuRadioReco.detector package</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.detector.RNO_G.rnog_detector module</li>
+      <li class="breadcrumb-item active">NuRadioReco.detector.RNO_G.rnog_detector_mod module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector_mod.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -626,12 +626,24 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.detector.RNO_G.rnog_detector">
-<span id="nuradioreco-detector-rno-g-rnog-detector-module"></span><h1>NuRadioReco.detector.RNO_G.rnog_detector module<a class="headerlink" href="#module-NuRadioReco.detector.RNO_G.rnog_detector" title="Link to this heading"></a></h1>
+  <section id="module-NuRadioReco.detector.RNO_G.rnog_detector_mod">
+<span id="nuradioreco-detector-rno-g-rnog-detector-mod-module"></span><h1>NuRadioReco.detector.RNO_G.rnog_detector_mod module<a class="headerlink" href="#module-NuRadioReco.detector.RNO_G.rnog_detector_mod" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.replace_value_in_dict">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector_mod.</span></span><span class="sig-name descname"><span class="pre">replace_value_in_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector_mod.html#replace_value_in_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.replace_value_in_dict" title="Link to this definition"></a></dt>
+<dd><p>Replaces the value of a nested dict entry.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="mi">3</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mi">2</span><span class="p">}}}</span>
+<span class="n">replace_value_in_dict</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="mi">14</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="c1"># {1: {2: {3: 1, 4: 14}}}</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py class">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector.</span></span><span class="sig-name descname"><span class="pre">Detector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database_connection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RNOG_public'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">over_write_handset_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">always_query_entire_description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_new</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector_mod.</span></span><span class="sig-name descname"><span class="pre">ModDetector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector_mod.html#ModDetector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code></a></p>
 <p>The RNO-G detector description.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -667,97 +679,118 @@ new connection. Set to True to create a new database connection.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(filename[, json_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_component" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_component"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_component</span></code></a>(station_id, channel_id, component)</p></td>
+<td><p>Add an additional component to the <em class="xref py py-obj">response_chain</em> and the corresponding response to the <em class="xref py py-obj">total_response</em></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_manual_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_manual_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_manual_time_delay</span></code></a>(station_id, ...[, ...])</p></td>
+<td><p>Add an additional time delay to the signal chain and total response</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_response" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_response</span></code></a>(station_id, channel_id, response)</p></td>
+<td><p>Add an additional response to the <em class="xref py py-obj">total_response</em></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.export" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(filename[, json_kwargs, ...])</p></td>
 <td><p>Export the buffered detector description.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export_as_string" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.export_as_string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_as_string</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.export_as_string" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.export_as_string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_as_string</span></code></a>([...])</p></td>
 <td><p>Export the detector description as string using json.dumps</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_absolute_position" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_absolute_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position</span></code></a>(station_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_absolute_position" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_absolute_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position</span></code></a>(station_id)</p></td>
 <td><p>Get the absolute position of a specific station (relative to site)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code></a>(station_id, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_amplifier_response" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_amplifier_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code></a>(station_id, ...)</p></td>
 <td><p>Returns the complex response function for the entire signal chain of a channel.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_model" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_model</span></code></a>(station_id, channel_id[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_model" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_model</span></code></a>(station_id, channel_id[, ...])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_orientation" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_orientation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_orientation</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_orientation" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_orientation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_orientation</span></code></a>(station_id, channel_id)</p></td>
 <td><p>Returns get_channel_orientation</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_type" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_type</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_type" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_type</span></code></a>(station_id, channel_id)</p></td>
 <td><p>Returns type of antenna, i.e., &quot;VPol&quot; or &quot;HPol&quot; or &quot;LPDA&quot;, ...</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code></a>(station_id, channel_id[, ...])</p></td>
-<td><p>Same as <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_cable_delay" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_cable_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code></a>(station_id, channel_id[, ...])</p></td>
+<td><p>Same as <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel</span></code></a>(station_id, channel_id)</p></td>
 <td><p>Returns a dictionary of all channel parameters</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_ids" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_ids</span></code></a>(station_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_ids" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_ids</span></code></a>(station_id)</p></td>
 <td><p>Get channel ids for a particlular station.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_orientation" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_orientation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_orientation</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_orientation" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_orientation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_orientation</span></code></a>(station_id, channel_id)</p></td>
 <td><p>Returns the orientation of a specific channel/antenna</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_signal_chain" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_signal_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_signal_chain</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_signal_chain" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_signal_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_signal_chain</span></code></a>(station_id, channel_id)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_component" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_component"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_component</span></code></a>([collection, component])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_component" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_component"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_component</span></code></a>([collection, component])</p></td>
 <td><p>Get the response of a component from the database.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_database" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_database</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_database" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_database</span></code></a>()</p></td>
 <td><p>Returns the database connection</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_detector_time" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_detector_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detector_time</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_detector_time" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_detector_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detector_time</span></code></a>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_devices" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_devices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_devices</span></code></a>(station_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_devices" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_devices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_devices</span></code></a>(station_id)</p></td>
 <td><p>Get all devices for a particular station.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_noise_temperature" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_noise_temperature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_temperature</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_noise_temperature" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_noise_temperature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_temperature</span></code></a>(station_id, channel_id)</p></td>
 <td><p>Get noise temperture per station / channel</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_number_of_channels" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_number_of_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_channels</span></code></a>(station_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_number_of_channels" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_number_of_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_channels</span></code></a>(station_id)</p></td>
 <td><p>Get number of channels for a particlular station.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_number_of_samples" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_number_of_samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code></a>(station_id[, channel_id])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_number_of_samples" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_number_of_samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code></a>(station_id[, channel_id])</p></td>
 <td><p>Get number of samples for recorded waveforms</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_relative_position</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_relative_position" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_relative_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_relative_position</span></code></a>(station_id, channel_id)</p></td>
 <td><p>Get the relative position of a specific channel/antenna with respect to the station center</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position_device" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position_device"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_relative_position_device</span></code></a>(station_id, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_relative_position_device" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_relative_position_device"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_relative_position_device</span></code></a>(station_id, ...)</p></td>
 <td><p>Get the relative position of a specific device with respect to the station center</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_frequency</span></code></a>(station_id[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_sampling_frequency" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_sampling_frequency"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_frequency</span></code></a>(station_id[, ...])</p></td>
 <td><p>Get sampling frequency per station / channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_components" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_components"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_signal_chain_components</span></code></a>(station_id, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_signal_chain_components" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_signal_chain_components"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_signal_chain_components</span></code></a>(station_id, ...)</p></td>
 <td><p>Returns the names of all components in the signal chain.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_response" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_signal_chain_response</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_signal_chain_response" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_signal_chain_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_signal_chain_response</span></code></a>(station_id, channel_id)</p></td>
 <td><p>Returns a <em class="xref py py-obj">detector.response.Response</em> object which describes the complex response of the entire signal chain, i.e., the combined reponse of all components of one channel.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site</span></code></a>(station_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_site" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site</span></code></a>(station_id)</p></td>
 <td><p>This detector class is exclusive for the RNO-G detector at Summit Greenland.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_coordinates</span></code></a>([station_id])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_site_coordinates" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_site_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_coordinates</span></code></a>([station_id])</p></td>
 <td><p>Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station</span></code></a>(station_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_station" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station</span></code></a>(station_id)</p></td>
 <td><p>Returns a dictionary of all station parameters/information including some channel information.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station_ids" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_station_ids" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_station_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code></a>()</p></td>
 <td><p>Returns the list of all commissioned stations.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>(station_id, channel_id[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>(station_id, channel_id[, ...])</p></td>
 <td><p>Return the sum of the time delay of all components in the signal chain calculated from the phase.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code></a>(station_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.has_station" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.has_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code></a>(station_id)</p></td>
 <td><p>Returns true if the station is commission.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.update" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(time)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.modify_channel_description" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.modify_channel_description"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modify_channel_description</span></code></a>(station_id, ...)</p></td>
+<td><p>This function allows you to replace/modifty the description of a channel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.modify_station_description" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.modify_station_description"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modify_station_description</span></code></a>(station_id, keys, ...)</p></td>
+<td><p>This function allows you to replace/modifty the description of a channel.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.set_channel_position" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.set_channel_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_channel_position</span></code></a>(station_id, channel_id, ...)</p></td>
+<td><p>Set the relative position of a channel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.set_device_position" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.set_device_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_device_position</span></code></a>(station_id, device_id, value)</p></td>
+<td><p>Set the relative position of a device.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.update" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(time)</p></td>
 <td><p>Updates the detector.</p></td>
 </tr>
 </tbody>
@@ -773,21 +806,19 @@ new connection. Set to True to create a new database connection.</p>
 <p>For more information about <code class="docutils literal notranslate"><span class="pre">Detector</span></code> objects in NuRadioMC, see
 <a class="reference external" href="https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/detector_tree.html">https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/detector_tree.html</a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.export">
-<span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_response_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export" title="Link to this definition"></a></dt>
-<dd><p>Export the buffered detector description.</p>
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.modify_channel_description">
+<span class="sig-name descname"><span class="pre">modify_channel_description</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector_mod.html#ModDetector.modify_channel_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.modify_channel_description" title="Link to this definition"></a></dt>
+<dd><p>This function allows you to replace/modifty the description of a channel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>filename: str</strong></dt><dd><p>Filename of the exported detector description</p>
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
 </dd>
-<dt><strong>json_kwargs: dict</strong></dt><dd><p>Arguments passed to json.dumps(..). (Default: None -&gt; dict(indent=0, default=_json_serial))</p>
+<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
 </dd>
-<dt><strong>additional_data: dict (Default: None)</strong></dt><dd><p>If specified the content of this dict will be added to the exported detector description.</p>
+<dt><strong>keys: list of str</strong></dt><dd><p>The list of keys of the corresponding part of the description to be changed</p>
 </dd>
-<dt><strong>drop_response_data: bool (Default: False)</strong></dt><dd><p>If True, the response data (frequency, mag, phase) will be dropped from the exported detector description.</p>
-</dd>
-<dt><strong>comment: str (Default: None)</strong></dt><dd><p>An optional comment describing this detector that will be added to the exported detector description.</p>
+<dt><strong>value: various types</strong></dt><dd><p>The value of the description to be changed</p>
 </dd>
 </dl>
 </dd>
@@ -795,86 +826,8 @@ new connection. Set to True to create a new database connection.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.export_as_string">
-<span class="sig-name descname"><span class="pre">export_as_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skip_signal_chain_response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dumps_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.export_as_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export_as_string" title="Link to this definition"></a></dt>
-<dd><p>Export the detector description as string using json.dumps</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>skip_signal_chain_response: bool</strong></dt><dd><p>If true drop the data of the response chain from the detector description (because this creates large files).
-(Default: True)</p>
-</dd>
-<dt><strong>dumps_kwargs: dict</strong></dt><dd><p>Arguments passed to json.dumps(..). (Default: None -&gt; dict(indent=4, default=str))</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_detector_time">
-<span class="sig-name descname"><span class="pre">get_detector_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_detector_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_detector_time" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>time: <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></dt><dd><p>Detector time</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.update">
-<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.update" title="Link to this definition"></a></dt>
-<dd><p>Updates the detector. If configure in constructor this function with trigger the
-database query.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>time: `datetime.datetime` or ``astropy.time.Time``</strong></dt><dd><p>Unix time of measurement.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station_ids">
-<span class="sig-name descname"><span class="pre">get_station_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_station_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station_ids" title="Link to this definition"></a></dt>
-<dd><p>Returns the list of all commissioned stations.
-Returns
-——-</p>
-<dl class="simple">
-<dt>station_ids: list(int)</dt><dd><p>List of all commissioned station ids.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station">
-<span class="sig-name descname"><span class="pre">has_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.has_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.has_station" title="Link to this definition"></a></dt>
-<dd><p>Returns true if the station is commission. First checks buffer. If not in buffer, queries (and buffers)
-the basic information of all stations and checks if station is among them.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>Station id which uniquely idendifies a station</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>has_station: bool</dt><dd><p>Returns True if the station could be found. A found station will be in the buffer.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel">
-<span class="sig-name descname"><span class="pre">get_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel">
+<span class="sig-name descname"><span class="pre">get_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector_mod.html#ModDetector.get_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel" title="Link to this definition"></a></dt>
 <dd><p>Returns a dictionary of all channel parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -895,22 +848,17 @@ the basic information of all stations and checks if station is among them.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station">
-<span class="sig-name descname"><span class="pre">get_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_station" title="Link to this definition"></a></dt>
-<dd><p>Returns a dictionary of all station parameters/information including some channel information.
-The channel’s (signal chain) response is not necessarily returned (they might be if they are
-already in the buffer but this is not ensured). To get the complete channel information call
-<em class="xref py py-obj">self.get_channel(station_id, channel_id)</em>.</p>
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.modify_station_description">
+<span class="sig-name descname"><span class="pre">modify_station_description</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector_mod.html#ModDetector.modify_station_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.modify_station_description" title="Link to this definition"></a></dt>
+<dd><p>This function allows you to replace/modifty the description of a channel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
 </dd>
-</dl>
+<dt><strong>keys: list of str</strong></dt><dd><p>The list of keys of the corresponding part of the description to be changed</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>station_info: dict</dt><dd><p>Dictionary of station parameters/information</p>
+<dt><strong>value: various types</strong></dt><dd><p>The value of the description to be changed</p>
 </dd>
 </dl>
 </dd>
@@ -918,8 +866,141 @@ already in the buffer but this is not ensured). To get the complete channel info
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_absolute_position">
-<span class="sig-name descname"><span class="pre">get_absolute_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_absolute_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_absolute_position" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_response">
+<span class="sig-name descname"><span class="pre">add_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector_mod.html#ModDetector.add_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_response" title="Link to this definition"></a></dt>
+<dd><p>Add an additional response to the <em class="xref py py-obj">total_response</em></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
+</dd>
+<dt><strong>response: response.Response</strong></dt><dd><p>A response object to be added to the <em class="xref py py-obj">total_response</em></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_component">
+<span class="sig-name descname"><span class="pre">add_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector_mod.html#ModDetector.add_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_component" title="Link to this definition"></a></dt>
+<dd><p>Add an additional component to the <em class="xref py py-obj">response_chain</em> and the corresponding response to the <em class="xref py py-obj">total_response</em></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
+</dd>
+<dt><strong>componennt: dict</strong></dt><dd><p>A dictionary with the properties of the component to be added</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_manual_time_delay">
+<span class="sig-name descname"><span class="pre">add_manual_time_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MOD_manual_time_delay'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector_mod.html#ModDetector.add_manual_time_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.add_manual_time_delay" title="Link to this definition"></a></dt>
+<dd><p>Add an additional time delay to the signal chain and total response</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
+</dd>
+<dt><strong>time_delay: float</strong></dt><dd><p>The manual time delay to be added</p>
+</dd>
+<dt><strong>weight: float (default: 1)</strong></dt><dd><p>The weight of the time delay in the total response (either 1 or -1)</p>
+</dd>
+<dt><strong>name: str (default: “MOD_manual_time_delay”)</strong></dt><dd><p>The name of the component to be added</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.set_channel_position">
+<span class="sig-name descname"><span class="pre">set_channel_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector_mod.html#ModDetector.set_channel_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.set_channel_position" title="Link to this definition"></a></dt>
+<dd><p>Set the relative position of a channel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
+</dd>
+<dt><strong>value: array/list of float</strong></dt><dd><p>The relative position of the channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.set_device_position">
+<span class="sig-name descname"><span class="pre">set_device_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector_mod.html#ModDetector.set_device_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.set_device_position" title="Link to this definition"></a></dt>
+<dd><p>Set the relative position of a device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+<dt><strong>device_id: int</strong></dt><dd><p>The device id</p>
+</dd>
+<dt><strong>value: array/list of float</strong></dt><dd><p>The relative position of the channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.export">
+<span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_response_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.export" title="Link to this definition"></a></dt>
+<dd><p>Export the buffered detector description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename: str</strong></dt><dd><p>Filename of the exported detector description</p>
+</dd>
+<dt><strong>json_kwargs: dict</strong></dt><dd><p>Arguments passed to json.dumps(..). (Default: None -&gt; dict(indent=0, default=_json_serial))</p>
+</dd>
+<dt><strong>additional_data: dict (Default: None)</strong></dt><dd><p>If specified the content of this dict will be added to the exported detector description.</p>
+</dd>
+<dt><strong>drop_response_data: bool (Default: False)</strong></dt><dd><p>If True, the response data (frequency, mag, phase) will be dropped from the exported detector description.</p>
+</dd>
+<dt><strong>comment: str (Default: None)</strong></dt><dd><p>An optional comment describing this detector that will be added to the exported detector description.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.export_as_string">
+<span class="sig-name descname"><span class="pre">export_as_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skip_signal_chain_response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dumps_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.export_as_string" title="Link to this definition"></a></dt>
+<dd><p>Export the detector description as string using json.dumps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>skip_signal_chain_response: bool</strong></dt><dd><p>If true drop the data of the response chain from the detector description (because this creates large files).
+(Default: True)</p>
+</dd>
+<dt><strong>dumps_kwargs: dict</strong></dt><dd><p>Arguments passed to json.dumps(..). (Default: None -&gt; dict(indent=4, default=str))</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_absolute_position">
+<span class="sig-name descname"><span class="pre">get_absolute_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_absolute_position" title="Link to this definition"></a></dt>
 <dd><p>Get the absolute position of a specific station (relative to site)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -939,9 +1020,13 @@ time of measurement</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position">
-<span class="sig-name descname"><span class="pre">get_relative_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_relative_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position" title="Link to this definition"></a></dt>
-<dd><p>Get the relative position of a specific channel/antenna with respect to the station center</p>
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_amplifier_response">
+<span class="sig-name descname"><span class="pre">get_amplifier_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_amplifier_response" title="Link to this definition"></a></dt>
+<dd><p>Returns the complex response function for the entire signal chain of a channel.</p>
+<p>This includes not only the (main) amplifier but also cables and other components.
+Note that while group delays are appropriately accounted for, an overall time delay
+(mostly due to cable delay) has been removed and is instead accounted for by
+<a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -949,11 +1034,43 @@ time of measurement</p>
 </dd>
 <dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
 </dd>
+<dt><strong>frequencies: array of floats</strong></dt><dd><p>Array of frequencies for which the response is returned</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>pos: np.array(3,)</dt><dd><p>3-dim array of relative station position</p>
+<dt>response: array of complex floats</dt><dd><p>Complex response function</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a></dt><dd></dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_model">
+<span class="sig-name descname"><span class="pre">get_antenna_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_model" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>Station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>Channel id</p>
+</dd>
+<dt><strong>zenith: float (Default: None)</strong></dt><dd><p>So far has no use in this class. Only defined to keep the interface
+in parity to other detector classes</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>antenna_model: string</dt><dd><p>Name of the antenna model (describing the Vector effective length VEL)</p>
 </dd>
 </dl>
 </dd>
@@ -961,8 +1078,63 @@ time of measurement</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_orientation">
-<span class="sig-name descname"><span class="pre">get_channel_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_channel_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_orientation" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_orientation">
+<span class="sig-name descname"><span class="pre">get_antenna_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_orientation" title="Link to this definition"></a></dt>
+<dd><p>Returns get_channel_orientation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_type">
+<span class="sig-name descname"><span class="pre">get_antenna_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_antenna_type" title="Link to this definition"></a></dt>
+<dd><p>Returns type of antenna, i.e., “VPol” or “HPol” or “LPDA”, …</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>Station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>Channel id</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ant_type: string</dt><dd><p>Accronym/abbrivatipn of the antenna type</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_cable_delay">
+<span class="sig-name descname"><span class="pre">get_cable_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_cable_delay" title="Link to this definition"></a></dt>
+<dd><p>Same as <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>. Only here to keep the same interface as the other detector classes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_ids">
+<span class="sig-name descname"><span class="pre">get_channel_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_ids" title="Link to this definition"></a></dt>
+<dd><p>Get channel ids for a particlular station. It will query the basic information of all stations in the
+Database if necessary. Raises an error if the station is not commission.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>Station id which uniquely idendifies a station</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>channel_ids: list(int)</dt><dd><p>A list of all channel ids for the requested station</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_orientation">
+<span class="sig-name descname"><span class="pre">get_channel_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_orientation" title="Link to this definition"></a></dt>
 <dd><p>Returns the orientation of a specific channel/antenna</p>
 <dl class="simple">
 <dt>Orientation:</dt><dd><ul class="simple">
@@ -995,14 +1167,8 @@ time of measurement</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_orientation">
-<span class="sig-name descname"><span class="pre">get_antenna_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_antenna_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_orientation" title="Link to this definition"></a></dt>
-<dd><p>Returns get_channel_orientation</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_signal_chain">
-<span class="sig-name descname"><span class="pre">get_channel_signal_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_channel_signal_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_signal_chain" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_signal_chain">
+<span class="sig-name descname"><span class="pre">get_channel_signal_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_signal_chain" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1024,377 +1190,8 @@ chain of the channel</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response">
-<span class="sig-name descname"><span class="pre">get_amplifier_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_amplifier_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response" title="Link to this definition"></a></dt>
-<dd><p>Returns the complex response function for the entire signal chain of a channel.</p>
-<p>This includes not only the (main) amplifier but also cables and other components.
-Note that while group delays are appropriately accounted for, an overall time delay
-(mostly due to cable delay) has been removed and is instead accounted for by
-<a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
-</dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
-</dd>
-<dt><strong>frequencies: array of floats</strong></dt><dd><p>Array of frequencies for which the response is returned</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>response: array of complex floats</dt><dd><p>Complex response function</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<dl class="simple">
-<dt><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a></dt><dd></dd>
-</dl>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_response">
-<span class="sig-name descname"><span class="pre">get_signal_chain_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_signal_chain_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_response" title="Link to this definition"></a></dt>
-<dd><p>Returns a <em class="xref py py-obj">detector.response.Response</em> object which describes the complex response of the
-entire signal chain, i.e., the combined reponse of all components of one
-channel. For example: IGLU, fiber-cable, DRAB, coax-cable, RADIANT.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
-</dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
-</dd>
-<dt><strong>trigger: bool</strong></dt><dd><p>If True, the trigger channel resonse is returned. An error is raised if no trigger response exists. (Default: False)</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>response: <em class="xref py py-obj">detector.response.Response</em></dt><dd><p>Returns combined response of the channel</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_components">
-<span class="sig-name descname"><span class="pre">get_signal_chain_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_signal_chain_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_signal_chain_components" title="Link to this definition"></a></dt>
-<dd><p>Returns the names of all components in the signal chain.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
-</dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>signal_chain_components: dict</dt><dd><p>A dictionaries with the keys being the names of the components and the values their weights in
-the signal chain. (For an explanation of a weight see <em class="xref py py-obj">detector.response.Response</em>)</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_devices">
-<span class="sig-name descname"><span class="pre">get_devices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_devices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_devices" title="Link to this definition"></a></dt>
-<dd><p>Get all devices for a particular station.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>Station id</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>devices: dict(str)</dt><dd><p>Dictonary of all devices with {id: name}.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position_device">
-<span class="sig-name descname"><span class="pre">get_relative_position_device</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_relative_position_device"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position_device" title="Link to this definition"></a></dt>
-<dd><p>Get the relative position of a specific device with respect to the station center</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
-</dd>
-<dt><strong>device_id: int</strong></dt><dd><p>Device identifier</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>pos: np.array(3,)</dt><dd><p>3-dim array of relative station position</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_number_of_channels">
-<span class="sig-name descname"><span class="pre">get_number_of_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_number_of_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_number_of_channels" title="Link to this definition"></a></dt>
-<dd><p>Get number of channels for a particlular station. It will query the basic information of all stations in the
-Database if necessary. Raises an error if the station is not commission.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>Station id which uniquely idendifies a station</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>channel_ids: int</dt><dd><p>Number of all channels for the requested station</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_ids">
-<span class="sig-name descname"><span class="pre">get_channel_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_channel_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_channel_ids" title="Link to this definition"></a></dt>
-<dd><p>Get channel ids for a particlular station. It will query the basic information of all stations in the
-Database if necessary. Raises an error if the station is not commission.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>Station id which uniquely idendifies a station</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>channel_ids: list(int)</dt><dd><p>A list of all channel ids for the requested station</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_model">
-<span class="sig-name descname"><span class="pre">get_antenna_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_antenna_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_model" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>Station id</p>
-</dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>Channel id</p>
-</dd>
-<dt><strong>zenith: float (Default: None)</strong></dt><dd><p>So far has no use in this class. Only defined to keep the interface
-in parity to other detector classes</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>antenna_model: string</dt><dd><p>Name of the antenna model (describing the Vector effective length VEL)</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_type">
-<span class="sig-name descname"><span class="pre">get_antenna_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_antenna_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_antenna_type" title="Link to this definition"></a></dt>
-<dd><p>Returns type of antenna, i.e., “VPol” or “HPol” or “LPDA”, …</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>Station id</p>
-</dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>Channel id</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>ant_type: string</dt><dd><p>Accronym/abbrivatipn of the antenna type</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_number_of_samples">
-<span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_number_of_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_number_of_samples" title="Link to this definition"></a></dt>
-<dd><p>Get number of samples for recorded waveforms</p>
-<p>All RNO-G channels have the same number of samples, the argument channel_id is not used but we keep
-it here for consistency with outer detector classes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>Station id</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>number_of_samples: int</dt><dd><p>Number of samples with which each waveform is recorded</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency">
-<span class="sig-name descname"><span class="pre">get_sampling_frequency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_sampling_frequency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_sampling_frequency" title="Link to this definition"></a></dt>
-<dd><p>Get sampling frequency per station / channel</p>
-<p>All RNO-G channels have the same sampling frequency, the argument channel_id is not used but we keep
-it here for consistency with other detector classes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>Station id</p>
-</dd>
-<dt><strong>channel_id: int (default: None)</strong></dt><dd><p>Not Used!</p>
-</dd>
-<dt><strong>trigger: bool</strong></dt><dd><p>If True, the sampling rate of the trigger board is returned (FLOWER). (Default: False)</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>sampling_rate: float</dt><dd><p>Sampling frequency</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_noise_temperature">
-<span class="sig-name descname"><span class="pre">get_noise_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_noise_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_noise_temperature" title="Link to this definition"></a></dt>
-<dd><p>Get noise temperture per station / channel</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.is_channel_noiseless">
-<span class="sig-name descname"><span class="pre">is_channel_noiseless</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.is_channel_noiseless"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.is_channel_noiseless" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay">
-<span class="sig-name descname"><span class="pre">get_cable_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_cable_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay" title="Link to this definition"></a></dt>
-<dd><p>Same as <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>. Only here to keep the same interface as the other detector classes.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay">
-<span class="sig-name descname"><span class="pre">get_time_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_time_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_time_delay" title="Link to this definition"></a></dt>
-<dd><p>Return the sum of the time delay of all components in the signal chain calculated from the phase.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
-</dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
-</dd>
-<dt><strong>use_stored: bool</strong></dt><dd><p>If True, take time delay as stored in DB rather than calculated from response. (Default: True)</p>
-</dd>
-<dt><strong>trigger: bool</strong></dt><dd><p>If True, the trigger channel resonse is returned. An error is raised if no trigger response exists.
-(Default: False)</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>time_delay: float</dt><dd><p>Sum of the time delays of all components in the signal chain for one channel</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<dl class="simple">
-<dt><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_cable_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code></a>, <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code></a></dt><dd></dd>
-</dl>
-</div>
-<p class="rubric">Notes</p>
-<p>IMPORTANT: The value returned by this function does <em>not</em> directly correspond to the overall time
-delay / cable delay of the requested channel! A residual group delay may be present and is accounted for
-by the response provided by <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_amplifier_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code></a>.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site">
-<span class="sig-name descname"><span class="pre">get_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_site"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site" title="Link to this definition"></a></dt>
-<dd><p>This detector class is exclusive for the RNO-G detector at Summit Greenland.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>the station ID (not used, only for compatibility with other detector classes)</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>site: str</dt><dd><p>Returns “summit”</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates">
-<span class="sig-name descname"><span class="pre">get_site_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_site_coordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates" title="Link to this definition"></a></dt>
-<dd><p>Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>the station ID (not used, only for compatibility with other detector classes)</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>coordinates: tuple(float, float)</dt><dd><p>Tuple of latitude and longitude in degrees</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_database">
-<span class="sig-name descname"><span class="pre">get_database</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_database" title="Link to this definition"></a></dt>
-<dd><p>Returns the database connection</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>db: MongoClient</dt><dd><p>Returns the database connection</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_component">
-<span class="sig-name descname"><span class="pre">get_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'coax_cable'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'daq_drab_flower_2024_avg'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_component" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_component">
+<span class="sig-name descname"><span class="pre">get_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'coax_cable'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'daq_drab_flower_2024_avg'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_component" title="Link to this definition"></a></dt>
 <dd><p>Get the response of a component from the database.</p>
 <p>This function is a wrapper around the same named function in the database class.</p>
 <dl class="field-list simple">
@@ -1421,12 +1218,374 @@ by the response provided by <a class="reference internal" href="#NuRadioReco.det
 </div>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_database">
+<span class="sig-name descname"><span class="pre">get_database</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_database" title="Link to this definition"></a></dt>
+<dd><p>Returns the database connection</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>db: MongoClient</dt><dd><p>Returns the database connection</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.produce_detector_files_for_all_time_periods">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.RNO_G.rnog_detector.</span></span><span class="sig-name descname"><span class="pre">produce_detector_files_for_all_time_periods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">drop_response_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#produce_detector_files_for_all_time_periods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.produce_detector_files_for_all_time_periods" title="Link to this definition"></a></dt>
-<dd><p>This function produces a detector file for each time period necessary</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_detector_time">
+<span class="sig-name descname"><span class="pre">get_detector_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_detector_time" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>time: <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></dt><dd><p>Detector time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_devices">
+<span class="sig-name descname"><span class="pre">get_devices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_devices" title="Link to this definition"></a></dt>
+<dd><p>Get all devices for a particular station.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>Station id</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>devices: dict(str)</dt><dd><p>Dictonary of all devices with {id: name}.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_noise_temperature">
+<span class="sig-name descname"><span class="pre">get_noise_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_noise_temperature" title="Link to this definition"></a></dt>
+<dd><p>Get noise temperture per station / channel</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_number_of_channels">
+<span class="sig-name descname"><span class="pre">get_number_of_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_number_of_channels" title="Link to this definition"></a></dt>
+<dd><p>Get number of channels for a particlular station. It will query the basic information of all stations in the
+Database if necessary. Raises an error if the station is not commission.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>Station id which uniquely idendifies a station</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>channel_ids: int</dt><dd><p>Number of all channels for the requested station</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_number_of_samples">
+<span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_number_of_samples" title="Link to this definition"></a></dt>
+<dd><p>Get number of samples for recorded waveforms</p>
+<p>All RNO-G channels have the same number of samples, the argument channel_id is not used but we keep
+it here for consistency with outer detector classes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>Station id</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>number_of_samples: int</dt><dd><p>Number of samples with which each waveform is recorded</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_relative_position">
+<span class="sig-name descname"><span class="pre">get_relative_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_relative_position" title="Link to this definition"></a></dt>
+<dd><p>Get the relative position of a specific channel/antenna with respect to the station center</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>pos: np.array(3,)</dt><dd><p>3-dim array of relative station position</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_relative_position_device">
+<span class="sig-name descname"><span class="pre">get_relative_position_device</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_relative_position_device" title="Link to this definition"></a></dt>
+<dd><p>Get the relative position of a specific device with respect to the station center</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+<dt><strong>device_id: int</strong></dt><dd><p>Device identifier</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>pos: np.array(3,)</dt><dd><p>3-dim array of relative station position</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_sampling_frequency">
+<span class="sig-name descname"><span class="pre">get_sampling_frequency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_sampling_frequency" title="Link to this definition"></a></dt>
+<dd><p>Get sampling frequency per station / channel</p>
+<p>All RNO-G channels have the same sampling frequency, the argument channel_id is not used but we keep
+it here for consistency with other detector classes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>Station id</p>
+</dd>
+<dt><strong>channel_id: int (default: None)</strong></dt><dd><p>Not Used!</p>
+</dd>
+<dt><strong>trigger: bool</strong></dt><dd><p>If True, the sampling rate of the trigger board is returned (FLOWER). (Default: False)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>sampling_rate: float</dt><dd><p>Sampling frequency</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_signal_chain_components">
+<span class="sig-name descname"><span class="pre">get_signal_chain_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_signal_chain_components" title="Link to this definition"></a></dt>
+<dd><p>Returns the names of all components in the signal chain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>signal_chain_components: dict</dt><dd><p>A dictionaries with the keys being the names of the components and the values their weights in
+the signal chain. (For an explanation of a weight see <em class="xref py py-obj">detector.response.Response</em>)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_signal_chain_response">
+<span class="sig-name descname"><span class="pre">get_signal_chain_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_signal_chain_response" title="Link to this definition"></a></dt>
+<dd><p>Returns a <em class="xref py py-obj">detector.response.Response</em> object which describes the complex response of the
+entire signal chain, i.e., the combined reponse of all components of one
+channel. For example: IGLU, fiber-cable, DRAB, coax-cable, RADIANT.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
+</dd>
+<dt><strong>trigger: bool</strong></dt><dd><p>If True, the trigger channel resonse is returned. An error is raised if no trigger response exists. (Default: False)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>response: <em class="xref py py-obj">detector.response.Response</em></dt><dd><p>Returns combined response of the channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_site">
+<span class="sig-name descname"><span class="pre">get_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_site" title="Link to this definition"></a></dt>
+<dd><p>This detector class is exclusive for the RNO-G detector at Summit Greenland.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>the station ID (not used, only for compatibility with other detector classes)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>site: str</dt><dd><p>Returns “summit”</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_site_coordinates">
+<span class="sig-name descname"><span class="pre">get_site_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_site_coordinates" title="Link to this definition"></a></dt>
+<dd><p>Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>the station ID (not used, only for compatibility with other detector classes)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>coordinates: tuple(float, float)</dt><dd><p>Tuple of latitude and longitude in degrees</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_station">
+<span class="sig-name descname"><span class="pre">get_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_station" title="Link to this definition"></a></dt>
+<dd><p>Returns a dictionary of all station parameters/information including some channel information.
+The channel’s (signal chain) response is not necessarily returned (they might be if they are
+already in the buffer but this is not ensured). To get the complete channel information call
+<em class="xref py py-obj">self.get_channel(station_id, channel_id)</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>station_info: dict</dt><dd><p>Dictionary of station parameters/information</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_station_ids">
+<span class="sig-name descname"><span class="pre">get_station_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_station_ids" title="Link to this definition"></a></dt>
+<dd><p>Returns the list of all commissioned stations.
+Returns
+——-</p>
+<dl class="simple">
+<dt>station_ids: list(int)</dt><dd><p>List of all commissioned station ids.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay">
+<span class="sig-name descname"><span class="pre">get_time_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_stored</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay" title="Link to this definition"></a></dt>
+<dd><p>Return the sum of the time delay of all components in the signal chain calculated from the phase.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>The station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>The channel id</p>
+</dd>
+<dt><strong>use_stored: bool</strong></dt><dd><p>If True, take time delay as stored in DB rather than calculated from response. (Default: True)</p>
+</dd>
+<dt><strong>trigger: bool</strong></dt><dd><p>If True, the trigger channel resonse is returned. An error is raised if no trigger response exists.
+(Default: False)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>time_delay: float</dt><dd><p>Sum of the time delays of all components in the signal chain for one channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_cable_delay" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_cable_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code></a>, <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_amplifier_response" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_amplifier_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>IMPORTANT: The value returned by this function does <em>not</em> directly correspond to the overall time
+delay / cable delay of the requested channel! A residual group delay may be present and is accounted for
+by the response provided by <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_amplifier_response" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_amplifier_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.has_station">
+<span class="sig-name descname"><span class="pre">has_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.has_station" title="Link to this definition"></a></dt>
+<dd><p>Returns true if the station is commission. First checks buffer. If not in buffer, queries (and buffers)
+the basic information of all stations and checks if station is among them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>Station id which uniquely idendifies a station</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>has_station: bool</dt><dd><p>Returns True if the station could be found. A found station will be in the buffer.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.is_channel_noiseless">
+<span class="sig-name descname"><span class="pre">is_channel_noiseless</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.is_channel_noiseless" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.update" title="Link to this definition"></a></dt>
+<dd><p>Updates the detector. If configure in constructor this function with trigger the
+database query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time: `datetime.datetime` or ``astropy.time.Time``</strong></dt><dd><p>Unix time of measurement.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -1435,8 +1594,8 @@ by the response provided by <a class="reference internal" href="#NuRadioReco.det
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.detector.RNO_G.db_mongo_write.html" class="btn btn-neutral float-left" title="NuRadioReco.detector.RNO_G.db_mongo_write module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.detector.RNO_G.rnog_detector_mod.html" class="btn btn-neutral float-right" title="NuRadioReco.detector.RNO_G.rnog_detector_mod module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.detector.RNO_G.rnog_detector.html" class="btn btn-neutral float-left" title="NuRadioReco.detector.RNO_G.rnog_detector module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.detector.amp.html" class="btn btn-neutral float-right" title="NuRadioReco.detector.amp module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
