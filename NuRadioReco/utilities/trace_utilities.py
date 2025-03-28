@@ -1,13 +1,18 @@
 """
-This module contains utility functions to compute various observables from
-waveforms, i.e., traces, such as the energy fluence, the signal to noise ratio, etc.
+This module contains utility functions to compute various observables from waveforms.
+
+The functions in this module can be used to compute observables from waveforms, such as the energy fluence,
+the stokes parameters, the signal-to-noise ratio, the root power ratio, the Hilbert envelope, the impulsivity,
+the coherent sum, the entropy, the kurtosis, and the correlation between two traces.
 
 All functions in this module do not depend on the NuRadioReco framework
-and can be used independently.
+and can be used independently. The functions do not alter the input traces,
+but only compute observables from them.
 
-The functions do not alter the input traces, but only compute observables from them.
-See the module `NuRadioReco.utilities.signal_processing` for functions that
-modify traces, e.g., by filtering, delaying, etc.
+See Also
+--------
+`NuRadioReco.utilities.signal_processing`
+    Module for functions that modify traces, e.g., by filtering, delaying, etc.
 """
 
 from NuRadioReco.utilities import units, signal_processing
