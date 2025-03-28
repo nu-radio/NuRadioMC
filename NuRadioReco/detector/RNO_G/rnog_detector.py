@@ -122,6 +122,7 @@ class Detector():
         }
 
         self.additional_data = {}
+        self.comment = ""
 
         if select_stations is not None and not isinstance(select_stations, list):
             select_stations = [select_stations]
@@ -185,7 +186,7 @@ class Detector():
         self.assume_inf = None  # Compatibility with other detectors classes
         self.antenna_by_depth = None  # Compatibility with other detectors classes
 
-    def export(self, filename, json_kwargs=None, additional_data=None, drop_response_data=False):
+    def export(self, filename, json_kwargs=None, additional_data=None, drop_response_data=False, comment=None):
         """
         Export the buffered detector description.
 
@@ -202,6 +203,9 @@ class Detector():
 
         drop_response_data: bool (Default: False)
             If True, the response data (frequency, mag, phase) will be dropped from the exported detector description.
+
+        comment: str (Default: None)
+            An optional comment describing this detector that will be added to the exported detector description.
         """
 
         periods = {}
@@ -244,6 +248,11 @@ class Detector():
 
         if additional_data is not None:
             export_dict["additional_data"] = additional_data
+
+        if comment is not None:
+            self.comment = "\n".join([self.comment, comment]).strip()
+            
+        export_dict["comment"] = self.comment
 
         if not filename.endswith(".xz"):
             if not filename.endswith(".json"):
@@ -301,13 +310,15 @@ class Detector():
         if "version" in import_dict and import_dict["version"] == 1:
             self.__buffered_stations = {}
             self.additional_data = import_dict.get("additional_data", None)
+            self.comment = import_dict.get("comment", None)
 
-            # need to convert station/channel id keys back to integers
+            # need to convert station/channel/device id keys back to integers
             for station_id, station_data in import_dict["data"].items():
                 if self.selected_stations is not None and int(station_id) not in self.selected_stations:
                     continue
 
                 station_data["channels"] = {int(channel_id): channel_data for channel_id, channel_data in station_data["channels"].items()}
+                station_data["devices"] = {int(device_id): device_data for device_id, device_data in station_data["devices"].items()}
                 self.__buffered_stations[int(station_id)] = station_data
 
             # need to convert modification_timestamps back to datetime objects
@@ -331,6 +342,9 @@ class Detector():
             self.logger.error(f"{detector_file} with unknown version.")
             raise ReferenceError(f"{detector_file} with unknown version.")
 
+        # print any potential comment present in this detector description
+        if self.comment is not None:
+            self.logger.info("\n".join(["Loaded detector description with comment:", self.comment]))
 
     def _check_update_buffer(self):
         """
