@@ -6,7 +6,7 @@ from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverte
 import numpy as np
 import time
 import logging
-
+import matplotlib.pyplot as plt
 
 logger = logging.getLogger('NuRadioReco.HighLowTriggerSimulator')
 
@@ -43,24 +43,32 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
         raise TypeError(f"The trace ({trace.dtype}) and the threshold ({type(high_threshold)}) must have the same type")
 
     n_bins_coincidence = int(np.round(time_coincidence / dt))
+
+    # Pad trace end enough so that the end isn't cut off after striding.
+    trace=np.pad(trace, (0,n_bins_coincidence), "constant")
     num_frames = int(np.floor((len(trace) - n_bins_coincidence) / step))
 
     logger.debug("length of trace {} samples, coincidence window {}, num window bins {}".format(len(trace), n_bins_coincidence, num_frames))
 
-    #This line transforms the trace (n samples) to an array with shape (num_frames,window) where each frame
-    #is extracted from trace in step sample intervals
-    #Ex. step=2, window=4, trace=1,2,3,4,5,6,7,8, trace_windowed=((1,2,3,4),(3,4,5,6),...)
+    # This transforms the trace (n samples) to an array with shape (num_frames,window) where each frame
+    # is extracted from the trace in steps of sample intervals
+    # Ex. step=2, window=4, trace=[1,2,3,4,5,6,7,8], trace_windowed=[[1,2,3,4],[3,4,5,6],...]
     trace_windowed = np.lib.stride_tricks.as_strided(trace, (num_frames, n_bins_coincidence),
                                                         (trace.strides[0] * step, trace.strides[0]))
 
+    # Find high and low triggering windows 
     trace_high = np.any(trace_windowed >= high_threshold, axis=1)
     trace_low = np.any(trace_windowed <= low_threshold, axis=1)
     trace_high_low = trace_high & trace_low
-    
+
+    # Roll trace to the right with zero padding in order to get rising edges of triggering windows instead of falling
+    # (triggers occuring < window length into the trace will have slightly inaccurate trigger times)
+    trace_high_low = np.pad(trace_high_low, (int(n_bins_coincidence/step)-1,0), "constant")[:len(trace_windowed)]
+
     return trace_high_low
 
 
-def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns, step=1, extend_trace=False):
+def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns, step=1):
     """
     calculates a majority logic trigger
 
@@ -87,20 +95,20 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         the trigger times
     """
 
-    n = len(tts[0])
+    assert np.abs((time_coincidence / dt) % step - step/2) < 0.9*step , "Trigger times may be inaccurate due to windowing"
 
-    #coincidence bins needs reduced by step since the output traces of get_high_low_triggers is already binned by step
+    # Coincidence bins needs reduced by step since the output traces of get_high_low_triggers is already binned by step
     n_bins_coincidence = int(np.round(time_coincidence / dt / step))
-
+    n = len(tts[0])
     if(n_bins_coincidence > n):  # reduce coincidence window to maximum trace length
         n_bins_coincidence = n
-        logger.debug("specified coincidence window longer than tracelenght, reducing coincidence window to trace length")
+        logger.debug("specified coincidence window longer than tracelength, reducing coincidence window to trace length")
 
     for i in range(len(tts)):
-        trace=np.array(tts[i])
+        trace=np.pad(tts[i],(0,n_bins_coincidence),"constant")
         num_frames = int(np.floor((len(trace) - n_bins_coincidence)))
 
-        #Force the step size here to be 1 since the output traces of get_high_low_triggers is already binned by step
+        # Stide here again, except use step size of 1 since the output traces of get_high_low_triggers is already windowed by step
         trace_windowed = np.lib.stride_tricks.as_strided(trace, (num_frames, n_bins_coincidence),
                                                             (trace.strides[0], trace.strides[0]))
 
@@ -108,6 +116,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
 
     tt=np.array(tts)
     ttt=np.sum(np.array(tt),axis=0) >= number_of_coincidences
+    ttt=np.pad(ttt, (n_bins_coincidence-1,0), "constant")[:len(ttt)]
     triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(ttt==True))) * step
 
     return np.any(ttt), triggered_bins, triggered_bins * dt
@@ -248,6 +257,7 @@ class triggerSimulator:
                     triggerd_bins_channels, number_concidences, coinc_window, dt, step)
             else:
                 has_triggered = False
+
             # set maximum signal aplitude
             max_signal = 0
 
