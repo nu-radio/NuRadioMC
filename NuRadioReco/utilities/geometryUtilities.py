@@ -267,14 +267,12 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
 
     This function considers the following three cases:
 
-        - A refraction into the firm is simulated if the signal is coming from above,
-        the antenna is below the surface (= has a negative z-coordinate), and
-        `station.is_cosmic_ray()` is True.
-
-        - A refraction from firm to air is simulated when the signal is coming from below and
-        the antenna is above the surface.
-
-        - No refraction is simulated if non of the aferomentioned conditions apply.
+    * A refraction into the firm is simulated if the signal is coming from above,
+      the antenna is below the surface (= has a negative z-coordinate), and
+      `station.is_cosmic_ray()` is True.
+    * A refraction from firm to air is simulated when the signal is coming from below and
+      the antenna is above the surface.
+    * No refraction is simulated if non of the aferomentioned conditions apply.
 
     .. warning::
 

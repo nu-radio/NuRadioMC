@@ -28,7 +28,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
     --------
     NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder
         Similar class that directly adds the noise to ``Channel`` (voltage trace) objects
-        instead of ``ElectricField``s.
+        instead of ``ElectricField``\s.
     """
 
     def __init__(self):
