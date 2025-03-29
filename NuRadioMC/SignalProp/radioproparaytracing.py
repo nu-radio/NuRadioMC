@@ -1,22 +1,19 @@
-from __future__ import absolute_import, division, print_function
-import numpy as np
-from radiotools import helper as hp
-from NuRadioMC.utilities import attenuation as attenuation_util
-from NuRadioMC.utilities import medium_base
-from scipy import interpolate, optimize
-import NuRadioReco.utilities.geometryUtilities
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import (
+    units, geometryUtilities, medium_base, attenuation as attenuation_util)
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp import analyticraytracing as ana
 from NuRadioMC.utilities import medium
-from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
+from NuRadioMC.SignalProp.propagation import solution_types_revert
+
 import radiopropa
-import scipy.constants
+from radiotools import helper as hp
+
+from scipy import interpolate, optimize, constants
+import numpy as np
 import copy
 import logging
 import time
-from matplotlib import pyplot as plt
 
 """
 RadioPropa is a C++ module dedicated for ray tracing. It is a seperate module and
@@ -960,7 +957,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             raise IndexError
 
         refrac_index = self._medium.get_index_of_refraction(self._X2)
-        return self.get_correction_path_length(iS) / ((scipy.constants.c*units.meter/units.second)/refrac_index)
+        return self.get_correction_path_length(iS) / ((constants.c * units.meter / units.second) / refrac_index)
 
 
     def get_path_length(self, iS):
@@ -1183,10 +1180,10 @@ class radiopropa_ray_tracing(ray_tracing_base):
         for zenith_reflection in zenith_reflections:
             if (zenith_reflection is None):
                 continue
-            r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(zenith_reflection,
+            r_theta = geometryUtilities.get_fresnel_r_p(zenith_reflection,
                 n_2=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], +1 * units.cm])),
                 n_1=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], -1 * units.cm])))
-            r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(zenith_reflection,
+            r_phi = geometryUtilities.get_fresnel_r_s(zenith_reflection,
                 n_2=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], +1 * units.cm])),
                 n_1=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], -1 * units.cm])))
             efield[efp.reflection_coefficient_theta] = r_theta
