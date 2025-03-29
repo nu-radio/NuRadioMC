@@ -1426,11 +1426,15 @@ class simulation:
             self._propagator.get_number_of_raytracing_solutions(),
             particle_mode=particle_mode)
 
+        # For neutrino simulations caching the VEL is not useful as it is unlikely that a electric field has the
+        # identical arrival direction at an antenna twice. On the other side the trace lengths vary from event to
+        # event which requires the clear the cache very often.
+        efieldToVoltageConverter.begin(caching=False)
+
         channelGenericNoiseAdder.begin(
             seed=self._config['seed'],
             scale_parameter_dir=self._config['noise_kwargs']["parameterization_directory"])
 
-        efieldToVoltageConverter.begin(caching=False)
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
 
