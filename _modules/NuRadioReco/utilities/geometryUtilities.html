@@ -917,29 +917,15 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html#NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fresnel_factors_and_signal_zenith</span><span class="p">(</span><span class="n">detector</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Handles potential refraction into the firn if necessary.</span>
 <span class="sd">    Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel)</span>
-<span class="sd">    and phi (perpendicular) polarization.</span>
+<span class="sd">    and phi (perpendicular) polarization. Handles potential refraction into the firn if that</span>
+<span class="sd">    applies to the antenna position.</span>
+<span class="sd">    WARNING: for deeper channels this function might be inacccurate. Consider using raytracing.</span>
 
-<span class="sd">    This function considers the following three cases:</span>
-
-<span class="sd">    * A refraction into the firm is simulated if the signal is coming from above,</span>
-<span class="sd">      the antenna is below the surface (= has a negative z-coordinate), and</span>
-<span class="sd">      `station.is_cosmic_ray()` is True.</span>
-<span class="sd">    * A refraction from firm to air is simulated when the signal is coming from below and</span>
-<span class="sd">      the antenna is above the surface.</span>
-<span class="sd">    * No refraction is simulated if non of the aferomentioned conditions apply.</span>
-
-<span class="sd">    .. warning::</span>
-
-<span class="sd">        For deeper channels this function might be inacccurate. Consider using raytracing.</span>
-<span class="sd">        This function uses the flag `station.is_cosmic_ray()` instead of checking whether the</span>
-<span class="sd">        electric field is at the position of the antenna.</span>
-
-<span class="sd">    Parallel and perpendicular refers to the signal&#39;s polarization with respect</span>
+<span class="sd">    parallel and perpendicular refers to the signal&#39;s polarization with respect</span>
 <span class="sd">    to the &#39;plane of incident&#39; which is defined as: &quot;the plane of incidence</span>
 <span class="sd">    is the plane which contains the surface normal and the propagation vector</span>
-<span class="sd">    of the incoming radiation&quot;.</span>
+<span class="sd">    of the incoming radiation.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -969,31 +955,25 @@
     <span class="n">t_phi</span> <span class="o">=</span> <span class="mf">1.</span>
 
     <span class="n">position</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">)</span>
-    <span class="c1"># first check case if signal comes from above</span>
-    <span class="k">if</span> <span class="n">zenith</span> <span class="o">&lt;=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="ow">and</span> <span class="n">station</span><span class="o">.</span><span class="n">is_cosmic_ray</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">3</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;This function might return inaccurate results for deep in-ice antennas. &quot;</span>
-                <span class="s2">&quot;Consider using raytracing instead.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">3</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;This function might return inaccurate results for deep in-ice antennas. Consider using raytracing instead.&quot;</span><span class="p">)</span>
 
+    <span class="c1"># first check case if signal comes from above</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">zenith</span> <span class="o">&lt;=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="ow">and</span> <span class="n">station</span><span class="o">.</span><span class="n">is_cosmic_ray</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
         <span class="c1"># is antenna below surface?</span>
         <span class="n">zenith_antenna</span> <span class="o">=</span> <span class="n">get_fresnel_angle</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">n_ice</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">t_theta</span> <span class="o">=</span> <span class="n">get_fresnel_t_p</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">n_ice</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">t_phi</span> <span class="o">=</span> <span class="n">get_fresnel_t_s</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">n_ice</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">((</span>
-            <span class="s2">&quot;Channel </span><span class="si">{:d}</span><span class="s2">: electric field is refracted into the firn. &quot;</span>
-            <span class="s2">&quot;theta </span><span class="si">{:.0f}</span><span class="s2"> -&gt; </span><span class="si">{:.0f}</span><span class="s2">. Transmission coefficient p (eTheta) &quot;</span>
-            <span class="s2">&quot;</span><span class="si">{:.2f}</span><span class="s2"> s (ePhi) </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
-            <span class="n">zenith_antenna</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">t_phi</span><span class="p">)))</span>
-
-    <span class="k">elif</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">zenith</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">((</span><span class="s2">&quot;Channel </span><span class="si">{:d}</span><span class="s2">: electric field is refracted into the firn. &quot;</span>
+                        <span class="s2">&quot;theta </span><span class="si">{:.0f}</span><span class="s2"> -&gt; </span><span class="si">{:.0f}</span><span class="s2">. Transmission coefficient p (eTheta) &quot;</span>
+                        <span class="s2">&quot;</span><span class="si">{:.2f}</span><span class="s2"> s (ePhi) </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">zenith_antenna</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">t_phi</span><span class="p">)))</span>
+    <span class="k">elif</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c1"># now the signal is coming from below, do we have an antenna above the surface?</span>
-        <span class="n">zenith_antenna</span> <span class="o">=</span> <span class="n">get_fresnel_angle</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">n2</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">n1</span><span class="o">=</span><span class="n">n_ice</span><span class="p">)</span>
+        <span class="n">zenith_antenna</span> <span class="o">=</span> <span class="n">get_fresnel_angle</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">n_ice</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">zenith_antenna</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-            <span class="s2">&quot;Fresnel reflection at air-firn boundary leads to unphysical results, &quot;</span>
-            <span class="s2">&quot;no reconstruction possible&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
     <span class="k">return</span> <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">t_phi</span></div>

@@ -908,7 +908,7 @@ interpreted as the lower and upper frequency of the bandwidth. Can be <em class=
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.signal_processing.get_efield_antenna_factor">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">get_efield_antenna_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_pattern_provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efield_is_at_antenna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#get_efield_antenna_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.get_efield_antenna_factor" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">get_efield_antenna_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_pattern_provider</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#get_efield_antenna_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.get_efield_antenna_factor" title="Link to this definition"></a></dt>
 <dd><p>Returns the antenna response to a radio signal coming from a specific direction</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -922,26 +922,9 @@ interpreted as the lower and upper frequency of the bandwidth. Can be <em class=
 <dt><strong>zenith, azimuth: float, float</strong></dt><dd><p>incoming direction of the signal. Note that refraction and reflection at the ice/air boundary are taken into account</p>
 </dd>
 <dt><strong>antenna_pattern_provider: AntennaPatternProvider</strong></dt><dd></dd>
-<dt><strong>efield_is_at_antenna: bool (defaul: False)</strong></dt><dd><p>If True, the electric field is assumed to be at the antenna.
-If False, the effects of an air-ice boundary are taken into account if necessary.
-The default is set to False to keep backwards compatibility.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>efield_antenna_factor: list of array of complex values</dt><dd><p>The antenna response for each channel at each frequency</p>
-</dd>
 </dl>
 </dd>
 </dl>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<dl class="simple">
-<dt><a class="reference internal" href="NuRadioReco.utilities.geometryUtilities.html#NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith" title="NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith</span></code></a></dt><dd><p>function that calculates the Fresnel factors</p>
-</dd>
-</dl>
-</div>
 </dd></dl>
 
 <dl class="py function">

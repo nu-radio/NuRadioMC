@@ -624,12 +624,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_channel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">antennapattern</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">signal_processing</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.efieldToVoltageConverter</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_time_shift_for_cosmic_ray</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_channel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">ice</span><span class="p">,</span> <span class="n">geometryUtilities</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal_processing</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">electricFieldParameters</span> <span class="k">as</span> <span class="n">efp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">channelParameters</span> <span class="k">as</span> <span class="n">chp</span>
 
@@ -712,10 +711,23 @@
                 <span class="c1"># Remove DC offset</span>
                 <span class="n">voltage_fft</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ff</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">0.</span>
 
-                <span class="n">dist_channel_efield</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">sim_station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">)</span> <span class="o">-</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_position</span><span class="p">())</span>
-                <span class="k">if</span> <span class="n">dist_channel_efield</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mm</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">:</span>
-                    <span class="n">travel_time_shift</span> <span class="o">=</span> <span class="n">calculate_time_shift_for_cosmic_ray</span><span class="p">(</span>
-                        <span class="n">det</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">electric_field</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">is_cosmic_ray</span><span class="p">():</span>
+                    <span class="n">site</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">sim_station</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
+                    <span class="n">antenna_position</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">sim_station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span>
+                                                                 <span class="n">channel_id</span><span class="p">)</span> <span class="o">-</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">zenith</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>  <span class="c1"># signal is coming from below, so we take IOR of ice</span>
+                        <span class="n">index_of_refraction</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="n">antenna_position</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">site</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>  <span class="c1"># signal is coming from above, so we take IOR of air</span>
+                        <span class="n">index_of_refraction</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">site</span><span class="p">)</span>
+                    <span class="c1"># For cosmic ray events, we only have one electric field for all channels, so we have to account</span>
+                    <span class="c1"># for the difference in signal travel between channels. IMPORTANT: This is only accurate</span>
+                    <span class="c1"># if all channels have the same z coordinate</span>
+                    <span class="n">travel_time_shift</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_time_delay_from_direction</span><span class="p">(</span>
+                        <span class="n">zenith</span><span class="p">,</span>
+                        <span class="n">azimuth</span><span class="p">,</span>
+                        <span class="n">antenna_position</span><span class="p">,</span>
+                        <span class="n">index_of_refraction</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">travel_time_shift</span> <span class="o">=</span> <span class="mi">0</span>
 

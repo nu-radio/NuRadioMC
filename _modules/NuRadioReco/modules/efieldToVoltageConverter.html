@@ -633,9 +633,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">antennapattern</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span><span class="p">,</span> <span class="n">ice</span><span class="p">,</span> <span class="n">geometryUtilities</span> <span class="k">as</span> <span class="n">geo_utl</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.efieldToVoltageConverter&#39;</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span><span class="p">,</span> <span class="n">ice</span><span class="p">,</span> <span class="n">signal_processing</span><span class="p">,</span> <span class="n">geometryUtilities</span> <span class="k">as</span> <span class="n">geo_utl</span>
 
 
 <div class="viewcode-block" id="efieldToVoltageConverter">
@@ -659,7 +657,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__pre_pulse_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.efieldToVoltageConverter&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
 
 
@@ -697,7 +697,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">time_resolution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`time_resolution` is deprecated and will be removed in the future. &quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`time_resolution` is deprecated and will be removed in the future. &quot;</span>
                                 <span class="s2">&quot;The argument is ignored.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="o">=</span> <span class="n">caching</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="kc">None</span>
@@ -720,7 +720,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">antenna_provider</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Deprecation warning: `antenna_provider` is deprecated.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Deprecation warning: `antenna_provider` is deprecated.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span>
 
     <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
@@ -758,10 +758,8 @@
                 <span class="n">cab_delay</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_cable_delay</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
                 <span class="n">t0</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">cab_delay</span>
 
-                <span class="c1"># If the efield is not at the antenna (as possible for a simulated cosmic ray event),</span>
-                <span class="c1"># the different signal travel time to the antennas has to be taken into account</span>
-                <span class="n">dist_channel_efield</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span> <span class="o">-</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_position</span><span class="p">())</span>
-                <span class="k">if</span> <span class="n">dist_channel_efield</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mm</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">:</span>
+                <span class="c1"># if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account</span>
+                <span class="k">if</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">is_cosmic_ray</span><span class="p">():</span>
                     <span class="n">travel_time_shift</span> <span class="o">=</span> <span class="n">calculate_time_shift_for_cosmic_ray</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">electric_field</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
                     <span class="n">t0</span> <span class="o">+=</span> <span class="n">travel_time_shift</span>
 
@@ -769,7 +767,7 @@
                     <span class="c1"># trace start time is None if no ray tracing solution was found and channel contains only zeros</span>
                     <span class="n">times_min</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span>
                     <span class="n">times_max</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t0</span> <span class="o">+</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;trace start time </span><span class="si">{}</span><span class="s2">, cable delay </span><span class="si">{}</span><span class="s2">, tracelength </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;trace start time </span><span class="si">{}</span><span class="s2">, cable delay </span><span class="si">{}</span><span class="s2">, tracelength </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">(),</span> <span class="n">cab_delay</span><span class="p">,</span>
                         <span class="n">electric_field</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()))</span>
 
@@ -797,7 +795,7 @@
         <span class="k">if</span> <span class="n">trace_length_samples</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">trace_length_samples</span> <span class="o">+=</span> <span class="mi">1</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
             <span class="s2">&quot;smallest trace start time </span><span class="si">{:.1f}</span><span class="s2">, largest trace time </span><span class="si">{:.1f}</span><span class="s2"> -&gt; n_samples = </span><span class="si">{:d}</span><span class="s2"> </span><span class="si">{:.0f}</span><span class="s2">ns)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">times_min</span><span class="p">,</span> <span class="n">times_max</span><span class="p">,</span> <span class="n">trace_length_samples</span><span class="p">,</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
 
@@ -808,7 +806,7 @@
             <span class="c1"># so we loop over all simulated channels with the same id,</span>
             <span class="c1"># convolve each trace with the antenna response for the given angles</span>
             <span class="c1"># and everything up in the time domain</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;channel id </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;channel id </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">))</span>
             <span class="n">channel</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span><span class="p">:</span>
@@ -825,27 +823,20 @@
                 <span class="c1"># to achieve a good time resolution, we upsample the trace first.</span>
                 <span class="n">new_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">trace_length_samples</span><span class="p">))</span>
 
-
-                <span class="n">dist_channel_efield</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span> <span class="o">-</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_position</span><span class="p">())</span>
-                <span class="n">efield_is_at_antenna</span> <span class="o">=</span> <span class="n">dist_channel_efield</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mm</span> <span class="o">&lt;</span> <span class="mf">0.01</span>
-
                 <span class="c1"># calculate the start bin</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()):</span>
                     <span class="n">cab_delay</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_cable_delay</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
-
-                    <span class="n">dist_channel_efield</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span> <span class="o">-</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_position</span><span class="p">())</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">efield_is_at_antenna</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">is_cosmic_ray</span><span class="p">():</span>
                         <span class="n">travel_time_shift</span> <span class="o">=</span> <span class="n">calculate_time_shift_for_cosmic_ray</span><span class="p">(</span>
                             <span class="n">det</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">electric_field</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">travel_time_shift</span> <span class="o">=</span> <span class="mi">0</span>
-
                     <span class="n">start_time</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">times_min</span> <span class="o">+</span> <span class="n">cab_delay</span> <span class="o">+</span> <span class="n">travel_time_shift</span>
                     <span class="n">start_bin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">start_time</span> <span class="o">/</span> <span class="n">time_resolution</span><span class="p">))</span>
 
                     <span class="c1"># calculate error by using discret bins</span>
                     <span class="n">time_remainder</span> <span class="o">=</span> <span class="n">start_time</span> <span class="o">-</span> <span class="n">start_bin</span> <span class="o">*</span> <span class="n">time_resolution</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;channel </span><span class="si">{}</span><span class="s1">, start time </span><span class="si">{:.1f}</span><span class="s1"> = bin </span><span class="si">{:d}</span><span class="s1">, ray solution </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;channel </span><span class="si">{}</span><span class="s1">, start time </span><span class="si">{:.1f}</span><span class="s1"> = bin </span><span class="si">{:d}</span><span class="s1">, ray solution </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">channel_id</span><span class="p">,</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">cab_delay</span><span class="p">,</span> <span class="n">start_bin</span><span class="p">,</span> <span class="n">electric_field</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">ray_path_type</span><span class="p">]))</span>
 
                     <span class="n">new_efield</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="p">()</span>  <span class="c1"># create new data structure with new efield length</span>
@@ -858,13 +849,13 @@
                     <span class="c1"># if checks should never be true...</span>
                     <span class="k">if</span> <span class="n">stop_bin</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">new_trace</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
                         <span class="c1"># ensure new efield does not extend beyond end of trace although this should not happen</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;electric field trace extends beyond the end of the trace and will be cut.&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;electric field trace extends beyond the end of the trace and will be cut.&quot;</span><span class="p">)</span>
                         <span class="n">stop_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">new_trace</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                         <span class="n">tr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">tr</span><span class="p">)[:,</span> <span class="p">:</span><span class="n">stop_bin</span><span class="o">-</span><span class="n">start_bin</span><span class="p">]</span>
 
                     <span class="k">if</span> <span class="n">start_bin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="c1"># ensure new efield does not extend beyond start of trace although this should not happen</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;electric field trace extends beyond the beginning of the trace and will be cut.&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;electric field trace extends beyond the beginning of the trace and will be cut.&quot;</span><span class="p">)</span>
                         <span class="n">tr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">tr</span><span class="p">)[:,</span> <span class="o">-</span><span class="n">start_bin</span><span class="p">:]</span>
                         <span class="n">start_bin</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -894,7 +885,7 @@
                         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ff</span><span class="p">):</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">ff</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
-                            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                                 <span class="s2">&quot;Frequencies have changed (array length). Clearing antenna response cache. &quot;</span>
                                 <span class="s2">&quot;If you similate neutrinos/in-ice radio emission, this is not surprising. Please disable caching &quot;</span>
                                 <span class="s2">&quot;By passing `caching==False` to the begin method. If you simulate air showers and this happens often, &quot;</span>
@@ -902,41 +893,32 @@
                         <span class="k">elif</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">ff</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">ff</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
-                            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                                 <span class="s2">&quot;Frequencies have changed (values). Clearing antenna response cache. &quot;</span>
                                 <span class="s2">&quot;If you similate neutrinos/in-ice radio emission, this is not surprising. Please disable caching &quot;</span>
                                 <span class="s2">&quot;By passing `caching==False` to the begin method. If you simulate air showers and this happens often, &quot;</span>
                                 <span class="s2">&quot;something might be wrong...&quot;</span><span class="p">)</span>
 
-                <span class="c1"># If the electric field is not at the antenna, we may need to change the</span>
-                <span class="c1"># signal arrival direction (due to refraction into the ice) and account for</span>
-                <span class="c1"># missing power due to the Fresnel factors.</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">efield_is_at_antenna</span><span class="p">:</span>
-                    <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">t_phi</span> <span class="o">=</span> <span class="n">geo_utl</span><span class="o">.</span><span class="n">fresnel_factors_and_signal_zenith</span><span class="p">(</span>
-                        <span class="n">det</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">zenith_antenna</span> <span class="o">=</span> <span class="n">zenith</span>
-                    <span class="n">t_theta</span> <span class="o">=</span> <span class="mi">1</span>
-                    <span class="n">t_phi</span> <span class="o">=</span> <span class="mi">1</span>
 
-                <span class="c1"># Get the antenna pattern and orientation for the current channel</span>
-                <span class="n">antenna_pattern</span><span class="p">,</span> <span class="n">antenna_orientation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_antenna_pattern_and_orientation</span><span class="p">(</span>
-                    <span class="n">det</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith_antenna</span><span class="p">)</span>
-
-                <span class="c1"># Get antenna sensitivity for the given direction</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
-                    <span class="n">vel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="p">(</span>
-                        <span class="n">antenna_pattern</span><span class="p">,</span> <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="o">*</span><span class="n">antenna_orientation</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">vel</span> <span class="o">=</span> <span class="n">antenna_pattern</span><span class="o">.</span><span class="n">get_antenna_response_vectorized</span><span class="p">(</span>
-                        <span class="n">ff</span><span class="p">,</span> <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="o">*</span><span class="n">antenna_orientation</span><span class="p">)</span>
+                    <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">t_phi</span> <span class="o">=</span> <span class="n">geo_utl</span><span class="o">.</span><span class="n">fresnel_factors_and_signal_zenith</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span><span class="p">)</span>
+                    <span class="n">antenna_model</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_antenna_model</span><span class="p">(</span><span class="n">sim_station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith_antenna</span><span class="p">)</span>
+                    <span class="n">antenna_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span><span class="o">.</span><span class="n">load_antenna_pattern</span><span class="p">(</span><span class="n">antenna_model</span><span class="p">)</span>
+                    <span class="n">ant_orient</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_antenna_orientation</span><span class="p">(</span><span class="n">sim_station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">vel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># this can happen if there is not signal path to the antenna</span>
+                    <span class="n">vel_tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="p">(</span><span class="n">antenna_pattern</span><span class="p">,</span> <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="o">*</span><span class="n">ant_orient</span><span class="p">)</span>
+                    <span class="n">VEL</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vel_tmp</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">vel_tmp</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">t_phi</span><span class="p">])]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># get antenna pattern for current channel</span>
+                    <span class="n">VEL</span> <span class="o">=</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">get_efield_antenna_factor</span><span class="p">(</span>
+                        <span class="n">sim_station</span><span class="p">,</span> <span class="n">ff</span><span class="p">,</span> <span class="p">[</span><span class="n">channel_id</span><span class="p">],</span> <span class="n">det</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">VEL</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># this can happen if there is not signal path to the antenna</span>
                     <span class="n">voltage_fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">efield_fft</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># set voltage trace to zeros</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># Apply antenna response to electric field</span>
-                    <span class="n">vel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vel</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">vel</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">t_phi</span><span class="p">])</span>
-                    <span class="n">voltage_fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vel</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">efield_fft</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">efield_fft</span><span class="p">[</span><span class="mi">2</span><span class="p">]]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">VEL</span> <span class="o">=</span> <span class="n">VEL</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># we only requested the VEL for one channel, so selecting it</span>
+                    <span class="n">voltage_fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">VEL</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">efield_fft</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">efield_fft</span><span class="p">[</span><span class="mi">2</span><span class="p">]]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
                 <span class="c1"># Remove DC offset</span>
                 <span class="n">voltage_fft</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ff</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">0.</span>
@@ -978,84 +960,45 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html#NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.end">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
-
-
-<div class="viewcode-block" id="efieldToVoltageConverter.get_antenna_pattern_and_orientation">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html#NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.get_antenna_pattern_and_orientation">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_pattern_and_orientation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get the antenna pattern and orientation for a given channel and zenith angle.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        det: Detector</span>
-<span class="sd">            Detector object</span>
-<span class="sd">        station: Station</span>
-<span class="sd">            Station object</span>
-<span class="sd">        channel_id: int</span>
-<span class="sd">            Channel id of the channel</span>
-<span class="sd">        zenith: float</span>
-<span class="sd">            Zenith angle in radians. For some antenna models, the zenith angle is needed</span>
-<span class="sd">            to get the correct antenna pattern.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        antenna_pattern: AntennaPattern</span>
-<span class="sd">            Antenna pattern object</span>
-<span class="sd">        antenna_orientation: list</span>
-<span class="sd">            Antenna orientation in radians</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">antenna_model</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_antenna_model</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span><span class="p">)</span>
-        <span class="n">antenna_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span><span class="o">.</span><span class="n">load_antenna_pattern</span><span class="p">(</span><span class="n">antenna_model</span><span class="p">)</span>
-        <span class="n">antenna_orientation</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_antenna_orientation</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">antenna_pattern</span><span class="p">,</span> <span class="n">antenna_orientation</span></div>
 </div>
-
 
 
 <div class="viewcode-block" id="calculate_time_shift_for_cosmic_ray">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html#NuRadioReco.modules.efieldToVoltageConverter.calculate_time_shift_for_cosmic_ray">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">calculate_time_shift_for_cosmic_ray</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">efield</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_time_shift_for_cosmic_ray</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">efield</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calculate the time shift for an electric field to reach a channel.</span>
-
-<span class="sd">    For cosmic ray events, we often only have one electric field for all channels, so we have to account</span>
-<span class="sd">    for the difference in signal travel between channels.</span>
+<span class="sd">    Calculate the time shift for a cosmic ray event</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    det: Detector</span>
-<span class="sd">    sim_station: SimStation</span>
-<span class="sd">    efield: ElectricField</span>
-<span class="sd">    channel_id: int</span>
-<span class="sd">        Channel id of the channel</span>
+<span class="sd">    det : Detector</span>
+<span class="sd">    station : Station</span>
+<span class="sd">    efield : ElectricField</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    travel_time_shift: float</span>
+<span class="sd">    float</span>
 <span class="sd">        time shift in ns</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">station_id</span> <span class="o">=</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+    <span class="n">station_id</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
     <span class="n">site</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>  <span class="c1"># signal is coming from below, so we take IOR of ice</span>
-        <span class="n">index_of_refraction</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span> <span class="n">site</span><span class="p">)</span>
+    <span class="n">antenna_position</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span> <span class="o">-</span> <span class="n">efield</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>  <span class="c1"># signal is coming from below, so we take IOR of ice</span>
+        <span class="n">index_of_refraction</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="n">antenna_position</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">site</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>  <span class="c1"># signal is coming from above, so we take IOR of air</span>
         <span class="n">index_of_refraction</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">site</span><span class="p">)</span>
 
-    <span class="n">antenna_position_rel</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span> <span class="o">-</span> <span class="n">efield</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>
-
-    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">antenna_position_rel</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Calculate an additional time shift for an electric field that is more than 5 meters &quot;</span>
-                       <span class="s2">&quot;away from the antenna position.&quot;</span><span class="p">)</span>
-
+    <span class="c1"># For cosmic ray events, we only have one electric field for all channels, so we have to account</span>
+    <span class="c1"># for the difference in signal travel between channels. IMPORTANT: This is only accurate</span>
+    <span class="c1"># if all channels have the same z coordinate</span>
     <span class="n">travel_time_shift</span> <span class="o">=</span> <span class="n">geo_utl</span><span class="o">.</span><span class="n">get_time_delay_from_direction</span><span class="p">(</span>
-        <span class="n">efield</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">efp</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span>
-        <span class="n">efield</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">efp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">),</span>
-        <span class="n">antenna_position_rel</span><span class="p">,</span>
+        <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span>
+        <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">),</span>
+        <span class="n">antenna_position</span><span class="p">,</span>
         <span class="n">index_of_refraction</span>
     <span class="p">)</span>
 

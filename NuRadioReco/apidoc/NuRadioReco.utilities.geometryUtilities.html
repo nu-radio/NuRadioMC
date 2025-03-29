@@ -846,28 +846,14 @@ of the incoming radiation.”</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">fresnel_factors_and_signal_zenith</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#fresnel_factors_and_signal_zenith"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith" title="Link to this definition"></a></dt>
-<dd><p>Handles potential refraction into the firn if necessary.
-Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel)
-and phi (perpendicular) polarization.</p>
-<p>This function considers the following three cases:</p>
-<ul class="simple">
-<li><p>A refraction into the firm is simulated if the signal is coming from above,
-the antenna is below the surface (= has a negative z-coordinate), and
-<em class="xref py py-obj">station.is_cosmic_ray()</em> is True.</p></li>
-<li><p>A refraction from firm to air is simulated when the signal is coming from below and
-the antenna is above the surface.</p></li>
-<li><p>No refraction is simulated if non of the aferomentioned conditions apply.</p></li>
-</ul>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>For deeper channels this function might be inacccurate. Consider using raytracing.
-This function uses the flag <em class="xref py py-obj">station.is_cosmic_ray()</em> instead of checking whether the
-electric field is at the position of the antenna.</p>
-</div>
-<p>Parallel and perpendicular refers to the signal’s polarization with respect
+<dd><p>Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel)
+and phi (perpendicular) polarization. Handles potential refraction into the firn if that
+applies to the antenna position.
+WARNING: for deeper channels this function might be inacccurate. Consider using raytracing.</p>
+<p>parallel and perpendicular refers to the signal’s polarization with respect
 to the ‘plane of incident’ which is defined as: “the plane of incidence
 is the plane which contains the surface normal and the propagation vector
-of the incoming radiation”.</p>
+of the incoming radiation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">

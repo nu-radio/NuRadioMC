@@ -650,9 +650,6 @@ The station id, defines antenna location and antenna type.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.begin" title="NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([debug, uncertainty, time_resolution, ...])</p></td>
 <td><p>Begin method, sets general parameters of module</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.get_antenna_pattern_and_orientation" title="NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.get_antenna_pattern_and_orientation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_pattern_and_orientation</span></code></a>(det, ...)</p></td>
-<td><p>Get the antenna pattern and orientation for a given channel and zenith angle.</p></td>
-</tr>
 </tbody>
 </table>
 <table class="docutils align-default">
@@ -721,56 +718,23 @@ The station id, defines antenna location and antenna type.</p>
 <span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldToVoltageConverter.html#efieldToVoltageConverter.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.end" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.get_antenna_pattern_and_orientation">
-<span class="sig-name descname"><span class="pre">get_antenna_pattern_and_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldToVoltageConverter.html#efieldToVoltageConverter.get_antenna_pattern_and_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.get_antenna_pattern_and_orientation" title="Link to this definition"></a></dt>
-<dd><p>Get the antenna pattern and orientation for a given channel and zenith angle.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>det: Detector</strong></dt><dd><p>Detector object</p>
-</dd>
-<dt><strong>station: Station</strong></dt><dd><p>Station object</p>
-</dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>Channel id of the channel</p>
-</dd>
-<dt><strong>zenith: float</strong></dt><dd><p>Zenith angle in radians. For some antenna models, the zenith angle is needed
-to get the correct antenna pattern.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>antenna_pattern: AntennaPattern</dt><dd><p>Antenna pattern object</p>
-</dd>
-<dt>antenna_orientation: list</dt><dd><p>Antenna orientation in radians</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.efieldToVoltageConverter.calculate_time_shift_for_cosmic_ray">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.efieldToVoltageConverter.</span></span><span class="sig-name descname"><span class="pre">calculate_time_shift_for_cosmic_ray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efield</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldToVoltageConverter.html#calculate_time_shift_for_cosmic_ray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldToVoltageConverter.calculate_time_shift_for_cosmic_ray" title="Link to this definition"></a></dt>
-<dd><p>Calculate the time shift for an electric field to reach a channel.</p>
-<p>For cosmic ray events, we often only have one electric field for all channels, so we have to account
-for the difference in signal travel between channels.</p>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.efieldToVoltageConverter.</span></span><span class="sig-name descname"><span class="pre">calculate_time_shift_for_cosmic_ray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efield</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldToVoltageConverter.html#calculate_time_shift_for_cosmic_ray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldToVoltageConverter.calculate_time_shift_for_cosmic_ray" title="Link to this definition"></a></dt>
+<dd><p>Calculate the time shift for a cosmic ray event</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>det: Detector</strong></dt><dd></dd>
-<dt><strong>sim_station: SimStation</strong></dt><dd></dd>
-<dt><strong>efield: ElectricField</strong></dt><dd></dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>Channel id of the channel</p>
-</dd>
+<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd></dd>
+<dt><strong>station</strong><span class="classifier">Station</span></dt><dd></dd>
+<dt><strong>efield</strong><span class="classifier">ElectricField</span></dt><dd></dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>travel_time_shift: float</dt><dd><p>time shift in ns</p>
+<dt>float</dt><dd><p>time shift in ns</p>
 </dd>
 </dl>
 </dd>
