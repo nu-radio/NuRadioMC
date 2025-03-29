@@ -6,7 +6,6 @@ from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverte
 import numpy as np
 import time
 import logging
-import matplotlib.pyplot as plt
 
 logger = logging.getLogger('NuRadioReco.HighLowTriggerSimulator')
 
@@ -45,25 +44,25 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     n_bins_coincidence = int(np.round(time_coincidence / dt))
 
     # Pad trace end enough so that the end isn't cut off after striding.
-    trace=np.pad(trace, (0,n_bins_coincidence), "constant")
-    num_frames = int(np.floor((len(trace) - n_bins_coincidence) / step))
+    padded_trace=np.pad(trace, (n_bins_coincidence-1,1), "constant")
+    num_frames = int(np.floor((len(padded_trace) - n_bins_coincidence) / step))
+    num_real_frames = int(np.floor((len(trace)) / step))
 
-    logger.debug("length of trace {} samples, coincidence window {}, num window bins {}".format(len(trace), n_bins_coincidence, num_frames))
+    logger.debug("length of trace {} samples, coincidence window {}, num window bins {}".format(len(padded_trace), n_bins_coincidence, num_frames))
 
     # This transforms the trace (n samples) to an array with shape (num_frames,window) where each frame
     # is extracted from the trace in steps of sample intervals
     # Ex. step=2, window=4, trace=[1,2,3,4,5,6,7,8], trace_windowed=[[1,2,3,4],[3,4,5,6],...]
-    trace_windowed = np.lib.stride_tricks.as_strided(trace, (num_frames, n_bins_coincidence),
-                                                        (trace.strides[0] * step, trace.strides[0]))
+    trace_windowed = np.lib.stride_tricks.as_strided(padded_trace, (num_frames, n_bins_coincidence),
+                                                        (padded_trace.strides[0] * step, padded_trace.strides[0]))
 
     # Find high and low triggering windows 
     trace_high = np.any(trace_windowed >= high_threshold, axis=1)
     trace_low = np.any(trace_windowed <= low_threshold, axis=1)
     trace_high_low = trace_high & trace_low
 
-    # Roll trace to the right with zero padding in order to get rising edges of triggering windows instead of falling
-    # (triggers occuring < window length into the trace will have slightly inaccurate trigger times)
-    trace_high_low = np.pad(trace_high_low, (int(n_bins_coincidence/step)-1,0), "constant")[:len(trace_windowed)]
+    # Keep as many samples as the original trace or cut short to keep triggers in the trace length.
+    trace_high_low=trace_high_low[:num_real_frames]
 
     return trace_high_low
 
@@ -99,24 +98,26 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
 
     # Coincidence bins needs reduced by step since the output traces of get_high_low_triggers is already binned by step
     n_bins_coincidence = int(np.round(time_coincidence / dt / step))
+    stride_step = 1
     n = len(tts[0])
+
     if(n_bins_coincidence > n):  # reduce coincidence window to maximum trace length
         n_bins_coincidence = n
         logger.debug("specified coincidence window longer than tracelength, reducing coincidence window to trace length")
 
     for i in range(len(tts)):
-        trace=np.pad(tts[i],(0,n_bins_coincidence),"constant")
+        trace=np.pad(tts[i], (n_bins_coincidence-1,1), "constant")
         num_frames = int(np.floor((len(trace) - n_bins_coincidence)))
 
-        # Stide here again, except use step size of 1 since the output traces of get_high_low_triggers is already windowed by step
+        # Stride here again, except use step size of 1 since the output traces of get_high_low_triggers is already windowed by step.
+        # If calling from simple trigger, this may need to be adjusted if striding happens.
         trace_windowed = np.lib.stride_tricks.as_strided(trace, (num_frames, n_bins_coincidence),
-                                                            (trace.strides[0], trace.strides[0]))
+                                                            (trace.strides[0]*stride_step, trace.strides[0]))
 
         tts[i]=np.any(trace_windowed,axis=1)
 
     tt=np.array(tts)
     ttt=np.sum(np.array(tt),axis=0) >= number_of_coincidences
-    ttt=np.pad(ttt, (n_bins_coincidence-1,0), "constant")[:len(ttt)]
     triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(ttt==True))) * step
 
     return np.any(ttt), triggered_bins, triggered_bins * dt
