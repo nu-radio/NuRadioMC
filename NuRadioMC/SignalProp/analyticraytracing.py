@@ -448,11 +448,7 @@ class ray_tracing_2D(ray_tracing_base):
                     get_z_unmirrored = jit(get_z_unmirrored, nopython=True, cache=True)
                     n = jit(n, nopython=True, cache=True)
                     self.use_cpp = False
-<<<<<<< HEAD
-                except:
-=======
                 except Exception:
->>>>>>> set-defaults-ana-prop
                     self.__logger.warning("Error in compiling methods using jit - proceeding without numba")
                     compile_numba = False
 
@@ -2963,10 +2959,5 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['focusing_limit'] = 2
             self._config['propagation']['focusing'] = False
             self._config['propagation']['birefringence'] = False
-<<<<<<< HEAD
-
-=======
->>>>>>> set-defaults-ana-prop
-
         else:
             self._config = config
