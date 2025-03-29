@@ -745,7 +745,6 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-
 <span class="sd">    trace: array of floats</span>
 <span class="sd">        Trace to be upsampled</span>
 <span class="sd">    original_sampling_frequency: float</span>
@@ -905,7 +904,6 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-
 <span class="sd">    trace: array of floats</span>
 <span class="sd">        Trace to be filtered</span>
 <span class="sd">    sampling_frequency: float</span>
@@ -1115,10 +1113,8 @@
 
 <div class="viewcode-block" id="calculate_vrms_from_temperature">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html#NuRadioReco.utilities.signal_processing.calculate_vrms_from_temperature">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">calculate_vrms_from_temperature</span><span class="p">(</span>
-    <span class="n">temperature</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">impedance</span><span class="o">=</span><span class="mi">50</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ohm</span><span class="p">,</span> <span class="n">freqs</span><span class="o">=</span><span class="kc">None</span>
-<span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function to calculate the noise vrms from a given noise temperature and bandwidth.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_vrms_from_temperature</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">impedance</span><span class="o">=</span><span class="mi">50</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ohm</span><span class="p">,</span> <span class="n">freqs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Helper function to calculate the noise vrms from a given noise temperature and bandwidth.</span>
 
 <span class="sd">    For details see https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise</span>
 <span class="sd">    (sec. &quot;Maximum transfer of noise power&quot;) or our wiki</span>
@@ -1159,23 +1155,18 @@
         <span class="n">freqs</span> <span class="o">=</span> <span class="n">freqs</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2500</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
         <span class="n">bandwidth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">response</span><span class="p">(</span><span class="n">freqs</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">freqs</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="n">temperature</span> <span class="o">*</span> <span class="n">impedance</span> <span class="o">*</span> <span class="n">bandwidth</span> <span class="o">*</span> <span class="n">constants</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">joule</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">kelvin</span>
-    <span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span></div>
+    <span class="k">return</span> <span class="p">(</span><span class="n">temperature</span> <span class="o">*</span> <span class="n">impedance</span> <span class="o">*</span> <span class="n">bandwidth</span> <span class="o">*</span> <span class="n">constants</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">joule</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span></div>
 
 
 
 <div class="viewcode-block" id="get_efield_antenna_factor">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html#NuRadioReco.utilities.signal_processing.get_efield_antenna_factor">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_efield_antenna_factor</span><span class="p">(</span>
-    <span class="n">station</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">antenna_pattern_provider</span>
-<span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_efield_antenna_factor</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">antenna_pattern_provider</span><span class="p">,</span> <span class="n">efield_is_at_antenna</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the antenna response to a radio signal coming from a specific direction</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-
 <span class="sd">    station: Station</span>
 <span class="sd">    frequencies: array of complex</span>
 <span class="sd">        frequencies of the radio signal for which the antenna response is needed</span>
@@ -1185,38 +1176,45 @@
 <span class="sd">    zenith, azimuth: float, float</span>
 <span class="sd">        incoming direction of the signal. Note that refraction and reflection at the ice/air boundary are taken into account</span>
 <span class="sd">    antenna_pattern_provider: AntennaPatternProvider</span>
+<span class="sd">    efield_is_at_antenna: bool (defaul: False)</span>
+<span class="sd">        If True, the electric field is assumed to be at the antenna.</span>
+<span class="sd">        If False, the effects of an air-ice boundary are taken into account if necessary.</span>
+<span class="sd">        The default is set to False to keep backwards compatibility.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    efield_antenna_factor: list of array of complex values</span>
+<span class="sd">        The antenna response for each channel at each frequency</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith : function that calculates the Fresnel factors</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">efield_antenna_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
-        <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">channels</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span>
-    <span class="p">)</span>  <span class="c1"># from antenna model in e_theta, e_phi</span>
+    <span class="n">efield_antenna_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">channels</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>  <span class="c1"># from antenna model in e_theta, e_phi</span>
     <span class="k">for</span> <span class="n">iCh</span><span class="p">,</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">channels</span><span class="p">):</span>
-        <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">t_phi</span> <span class="o">=</span> <span class="n">geo_utl</span><span class="o">.</span><span class="n">fresnel_factors_and_signal_zenith</span><span class="p">(</span>
-            <span class="n">detector</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">efield_is_at_antenna</span><span class="p">:</span>
+            <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">t_phi</span> <span class="o">=</span> <span class="n">geo_utl</span><span class="o">.</span><span class="n">fresnel_factors_and_signal_zenith</span><span class="p">(</span>
+                <span class="n">detector</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">zenith_antenna</span> <span class="o">=</span> <span class="n">zenith</span>
+            <span class="n">t_theta</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">t_phi</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="n">zenith_antenna</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible&quot;</span>
-            <span class="p">)</span>
+                <span class="s2">&quot;Fresnel reflection at air-firn boundary leads to unphysical results, &quot;</span>
+                <span class="s2">&quot;no reconstruction possible&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;angles: zenith </span><span class="si">{0:.0f}</span><span class="s2">, zenith antenna </span><span class="si">{1:.0f}</span><span class="s2">, azimuth </span><span class="si">{2:.0f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">zenith</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">zenith_antenna</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">azimuth</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-        <span class="n">antenna_model</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_antenna_model</span><span class="p">(</span>
-            <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith_antenna</span>
-        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;angles: zenith </span><span class="si">{0:.0f}</span><span class="s2">, zenith antenna </span><span class="si">{1:.0f}</span><span class="s2">, azimuth </span><span class="si">{2:.0f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">zenith</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">zenith_antenna</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">azimuth</span><span class="p">)))</span>
+
+        <span class="n">antenna_model</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_antenna_model</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith_antenna</span><span class="p">)</span>
         <span class="n">antenna_pattern</span> <span class="o">=</span> <span class="n">antenna_pattern_provider</span><span class="o">.</span><span class="n">load_antenna_pattern</span><span class="p">(</span><span class="n">antenna_model</span><span class="p">)</span>
         <span class="n">ori</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_antenna_orientation</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">)</span>
-        <span class="n">VEL</span> <span class="o">=</span> <span class="n">antenna_pattern</span><span class="o">.</span><span class="n">get_antenna_response_vectorized</span><span class="p">(</span>
-            <span class="n">frequencies</span><span class="p">,</span> <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="o">*</span><span class="n">ori</span>
-        <span class="p">)</span>
-        <span class="n">efield_antenna_factor</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">VEL</span><span class="p">[</span><span class="s2">&quot;theta&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">VEL</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">t_phi</span><span class="p">]</span>
-        <span class="p">)</span>
+        <span class="n">VEL</span> <span class="o">=</span> <span class="n">antenna_pattern</span><span class="o">.</span><span class="n">get_antenna_response_vectorized</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="o">*</span><span class="n">ori</span><span class="p">)</span>
+        <span class="n">efield_antenna_factor</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">VEL</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">VEL</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">t_phi</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">efield_antenna_factor</span></div>
 
@@ -1225,21 +1223,13 @@
 <div class="viewcode-block" id="get_channel_voltage_from_efield">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html#NuRadioReco.utilities.signal_processing.get_channel_voltage_from_efield">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_channel_voltage_from_efield</span><span class="p">(</span>
-    <span class="n">station</span><span class="p">,</span>
-    <span class="n">electric_field</span><span class="p">,</span>
-    <span class="n">channels</span><span class="p">,</span>
-    <span class="n">detector</span><span class="p">,</span>
-    <span class="n">zenith</span><span class="p">,</span>
-    <span class="n">azimuth</span><span class="p">,</span>
-    <span class="n">antenna_pattern_provider</span><span class="p">,</span>
-    <span class="n">return_spectrum</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="p">):</span>
+        <span class="n">station</span><span class="p">,</span> <span class="n">electric_field</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span>
+        <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">antenna_pattern_provider</span><span class="p">,</span> <span class="n">return_spectrum</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the voltage traces that would result in the channels from the station&#39;s E-field.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-
 <span class="sd">    station: Station</span>
 <span class="sd">    electric_field: ElectricField</span>
 <span class="sd">    channels: array of int</span>
@@ -1256,35 +1246,16 @@
     <span class="n">frequencies</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
     <span class="n">spectrum</span> <span class="o">=</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
     <span class="n">efield_antenna_factor</span> <span class="o">=</span> <span class="n">get_efield_antenna_factor</span><span class="p">(</span>
-        <span class="n">station</span><span class="p">,</span>
-        <span class="n">frequencies</span><span class="p">,</span>
-        <span class="n">channels</span><span class="p">,</span>
-        <span class="n">detector</span><span class="p">,</span>
-        <span class="n">zenith</span><span class="p">,</span>
-        <span class="n">azimuth</span><span class="p">,</span>
-        <span class="n">antenna_pattern_provider</span><span class="p">,</span>
-    <span class="p">)</span>
+        <span class="n">station</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">antenna_pattern_provider</span><span class="p">)</span>
+
+    <span class="n">voltage_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">efield_antenna_factor</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">spectrum</span><span class="p">[</span><span class="mi">2</span><span class="p">]]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i_ch</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">channels</span><span class="p">)])</span>
+
     <span class="k">if</span> <span class="n">return_spectrum</span><span class="p">:</span>
-        <span class="n">voltage_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">channels</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i_ch</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">channels</span><span class="p">):</span>
-            <span class="n">voltage_spectrum</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-                <span class="n">efield_antenna_factor</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">spectrum</span><span class="p">[</span><span class="mi">2</span><span class="p">]]),</span>
-                <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="p">)</span>
         <span class="k">return</span> <span class="n">voltage_spectrum</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">voltage_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
-            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">channels</span><span class="p">),</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span>
-        <span class="p">)</span>
-        <span class="k">for</span> <span class="n">i_ch</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">channels</span><span class="p">):</span>
-            <span class="n">voltage_trace</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-                    <span class="n">efield_antenna_factor</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">spectrum</span><span class="p">[</span><span class="mi">2</span><span class="p">]]),</span>
-                    <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                <span class="p">),</span>
-                <span class="n">electric_field</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">(),</span>
-            <span class="p">)</span>
-
+        <span class="n">voltage_trace</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">voltage_spectrum</span><span class="p">,</span> <span class="n">electric_field</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">voltage_trace</span><span class="p">)</span></div>
 
 </pre></div>

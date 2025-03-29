@@ -2083,7 +2083,10 @@
                                                     <span class="bp">self</span><span class="o">.</span><span class="n">_propagator</span><span class="o">.</span><span class="n">get_number_of_raytracing_solutions</span><span class="p">(),</span>
                                                     <span class="n">particle_mode</span><span class="o">=</span><span class="n">particle_mode</span><span class="p">)</span>
 
-        <span class="n">efieldToVoltageConverter</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
+        <span class="c1"># For neutrino simulations caching the VEL is not useful as it is unlikely that a electric field has the</span>
+        <span class="c1"># identical arrival direction at an antenna twice. On the other side the trace lengths vary from event to</span>
+        <span class="c1"># event which requires the clear the cache very often.</span>
+        <span class="n">efieldToVoltageConverter</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">caching</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">channelGenericNoiseAdder</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;seed&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputfilenameNuRadioReco</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">eventWriter</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outputfilenameNuRadioReco</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_level</span><span class="p">)</span>
