@@ -45,8 +45,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
     that have only changing refractive index in z. More information on RadioPropa and
     how to install it can be found at https://github.com/nu-radio/RadioPropa"""
 
-    def __init__(self, medium, attenuation_model="SP1", log_level=logging.NOTSET,
-                 n_frequencies_integration=100, n_reflections=0, config=None, detector=None):
+    def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
+                 n_frequencies_integration=None, n_reflections=None, config=None, detector=None):
 
         """
         class initilization
@@ -57,6 +57,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             class describing the index-of-refraction profile
         attenuation_model: string
             signal attenuation model
+            (default: None -> 'SP1' (see `ray_tracing_base._set__set_arguments`))
         log_level: logging object
             specify the log level of the ray tracing class
 
@@ -70,8 +71,10 @@ class radiopropa_ray_tracing(ray_tracing_base):
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
-        n_reflections: int (default 0)
+            (default: None -> 100 (see `ray_tracing_base._set__set_arguments`))
+        n_reflections: int
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
+            (default: None -> 0 (see `ray_tracing_base._set__set_arguments`))
         config: dict or None
             a dictionary with the optional config settings. If None, the default config is used:
                 config['propagation']['attenuate_ice'] = True
