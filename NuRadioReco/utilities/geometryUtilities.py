@@ -263,15 +263,29 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
 
 def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     """
+    Handles potential refraction into the firn if necessary.
     Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel)
-    and phi (perpendicular) polarization. Handles potential refraction into the firn if that
-    applies to the antenna position.
-    WARNING: for deeper channels this function might be inacccurate. Consider using raytracing.
+    and phi (perpendicular) polarization.
 
-    parallel and perpendicular refers to the signal's polarization with respect
+    This function considers the following three cases:
+
+    * A refraction into the firm is simulated if the signal is coming from above,
+      the antenna is below the surface (= has a negative z-coordinate), and
+      `station.is_cosmic_ray()` is True.
+    * A refraction from firm to air is simulated when the signal is coming from below and
+      the antenna is above the surface.
+    * No refraction is simulated if non of the aferomentioned conditions apply.
+
+    .. warning::
+
+        For deeper channels this function might be inacccurate. Consider using raytracing.
+        This function uses the flag `station.is_cosmic_ray()` instead of checking whether the
+        electric field is at the position of the antenna.
+
+    Parallel and perpendicular refers to the signal's polarization with respect
     to the 'plane of incident' which is defined as: "the plane of incidence
     is the plane which contains the surface normal and the propagation vector
-    of the incoming radiation.
+    of the incoming radiation".
 
     Parameters
     ----------
@@ -302,25 +316,30 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
 
     position = detector.get_relative_position(station.get_id(), channel_id)
     # first check case if signal comes from above
-    if (zenith <= 0.5 * np.pi) and station.is_cosmic_ray() and (position[2] <= 0):
+    if zenith <= 0.5 * np.pi and station.is_cosmic_ray() and position[2] <= 0:
         if position[2] < -3 * units.m:
-            logger.warning("This function might return inaccurate results for deep in-ice antennas. Consider using raytracing instead.")
-
+            logger.warning(
+                "This function might return inaccurate results for deep in-ice antennas. "
+                "Consider using raytracing instead.")
 
         # is antenna below surface?
         zenith_antenna = get_fresnel_angle(zenith, n_ice, 1)
         t_theta = get_fresnel_t_p(zenith, n_ice, 1)
         t_phi = get_fresnel_t_s(zenith, n_ice, 1)
-        logger.debug(("Channel {:d}: electric field is refracted into the firn. "
-                        "theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) "
-                        "{:.2f} s (ePhi) {:.2f}".format(
-                            channel_id, zenith / units.deg, zenith_antenna / units.deg, t_theta, t_phi)))
-    elif position[2] > 0:
+        logger.debug((
+            "Channel {:d}: electric field is refracted into the firn. "
+            "theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) "
+            "{:.2f} s (ePhi) {:.2f}".format(channel_id, zenith / units.deg,
+            zenith_antenna / units.deg, t_theta, t_phi)))
+
+    elif position[2] > 0 and zenith > 0.5 * np.pi:
         # now the signal is coming from below, do we have an antenna above the surface?
-        zenith_antenna = get_fresnel_angle(zenith, 1., n_ice)
+        zenith_antenna = get_fresnel_angle(zenith, n2=1., n1=n_ice)
 
     if zenith_antenna is None:
-        logger.warning("Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible")
+        logger.warning(
+            "Fresnel reflection at air-firn boundary leads to unphysical results, "
+            "no reconstruction possible")
         return None, None, None
 
     return zenith_antenna, t_theta, t_phi

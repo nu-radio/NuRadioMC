@@ -115,7 +115,6 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7)
 
     Parameters
     ----------
-
     trace: array of floats
         Trace to be upsampled
     original_sampling_frequency: float
@@ -269,7 +268,6 @@ def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
 
     Parameters
     ----------
-
     trace: array of floats
         Trace to be filtered
     sampling_frequency: float
@@ -467,10 +465,8 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     return efield_amplitude
 
 
-def calculate_vrms_from_temperature(
-    temperature, bandwidth=None, response=None, impedance=50 * units.ohm, freqs=None
-):
-    """Helper function to calculate the noise vrms from a given noise temperature and bandwidth.
+def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, impedance=50 * units.ohm, freqs=None):
+    """ Helper function to calculate the noise vrms from a given noise temperature and bandwidth.
 
     For details see https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
     (sec. "Maximum transfer of noise power") or our wiki
@@ -511,20 +507,15 @@ def calculate_vrms_from_temperature(
         freqs = freqs or np.arange(0, 2500, 0.1) * units.MHz
         bandwidth = np.trapz(np.abs(response(freqs)) ** 2, freqs)
 
-    return (
-        temperature * impedance * bandwidth * constants.k * units.joule / units.kelvin
-    ) ** 0.5
+    return (temperature * impedance * bandwidth * constants.k * units.joule / units.kelvin) ** 0.5
 
 
-def get_efield_antenna_factor(
-    station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider
-):
+def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=False):
     """
     Returns the antenna response to a radio signal coming from a specific direction
 
     Parameters
     ----------
-
     station: Station
     frequencies: array of complex
         frequencies of the radio signal for which the antenna response is needed
@@ -534,58 +525,57 @@ def get_efield_antenna_factor(
     zenith, azimuth: float, float
         incoming direction of the signal. Note that refraction and reflection at the ice/air boundary are taken into account
     antenna_pattern_provider: AntennaPatternProvider
+    efield_is_at_antenna: bool (defaul: False)
+        If True, the electric field is assumed to be at the antenna.
+        If False, the effects of an air-ice boundary are taken into account if necessary.
+        The default is set to False to keep backwards compatibility.
+
+    Returns
+    -------
+    efield_antenna_factor: list of array of complex values
+        The antenna response for each channel at each frequency
+
+    See Also
+    --------
+    NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith : function that calculates the Fresnel factors
     """
 
-    efield_antenna_factor = np.zeros(
-        (len(channels), 2, len(frequencies)), dtype=complex
-    )  # from antenna model in e_theta, e_phi
+    efield_antenna_factor = np.zeros((len(channels), 2, len(frequencies)), dtype=complex)  # from antenna model in e_theta, e_phi
     for iCh, channel_id in enumerate(channels):
-        zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(
-            detector, station, channel_id, zenith
-        )
+        if not efield_is_at_antenna:
+            zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(
+                detector, station, channel_id, zenith)
+        else:
+            zenith_antenna = zenith
+            t_theta = 1
+            t_phi = 1
 
         if zenith_antenna is None:
             logger.warning(
-                "Fresnel reflection at air-firn boundary leads to unphysical results, no reconstruction possible"
-            )
+                "Fresnel reflection at air-firn boundary leads to unphysical results, "
+                "no reconstruction possible")
             return None
 
-        logger.debug(
-            "angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(
-                np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)
-            )
-        )
-        antenna_model = detector.get_antenna_model(
-            station.get_id(), channel_id, zenith_antenna
-        )
+        logger.debug("angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(
+            np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)))
+
+        antenna_model = detector.get_antenna_model(station.get_id(), channel_id, zenith_antenna)
         antenna_pattern = antenna_pattern_provider.load_antenna_pattern(antenna_model)
         ori = detector.get_antenna_orientation(station.get_id(), channel_id)
-        VEL = antenna_pattern.get_antenna_response_vectorized(
-            frequencies, zenith_antenna, azimuth, *ori
-        )
-        efield_antenna_factor[iCh] = np.array(
-            [VEL["theta"] * t_theta, VEL["phi"] * t_phi]
-        )
+        VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_antenna, azimuth, *ori)
+        efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
 
     return efield_antenna_factor
 
 
 def get_channel_voltage_from_efield(
-    station,
-    electric_field,
-    channels,
-    detector,
-    zenith,
-    azimuth,
-    antenna_pattern_provider,
-    return_spectrum=True,
-):
+        station, electric_field, channels, detector,
+        zenith, azimuth, antenna_pattern_provider, return_spectrum=True):
     """
     Returns the voltage traces that would result in the channels from the station's E-field.
 
     Parameters
     ----------
-
     station: Station
     electric_field: ElectricField
     channels: array of int
@@ -602,33 +592,14 @@ def get_channel_voltage_from_efield(
     frequencies = electric_field.get_frequencies()
     spectrum = electric_field.get_frequency_spectrum()
     efield_antenna_factor = get_efield_antenna_factor(
-        station,
-        frequencies,
-        channels,
-        detector,
-        zenith,
-        azimuth,
-        antenna_pattern_provider,
-    )
+        station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider)
+
+    voltage_spectrum = np.array([
+        np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0)
+        for i_ch, _ in enumerate(channels)])
+
     if return_spectrum:
-        voltage_spectrum = np.zeros((len(channels), len(frequencies)), dtype=complex)
-        for i_ch, ch in enumerate(channels):
-            voltage_spectrum[i_ch] = np.sum(
-                efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]),
-                axis=0,
-            )
         return voltage_spectrum
     else:
-        voltage_trace = np.zeros(
-            (len(channels), 2 * (len(frequencies) - 1)), dtype=complex
-        )
-        for i_ch, ch in enumerate(channels):
-            voltage_trace[i_ch] = fft.freq2time(
-                np.sum(
-                    efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]),
-                    axis=0,
-                ),
-                electric_field.get_sampling_rate(),
-            )
-
+        voltage_trace = fft.freq2time(voltage_spectrum, electric_field.get_sampling_rate())
         return np.real(voltage_trace)
