@@ -258,13 +258,17 @@ class efieldToVoltageConverter():
                             self._get_cached_antenna_response.cache_clear()
                             self.logger.warning(
                                 "Frequencies have changed (array length). Clearing antenna response cache. "
-                                "(If this happens often, something might be wrong...")
+                                "If you similate neutrinos/in-ice radio emission, this is not surprising. Please disable caching "
+                                "By passing `caching==False` to the begin method. If you simulate air showers and this happens often, "
+                                "something might be wrong...")
                         elif not np.allclose(self.__freqs, ff, rtol=0, atol=0.01 * units.MHz):
                             self.__freqs = ff
                             self._get_cached_antenna_response.cache_clear()
                             self.logger.warning(
                                 "Frequencies have changed (values). Clearing antenna response cache. "
-                                "(If this happens often, something might be wrong...")
+                                "If you similate neutrinos/in-ice radio emission, this is not surprising. Please disable caching "
+                                "By passing `caching==False` to the begin method. If you simulate air showers and this happens often, "
+                                "something might be wrong...")
 
 
                 if self.__caching:
