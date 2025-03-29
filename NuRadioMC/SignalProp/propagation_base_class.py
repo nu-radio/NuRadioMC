@@ -56,16 +56,6 @@ class ray_tracing_base:
         self.__logger.setLevel(log_level)
 
         self._medium = medium
-        self._attenuation_model = attenuation_model
-        self._n_frequencies_integration = n_frequencies_integration
-        if n_reflections:
-            if not hasattr(self._medium, "reflection") or self._medium.reflection is None:
-                self.__logger.warning(
-                    "Ray paths with bottom reflections requested medium does "
-                    "not have any reflective layer, setting number of reflections to zero.")
-                n_reflections = 0
-        self._n_reflections = n_reflections
-
         self._config = config
         self._set_arguments(n_frequencies_integration, n_reflections, attenuation_model)
 
@@ -129,6 +119,12 @@ class ray_tracing_base:
         if self._attenuation_model is None:
             self._attenuation_model = 'SP1'
 
+        if self._n_reflections:
+            if not hasattr(self._medium, "reflection") or self._medium.reflection is None:
+                self.__logger.warning(
+                    "Ray paths with bottom reflections requested but medium does "
+                    "not have any reflective layer, setting number of reflections to zero.")
+                self._n_reflections = 0
 
     def reset_solutions(self):
         self._X1 = None
