@@ -2,11 +2,12 @@ import numpy as np
 import time
 import logging
 
-import NuRadioReco.framework.sim_channel
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import units, ice, geometryUtilities
-from NuRadioReco.utilities import signal_processing
+from NuRadioReco.utilities import units, signal_processing
+from NuRadioReco.modules.efieldToVoltageConverter import calculate_time_shift_for_cosmic_ray
+
+import NuRadioReco.framework.sim_channel
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import channelParameters as chp
 
@@ -85,23 +86,10 @@ class efieldToVoltageConverterPerEfield():
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
 
-                if sim_station.is_cosmic_ray():
-                    site = det.get_site(sim_station.get_id())
-                    antenna_position = det.get_relative_position(sim_station.get_id(),
-                                                                 channel_id) - electric_field.get_position()
-                    if zenith > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
-                        index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
-                    else:  # signal is coming from above, so we take IOR of air
-                        index_of_refraction = ice.get_refractive_index(1, site)
-                    # For cosmic ray events, we only have one electric field for all channels, so we have to account
-                    # for the difference in signal travel between channels. IMPORTANT: This is only accurate
-                    # if all channels have the same z coordinate
-                    travel_time_shift = geometryUtilities.get_time_delay_from_direction(
-                        zenith,
-                        azimuth,
-                        antenna_position,
-                        index_of_refraction
-                    )
+                dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station.get_id(), channel_id) - electric_field.get_position())
+                if dist_channel_efield / units.mm > 0.01:
+                    travel_time_shift = calculate_time_shift_for_cosmic_ray(
+                        det, sim_station, electric_field, channel_id)
                 else:
                     travel_time_shift = 0
 
