@@ -1,6 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import signal_processing
 from NuRadioReco.framework.trigger import DigitalEnvelopePhasedTrigger
 from NuRadioReco.modules.phasedarray.phasedArray import phasedArray
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
@@ -22,7 +22,7 @@ default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_
 class triggerSimulator(phasedArray):
     """
     Calculates the trigger for a phased array with primary beams.
-    
+
     The channels that participate in both beams and the pointing angle for each
     subbeam can be specified.
 
@@ -44,8 +44,8 @@ class triggerSimulator(phasedArray):
             #firmware like
 
             #31 sample fir transformer
-            #hil=[ -0.0424413 , 0. , -0.0489708 , 0. , -0.0578745 , 0. , -0.0707355 , 0. , -0.0909457 , 0. , -0.127324 , 0. 
-            #       , -0.2122066 , 0. , -0.6366198 , 0., 0.6366198 , 0. , 0.2122066 , 0. , 0.127324 ,0. , 0.0909457 , 0. , .0707355  
+            #hil=[ -0.0424413 , 0. , -0.0489708 , 0. , -0.0578745 , 0. , -0.0707355 , 0. , -0.0909457 , 0. , -0.127324 , 0.
+            #       , -0.2122066 , 0. , -0.6366198 , 0., 0.6366198 , 0. , 0.2122066 , 0. , 0.127324 ,0. , 0.0909457 , 0. , .0707355
             #       , 0. , 0.0578745 , 0. , 0.0489708 , 0. , 0.0424413 ]
 
             #middle 15 coefficients ^
@@ -134,7 +134,7 @@ class triggerSimulator(phasedArray):
         upsampling_method: str (default 'fft')
             Choose between FFT, FIR, or Linear Interpolaion based upsampling methods
         coeff_gain: int (default 1)
-            If using the FIR upsampling, this will convert the floating point output of the 
+            If using the FIR upsampling, this will convert the floating point output of the
             scipy filter to a fixed point value by multiplying by this factor and rounding to an
             int.
         filter_taps: int (default )
@@ -142,7 +142,7 @@ class triggerSimulator(phasedArray):
         saturation_bits: int (default None)
             Determines what the coherenty summed waveforms will saturate to if using adc counts
         ideal_transformer: bool (default False)
-            To use ideal Hilbert transformer and enveloping or to use approximate firmware-like 
+            To use ideal Hilbert transformer and enveloping or to use approximate firmware-like
             calculation
         Returns
         -------
@@ -202,7 +202,7 @@ class triggerSimulator(phasedArray):
                     raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
 
             if(upsampling_factor >= 2):
-                upsampled_trace, new_sampling_frequency = trace_utilities.digital_upsampling(trace, adc_sampling_frequency, upsampling_method=upsampling_method,
+                upsampled_trace, new_sampling_frequency = signal_processing.digital_upsampling(trace, adc_sampling_frequency, upsampling_method=upsampling_method,
                                                                             upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
                                                                             adc_output=adc_output, filter_taps=filter_taps)
 
@@ -213,7 +213,7 @@ class triggerSimulator(phasedArray):
                     trace = trace[:-1]
 
             traces[channel_id] = trace[:]
-        
+
         adc_sampling_frequency *= upsampling_factor
 
         time_step = 1.0 / adc_sampling_frequency
@@ -350,7 +350,7 @@ class triggerSimulator(phasedArray):
         upsampling_method: str (default 'fft')
             Choose between FFT, FIR, or Linear Interpolaion based upsampling methods
         coeff_gain: int (default 1)
-            If using the FIR upsampling, this will convert the floating point output of the 
+            If using the FIR upsampling, this will convert the floating point output of the
             scipy filter to a fixed point value by multiplying by this factor and rounding to an
             int.
         filter_taps: int (default 45)
@@ -358,7 +358,7 @@ class triggerSimulator(phasedArray):
         saturation_bits: int (default 8)
             If using counts, determines how large the coherently summed waveforms will saturate
         ideal_transformer: bool (default False)
-            To use ideal Hilbert transformer and enveloping or to use approximate firmware-like 
+            To use ideal Hilbert transformer and enveloping or to use approximate firmware-like
             calculation
         return_n_triggers: bool (default False)
             To better estimate simulated thresholds one should count the total triggers
@@ -410,10 +410,10 @@ class triggerSimulator(phasedArray):
 
         # Create a trigger object to be returned to the station
         trigger = DigitalEnvelopePhasedTrigger(
-            trigger_name, 
-            threshold, 
+            trigger_name,
+            threshold,
             trigger_channels=trigger_channels,
-            phasing_angles=phasing_angles, 
+            phasing_angles=phasing_angles,
             trigger_delays=trigger_delays,
             maximum_amps=maximum_amps
         )

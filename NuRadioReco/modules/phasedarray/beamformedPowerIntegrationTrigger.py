@@ -1,6 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import signal_processing
 from NuRadioReco.framework.trigger import PowerIntegrationPhasedTrigger
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 from NuRadioReco.modules.phasedarray.phasedArray import phasedArray
@@ -56,7 +56,7 @@ class triggerSimulator(phasedArray):
             Number of integration windows calculated
 
         """
-        
+
         # If not specified, the divisor is the same as the summation window.
         if averaging_divisor is None:
             averaging_divisor=window
@@ -158,7 +158,7 @@ class triggerSimulator(phasedArray):
         upsampling_method: str (default 'fft')
             Choose between FFT, FIR, or Linear Interpolaion based upsampling methods
         coeff_gain: int (default 1)
-            If using the FIR upsampling, this will convert the floating point output of the 
+            If using the FIR upsampling, this will convert the floating point output of the
             scipy filter to a fixed point value by multiplying by this factor and rounding to an
             int.
         filter_taps: int (default )
@@ -224,8 +224,8 @@ class triggerSimulator(phasedArray):
                     raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
 
             if(upsampling_factor >= 2):
-                upsampled_trace, new_sampling_frequency = trace_utilities.digital_upsampling(trace, adc_sampling_frequency, upsampling_method=upsampling_method,
-                                                                                              upsampling_factor=upsampling_factor, coeff_gain=coeff_gain, 
+                upsampled_trace, new_sampling_frequency = signal_processing.digital_upsampling(trace, adc_sampling_frequency, upsampling_method=upsampling_method,
+                                                                                              upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
                                                                                               adc_output=adc_output, filter_taps=filter_taps)
 
                 #  If upsampled is performed, the final sampling frequency changes
@@ -235,7 +235,7 @@ class triggerSimulator(phasedArray):
                     trace = trace[:-1]
 
             traces[channel_id] = trace[:]
-        
+
         adc_sampling_frequency *= upsampling_factor
 
         time_step = 1.0 / adc_sampling_frequency
@@ -384,7 +384,7 @@ class triggerSimulator(phasedArray):
         upsampling_method: str (default 'fft')
             Choose between FFT, FIR, or Linear Interpolaion based upsampling methods
         coeff_gain: int (default 1)
-            If using the FIR upsampling, this will convert the floating point output of the 
+            If using the FIR upsampling, this will convert the floating point output of the
             scipy filter to a fixed point value by multiplying by this factor and rounding to an
             int.
         filter_taps: int (default 45)
@@ -444,10 +444,10 @@ class triggerSimulator(phasedArray):
         # Create a trigger object to be returned to the station
 
         trigger = PowerIntegrationPhasedTrigger(
-            trigger_name, 
-            threshold, 
+            trigger_name,
+            threshold,
             trigger_channels=trigger_channels,
-            primary_angles=phasing_angles, 
+            primary_angles=phasing_angles,
             trigger_delays=trigger_delays,
             window_size=window,
             step_size=step,
@@ -470,4 +470,3 @@ class triggerSimulator(phasedArray):
             return is_triggered, n_triggers
         else:
             return is_triggered
-
