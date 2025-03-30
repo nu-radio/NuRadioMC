@@ -787,12 +787,12 @@ def get_config(config_file):
         the configuration dictionary
     """
     config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
-    logger.status('reading default config from %s', config_file_default)
+    logger.debug('Reading default config from %s', config_file_default)
     with open(config_file_default, 'r', encoding="utf-8") as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
 
     if config_file is not None:
-        logger.status('reading local config overrides from %s', config_file)
+        logger.status('Reading local config overrides from %s', config_file)
         with open(config_file, 'r', encoding="utf-8") as ymlfile:
             local_config = yaml.load(ymlfile, Loader=yaml.FullLoader)
             new_cfg = merge_config(local_config, cfg)
@@ -1167,8 +1167,10 @@ class simulation:
 
         self.__trigger_channel_ids = trigger_channels
         if self.__trigger_channel_ids is None:
-            logger.warning("No trigger channels specified. All channels will be simulated even if they don't contribute to any trigger. "
-                        "This can be inefficient. Processing time can be saved by specifying the trigger channels.")
+            logger.warning(
+                "No trigger channels specified. All channels will be simulated even if they don't contribute to any trigger. "
+                "This can be inefficient. Processing time can be saved by specifying the trigger channels.")
+
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger, update_interval=60)  # sec
@@ -1193,7 +1195,6 @@ class simulation:
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._evt_time = evt_time
         self.__write_detector = write_detector
-        logger.status("setting event time to {}".format(evt_time))
         self._event_group_list = event_list
 
         # initialize detector simulation modules
@@ -1258,9 +1259,15 @@ class simulation:
         self._station_ids = self._det.get_station_ids()
         self._event_ids_counter = {station_id: -1 for station_id in self._station_ids} # we initialize with -1 becaue we increment the counter before we use it the first time
 
-        # print noise information
-        logger.status("running with noise {}".format(bool(self._config['noise'])))
-        logger.status("setting signal to zero {}".format(bool(self._config['signal']['zerosignal'])))
+
+        logger.status(
+            f"\n\tSetting event time to {evt_time}"
+            f"\n\tSimulating noise: {bool(self._config['noise'])}"
+            )
+
+        if bool(self._config['signal']['zerosignal']):
+            logger.status("Setting signal to zero!")
+
         if bool(self._config['propagation']['focusing']):
             logger.status("simulating signal amplification due to focusing of ray paths in the firn.")
 
@@ -1270,7 +1277,7 @@ class simulation:
             # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
             self._fin, self._fin_stations, self._fin_attrs = read_input_hdf5(inputfilename)
         else:
-            logger.status("getting input on-the-fly")
+            logger.status("Generating neutrion interactions on-the-fly")
             self._inputfilename = "on-the-fly"
             self._fin = inputfilename[0]
             self._fin_attrs = inputfilename[1]
@@ -1345,6 +1352,12 @@ class simulation:
                 self._noise_temp = float(noise_temp)
                 logger.status(f"Use a noise temperature of {noise_temp / units.kelvin:.1f} K for each channel to determine noise Vrms.")
 
+
+            status_message = (
+                '\nStation.channel | noise temperature | est. bandwidth | max. amplification | '
+                'integrated response | noise Vrms | efield Vrms (assuming VEL = 1m)')
+
+
             self._noiseless_channels = collections.defaultdict(list)
             for station_id in self._integrated_channel_response:
                 for channel_id in self._integrated_channel_response[station_id]:
@@ -1370,13 +1383,15 @@ class simulation:
                     # for logging
                     mean_integrated_response = self._integrated_channel_response_normalization[station_id][channel_id]
 
-                    logger.status(f'Station.channel {station_id}.{channel_id:02d}: noise temperature = {noise_temp_channel} K, '
-                                  f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
-                                  f'max. filter amplification = {max_amplification:.2e} '
-                                  f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz -> Vrms = '
-                                  f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.2f} mV -> efield Vrms = '
-                                  f'{self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
+                    status_message += (
+                        f'\n     {station_id}.{channel_id:02d}      |      {noise_temp_channel}  K     | '
+                        f'  {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz   | '
+                        f'     {max_amplification:8.2f}      | '
+                        f'    {integrated_channel_response / units.MHz:.2e} MHz    | '
+                        f' {self._Vrms_per_channel[station_id][channel_id] / units.mV:5.2f} mV  | '
+                        f'      {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f} muV/m')
 
+            logger.status(status_message)
             self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
 
         elif Vrms is not None:
