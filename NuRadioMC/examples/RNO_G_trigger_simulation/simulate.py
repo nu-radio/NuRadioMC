@@ -289,7 +289,7 @@ if __name__ == "__main__":
 
             # Read config to get noise type
             tmp_config = simulation.get_config(kwargs["config_file"])
-            if tmp_config["noise_type"] == "data-driven" and tmp_config["noise"]:
+            if tmp_config["noise_kwargs"]["noise_type"] == "data-driven" and tmp_config["noise"]:
                 logger.info("Using data-driven noise")
                 self._detector_simulation_part2 = detector_simulation_with_data_driven_noise
 
@@ -352,7 +352,7 @@ if __name__ == "__main__":
     det.update(dt.datetime(2023, 8, 3))
     config = simulation.get_config(args.config)
 
-    if config["noise_type"] == "data-driven":
+    if config["noise_kwargs"]["noise_type"] == "data-driven":
         trigger_channel_noise_vrms = get_average_vrms_from_data_driven_noise(
             det, args.station_id, deep_trigger_channels, trigger=True)
     else:
