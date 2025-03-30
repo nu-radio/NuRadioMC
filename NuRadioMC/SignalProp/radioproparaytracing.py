@@ -1,9 +1,9 @@
-from NuRadioReco.utilities import (
-    units, geometryUtilities, medium_base, attenuation as attenuation_util)
+from NuRadioReco.utilities import units, geometryUtilities
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp import analyticraytracing as ana
-from NuRadioMC.utilities import medium
+from NuRadioMC.utilities import medium, medium_base, attenuation as attenuation_util
 from NuRadioMC.SignalProp.propagation import solution_types_revert
 
 import radiopropa

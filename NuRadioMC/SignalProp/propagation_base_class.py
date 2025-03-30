@@ -90,6 +90,10 @@ class ray_tracing_base:
         are used and a warning released. In case the parameters are not set
         by either of the two options, default values are set with this function.
         """
+        self._n_frequencies_integration = None
+        self._n_reflections = None
+        self._attenuation_model = None
+
         if self._config is not None:
             if 'n_freq' in self._config['propagation']:
                 if n_frequencies_integration is not None:
