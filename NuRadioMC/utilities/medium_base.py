@@ -420,6 +420,212 @@ class IceModelBirefringence(IceModelSimple):
 
         return nx, ny, nz
 
+class IceModelExponentialPolynomial(IceModel):
+    """
+    predefined ice model (to inherit from) with polynomial exponential shape of ny degree
+    """
+    def __init__(self, a, z_0, z_shift=0*units.meter, z_air_boundary=0*units.meter, z_bottom=None, 
+                 density_factor=0.8506 * (units.cm**3/units.gram)):
+        """
+        initiation of an exponential polynomial ice model.
+
+        The bottom defined here is a boundary condition used in simulations and
+        should always be defined. Note: it is not the same as reflective bottom.
+        The latter can be added using the `add_reflective_layer` function.
+
+        The z_shift is a variable introduced to be able to shift the model
+        up or down along the z direction when this is needed to account for
+        differences along station for example.
+
+        Parameters
+        ----------
+        a:  (n,) np.array of floats, NuRadio density units
+            coefficients for the exponential polynomial describing the density profile
+        z_0:  float, NuRadio length units
+              scale depth of the exponential
+
+        [optional]
+        z_shift:  float, NuRadio length units
+                  up or down shift od the exponential profile
+        z_air_boundary:  float, NuRadio length units
+                         z coordinate of the surface of the glacier
+        z_bottom:  float, NuRadio length units
+                   z coordinate of the bedrock/bottom of the glacier.
+        density_factor:  float, NuRadio density units
+                         factor used to translate density to refractive index
+                         using Robin's equation.
+        """
+
+        super().__init__(z_air_boundary=z_air_boundary, z_bottom = z_bottom)
+        self._z_0 = z_0
+        self._a = a
+        self._density_factor = density_factor
+        self._z_air_boundary = z_air_boundary
+        self._z_shift = z_shift
+
+    def get_index_of_refraction(self, position):
+        """
+        returns the index of refraction at position.
+        Overwrites function of the mother class
+
+        Parameters
+        ----------
+        position:   np.array of shape (3,) or (n,3)
+                    point(s) in space
+
+        Returns
+        -------
+        n:  float
+            index of refraction
+        """
+        def ior(z):
+            x = np.exp((z-self._z_shift)/self._z_0)
+            rho = 0.
+            for i, _ in enumerate(self._a):
+                rho += self._a[i]*x**i
+            return 1 + rho*self._density_factor
+
+        if isinstance(position, list) or position.ndim == 1:
+            if (position[2] - self.z_air_boundary) <= 0:
+                return ior(position[2])
+            else:
+                return 1.
+        else:
+            ior = ior(position[:,2])
+            ior[position[:, 2] > 0] = 1.
+            return ior
+
+    def get_average_index_of_refraction(self, position1, position2):
+        """
+        returns the average index of refraction between two points
+        Overwrites function of the mother class
+
+        Parameters
+        ----------
+        position1:  np.array of shape (3,) or (n,3)
+                    point(s) in space
+        position2:  np.array of shape (3,) or (n,3)
+                    point(s) in space
+
+        Returns
+        -------
+        n_average:  float
+                    averaged index of refraction between the two points
+        """
+        if np.abs(position1 - position2)[2] < .1:
+            return self.get_index_of_refraction(position1)
+        def int_rho(z):
+            x = np.exp((z-self._z_shift)/self._z_0)
+            int_rho_z = self._a[0]*(z-self._z_shift)
+            for i, _ in enumerate(self._a):
+                if i == 0: continue
+                int_rho_z += (self._a[i]*self._z_0/i)*x**i
+            return int_rho_z
+
+        if (isinstance(position1, list) or position1.ndim == 1) and (isinstance(position2, list) or position2.ndim == 1):
+            if (position1[2] - self.z_air_boundary) <= 0 and (position2[2] - self.z_air_boundary) <= 0:
+                return ((int_rho(position2[2]) - int_rho(position1[2])) / (position2[2] - position1[2]))*self._density_factor + 1
+            elif (position1[2] - self.z_air_boundary) > 0 and (position2[2] - self.z_air_boundary) > 0:
+                return 1
+            else:
+                pos_min = position1
+                pos_max = position2
+                if position1[2]>position2[2]:
+                    pos_min = position2
+                    pos_max = position1
+                integral_ice = abs(int_rho(self._z_air_boundary) - int_rho(pos_min[2]))*self._density_factor + 1
+                integral_air = 1 * (pos_max[2] - self._z_air_boundary)
+                return (integral_ice + integral_air) / abs(pos_max[2] - pos_min[2])
+        else:
+            if all((position1[:,2] - self.z_air_boundary) <= 0) and all((position2[:,2] - self.z_air_boundary) <= 0):
+                return ((int_rho(position2[:,2]) - int_rho(position1[:,2])) / (position2[:,2] - position1[:,2]))*self._density_factor + 1
+            elif all((position1[:,2] - self.z_air_boundary) > 0) and all((position2[:,2] - self.z_air_boundary) > 0):
+                return np.ones_like(position1[:,2])
+            else:
+                raise NotImplementedError('function cannot handle averages accros boundary when using arrays of positions.')
+
+    def get_gradient_of_index_of_refraction(self, position):
+        """
+        returns the gradient of index of refraction at position
+        Overwrites function of the mother class
+
+        Parameters
+        ----------
+        position:   np.array of shape (3,) or (n,3)
+                    point(s) in space
+
+        Returns
+        -------
+        n_nabla:    (3,) np.array
+                    gradient of index of refraction at the point
+        """
+        def dior_dz(z):
+            x = np.exp((z-self._z_shift)/self._z_0)
+            drho_dz = 0
+            for i, _ in enumerate(self._a):
+                drho_dz += (self._a[i]*i/self._z_0)*x**i
+            return (drho_dz*self._density_factor)
+
+        if (isinstance(position, list) or position.ndim == 1):
+            if (position[2] - self.z_air_boundary) <= 0:
+                return np.array([0,0,dior_dz(position[2])])
+            else:
+                return np.array([0,0,0])
+        else:
+            dior = dior_dz(position[:,2])
+            dior[position[:, 2] > 0] = 0
+            return np.stack((np.zeros_like(dior),np.zeros_like(dior),dior),axis=1)
+
+
+    def _compute_default_ice_model_radiopropa(self):
+        """
+        If radiopropa is installed this will compute and return a default object holding the
+        radiopropa scalarfield and necessary radiopropa moduldes that define the medium in
+        radiopropa. It uses the parameters of the medium object to contruct the scalar field
+        using the polynomial ice model implementation in radiopropa and some modules, like a
+        discontinuity object for the air boundary.
+
+        Overwrites function of the mother class
+
+        If you want to add, remove or replace modules, you can use the returned object to adjust
+        the model to your liking and set it using the set_ice_model_radiopropa function.
+
+        Returns
+        -------
+        ice:    RadioPropaIceWrapper
+                object holding the radiopropa scalarfield and modules
+        """
+        if radiopropa_is_imported:
+            coeff = RP.DoubleVector_1D()
+            for ai in self._a:
+                coeff.push_back(ai)
+
+            scalar_field = RP.IceModel_Polynomial(coeff,
+                                                  self._z_0*RP.meter/units.meter,
+                                                  self.z_air_boundary*RP.meter/units.meter,
+                                                  self._z_shift*RP.meter/units.meter,
+                                                  1, #density unit already enclosed in the coeff array
+                                                  self._density_factor)
+            return medium_base.RadioPropaIceWrapper(self, scalar_field)
+        else:
+            logger.error('The radiopropa dependency was not import and can therefore not be used.'
+                        +'\nMore info on https://github.com/nu-radio/RadioPropa')
+            raise ImportError('RadioPropa could not be imported')
+
+    def set_density_factor(self, density_factor):
+        """
+        set the density factor to a new value
+
+        Parameters
+        ----------
+        density_factor: float, NuRadio density units
+                        factor to translate density to refractive index
+
+        Returns
+        -------
+        """
+        self._density_factor = density_factor
+
 
 if radiopropa_is_imported:
     """
