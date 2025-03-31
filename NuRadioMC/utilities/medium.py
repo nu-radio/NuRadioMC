@@ -317,6 +317,25 @@ class greenland_perturbation(greenland_firn):
         ice.add_module('horizontal perturbation',perturbation_horz)
         return ice
 
+class greenland_poly5(medium_base.IceModelExponentialPolynomial):
+    """
+    Fifth-degree exponential polynomial model for Summit Station, Greenland by Oeyen B.
+    https://doi.org/10.5281/zenodo.15067984
+    """
+    def __init__(self,density_factor=0.851 * (units.cm**3/units.gram)):
+        """
+        initiation of the model based on the fitted coefficient
+
+        The bottom defined here is a boundary condition used in simulations and
+        should always be defined. Note: it is not the same as reflective bottom.
+        The latter can be added using the `add_reflective_layer` function.
+        """
+
+        super().__init__(a=np.array([917,-62.2,1177,-9051,14360,-7024])*(units.kg/units.m**3),
+                         z_0=74.6*units.meter,
+                         density_factor=density_factor,
+                         z_bottom = -3000*units.meter)
+
 
 class uniform_ice(medium_base.IceModelSimple):
     """
