@@ -87,6 +87,7 @@ interpolation with a Detector (readCoREASDetector)
 - Consolidated structure of NuRadioReco.utilities. We deprecated a few modules and moved functions around.
   We maintained backwards compatibility when possible.
 - Added module doc-strings in NuRadioReco.utilities.
+- Added a fifth-degree exponential polynomial ice model for Summit, Greenland
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
