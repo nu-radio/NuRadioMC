@@ -116,6 +116,9 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
     method : str (optional)
         The method to use for the energy fluence calculation. Can be either "noise_subtraction" or "rice_distribution".
         The Rice distribution is method implementation is based on the code published alongside S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
+    estimator_kwargs : dict (optional)
+        Additional keyword arguments for the _get_noise_fluence_estimators and _get_signal_fluence_estimators functions.
+        Only used if method is "rice_distribution".
 
     Returns
     -------
@@ -156,13 +159,13 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
         signal_energy_fluence = np.zeros(len(electric_field_trace))
         signal_energy_fluence_error = np.zeros(len(electric_field_trace))
         for i_pol in range(len(electric_field_trace)):
-            noise_estimators, frequencies_window = get_noise_fluence_estimators(
+            noise_estimators, frequencies_window = _get_noise_fluence_estimators(
                 trace = electric_field_trace[i_pol, :],
                 times = times,
                 signal_window_mask = signal_window_mask,
                 **estimator_kwargs
                 )
-            estimators, variances = get_signal_fluence_estimators(
+            estimators, variances = _get_signal_fluence_estimators(
                 trace = electric_field_trace[i_pol, :],
                 times = times,
                 signal_window_mask = signal_window_mask,
@@ -173,17 +176,11 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
             #sample frequency (after the windowing) in MHz
             delta_f = frequencies_window[1] - frequencies_window[0]
 
-            #to convert the amplitudes squared into energy fluence units
-            conversion_factor = conversion_factor_integrated_signal
-
-            #correcting for selecting positive frequencies
-            one_side_spectrum_corr_factor = 1 #np.sqrt(2)
-
             #get the fluence of the trace summing up the frequency estimators and converting in eV/m^2
-            fluence_freq = np.sum(estimators) * ((dt * one_side_spectrum_corr_factor) **2) * delta_f * conversion_factor
+            fluence_freq = np.sum(estimators) * delta_f * conversion_factor_integrated_signal
 
             #get the variance of the trace fluence summing up the frequency variances and converting in (eV/m^2)^2
-            fluence_freq_variance = np.sum(variances) * (((dt * one_side_spectrum_corr_factor) **2) * delta_f * conversion_factor) **2
+            fluence_freq_variance = np.sum(variances) * (delta_f * conversion_factor_integrated_signal)**2
 
             #get the fluence uncertainty as the root square of the variance
             fluence_freq_error = np.sqrt(fluence_freq_variance)
@@ -196,7 +193,7 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
     else:
         return signal_energy_fluence
 
-def get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False):
+def _get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False):
     """
     Estimate the noise fluence from the trace.
 
@@ -256,7 +253,7 @@ def get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise
             windowed_trace = time_trace_clipped * window
 
             #calculating the spectrum and frequencies
-            frequencies_window = np.fft.rfftfreq(len(windowed_trace), d=dt)
+            frequencies_window = fft.freqs(n_samples_window, 1/dt)
             spectrum_window = np.abs(fft.time2freq(windowed_trace, 1/dt))
 
             list_ffts_squared.append(spectrum_window**2)
@@ -280,7 +277,7 @@ def get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise
 
     return estimators, frequencies_window
 
-def get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estimators, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False):
+def _get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estimators, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False):
     """
     Estimate the signal fluence from the trace.
 
@@ -295,11 +292,11 @@ def get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estima
     noise_estimators : np.ndarray
         Estimators for the noise fluence.
     spacing_noise_signal : float (optional)
-        Not used in this function. Indroduced for compatibility with get_noise_fluence_estimators.
+        Not used in this function. Indroduced for compatibility with _get_noise_fluence_estimators.
     relative_taper_width : float (optional)
         Width of the taper region for the Tukey window relative to the full window length.
     use_median_value : bool (optional)
-        Not used in this function. Indroduced for compatibility with get_noise_fluence_estimators.
+        Not used in this function. Indroduced for compatibility with _get_noise_fluence_estimators.
 
     Returns
     -------
