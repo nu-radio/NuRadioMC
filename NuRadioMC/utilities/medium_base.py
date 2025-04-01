@@ -422,12 +422,15 @@ class IceModelBirefringence(IceModelSimple):
 
 class IceModelExponentialPolynomial(IceModel):
     """
-    predefined ice model (to inherit from) with polynomial exponential shape of ny degree
+    predefined ice model (to inherit from) with polynomial exponential shape of degree n
     """
     def __init__(self, a, z_0, z_shift=0*units.meter, z_air_boundary=0*units.meter, z_bottom=None, 
                  density_factor=0.8506 * (units.cm**3/units.gram)):
         """
         initiation of an exponential polynomial ice model.
+
+        .. math:: n(z) = \sum_{i=0}^{n} a_{i} \cdot \exp^{i}(z/z_0)       
+        for z_bottom < z < z_air_boundary, see eq. 5.2 in https://doi.org/10.5281/zenodo.15067984
 
         The bottom defined here is a boundary condition used in simulations and
         should always be defined. Note: it is not the same as reflective bottom.
@@ -440,7 +443,8 @@ class IceModelExponentialPolynomial(IceModel):
         Parameters
         ----------
         a:  (n,) np.array of floats, NuRadio density units
-            coefficients for the exponential polynomial describing the density profile
+            coefficients for the nth-degree exponential polynomial 
+            describing the vertical ice density profile
         z_0:  float, NuRadio length units
               scale depth of the exponential
 
