@@ -605,7 +605,7 @@ class IceModelExponentialPolynomial(IceModel):
                                                   self.z_air_boundary*RP.meter/units.meter,
                                                   self._z_shift*RP.meter/units.meter,
                                                   self._density_factor/(units.kg/units.meter**3)*(RP.kilogram/RP.meter**3))
-            return medium_base.RadioPropaIceWrapper(self, scalar_field)
+            return RadioPropaIceWrapper(self, scalar_field)
         else:
             logger.error('The radiopropa dependency was not import and can therefore not be used.'
                         +'\nMore info on https://github.com/nu-radio/RadioPropa')
