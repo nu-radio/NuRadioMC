@@ -598,14 +598,13 @@ class IceModelExponentialPolynomial(IceModel):
         if radiopropa_is_imported:
             coeff = RP.DoubleVector_1D()
             for ai in self._a:
-                coeff.push_back(ai)
+                coeff.push_back(ai/(units.kg/units.meter**3)*(RP.kilogram/RP.meter**3))
 
             scalar_field = RP.IceModel_Polynomial(coeff,
                                                   self._z_0*RP.meter/units.meter,
                                                   self.z_air_boundary*RP.meter/units.meter,
                                                   self._z_shift*RP.meter/units.meter,
-                                                  1, #density unit already enclosed in the coeff array
-                                                  self._density_factor)
+                                                  self._density_factor/(units.kg/units.meter**3)*(RP.kilogram/RP.meter**3))
             return medium_base.RadioPropaIceWrapper(self, scalar_field)
         else:
             logger.error('The radiopropa dependency was not import and can therefore not be used.'
