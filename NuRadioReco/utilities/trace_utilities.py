@@ -179,6 +179,9 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
             #get the fluence of the trace summing up the frequency estimators and converting in eV/m^2
             fluence_freq = np.sum(estimators) * delta_f * conversion_factor_integrated_signal
 
+            if estimator_kwargs.get("truncate_negative_estimators") == "after_sum":
+                fluence_freq = np.maximum(fluence_freq, 0)
+
             #get the variance of the trace fluence summing up the frequency variances and converting in (eV/m^2)^2
             fluence_freq_variance = np.sum(variances) * (delta_f * conversion_factor_integrated_signal)**2
 
@@ -193,7 +196,7 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
     else:
         return signal_energy_fluence
 
-def _get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False):
+def _get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False, truncate_negative_estimators="before_sum"):
     """
     Estimate the noise fluence from the trace.
 
@@ -211,6 +214,8 @@ def _get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_nois
         Width of the taper region for the Tukey window relative to the full window length.
     use_median_value : bool (optional)
         If True, the median of the squared spectra of the noise windows is used as estimator. Otherwise, the mean is used.
+    truncate_negative_estimators : str (optional)
+        Not used in this function. Introduced for compatibility with _get_signal_fluence_estimators.
 
     Returns
     -------
@@ -277,7 +282,7 @@ def _get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_nois
 
     return estimators, frequencies_window
 
-def _get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estimators, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False):
+def _get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estimators, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False, truncate_negative_estimators="before_sum"):
     """
     Estimate the signal fluence from the trace.
 
@@ -297,6 +302,10 @@ def _get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estim
         Width of the taper region for the Tukey window relative to the full window length.
     use_median_value : bool (optional)
         Not used in this function. Indroduced for compatibility with _get_noise_fluence_estimators.
+    truncate_negative_estimators : str (optional)
+        If "before_sum", negative estimators are set to zero before summing over frequencies.
+        If "after_sum", negative estimators are set to zero after summing over frequencies. note
+        that this is done in get_electric_field_energy_fluence.
 
     Returns
     -------
@@ -326,7 +335,8 @@ def _get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estim
 
     #signal estimator and variance for each frequency bin
     signal_estimators = spectrum_window**2 - noise_estimators
-    signal_estimators[signal_estimators < 0] = 0
+    if truncate_negative_estimators == "before_sum":
+        signal_estimators[signal_estimators < 0] = 0
     variances = noise_estimators * (noise_estimators + 2*signal_estimators)
 
     return signal_estimators, variances
