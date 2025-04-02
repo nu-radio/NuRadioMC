@@ -70,7 +70,7 @@ class NuRadioMCRunner(object):
                     else:
                         if(not self.q.empty()):
                             n_trig = self.q.get_nowait()
-                            self.n_triggers += n_trig
+                            if n_trig is not None: self.n_triggers += n_trig
                     print(f"{iN} has finished with {n_trig} events, total number of triggered events is {self.n_triggers}", flush=True)
                     outputfilename = self.get_outputfilename()
                     self.kwargs["output_filename"] = outputfilename
@@ -93,7 +93,7 @@ class NuRadioMCRunner(object):
                 for iN, n in enumerate(self.worker):
                     if(not self.q.empty()):
                         n_trig = self.q.get()
-                        self.n_triggers += n_trig
+                        if n_trig is not None: self.n_triggers += n_trig
                     n.join()
                     print(f"{iN} has finished with {n_trig} events, total number of triggered events is {self.n_triggers}", flush=True)
                 break
