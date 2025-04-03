@@ -421,10 +421,10 @@ class IceModelBirefringence(IceModelSimple):
 
 class IceModelExponentialPolynomial(IceModel):
     """
-    predefined ice model (to inherit from) with polynomial exponential shape of degree n
+    Predefined ice model (to inherit from) with polynomial exponential shape of degree n
     """
-    def __init__(self, a, z_0, z_shift=0*units.meter, z_air_boundary=0*units.meter, z_bottom=None,
-                 density_factor=0.8506 * (units.cm**3/units.gram)):
+    def __init__(self, a, z_0, z_shift=0 * units.meter, z_air_boundary=0 * units.meter, z_bottom=None,
+                 density_factor=0.8506 * (units.cm**3 / units.gram)):
         """
         Initiation of an exponential polynomial ice model.
 
@@ -448,7 +448,7 @@ class IceModelExponentialPolynomial(IceModel):
             coefficients for the nth-degree exponential polynomial
             describing the vertical ice density profile
         z_0: float, NuRadio length units
-              scale depth of the exponential
+            scale depth of the exponential
 
         [optional]
         z_shift: float, NuRadio length units
@@ -503,7 +503,8 @@ class IceModelExponentialPolynomial(IceModel):
 
     def get_average_index_of_refraction(self, position1, position2):
         """
-        returns the average index of refraction between two points
+        Returns the average index of refraction between two points
+
         Overwrites function of the mother class
 
         Parameters
@@ -524,7 +525,9 @@ class IceModelExponentialPolynomial(IceModel):
             x = np.exp((z-self._z_shift)/self._z_0)
             int_rho_z = self._a[0]*(z-self._z_shift)
             for i, _ in enumerate(self._a):
-                if i == 0: continue
+                if i == 0:
+                    continue
+
                 int_rho_z += (self._a[i]*self._z_0/i)*x**i
             return int_rho_z
 
@@ -552,12 +555,13 @@ class IceModelExponentialPolynomial(IceModel):
 
     def get_gradient_of_index_of_refraction(self, position):
         """
-        returns the gradient of index of refraction at position
+        Returns the gradient of index of refraction at position
+
         Overwrites function of the mother class
 
         Parameters
         ----------
-        position: np.array of shape (3,) or (n,3)
+        position: np.array of shape (3,) or (n, 3)
             point(s) in space
 
         Returns
@@ -574,9 +578,9 @@ class IceModelExponentialPolynomial(IceModel):
 
         if (isinstance(position, list) or position.ndim == 1):
             if (position[2] - self.z_air_boundary) <= 0:
-                return np.array([0,0,dior_dz(position[2])])
+                return np.array([0, 0, dior_dz(position[2])])
             else:
-                return np.array([0,0,0])
+                return np.array([0, 0, 0])
         else:
             dior = dior_dz(position[:,2])
             dior[position[:, 2] > 0] = 0
@@ -604,17 +608,19 @@ class IceModelExponentialPolynomial(IceModel):
         if radiopropa_is_imported:
             coeff = RP.DoubleVector_1D()
             for ai in self._a:
-                coeff.push_back(ai/(units.kg/units.meter**3)*(RP.kilogram/RP.meter**3))
+                coeff.push_back(ai / (units.kg / units.meter**3) * (RP.kilogram / RP.meter**3))
 
-            scalar_field = RP.IceModel_Polynomial(coeff,
-                                                  self._z_0*RP.meter/units.meter,
-                                                  self.z_air_boundary*RP.meter/units.meter,
-                                                  self._z_shift*RP.meter/units.meter,
-                                                  self._density_factor/(units.kg/units.meter**3)*(RP.kilogram/RP.meter**3))
+            scalar_field = RP.IceModel_Polynomial(
+                coeff,
+                self._z_0 * RP.meter / units.meter,
+                self.z_air_boundary * RP.meter / units.meter,
+                self._z_shift * RP.meter / units.meter,
+                self._density_factor / (units.kg / units.meter**3) * (RP.kilogram / RP.meter**3))
+
             return RadioPropaIceWrapper(self, scalar_field)
         else:
             logger.error('The radiopropa dependency was not import and can therefore not be used.'
-                        +'\nMore info on https://github.com/nu-radio/RadioPropa')
+                         '\nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
 
     def set_density_factor(self, density_factor):
@@ -625,9 +631,6 @@ class IceModelExponentialPolynomial(IceModel):
         ----------
         density_factor: float, NuRadio density units
             factor to translate density to refractive index
-
-        Returns
-        -------
         """
         self._density_factor = density_factor
 
