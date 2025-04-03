@@ -32,6 +32,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.utilities.dataservers import download_from_dataserver
 import NuRadioReco.modules.io.coreas.readCoREASDetector
 import NuRadioReco.modules.io.coreas.simulationSelector
+import NuRadioReco.modules.io.coreas.coreasInterpolator
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -208,7 +209,7 @@ for iE, evt in enumerate(coreas_reader.run(det, [core])):
         fmin = np.zeros(N_showers)
         success = np.zeros(N_showers, dtype=bool)
         Xmax = np.zeros(N_showers)
-        # loop through all 
+        # loop through all
         for i, filename2 in enumerate(input_files):
             # skip the CoREAS simulation that was used to generate the event under test
             if(filename2 == input_file):
@@ -224,7 +225,7 @@ for iE, evt in enumerate(coreas_reader.run(det, [core])):
             electricFieldBandPassFilter.run(evt2, ss, det, **filt_settings)
             electricFieldSignalReconstructor.run(evt2, ss, None)
             # Initialize interpolator for core position fit
-            coreasInterpolator = coreas.coreasInterpolator(evt2)
+            coreasInterpolator = NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator(evt2)
             coreasInterpolator.initialize_fluence_interpolator()
 
             # define objective function for core position and amplitude fit
@@ -233,7 +234,11 @@ for iE, evt in enumerate(coreas_reader.run(det, [core])):
                 core = np.array([xyA[0], xyA[1], 0]) * units.m  # core position
                 ff_true = np.zeros_like(ff)
                 for ip, p in enumerate(pos):
-                    ff_true[ip] = coreasInterpolator.get_interp_fluence_value(p, core)
+                    if abs(p[0]) < 1 * units.m and abs(p[1]) < 1 * units.m:
+                        # Don't fit fluence at the core, as it tends to blow up
+                        ff_true[ip] = ff[ip]
+                        continue
+                    ff_true[ip] = coreasInterpolator.get_interp_fluence_value(p - core)
                 ff_true *= A
                 return np.sum((ff - ff_true) ** 2/ff_error**2)
 

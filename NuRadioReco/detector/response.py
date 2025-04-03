@@ -31,10 +31,11 @@ class Response:
 
     """
 
-    def __init__(self, frequency, y, y_unit, time_delay=0, weight=1,
-                 name="default", station_id=None, channel_id=None,
-                 remove_time_delay=True, debug_plot=False,
-                 log_level=logging.NOTSET, attenuator_in_dB=0):
+    def __init__(
+            self, frequency, y, y_unit, time_delay=0, weight=1,
+            name="default", station_id=None, channel_id=None,
+            remove_time_delay=True, debug_plot=False,
+            log_level=logging.NOTSET, attenuator_in_dB=0):
         """
         Parameters
         ----------
@@ -120,6 +121,15 @@ class Response:
             y_phase = y_phase
         else:
             raise KeyError
+
+        if time_delay:
+            if abs(2 * time_delay) > 1 / np.diff(self.__frequency)[0]:
+                self.logger.error(
+                    f"The frequency binning (resolution) of {np.diff(self.__frequency)[0] * 1e3:.2f} MHz "
+                    f"of the response function is too large/coarse to correctly remove the time delay of {time_delay} ns. "
+                    f"This is a sign of potential aliasing. You need to upsample the response function "
+                    "(zero padding in the time domain).")
+                raise ValueError("Time delay too large for frequency resolution. Upsample the response function.")
 
         # Remove the average group delay from response
         if remove_time_delay and time_delay:
@@ -213,6 +223,8 @@ class Response:
         """
         response = np.ones_like(freq, dtype=np.complex128)
 
+        freq = np.asarray(freq)
+
         if component_names is not None:
             if isinstance(component_names, str):
                 component_names = [component_names]
@@ -272,6 +284,29 @@ class Response:
         self.__weights.pop(idx)
         self.__time_delays.pop(idx)
 
+    def get(self, name):
+        """
+        Get a component response from the response object.
+
+        Parameters
+        ----------
+
+        name: str
+            Name of the component to get
+        """
+        if name not in self.get_names():
+            raise ValueError(f"Component {name} not found in response. Options are: {self.get_names()}")
+
+        idx = self.__names.index(name)
+        single_response = copy.deepcopy(self)
+        single_response.__gains = [self.__names[idx]]
+        single_response.__names = [self.__gains[idx]]
+        single_response.__phases = [self.__phases[idx]]
+        single_response.__weights = [self.__weights[idx]]
+        single_response.__time_delays = [self.__time_delays[idx]]
+
+        return single_response
+
     def __mul__(self, other):
         """
         Define multiplication operator for
@@ -281,12 +316,13 @@ class Response:
 
         if isinstance(other, Response):
             self = copy.deepcopy(self)
-            if (self._station_id != other._station_id or
-                self._channel_id != other._channel_id) and (other._station_id != -1 and self._station_id != -1):
-                # station_id == -1 is a special case to all non-station specific responses
+            # station_id == -1 is a special case to all non-station specific responses
+            if ((self._station_id != other._station_id or self._channel_id != other._channel_id) and
+                (other._station_id != -1 and self._station_id != -1)):
                 self.logger.error("It looks like you are combining responses from "
                                   f"two different channels: {self._station_id}.{self._channel_id} "
                                   f" vs {other._station_id}.{other._channel_id} (station_id.channel_id)")
+
             # Store each response individually: append/concatenate lists of gains and phases.
             # The multiplication happens in __call__.
             self.__names += other.__names
@@ -324,6 +360,58 @@ class Response:
     def __rmul__(self, other):
         """ Same as mul """
         return self.__mul__(other)
+
+    def __truediv__(self, other):
+        """
+        Define multiplication operator for
+            - Other objects of the same class
+            - Objects of type NuRadioReco.framework.base_trace
+        """
+
+        if isinstance(other, Response):
+            self = copy.deepcopy(self)
+            # station_id == -1 is a special case to all non-station specific responses
+            if ((self._station_id != other._station_id or self._channel_id != other._channel_id) and
+                (other._station_id != -1 and self._station_id != -1)):
+                self.logger.error(
+                    "It looks like you are combining responses from "
+                    f"two different channels: {self._station_id}.{self._channel_id} "
+                    f" vs {other._station_id}.{other._channel_id} (station_id.channel_id)")
+
+            # Store each response individually: append/concatenate lists of gains and phases.
+            # The multiplication happens in __call__.
+            self.__names += other.__names
+            self.__gains += other.__gains
+            self.__phases += other.__phases
+
+            self.__weights += [-1 * ele for ele in other.__weights]
+            self.__time_delays += [-1 * ele for ele in other.__time_delays]
+            return self
+
+        elif isinstance(other, NuRadioReco.framework.base_trace.BaseTrace):
+            other = copy.copy(other)
+            if self._sanity_check:
+                trace_length = other.get_number_of_samples() / other.get_sampling_rate()
+                time_delay = self._calculate_time_delay()
+                if time_delay > trace_length / 2:
+                    self.logger.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
+                                        f"{time_delay:.2f} vs {trace_length:.2f}")
+
+            spec = other.get_frequency_spectrum()
+            freqs = other.get_frequencies()
+            spec *= 1 / self(freqs)  # __call__
+            other.add_trace_start_time(-np.sum(self.__time_delays))
+            other.set_frequency_spectrum(spec, sampling_rate="same")
+
+            return other
+
+        elif isinstance(other, np.ndarray):
+            raise TypeError("You try to multiply a `Response` object with a numpy array, "
+                            "only `Response` or `BaseTrace` is allowed. "
+                            "Did you call `get_trace()` or `get_frequency_spectrum()` on `BaseTrace`?")
+
+        else:
+            raise TypeError(f"Response multiplied with unknown type: {type(other)}")
 
     def __str__(self):
         ampl = 20 * np.log10(np.abs(self(np.array([0.15, 0.5]) * units.GHz)))
@@ -418,13 +506,14 @@ class Response:
         mask = np.all([195 * units.MHz < freqs, freqs < 250 * units.MHz], axis=0)[:-1]
         time_delay1 = np.mean(time_delay[mask])
 
-        # fit the unwrapped phase with a linear function
-        popt = np.polyfit(freqs, np.unwrap(phase), 1)
-        time_delay2 = -popt[0] / (2 * np.pi)
+        # This alternative calculation is only meaningful if group delay is ~ constant over the whole frequency range (which is the case for most cables)
+        # # fit the unwrapped phase with a linear function
+        # popt = np.polyfit(freqs, np.unwrap(phase), 1)
+        # time_delay2 = -popt[0] / (2 * np.pi)
 
-        if np.abs(time_delay1 - time_delay2) > 0.1 * units.ns:
-            self.logger.warning("Calculation of time delay. The two methods yield different results: "
-                                f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
+        # if np.abs(time_delay1 - time_delay2) > 0.1 * units.ns:
+        #     self.logger.warning("Calculation of time delay. The two methods yield different results: "
+        #                         f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
 
         return time_delay1
 
@@ -467,6 +556,11 @@ def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=
 
     if time_delay is None:
         raise ValueError("You have to specify a time delay")
+
+    if np.any(np.abs(2 * time_delay * np.diff(frequencies)) > 1):
+        raise ValueError("The frequency binning (resolution) of the response function "
+                         f"is to large/corse to correctly remove the time delay of {time_delay} ns. "
+                         "You need to upsample the response function.")
 
     resp = gain * np.exp(1j * (phase + 2 * np.pi * time_delay * frequencies))
 

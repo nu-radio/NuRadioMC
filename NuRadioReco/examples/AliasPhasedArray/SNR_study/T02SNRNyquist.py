@@ -50,6 +50,8 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.utilities.diodeSimulator
+
+
 from NuRadioReco.utilities.traceWindows import get_window_around_maximum
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation

@@ -4,6 +4,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import showerParameters as shp
 import logging
 logger = logging.getLogger('NuRadioReco.coreas.readCoREASStation')
 
@@ -53,13 +54,14 @@ class readCoREASStation:
             corsika_evt = coreas.read_CORSIKA7(input_file)
             coreas_sim_station = corsika_evt.get_station(0).get_sim_station()
             corsika_efields = coreas_sim_station.get_electric_fields()
+            coreas_shower = corsika_evt.get_first_sim_shower()
 
             efield_pos = []
             for corsika_efield in corsika_efields:
                 efield_pos.append(corsika_efield.get_position())
             efield_pos = np.array(efield_pos)
 
-            weights = coreas.calculate_simulation_weights(efield_pos, coreas_sim_station.get_parameter(stnp.zenith), coreas_sim_station.get_parameter(stnp.azimuth), debug=self.__debug)
+            weights = coreas.calculate_simulation_weights(efield_pos, coreas_shower.get_parameter(shp.zenith), coreas_shower.get_parameter(shp.azimuth), debug=self.__debug)
             if self.__debug:
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots()
@@ -71,7 +73,7 @@ class readCoREASStation:
                 plt.gca().set_aspect('equal')
                 plt.show()
 
-            # make one event for each observer with differen core position (set in create_sim_shower)
+            # make one event for each observer with different core position (set in create_sim_shower)
             for i, corsika_efield in enumerate(corsika_efields):
                 evt = NuRadioReco.framework.event.Event(self.__current_input_file, self.__current_event)  # create empty event
                 station = NuRadioReco.framework.station.Station(self.__station_id)
@@ -100,9 +102,15 @@ class readCoREASStation:
                                                          sim_station.get_parameter(stnp.zenith),
                                                          sim_station.get_parameter(stnp.azimuth), efield_sampling_rate)
                 station.set_sim_station(sim_station)
-                sim_shower = coreas.create_sim_shower(corsika_evt, detector, self.__station_id)
+
+                # We want to set the core such that the current observer (ie efield) overlaps with the selected station
+                station_position = detector.get_absolute_position(self.__station_id)
+                observer_position = corsika_efield.get_position()
+                sim_shower = coreas.create_sim_shower(corsika_evt, core_shift=station_position - observer_position)
+
                 evt.add_sim_shower(sim_shower)
                 evt.set_station(station)
+
                 self.__current_event += 1
                 yield evt
             self.__current_input_file += 1
