@@ -1,9 +1,7 @@
-from __future__ import absolute_import, division, print_function
-import numpy as np
-from scipy import integrate, linalg
 from NuRadioReco.utilities import units
-from scipy import interpolate
-import os
+
+from scipy import interpolate, integrate, linalg
+import numpy as np
 import logging
 
 try:
@@ -13,6 +11,7 @@ except ImportError:
     radiopropa_is_imported = False
 
 logger = logging.getLogger('NuRadioMC.ice_model')
+
 
 class IceModel():
     """
@@ -28,10 +27,10 @@ class IceModel():
 
         Parameters
         ----------
-        z_air_boundary:  float, NuRadio length units
-                         z coordinate of the surface of the glacier
-        z_bottom:  float, NuRadio length units
-                   z coordinate of the bedrock/bottom of the glacier.
+        z_air_boundary: float, NuRadio length units
+            z coordinate of the surface of the glacier
+        z_bottom: float, NuRadio length units
+            z coordinate of the bedrock/bottom of the glacier.
         """
         self.z_air_boundary = z_air_boundary
         self.z_bottom = z_bottom
@@ -46,12 +45,12 @@ class IceModel():
 
         Parameters
         ----------
-        refl_z:  float, NuRadio length units
-                 z coordinate of the bottom reflective layer
-        refl_coef:  float between 0 and 1
-                    fraction of the electric field that gets reflected
-        refl_phase_shift:  float, NuRadio angukar units
-                           phase shoft that the reflected electric field receives
+        refl_z: float, NuRadio length units
+            z coordinate of the bottom reflective layer
+        refl_coef: float between 0 and 1
+            fraction of the electric field that gets reflected
+        refl_phase_shift: float, NuRadio angukar units
+            phase shoft that the reflected electric field receives
         """
         self.reflection = refl_z
         self.reflection_coefficient = refl_coef
@@ -62,41 +61,43 @@ class IceModel():
             self.z_bottom = self.reflection - 1*units.m
 
     def get_index_of_refraction(self, position):
-        """
-        returns the index of refraction at position.
-        Reimplement everytime in the specific model
+        """ Returns the index of refraction at position.
+
+        Has to be reimplement for every specific model.
 
         Parameters
         ----------
-        position:  3dim np.array
-                    point
+        position: 3dim np.array
+            point
 
         Returns
         -------
-        n:  float
+        n: float
             index of refraction
         """
         logger.error('function not defined')
         raise NotImplementedError('function not defined')
 
     def get_average_index_of_refraction(self, position1, position2):
-        """
-        returns the average index of refraction between two points
-        Reimplement everytime in the specific model
+        """ Returns the average index of refraction between two points
+
+        Has to be reimplement for every specific model.
 
         Parameters
         ----------
         position1: 3dim np.array
-                    point
+            point
         position2: 3dim np.array
-                    point
+            point
 
         Returns
         -------
-        n_average:  float
-                    averaged index of refraction between the two points
+        n_average: float
+            averaged index of refraction between the two points
         """
-        logger.warning('Using general implementation of function which might be slow. For faster calculation, overwrite with an ice model specific function')
+        logger.warning(
+            'Using general implementation of function which might be slow. '
+            'For faster calculation, overwrite with an ice model specific function')
 
         def get_index_of_refraction(x,y,z):
             pos = np.array([x,y,z])
@@ -105,24 +106,25 @@ class IceModel():
         ranges = [[position1[0],position2[0]],
                   [position1[1],position2[1]],
                   [position1[2],position2[2]]]
+
         int_result = integrate.nquad(get_index_of_refraction,ranges)
         n_average = int_result[0] / linalg.norm(position2-position1)
         return n_average
 
     def get_gradient_of_index_of_refraction(self, position):
-        """
-        returns the gradient of index of refraction at position
-        Reimplement everytime in the specific model
+        """ Returns the gradient of index of refraction at position
+
+        Has to be reimplement for every specific model.
 
         Parameters
         ----------
         position: 3dim np.array
-                    point
+            point
 
         Returns
         -------
-        n_nabla:    (3,) np.array
-                    gradient of index of refraction at the point
+        n_nabla: (3,) np.array
+            Gradient of index of refraction at the point
         """
         logger.error('function not defined')
         raise NotImplementedError('function not defined')
@@ -140,8 +142,8 @@ class IceModel():
 
         Returns
         -------
-        ice_model_radiopropa:   RadioPropaIceWrapper
-                                object holding the radiopropa scalarfield and modules
+        ice_model_radiopropa: RadioPropaIceWrapper
+            Object holding the radiopropa scalarfield and modules
         """
         if not radiopropa_is_imported:
             logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
@@ -165,8 +167,8 @@ class IceModel():
 
         Returns
         -------
-        ice:    RadioPropaIceWrapper
-                object holding the radiopropa scalarfield and modules
+        ice: RadioPropaIceWrapper
+            Object holding the radiopropa scalarfield and modules
         """
         if not radiopropa_is_imported:
             logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
@@ -187,12 +189,13 @@ class IceModel():
 
         Parameters
         ----------
-        ice_model_radioprop:    RadioPropaIceWrapper
-                                object holding the radiopropa scalarfield and modules
+        ice_model_radioprop: RadioPropaIceWrapper
+            Object holding the radiopropa scalarfield and modules
 
         """
         if not radiopropa_is_imported:
-            logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
+            logger.error('The radiopropa dependancy was not import and can therefore not be used. '
+                         '\nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
 
         self._ice_model_radiopropa = ice_model_radiopropa
@@ -225,19 +228,19 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        z_air_boundary:  float, NuRadio length units
-                         z coordinate of the surface of the glacier
-        z_bottom:  float, NuRadio length units
-                   z coordinate of the bedrock/bottom of the glacier.
-        n_ice:  float, dimensionless
-                refractive index of the deep bulk ice
-        delta_n:  float, NuRadio length units
-                  difference between n_ice and the refractive index
-                  of the snow at the surface
-        z_0:  float, NuRadio length units
-              scale depth of the exponential
-        z_shift:  float, NuRadio length units
-                  up or down shift od the exponential profile
+        z_air_boundary: float, NuRadio length units
+            z coordinate of the surface of the glacier
+        z_bottom: float, NuRadio length units
+            z coordinate of the bedrock/bottom of the glacier.
+        n_ice: float, dimensionless
+            refractive index of the deep bulk ice
+        delta_n: float, NuRadio length units
+            difference between n_ice and the refractive index
+            of the snow at the surface
+        z_0: float, NuRadio length units
+            scale depth of the exponential
+        z_shift: float, NuRadio length units
+            up or down shift od the exponential profile
         """
 
         super().__init__(z_air_boundary, z_bottom)
@@ -253,14 +256,13 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position:  1D (3,) or 2D (n,3) numpy array
-                    Either one position or an array
-                    of positions for which the indices
-                    of refraction are returned
+        position: 1D (3,) or 2D (n,3) numpy array
+            Either one position or an array of positions for which the indices
+            of refraction are returned,
 
         Returns
         -------
-        n:  float or 1D numpy array (n,)
+        n: float or 1D numpy array (n,)
             index of refraction
         """
         if isinstance(position, list) or position.ndim == 1:
@@ -281,18 +283,16 @@ class IceModelSimple(IceModel):
         Parameters
         ----------
         position1: 1D (3,) or 2D (n,3) numpy array
-                    Either one position or an array
-                    of positions for which the indices
-                    of average refraction are returned
+            Either one position or an array of positions for which the indices
+            of average refraction are returned
         position2: 1D (3,) or 2D (n,3) numpy array
-                    Either one position or an array
-                    of positions for which the indices
-                    of average refraction are returned
+            Either one position or an array of positions for which the indices
+            of average refraction are returned
 
         Returns
         -------
-        n_average:  float of 1D numpy array (n,)
-                    averaged index of refraction between the two points
+        n_average: float of 1D numpy array (n,)
+            averaged index of refraction between the two points
         """
 
         def exp_average(z_max, z_min):
@@ -326,14 +326,13 @@ class IceModelSimple(IceModel):
         Parameters
         ----------
         position: 1D or 2D numpy array
-                    Either one position or an array
-                    of positions for which the gradient
-                    of index of refraction is returned
+            Either one position or an array of positions for which the gradient
+            of index of refraction is returned
 
         Returns
         -------
-        n_nabla:    1D (3,) or 2D (n,3) numpy array
-                    gradient of index of refraction at the point
+        n_nabla: 1D (3,) or 2D (n,3) numpy array
+            gradient of index of refraction at the point
         """
         def gradient_z(z):
             return -self.delta_n / self.z_0 * np.exp((z - self.z_shift) / self.z_0)
@@ -361,8 +360,8 @@ class IceModelSimple(IceModel):
 
         Returns
         -------
-        ice:    RadioPropaIceWrapper
-                object holding the radiopropa scalarfield and modules
+        ice: RadioPropaIceWrapper
+            Object holding the radiopropa scalarfield and modules
         """
         if not radiopropa_is_imported:
             logger.error('The radiopropa dependency was not import and can therefore not be used.'
@@ -405,12 +404,12 @@ class IceModelBirefringence(IceModelSimple):
 
         Parameters
         ----------
-        position:  3dim np.array [x, y, z]
+        position: 3dim np.array [x, y, z]
             position at which the ice model should be evaluated
 
         Returns
         -------
-        n:  list [nx, ny, nz]
+        n: list [nx, ny, nz]
             index of refraction for every direction
         """
 
@@ -424,12 +423,15 @@ class IceModelExponentialPolynomial(IceModel):
     """
     predefined ice model (to inherit from) with polynomial exponential shape of degree n
     """
-    def __init__(self, a, z_0, z_shift=0*units.meter, z_air_boundary=0*units.meter, z_bottom=None, 
+    def __init__(self, a, z_0, z_shift=0*units.meter, z_air_boundary=0*units.meter, z_bottom=None,
                  density_factor=0.8506 * (units.cm**3/units.gram)):
         """
-        initiation of an exponential polynomial ice model.
+        Initiation of an exponential polynomial ice model.
 
-        .. math:: n(z) = \sum_{i=0}^{n} a_{i} \cdot \exp^{i}(z/z_0)       
+        .. math::
+
+            n(z) = \sum_{i=0}^{n} a_{i} \cdot \exp^{i}(z/z_0)
+
         for z_bottom < z < z_air_boundary, see eq. 5.2 in https://doi.org/10.5281/zenodo.15067984
 
         The bottom defined here is a boundary condition used in simulations and
@@ -442,22 +444,22 @@ class IceModelExponentialPolynomial(IceModel):
 
         Parameters
         ----------
-        a:  (n,) np.array of floats, NuRadio density units
-            coefficients for the nth-degree exponential polynomial 
+        a: (n,) np.array of floats, NuRadio density units
+            coefficients for the nth-degree exponential polynomial
             describing the vertical ice density profile
-        z_0:  float, NuRadio length units
+        z_0: float, NuRadio length units
               scale depth of the exponential
 
         [optional]
-        z_shift:  float, NuRadio length units
-                  up or down shift od the exponential profile
-        z_air_boundary:  float, NuRadio length units
-                         z coordinate of the surface of the glacier
-        z_bottom:  float, NuRadio length units
-                   z coordinate of the bedrock/bottom of the glacier.
-        density_factor:  float, NuRadio density units
-                         factor used to translate density to refractive index
-                         using Robin's equation.
+        z_shift: float, NuRadio length units
+            up or down shift od the exponential profile
+        z_air_boundary: float, NuRadio length units
+            z coordinate of the surface of the glacier
+        z_bottom: float, NuRadio length units
+            z coordinate of the bedrock/bottom of the glacier.
+        density_factor: float, NuRadio density units
+            factor used to translate density to refractive index
+            using Robin's equation.
         """
 
         super().__init__(z_air_boundary=z_air_boundary, z_bottom = z_bottom)
@@ -474,12 +476,12 @@ class IceModelExponentialPolynomial(IceModel):
 
         Parameters
         ----------
-        position:   np.array of shape (3,) or (n,3)
-                    point(s) in space
+        position: np.array of shape (3,) or (n,3)
+            point(s) in space
 
         Returns
         -------
-        n:  float
+        n: float
             index of refraction
         """
         def ior(z):
@@ -506,15 +508,15 @@ class IceModelExponentialPolynomial(IceModel):
 
         Parameters
         ----------
-        position1:  np.array of shape (3,) or (n,3)
-                    point(s) in space
-        position2:  np.array of shape (3,) or (n,3)
-                    point(s) in space
+        position1: np.array of shape (3,) or (n,3)
+            point(s) in space
+        position2: np.array of shape (3,) or (n,3)
+            point(s) in space
 
         Returns
         -------
-        n_average:  float
-                    averaged index of refraction between the two points
+        n_average: float
+            averaged index of refraction between the two points
         """
         if np.abs(position1 - position2)[2] < .1:
             return self.get_index_of_refraction(position1)
@@ -555,13 +557,13 @@ class IceModelExponentialPolynomial(IceModel):
 
         Parameters
         ----------
-        position:   np.array of shape (3,) or (n,3)
-                    point(s) in space
+        position: np.array of shape (3,) or (n,3)
+            point(s) in space
 
         Returns
         -------
-        n_nabla:    (3,) np.array
-                    gradient of index of refraction at the point
+        n_nabla: (3,) np.array
+            gradient of index of refraction at the point
         """
         def dior_dz(z):
             x = np.exp((z-self._z_shift)/self._z_0)
@@ -596,8 +598,8 @@ class IceModelExponentialPolynomial(IceModel):
 
         Returns
         -------
-        ice:    RadioPropaIceWrapper
-                object holding the radiopropa scalarfield and modules
+        ice: RadioPropaIceWrapper
+            object holding the radiopropa scalarfield and modules
         """
         if radiopropa_is_imported:
             coeff = RP.DoubleVector_1D()
@@ -622,7 +624,7 @@ class IceModelExponentialPolynomial(IceModel):
         Parameters
         ----------
         density_factor: float, NuRadio density units
-                        factor to translate density to refractive index
+            factor to translate density to refractive index
 
         Returns
         -------
@@ -716,7 +718,7 @@ if radiopropa_is_imported:
             Returns
             -------
             modules: dictionary {name:module object}
-                     dictionary of modules to run in radiopropa
+                dictionary of modules to run in radiopropa
             """
             return self.__modules
 
@@ -729,7 +731,7 @@ if radiopropa_is_imported:
             Returns
             -------
             module: module with this name
-                    radiopropa.module object
+                radiopropa.module object
             """
             if name not in self.__modules.keys():
                 logger.error('Module with name {} does not exist.'.format(name))
@@ -745,10 +747,10 @@ if radiopropa_is_imported:
 
             Parameters
             ----------
-            name:   string
-                    name to identify the module
+            name: string
+                name to identify the module
             module: radiopropa.Module (and all the daugther classes)
-                    module to run in radiopropa
+                module to run in radiopropa
             """
             if name in self.__modules.keys():
                 logger.error('Module with name {} does already exist, use the replace_module function if you want to replace this module'.format(name))
@@ -764,8 +766,8 @@ if radiopropa_is_imported:
 
             Parameters
             ----------
-            name:   string
-                    name to identify the module to be removed
+            name: string
+                name to identify the module to be removed
             """
             if name in self.__modules.keys():
                 self.__modules.pop(name)
@@ -778,10 +780,10 @@ if radiopropa_is_imported:
 
             Parameters
             ----------
-            name:   string
+            name: string
                     name to identify the module to be replaced
             module: radiopropa.Module (and all the daugther classes)
-                    new module to run in radiopropa
+                new module to run in radiopropa
             """
             if name not in self.__modules.keys():
                 logger.info('Module with name {} does not exist yet and thus cannot be replaced, module just added'.format(name))
@@ -796,7 +798,7 @@ if radiopropa_is_imported:
             Parameters
             ----------
             scalar_field: radiopropa.ScalarField
-                          scalar field that holds the refractive index to use in radiopropa
+                scalar field that holds the refractive index to use in radiopropa
             """
             return self.__scalar_field
 
@@ -816,12 +818,12 @@ if radiopropa_is_imported:
 
             Parameters
             ----------
-            position:   radiopropa.Vector3d
-                        point
+            position: radiopropa.Vector3d
+                point
 
             Returns
             -------
-            n:  float
+            n: float
                 index of refraction
             """
             pos = np.array([position.x, position.y, position.z])*(units.meter/RP.meter)
@@ -833,13 +835,13 @@ if radiopropa_is_imported:
 
             Parameters
             ----------
-            position:   radiopropa.Vector3d
-                        point
+            position: radiopropa.Vector3d
+                point
 
             Returns
             -------
-            n_nabla:    radiopropa.Vector3d
-                        gradient of index of refraction at the point
+            n_nabla: radiopropa.Vector3d
+                gradient of index of refraction at the point
             """
             pos = np.array([position.x, position.y, position.z])*(units.meter/RP.meter)
             gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos)*(1 / (RP.meter/units.meter))
