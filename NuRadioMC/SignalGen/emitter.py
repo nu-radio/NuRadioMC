@@ -44,6 +44,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         * idl1 & hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
         * ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
+        * rno_cal4C : RNO-G calibration pulser signal lab measurement with DAQbox at 4C 
         * efield_idl1_spice: direct measurement of the efield from the idl1 pulser and its antenna as used in the SPICE
           calibration campaigns from 2018 and 2019.
           The `launch_vector` needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,
@@ -123,6 +124,8 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             input_file = os.path.join(path, 'data/idl1_data.hdf5')
         elif(model == 'hvsp1'):
             input_file = os.path.join(path, 'data/hvsp1_data.hdf5')
+        elif(model == 'rno_cal4C'):
+            input_file = os.path.join(path, 'data/RNO_G_pulser_waveforms/rno_cal4C_data.hdf5')
         else:
             input_file = os.path.join(path, 'data/ARA02_Cal_data.hdf5')
         read_file = h5py.File(input_file, 'r')
@@ -270,6 +273,7 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
         * idl1 & hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
         * ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
+        * rno_cal4C : RNO-G calibration pulser signal lab measurement with DAQbox at 4C
         * efield_idl1_spice: direct measurement of the efield from the idl1 pulser and its antenna as used in the SPICE
           calibration campaigns from 2018 and 2019.
           The `launch_vector` needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,
