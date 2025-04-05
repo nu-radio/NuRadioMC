@@ -298,18 +298,23 @@ class BaseTrace:
         self.set_trace(resampled_trace, sampling_rate)
 
     def serialize(self):
-        time_trace = self.get_trace()
-        # if there is no trace, the above will return np.array(None).
-        if not time_trace.shape:
+        if (self._time_trace is None) and (self._frequency_spectrum is None):
             return None
+        if (self._time_trace is not None) and (self._frequency_spectrum is not None):
+            raise ValueError("Both time trace and frequency spectrum are stored only one of the two should be kept")
         data = {'sampling_rate': self.get_sampling_rate(),
-                'time_trace': time_trace,
+                'time_trace': self._time_trace,
+                'frequency_spectrum': self._frequency_spectrum,
                 'trace_start_time': self.get_trace_start_time()}
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        self.set_trace(data['time_trace'], data['sampling_rate'])
+        self._time_trace = data['time_trace']
+        self._frequency_spectrum = data.get('frequency_spectrum', None)
+        self.__time_domain_up_to_date = self._time_trace is not None
+        self._sampling_rate = data['sampling_rate']
+
         if 'trace_start_time' in data.keys():
             self.set_trace_start_time(data['trace_start_time'])
 
@@ -317,10 +322,10 @@ class BaseTrace:
         """
         Adds the trace of another channel to the trace of this channel.
 
-        The trace of the incoming channel is only added within the time window of the current 
-        channel. If the current channel has an empty trace (i.e., a trace containing zeros) with 
-        a defined trace_start_time, this function can be seen as recording the incoming channel 
-        in the specified readout window. Hence, the current channel is referred to as the "readout" 
+        The trace of the incoming channel is only added within the time window of the current
+        channel. If the current channel has an empty trace (i.e., a trace containing zeros) with
+        a defined trace_start_time, this function can be seen as recording the incoming channel
+        in the specified readout window. Hence, the current channel is referred to as the "readout"
         in the comments of this function.
 
         Parameters
@@ -393,15 +398,15 @@ class BaseTrace:
 
             i_end_readout = floor((t1_channel - t0_readout) * sampling_rate_readout) + 1 # The bin of readout right before channel ends
             i_end_channel = n_samples_channel
-
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
         residual_time_offset = t_start_channel - t_start_readout
         if np.abs(residual_time_offset) >= min_residual_time_offset:
             tmp_channel = copy.deepcopy(channel)
             tmp_channel.apply_time_shift(residual_time_offset)
-            trace_to_add = tmp_channel.get_trace()[i_start_channel:i_end_channel]
+
+            trace_to_add = tmp_channel.get_trace()
         else:
-            trace_to_add = channel.get_trace()[i_start_channel:i_end_channel]
+            trace_to_add = channel.get_trace()
 
         if i_end_readout - i_start_readout != i_end_channel - i_start_channel:
             logger.error("The traces do not have the same length. This should not happen.")
@@ -409,7 +414,9 @@ class BaseTrace:
 
         # Add the trace to the original trace:
         original_trace = self.get_trace()
-        original_trace[i_start_readout:i_end_readout] += trace_to_add
+        # arr[..., start:stop] works for any dimension: 1, 2, 3, ...
+        original_trace[..., i_start_readout:i_end_readout] += trace_to_add[..., i_start_channel:i_end_channel]
+
         self.set_trace(original_trace, sampling_rate_readout)
 
 
