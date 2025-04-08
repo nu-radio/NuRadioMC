@@ -12,7 +12,7 @@ logger = logging.getLogger('NuRadioReco.HighLowTriggerSimulator')
 
 def get_high_low_triggers(trace, high_threshold, low_threshold,
                           time_coincidence=5 * units.ns, dt=1 * units.ns,
-                          step=1):
+                          step=1, is_data=False):
     """
     calculates a high low trigger in a time coincidence window
 
@@ -30,6 +30,9 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
         the width of a time bin (inverse of sampling rate)
     step: int
         stride length for sampling rate and clock rate mismatch in trigger logic
+    is_data: bool
+        If true, the trace represents real detector data and will force the striding
+        to start at the beginning of the trace without padding
 
     Returns
     -------
@@ -43,8 +46,12 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
 
     n_bins_coincidence = int(np.round(time_coincidence / dt))
 
-    # Pad trace end enough so that the end isn't cut off after striding.
-    padded_trace = np.pad(trace, (n_bins_coincidence - 1, 1), "constant")
+    if not is_data:
+        # Pad trace so trigger bin matches with sample index
+        padded_trace = np.pad(trace, (n_bins_coincidence-1, 0), "constant")
+    else:
+        padded_trace = trace
+
     num_frames = int((len(padded_trace) - n_bins_coincidence) / step)
     num_real_frames = int(len(trace) / step)
 
@@ -70,7 +77,8 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     return trace_high_low
 
 
-def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns, step=1):
+def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns,
+                       step=1, is_data=False, already_strided=False):
     """
     calculates a majority logic trigger
 
@@ -86,6 +94,11 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         the width of a time bin (inverse of sampling rate)
     step: int
         stride length for sampling rate and clock rate mismatch in trigger logic
+    is_data: bool
+        If true, the trace represents real detector data and will force the striding
+        to start at the beginning of the trace without padding
+    already_strided: bool
+        Tells the function if the input, tts, are already strided by step
 
     Returns
     -------
@@ -97,11 +110,14 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         the trigger times
     """
 
-    assert np.abs((time_coincidence / dt) % step - step / 2) < 0.9 * step, "Trigger times may be inaccurate due to windowing"
+    if not already_strided:
+        # Coincidence bins needs reduced by step since the output traces of get_high_low_triggers is already binned by step
+        n_bins_coincidence = int(np.round(time_coincidence / dt / step))
+        stride_step = 1
+    else:
+        n_bins_coincidence = int(np.round(time_coincidence / dt))
+        stride_step = step
 
-    # Coincidence bins needs reduced by step since the output traces of get_high_low_triggers is already binned by step
-    n_bins_coincidence = int(np.round(time_coincidence / dt / step))
-    stride_step = 1
     n = len(tts[0])
 
     if n_bins_coincidence > n:  # reduce coincidence window to maximum trace length
@@ -109,7 +125,11 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         logger.debug("specified coincidence window longer than tracelength, reducing coincidence window to trace length")
 
     for i in range(len(tts)):
-        trace = np.pad(tts[i], (n_bins_coincidence - 1, 1), "constant")
+        if not is_data:
+            trace = np.pad(tts[i], (n_bins_coincidence-1, 0), "constant")
+        else:
+            trace = tts[i]
+
         num_frames = int(np.floor((len(trace) - n_bins_coincidence)))
 
         # Stride here again, except use step size of 1 since the output traces of get_high_low_triggers is already windowed by step.
@@ -157,7 +177,8 @@ class triggerSimulator:
             trigger_adc=True,
             clock_offset=0,
             adc_output='voltage',
-            step=1):
+            step=1,
+            is_data=False):
         """
         simulate ARIANNA trigger logic
 
@@ -202,7 +223,9 @@ class triggerSimulator:
             * 'counts' to store the ADC output in ADC counts
         step: int
             stride length for sampling rate and clock rate mismatch in trigger logic
-
+        is_data: bool
+            If true, the trace represents real detector data and will force the striding
+            to start at the beginning of the trace without padding
         """
         t = time.time()
 
@@ -250,7 +273,7 @@ class triggerSimulator:
                     trace,
                     _get_threshold_channel(threshold_high, channel_id),
                     _get_threshold_channel(threshold_low, channel_id),
-                    high_low_window, dt, step)
+                    high_low_window, dt, step, is_data)
 
                 if np.any(triggerd_bins):
                     channels_that_passed_trigger.append(channel.get_id())
@@ -260,7 +283,7 @@ class triggerSimulator:
 
             if len(triggerd_bins_channels):
                 has_triggered, triggered_bins, triggered_times = get_majority_logic(
-                    triggerd_bins_channels, number_concidences, coinc_window, dt, step)
+                    triggerd_bins_channels, number_concidences, coinc_window, dt, step, is_data, True)
             else:
                 has_triggered = False
 
