@@ -110,7 +110,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         the trigger times
     """
 
-    if not already_strided:
+    if already_strided:
         # Coincidence bins needs reduced by step since the output traces of get_high_low_triggers is already binned by step
         n_bins_coincidence = int(np.round(time_coincidence / dt / step))
         stride_step = 1
@@ -177,7 +177,7 @@ class triggerSimulator:
             trigger_adc=True,
             clock_offset=0,
             adc_output='voltage',
-            step=1,
+            step=4,
             is_data=False):
         """
         simulate ARIANNA trigger logic
