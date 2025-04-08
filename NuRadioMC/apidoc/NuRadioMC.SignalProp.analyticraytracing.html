@@ -814,9 +814,9 @@ specified by C_0 at the position x2</p>
 (default: False)</p>
 </dd>
 <dt><strong>overwrite_speedup: bool</strong></dt><dd><p>The signal attenuation is calculated using a numerical integration
-along the ray path. This calculation can be computational inefficient depending on the details of 
+along the ray path. This calculation can be computational inefficient depending on the details of
 the ice model. An optimization is implemented approximating the integral with a discrete sum with the loss
-of some accuracy, See PR #507. This optimization is used for all ice models listed in 
+of some accuracy, See PR #507. This optimization is used for all ice models listed in
 speedup_attenuation_models (i.e., “GL3”). With this argument you can explicitly activate or deactivate
 (True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
 listed in speedup_attenuation_models)</p>
@@ -2048,7 +2048,7 @@ starts at zero</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_effective_index_birefringence">
 <span class="sig-name descname"><span class="pre">get_effective_index_birefringence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_effective_index_birefringence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_effective_index_birefringence" title="Link to this definition"></a></dt>
-<dd><p>Function to find the analytical solutions for the effective refractive indices. 
+<dd><p>Function to find the analytical solutions for the effective refractive indices.
 The calculations are described here: <a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y">https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2139,7 +2139,7 @@ The calculations are described here: <a class="reference external" href="https:/
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.on_sky_birefringence">
 <span class="sig-name descname"><span class="pre">on_sky_birefringence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polarization</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.on_sky_birefringence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.on_sky_birefringence" title="Link to this definition"></a></dt>
 <dd><p>Function for the normalized e-field vector from cartesian to spherical coordinates.
-The function does the same as the following radiotool functions, only faster:             
+The function does the same as the following radiotool functions, only faster:
 from radiotools import coordinatesystems
 cs = coordinatesystems.cstrafo(theta, phi)
 sky = cs.transform_from_ground_to_onsky(p)</p>
@@ -2166,7 +2166,7 @@ sky = cs.transform_from_ground_to_onsky(p)</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence">
 <span class="sig-name descname"><span class="pre">get_pulse_propagation_birefringence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pulse</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samp_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bire_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'southpole_A'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_pulse_propagation_birefringence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence" title="Link to this definition"></a></dt>
-<dd><p>Function for the time trace propagation according to the polarization change due to birefringence. 
+<dd><p>Function for the time trace propagation according to the polarization change due to birefringence.
 The trace propagation is explained in this paper: <a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y">https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
