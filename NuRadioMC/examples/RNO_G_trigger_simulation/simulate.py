@@ -321,22 +321,31 @@ if __name__ == "__main__":
     def_data_dir = os.path.join(ABS_PATH_HERE, "data")
     default_config_path = os.path.join(ABS_PATH_HERE, "../07_RNO_G_simulation/RNO_config.yaml")
 
-    parser = argparse.ArgumentParser(description="Run NuRadioMC simulation")
-    # Sim steering arguments
-    parser.add_argument("--config", type=str, default=default_config_path, help="NuRadioMC yaml config file")
-    parser.add_argument("--detectordescription", '--det', type=str, default=None, help="Path to RNO-G detector description file. If None, query from DB")
-    parser.add_argument("--station_id", type=int, default=None, help="Set station to be used for simulation", required=True)
+    parser = argparse.ArgumentParser(description="Run a NuRadioMC neutrino simulation")
 
-    # Neutrino arguments
-    parser.add_argument("--energy", '-e', default=1e18, type=float, help="Neutrino energy [eV]")
-    parser.add_argument("--flavor", '-f', default="all", type=str, help="the flavor")
-    parser.add_argument("--interaction_type", '-it', default="ccnc", type=str, help="interaction type cc, nc or ccnc")
+    # General steering arguments
+    parser.add_argument("--config", type=str, default=default_config_path, help="Path to a NuRadioMC yaml config file")
+    parser.add_argument("--detectordescription", '--det', type=str, default=None,
+                        help="Path to a RNO-G detector description file. If None, query the description from hardware database")
+    parser.add_argument("--station_id", type=int, default=None, help="Set station to be used in the simulation", required=True)
+    parser.add_argument("--proposal", action="store_true",
+                        help="Use PROPOSAL to simulate secondaries (only relevant for muon and tau neutrinos with cc interactions)")
 
-    # File meta-variables
-    parser.add_argument("--index", '-i', default=0, type=int, help="counter to create a unique data-set identifier")
-    parser.add_argument("--n_events_per_file", '-n', type=int, default=1e3, help="Number of nu-interactions per file")
-    parser.add_argument("--data_dir", type=str, default=def_data_dir, help="directory name where the library will be created")
-    parser.add_argument("--proposal", action="store_true", help="Use PROPOSAL for simulation")
+    # Neutrino generation arguments. You can either use a file or generate events on the fly.
+    # If you use a file, i.e., set --neutrino_file, the following arguments are ignored: --energy, --flavor, --interaction_type
+    parser.add_argument("--neutrino_file", type=str, default=None, help="NuRadioMC HDF5 file with neutrino events to be simulated")
+    parser.add_argument("--event_list", type=int, default=None, nargs="+",
+                        help="Specify event list to be simulated. If not given, all events in the file will be simulated.")
+    parser.add_argument("--energy", '-e', default=1e18, type=float, help="Set fixed neutrino energy [eV] (not used if --neutrino_file is set)")
+    parser.add_argument("--flavor", '-f', default="all", type=str, choices=["e", "mu", "tau", "all"],
+                        help="Choose neutrino flavor to be simulated: e, mu, tau or all (not used if --neutrino_file is set)")
+    parser.add_argument("--interaction_type", '-it', default="ccnc", type=str, choices=["cc", "nc", "ccnc"],
+                        help="Choose interaction type: cc, nc or ccnc (not used if --neutrino_file is set)")
+    parser.add_argument("--n_events", '-n', type=int, default=1e3, help="Number of nu-interactions to be simulated (not used if --neutrino_file is set)")
+
+    # Additonal arguments
+    parser.add_argument("--index", '-i', default=0, type=int, help="Counter to create a unique data-set identifier")
+    parser.add_argument("--data_dir", type=str, default=def_data_dir, help="Cirectory name where the library will be created")
     parser.add_argument("--nur_output", action="store_true", help="Write nur files.")
 
     args = parser.parse_args()
@@ -349,7 +358,8 @@ if __name__ == "__main__":
         detector_file=args.detectordescription, log_level=logging.INFO,
         always_query_entire_description=False, select_stations=args.station_id)
 
-    det.update(dt.datetime(2023, 8, 3))
+    event_time = dt.datetime(2024, 2, 3)
+    det.update(event_time)
     config = simulation.get_config(args.config)
 
     if config["noise_kwargs"]["noise_type"] == "data-driven":
@@ -370,6 +380,9 @@ if __name__ == "__main__":
 
     output_path = f"{args.data_dir}/station_{args.station_id}/nu_{args.flavor}_{args.interaction_type}"
 
+    if args.neutrino_file is not None:
+        output_path += f"/{os.path.basename(args.neutrino_file).replace('.hdf5', '')}"
+
     if not os.path.exists(output_path):
         logger.debug(f"Create output directory: {output_path}")
         os.makedirs(output_path, exist_ok=True)
@@ -382,25 +395,34 @@ if __name__ == "__main__":
     if run_proposal:
         logger.info(f"Using PROPOSAL for simulation of {args.flavor} {args.interaction_type}")
 
-    input_data = generator.generate_eventlist_cylinder(
-        "on-the-fly",
-        kwargs["n_events_per_file"],
-        args.energy, args.energy,
-        volume,
-        start_event_id=args.index * args.n_events_per_file + 1,
-        flavor=flavor_ids[args.flavor],
-        n_events_per_file=None,
-        deposited=False,
-        proposal=run_proposal,
-        proposal_config="Greenland",
-        start_file_id=0,
-        log_level=None,
-        proposal_kwargs={},
-        max_n_events_batch=args.n_events_per_file,
-        write_events=False,
-        seed=root_seed + args.index,
-        interaction_type=args.interaction_type,
-    )
+    if args.neutrino_file is None:
+        input_data = generator.generate_eventlist_cylinder(
+            "on-the-fly",
+            kwargs["n_events"],
+            args.energy, args.energy,
+            volume,
+            start_event_id=args.index * args.n_events + 1,
+            flavor=flavor_ids[args.flavor],
+            n_events_per_file=None,
+            deposited=False,
+            proposal=run_proposal,
+            proposal_config="Greenland",
+            start_file_id=0,
+            log_level=None,
+            proposal_kwargs={},
+            max_n_events_batch=args.n_events,
+            write_events=False,
+            seed=root_seed + args.index,
+            interaction_type=args.interaction_type,
+            event_list=args.event_list,
+        )
+    else:
+        input_data = args.neutrino_file
+        if not os.path.exists(input_data):
+            raise FileNotFoundError(f"Input file {input_data} does not exist")
+        logger.info(f"Read neutrino interactions from input file: {input_data}")
+        if args.event_list is not None:
+            logger.info(f"Only simulate events {args.event_list} from input file")
 
     if args.nur_output:
         nur_output_filename = output_filename.replace(".hdf5", ".nur")
@@ -411,11 +433,12 @@ if __name__ == "__main__":
         inputfilename=input_data,
         outputfilename=output_filename,
         det=det,
-        evt_time=dt.datetime(2023, 8, 3),
+        evt_time=event_time,
         outputfilenameNuRadioReco=nur_output_filename,
         config_file=args.config,
         trigger_channels=deep_trigger_channels,
         trigger_channel_noise_vrms=trigger_channel_noise_vrms,
+        event_list=args.event_list,
     )
 
     sim.run()
