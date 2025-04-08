@@ -99,9 +99,10 @@ class channelReadoutWindowCutter:
                 trigger_time > channel.get_trace_start_time() + trace_length / sampling_rate):
                 msg = ("Trigger time outside trace for station.channel {}.{} (trigger time = {:.2f}ns, "
                        "start of trace {:.2f}ns, end of trace {:.2f}ns, this would result in rolling over "
-                       "the edge of the trace and is not the intended use of this function").format(
+                       "the edge of the trace and is not the intended use of this function (Run: {}, Event: {})").format(
                         station.get_id(), channel_id, trigger_time, channel.get_trace_start_time(),
-                        channel.get_trace_start_time() + trace_length / sampling_rate)
+                        channel.get_trace_start_time() + trace_length / sampling_rate,
+                        event.get_run_number(), event.get_id())
                 logger.error(msg)
                 raise AttributeError(msg)
             elif pre_trigger_time_channel < 0:
@@ -109,18 +110,20 @@ class channelReadoutWindowCutter:
                        "This can happen with an accidental noise trigger but should not happen otherwise. "
                        "(trigger time = {:.2f}ns, pre-trigger time = {:.2f}ns, start of trace {:.2f}ns, "
                        "requested time before trace = {:.2f}ns), the trace will be rolled over the edge to "
-                       "fit in the readout window").format(
+                       "fit in the readout window (Run: {}, Event: {})").format(
                         station.get_id(), channel_id, trigger_time, pre_trigger_time,
-                        channel.get_trace_start_time(), pre_trigger_time_channel)
+                        channel.get_trace_start_time(), pre_trigger_time_channel,
+                        event.get_run_number(), event.get_id())
                 logger.warning(msg)
             elif pre_trigger_time_channel + number_of_samples / sampling_rate > trace_length / sampling_rate:
                 msg = ("End of the readout window is outside the end of the trace for station.channel {}.{}. "
                        "(trigger time = {:.2f}ns, pre-trigger time = {:.2f}ns, start of sim. trace = {:.2f}ns, "
                        "end of sim. trace {:.2f}, length of readout window {:.2f}ns, requested time after trace = "
-                       "{:.2f}ns), the trace will be rolled over the edge to fit in the readout window").format(
+                       "{:.2f}ns), the trace will be rolled over the edge to fit in the readout window (Run: {}, Event: {})").format(
                         station.get_id(), channel_id, trigger_time, pre_trigger_time, channel.get_trace_start_time(),
                         channel.get_trace_start_time() + trace_length / sampling_rate, number_of_samples / sampling_rate,
-                        pre_trigger_time_channel + number_of_samples / sampling_rate - trace_length / sampling_rate)
+                        pre_trigger_time_channel + number_of_samples / sampling_rate - trace_length / sampling_rate,
+                        event.get_run_number(), event.get_id())
                 logger.warning(msg)
 
             # "roll" the start of the readout window to the start of the trace
