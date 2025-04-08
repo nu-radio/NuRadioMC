@@ -56,7 +56,7 @@ class IceModel():
         self.reflection_coefficient = refl_coef
         self.reflection_phase_shift = refl_phase_shift
 
-        if not ((self.z_bottom != None) and (self.z_bottom < self.reflection)):
+        if not ((self.z_bottom is not None) and (self.z_bottom < self.reflection)):
             # bottom should always be below the reflective layer
             self.z_bottom = self.reflection - 1*units.m
 
@@ -75,13 +75,11 @@ class IceModel():
         n: float
             index of refraction
         """
-        logger.error('function not defined')
-        raise NotImplementedError('function not defined')
+        logger.error('Function not implemented - this function has to be reimplemented for every specific model')
+        raise NotImplementedError('Function not implemented - this function has to be reimplemented for every specific model')
 
     def get_average_index_of_refraction(self, position1, position2):
         """ Returns the average index of refraction between two points
-
-        Has to be reimplement for every specific model.
 
         Parameters
         ----------
@@ -99,16 +97,16 @@ class IceModel():
             'Using general implementation of function which might be slow. '
             'For faster calculation, overwrite with an ice model specific function')
 
-        def get_index_of_refraction(x,y,z):
-            pos = np.array([x,y,z])
+        def get_index_of_refraction(x, y, z):
+            pos = np.array([x, y, z])
             return self.get_index_of_refraction(pos)
 
         ranges = [[position1[0],position2[0]],
                   [position1[1],position2[1]],
                   [position1[2],position2[2]]]
 
-        int_result = integrate.nquad(get_index_of_refraction,ranges)
-        n_average = int_result[0] / linalg.norm(position2-position1)
+        int_result = integrate.nquad(get_index_of_refraction, ranges)
+        n_average = int_result[0] / linalg.norm(position2 - position1)
         return n_average
 
     def get_gradient_of_index_of_refraction(self, position):
@@ -126,8 +124,8 @@ class IceModel():
         n_nabla: (3,) np.array
             Gradient of index of refraction at the point
         """
-        logger.error('function not defined')
-        raise NotImplementedError('function not defined')
+        logger.error('Function not implemented - this function has to be reimplemented for every specific model')
+        raise NotImplementedError('Function not implemented - this function has to be reimplemented for every specific model')
 
 
     def _compute_default_ice_model_radiopropa(self):
@@ -138,7 +136,6 @@ class IceModel():
         Additional modules can be added in this function
 
         This is the default and should always be overriden/implemented in new ice model!
-
 
         Returns
         -------
@@ -151,8 +148,8 @@ class IceModel():
 
         # when implementing a new ice_model this part of the function should be ice model specific
         # if the new ice_model cannot be used in RadioPropa, this function should throw an error
-        logger.error('function not defined')
-        raise NotImplementedError('function not defined')
+        logger.error('Function not implemented - this function has to be reimplemented for every specific model')
+        raise NotImplementedError('Function not implemented - this function has to be reimplemented for every specific model')
 
     def get_ice_model_radiopropa(self):
         """
@@ -203,7 +200,7 @@ class IceModel():
 
 class IceModelSimple(IceModel):
     """
-    predefined ice model (to inherit from) with exponential shape
+    Predefined ice model (to inherit from) with exponential shape
     """
     def __init__(self,
                  n_ice,
@@ -215,7 +212,7 @@ class IceModelSimple(IceModel):
                  ):
 
         """
-        initiaion of a simple exponential ice model
+        Initiaion of a simple exponential ice model
 
         The bottom defined here is a boundary condition used in simulations and
         should always be defined. Note: it is not the same as reflective bottom.
@@ -251,8 +248,7 @@ class IceModelSimple(IceModel):
 
     def get_index_of_refraction(self, position):
         """
-        returns the index of refraction at position.
-        Overwrites function of the mother class
+        Returns the index of refraction at position.
 
         Parameters
         ----------
@@ -277,8 +273,7 @@ class IceModelSimple(IceModel):
 
     def get_average_index_of_refraction(self, position1, position2):
         """
-        returns the average index of refraction between two points
-        Overwrites function of the mother class
+        Returns the average index of refraction between two points
 
         Parameters
         ----------
@@ -320,8 +315,7 @@ class IceModelSimple(IceModel):
 
     def get_gradient_of_index_of_refraction(self, position):
         """
-        returns the gradient of index of refraction at position
-        Overwrites function of the mother class
+        Returns the gradient of index of refraction at position
 
         Parameters
         ----------
@@ -356,8 +350,6 @@ class IceModelSimple(IceModel):
         using the simple ice model implementation in radiopropa and some modules, like a
         discontinuity object for the air boundary.
 
-        Overwrites function of the mother class
-
         Returns
         -------
         ice: RadioPropaIceWrapper
@@ -368,10 +360,11 @@ class IceModelSimple(IceModel):
                         +'\nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
 
-        scalar_field = RP.IceModel_Simple(z_surface=self.z_air_boundary*RP.meter/units.meter,
-                                        n_ice=self.n_ice, delta_n=self.delta_n,
-                                        z_0=self.z_0*RP.meter/units.meter,
-                                        z_shift=self.z_shift*RP.meter/units.meter)
+        scalar_field = RP.IceModel_Simple(
+            z_surface=self.z_air_boundary*RP.meter/units.meter,
+            n_ice=self.n_ice, delta_n=self.delta_n,
+            z_0=self.z_0 * RP.meter / units.meter,
+            z_shift=self.z_shift * RP.meter / units.meter)
         return RadioPropaIceWrapper(self, scalar_field)
 
 
@@ -400,7 +393,7 @@ class IceModelBirefringence(IceModelSimple):
     def get_birefringence_index_of_refraction(self, position):
 
         """
-        returns the birefringent index of refraction at any position, no density effects are included at this point.
+        Returns the birefringent index of refraction at any position, no density effects are included at this point.
 
         Parameters
         ----------
@@ -430,7 +423,7 @@ class IceModelExponentialPolynomial(IceModel):
 
         .. math::
 
-            n(z) = \sum_{i=0}^{n} a_{i} \cdot \exp^{i}(z/z_0)
+            n(z) = 1 + density_factor * \sum_{i=0}^{n}( a_{i} * \exp^{i * (z - z_shift) / z_0} )
 
         for z_bottom < z < z_air_boundary, see eq. 5.2 in https://doi.org/10.5281/zenodo.15067984
 
@@ -471,8 +464,7 @@ class IceModelExponentialPolynomial(IceModel):
 
     def get_index_of_refraction(self, position):
         """
-        returns the index of refraction at position.
-        Overwrites function of the mother class
+        Returns the index of refraction at position.
 
         Parameters
         ----------
@@ -504,8 +496,6 @@ class IceModelExponentialPolynomial(IceModel):
     def get_average_index_of_refraction(self, position1, position2):
         """
         Returns the average index of refraction between two points
-
-        Overwrites function of the mother class
 
         Parameters
         ----------
@@ -557,8 +547,6 @@ class IceModelExponentialPolynomial(IceModel):
         """
         Returns the gradient of index of refraction at position
 
-        Overwrites function of the mother class
-
         Parameters
         ----------
         position: np.array of shape (3,) or (n, 3)
@@ -595,8 +583,6 @@ class IceModelExponentialPolynomial(IceModel):
         using the polynomial ice model implementation in radiopropa and some modules, like a
         discontinuity object for the air boundary.
 
-        Overwrites function of the mother class
-
         If you want to add, remove or replace modules, you can use the returned object to adjust
         the model to your liking and set it using the set_ice_model_radiopropa function.
 
@@ -625,7 +611,7 @@ class IceModelExponentialPolynomial(IceModel):
 
     def set_density_factor(self, density_factor):
         """
-        set the density factor to a new value
+        Set the density factor to a new value
 
         Parameters
         ----------
@@ -815,7 +801,7 @@ if radiopropa_is_imported:
             RP.ScalarField.__init__(self)
             self.__ice_model_nuradio = ice_model_nuradio
 
-        def getValue(self,position): #name may not be changed because linked to c++ radiopropa module
+        def getValue(self, position): #name may not be changed because linked to c++ radiopropa module
             """
             returns the index of refraction at position for radiopropa tracer
 
@@ -832,7 +818,7 @@ if radiopropa_is_imported:
             pos = np.array([position.x, position.y, position.z])*(units.meter/RP.meter)
             return self.__ice_model_nuradio.get_index_of_refraction(pos)
 
-        def getGradient(self,position): #name may not be changed because linked to c++ radiopropa module
+        def getGradient(self, position): #name may not be changed because linked to c++ radiopropa module
             """
             returns the gradient of index of refraction at position for radiopropa tracer
 
