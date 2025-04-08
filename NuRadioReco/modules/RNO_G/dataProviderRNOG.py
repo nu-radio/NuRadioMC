@@ -95,7 +95,12 @@ class dataProviderRNOG:
             station = event.get_station()
             self.detector.update(station.get_station_time())
 
-            self.channelGlitchDetector.run(event, station, self.detector)
+            glitch_disc = self.channelGlitchDetector.run(event, station, self.detector)
+            if glitch_disc:
+                print(f"Glitch found, skipping event {event.get_id()}")
+                continue
+
+
             self.channelBlockOffsetFitter.run(event, station, self.detector)
             self.channelCableDelayAdder.run(event, station, self.detector, mode='subtract')
 
