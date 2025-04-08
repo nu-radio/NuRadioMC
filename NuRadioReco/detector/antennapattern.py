@@ -1362,8 +1362,8 @@ class AntennaPattern(AntennaPatternBase):
         filename = os.path.join(path, antenna_model, "{}.pkl".format(antenna_model))
         self._notfound = False
         try:
-            self._orientation_theta, self._orientation_phi, self._rotation_theta, self._rotation_phi, \
-                ff, thetas, phis, H_phi, H_theta, verified = get_pickle_antenna_response(filename, return_verified=True)
+            (self._orientation_theta, self._orientation_phi, self._rotation_theta, self._rotation_phi, \
+                ff, thetas, phis, H_phi, H_theta), verified = get_pickle_antenna_response(filename, return_verified=True)
 
         except IOError:
             self._notfound = True
