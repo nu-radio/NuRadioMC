@@ -1466,11 +1466,12 @@ class simulation:
 
         # loop over event groups
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
-            logger.debug(f"Simulating event group id {event_group_id}")
             if self._event_group_list is not None and event_group_id not in self._event_group_list:
                 logger.debug(f"Skipping event group {event_group_id} because it is not in the event "
                              "group list provided to the `__init__` function")
                 continue
+
+            logger.debug(f"Simulating event group id {event_group_id}")
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(event_group_ids == event_group_id)))
 
             self.__time_logger.show_time(len(unique_event_group_ids), i_event_group_id)
