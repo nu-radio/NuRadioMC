@@ -1,6 +1,7 @@
 from NuRadioReco.detector.ARA import analog_components
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, signal_processing
+from NuRadioReco.modules.channelAddCableDelay import add_cable_delay
+
 import numpy as np
 import time
 import logging
@@ -57,7 +58,7 @@ class hardwareResponseIncorporator:
             # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
             # in the efieldToVoltageConverter or with the channelCableDelayAdder
             # (if efieldToVoltageConverterPerEfield was used).
-            signal_processing.add_cable_delay(station, det, sim_to_data=False, logger=self.logger)
+            add_cable_delay(station, det, sim_to_data=False, logger=self.logger)
 
         self.__t += time.time() - t
 
