@@ -620,44 +620,11 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.channelGenericNoiseAdder</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Philox</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
-
-<div class="viewcode-block" id="load_scale_parameters">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.load_scale_parameters">[docs]</a>
-<span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">load_scale_parameters</span><span class="p">(</span><span class="n">scale_parameter_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns interpolated scale parameters ifo frequency per channel</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-
-<span class="sd">    scale_parameter_path : str</span>
-<span class="sd">        path to the scale parameter json file</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    scale_parameters : list</span>
-<span class="sd">        list of interpolated scale parameters per channel</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">scale_parameter_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">scale_parameter_file</span><span class="p">:</span>
-        <span class="n">scale_parameters_dictionary</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">scale_parameter_file</span><span class="p">)</span>
-        <span class="n">frequencies</span> <span class="o">=</span> <span class="n">scale_parameters_dictionary</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">]</span>
-        <span class="n">scale_parameters</span> <span class="o">=</span> <span class="n">scale_parameters_dictionary</span><span class="p">[</span><span class="s2">&quot;scale_parameters&quot;</span><span class="p">]</span>
-        <span class="n">scale_parameters</span> <span class="o">=</span> <span class="p">[</span><span class="n">interp1d</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">scale_parameter</span><span class="p">,</span>
-                                     <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
-                                     <span class="k">for</span> <span class="n">scale_parameter</span> <span class="ow">in</span> <span class="n">scale_parameters</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">scale_parameters</span></div>
-
-
 
 
 <div class="viewcode-block" id="channelGenericNoiseAdder">
@@ -726,55 +693,10 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">real</span></div>
 
 
-<div class="viewcode-block" id="channelGenericNoiseAdder.add_data_driven_noise">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_data_driven_noise">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_data_driven_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ampl</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Function to add data driven noise to a selection range of a given array of amplitudes</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-
-<span class="sd">        ampl: np.ndarray</span>
-<span class="sd">            array of amplitudes to which to add noise</span>
-<span class="sd">        selection: list</span>
-<span class="sd">            selection of amplitudes to which to add noise in the form of a list of the same length as ampl filled with booleans</span>
-<span class="sd">        frequencies: np.ndarray</span>
-<span class="sd">            list of frequencies to query data-driven parameters</span>
-<span class="sd">        station_id: int</span>
-<span class="sd">            station from which to query data to drive noise generation</span>
-<span class="sd">        channel_id: int</span>
-<span class="sd">            channel from which to query data to drive noise generation</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        ampl: np.ndarray</span>
-<span class="sd">            array of amplitudes with data driven noise included</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_parameter_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;No scale parameter files found, did you pass a directory to begin(scale_parameter_dir=...)?&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">station_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">channel_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;When selecting data-driven noise, the station and channel ids should be passed to bandlimeted noise&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span>
-
-        <span class="n">scale_parameter_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;thermal_noise_scale_parameters_s</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">_season23.json&quot;</span>
-        <span class="k">if</span> <span class="n">scale_parameter_path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_parameter_paths</span><span class="p">:</span>
-            <span class="n">scale_parameter_full_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_parameter_dir</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">scale_parameter_path</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Other station parameters are being generated&quot;</span><span class="p">)</span>
-        
-        <span class="n">nbinsactive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
-        <span class="n">scale_parameters</span> <span class="o">=</span> <span class="n">load_scale_parameters</span><span class="p">(</span><span class="n">scale_parameter_full_path</span><span class="p">)</span>
-        <span class="n">fsigma</span> <span class="o">=</span> <span class="n">scale_parameters</span><span class="p">[</span><span class="n">channel_id</span><span class="p">](</span><span class="n">frequencies</span><span class="p">[</span><span class="n">selection</span><span class="p">])</span>
-        <span class="n">ampl</span><span class="p">[</span><span class="n">selection</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">rayleigh</span><span class="p">(</span><span class="n">fsigma</span><span class="p">,</span> <span class="n">nbinsactive</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">ampl</span></div>
-
-
 <div class="viewcode-block" id="channelGenericNoiseAdder.bandlimited_noise">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span>
-                          <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                          <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
 
@@ -798,7 +720,6 @@
 <span class="sd">        type: string</span>
 <span class="sd">            perfect_white: flat frequency spectrum</span>
 <span class="sd">            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution</span>
-<span class="sd">            data-driven: Amplitude of each frequency bin is drawn from a data informed Rayleigh distribution</span>
 <span class="sd">            # white: flat frequency spectrum with random jitter</span>
 <span class="sd">        time_domain: bool (default True)</span>
 <span class="sd">            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter</span>
@@ -807,10 +728,6 @@
 <span class="sd">            if this parameter is specified, the amplitude is interpreted as the amplitude for the bandwidth specified here</span>
 <span class="sd">            Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq</span>
 <span class="sd">            If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`</span>
-<span class="sd">        station_id: int or None (default)</span>
-<span class="sd">            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise</span>
-<span class="sd">        channel_id: int or None (default)</span>
-<span class="sd">            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
@@ -860,8 +777,6 @@
         <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;rayleigh&#39;</span><span class="p">:</span>
             <span class="n">fsigma</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">sigscale</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span>
             <span class="n">ampl</span><span class="p">[</span><span class="n">selection</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">rayleigh</span><span class="p">(</span><span class="n">fsigma</span><span class="p">,</span> <span class="n">nbinsactive</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;data-driven&quot;</span><span class="p">:</span>
-            <span class="n">ampl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_data_driven_noise</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="c1"># FIXME: amplitude normalization is not correct for &#39;white&#39;</span>
         <span class="c1"># elif type == &#39;white&#39;:</span>
         <span class="c1">#   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)</span>
@@ -869,12 +784,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;data-driven&quot;</span><span class="p">:</span>
-            <span class="c1"># data-driven parameters were sampled from spectra that follow the NuRadio conventions</span>
-            <span class="c1"># and were hence already divide by the sampling rate</span>
-            <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">/</span> <span class="n">sampling_rate</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">/</span> <span class="n">sampling_rate</span>
         <span class="k">if</span> <span class="n">time_domain</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n_samples</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1036,7 +946,7 @@
 <div class="viewcode-block" id="channelGenericNoiseAdder.bandlimited_noise_from_spectrum">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise_from_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span>
-                          <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                          <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
 
@@ -1047,7 +957,7 @@
 <span class="sd">        sampling_rate: float</span>
 <span class="sd">            desired sampling rate of data</span>
 <span class="sd">        spectrum: numpy.ndarray, function</span>
-<span class="sd">            desired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function</span>
+<span class="sd">            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function</span>
 <span class="sd">            that takes the frequencies as an argument and returns the amplitudes. The overall normalization</span>
 <span class="sd">            of the spectrum is ignored if the paramter &quot;amplitude&quot; is set.</span>
 <span class="sd">        amplitude: float, optional</span>
@@ -1056,15 +966,10 @@
 <span class="sd">        type: string</span>
 <span class="sd">            perfect_white: flat frequency spectrum</span>
 <span class="sd">            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution</span>
-<span class="sd">            data-driven : Amplitude of each frequency bin is drawn from a data informed Rayleigh distribution</span>
 <span class="sd">            # white: flat frequency spectrum with random jitter</span>
 <span class="sd">        time_domain: bool (default True)</span>
 <span class="sd">            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter</span>
 <span class="sd">            might be more performant as the noise is generated internally in the frequency domain.</span>
-<span class="sd">        station_id: int or None (default)</span>
-<span class="sd">            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise</span>
-<span class="sd">        channel_id: int or None (default)</span>
-<span class="sd">            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
         <span class="n">selection</span> <span class="o">=</span> <span class="n">frequencies</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -1089,19 +994,11 @@
         <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;rayleigh&#39;</span><span class="p">:</span>
             <span class="n">fsigma</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">sigscale</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span>
             <span class="n">ampl</span><span class="p">[</span><span class="n">selection</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">rayleigh</span><span class="p">(</span><span class="n">fsigma</span><span class="p">,</span> <span class="n">n_samples_freq</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;data-driven&quot;</span><span class="p">:</span>
-            <span class="n">ampl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_data_driven_noise</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
-
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;data-driven&quot;</span><span class="p">:</span>
-            <span class="c1"># data-driven parameters were sampled from spectra that follow the NuRadio conventions</span>
-            <span class="c1"># and were hence already divide by the sampling rate</span>
-            <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">/</span> <span class="n">sampling_rate</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">/</span> <span class="n">sampling_rate</span>
         <span class="n">noise</span> <span class="o">*=</span> <span class="n">spectrum</span>
         <span class="k">if</span> <span class="n">time_domain</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n_samples</span><span class="p">)</span>
@@ -1117,27 +1014,11 @@
 
 <div class="viewcode-block" id="channelGenericNoiseAdder.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.begin">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale_parameter_dir</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        scale_parameter_dir : string</span>
-<span class="sd">            Parameter for noise type &quot;data-driven&quot;</span>
-<span class="sd">            Path to the directory that contains the scale parameter files. One file contains one station.</span>
-<span class="sd">            The module expects the files to be named thermal_noise_scale_parameters_sXX_seasonXX.json</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="n">debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">Philox</span><span class="p">(</span><span class="n">seed</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scale_parameter_paths</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">scale_parameter_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">scale_parameter_dir</span> <span class="o">=</span> <span class="n">scale_parameter_dir</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">scale_parameter_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">scale_param_json</span> <span class="k">for</span> <span class="n">scale_param_json</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">scale_parameter_dir</span><span class="p">)</span>
-                                          <span class="k">if</span> <span class="p">(</span><span class="n">scale_param_json</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.json&quot;</span><span class="p">)</span> <span class="ow">and</span>
-                                              <span class="n">scale_param_json</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;thermal_noise_scale_parameters&quot;</span><span class="p">))]</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_parameter_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No scale parameter json files found in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_parameter_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="channelGenericNoiseAdder.run">
@@ -1174,7 +1055,6 @@
 <span class="sd">        type: string</span>
 <span class="sd">            perfect_white: flat frequency spectrum</span>
 <span class="sd">            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution</span>
-<span class="sd">            data-driven: Amplitude of each frequency bin is drawn from a data-informed Rayleigh distribution </span>
 <span class="sd">        excluded_channels: list of ints</span>
 <span class="sd">            the channels ids of channels where no noise will be added, default is that no channel is excluded</span>
 <span class="sd">        bandwidth: float or None (default)</span>
@@ -1185,11 +1065,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">excluded_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">excluded_channels</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">station_id</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
         <span class="n">channels</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
-            <span class="n">channel_id</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">channel_id</span> <span class="ow">in</span> <span class="n">excluded_channels</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="ow">in</span> <span class="n">excluded_channels</span><span class="p">):</span>
                 <span class="k">continue</span>
 
             <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
@@ -1206,9 +1084,7 @@
                                            <span class="n">sampling_rate</span><span class="o">=</span><span class="n">sampling_rate</span><span class="p">,</span>
                                            <span class="n">amplitude</span><span class="o">=</span><span class="n">tmp_ampl</span><span class="p">,</span>
                                            <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">,</span>
-                                           <span class="n">bandwidth</span><span class="o">=</span><span class="n">bandwidth</span><span class="p">,</span>
-                                           <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span>
-                                           <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+                                           <span class="n">bandwidth</span><span class="o">=</span><span class="n">bandwidth</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span><span class="p">:</span>
                 <span class="n">new_trace</span> <span class="o">=</span> <span class="n">trace</span> <span class="o">+</span> <span class="n">noise</span>
@@ -1238,78 +1114,6 @@
         <span class="k">pass</span></div>
 </div>
 
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.time</span><span class="w"> </span><span class="kn">import</span> <span class="n">Time</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.event</span><span class="w"> </span><span class="kn">import</span> <span class="n">Event</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.station</span><span class="w"> </span><span class="kn">import</span> <span class="n">Station</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">detector</span>
-
-    <span class="n">parser</span>  <span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--station&quot;</span><span class="p">,</span> <span class="s2">&quot;-s&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--channel&quot;</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">create_sim_event</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
-        <span class="n">event</span> <span class="o">=</span> <span class="n">Event</span><span class="p">(</span><span class="n">run_number</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">event_id</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">station</span> <span class="o">=</span> <span class="n">Station</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
-        <span class="n">station</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">detector</span><span class="o">.</span><span class="n">get_detector_time</span><span class="p">())</span>
-        <span class="n">channel</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
-        <span class="n">channel</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">),</span> <span class="n">sampling_rate</span><span class="p">)</span>
-        <span class="n">station</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-        <span class="n">event</span><span class="o">.</span><span class="n">set_station</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span>
-    
-
-
-    <span class="n">log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
-
-    <span class="n">det</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;rnog_mongo&quot;</span><span class="p">,</span>
-                            <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                            <span class="n">database_connection</span><span class="o">=</span><span class="s2">&quot;RNOG_public&quot;</span><span class="p">,</span>
-                            <span class="n">select_stations</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">station</span><span class="p">,</span>
-                            <span class="n">log_level</span><span class="o">=</span><span class="n">log_level</span><span class="p">)</span>
-    <span class="n">det</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">Time</span><span class="p">(</span><span class="s2">&quot;2023-08-01&quot;</span><span class="p">))</span>
-
-    <span class="n">nr_samples</span> <span class="o">=</span> <span class="mi">2048</span>
-    <span class="n">sampling_rate</span> <span class="o">=</span> <span class="mf">3.2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span>
-    <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">nr_samples</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="n">sampling_rate</span><span class="p">)</span>
-
-    <span class="n">event</span><span class="p">,</span> <span class="n">station</span> <span class="o">=</span> <span class="n">create_sim_event</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">station</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">channel</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
-
-    <span class="n">scale_parameter_dir</span> <span class="o">=</span> <span class="s2">&quot;/insert/path/to/scale/parameters/here&quot;</span>
-
-    <span class="n">generic_noise_adder</span> <span class="o">=</span> <span class="n">channelGenericNoiseAdder</span><span class="p">()</span>
-    <span class="n">generic_noise_adder</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">scale_parameter_dir</span><span class="o">=</span><span class="n">scale_parameter_dir</span><span class="p">)</span>
-    
-    <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
-    <span class="c1"># noise = generic_noise_adder.bandlimited_noise(0, 1.6, nr_samples, sampling_rate, amplitude=None, type=&quot;data-driven&quot;, time_domain=False,</span>
-    <span class="c1">#                                               station_id=args.station, channel_id=args.channel)</span>
-    <span class="n">spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
-    <span class="n">spectrum</span><span class="p">[</span><span class="mi">100</span><span class="p">:</span><span class="mi">700</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">noise</span> <span class="o">=</span> <span class="n">generic_noise_adder</span><span class="o">.</span><span class="n">bandlimited_noise_from_spectrum</span><span class="p">(</span><span class="n">nr_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;data-driven&quot;</span><span class="p">,</span> <span class="n">time_domain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                                                <span class="n">station_id</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">station</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
-
-    <span class="n">channel</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
-
-    <span class="n">frequency_spectrum</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
-    <span class="n">times</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>
-    <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">frequency_spectrum</span><span class="p">))</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;freq / GHz&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;spectral amplitude / V/GHz&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;channelGenericNoiseAdder_spectrumtest.png&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">trace</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;times / ns&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;amplitude / V&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;channelGenericNoiseAdder_tracetest.png&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 
            </div>

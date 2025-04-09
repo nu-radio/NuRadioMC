@@ -627,26 +627,6 @@
              
   <section id="module-NuRadioReco.modules.channelGenericNoiseAdder">
 <span id="nuradioreco-modules-channelgenericnoiseadder-module"></span><h1>NuRadioReco.modules.channelGenericNoiseAdder module<a class="headerlink" href="#module-NuRadioReco.modules.channelGenericNoiseAdder" title="Link to this heading"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.channelGenericNoiseAdder.load_scale_parameters">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelGenericNoiseAdder.</span></span><span class="sig-name descname"><span class="pre">load_scale_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale_parameter_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#load_scale_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.load_scale_parameters" title="Link to this definition"></a></dt>
-<dd><p>Returns interpolated scale parameters ifo frequency per channel</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>scale_parameter_path</strong><span class="classifier">str</span></dt><dd><p>path to the scale parameter json file</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>scale_parameters</strong><span class="classifier">list</span></dt><dd><p>list of interpolated scale parameters per channel</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelGenericNoiseAdder.</span></span><span class="sig-name descname"><span class="pre">channelGenericNoiseAdder</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder" title="Link to this definition"></a></dt>
@@ -655,23 +635,17 @@
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_data_driven_noise" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_data_driven_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_data_driven_noise</span></code></a>(ampl, selection, ...)</p></td>
-<td><p>Function to add data driven noise to a selection range of a given array of amplitudes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_random_phases" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_random_phases"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_random_phases</span></code></a>(amps, n_samples_time_domain)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_random_phases" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_random_phases"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_random_phases</span></code></a>(amps, n_samples_time_domain)</p></td>
 <td><p>Adding random phase information to given amplitude spectrum.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bandlimited_noise</span></code></a>(min_freq, max_freq, ...[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bandlimited_noise</span></code></a>(min_freq, max_freq, ...[, ...])</p></td>
 <td><p>Generating noise of n_samples in a bandwidth [min_freq,max_freq].</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_precalculated_parameters" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_precalculated_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bandlimited_noise_from_precalculated_parameters</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_precalculated_parameters" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_precalculated_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bandlimited_noise_from_precalculated_parameters</span></code></a>([...])</p></td>
 <td><p>Generating noise of n_samples in a bandwidth [min_freq,max_freq].</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bandlimited_noise_from_spectrum</span></code></a>(n_samples, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bandlimited_noise_from_spectrum</span></code></a>(n_samples, ...)</p></td>
 <td><p>Generating noise of n_samples in a bandwidth [min_freq,max_freq].</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.begin" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([debug, seed, scale_parameter_dir])</p></td>
-<td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.fftnoise_fullfft" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.fftnoise_fullfft"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fftnoise_fullfft</span></code></a>(f)</p></td>
 <td><p>Adding random phase information to given amplitude spectrum.</p></td>
@@ -686,7 +660,10 @@
 </table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>end</strong></p></td>
+<tr class="row-odd"><td><p><strong>begin</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>end</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -722,36 +699,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_data_driven_noise">
-<span class="sig-name descname"><span class="pre">add_data_driven_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ampl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.add_data_driven_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_data_driven_noise" title="Link to this definition"></a></dt>
-<dd><p>Function to add data driven noise to a selection range of a given array of amplitudes</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>ampl: np.ndarray</strong></dt><dd><p>array of amplitudes to which to add noise</p>
-</dd>
-<dt><strong>selection: list</strong></dt><dd><p>selection of amplitudes to which to add noise in the form of a list of the same length as ampl filled with booleans</p>
-</dd>
-<dt><strong>frequencies: np.ndarray</strong></dt><dd><p>list of frequencies to query data-driven parameters</p>
-</dd>
-<dt><strong>station_id: int</strong></dt><dd><p>station from which to query data to drive noise generation</p>
-</dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>channel from which to query data to drive noise generation</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>ampl: np.ndarray</dt><dd><p>array of amplitudes with data driven noise included</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise">
-<span class="sig-name descname"><span class="pre">bandlimited_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.bandlimited_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">bandlimited_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.bandlimited_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise" title="Link to this definition"></a></dt>
 <dd><p>Generating noise of n_samples in a bandwidth [min_freq,max_freq].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -772,7 +721,6 @@ max_freq = None: Frequencies up to Nyquist freq are used.</p>
 </dd>
 <dt><strong>type: string</strong></dt><dd><p>perfect_white: flat frequency spectrum
 rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
-data-driven: Amplitude of each frequency bin is drawn from a data informed Rayleigh distribution
 # white: flat frequency spectrum with random jitter</p>
 </dd>
 <dt><strong>time_domain: bool (default True)</strong></dt><dd><p>if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
@@ -781,10 +729,6 @@ might be more performant as the noise is generated internally in the frequency d
 <dt><strong>bandwidth: float or None (default)</strong></dt><dd><p>if this parameter is specified, the amplitude is interpreted as the amplitude for the bandwidth specified here
 Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq
 If <em class="xref py py-obj">bandwidth</em> is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as <em class="xref py py-obj">None</em></p>
-</dd>
-<dt><strong>station_id: int or None (default)</strong></dt><dd><p>Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise</p>
-</dd>
-<dt><strong>channel_id: int or None (default)</strong></dt><dd><p>Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise</p>
 </dd>
 </dl>
 </dd>
@@ -885,7 +829,7 @@ is implemented (RL 17-Sept-2018)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum">
-<span class="sig-name descname"><span class="pre">bandlimited_noise_from_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.bandlimited_noise_from_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">bandlimited_noise_from_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.bandlimited_noise_from_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum" title="Link to this definition"></a></dt>
 <dd><p>Generating noise of n_samples in a bandwidth [min_freq,max_freq].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -894,7 +838,7 @@ is implemented (RL 17-Sept-2018)</p></li>
 </dd>
 <dt><strong>sampling_rate: float</strong></dt><dd><p>desired sampling rate of data</p>
 </dd>
-<dt><strong>spectrum: numpy.ndarray, function</strong></dt><dd><p>desired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function
+<dt><strong>spectrum: numpy.ndarray, function</strong></dt><dd><p>disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function
 that takes the frequencies as an argument and returns the amplitudes. The overall normalization
 of the spectrum is ignored if the paramter “amplitude” is set.</p>
 </dd>
@@ -903,15 +847,10 @@ power of the spectrum.</p>
 </dd>
 <dt><strong>type: string</strong></dt><dd><p>perfect_white: flat frequency spectrum
 rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
-data-driven : Amplitude of each frequency bin is drawn from a data informed Rayleigh distribution
 # white: flat frequency spectrum with random jitter</p>
 </dd>
 <dt><strong>time_domain: bool (default True)</strong></dt><dd><p>if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
 might be more performant as the noise is generated internally in the frequency domain.</p>
-</dd>
-<dt><strong>station_id: int or None (default)</strong></dt><dd><p>Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise</p>
-</dd>
-<dt><strong>channel_id: int or None (default)</strong></dt><dd><p>Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise</p>
 </dd>
 </dl>
 </dd>
@@ -920,18 +859,8 @@ might be more performant as the noise is generated internally in the frequency d
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_parameter_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.begin" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>scale_parameter_dir</strong><span class="classifier">string</span></dt><dd><p>Parameter for noise type “data-driven”
-Path to the directory that contains the scale parameter files. One file contains one station.
-The module expects the files to be named thermal_noise_scale_parameters_sXX_seasonXX.json</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.begin" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.run">
@@ -952,8 +881,7 @@ a dict can be used to specify a different amplitude per channel, the key is the 
 If the maximum frequency is above the Nquist frequencey (0.5 * sampling rate), the Nquist frequency is used</p>
 </dd>
 <dt><strong>type: string</strong></dt><dd><p>perfect_white: flat frequency spectrum
-rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
-data-driven: Amplitude of each frequency bin is drawn from a data-informed Rayleigh distribution</p>
+rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution</p>
 </dd>
 <dt><strong>excluded_channels: list of ints</strong></dt><dd><p>the channels ids of channels where no noise will be added, default is that no channel is excluded</p>
 </dd>
