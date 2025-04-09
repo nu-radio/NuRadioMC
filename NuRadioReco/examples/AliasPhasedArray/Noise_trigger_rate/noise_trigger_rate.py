@@ -3,7 +3,7 @@ from NuRadioReco.utilities import units
 import numpy as np
 from scipy import constants
 import argparse
-from NuRadioReco.utilities.trace_utilities import butterworth_filter_trace, upsampling_fir
+from NuRadioReco.utilities.signal_processing import butterworth_filter_trace, upsampling_fir
 from NuRadioReco.modules.analogToDigitalConverter import perfect_floor_comparator, perfect_ceiling_comparator
 from scipy.interpolate import interp1d
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
