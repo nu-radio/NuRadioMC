@@ -93,6 +93,10 @@ bugfixes:
 deprecations:
 - Remove support for Python 3.6. Most features will still work, but are no longer tested and may therefore
   break in future versions without warning.
+- We consolidated the structure of NuRadioReco.utilities which included moving the implementations
+  of functions to other modules and deprecated the following modules 'bandpass_filter.py' (functions
+  moved to 'signal_processing.py'), 'variableWindowSizeCorrelation.py' (functions moved to
+  'signal_processing.py'), and 'traceWindows.py' (function moved to 'diodeSimulator.py').
 
 version 2.2.3
 bugfixes:
