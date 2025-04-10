@@ -272,7 +272,7 @@
     },
     "15": {
       "station_id": 11,
-      "channel_id": 20,
+      "channel_id": 17,
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
@@ -290,7 +290,7 @@
     },
     "16": {
       "station_id": 11,
-      "channel_id": 19,
+      "channel_id": 16,
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
@@ -308,7 +308,7 @@
     },
     "17": {
       "station_id": 11,
-      "channel_id": 18,
+      "channel_id": 15,
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 180.0,
@@ -380,7 +380,7 @@
     },
     "21": {
       "station_id": 11,
-      "channel_id": 15,
+      "channel_id": 18,
       "ant_rotation_phi": 328.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 58.0,
@@ -398,7 +398,7 @@
     },
     "22": {
       "station_id": 11,
-      "channel_id": 16,
+      "channel_id": 19,
       "ant_rotation_phi": 328.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
@@ -416,7 +416,7 @@
     },
     "23": {
       "station_id": 11,
-      "channel_id": 17,
+      "channel_id": 20,
       "ant_rotation_phi": 328.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 238.0,
@@ -3253,7 +3253,7 @@
       "ant_rotation_theta": 90.0,
       "ant_position_x": -51.74498926313953,
       "ant_position_y": 29.063846909018764,
-      "ant_position_z": -0.5,
+      "ant_position_z": -5.6,
       "commission_time": "{TinyDate}:2021-07-04T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "device_id": 2,
@@ -3293,8 +3293,8 @@
       "ant_orientation_theta": 0.0,
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
-      "ant_position_x": -51.74498926313953,
-      "ant_position_y": 29.063846909018764,
+      "ant_position_x": -0.16062226524115886,
+      "ant_position_y": 33.235129305677674,
       "ant_position_z": -0.5,
       "commission_time": "{TinyDate}:2021-07-01T00:00:00",
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",

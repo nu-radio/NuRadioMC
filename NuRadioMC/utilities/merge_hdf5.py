@@ -8,9 +8,9 @@ import argparse
 import os
 import logging
 import math
-logger = logging.getLogger("HDF5-merger")
-logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
-logger.setLevel(logging.WARNING)
+logger = logging.getLogger("NuRadioMC.HDF5-merger")
+
+str_type_attrs = ['trigger_names', 'NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen_version_hash', 'NuRadioMC_version', 'NuRadioMC_version_hash', 'config']
 
 
 def merge2(filenames, output_filename):
@@ -56,8 +56,11 @@ def merge2(filenames, output_filename):
                         group_attrs[key][key2] = fin[key].attrs[key2]
                 else:
                     for key2 in fin[key].attrs:
-                        if(not np.all(group_attrs[key][key2] == fin[key].attrs[key2])):
-                            logger.warning(f"attribute {key2} of group {key} of file {filenames[0]} and {f} are different ({group_attrs[key][key2]} vs. {fin[key].attrs[key2]}. Using attribute value of first file, but you have been warned!")
+                        if(not np.allclose(group_attrs[key][key2], fin[key].attrs[key2])):
+                            logger.warning(
+                                f"attribute {key2} of group {key} of file {filenames[0]} and {f} are different "
+                                f"({group_attrs[key][key2]} vs. {fin[key].attrs[key2]}. Using attribute value of "
+                                "first file, but you have been warned!")
             else:
                 data[f][key] = fin[key][...]
                 if(key not in n_data):
@@ -68,20 +71,25 @@ def merge2(filenames, output_filename):
             if(key not in attrs):
                 attrs[key] = fin.attrs[key]
             else:
-                if(key != 'trigger_names'):
-                    if(not np.all(np.nan_to_num(attrs[key]) == np.nan_to_num(fin.attrs[key]))):
+                if(key not in str_type_attrs):
+                    if(not np.allclose(np.nan_to_num(attrs[key]), np.nan_to_num(fin.attrs[key]))):
                         if(key == "n_events"):
-                            logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
+                            logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. "
+                            f"{fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was "
+                            "performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
                         elif(key == "start_event_id"):
                             continue
                         else:
-                            logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
+                            logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. "
+                            f"{fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
                 else:
                     if(len(attrs[key]) != len(fin.attrs[key]) or np.all(attrs[key] != fin.attrs[key])):
                         logger.error(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
                         raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
+
             if((('trigger_names' not in attrs) or (len(attrs['trigger_names']) == 0)) and 'trigger_names' in fin.attrs):
                 attrs['trigger_names'] = fin.attrs['trigger_names']
+
         fin.close()
 
     # create data sets
@@ -220,14 +228,16 @@ def merge2(filenames, output_filename):
 
 if __name__ == "__main__":
     """
-    merges multiple hdf5 output files into one single files.
-    The merger module automatically keeps track of the total number
-    of simulated events (which are needed to correctly calculate the effective volume).
+    Merges multiple hdf5 files into one single file. Keeps automatically track of the total number
+    of simulated events across all input files (which is necessary to correctly calculate the effective volume).
 
-    The script expects that the folder structure is
+    If a single path is passed as argument the script interprets it as root directory and expects the following folder structure:
     ../output/energy/*.hdf5.part????
+    The output file path is automatically determined.
 
-    Optional log level setting to either set DEBUG, INFO, or WARNING to the readout. Example: add --loglevel DEBUG when calling script to set loglevel to DEBUG. 
+    If multiple paths are passed, the first one is taken as output file path. The following paths are taken as input.
+
+    Optional log level setting to either set DEBUG, INFO, or WARNING to the readout. Example: add --loglevel DEBUG when calling script to set loglevel to DEBUG.
     """
     parser = argparse.ArgumentParser(description='Merge hdf5 files')
     parser.add_argument('files', nargs='+', help='input file or files')
@@ -239,23 +249,14 @@ if __name__ == "__main__":
         log_val = eval(f'logging.{args.loglevel}')
         logger.setLevel(log_val)
 
-    if(len(args.files) < 1):
-        print("usage: python merge_hdf5.py /path/to/simulation/output/folder\nor python merge_hdf5.py outputfilename input1 input2 ...")
-    elif(len(args.files) == 1):
-        filenames = glob.glob("{}/*/*.hdf5.part????".format(args.files[0]))
-        filenames = np.append(filenames, glob.glob("{}/*/*.hdf5.part??????".format(args.files[0])))
-        filenames = sorted(filenames)
-        filenames2 = []
-        for i, filename in enumerate(filenames):
-            filename, ext = os.path.splitext(filename)
-            if(ext != '.hdf5'):
-                if(filename not in filenames2):
-                    d = os.path.split(filename)
-                    a, b = os.path.split(d[0])
-                    filenames2.append(filename)
+    if len(args.files) == 1:
+        root_directory = args.files[0]
+        if not os.path.isdir(root_directory):
+            sys.exit(f"{root_directory} is not a directory.")
 
+        filenames = np.unique(glob.glob(f"{root_directory}/*/*.hdf5.part*"))
         input_args = []
-        for filename in sorted(filenames2):
+        for filename in sorted(filenames):
             if(os.path.splitext(filename)[1] == '.hdf5'):
                 d = os.path.split(filename)
                 a, b = os.path.split(d[0])
@@ -263,13 +264,12 @@ if __name__ == "__main__":
                 if(os.path.exists(output_filename)):
                     logger.error('file {} already exists, skipping'.format(output_filename))
                 else:
-                    #                 try:
-                    input_files = np.array(sorted(glob.glob(filename + '.part????')))
-                    input_files = np.append(input_files, np.array(sorted(glob.glob(filename + '.part??????'))))
+                    input_files = np.array(sorted(glob.glob(filename + '.part*')))
                     mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=bool)
                     if(np.sum(~mask)):
                         logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
                     input_args.append({'filenames': input_files[mask], 'output_filename': output_filename})
+
         if(args.cores == 1):
             for i in range(len(input_args)):
                 merge2(input_args[i]['filenames'], input_args[i]['output_filename'])
@@ -283,7 +283,7 @@ if __name__ == "__main__":
             with Pool(args.cores) as p:
                 p.map(tmp, input_args)
 
-    elif(len(args.files) > 1):
+    else:
         output_filename = args.files[0]
         if(os.path.exists(output_filename)):
             logger.error('file {} already exists, skipping'.format(output_filename))

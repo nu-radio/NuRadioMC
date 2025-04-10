@@ -1,38 +1,47 @@
 name: Unit tests
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      python_version:
+        description: Specify Python version to run tests on
+        type: string
+        required: true
+        default: '3.10'
+      os:
+        description: OS to run tests on
+        type: string
+        default: ubuntu-latest
+  workflow_call:
+    inputs:
+      python_version:
+        description: Specify Python version to run tests on
+        type: string
+        required: true
+        default: '3.10'
+      os:
+        description: OS to run tests on
+        type: string
+        default: ubuntu-latest
+
+env: # set the python_version to 3.10 if the workflow is not triggered by workflow_call or workflow_dispatch
+  PYTHON_VERSION: ${{ inputs.python_version || '3.10' }}
 
 jobs:
-  prepare:
-    runs-on: ubuntu-22.04
-    outputs:
-      runtests: ${{ steps.check.outputs.runtests }}
-    steps:
-    - id: check
-      run: |
-        output='false'
-        if [[ "${{ github.event_name }}" != pull_request ]]
-        then
-          runtests='true'
-        elif [[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.event.pull_request.base.repo.full_name }}" ]]
-        then
-          runtests='true'
-        fi
-        echo "runtests=${runtests}" >> $GITHUB_OUTPUT
-
   build:
-    needs: [prepare]
-    if: needs.prepare.outputs.runtests
-    runs-on: ubuntu-22.04
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - name: Set up Python [${{ env.PYTHON_VERSION }}]
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: ${{ env.PYTHON_VERSION }}
     - name: Cache pip
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         # This path is specific to Ubuntu
         path: ~/.cache/pip
@@ -47,9 +56,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         export GSLDIR=$(gsl-config --prefix)
-        python install_dev.py --install --no-interactive
+        pip install -e .
         pip uninstall numba -y # easiest way to test ARZ without numba
-        export PYTHONPATH=$(pwd):$PYTHONPATH
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
@@ -61,107 +69,114 @@ jobs:
       run: |
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  --exit-zero
+    - name: "RNO-G Detector"
+      if: always()
+      run: |
+        python NuRadioReco/detector/test/test_rnog_detector.py
+    - name: "detector.Response"
+      if: always()
+      run: |
+        python NuRadioReco/detector/test/test_response.py
+    - name: "RNO-G data reader"
+      if: always()
+      run: |
+        pip install git+https://github.com/RNO-G/mattak.git
+        NuRadioReco/test/RNO_G/test_read_rnog_data.sh
     - name: "Single event test (South Pole)"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/SingleEvents/test_build.sh
     - name: Single event test (Moore's Bay)
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/SingleEvents/validate_MB.sh
     - name: Single event test (ARZ)
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
     - name: Test Numba version of ARZ
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
         pip install numba
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
     - name: Signal generation test
       if: always()
       run : |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/SignalGen/test_build.sh
+    - name: "Validate separate trigger channels"
+      if: always()
+      run: |
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/SingleEvents/validate_separate_trigger_channels.sh
     - name: "Signal propagation tests"
       if: always()
       run: |
-         export PYTHONPATH=$PWD:$PYTHONPATH
          export GSLDIR=$(gsl-config --prefix)
          NuRadioMC/test/SignalProp/run_signal_test.sh
-    - name: "Test ray tracing modules"
+    - name: "Test Birefringence"
       if: always()
       run: |
-         export PYTHONPATH=$PWD:$PYTHONPATH
          export GSLDIR=$(gsl-config --prefix)
-         python NuRadioMC/SignalProp/examples/ray_tracing_modules.py
+         NuRadioMC/test/SignalProp/run_birefringence_tests.sh
     - name: "Test Veff example"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
-        python install_dev.py --dev proposal --no-interactive
+        pip install -e .[proposal]
         NuRadioMC/test/examples/test_veff_example.sh
     - name: "Test calibration pulser example"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
-        NuRadioMC/test/examples/test_emitter_example.sh
+        NuRadioMC/test/examples/test_cal_pulser_example.sh
     - name: "Test radio emitter pulser example"
       if: always()
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
     - name: "Test webinar examples"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/examples/test_webinar.sh
     - name: "Veff test"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/Veff/1e18eV/test_build.sh
     - name: "Veff test with noise and phased array"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/Veff/1e18eV/test_build_noise.sh
     - name: "Atmospheric Aeff test"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
-    - name: "Tiny reconstrucution"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
-        NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
     - name: "Trigger tests"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
+    - name: "Test channelGalacticNoiseAdder"
+      if: always()
+      run: |
+        pip install -e .[galacticnoise]
+        python NuRadioReco/examples/StandAloneScripts/B01galacticnoiseadder.py
     - name: "Test all examples"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
+        pip install -e .[cr_interpolator]
         NuRadioReco/test/test_examples.sh
+    - name: "Test module structure of all modules in NuRadioReco.modules"
+      if: always()
+      run: |
+        export GSLDIR=$(gsl-config --prefix)
+        python NuRadioReco/test/check_modules.py -r

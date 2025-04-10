@@ -4,7 +4,7 @@ from NuRadioReco.utilities import units
 from NuRadioMC.utilities import cross_sections
 from radiotools import helper as hp
 import logging
-logger = logging.getLogger("utilities.earth_attenuation")
+logger = logging.getLogger("NuRadioMC.earth_attenuation")
 
 AMU = 1.66e-27 * units.kg
 

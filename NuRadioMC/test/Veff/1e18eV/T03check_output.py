@@ -5,17 +5,31 @@ from NuRadioReco.utilities import units
 import sys
 import os
 
+
 ###########################
 # Reference values from previous run, have to be updated, if code changes
 ###########################
 
 # the event generation has a fixed seed and I switched to Alvarez2000 (also no randomness)
 # thus, the Veff has no statistical scatter
-Veff_mean = 5.15935
+
+trigger_per_file = {
+    "output.hdf5": 'highlow_2sigma',
+    "output_noise.hdf5": 'PA_4channel_100Hz',
+}
+
+Veff_mean_per_file = {
+    "output.hdf5": 5.22775,
+    "output_noise.hdf5": 7.50449,
+}
 Veff_sigma = 0.0001
 
+file_name = sys.argv[1]
+Veff_mean = Veff_mean_per_file[file_name]
+trigger = trigger_per_file[file_name]
+
 path = os.path.dirname(os.path.abspath(__file__))
-fin = h5py.File(os.path.join(path, "output.hdf5"), 'r')
+fin = h5py.File(os.path.join(path, file_name), 'r')
 
 
 def calculate_veff(fin):
@@ -36,23 +50,22 @@ def calculate_veff(fin):
 
 n_triggered, n_events, Veff = calculate_veff(fin)
 
-print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f} -> {:.6g} km^3 sr'.format(n_triggered, n_events, n_triggered / n_events, Veff / units.km ** 3))
+print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f} -> {:.6g} km^3 sr'.format(
+    n_triggered, n_events, n_triggered / n_events, Veff / units.km ** 3))
 
 delta = (Veff / units.km ** 3 - Veff_mean) / Veff_sigma
 rdelta = (Veff / units.km ** 3 - Veff_mean) / Veff_mean
-print("effective volume deviates {:.1f} sigma ({:.0f}%) from the mean".format(delta, 100 * rdelta))
-
-if(np.abs(Veff / units.km ** 3 - Veff_mean) > 3 * Veff_sigma):
-    print("deviation is more than 3 sigma -> this should only happen in less than 1\% of the tests. Rerun the test and see if the error persists.")
+if np.abs(delta) > 3:
+    print("Effective volume deviates by {:.0f}% from the expectation (this is not expected!)".format(100 * rdelta))
     sys.exit(-1)
 
 # calculate Veff using veff utility
 import NuRadioMC.utilities.Veff
-data = NuRadioMC.utilities.Veff.get_Veff_Aeff(os.path.join(path, "output.hdf5"))[0]
+data = NuRadioMC.utilities.Veff.get_Veff_Aeff(os.path.join(path, file_name))[0]
 Veff_utl, Veff_utl_error, utl_weighed_sum, t1, t2 = data['veff']['all_triggers']
 Veff_utl = Veff_utl * 4 * np.pi
 np.testing.assert_almost_equal(Veff_utl, Veff, decimal=3)
-Veff_utl, Veff_utl_error, utl_weighed_sum, t1, t2 = data['veff']['highlow_2sigma']
+Veff_utl, Veff_utl_error, utl_weighed_sum, t1, t2 = data['veff'][trigger]
 Veff_utl = Veff_utl * 4 * np.pi
 np.testing.assert_almost_equal(Veff_utl, Veff, decimal=3)
 
@@ -73,4 +86,3 @@ if False:
 
     print("New mean Veff {}".format(np.mean(Veffs)))
     print("New sigma Veff {}".format(np.std(Veffs)))
-
