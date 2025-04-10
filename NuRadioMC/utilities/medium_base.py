@@ -601,7 +601,7 @@ class IceModelExponentialPolynomial(IceModel):
                 self._z_0 * RP.meter / units.meter,
                 self.z_air_boundary * RP.meter / units.meter,
                 self._z_shift * RP.meter / units.meter,
-                self._density_factor / (units.kg / units.meter**3) * (RP.kilogram / RP.meter**3))
+                self._density_factor / (units.meter**3 / units.kilogram) * (RP.meter**3 / RP.kilogram))
 
             return RadioPropaIceWrapper(self, scalar_field)
         else:
