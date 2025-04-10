@@ -476,6 +476,34 @@ Theta range [0, 90]; Phi range [0, 360]; Freq range [50, 350]MHz
 For more information, see: https://ieeexplore.ieee.org/abstract/document/7297231/authors#authors
 Last updated: 2021
 
+SmallBlackSpider_ground2_measured
+---------------------------------
+The Small Black Spider LPDA of the AERA detector at the Pierre Auger Observatory.
+The antenna model is based on an extensive in-situ measurement campaign which is documented in this paper: 10.1088/1748-0221/12/10/T10005
+Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. Therefore, the 
+vector effective length is in the order of 5-10m.
+Added: 2025
+
+Butterfly_ground2
+-----------------
+The Butterfly antenna of the AERA detector at the Pierre Auger Observatory. The antenna model is based on simulations.
+Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
+Added: 2025
+
+Butterfly_ground2_East
+----------------------
+The East arm of the Butterfly antenna of the AERA detector at the Pierre Auger Observatory.
+The antenna model is based on an extensive in-situ measurement campaign which is documented in this PhD thesis: http://doi.org/10.18154/RWTH-2018-225398
+Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
+Added: 2025
+
+Butterfly_ground2_North
+-----------------------
+The North arm of the Butterfly antenna of the AERA detector at the Pierre Auger Observatory.
+The antenna model is based on an extensive in-situ measurement campaign which is documented in this PhD thesis: http://doi.org/10.18154/RWTH-2018-225398
+Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
+Added: 2025
+
 
 Additional Models
 ==================
