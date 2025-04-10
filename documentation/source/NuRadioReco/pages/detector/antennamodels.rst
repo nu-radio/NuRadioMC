@@ -482,12 +482,14 @@ The Small Black Spider LPDA of the AERA detector at the Pierre Auger Observatory
 The antenna model is based on an extensive in-situ measurement campaign which is documented in this paper: 10.1088/1748-0221/12/10/T10005
 Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. Therefore, the 
 vector effective length is in the order of 5-10m.
+If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
 Added: 2025
 
 Butterfly_ground2
 -----------------
 The Butterfly antenna of the AERA detector at the Pierre Auger Observatory. The antenna model is based on simulations.
 Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
+If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
 Added: 2025
 
 Butterfly_ground2_East
@@ -495,6 +497,7 @@ Butterfly_ground2_East
 The East arm of the Butterfly antenna of the AERA detector at the Pierre Auger Observatory.
 The antenna model is based on an extensive in-situ measurement campaign which is documented in this PhD thesis: http://doi.org/10.18154/RWTH-2018-225398
 Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
+If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
 Added: 2025
 
 Butterfly_ground2_North
@@ -502,6 +505,7 @@ Butterfly_ground2_North
 The North arm of the Butterfly antenna of the AERA detector at the Pierre Auger Observatory.
 The antenna model is based on an extensive in-situ measurement campaign which is documented in this PhD thesis: http://doi.org/10.18154/RWTH-2018-225398
 Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
+If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
 Added: 2025
 
 
