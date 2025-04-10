@@ -24,6 +24,18 @@ print(length/units.cm)
 """
 from NuRadioReco.utilities import units
 """
+When importing a NuRadioReco or NuRadioMC module, the parent loggers are 
+initialised automatically. They are instances of a custom logging class called
+NuRadioLogger, which is set as the default logging class when using this
+library. The NuRadioLogger class also has a STATUS logging level.
+
+All modules configure their own logger, following the NuRadioMC.MODULE or
+NuRadioReco.MODULE naming scheme. This ensures that the messages are properly
+passed on to the parent loggers, and as such ensures the output of all module 
+logging is consistent.
+"""
+
+"""
 We are going to import the function generate_eventlist_cylinder, which creates
 (forced) neutrino events from an isotropic flux in a cylinder. This setup is
 appropriate to study effective volumes, for instance. The generator module also

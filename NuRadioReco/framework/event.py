@@ -1,32 +1,46 @@
 from __future__ import absolute_import, division, print_function
-import pickle
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
+import NuRadioReco.framework.emitter
+import NuRadioReco.framework.sim_emitter
 import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.particle
-import NuRadioReco.framework.parameters as parameters
-import NuRadioReco.utilities.version
+import NuRadioReco.framework.parameter_storage
+
+from NuRadioReco.framework.parameters import (
+    eventParameters as evp, channelParameters as chp, showerParameters as shp,
+    particleParameters as pap, generatorAttributes as gta)
+
+from NuRadioReco.utilities import io_utilities, version
+
+import astropy.time
+import datetime
 from six import itervalues
+import numpy as np
 import collections
+import pickle
+
 import logging
-logger = logging.getLogger('Event')
+logger = logging.getLogger('NuRadioReco.Event')
 
 
-class Event:
+class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, run_number, event_id):
-        self._parameters = {}
+        super().__init__([evp, gta])
+
         self.__run_number = run_number
         self._id = event_id
         self.__stations = collections.OrderedDict()
         self.__radio_showers = collections.OrderedDict()
         self.__sim_showers = collections.OrderedDict()
-        self.__event_time = 0
+        self.__sim_emitters = collections.OrderedDict()
+        self.__event_time = None
         self.__particles = collections.OrderedDict() # stores a dictionary of simulated MC particles in an event
-        self._generator_info = {} # copies over the relevant information on event generation from the input file attributes
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
-        self.__modules_station = {}  # saves which modules were executed with what parameters on station level
+        # saves which modules were executed with what parameters on station level
+        self.__modules_station = collections.defaultdict(list)
 
     def register_module_event(self, instance, name, kwargs):
         """
@@ -41,7 +55,7 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-                
+
         self.__modules_event.append([name, instance, kwargs])
 
     def register_module_station(self, station_id, instance, name, kwargs):
@@ -59,9 +73,6 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-        if station_id not in self.__modules_station:
-            self.__modules_station[station_id] = []
-            
         iE = len(self.__modules_event)
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
 
@@ -75,50 +86,49 @@ class Event:
         iE = 0
         iS = 0
         while True:
-            if(station_id in self.__modules_station and (len(self.__modules_station[station_id]) > iS) and self.__modules_station[station_id][iS][0] == iE):
+            if (station_id in self.__modules_station and (len(self.__modules_station[station_id]) > iS)
+                    and self.__modules_station[station_id][iS][0] == iE):
                 iS += 1
                 yield self.__modules_station[station_id][iS - 1][1:]
             else:
-                if(len(self.__modules_event) == iE):
+                if len(self.__modules_event) == iE:
                     break
+
                 iE += 1
                 yield self.__modules_event[iE - 1]
 
-    def get_parameter(self, key):
-        if not isinstance(key, parameters.eventParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-        return self._parameters[key]
+    def has_been_processed_by_module(self, module_name, station_id):
+        """
+        Checks if the event has been processed by a module with a specific name.
 
-    def set_parameter(self, key, value):
-        if not isinstance(key, parameters.eventParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-        self._parameters[key] = value
+        Parameters
+        ----------
+        module_name: str
+            The name of the module to check for.
+        station_id: int
+            The station id for which the module is run.
 
-    def has_parameter(self, key):
-        if not isinstance(key, parameters.eventParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.eventParameters")
-        return key in self._parameters
+        Returns
+        -------
+        bool
+        """
+        for module in self.iter_modules(station_id):
+            if module[0] == module_name:
+                return True
+
+        return False
 
     def get_generator_info(self, key):
-        if not isinstance(key, parameters.generatorAttributes):
-            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-        return self._generator_info[key]
+        logger.warning("`get_generator_info` is deprecated. Use `get_parameter` instead.")
+        return self.get_parameter(key)
 
     def set_generator_info(self, key, value):
-        if not isinstance(key, parameters.generatorAttributes):
-            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-        self._generator_info[key] = value
+        logger.warning("`set_generator_info` is deprecated. Use `set_parameter` instead.")
+        self.set_parameter(key, value)
 
     def has_generator_info(self, key):
-        if not isinstance(key, parameters.generatorAttributes):
-            logger.error("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-            raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
-        return key in self._generator_info
+        logger.warning("`has_generator_info` is deprecated. Use `has_parameter` instead.")
+        return self.has_parameter(key)
 
     def get_id(self):
         return self._id
@@ -128,6 +138,52 @@ class Event:
 
     def get_run_number(self):
         return self.__run_number
+
+    def get_waveforms(self, station_id=None, channel_id=None):
+        """
+        Returns the waveforms stored within the event.
+
+        You can specify the station and channel id to get specific waveforms.
+        If you do not specify anything you will get all waveforms.
+
+        Parameters
+        ----------
+        station_id: int (Default: None)
+            The station id of the station for which the waveforms should be returned.
+            If `None`, the waveforms of all stations are returned.
+        channel_id: int or list of ints (Default: None)
+            The channel id(s) of the channel(s) for which the waveforms should be returned.
+            If `None`, the waveforms of all channels are returned.
+
+        Returns
+        -------
+        times: np.ndarray(nr_stations, nr_channels, nr_samples)
+            A numpy array containing the times of the waveforms.
+            The returned array is squeezed:
+            (1, 10, 2048) -> (10, 2048) or (2, 1, 2048) -> (2, 2048).
+        waveforms: np.ndarray(nr_stations, nr_channels, nr_samples)
+            A numpy array containing the waveforms.
+            The returned array is squeezed (see example for `times`).
+        """
+        times = []
+        waveforms = []
+
+        if isinstance(channel_id, int):
+            channel_id = [channel_id]
+
+        for station in self.get_stations():
+            tmp_times = []
+            tmp_waveforms = []
+            if station_id is not None and station.get_id() != station_id:
+                continue
+            for channel in station.iter_channels(use_channels=channel_id, sorted=True):
+                tmp_times.append(channel.get_times())
+                tmp_waveforms.append(channel.get_trace())
+
+            times.append(tmp_times)
+            waveforms.append(tmp_waveforms)
+
+        return np.squeeze(times), np.squeeze(waveforms)
 
     def get_station(self, station_id=None):
         """
@@ -155,6 +211,49 @@ class Event:
 
         return self.__stations[station_id]
 
+    def set_event_time(self, time, format=None):
+        """
+        Set the (absolute) event time (will be stored as astropy.time.Time).
+
+        Parameters
+        ----------
+        time: astropy.time.Time or datetime.datetime or float
+            If "time" is a float, you have to specify its format.
+
+        format: str (Default: None)
+            Only used when "time" is a float. Format to interpret "time".
+        """
+
+        if isinstance(time, datetime.datetime):
+            self.__event_time = astropy.time.Time(time)
+        elif isinstance(time, astropy.time.Time):
+            self.__event_time = time
+        elif time is None:
+            self.__event_time = None
+        else:
+            if format is None:
+                logger.error("If you provide a float for the time, you have to specify the format.")
+                raise ValueError("If you provide a float for the time, you have to specify the format.")
+            self.__event_time = astropy.time.Time(time, format=format)
+
+    def get_event_time(self):
+        """
+        Returns the event time (as astropy.time.Time object).
+
+        If the event time is not set, an error is raised. The event time is often only used in simulations
+        and typically the same a `station.get_station_time()`.
+
+        Returns
+        -------
+        event_time : astropy.time.Time
+            The event time.
+        """
+        if self.__event_time is None:
+            logger.error("Event time is not set. You either have to set it or use `station.get_station_time()`")
+            raise ValueError("Event time is not set. You either have to set it or use `station.get_station_time()`")
+
+        return self.__event_time
+
     def get_stations(self):
         for station in itervalues(self.__stations):
             yield station
@@ -164,7 +263,7 @@ class Event:
 
     def set_station(self, station):
         self.__stations[station.get_id()] = station
-        
+
     def has_triggered(self, trigger_name=None):
         """
         Returns true if any station has been triggered.
@@ -175,16 +274,16 @@ class Event:
             * if None: The function returns False if not trigger was set. If one or multiple triggers were set,
                        it returns True if any of those triggers triggered
             * if trigger name is set: return if the trigger with name 'trigger_name' has a trigger
-            
+
         Returns
         -------
-        
+
         has_triggered : bool
         """
         for station in self.get_stations():
             if station.has_triggered(trigger_name):
                 return True
-        
+
         # if it reaches this point, no station has a trigger
         return False
 
@@ -200,11 +299,11 @@ class Event:
         if not isinstance(particle, NuRadioReco.framework.particle.Particle):
             logger.error("Requested to add non-Particle item to the list of particles. {particle} needs to be an instance of Particle.")
             raise TypeError("Requested to add non-Particle item to the list of particles. {particle}   needs to be an instance of Particle.")
-        
+
         if particle.get_id() in self.__particles:
             logger.error("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
             raise AttributeError("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
-        
+
         self.__particles[particle.get_id()] = particle
 
     def get_particles(self):
@@ -229,16 +328,16 @@ class Event:
         if len(self.__particles) == 0:
             return None
 
-        return self.get_particle(0)
+        return next(iter(self.__particles.values()))
 
     def get_parent(self, particle_or_shower):
         """
         returns the parent of a particle or a shower
         """
         if isinstance(particle_or_shower, NuRadioReco.framework.base_shower.BaseShower):
-            par_id = particle_or_shower[parameters.showerParameters.parent_id]
+            par_id = particle_or_shower[shp.parent_id]
         elif isinstance(particle_or_shower, NuRadioReco.framework.particle.Particle):
-            par_id = particle_or_shower[parameters.particleParameters.parent_id]
+            par_id = particle_or_shower[pap.parent_id]
         else:
             raise ValueError("particle_or_shower needs to be an instance of NuRadioReco.framework.base_shower.BaseShower or NuRadioReco.framework.particle.Particle")
         if par_id is None:
@@ -254,13 +353,13 @@ class Event:
         """
         if particle_id is None:
             return len(self.__particles) > 0
-        
+
         return particle_id in self.__particles.keys()
 
     def get_interaction_products(self, parent_particle, showers=True, particles=True):
         """
         Return all the daughter particles and showers generated in the interaction of the <parent_particle>
-  
+
         Parameters
         ----------
         showers: bool
@@ -273,15 +372,13 @@ class Event:
         # iterate over sim_showers to look for parent id
         if showers is True:
             for shower in self.get_showers():
-                if shower[parameters.showerParameters.parent_id] == parent_id:
+                if shower[shp.parent_id] == parent_id:
                     yield shower
         # iterate over secondary particles to look for parent id
         if particles is True:
             for particle in self.get_particles():
-                if particle[parameters.particleParameters.parent_id] == parent_id:
+                if particle[pap.parent_id] == parent_id:
                     yield particle
-
-
 
     def add_shower(self, shower):
         """
@@ -372,9 +469,13 @@ class Event:
     def get_sim_showers(self):
         """
         Get an iterator over all simulated showers in the event
+
+        Returns
+        -------
+        sim_showers: iterator
+            An iterator over all simulated showers in the event
         """
-        for shower in self.__sim_showers.values():
-            yield shower
+        return self.__sim_showers.values()
 
     def get_sim_shower(self, shower_id):
         """
@@ -416,6 +517,69 @@ class Event:
         else:
             return len(self.__sim_showers) > 0
 
+    def add_sim_emitter(self, sim_emitter):
+        """
+        Add a simulated emitter to the event
+
+        Parameters
+        ----------
+        sim_emitter: SimEmitter object
+            The emitter to be added to the event
+        """
+        if not isinstance(sim_emitter, NuRadioReco.framework.sim_emitter.SimEmitter):
+            raise AttributeError(f"emitter needs to be of type NuRadioReco.framework.sim_emitter.SimEmitter but is of type {type(sim_emitter)}")
+        if(sim_emitter.get_id() in self.__sim_emitters):
+            logger.error(f"sim emitter with id {sim_emitter.get_id()} already exists. Emitter id needs to be unique per event")
+            raise AttributeError(f"sim emitter with id {sim_emitter.get_id()} already exists. Emitter id needs to be unique per event")
+        self.__sim_emitters[sim_emitter.get_id()] = sim_emitter
+
+    def get_sim_emitters(self):
+        """
+        Get an iterator over all simulated emitters in the event
+        """
+        for emitter in self.__sim_emitters.values():
+            yield emitter
+
+    def get_sim_emitter(self, emitter_id):
+        """
+        returns a specific emitter identified by its unique id
+        """
+        if(emitter_id not in self.__sim_emitters):
+            raise AttributeError(f"sim emitter with id {emitter_id} not present")
+        return self.__sim_emitters[emitter_id]
+
+    def get_first_sim_emitter(self, ids=None):
+        """
+        Returns only the first sim emitter stored in the event. Useful in cases
+        when there is only one emitter in the event.
+
+        Parameters
+        ----------
+        station_ids: list of integers
+            A list of station IDs. The first emitter that is associated with
+            all stations in the list is returned
+        """
+        if len(self.__sim_emitters) == 0:
+            return None
+        if ids is None:
+            emitter_ids = list(self.__sim_emitters.keys())
+            return self.__sim_emitters[emitter_ids[0]]
+        for emitter in self.__sim_emitters:
+            if emitter.has_station_ids(ids):
+                return emitter
+        return None
+
+    def has_sim_emitter(self, emitter_id=None):
+        """
+        Returns true if at least one simulated emitter is stored in the event
+
+        If emitter_id is given, it checks if this particular emitter exists
+        """
+        if(emitter_id is None):
+            return emitter_id in self.__sim_emitters.keys()
+        else:
+            return len(self.__sim_emitters) > 0
+
     def get_hybrid_information(self):
         """
         Get information about hybrid detector data stored in the event.
@@ -425,27 +589,29 @@ class Event:
     def serialize(self, mode):
         stations_pkl = []
         try:
-            commit_hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
-            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, commit_hash)
+            commit_hash = version.get_NuRadioMC_commit_hash()
+            self.set_parameter(evp.hash_NuRadioMC, commit_hash)
         except:
             logger.warning("Event is serialized without commit hash!")
-            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, None)
+            self.set_parameter(evp.hash_NuRadioMC, None)
 
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
 
         showers_pkl = [shower.serialize() for shower in self.get_showers()]
         sim_showers_pkl = [shower.serialize() for shower in self.get_sim_showers()]
+        sim_emitters_pkl = [emitter.serialize() for emitter in self.get_sim_emitters()]
         particles_pkl = [particle.serialize() for particle in self.get_particles()]
-        
+
         hybrid_info = self.__hybrid_information.serialize()
-        
+
         modules_out_event = []
         for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
             modules_out_event.append([value[0], None, value[2]])
             invalid_keys = [key for key,val in value[2].items() if isinstance(val, BaseException)]
             if len(invalid_keys):
-                logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
+                logger.warning(f"The following arguments to module {value[0]} could not be "
+                               f"serialized and will not be stored: {invalid_keys}")
 
         modules_out_station = {}
         for key in self.__modules_station:  # remove module instances (this will just blow up the file size)
@@ -454,21 +620,26 @@ class Event:
                 modules_out_station[key].append([value[0], value[1], None, value[3]])
                 invalid_keys = [key for key,val in value[3].items() if isinstance(val, BaseException)]
                 if len(invalid_keys):
-                    logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
+                    logger.warning(f"The following arguments to module {value[0]} could not be "
+                                   f"serialized and will not be stored: {invalid_keys}")
 
-        data = {'_parameters': self._parameters,
-                '__run_number': self.__run_number,
-                '_id': self._id,
-                '__event_time': self.__event_time,
-                'stations': stations_pkl,
-                'showers': showers_pkl,
-                'sim_showers': sim_showers_pkl,
-                'particles': particles_pkl,
-                'hybrid_info': hybrid_info,
-                'generator_info': self._generator_info,
-                '__modules_event': modules_out_event,
-                '__modules_station': modules_out_station
-                }
+        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
+
+        event_time_dict = io_utilities._astropy_to_dict(self.__event_time)
+        data.update({
+            '__run_number': self.__run_number,
+            '_id': self._id,
+            '__event_time': event_time_dict,
+            'stations': stations_pkl,
+            'showers': showers_pkl,
+            'sim_showers': sim_showers_pkl,
+            'sim_emitters': sim_emitters_pkl,
+            'particles': particles_pkl,
+            'hybrid_info': hybrid_info,
+            '__modules_event': modules_out_event,
+            '__modules_station': modules_out_station
+        })
+
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
@@ -488,23 +659,31 @@ class Event:
                 shower = NuRadioReco.framework.radio_shower.RadioShower(None)
                 shower.deserialize(shower_pkl)
                 self.add_sim_shower(shower)
+        if 'sim_emitters' in data.keys():
+            for emmitter_pkl in data['sim_emitters']:
+                emitter = NuRadioReco.framework.sim_emitter.SimEmitter(None)
+                emitter.deserialize(emmitter_pkl)
+                self.add_sim_emitter(emitter)
         if 'particles' in data.keys():
             for particle_pkl in data['particles']:
                 particle = NuRadioReco.framework.particle.Particle(None)
                 particle.deserialize(particle_pkl)
                 self.add_particle(particle)
-        
+
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         if 'hybrid_info' in data.keys():
             self.__hybrid_information.deserialize(data['hybrid_info'])
-        
-        self._parameters = data['_parameters']
+
+        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
+
         self.__run_number = data['__run_number']
         self._id = data['_id']
-        self.__event_time = data['__event_time']
+        self.__event_time = io_utilities._time_object_to_astropy(data['__event_time'])
 
-        if 'generator_info' in data.keys():
-            self._generator_info = data['generator_info']
+        # For backward compatibility, now generator_info are stored in `_parameters`.
+        if 'generator_info' in data:
+            for key in data['generator_info']:
+                self.set_parameter(key, data['generator_info'][key])
 
         if "__modules_event" in data:
             self.__modules_event = data['__modules_event']

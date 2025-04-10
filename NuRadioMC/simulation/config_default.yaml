@@ -15,7 +15,6 @@ speedup:
   redo_raytracing: False  # redo ray tracing even if previous calculated ray tracing solutions are present
   min_efield_amplitude: 2  # the minimum signal amplitude of the efield as a factor of the noise RMS. If the value is smaller, no detector simulation is performed. As the vector effecive length of antennas is typically less than 1, this cut does not introduce any bias as long as the value is smaller than the trigger threshold.
   amp_per_ray_solution: True  # if False, the maximum aplitude for each ray tracing solution is not calculated
-  time_res_efieldconverter: 0.1  # the time resolution (in ns) used in the efieldtovoltage converter to combine multiple efield traces into one voltage trace
   distance_cut: False # if True, a cut for the vertex-observer distance as a function of shower energy is applied (log10(max_dist / m) = polynomial(log10(shower_energy / eV))
   # The coefficients of a polynomial below have been obtained from distance histograms for several shower energy bins. A 10x10 array of 1.5 sigma dipoles in Greenland was used. The distance cut is a 4th order polynomial of the maximum distances with a cover factor of 1.5, or 50%.
   distance_cut_coefficients: [-1.56434411e+02,  2.54131322e+01, -1.34932379e+00,  2.39984185e-02] # coefficients of a polynomial
@@ -30,6 +29,10 @@ propagation:
   focusing: False  # if True apply the focusing effect.
   focusing_limit: 2  # the maximum amplification factor of the focusing correction
   n_reflections: 0  # the maximum number of reflections off a reflective layer at the bottom of the ice layer
+  birefringence: False  # if True apply birefringence effects
+  birefringence_propagation: 'analytical'  # can also be 'numerical' - Does not have to be set, default value is 'analytical'
+  birefringence_model: 'southpole_A'  # can also be 'southpole_' or 'greenland_': 'A', 'B', 'C', 'D', 'E' - Does not have to be set, default value is 'southpole_A'. See 'https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/Manuals/icemodels.html' for more details.
+  angle_to_iceflow: -131 #The angle between the ice flow direction and the easting direction. About -131 for South Pole and 180 for Greenland. See 'https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/Manuals/icemodels.html' for more details.
 
   radiopropa:  #every module can have its own addition settings
     mode: iterative  # can also be "minimizing" but these ray tracing solution are not accurate yet

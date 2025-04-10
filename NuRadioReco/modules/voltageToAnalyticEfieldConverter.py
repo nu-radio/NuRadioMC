@@ -10,7 +10,7 @@ from radiotools import helper as hp
 from radiotools import coordinatesystems
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units, fft, trace_utilities
+from NuRadioReco.utilities import units, fft, trace_utilities, signal_processing
 from NuRadioReco.utilities import analytic_pulse as pulse
 from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -18,7 +18,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import NuRadioReco.framework.electric_field
 
 import logging
-logger = logging.getLogger('voltageToAnalyticEfieldConverter')
+logger = logging.getLogger('NuRadioReco.voltageToAnalyticEfieldConverter')
 
 
 def covariance(function, vmin, up, fast=False):
@@ -625,7 +625,7 @@ class voltageToAnalyticEfieldConverter:
         second_order_correction = res_amp_second_order.x[2]
         electric_field.set_parameter(efp.cr_spectrum_quadratic_term, second_order_correction)
         # figure out the timing of the electric field
-        voltages_from_efield = trace_utilities.get_channel_voltage_from_efield(station, electric_field, use_channels, det, zenith, azimuth, self.antenna_provider, False)
+        voltages_from_efield = signal_processing.get_channel_voltage_from_efield(station, electric_field, use_channels, det, zenith, azimuth, self.antenna_provider, False)
         correlation = np.zeros(voltages_from_efield.shape[1] + station.get_channel(use_channels[0]).get_trace().shape[0] - 1)
         channel_trace_start_times = []
         for channel_id in use_channels:

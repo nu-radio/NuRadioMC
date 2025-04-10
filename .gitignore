@@ -107,6 +107,9 @@ venv.bak/
 .spyderproject
 .spyproject
 
+# Pycharm project settings
+.idea
+
 # Rope project settings
 .ropeproject
 
@@ -129,6 +132,7 @@ venv.bak/
 
 #Mac nonsense
 .DS_Store
+
 # pngs, pdfs
 *.png
 *.pdf
@@ -140,3 +144,7 @@ NuRadioReco/examples/*.nur
 
 # Default location for proposal tables with proposal7
 NuRadioMC/EvtGen/proposal_tables/
+
+# zipped DB json files
+*json.xz
+

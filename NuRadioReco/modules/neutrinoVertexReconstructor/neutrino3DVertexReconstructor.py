@@ -2,12 +2,13 @@ import numpy as np
 from matplotlib import cm
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
+from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.utilities.io_utilities
 import NuRadioReco.framework.electric_field
 import NuRadioReco.detector.antennapattern
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.utilities import trace_utilities, fft, bandpass_filter
+from NuRadioReco.utilities import signal_processing, fft
 import radiotools.helper as hp
 
 
@@ -165,6 +166,7 @@ class neutrino3DVertexReconstructor:
                 self.__header[int(channel_z)] = f['header']
                 self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
 
+    @register_run()
     def run(
             self,
             event,
@@ -183,7 +185,7 @@ class neutrino3DVertexReconstructor:
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
             channel_1 = station.get_channel(channel_pair[0])
             channel_2 = station.get_channel(channel_pair[1])
-            antenna_response = trace_utilities.get_efield_antenna_factor(
+            antenna_response = signal_processing.get_efield_antenna_factor(
                 station=station,
                 frequencies=self.__electric_field_template.get_frequencies(),
                 channels=[channel_pair[0]],
@@ -196,7 +198,7 @@ class neutrino3DVertexReconstructor:
                 antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() + antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
             ) * det.get_amplifier_response(station.get_id(), channel_pair[0], self.__electric_field_template.get_frequencies())
             if self.__passband is not None:
-                voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butterabs', 10)
+                voltage_spec *= signal_processing.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butterabs', 10)
             voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
             voltage_template /= np.max(np.abs(voltage_template))
             if self.__passband is None:
@@ -338,7 +340,7 @@ class neutrino3DVertexReconstructor:
         self_correlation_sum = np.zeros_like(z_coords)
         for i_channel, channel_id in enumerate(self.__channel_ids):
             channel = station.get_channel(channel_id)
-            antenna_response = trace_utilities.get_efield_antenna_factor(
+            antenna_response = signal_processing.get_efield_antenna_factor(
                 station=station,
                 frequencies=self.__electric_field_template.get_frequencies(),
                 channels=[channel_id],
@@ -351,7 +353,7 @@ class neutrino3DVertexReconstructor:
                 antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() + antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
             ) * det.get_amplifier_response(station.get_id(), channel_id, self.__electric_field_template.get_frequencies())
             if self.__passband is not None:
-                voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butter', 10)
+                voltage_spec *= signal_processing.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butter', 10)
             voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
             voltage_template /= np.max(np.abs(voltage_template))
             if self.__passband is None:
