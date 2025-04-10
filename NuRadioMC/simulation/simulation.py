@@ -1867,8 +1867,10 @@ class simulation:
 def _calculate_amp_per_ray_solution(station):
     """ Calculate the max amplitude and time of the ray solutions
 
-    We are using this function instead of the channelSignalReconstructor
-    to save time.
+    Instead of using the channelSignalReconstructor module which calculates
+    these parameters (and may more) too, we use this function to save time 
+    (the other parameters calculated by the channelSignalReconstructor 
+    are not used/saved by the simulation.py).
 
     Parameters
     ----------
