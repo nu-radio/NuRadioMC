@@ -413,7 +413,7 @@ class ray_tracing_2D(ray_tracing_base):
         if self.medium.reflection is not None:
             self.reflection = self.medium.reflection
 
-        self.attenuation_model = attenuation_model
+        self.attenuation_model = attenuation_model or "SP1"
         if self.attenuation_model not in attenuation_util.model_to_int:
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
 

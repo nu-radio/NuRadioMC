@@ -115,13 +115,13 @@ class ray_tracing_base:
 
         # If arguments are not yet set, set them to their default values
         if self._n_frequencies_integration is None:
-            self._n_frequencies_integration = 100
+            self._n_frequencies_integration = n_frequencies_integration or 100
 
         if self._n_reflections is None:
-            self._n_reflections = 0
+            self._n_reflections = n_reflections or 0
 
         if self._attenuation_model is None:
-            self._attenuation_model = 'SP1'
+            self._attenuation_model = attenuation_model or 'SP1'
 
         if self._n_reflections:
             if not hasattr(self._medium, "reflection") or self._medium.reflection is None:
