@@ -640,7 +640,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities.earth_attenuation</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_weight</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp</span><span class="w"> </span><span class="kn">import</span> <span class="n">propagation</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.simulation.output_writer_hdf5</span><span class="w"> </span><span class="kn">import</span> <span class="n">outputWriterHDF5</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">signal_processing</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">signal_processing</span><span class="p">,</span> <span class="n">trace_utilities</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOGGING_STATUS</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.eventWriter</span>
@@ -1150,7 +1151,7 @@
         <span class="n">detector_simulation_filter_amp</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">det</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;amp_per_ray_solution&#39;</span><span class="p">]:</span>
-        <span class="n">channelSignalReconstructor</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">det</span><span class="p">)</span>
+        <span class="n">_calculate_amp_per_ray_solution</span><span class="p">(</span><span class="n">sim_station</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">time_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;detector response (sim)&#39;</span><span class="p">)</span></div>
@@ -2306,6 +2307,7 @@
                                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sim_station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">())</span><span class="si">}</span><span class="s2"> efields, skipping to next channel&quot;</span><span class="p">)</span>
                             <span class="k">continue</span>
 
+                            
                         <span class="c1"># applies the detector response to the electric fields (the antennas are defined</span>
                         <span class="c1"># in the json detector description file)</span>
                         <span class="n">apply_det_response_sim</span><span class="p">(</span>
@@ -2548,6 +2550,26 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">integrated_channel_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_integrated_channel_response</span> <span class="o">=</span> <span class="n">value</span></div>
 
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_calculate_amp_per_ray_solution</span><span class="p">(</span><span class="n">station</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculate the max amplitude and time of the ray solutions</span>
+
+<span class="sd">    Instead of using the channelSignalReconstructor module which calculates</span>
+<span class="sd">    these parameters (and may more) too, we use this function to save time </span>
+<span class="sd">    (the other parameters calculated by the channelSignalReconstructor </span>
+<span class="sd">    are not used/saved by the simulation.py).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    station : NuRadioReco.framework.sim_station.SimStation</span>
+<span class="sd">        the station object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_hilbert_envelope</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+        <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">signal_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">h</span><span class="p">)]</span>
+        <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">maximum_amplitude_envelope</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
 </pre></div>
 
            </div>
