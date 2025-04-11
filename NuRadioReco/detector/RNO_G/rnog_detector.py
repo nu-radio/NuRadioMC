@@ -1386,7 +1386,7 @@ class Detector():
         coordinates: tuple(float, float)
             Tuple of latitude and longitude in degrees
         """
-        return (72.57, -38.46)
+        return (72.582793,-38.455815)
 
 
     def get_database(self):
