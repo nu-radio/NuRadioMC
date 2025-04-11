@@ -18,7 +18,8 @@ from NuRadioMC.SignalGen import askaryan, emitter as emitter_signalgen
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
-from NuRadioReco.utilities import units, signal_processing
+
+from NuRadioReco.utilities import units, signal_processing, trace_utilities
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 import NuRadioReco.modules.io.eventWriter
@@ -517,7 +518,7 @@ def apply_det_response_sim(
         detector_simulation_filter_amp(evt, sim_station, det)
 
     if config['speedup']['amp_per_ray_solution']:
-        channelSignalReconstructor.run(evt, sim_station, det)
+        _calculate_amp_per_ray_solution(sim_station)
 
     if time_logger is not None:
         time_logger.stop_time('detector response (sim)')
@@ -1638,6 +1639,7 @@ class simulation:
                                         f"{len(sim_station.get_electric_fields())} efields, skipping to next channel")
                             continue
 
+                            
                         # applies the detector response to the electric fields (the antennas are defined
                         # in the json detector description file)
                         apply_det_response_sim(
@@ -1866,3 +1868,23 @@ class simulation:
     @integrated_channel_response.setter
     def integrated_channel_response(self, value):
         self._integrated_channel_response = value
+
+def _calculate_amp_per_ray_solution(station):
+    """ Calculate the max amplitude and time of the ray solutions
+
+    Instead of using the channelSignalReconstructor module which calculates
+    these parameters (and may more) too, we use this function to save time 
+    (the other parameters calculated by the channelSignalReconstructor 
+    are not used/saved by the simulation.py).
+
+    Parameters
+    ----------
+    station : NuRadioReco.framework.sim_station.SimStation
+        the station object
+    """
+    for channel in station.iter_channels():
+        times = channel.get_times()
+        trace = channel.get_trace()
+        h = trace_utilities.get_hilbert_envelope(trace)
+        channel[chp.signal_time] = times[np.argmax(h)]
+        channel[chp.maximum_amplitude_envelope] = h.max()
