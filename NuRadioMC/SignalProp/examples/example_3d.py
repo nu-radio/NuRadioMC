@@ -43,8 +43,8 @@ for i, x in enumerate([x2, x3, x4, x5]):
             R = r.get_path_length(iS)  # calculate path length
             T = r.get_travel_time(iS)  # calculate travel time
             print("     Ray Distance %.3f and Travel Time %.3f" % (R / units.m, T / units.ns))
-            
-            
+
+
             receive_vector = r.get_receive_vector(iS)
             receive_vectors[i, iS] = receive_vector
             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
@@ -59,7 +59,7 @@ for i, x in enumerate([x2, x3, x4, x5]):
             X2r = np.dot(R, x - x1) + x1
             x1_2d = np.array([X1r[0], X1r[2]])
             x2_2d = np.array([X2r[0], X2r[2]])
-            r_2d = ray.ray_tracing_2D(ice)
+            r_2d = ray.ray_tracing_2D(ice, n_frequencies_integration=25)
             yy, zz = r_2d.get_path(x1_2d, x2_2d, ray_tracing_C0[i, iS])
             ax.plot(yy, zz, '{}'.format(php.get_color_linestyle(i)), label='{} C0 = {:.4f}'.format(ray_tracing_solution_type[i, iS], ray_tracing_C0[i, iS]))
             ax.plot(x2_2d[0], x2_2d[1], '{}{}-'.format('d', php.get_color(i)))

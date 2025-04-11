@@ -35,7 +35,7 @@ ice = medium.southpole_simple()
 if 0:  # for debug purpuses, plot the objective function
     fig2, ax2 = plt.subplots(1, 1)
     for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
-        r2d = ray.ray_tracing_2D(ice, log_level=logging.WARNING)
+        r2d = ray.ray_tracing_2D(ice, n_frequencies_integration=25, log_level=logging.WARNING)
         logC0s = np.linspace(-0.9, 10, 10)
         oo = [r2d.obj_delta_y(t, x_start[np.array([0,2])], x_stop[np.array([0,2])]) for t in logC0s]
         ax2.plot(logC0s, oo, "-o")
@@ -62,20 +62,20 @@ for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
             receive_vectors[i, iS] = receive_vector
             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
             print("     Receiving Zenith %.3f and Azimuth %.3f " % (zenith / units.deg, azimuth / units.deg))
-            
+
             # get focussing factor
             focusing = r.get_focusing(0)
             print(f"     focusing factor = {focusing:.8f}")
 
             att = r.get_attenuation(iS, np.array([100, 200]) * units.MHz)
             print(f"     attenuation: {att}")
-            
-            
+
+
             efield=NuRadioReco.framework.electric_field.ElectricField([0])
             efield.set_trace(np.ones((3,200)), 1)
             efield2 = r.apply_propagation_effects(efield, 0)
-            
-            
+
+
             xx, zz = r.get_ray_path(iS)
 
             # # to readout the actual trace, we have to flatten to 2D
@@ -87,7 +87,7 @@ for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
             # X2r = np.dot(R, x - x_start) + x_start
             # x1_2d = np.array([X1r[0], X1r[2]])
             # x2_2d = np.array([X2r[0], X2r[2]])
-            # r_2d = ray.ray_tracing_2D(ice)
+            # r_2d = ray.ray_tracing_2D(ice, n_frequencies_integration=25)
             # yy, zz = r_2d.get_path(x1_2d, x2_2d, ray_tracing_C0[i, iS])
             ax.plot(xx, zz, '{}'.format(php.get_color_linestyle(i)), label='{} C0 = {:.4f}, f = {:.2f}'.format(ray_tracing_solution_type[i, iS], ray_tracing_C0[i, iS], focusing))
             ax.plot(x_stop[0], x_stop[2], '{}{}-'.format('d', php.get_color(i)))
