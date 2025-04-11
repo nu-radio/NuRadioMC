@@ -1335,7 +1335,7 @@ class AntennaPattern(AntennaPatternBase):
     """
 
     def __init__(self, antenna_model, path=path_to_antennamodels,
-                 interpolation_method='complex', do_consistency_check=False):
+                 interpolation_method='complex', do_consistency_check=True):
         """
 
         Parameters
@@ -1350,9 +1350,9 @@ class AntennaPattern(AntennaPatternBase):
             * 'complex' (default) interpolate real and imaginary part of vector effective length
             * 'magphase' interpolate magnitude and phase of vector effective length
 
-        consistency_check: bool (default: False)
-            if True, the consistency of the antenna response is checked. Although the default is False,
-            this the check is always performed if the antenna response file could not be verified.
+        consistency_check: bool (default: True)
+            If True, the consistency of the antenna response is checked but only if the antenna could not be
+            verifed from its hash sum. 
         """
 
         self._name = antenna_model
@@ -1392,7 +1392,7 @@ class AntennaPattern(AntennaPatternBase):
         self.VEL_phi = H_phi
         self.VEL_theta = H_theta
 
-        if do_consistency_check or not verified:
+        if do_consistency_check and not verified:
             logger.debug("Performing consistency check on antenna response ...")
             # additional consistency check
             for iFreq, freq in enumerate(self.frequencies):
