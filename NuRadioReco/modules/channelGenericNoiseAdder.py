@@ -560,15 +560,17 @@ class channelGenericNoiseAdder:
             else:
                 tmp_ampl = amplitude
 
-            noise = self.bandlimited_noise(min_freq=min_freq,
-                                           max_freq=max_freq,
-                                           n_samples=trace.shape[0],
-                                           sampling_rate=sampling_rate,
-                                           amplitude=tmp_ampl,
-                                           type=type,
-                                           bandwidth=bandwidth,
-                                           station_id=station_id,
-                                           channel_id=channel_id)
+            noise = self.bandlimited_noise(
+                min_freq=min_freq,
+                max_freq=max_freq,
+                n_samples=trace.shape[0],
+                sampling_rate=sampling_rate,
+                amplitude=tmp_ampl,
+                type=type,
+                bandwidth=bandwidth,
+                station_id=station_id,
+                channel_id=channel_id
+            )
 
             if self.__debug:
                 new_trace = trace + noise

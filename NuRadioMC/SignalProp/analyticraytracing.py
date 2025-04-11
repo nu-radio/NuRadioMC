@@ -434,7 +434,7 @@ class ray_tracing_2D(ray_tracing_base):
                 global get_reflection_point,obj_delta_y_square,get_delta_y
                 global get_y_turn, get_y_with_z_mirror,get_turning_point
                 global get_gamma, get_y, get_C0_from_log
-                global  get_z_unmirrored, get_y_diff, n
+                global get_z_unmirrored, n
                 try:
                     get_reflection_point = jit(get_reflection_point, nopython=True, cache=True)
                     obj_delta_y_square = jit(obj_delta_y_square, nopython=True, cache=True)
