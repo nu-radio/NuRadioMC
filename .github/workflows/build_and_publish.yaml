@@ -60,13 +60,15 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        repository_url: https://test.pypi.org/legacy/
+        repository-url: https://test.pypi.org/legacy/
+        verbose: true
 
     - name: Publish distribution 📦 to PyPI
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
+        verbose: true
 
     - name: Make tag and release
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
