@@ -53,7 +53,7 @@ if __name__ == "__main__":
         C0 = r.get_results()[0]['C0']
         x1 = np.array([-rr[i], zz[i]])
         x2 = np.array([0, -5])
-        r2 = ray.ray_tracing_2D(medium.southpole_simple(), n_frequencies_integration=25)
+        r2 = ray.ray_tracing_2D(medium.southpole_simple())
         yyy, zzz = r2.get_path(x1, x2, C0)
 
         launch_vector = fin['launch_vectors'][i][0][0]
