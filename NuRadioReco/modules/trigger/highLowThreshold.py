@@ -24,15 +24,17 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
         the high threshold
     low_threshold: float
         the low threshold
-    time_coincidence: float
+    time_coincidence: float (default: 5 ns)
         the time coincidence window between a high + low
-    dt: float
+    dt: float (default: 1 ns)
         the width of a time bin (inverse of sampling rate)
-    step: int
+    step: int (default: 1_
         stride length for sampling rate and clock rate mismatch in trigger logic
-    align_strides_to_start: bool
+    align_strides_to_start: bool (default: False)
         If true, the trace represents real detector data and will force the striding
-        to start at the beginning of the trace without padding
+        to start at the beginning of the trace without padding. If false, the traces
+        will be zero-padded at the beginning of the trace. This allows a trigger at 
+        beginning of the trace to be associated with the correct trigger time.
 
     Returns
     -------
@@ -48,7 +50,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
 
     if not align_strides_to_start:
         # Pad trace so trigger bin matches with sample index
-        padded_trace = np.pad(trace, (n_bins_coincidence-1, 0), "constant")
+        padded_trace = np.pad(trace, (n_bins_coincidence - 1, 0), "constant")
     else:
         padded_trace = trace
 
@@ -88,15 +90,17 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         an array of bools that indicate a single channel trigger per channel
     number_of_coincidences: int (default: 2)
         the number of coincidences between channels
-    time_coincidence: float
+    time_coincidence: float (default: 32 ns)
         the time coincidence window between channels
-    dt: float
+    dt: float (default: 1ns)
         the width of a time bin (inverse of sampling rate)
-    step: int
+    step: int (default: 1)
         stride length for sampling rate and clock rate mismatch in trigger logic
-    align_strides_to_start: bool
+    align_strides_to_start: bool (default: False)
         If true, the trace represents real detector data and will force the striding
-        to start at the beginning of the trace without padding
+        to start at the beginning of the trace without padding. If false, the traces
+        will be zero-padded at the beginning of the trace. This allows a trigger at 
+        beginning of the trace to be associated with the correct trigger time.
 
     Returns
     -------
@@ -117,7 +121,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
 
     for i in range(len(tts)):
         if not align_strides_to_start:
-            trace = np.pad(tts[i], (n_bins_coincidence-1, 0), "constant")
+            trace = np.pad(tts[i], (n_bins_coincidence - 1, 0), "constant")
         else:
             trace = tts[i]
 
@@ -213,9 +217,11 @@ class triggerSimulator:
             * 'counts' to store the ADC output in ADC counts
         step: int
             stride length for sampling rate and clock rate mismatch in trigger logic
-        align_strides_to_start: bool
+        align_strides_to_start: bool (default: False)
             If true, the trace represents real detector data and will force the striding
-            to start at the beginning of the trace without padding
+            to start at the beginning of the trace without padding. If false, the traces
+            will be zero-padded at the beginning of the trace. This allows a trigger at 
+            beginning of the trace to be associated with the correct trigger time.
         """
         t = time.time()
 
@@ -273,7 +279,7 @@ class triggerSimulator:
 
             if len(triggerd_bins_channels):
                 has_triggered, triggered_bins, triggered_times = get_majority_logic(
-                    triggerd_bins_channels, number_concidences, coinc_window, dt*step, 1, align_strides_to_start)
+                    triggerd_bins_channels, number_concidences, coinc_window, dt * step, 1, align_strides_to_start)
             else:
                 has_triggered = False
 
