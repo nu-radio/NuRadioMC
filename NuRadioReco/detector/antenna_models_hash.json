@@ -55,5 +55,9 @@
   "SKALA_InfFirn": "69b3007da083bb722a4494af97221917973ab297",
   "SKALA_v4_Xpol.pkl": "358fd555653fe00ea9383139d6a14cc9d63e8b01",
   "SKALA_v4_Ypol.pkl": "daa13bcc559dbc4750be34d0bbc9fa12bbadb522",
-  "LOFAR_LBA.pkl": "19e1021d3c70fb64f663a0819130d1d91a97dbaa"
+  "LOFAR_LBA.pkl": "19e1021d3c70fb64f663a0819130d1d91a97dbaa",
+  "SmallBlackSpider_ground2_measured.pkl": "41a8b7786419e780abb76a6725a10d4b588e607d",
+  "Butterfly_ground2.pkl": "ad799d1aa17d6846452dcb3bd3105afacd2fc407",
+  "Butterfly_ground2_East.pkl": "c0de92602ec0090faadd7165739b617acdd65262",
+  "Butterfly_ground2_North.pkl": "84299595c0cf96d172fcee98dccf85c1f2ce732d"
 }
