@@ -633,11 +633,9 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">medium_base</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">medium_base</span><span class="o">.</span><span class="n">logger</span>
 
@@ -827,26 +825,26 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        z_air_boundary:  float, NuRadio length units</span>
-<span class="sd">                         z coordinate of the surface of the glacier</span>
-<span class="sd">        z_bottom:  float, NuRadio length units</span>
-<span class="sd">                   z coordinate of the bedrock/bottom of the glacier.</span>
-<span class="sd">        z_firn:  float, NuRadio length units</span>
-<span class="sd">                 z coordinate of the transition from the upper</span>
-<span class="sd">                 exponential profile to the lower one</span>
+<span class="sd">        z_air_boundary: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the surface of the glacier</span>
+<span class="sd">        z_bottom: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the bedrock/bottom of the glacier.</span>
+<span class="sd">        z_firn: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the transition from the upper</span>
+<span class="sd">            exponential profile to the lower one</span>
 
 <span class="sd">        The following parameters can be found without (lower)</span>
 <span class="sd">        and with (upper) the suffix of `_firn`</span>
 
-<span class="sd">        n_ice:  float, dimensionless</span>
-<span class="sd">                refractive index of the deep bulk ice</span>
-<span class="sd">        delta_n:  float, NuRadio length units</span>
-<span class="sd">                  difference between n_ice and the refractive index</span>
-<span class="sd">                  of the snow at the surface</span>
-<span class="sd">        z_0:  float, NuRadio length units</span>
-<span class="sd">              scale depth of the exponential</span>
-<span class="sd">        z_shift:  float, NuRadio length units</span>
-<span class="sd">                  up or down shift od the exponential profile</span>
+<span class="sd">        n_ice: float, dimensionless</span>
+<span class="sd">            refractive index of the deep bulk ice</span>
+<span class="sd">        delta_n: float, NuRadio length units</span>
+<span class="sd">            difference between n_ice and the refractive index</span>
+<span class="sd">            of the snow at the surface</span>
+<span class="sd">        z_0: float, NuRadio length units</span>
+<span class="sd">            scale depth of the exponential</span>
+<span class="sd">        z_shift: float, NuRadio length units</span>
+<span class="sd">            up or down shift od the exponential profile</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">medium_base</span><span class="o">.</span><span class="n">radiopropa_is_imported</span><span class="p">:</span>
@@ -879,12 +877,12 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        position:  3dim np.array</span>
-<span class="sd">                    point</span>
+<span class="sd">        position: 3dim np.array</span>
+<span class="sd">            point</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        n:  float</span>
+<span class="sd">        n: float</span>
 <span class="sd">            index of refraction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">position</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">position</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">))</span>
@@ -901,14 +899,14 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        position1: 3dim np.array</span>
-<span class="sd">                    point</span>
+<span class="sd">            point</span>
 <span class="sd">        position2: 3dim np.array</span>
-<span class="sd">                    point</span>
+<span class="sd">            point</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        n_average:  float</span>
-<span class="sd">                    averaged index of refraction between the two points</span>
+<span class="sd">        n_average: float</span>
+<span class="sd">            averaged index of refraction between the two points</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">position1</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">position1</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">))</span>
         <span class="n">position2</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">position2</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">))</span>
@@ -926,12 +924,12 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        position: 3dim np.array</span>
-<span class="sd">                    point</span>
+<span class="sd">            point</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        n_nabla:    (3,) np.array</span>
-<span class="sd">                    gradient of index of refraction at the point</span>
+<span class="sd">        n_nabla: np.array(3,)</span>
+<span class="sd">            gradient of index of refraction at the point</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">position</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scalarfield</span><span class="o">.</span><span class="n">getGradient</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">))</span></div>
@@ -949,8 +947,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        ice_model_radiopropa:   RadioPropaIceWrapper</span>
-<span class="sd">                                object holding the radiopropa scalarfield and modules</span>
+<span class="sd">        ice_model_radiopropa: RadioPropaIceWrapper</span>
+<span class="sd">            object holding the radiopropa scalarfield and modules</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">medium_base</span><span class="o">.</span><span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scalarfield</span><span class="p">)</span></div>
 
@@ -972,14 +970,38 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        ice_model_radiopropa:   RadioPropaIceWrapper</span>
-<span class="sd">                                object holding the radiopropa scalarfield and modules</span>
+<span class="sd">        ice_model_radiopropa: RadioPropaIceWrapper</span>
+<span class="sd">            object holding the radiopropa scalarfield and modules</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ice</span> <span class="o">=</span> <span class="n">greenland_firn</span><span class="o">.</span><span class="n">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="c1">#fraction from ArXiv 1805.12576 table IV last row</span>
         <span class="n">perturbation_horz</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">PerturbationHorizontal</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">ice</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="s1">&#39;horizontal perturbation&#39;</span><span class="p">,</span><span class="n">perturbation_horz</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ice</span></div>
+
+
+<div class="viewcode-block" id="greenland_poly5">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_poly5">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">greenland_poly5</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExponentialPolynomial</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fifth-degree exponential polynomial model for Summit Station, Greenland by Oeyen B.</span>
+<span class="sd">    https://doi.org/10.5281/zenodo.15067984</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">density_factor</span><span class="o">=</span><span class="mf">0.851</span> <span class="o">*</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">3</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">gram</span><span class="p">)):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        initiation of the model based on the fitted coefficient</span>
+
+<span class="sd">        The bottom defined here is a boundary condition used in simulations and</span>
+<span class="sd">        should always be defined. Note: it is not the same as reflective bottom.</span>
+<span class="sd">        The latter can be added using the `add_reflective_layer` function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">a</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">917</span><span class="p">,</span> <span class="o">-</span><span class="mf">62.2</span><span class="p">,</span> <span class="mi">1177</span><span class="p">,</span> <span class="o">-</span><span class="mi">9051</span><span class="p">,</span> <span class="mi">14360</span><span class="p">,</span> <span class="o">-</span><span class="mi">7024</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">kg</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="o">**</span><span class="mi">3</span><span class="p">),</span>
+            <span class="n">z_0</span><span class="o">=</span><span class="mf">74.6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">density_factor</span><span class="o">=</span><span class="n">density_factor</span><span class="p">,</span>
+            <span class="n">z_bottom</span><span class="o">=-</span><span class="mi">3000</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="p">)</span></div>
 
 
 
@@ -1008,12 +1030,12 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name: string</span>
-<span class="sd">          name of the class of the requested ice model</span>
+<span class="sd">        name of the class of the requested ice model</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    ice_model: IceModel object</span>
-<span class="sd">               object of the class with the name of the requested model</span>
+<span class="sd">        object of the class with the name of the requested model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">name</span><span class="p">]()</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.&#39;</span><span class="p">)</span>

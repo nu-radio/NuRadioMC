@@ -624,12 +624,10 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.utilities.medium_base</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate</span><span class="p">,</span> <span class="n">integrate</span><span class="p">,</span> <span class="n">linalg</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">integrate</span><span class="p">,</span> <span class="n">linalg</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
 <span class="k">try</span><span class="p">:</span>
@@ -639,6 +637,7 @@
     <span class="n">radiopropa_is_imported</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.ice_model&#39;</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="IceModel">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel">[docs]</a>
@@ -656,10 +655,10 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        z_air_boundary:  float, NuRadio length units</span>
-<span class="sd">                         z coordinate of the surface of the glacier</span>
-<span class="sd">        z_bottom:  float, NuRadio length units</span>
-<span class="sd">                   z coordinate of the bedrock/bottom of the glacier.</span>
+<span class="sd">        z_air_boundary: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the surface of the glacier</span>
+<span class="sd">        z_bottom: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the bedrock/bottom of the glacier.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">=</span> <span class="n">z_air_boundary</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z_bottom</span> <span class="o">=</span> <span class="n">z_bottom</span>
@@ -676,18 +675,18 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        refl_z:  float, NuRadio length units</span>
-<span class="sd">                 z coordinate of the bottom reflective layer</span>
-<span class="sd">        refl_coef:  float between 0 and 1</span>
-<span class="sd">                    fraction of the electric field that gets reflected</span>
-<span class="sd">        refl_phase_shift:  float, NuRadio angukar units</span>
-<span class="sd">                           phase shoft that the reflected electric field receives</span>
+<span class="sd">        refl_z: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the bottom reflective layer</span>
+<span class="sd">        refl_coef: float between 0 and 1</span>
+<span class="sd">            fraction of the electric field that gets reflected</span>
+<span class="sd">        refl_phase_shift: float, NuRadio angukar units</span>
+<span class="sd">            phase shoft that the reflected electric field receives</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reflection</span> <span class="o">=</span> <span class="n">refl_z</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reflection_coefficient</span> <span class="o">=</span> <span class="n">refl_coef</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reflection_phase_shift</span> <span class="o">=</span> <span class="n">refl_phase_shift</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">z_bottom</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_bottom</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">reflection</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">z_bottom</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_bottom</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">reflection</span><span class="p">)):</span>
             <span class="c1"># bottom should always be below the reflective layer</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">z_bottom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reflection</span> <span class="o">-</span> <span class="mi">1</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">m</span></div>
 
@@ -695,76 +694,77 @@
 <div class="viewcode-block" id="IceModel.get_index_of_refraction">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns the index of refraction at position.</span>
-<span class="sd">        Reimplement everytime in the specific model</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the index of refraction at position.</span>
+
+<span class="sd">        Has to be reimplement for every specific model.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        position:  3dim np.array</span>
-<span class="sd">                    point</span>
+<span class="sd">        position: 3dim np.array</span>
+<span class="sd">            point</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        n:  float</span>
+<span class="sd">        n: float</span>
 <span class="sd">            index of refraction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Function not implemented - this function has to be reimplemented for every specific model&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Function not implemented - this function has to be reimplemented for every specific model&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="IceModel.get_average_index_of_refraction">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_average_index_of_refraction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_average_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position1</span><span class="p">,</span> <span class="n">position2</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns the average index of refraction between two points</span>
-<span class="sd">        Reimplement everytime in the specific model</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the average index of refraction between two points</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        position1: 3dim np.array</span>
-<span class="sd">                    point</span>
+<span class="sd">            point</span>
 <span class="sd">        position2: 3dim np.array</span>
-<span class="sd">                    point</span>
+<span class="sd">            point</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        n_average:  float</span>
-<span class="sd">                    averaged index of refraction between the two points</span>
+<span class="sd">        n_average: float</span>
+<span class="sd">            averaged index of refraction between the two points</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Using general implementation of function which might be slow. For faster calculation, overwrite with an ice model specific function&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s1">&#39;Using general implementation of function which might be slow. &#39;</span>
+            <span class="s1">&#39;For faster calculation, overwrite with an ice model specific function&#39;</span><span class="p">)</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">):</span>
-            <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">])</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
 
         <span class="n">ranges</span> <span class="o">=</span> <span class="p">[[</span><span class="n">position1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">position2</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
                   <span class="p">[</span><span class="n">position1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">position2</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
                   <span class="p">[</span><span class="n">position1</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">position2</span><span class="p">[</span><span class="mi">2</span><span class="p">]]]</span>
-        <span class="n">int_result</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">nquad</span><span class="p">(</span><span class="n">get_index_of_refraction</span><span class="p">,</span><span class="n">ranges</span><span class="p">)</span>
-        <span class="n">n_average</span> <span class="o">=</span> <span class="n">int_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">position2</span><span class="o">-</span><span class="n">position1</span><span class="p">)</span>
+
+        <span class="n">int_result</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">nquad</span><span class="p">(</span><span class="n">get_index_of_refraction</span><span class="p">,</span> <span class="n">ranges</span><span class="p">)</span>
+        <span class="n">n_average</span> <span class="o">=</span> <span class="n">int_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">position2</span> <span class="o">-</span> <span class="n">position1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">n_average</span></div>
 
 
 <div class="viewcode-block" id="IceModel.get_gradient_of_index_of_refraction">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_gradient_of_index_of_refraction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns the gradient of index of refraction at position</span>
-<span class="sd">        Reimplement everytime in the specific model</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the gradient of index of refraction at position</span>
+
+<span class="sd">        Has to be reimplement for every specific model.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        position: 3dim np.array</span>
-<span class="sd">                    point</span>
+<span class="sd">            point</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        n_nabla:    (3,) np.array</span>
-<span class="sd">                    gradient of index of refraction at the point</span>
+<span class="sd">        n_nabla: (3,) np.array</span>
+<span class="sd">            Gradient of index of refraction at the point</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Function not implemented - this function has to be reimplemented for every specific model&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Function not implemented - this function has to be reimplemented for every specific model&#39;</span><span class="p">)</span></div>
 
 
 
@@ -777,11 +777,10 @@
 
 <span class="sd">        This is the default and should always be overriden/implemented in new ice model!</span>
 
-
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        ice_model_radiopropa:   RadioPropaIceWrapper</span>
-<span class="sd">                                object holding the radiopropa scalarfield and modules</span>
+<span class="sd">        ice_model_radiopropa: RadioPropaIceWrapper</span>
+<span class="sd">            Object holding the radiopropa scalarfield and modules</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependancy was not import and can therefore not be used. </span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
@@ -789,8 +788,8 @@
 
         <span class="c1"># when implementing a new ice_model this part of the function should be ice model specific</span>
         <span class="c1"># if the new ice_model cannot be used in RadioPropa, this function should throw an error</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Function not implemented - this function has to be reimplemented for every specific model&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Function not implemented - this function has to be reimplemented for every specific model&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="IceModel.get_ice_model_radiopropa">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa">[docs]</a>
@@ -807,8 +806,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        ice:    RadioPropaIceWrapper</span>
-<span class="sd">                object holding the radiopropa scalarfield and modules</span>
+<span class="sd">        ice: RadioPropaIceWrapper</span>
+<span class="sd">            Object holding the radiopropa scalarfield and modules</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependancy was not import and can therefore not be used. </span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
@@ -832,12 +831,13 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        ice_model_radioprop:    RadioPropaIceWrapper</span>
-<span class="sd">                                object holding the radiopropa scalarfield and modules</span>
+<span class="sd">        ice_model_radioprop: RadioPropaIceWrapper</span>
+<span class="sd">            Object holding the radiopropa scalarfield and modules</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependancy was not import and can therefore not be used. </span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependancy was not import and can therefore not be used. &#39;</span>
+                         <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_ice_model_radiopropa</span> <span class="o">=</span> <span class="n">ice_model_radiopropa</span></div>
@@ -849,7 +849,7 @@
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IceModelSimple</span><span class="p">(</span><span class="n">IceModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    predefined ice model (to inherit from) with exponential shape</span>
+<span class="sd">    Predefined ice model (to inherit from) with exponential shape</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">n_ice</span><span class="p">,</span>
@@ -861,7 +861,7 @@
                  <span class="p">):</span>
 
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        initiaion of a simple exponential ice model</span>
+<span class="sd">        Initiaion of a simple exponential ice model</span>
 
 <span class="sd">        The bottom defined here is a boundary condition used in simulations and</span>
 <span class="sd">        should always be defined. Note: it is not the same as reflective bottom.</span>
@@ -874,19 +874,19 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        z_air_boundary:  float, NuRadio length units</span>
-<span class="sd">                         z coordinate of the surface of the glacier</span>
-<span class="sd">        z_bottom:  float, NuRadio length units</span>
-<span class="sd">                   z coordinate of the bedrock/bottom of the glacier.</span>
-<span class="sd">        n_ice:  float, dimensionless</span>
-<span class="sd">                refractive index of the deep bulk ice</span>
-<span class="sd">        delta_n:  float, NuRadio length units</span>
-<span class="sd">                  difference between n_ice and the refractive index</span>
-<span class="sd">                  of the snow at the surface</span>
-<span class="sd">        z_0:  float, NuRadio length units</span>
-<span class="sd">              scale depth of the exponential</span>
-<span class="sd">        z_shift:  float, NuRadio length units</span>
-<span class="sd">                  up or down shift od the exponential profile</span>
+<span class="sd">        z_air_boundary: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the surface of the glacier</span>
+<span class="sd">        z_bottom: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the bedrock/bottom of the glacier.</span>
+<span class="sd">        n_ice: float, dimensionless</span>
+<span class="sd">            refractive index of the deep bulk ice</span>
+<span class="sd">        delta_n: float, NuRadio length units</span>
+<span class="sd">            difference between n_ice and the refractive index</span>
+<span class="sd">            of the snow at the surface</span>
+<span class="sd">        z_0: float, NuRadio length units</span>
+<span class="sd">            scale depth of the exponential</span>
+<span class="sd">        z_shift: float, NuRadio length units</span>
+<span class="sd">            up or down shift od the exponential profile</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">z_air_boundary</span><span class="p">,</span> <span class="n">z_bottom</span><span class="p">)</span>
@@ -899,19 +899,17 @@
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_index_of_refraction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns the index of refraction at position.</span>
-<span class="sd">        Overwrites function of the mother class</span>
+<span class="sd">        Returns the index of refraction at position.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        position:  1D (3,) or 2D (n,3) numpy array</span>
-<span class="sd">                    Either one position or an array</span>
-<span class="sd">                    of positions for which the indices</span>
-<span class="sd">                    of refraction are returned</span>
+<span class="sd">        position: 1D (3,) or 2D (n,3) numpy array</span>
+<span class="sd">            Either one position or an array of positions for which the indices</span>
+<span class="sd">            of refraction are returned,</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        n:  float or 1D numpy array (n,)</span>
+<span class="sd">        n: float or 1D numpy array (n,)</span>
 <span class="sd">            index of refraction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -929,24 +927,21 @@
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_average_index_of_refraction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_average_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position1</span><span class="p">,</span> <span class="n">position2</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns the average index of refraction between two points</span>
-<span class="sd">        Overwrites function of the mother class</span>
+<span class="sd">        Returns the average index of refraction between two points</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        position1: 1D (3,) or 2D (n,3) numpy array</span>
-<span class="sd">                    Either one position or an array</span>
-<span class="sd">                    of positions for which the indices</span>
-<span class="sd">                    of average refraction are returned</span>
+<span class="sd">            Either one position or an array of positions for which the indices</span>
+<span class="sd">            of average refraction are returned</span>
 <span class="sd">        position2: 1D (3,) or 2D (n,3) numpy array</span>
-<span class="sd">                    Either one position or an array</span>
-<span class="sd">                    of positions for which the indices</span>
-<span class="sd">                    of average refraction are returned</span>
+<span class="sd">            Either one position or an array of positions for which the indices</span>
+<span class="sd">            of average refraction are returned</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        n_average:  float of 1D numpy array (n,)</span>
-<span class="sd">                    averaged index of refraction between the two points</span>
+<span class="sd">        n_average: float of 1D numpy array (n,)</span>
+<span class="sd">            averaged index of refraction between the two points</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">exp_average</span><span class="p">(</span><span class="n">z_max</span><span class="p">,</span> <span class="n">z_min</span><span class="p">):</span>
@@ -977,20 +972,18 @@
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_gradient_of_index_of_refraction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns the gradient of index of refraction at position</span>
-<span class="sd">        Overwrites function of the mother class</span>
+<span class="sd">        Returns the gradient of index of refraction at position</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        position: 1D or 2D numpy array</span>
-<span class="sd">                    Either one position or an array</span>
-<span class="sd">                    of positions for which the gradient</span>
-<span class="sd">                    of index of refraction is returned</span>
+<span class="sd">            Either one position or an array of positions for which the gradient</span>
+<span class="sd">            of index of refraction is returned</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        n_nabla:    1D (3,) or 2D (n,3) numpy array</span>
-<span class="sd">                    gradient of index of refraction at the point</span>
+<span class="sd">        n_nabla: 1D (3,) or 2D (n,3) numpy array</span>
+<span class="sd">            gradient of index of refraction at the point</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">gradient_z</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
             <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_n</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">z</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span><span class="p">)</span>
@@ -1015,22 +1008,21 @@
 <span class="sd">        using the simple ice model implementation in radiopropa and some modules, like a</span>
 <span class="sd">        discontinuity object for the air boundary.</span>
 
-<span class="sd">        Overwrites function of the mother class</span>
-
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        ice:    RadioPropaIceWrapper</span>
-<span class="sd">                object holding the radiopropa scalarfield and modules</span>
+<span class="sd">        ice: RadioPropaIceWrapper</span>
+<span class="sd">            Object holding the radiopropa scalarfield and modules</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependency was not import and can therefore not be used.&#39;</span>
                         <span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span>
 
-        <span class="n">scalar_field</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">IceModel_Simple</span><span class="p">(</span><span class="n">z_surface</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
-                                        <span class="n">n_ice</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span> <span class="n">delta_n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span>
-                                        <span class="n">z_0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_0</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
-                                        <span class="n">z_shift</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
+        <span class="n">scalar_field</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">IceModel_Simple</span><span class="p">(</span>
+            <span class="n">z_surface</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">n_ice</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span> <span class="n">delta_n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span>
+            <span class="n">z_0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_0</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">z_shift</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">)</span></div>
 
 
@@ -1064,16 +1056,16 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_birefringence_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
 
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns the birefringent index of refraction at any position, no density effects are included at this point.</span>
+<span class="sd">        Returns the birefringent index of refraction at any position, no density effects are included at this point.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        position:  3dim np.array [x, y, z]</span>
+<span class="sd">        position: 3dim np.array [x, y, z]</span>
 <span class="sd">            position at which the ice model should be evaluated</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        n:  list [nx, ny, nz]</span>
+<span class="sd">        n: list [nx, ny, nz]</span>
 <span class="sd">            index of refraction for every direction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1082,6 +1074,229 @@
         <span class="n">nz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f3</span><span class="p">(</span> <span class="o">-</span> <span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span></div>
+</div>
+
+
+<div class="viewcode-block" id="IceModelExponentialPolynomial">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExponentialPolynomial">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IceModelExponentialPolynomial</span><span class="p">(</span><span class="n">IceModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predefined ice model (to inherit from) with polynomial exponential shape of degree n</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">z_0</span><span class="p">,</span> <span class="n">z_shift</span><span class="o">=</span><span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> <span class="n">z_air_boundary</span><span class="o">=</span><span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> <span class="n">z_bottom</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">density_factor</span><span class="o">=</span><span class="mf">0.8506</span> <span class="o">*</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">3</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">gram</span><span class="p">)):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initiation of an exponential polynomial ice model.</span>
+
+<span class="sd">        .. math::</span>
+
+<span class="sd">            n(z) = 1 + density_factor * \sum_{i=0}^{n}( a_{i} * \exp^{i * (z - z_shift) / z_0} )</span>
+
+<span class="sd">        for z_bottom &lt; z &lt; z_air_boundary, see eq. 5.2 in https://doi.org/10.5281/zenodo.15067984</span>
+
+<span class="sd">        The bottom defined here is a boundary condition used in simulations and</span>
+<span class="sd">        should always be defined. Note: it is not the same as reflective bottom.</span>
+<span class="sd">        The latter can be added using the `add_reflective_layer` function.</span>
+
+<span class="sd">        The z_shift is a variable introduced to be able to shift the model</span>
+<span class="sd">        up or down along the z direction when this is needed to account for</span>
+<span class="sd">        differences along station for example.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        a: (n,) np.array of floats, NuRadio density units</span>
+<span class="sd">            coefficients for the nth-degree exponential polynomial</span>
+<span class="sd">            describing the vertical ice density profile</span>
+<span class="sd">        z_0: float, NuRadio length units</span>
+<span class="sd">            scale depth of the exponential</span>
+
+<span class="sd">        [optional]</span>
+<span class="sd">        z_shift: float, NuRadio length units</span>
+<span class="sd">            up or down shift od the exponential profile</span>
+<span class="sd">        z_air_boundary: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the surface of the glacier</span>
+<span class="sd">        z_bottom: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the bedrock/bottom of the glacier.</span>
+<span class="sd">        density_factor: float, NuRadio density units</span>
+<span class="sd">            factor used to translate density to refractive index</span>
+<span class="sd">            using Robin&#39;s equation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">z_air_boundary</span><span class="o">=</span><span class="n">z_air_boundary</span><span class="p">,</span> <span class="n">z_bottom</span> <span class="o">=</span> <span class="n">z_bottom</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z_0</span> <span class="o">=</span> <span class="n">z_0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_a</span> <span class="o">=</span> <span class="n">a</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_density_factor</span> <span class="o">=</span> <span class="n">density_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z_air_boundary</span> <span class="o">=</span> <span class="n">z_air_boundary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z_shift</span> <span class="o">=</span> <span class="n">z_shift</span>
+
+<div class="viewcode-block" id="IceModelExponentialPolynomial.get_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExponentialPolynomial.get_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the index of refraction at position.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position: np.array of shape (3,) or (n,3)</span>
+<span class="sd">            point(s) in space</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        n: float</span>
+<span class="sd">            index of refraction</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">ior</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">z</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_shift</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_0</span><span class="p">)</span>
+            <span class="n">rho</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_a</span><span class="p">):</span>
+                <span class="n">rho</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="n">i</span>
+            <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">rho</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_density_factor</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">ior</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mf">1.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ior</span> <span class="o">=</span> <span class="n">ior</span><span class="p">(</span><span class="n">position</span><span class="p">[:,</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">ior</span><span class="p">[</span><span class="n">position</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+            <span class="k">return</span> <span class="n">ior</span></div>
+
+
+<div class="viewcode-block" id="IceModelExponentialPolynomial.get_average_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExponentialPolynomial.get_average_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_average_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position1</span><span class="p">,</span> <span class="n">position2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the average index of refraction between two points</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position1: np.array of shape (3,) or (n,3)</span>
+<span class="sd">            point(s) in space</span>
+<span class="sd">        position2: np.array of shape (3,) or (n,3)</span>
+<span class="sd">            point(s) in space</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        n_average: float</span>
+<span class="sd">            averaged index of refraction between the two points</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">position1</span> <span class="o">-</span> <span class="n">position2</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">.1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">position1</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">int_rho</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">z</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_shift</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_0</span><span class="p">)</span>
+            <span class="n">int_rho_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">z</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_shift</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_a</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">int_rho_z</span> <span class="o">+=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_0</span><span class="o">/</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="n">i</span>
+            <span class="k">return</span> <span class="n">int_rho_z</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">position1</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">position2</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position2</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">position1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="n">position2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">((</span><span class="n">int_rho</span><span class="p">(</span><span class="n">position2</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="n">int_rho</span><span class="p">(</span><span class="n">position1</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span> <span class="o">/</span> <span class="p">(</span><span class="n">position2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">position1</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_density_factor</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">position1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="n">position2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pos_min</span> <span class="o">=</span> <span class="n">position1</span>
+                <span class="n">pos_max</span> <span class="o">=</span> <span class="n">position2</span>
+                <span class="k">if</span> <span class="n">position1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&gt;</span><span class="n">position2</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+                    <span class="n">pos_min</span> <span class="o">=</span> <span class="n">position2</span>
+                    <span class="n">pos_max</span> <span class="o">=</span> <span class="n">position1</span>
+                <span class="n">integral_ice</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">int_rho</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_air_boundary</span><span class="p">)</span> <span class="o">-</span> <span class="n">int_rho</span><span class="p">(</span><span class="n">pos_min</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_density_factor</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">integral_air</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="p">(</span><span class="n">pos_max</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z_air_boundary</span><span class="p">)</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">integral_ice</span> <span class="o">+</span> <span class="n">integral_air</span><span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pos_max</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">pos_min</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">((</span><span class="n">position1</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">((</span><span class="n">position2</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">((</span><span class="n">int_rho</span><span class="p">(</span><span class="n">position2</span><span class="p">[:,</span><span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="n">int_rho</span><span class="p">(</span><span class="n">position1</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]))</span> <span class="o">/</span> <span class="p">(</span><span class="n">position2</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">position1</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]))</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_density_factor</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="nb">all</span><span class="p">((</span><span class="n">position1</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">((</span><span class="n">position2</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">position1</span><span class="p">[:,</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function cannot handle averages accros boundary when using arrays of positions.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IceModelExponentialPolynomial.get_gradient_of_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExponentialPolynomial.get_gradient_of_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the gradient of index of refraction at position</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position: np.array of shape (3,) or (n, 3)</span>
+<span class="sd">            point(s) in space</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        n_nabla: (3,) np.array</span>
+<span class="sd">            gradient of index of refraction at the point</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">dior_dz</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">z</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_shift</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_0</span><span class="p">)</span>
+            <span class="n">drho_dz</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_a</span><span class="p">):</span>
+                <span class="n">drho_dz</span> <span class="o">+=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">i</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_0</span><span class="p">)</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="n">i</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">drho_dz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_density_factor</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dior_dz</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dior</span> <span class="o">=</span> <span class="n">dior_dz</span><span class="p">(</span><span class="n">position</span><span class="p">[:,</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">dior</span><span class="p">[</span><span class="n">position</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">dior</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">dior</span><span class="p">),</span><span class="n">dior</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If radiopropa is installed this will compute and return a default object holding the</span>
+<span class="sd">        radiopropa scalarfield and necessary radiopropa moduldes that define the medium in</span>
+<span class="sd">        radiopropa. It uses the parameters of the medium object to contruct the scalar field</span>
+<span class="sd">        using the polynomial ice model implementation in radiopropa and some modules, like a</span>
+<span class="sd">        discontinuity object for the air boundary.</span>
+
+<span class="sd">        If you want to add, remove or replace modules, you can use the returned object to adjust</span>
+<span class="sd">        the model to your liking and set it using the set_ice_model_radiopropa function.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ice: RadioPropaIceWrapper</span>
+<span class="sd">            object holding the radiopropa scalarfield and modules</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">DoubleVector_1D</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">ai</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a</span><span class="p">:</span>
+                <span class="n">coeff</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">ai</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">kg</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">kilogram</span> <span class="o">/</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span>
+
+            <span class="n">scalar_field</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">IceModel_Polynomial</span><span class="p">(</span>
+                <span class="n">coeff</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_z_0</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_z_shift</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_density_factor</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">**</span><span class="mi">3</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">kilogram</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">**</span><span class="mi">3</span> <span class="o">/</span> <span class="n">RP</span><span class="o">.</span><span class="n">kilogram</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependency was not import and can therefore not be used.&#39;</span>
+                         <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IceModelExponentialPolynomial.set_density_factor">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExponentialPolynomial.set_density_factor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_density_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">density_factor</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the density factor to a new value</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        density_factor: float, NuRadio density units</span>
+<span class="sd">            factor to translate density to refractive index</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_density_factor</span> <span class="o">=</span> <span class="n">density_factor</span></div>
 </div>
 
 
@@ -1176,7 +1391,7 @@
 <span class="sd">            Returns</span>
 <span class="sd">            -------</span>
 <span class="sd">            modules: dictionary {name:module object}</span>
-<span class="sd">                     dictionary of modules to run in radiopropa</span>
+<span class="sd">                dictionary of modules to run in radiopropa</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span></div>
 
@@ -1192,7 +1407,7 @@
 <span class="sd">            Returns</span>
 <span class="sd">            -------</span>
 <span class="sd">            module: module with this name</span>
-<span class="sd">                    radiopropa.module object</span>
+<span class="sd">                radiopropa.module object</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Module with name </span><span class="si">{}</span><span class="s1"> does not exist.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
@@ -1211,10 +1426,10 @@
 
 <span class="sd">            Parameters</span>
 <span class="sd">            ----------</span>
-<span class="sd">            name:   string</span>
-<span class="sd">                    name to identify the module</span>
+<span class="sd">            name: string</span>
+<span class="sd">                name to identify the module</span>
 <span class="sd">            module: radiopropa.Module (and all the daugther classes)</span>
-<span class="sd">                    module to run in radiopropa</span>
+<span class="sd">                module to run in radiopropa</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Module with name </span><span class="si">{}</span><span class="s1"> does already exist, use the replace_module function if you want to replace this module&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
@@ -1233,8 +1448,8 @@
 
 <span class="sd">            Parameters</span>
 <span class="sd">            ----------</span>
-<span class="sd">            name:   string</span>
-<span class="sd">                    name to identify the module to be removed</span>
+<span class="sd">            name: string</span>
+<span class="sd">                name to identify the module to be removed</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
@@ -1250,10 +1465,10 @@
 
 <span class="sd">            Parameters</span>
 <span class="sd">            ----------</span>
-<span class="sd">            name:   string</span>
+<span class="sd">            name: string</span>
 <span class="sd">                    name to identify the module to be replaced</span>
 <span class="sd">            module: radiopropa.Module (and all the daugther classes)</span>
-<span class="sd">                    new module to run in radiopropa</span>
+<span class="sd">                new module to run in radiopropa</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Module with name </span><span class="si">{}</span><span class="s1"> does not exist yet and thus cannot be replaced, module just added&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
@@ -1271,7 +1486,7 @@
 <span class="sd">            Parameters</span>
 <span class="sd">            ----------</span>
 <span class="sd">            scalar_field: radiopropa.ScalarField</span>
-<span class="sd">                          scalar field that holds the refractive index to use in radiopropa</span>
+<span class="sd">                scalar field that holds the refractive index to use in radiopropa</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__scalar_field</span></div>
 </div>
@@ -1291,18 +1506,18 @@
 
 <div class="viewcode-block" id="ScalarFieldBuilder.getValue">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getValue">[docs]</a>
-        <span class="k">def</span><span class="w"> </span><span class="nf">getValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">):</span> <span class="c1">#name may not be changed because linked to c++ radiopropa module</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">getValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span> <span class="c1">#name may not be changed because linked to c++ radiopropa module</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            returns the index of refraction at position for radiopropa tracer</span>
 
 <span class="sd">            Parameters</span>
 <span class="sd">            ----------</span>
-<span class="sd">            position:   radiopropa.Vector3d</span>
-<span class="sd">                        point</span>
+<span class="sd">            position: radiopropa.Vector3d</span>
+<span class="sd">                point</span>
 
 <span class="sd">            Returns</span>
 <span class="sd">            -------</span>
-<span class="sd">            n:  float</span>
+<span class="sd">            n: float</span>
 <span class="sd">                index of refraction</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
@@ -1311,19 +1526,19 @@
 
 <div class="viewcode-block" id="ScalarFieldBuilder.getGradient">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getGradient">[docs]</a>
-        <span class="k">def</span><span class="w"> </span><span class="nf">getGradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">):</span> <span class="c1">#name may not be changed because linked to c++ radiopropa module</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">getGradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span> <span class="c1">#name may not be changed because linked to c++ radiopropa module</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            returns the gradient of index of refraction at position for radiopropa tracer</span>
 
 <span class="sd">            Parameters</span>
 <span class="sd">            ----------</span>
-<span class="sd">            position:   radiopropa.Vector3d</span>
-<span class="sd">                        point</span>
+<span class="sd">            position: radiopropa.Vector3d</span>
+<span class="sd">                point</span>
 
 <span class="sd">            Returns</span>
 <span class="sd">            -------</span>
-<span class="sd">            n_nabla:    radiopropa.Vector3d</span>
-<span class="sd">                        gradient of index of refraction at the point</span>
+<span class="sd">            n_nabla: radiopropa.Vector3d</span>
+<span class="sd">                gradient of index of refraction at the point</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
             <span class="n">gradient</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">))</span>
