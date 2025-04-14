@@ -627,7 +627,7 @@ def parse_AERA_XML_file(path):
         logger.error("AERA antenna file {} not found".format(path))
         raise OSError
 
-    antenna_file = open(path, "rb")
+    antenna_file = open(path, "r")
 
     antenna_data = "<antenna>" + antenna_file.read() + "</antenna>"  # add pseudo root element
 
@@ -714,7 +714,7 @@ def preprocess_AERA(path):
     orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
 
     fname = os.path.split(os.path.basename(path))[1].replace('.xml', '')
-    output_filename = '{}_InfAir.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
+    output_filename = '{}.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
 
     directory = os.path.dirname(output_filename)
     if not os.path.exists(directory):
