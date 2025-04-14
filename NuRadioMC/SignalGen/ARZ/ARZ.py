@@ -327,14 +327,14 @@ class ARZ(object):
         self._random_numbers = {}
         self._version = (1, 2)
 
-        # load shower library into memory
-        library = library or os.path.join(os.path.dirname(__file__), "shower_library/library_v{:d}.{:d}.pkl".format(*self._version))
+        if library is None:
+            library = os.path.join(os.path.dirname(__file__), "shower_library/library_v{:d}.{:d}.pkl".format(*self._version))
+            self.__check_and_get_library()
 
         if not os.path.exists(library):
             logger.error("user specified shower library {} not found.".format(library))
             raise FileNotFoundError("user specified shower library {} not found.".format(library))
 
-        self.__check_and_get_library()
         self.__set_model_parameters(arz_version)
 
         logger.status("Loading shower library ({}) into memory".format(library))
