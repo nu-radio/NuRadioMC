@@ -513,7 +513,7 @@ class ray_tracing_2D(ray_tracing_base):
                 d_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5
                 tmp += d_air
                 z_int = z_turn
-                self.__logger.info(f"adding additional propagation path through air of {d_air/units.m:.1f}m")
+                self.__logger.debug(f"adding additional propagation path through air of {d_air/units.m:.1f}m")
             else:
                 x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
                 gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
@@ -523,7 +523,7 @@ class ray_tracing_2D(ray_tracing_base):
                 z_int = x2_mirrored[1]
             path_length = integrate.quad(self.ds, x1[1], z_int, args=(C_0), points=points,
                                          epsabs=1e-4, epsrel=1.49e-08, limit=50)
-            self.__logger.info(f"calculating path length ({solution_types[self.determine_solution_type(x1, x2, C_0)]}) \
+            self.__logger.debug(f"calculating path length ({solution_types[self.determine_solution_type(x1, x2, C_0)]}) \
                                 from ({x1[0]:.0f}, {x1[1]:.0f}) to ({x2[0]:.2f}, {x2[1]:.2f}) = {path_length[0] / units.m:.2f} m")
             tmp += path_length[0]
         return tmp
@@ -554,7 +554,7 @@ class ray_tracing_2D(ray_tracing_base):
                 T_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5 / speed_of_light
                 tmp += T_air
                 z_int = z_turn
-                self.__logger.info(f"adding additional propagation path through air of {T_air/units.ns:.1f}ns")
+                self.__logger.debug(f"adding additional propagation path through air of {T_air/units.ns:.1f}ns")
             else:
                 gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
                 z_turn = z_turn[0]
@@ -566,7 +566,7 @@ class ray_tracing_2D(ray_tracing_base):
                 return self.ds(t, C_0) / speed_of_light * n(z, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
             travel_time = integrate.quad(dt, x1[1], z_int, args=(C_0), points=points,
                                          epsabs=1e-10, epsrel=1.49e-08, limit=500)
-            self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(
+            self.__logger.debug("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(
                 x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], travel_time[0] / units.ns))
             tmp += travel_time[0]
         return tmp
@@ -992,11 +992,7 @@ class ray_tracing_2D(ray_tracing_base):
                         elif idx == -1:
                             idx = 0
 
-                        # att = np.array([attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs])
-                        # attenuation_exp_tmp[:, idx] = 1. / att
-
                         integrand = integrate.quad(self.ds, sub_segments[idx], sub_segments[idx + 1], args=(C_0), epsrel=1e-2, points=[z_turn])[0]
-                        print(integrand)
                         attenuation = np.array([attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs])
 
                         attenuation_factor_exponent_tmp[:, idx] = integrand / attenuation
@@ -1017,7 +1013,7 @@ class ray_tracing_2D(ray_tracing_base):
 
                 attenuation_factor_segment = np.ones_like(frequency)
                 attenuation_factor_segment[mask] = np.interp(frequency[mask], freqs, attenuation_factor_segment_tmp)
-                self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(
+                self.__logger.debug("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(
                     x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation_factor_segment))
 
             iF = len(frequency) // 3
@@ -1026,7 +1022,7 @@ class ray_tracing_2D(ray_tracing_base):
 
             attenuation_factor *= attenuation_factor_segment
 
-        self.__logger.info(output)
+        self.__logger.debug(output)
         return attenuation_factor
 
     def get_path_segments(self, x1, x2, C_0, reflection=0, reflection_case=1):
@@ -1386,7 +1382,7 @@ class ray_tracing_2D(ray_tracing_base):
                 C_0 = get_C0_from_log(result, self.medium.n_ice)
                 C0s.append(C_0)
                 solution_type = self.determine_solution_type(x1, x2, C_0)
-                self.__logger.info("found {} solution C0 = {:.2f} (internal logC = {:.2f})".format(solution_types[solution_type], C_0, result))
+                self.__logger.debug("found {} solution C0 = {:.2f} (internal logC = {:.2f})".format(solution_types[solution_type], C_0, result))
                 results.append({'type': solution_type,
                                 'C0': C_0,
                                 'C1': self.get_C_1(x1, C_0),
@@ -1422,7 +1418,7 @@ class ray_tracing_2D(ray_tracing_base):
                     C_0 = get_C0_from_log(result.x[0], self.medium.n_ice)
                     C0s.append(C_0)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
-                    self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
+                    self.__logger.debug("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,
                                     'C0': C_0,
                                     'C1': self.get_C_1(x1, C_0),
@@ -1436,7 +1432,7 @@ class ray_tracing_2D(ray_tracing_base):
             delta_stop = self.obj_delta_y(logC0_stop, x1, x2, reflection, reflection_case)
         #     print(logC0_start, logC0_stop, delta_start, delta_stop, np.sign(delta_start), np.sign(delta_stop))
             if(np.sign(delta_start) != np.sign(delta_stop)):
-                self.__logger.info("solution with logC0 > {:.3f} exists".format(result.x[0]))
+                self.__logger.debug("solution with logC0 > {:.3f} exists".format(result.x[0]))
                 result2 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
                 if(plot):
                     self.plot_result(x1, x2, get_C0_from_log(result2, self.medium.n_ice), ax)
@@ -1444,14 +1440,14 @@ class ray_tracing_2D(ray_tracing_base):
                     C_0 = get_C0_from_log(result2, self.medium.n_ice)
                     C0s.append(C_0)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
-                    self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
+                    self.__logger.debug("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,
                                     'C0': C_0,
                                     'C1': self.get_C_1(x1, C_0),
                                     'reflection': reflection,
                                     'reflection_case': reflection_case})
             else:
-                self.__logger.info("no solution with logC0 > {:.3f} exists".format(result.x[0]))
+                self.__logger.debug("no solution with logC0 > {:.3f} exists".format(result.x[0]))
 
             logC0_start = -100
             logC0_stop = result.x[0] - 0.0001
@@ -1459,7 +1455,7 @@ class ray_tracing_2D(ray_tracing_base):
             delta_stop = self.obj_delta_y(logC0_stop, x1, x2, reflection, reflection_case)
         #     print(logC0_start, logC0_stop, delta_start, delta_stop, np.sign(delta_start), np.sign(delta_stop))
             if(np.sign(delta_start) != np.sign(delta_stop)):
-                self.__logger.info("solution with logC0 < {:.3f} exists".format(result.x[0]))
+                self.__logger.debug("solution with logC0 < {:.3f} exists".format(result.x[0]))
                 result3 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
 
                 if(plot):
@@ -1468,14 +1464,14 @@ class ray_tracing_2D(ray_tracing_base):
                     C_0 = get_C0_from_log(result3, self.medium.n_ice)
                     C0s.append(C_0)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
-                    self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
+                    self.__logger.debug("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,
                                     'C0': C_0,
                                     'C1': self.get_C_1(x1, C_0),
                                     'reflection': reflection,
                                     'reflection_case': reflection_case})
             else:
-                self.__logger.info("no solution with logC0 < {:.3f} exists".format(result.x[0]))
+                self.__logger.debug("no solution with logC0 < {:.3f} exists".format(result.x[0]))
 
             if(plot):
                 import matplotlib.pyplot as plt
@@ -1626,8 +1622,8 @@ class ray_tracing_2D(ray_tracing_base):
             thcrit = None
             C0crit = None
             self.__logger.warning(' No solution for critical angle for z = {}!'.format(x1[1]))
-        self.__logger.info(' critical angle for z = {} is {} !'.format(x1[1], thcrit / units.deg))
-        self.__logger.info(' C0 for critical angle is {}'.format(C0crit))
+        self.__logger.debug(' critical angle for z = {} is {} !'.format(x1[1], thcrit / units.deg))
+        self.__logger.debug(' C0 for critical angle is {}'.format(C0crit))
 
         return C0crit, thcrit
 
@@ -1783,16 +1779,16 @@ class ray_tracing_2D(ray_tracing_base):
             C0_emit = C0result.x[0]
 
             # print(C0_emit)
-            self.__logger.info(' emission angle for position {},{} is theta_emit= {}'.format(x[0], x[1], th_emit / units.deg))
+            self.__logger.debug(' emission angle for position {},{} is theta_emit= {}'.format(x[0], x[1], th_emit / units.deg))
 
             # x-coordinate where ray reaches surface; is always bigger than the x-position of the emitter
             # (i.e. ray travels "to the right")
             xsurf = get_y(gamma, C0_emit, self.get_C_1(x, C0_emit), self.medium.n_ice, self.__b, self.medium.z_0)
             sice += xsurf - x[0]
-            self.__logger.info(' air pulse starting at x={}, z={} reaches surface at x={}'.format(x[0], x[1], xsurf))
+            self.__logger.debug(' air pulse starting at x={}, z={} reaches surface at x={}'.format(x[0], x[1], xsurf))
             ttosurf = self.get_travel_time_analytic(x, [xsurf, zsurf], C0_emit)
             tice += ttosurf
-            self.__logger.info(' travel time is {} ns.'.format(ttosurf / units.ns))
+            self.__logger.debug(' travel time is {} ns.'.format(ttosurf / units.ns))
 
             if draw:
                 import matplotlib.pyplot as plt
@@ -1807,11 +1803,11 @@ class ray_tracing_2D(ray_tracing_base):
 
                 plt.plot(y, z, chdraw)
 
-        self.__logger.info(' time, distance travelled to and from surface: {}, {} '.format(tice, sice))
+        self.__logger.debug(' time, distance travelled to and from surface: {}, {} '.format(tice, sice))
 
         sair = abs(x2[0] - x1[0]) - sice
         tair = sair * nlayer / speed_of_light
-        self.__logger.info(' time, distance travelled at surface: {}, {}'.format(tair, sair))
+        self.__logger.debug(' time, distance travelled at surface: {}, {}'.format(tair, sair))
         ttot = tice + tair
         if sair < 0:
             ttot = None
@@ -2789,7 +2785,7 @@ class ray_tracing(ray_tracing_base):
                 self.__logger.warning("too few ray tracing solutions, setting focusing factor to 1")
             self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
             if(focusing > limit):
-                self.__logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
+                self.__logger.debug(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
                 focusing = limit
 
             # now also correct for differences in refractive index between emitter and receiver position
@@ -2902,13 +2898,13 @@ class ray_tracing(ray_tracing_base):
                         zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                     t_phi = geometryUtilities.get_fresnel_t_s(
                         zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    self.__logger.info(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
+                    self.__logger.debug(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
                 else:   # air to ice
                     t_theta = geometryUtilities.get_fresnel_t_p(
                         zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                     t_phi = geometryUtilities.get_fresnel_t_s(
                         zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    self.__logger.info(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
+                    self.__logger.debug(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
                 spec[1] *= t_theta
                 spec[2] *= t_phi
             else:
@@ -2921,7 +2917,7 @@ class ray_tracing(ray_tracing_base):
                 efield[efp.reflection_coefficient_phi] = r_phi
                 spec[1] *= r_theta
                 spec[2] *= r_phi
-                self.__logger.info(
+                self.__logger.debug(
                     "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
                         zenith_reflection / units.deg,
                         r_theta, r_phi))
