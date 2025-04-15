@@ -1077,18 +1077,16 @@ class radiopropa_ray_tracing(ray_tracing_base):
         freqs = self.get_frequencies_for_attenuation(frequency, self._max_detector_frequency)
         integral = np.zeros(len(freqs))
 
-        def dt(depth, freqs):
-            ds = np.sqrt((path[:, 0][depth] - path[:, 0][depth+1])**2 + (path[:, 1][depth] - path[:, 1][depth+1])**2 + (path[:, 2][depth] - path[:, 2][depth+1])**2) # get step size
-            return ds / attenuation_util.get_attenuation_length(path[:, 2][depth], freqs, self._attenuation_model)
+        def dt(depth_idx, freqs):
+            ds = np.linalg.norm(path[depth_idx + 1] - path[depth_idx])  # get step size
+            return ds / attenuation_util.get_attenuation_length(path[depth_idx, 2], freqs, self._attenuation_model)
 
-        for z_position in range(len(path[:, 2]) - 1):
-            integral += dt(z_position, freqs)
-
+        integral = np.sum([dt(z_position_idx, freqs) for z_position_idx in range(len(path[:, 2]) - 1)], axis=0)
         att_func = interpolate.interp1d(freqs, integral)
-        tmp = att_func(frequency[mask])
+
         attenuation = np.ones_like(frequency)
-        tmp = np.exp(-1 * tmp)
-        attenuation[mask] = tmp
+        attenuation[mask] = np.exp(-1 * att_func(frequency[mask]))
+
         return attenuation
 
     def get_focusing(self, iS, dz=-1. * units.cm, limit=2.):
