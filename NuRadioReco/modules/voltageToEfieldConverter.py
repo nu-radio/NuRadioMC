@@ -5,7 +5,7 @@ from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import ice
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import signal_processing
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
 import matplotlib.pyplot as plt
@@ -81,7 +81,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     for iCh, trace in enumerate(traces):
         V[iCh] = trace.get_frequency_spectrum()
 
-    efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
+    efield_antenna_factor = signal_processing.get_efield_antenna_factor(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
 
     if(debug_cut):
         plt.show()

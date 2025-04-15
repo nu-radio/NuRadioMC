@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "NuRadioMC"
-version = "2.3.0-dev"
+version = "3.1.0-dev"
 authors = ["Christian Glaser et al."]
 homepage = "https://github.com/nu-radio/NuRadioMC"
 documentation = "https://nu-radio.github.io/NuRadioMC/main.html"
@@ -34,7 +34,7 @@ peakutils = "*"
 pymongo = "*"
 pyyaml = "*"
 awkward = "*"
-python = "^3.6"
+python = "^3.7"
 matplotlib = "*"
 requests = "*"
 toml = ">=0.10.2"
@@ -42,25 +42,32 @@ uproot = "*"
 importlib-metadata = {version = ">=4.8.1", python = "<3.8"}
 numba = "*"
 filelock = "*"
+Sphinx = {version = "*", optional = true}
+sphinx-rtd-theme = {version = "*", optional = true}
+numpydoc = {version = "*", optional = true}
+proposal = {version = "7.6.2", optional = true}
+pygdsm = {git = "https://github.com/telegraphic/pygdsm", optional = true}
+pylfmap = {version = "*", optional = true}
+healpy = {version = "*", optional = true}
+nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5", optional = true}
+pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft", optional = true}
+MCEq = {version = "*", optional = true}
+crflux = {version = "*", optional = true}
+mattak = {git = "https://github.com/RNO-G/mattak", optional = true}
+rnog-runtable = {git = "ssh://git@github.com/RNO-G/rnog-runtable.git", optional = true}
+cr-pulse-interpolator = {git = "https://github.com/nu-radio/cr-pulse-interpolator", optional = true}
+pre-commit = {version = "*", optional = true}
 
 [tool.poetry.dev-dependencies]
-Sphinx = "*"
-sphinx-rtd-theme = "*"
-numpydoc = "*"
-proposal = "7.6.2"
-pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
-nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
-pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"}
-MCEq = "*"
-crflux = "*"
-pandas = "*"
-mattak = {git = "https://github.com/RNO-G/mattak"}
-runtable = {git = "ssh://git@github.com/RNO-G/rnog-runtable.git"}
+pre-commit = "*"
 
 [tool.poetry.extras]
-documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
+dev = ["pre-commit", "Sphinx", "sphinx-rtd-theme", "numpydoc"]
 proposal = ["proposal"]
-galacticnoise = ['pygdsm']
-ift_reco = ['nifty5', 'pypocketfft']
-muon_flux_calc = ['MCEq', 'crflux']
-RNO_G_DATA = ["mattak", "runtable", "pandas"]
+galacticnoise = ['pygdsm', 'pylfmap', 'healpy']
+ift-reco = ['nifty5', 'pypocketfft']
+muon-flux = ['MCEq', 'crflux']
+RNO-G = ["mattak"]
+RNO-G-extras = ["rnog-runtable"]
+cr_interpolator = ["cr-pulse-interpolator"]
+ALL = ["proposal", "pygdsm", "pylfmap", "healpy", "nifty5", "pypocketfft", "MCEq", "crflux", "mattak", "cr-pulse-interpolator"]

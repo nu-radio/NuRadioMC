@@ -8,71 +8,17 @@ from functools import lru_cache
 from inspect import signature
 
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import channelBlockOffsets, fit_block_offsets
+from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import \
+    channelBlockOffsets, fit_block_offsets, _calculate_block_offsets
 
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.trigger
-import NuRadioReco.framework.parameters
+from NuRadioReco.framework.parameters import channelParameters
 
 from NuRadioReco.utilities import units
 import mattak.Dataset
-
-
-def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
-    """
-    Simple baseline correction function.
-
-    Determines baseline in discrete chuncks of "n_bins" with
-    the function specified (i.e., mean or median).
-
-    Parameters
-    ----------
-
-    wfs: np.array(n_events, n_channels, n_samples)
-        Waveforms of several events/channels.
-
-    n_bins: int
-        Number of samples/bins in one "chunck". If None, calculate median/mean over entire trace. (Default: 128)
-
-    func: np.mean or np.median
-        Function to calculate pedestal
-
-    return_offsets: bool, default False
-        if True, additionally return the baseline offsets
-
-    Returns
-    -------
-
-    wfs_corrected: np.array(n_events, n_channels, n_samples)
-        Baseline/pedestal corrected waveforms
-
-    baseline_values: np.array of shape (n_samples // n_bins, n_events, n_channels)
-        (Only if return_offsets==True) The baseline offsets
-    """
-
-    # Example: Get baselines in chunks of 128 bins
-    # wfs in (n_events, n_channels, 2048)
-    # np.split -> (16, n_events, n_channels, 128) each waveform split in 16 chuncks
-    # func -> (16, n_events, n_channels) pedestal for each chunck
-    if n_bins is not None:
-        baseline_values = func(np.split(wfs, 2048 // n_bins, axis=-1), axis=-1)
-
-        # np.repeat -> (2048, n_events, n_channels) concatenate the 16 chuncks to one baseline
-        baseline_traces = np.repeat(baseline_values, n_bins % 2048, axis=0)
-    else:
-        baseline_values = func(wfs, axis=-1)
-        # np.repeat -> (2048, n_events, n_channels) concatenate the 16 chuncks to one baseline
-        baseline_traces = np.repeat(baseline_values, 2048, axis=0)
-
-    # np.moveaxis -> (n_events, n_channels, 2048)
-    baseline_traces = np.moveaxis(baseline_traces, 0, -1)
-
-    if return_offsets:
-        return wfs - baseline_traces, baseline_values
-
-    return wfs - baseline_traces
 
 
 def get_time_offset(trigger_type):
@@ -86,13 +32,11 @@ def get_time_offset(trigger_type):
 
     Parameters
     ----------
-
     trigger_type: str
         Trigger type encoded as string from Mattak
 
     Returns
     -------
-
     time_offset: float
         trace_start_time = trigger_time - time_offset
 
@@ -125,13 +69,11 @@ def _all_files_in_directory(mattak_dir):
 
     Parameters
     ----------
-
     mattak_dir: str
         Path to a mattak directory
 
     Returns
     -------
-
     all_there: bool
         True, if all "req_files" are there and waveforms.root or combined.root. Otherwise returns False.
     """
@@ -156,7 +98,7 @@ def _convert_to_astropy_time(t):
 
 class readRNOGData:
 
-    def __init__(self, run_table_path=None, load_run_table=True, log_level=logging.NOTSET):
+    def __init__(self, run_table_path=None, load_run_table=False, log_level=logging.NOTSET):
         """
         Reader for RNO-G ``.root`` files
 
@@ -166,12 +108,11 @@ class readRNOGData:
 
         Parameters
         ----------
-
         run_table_path: str | None
             Path to a run_table.csv file. If None, the run table is queried from the DB. (Default: None)
 
         load_run_table: bool
-            If True, try to load the run_table from run_table_path. Otherwise, skip this.
+            If True, try to load the run_table from run_table_path. Otherwise, skip this. (Default: False)
 
         log_level: enum
             Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
@@ -179,7 +120,6 @@ class readRNOGData:
 
         Examples
         --------
-
         .. code-block::
 
             reader = readRNOGDataMattak.readRNOGData() # initialize reader
@@ -192,7 +132,6 @@ class readRNOGData:
             for evt in reader.run(): # loop over all events in file
                 # perform some analysis
                 pass
-
         """
         self.logger = logging.getLogger('NuRadioReco.RNOG.readRNOGData')
         self.logger.setLevel(log_level)
@@ -213,8 +152,11 @@ class readRNOGData:
                         self.logger.warn("No connect to RunTable database could be established. "
                                         "Runs can not be filtered.")
                 except ImportError:
-                    self.logger.warn("Import of run table failed. Runs can not be filtered.! \n"
-                            "You can get the interface from GitHub: git@github.com:RNO-G/rnog-runtable.git")
+                    self.logger.warn(
+                        "\nImport `from rnog_data.runtable import RunTable` failed. You can still use readRNOGData, "
+                        "but runs can not be filtered. To install the run table, run:\n\n"
+                        "\tpip install git+ssh://git@github.com/RNO-G/rnog-runtable.git\n"
+                    )
             else:
                 # some users may mistakenly try to pass the .root files to __init__
                 # we check for this and raise a (hopefully) helpful error message
@@ -237,7 +179,7 @@ class readRNOGData:
             read_calibrated_data=False,
             select_triggers=None,
             select_runs=False,
-            apply_baseline_correction='approximate',
+            apply_baseline_correction='auto',
             convert_to_voltage=True,
             selectors=[],
             run_types=["physics"],
@@ -245,11 +187,11 @@ class readRNOGData:
             max_trigger_rate=0 * units.Hz,
             mattak_kwargs={},
             overwrite_sampling_rate=None,
-            max_in_mem=256):
+            max_in_mem=256,
+            use_fallback_time=True):
         """
         Parameters
         ----------
-
         dirs_files: str, list(str)
             Path to run directories (i.e. ".../stationXX/runXXX/") or path to root files (have to be "combined" mattak files).
 
@@ -268,16 +210,19 @@ class readRNOGData:
 
         Other Parameters
         ----------------
-
-        apply_baseline_correction: 'fit' | 'approximate' | 'median' | 'none'
+        apply_baseline_correction: str {'auto', 'fit', 'approximate', 'median', 'none'}, optional
             Removes the DC (baseline) block offsets (pedestals).
             Options are, in order of decreasing precision and increasing performance:
 
             * 'fit' : do a full out-of-band fit to determine the block offsets; for more details,
               see :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter` (slow)
-            * 'approximate' : estimate block offsets by looking at the low-pass filtered trace (default)
+            * 'approximate' : estimate block offsets by looking at the low-pass filtered trace
             * 'median' : subtract the median of each block (faster)
             * 'none' : do not apply a baseline correction (fastest)
+
+            The default ('auto') first performs the 'approximate' block offset removal, then
+            automatically decides whether to continue with the full 'fit' depending on the estimated
+            block offset size.
 
         convert_to_voltage: bool
             Only applies when non-calibrated data are read. If true, convert ADC to voltage.
@@ -316,12 +261,19 @@ class readRNOGData:
             Set the maximum number of events that can be stored in memory. The datareader will divide
             the data in batches based on this number.
             NOTE: This is only relevant for the mattak uproot backend
+        use_fallback_time: bool
+            If True and if the trigger time is infinity, the readout time will be used instead of the trigger time.
+            Otherwise, the event will be skipped in the case of infinite trigger times.
+            (Default=True)
         """
-
         t0 = time.time()
 
         self._read_calibrated_data = read_calibrated_data
-        baseline_correction_valid_options = ['approximate', 'fit', 'median', 'none']
+
+        baseline_correction_valid_options = ['auto', 'approximate', 'fit', 'median', 'none']
+        if apply_baseline_correction is None:
+            apply_baseline_correction = 'none'
+
         if apply_baseline_correction.lower() not in baseline_correction_valid_options:
             raise ValueError(
                 f"Value for apply_baseline_correction ({apply_baseline_correction}) not recognized. "
@@ -340,6 +292,8 @@ class readRNOGData:
         # set max wavform array size that can be loaded in memory
         self._max_in_mem = max_in_mem
 
+        self._use_fallback_time = use_fallback_time
+
         # Set parameter for run selection
         self.__max_trigger_rate = max_trigger_rate
         self.__run_types = run_types
@@ -353,8 +307,8 @@ class readRNOGData:
 
         if select_runs and self.__run_table is not None:
             self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
-                                 f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
-                                 f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
+                            f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
+                            f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
 
         self._selectors = []
         self.add_selectors(self._check_for_valid_information_in_event_info)
@@ -381,7 +335,7 @@ class readRNOGData:
         self.__n_runs = 0
 
         # Set verbose for mattak
-        verbose = mattak_kwargs.pop("verbose", self.logger.level >= logging.DEBUG)
+        verbose = mattak_kwargs.pop("verbose", self.logger.level <= logging.DEBUG)
 
         for dir_file in dirs_files:
 
@@ -436,13 +390,12 @@ class readRNOGData:
 
         Parameters
         ----------
-
         selectors: list of Callables
             List of Callable(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
             Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
 
-        select_triggers: str or list(str)
-            Names of triggers which should be selected. Convenience interface instead of passing a selector. (Default: None)
+        select_triggers: str or list(str) (Default: None)
+            Names of triggers which should be selected. Convenience interface instead of passing a selector.
         """
 
         # Initialize selectors for event filtering
@@ -469,7 +422,6 @@ class readRNOGData:
 
         Parameters
         ----------
-
         dataset: mattak.Dataset.Dataset
 
         select: bool
@@ -528,13 +480,11 @@ class readRNOGData:
 
         Parameters
         ----------
-
         event_index: int
             Same as in read_event().
 
         Returns
         -------
-
         dataset: mattak.Dataset.Dataset
         """
         # find correct dataset
@@ -552,20 +502,18 @@ class readRNOGData:
 
         Parameters
         ----------
-
         event_info: mattak.Dataset.EventInfo
             The event info object for one event.
 
-        event_index: int
-            Same as in read_event(). Only use for logger.info(). (Default: None)
-
+        event_index: int (Default: None)
+            Same as in read_event(). Only use for logger.info().
         Returns
         -------
-
         skip: bool
             Returns False to skip/reject event, return True to keep/read event
         """
-        self.logger.debug(f"Processing event number {self.__counter} out of total {self._n_events_total}")
+        self.logger.debug(
+            f"(_select_events) Processing event number {self.__counter} out of total {self._n_events_total}")
 
         self.__counter += 1  # for logging
         if self._selectors is not None:
@@ -588,17 +536,13 @@ class readRNOGData:
 
         Parameters
         ----------
-
-        keys : str or list(str) or None
+        keys : str or list(str) or None (Default: ["station", "run", "eventNumber"])
             List of the information to receive from each event. Have to match the attributes (member variables)
             of the mattak.Dataset.EventInfo class (examples are "station", "run", "triggerTime", "triggerType", "eventNumber", ...).
-
             If None, read in all keys present in the EventInfo class.
-            (Default: ["station", "run", "eventNumber"])
 
         Returns
         -------
-
         data: dict
             Keys of the dict are the event indecies (as used in self.read_event(event_index)). The values are dictinaries
             them self containing the information specified with "keys" parameter.
@@ -647,22 +591,17 @@ class readRNOGData:
 
         Parameters
         ----------
-
         apply_baseline_correction: str | None
             If not None, apply a different baseline correction algorithm than specified in the
             `begin` method. Otherwise (default), use the same setting as specified there.
 
-        max_events : int | None
+        max_events : int | None (default: 1000)
             The maximum number of waveforms to return.
-
             If None, return all waveforms in all datasets. Note that this may cause a crash
             due to memory overflow if too many waveforms are selected.
 
-            Default: 1000
-
         Returns
         -------
-
         wfs: np.array
             Waveforms of all "selected" events. The wavefroms are either calibrated or not
             based on the class config.
@@ -675,7 +614,7 @@ class readRNOGData:
 
         for dataset in self._datasets:
             dataset.setEntries((0, dataset.N()))
-            if apply_baseline_correction in ['fit', 'approximate']: # we need the sampling rate
+            if apply_baseline_correction in ['auto', 'fit', 'approximate']: # we need the sampling rate
                 try:
                     sampling_rate = dataset.eventInfo()[0].sampleRate
                 except AttributeError:
@@ -696,8 +635,8 @@ class readRNOGData:
                         wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
 
                 if apply_baseline_correction == 'median':
-                    wfs = _baseline_correction(wfs)
-                elif apply_baseline_correction in ['fit', 'approximate']:
+                    wfs = _calculate_block_offsets(wfs)
+                elif apply_baseline_correction in ['auto', 'fit', 'approximate']:
                     wfs = np.vstack([
                         fit_block_offsets(
                             wf, mode=self._apply_baseline_correction,
@@ -720,19 +659,18 @@ class readRNOGData:
 
         Parameters
         ----------
-
         event_info: mattak.Dataset.EventInfo
 
         Returns
         -------
-
         is_valid: bool
             Returns True if all information valid, false otherwise
         """
 
-        if math.isinf(event_info.triggerTime):
+        if math.isinf(event_info.triggerTime) and not self._use_fallback_time:
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
-                                     "has inf trigger time. Skip event...")
+                              "has inf trigger time. Event is skipped ..."
+                              f"You can avoid this by setting 'use_fallback_time' in the begin() method.")
             self.__invalid += 1
             return False
 
@@ -752,7 +690,6 @@ class readRNOGData:
 
         Parameters
         ----------
-
         event_info: mattak.Dataset.EventInfo
             The event info object for one event.
 
@@ -761,11 +698,16 @@ class readRNOGData:
 
         Returns
         -------
-
         evt: NuRadioReco.framework.event
         """
+        # use the readout time if the trigger time is infinity
+        if self._use_fallback_time and math.isinf(event_info.triggerTime):
+            self.logger.warning(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
+                                 "has inf trigger time, readout time will be used instead.")
+            trigger_time = event_info.readoutTime
+        else:
+            trigger_time = event_info.triggerTime
 
-        trigger_time = event_info.triggerTime
         # only overwrite sampling rate if the stored value is invalid
         if self._overwrite_sampling_rate is not None and event_info.sampleRate in [0, None]:
             sampling_rate = self._overwrite_sampling_rate
@@ -778,15 +720,13 @@ class readRNOGData:
 
         trigger = NuRadioReco.framework.trigger.Trigger(event_info.triggerType)
         trigger.set_triggered()
-        trigger.set_trigger_time(trigger_time)
+        trigger.set_trigger_time(0)  # The trigger time is relative to the event/station time
         station.set_trigger(trigger)
-        block_offsets = None
 
-        if self._apply_baseline_correction == 'median':
-            waveforms, block_offsets = _baseline_correction(waveforms, return_offsets=True)
-
+        readout_delays = event_info.readoutDelay
         for channel_id, wf in enumerate(waveforms):
             channel = NuRadioReco.framework.channel.Channel(channel_id)
+
             if self._read_calibrated_data:
                 channel.set_trace(wf * units.V, sampling_rate * units.GHz)
             else:
@@ -797,15 +737,13 @@ class readRNOGData:
 
                 channel.set_trace(wf, sampling_rate * units.GHz)
 
-            time_offset = get_time_offset(event_info.triggerType)
+            time_offset = get_time_offset(event_info.triggerType) + readout_delays[channel_id]
             channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
-            if block_offsets is not None:
-                channel.set_parameter(NuRadioReco.framework.parameters.channelParameters.block_offsets, block_offsets.T[channel_id])
 
             station.add_channel(channel)
 
         evt.set_station(station)
-        if self._apply_baseline_correction in ['fit', 'approximate']:
+        if self._apply_baseline_correction in ['auto', 'fit', 'approximate', 'median']:
             self._blockoffsetfitter.remove_offsets(evt, station, mode=self._apply_baseline_correction)
 
         return evt
@@ -818,7 +756,6 @@ class readRNOGData:
 
         Yields
         ------
-
         evt: `NuRadioReco.framework.event.Event`
         """
 
@@ -826,12 +763,13 @@ class readRNOGData:
             dataset.setEntries((0, dataset.N()))
 
             # read all event infos of the entire dataset (= run)
-            for evtinfo, wf in dataset.iterate(calibrated=self._read_calibrated_data,
-                                               selectors=self._select_events,
-                                               max_entries_in_mem=self._max_in_mem):
+            for evtinfo, wf in dataset.iterate(
+                    calibrated=self._read_calibrated_data, selectors=self._select_events,
+                    max_entries_in_mem=self._max_in_mem):
 
+                t0 = time.time()
                 evt = self._get_event(evtinfo, wf)
-
+                self._time_run += time.time() - t0
                 yield evt
 
 
@@ -840,14 +778,12 @@ class readRNOGData:
 
         Parameters
         ----------
-
         event_index: int
             The index of a particluar event. The index is the chronological number from 0 to
             number of total events (across all datasets).
 
         Returns
         -------
-
         evt: `NuRadioReco.framework.event.Event`
         """
 
@@ -876,7 +812,6 @@ class readRNOGData:
 
         Parameters
         ----------
-
         run_nr: int
             Run number
 
@@ -885,11 +820,10 @@ class readRNOGData:
 
         Returns
         -------
-
         evt: `NuRadioReco.framework.event.Event`
         """
 
-        self.logger.debug(f"Processing event {event_id}")
+        self.logger.debug(f"Getting event {event_id}")
         t0 = time.time()
 
         event_infos = self.get_events_information(keys=["eventNumber", "run"])
@@ -924,14 +858,13 @@ class readRNOGData:
 
         return evt
 
-
     def end(self):
         if self.__counter:
             self.logger.info(
                 f"\n\tRead {self.__counter} events ({self.__skipped} events are skipped (filtered), {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
-                f"\n\tTime to read all events       : {self._time_run:.2f}s"
-                f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
+                f"\n\tTime to read all events       : {self._time_run:.4f}s"
+                f"\n\tTime to per event             : {self._time_run / self.__counter:.4f}s"
                 f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
         else:
             self.logger.warning(
@@ -939,6 +872,8 @@ class readRNOGData:
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s")
 
+    def get_n_events(self):
+        return self._n_events_total
 
 ### we create a wrapper for readRNOGData to mirror the interface of the .nur reader
 class _readRNOGData_eventbrowser(readRNOGData):
@@ -969,9 +904,6 @@ class _readRNOGData_eventbrowser(readRNOGData):
     @lru_cache(maxsize=1)
     def get_event(self, event_id):
         return super().get_event(*event_id)
-
-    def get_n_events(self):
-        return self._n_events_total
 
     def get_detector(self):
         """Not implemented in mattak reader"""
