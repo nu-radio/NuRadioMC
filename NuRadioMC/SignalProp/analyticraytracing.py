@@ -1,29 +1,20 @@
-from __future__ import absolute_import, division, print_function
-import numpy as np
-import copy
-from scipy import optimize, integrate
-import scipy.constants
-from operator import itemgetter
-import NuRadioReco.utilities.geometryUtilities
-
-try:
-    from functools import lru_cache
-except ImportError:
-    from backports.functools_lru_cache import lru_cache
-
-from NuRadioReco.utilities import units
-from NuRadioMC.utilities import attenuation as attenuation_util
-
-from radiotools import helper as hp
-
-from NuRadioMC.utilities import medium
+from NuRadioReco.utilities import units, geometryUtilities
+from NuRadioMC.utilities import attenuation as attenuation_util, medium
 
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-
 from NuRadioReco.framework import base_trace
 
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
+
+from radiotools import helper as hp
+
+from scipy import optimize, integrate, constants
+from operator import itemgetter
+from functools import lru_cache
+import numpy as np
+import warnings
+import copy
 
 import logging
 logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
@@ -64,7 +55,7 @@ except ImportError:
 """
 analytic ray tracing solution
 """
-speed_of_light = scipy.constants.c * units.m / units.s
+speed_of_light = constants.c * units.m / units.s
 
 """
 Models in the following list will use the speed-optimized algorithm to calculate the attenuation along the path.
@@ -374,11 +365,12 @@ def n(z, n_ice, delta_n, z_0):
 
 class ray_tracing_2D(ray_tracing_base):
 
-    def __init__(self, medium, attenuation_model="SP1",
+    def __init__(self, medium, attenuation_model=None,
                  log_level=logging.NOTSET,
-                 n_frequencies_integration=25,
+                 n_frequencies_integration=None,
                  use_optimized_start_values=False,
                  overwrite_speedup=None,
+                 optimized_attenuation_calculation=True,
                  use_cpp=cpp_available,
                  compile_numba=False):
         """
@@ -389,40 +381,43 @@ class ray_tracing_2D(ray_tracing_base):
         medium: NuRadioMC.utilities.medium class
             details of the medium
         attenuation_model: string
-            specifies which attenuation model to use (default 'SP1')
+            specifies which attenuation model to use
+            (default: None -> 'SP1' (see `ray_tracing_base._set__set_arguments`))
         log_level: logging.loglevel object
             Overrides verbosity (default NOTSET)
         n_frequencies_integration: int
             specifies for how many frequencies the signal attenuation is being calculated
+            (default: None -> 100 (see `ray_tracing_base._set__set_arguments`))
         use_optimized_start_value: bool
             if True, the initial C_0 paramter (launch angle) is set to the ray that skims the surface
             (default: False)
         overwrite_speedup: bool
-            The signal attenuation is calculated using a numerical integration
+            Deprecated. Use optimized_attenuation_calculation instead.
+        optimized_attenuation_calculation: bool (default: True)
+            The signal attenuation can be calculated using a numerical integration
             along the ray path. This calculation can be computational inefficient depending on the details of
             the ice model. An optimization is implemented approximating the integral with a discrete sum with the loss
-            of some accuracy, See PR #507. This optimization is used for all ice models.
-            With this argument you can explicitly activate or deactivate
-            (True or False) if you want to use the optimization. (Default: use optimized calculation.)
-            of some accuracy, See PR #507. This optimization is used for all ice models listed in
-            speedup_attenuation_models (i.e., "GL3"). With this argument you can explicitly activate or deactivate
-            (True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
-            listed in speedup_attenuation_models)
+            of some accuracy, see PR #507. With PR #722, this optimization is used for all ice models by default.
+            Set this argument to False to disable this optimization. (The optimisation will automatically fall back to
+            the numerical integration for the saddle point of an refracted ray as the optimization is not accurate there.)
         use_cpp: bool
             if True, use CPP implementation of minimization routines
             default: True if CPP version is available
 
         """
         self.medium = medium
-        if(not hasattr(self.medium, "reflection")):
+        if not hasattr(self.medium, "reflection"):
             self.medium.reflection = None
+
         # This variable is needed for numba optimization as numba cannot associate None to a type
         self.reflection = 100
-        if(self.medium.reflection is not None) :
+        if self.medium.reflection is not None:
             self.reflection = self.medium.reflection
-        self.attenuation_model = attenuation_model
-        if(not self.attenuation_model in attenuation_util.model_to_int):
+
+        self.attenuation_model = attenuation_model or "SP1"
+        if self.attenuation_model not in attenuation_util.model_to_int:
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
+
         self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
         self.__b = 2 * self.medium.n_ice
         self.__logger = logging.getLogger('NuRadioMC.ray_tracing_2D')
@@ -430,10 +425,14 @@ class ray_tracing_2D(ray_tracing_base):
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
 
-        if overwrite_speedup is None:
-            self._use_optimized_calculation = True
-        else:
-            self._use_optimized_calculation = overwrite_speedup
+
+        if overwrite_speedup is not None:
+            warnings.warn("overwrite_speedup is deprecated. Use optimized_attenuation_calculation instead", DeprecationWarning)
+
+        self._use_optimized_calculation = optimized_attenuation_calculation
+        if not use_cpp:
+            self.__logger.info("Use optimized calculation for attenuation: {}".format(self._use_optimized_calculation))
+
         self.use_cpp = use_cpp
         if compile_numba:
             if numba_available:
@@ -454,7 +453,7 @@ class ray_tracing_2D(ray_tracing_base):
                     get_z_unmirrored = jit(get_z_unmirrored, nopython=True, cache=True)
                     n = jit(n, nopython=True, cache=True)
                     self.use_cpp = False
-                except:
+                except Exception:
                     self.__logger.warning("Error in compiling methods using jit - proceeding without numba")
                     compile_numba = False
 
@@ -934,7 +933,6 @@ class ray_tracing_2D(ray_tracing_base):
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
                 z_turn = z_turn[0]
-                self.__logger.info("_use_optimized_calculation {}".format(self._use_optimized_calculation))
 
                 if self._use_optimized_calculation:
                     # The integration of the attenuation factor along the path with scipy.quad is inefficient. The
@@ -998,6 +996,7 @@ class ray_tracing_2D(ray_tracing_base):
                         # attenuation_exp_tmp[:, idx] = 1. / att
 
                         integrand = integrate.quad(self.ds, sub_segments[idx], sub_segments[idx + 1], args=(C_0), epsrel=1e-2, points=[z_turn])[0]
+                        print(integrand)
                         attenuation = np.array([attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs])
 
                         attenuation_factor_exponent_tmp[:, idx] = integrand / attenuation
@@ -1211,7 +1210,7 @@ class ray_tracing_2D(ray_tracing_base):
         if x2[1] > 0:  # treat ice to air case
             zenith_reflection = self.get_reflection_angle(x1, x2, C_0)
             n_1 = self.medium.get_index_of_refraction([y_turn, 0, z_turn])
-            zenith_air = NuRadioReco.utilities.geometryUtilities.get_fresnel_angle(zenith_reflection, n_1=n_1, n_2=1)
+            zenith_air = geometryUtilities.get_fresnel_angle(zenith_reflection, n_1=n_1, n_2=1)
             zs[~mask] = z[~mask]
             res[~mask] = zs[~mask] * np.tan(zenith_air) + y_turn
         else:
@@ -1877,8 +1876,8 @@ class ray_tracing(ray_tracing_base):
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
 
-    def __init__(self, medium, attenuation_model="SP1", log_level=logging.NOTSET,
-                 n_frequencies_integration=100, n_reflections=0, config=None,
+    def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
+                 n_frequencies_integration=None, n_reflections=None, config=None,
                  detector=None, ray_tracing_2D_kwards={},
                  use_cpp=cpp_available, compile_numba=False):
         """
@@ -1891,6 +1890,7 @@ class ray_tracing(ray_tracing_base):
 
         attenuation_model: string
             signal attenuation model
+            (default: None -> 'SP1' (see `ray_tracing_base._set__set_arguments`))
 
         log_name:  string
             name under which things should be logged
@@ -1909,9 +1909,11 @@ class ray_tracing(ray_tracing_base):
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
+            (default: None -> 100 (see `ray_tracing_base._set__set_arguments`))
 
-        n_reflections: int (default 0)
+        n_reflections: int
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
+            (default: None -> 0 (see `ray_tracing_base._set__set_arguments`))
 
         config: dict
             a dictionary with the optional config settings. If None, the config is intialized with default values,
@@ -1948,13 +1950,14 @@ class ray_tracing(ray_tracing_base):
                          n_reflections=n_reflections,
                          config=config,
                          detector=detector)
+
         self.set_config(config=config)
 
         self.use_cpp = use_cpp
         if use_cpp:
-            self.__logger.status(f"using CPP version of ray tracer")
+            self.__logger.status("Using CPP version of ray tracer")
         else:
-            self.__logger.status(f"using python version of ray tracer")
+            self.__logger.status("Using python version of ray tracer")
 
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self._n_frequencies_integration,
@@ -2895,24 +2898,24 @@ class ray_tracing(ray_tracing_base):
                 # air/ice propagation
                 self.__logger.warning(f"calculation of transmission coefficients and focussing factor for air/ice propagation is experimental and needs further validation")
                 if(not self._swap):  # ice to air case
-                    t_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_p(
+                    t_theta = geometryUtilities.get_fresnel_t_p(
                         zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    t_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_s(
+                    t_phi = geometryUtilities.get_fresnel_t_s(
                         zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                     self.__logger.info(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
                 else:   # air to ice
-                    t_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_p(
+                    t_theta = geometryUtilities.get_fresnel_t_p(
                         zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    t_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_s(
+                    t_phi = geometryUtilities.get_fresnel_t_s(
                         zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                     self.__logger.info(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
                 spec[1] *= t_theta
                 spec[2] *= t_phi
             else:
                 #in-ice propagation
-                r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
+                r_theta = geometryUtilities.get_fresnel_r_p(
                     zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
+                r_phi = geometryUtilities.get_fresnel_r_s(
                     zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                 efield[efp.reflection_coefficient_theta] = r_theta
                 efield[efp.reflection_coefficient_phi] = r_phi
@@ -2965,13 +2968,12 @@ class ray_tracing(ray_tracing_base):
             The new configuration settings
             If None, the default config settings will be applied
         """
-        if(config is None):
+        if config is None:
             self._config = {'propagation': {}}
             self._config['propagation']['attenuate_ice'] = True
             self._config['propagation']['focusing_limit'] = 2
             self._config['propagation']['focusing'] = False
             self._config['propagation']['birefringence'] = False
-
 
         else:
             self._config = config
