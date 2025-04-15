@@ -889,14 +889,16 @@ relates the incident electric field to the open circuit voltage and not the volt
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.get_pickle_antenna_response">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">get_pickle_antenna_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#get_pickle_antenna_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.get_pickle_antenna_response" title="Link to this definition"></a></dt>
-<dd><p>opens and return the pickle file containing the preprocessed e.g. WIPL-D antenna simulation in NuRadioReco conventions.</p>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">get_pickle_antenna_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_verified</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#get_pickle_antenna_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.get_pickle_antenna_response" title="Link to this definition"></a></dt>
+<dd><p>Opens and return the pickle file containing the preprocessed e.g. WIPL-D antenna simulation in NuRadioReco conventions.</p>
 <p>If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
-the file will be downloaded from a central data server</p>
+the file will be downloaded from a central data server.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>path: string</strong></dt><dd><p>the path to the pickle file</p>
+</dd>
+<dt><strong>return_verified: bool (default: False)</strong></dt><dd><p>if True, the function will return a boolean indicating whether the file was verified/downloaded or not.</p>
 </dd>
 </dl>
 </dd>
@@ -950,6 +952,8 @@ the file will be downloaded from a central data server</p>
 </dl>
 </li>
 </ul>
+</dd>
+<dt>verified: bool</dt><dd><p>boolean indicating whether the file was verified/downloaded or not (only returned if <code class="docutils literal notranslate"><span class="pre">return_verified</span> <span class="pre">==</span> <span class="pre">True</span></code>)</p>
 </dd>
 </dl>
 </dd>
@@ -1245,6 +1249,9 @@ The class accesses the NuRadioReco pickle format file which contains the preproc
 <li><p>‘complex’ (default) interpolate real and imaginary part of vector effective length</p></li>
 <li><p>‘magphase’ interpolate magnitude and phase of vector effective length</p></li>
 </ul>
+</dd>
+<dt><strong>consistency_check: bool (default: True)</strong></dt><dd><p>If True, the consistency of the antenna response is checked but only if the antenna could not be
+verifed from its hash sum.</p>
 </dd>
 </dl>
 </dd>
