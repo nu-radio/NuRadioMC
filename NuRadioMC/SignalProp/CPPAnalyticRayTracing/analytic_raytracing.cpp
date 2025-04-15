@@ -285,7 +285,7 @@ double dt_freq (double t, void *p){
 }
 
 double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
-		double frequency, double n_ice, double delta_n, double z_0, int model){
+		double frequency, double n_ice, double delta_n, double z_0, int model, int use_qags_integration=0){
 	double x2_mirrored[2]={0.};
 	get_z_mirrored(pos,pos2,C0,x2_mirrored, n_ice, delta_n, z_0);
 
@@ -311,7 +311,14 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 	*/
 	gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
 	do{
-		status = gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,epsrel,2000,w,&result,&error);
+		if (use_qags_integration == 0)
+			status = gsl_integration_qag(&F, pos[1], x2_mirrored[1], 0, epsrel, 2000, 15, w, &result, &error);
+		else if (use_qags_integration == 1)
+			status = gsl_integration_qags(&F, pos[1], x2_mirrored[1], 0, epsrel, 2000, w, &result, &error);
+		else
+			return NAN;
+
+
 		if(status!=GSL_SUCCESS){
 			status=GSL_CONTINUE;
 			num_badfunc_tries++;
@@ -331,10 +338,10 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 }
 
 double get_attenuation_along_path2(double pos_y, double pos_z, double pos2_y, double pos2_z,
-		double C0, double frequency, double n_ice, double delta_n, double z_0, int model) {
+		double C0, double frequency, double n_ice, double delta_n, double z_0, int model, int use_qags_integration=0) {
 	double pos[2] = {pos_y, pos_z};
 	double pos2[2] = {pos2_y, pos2_z};
-	return get_attenuation_along_path(pos, pos2, C0, frequency, n_ice, delta_n, z_0, model);
+	return get_attenuation_along_path(pos, pos2, C0, frequency, n_ice, delta_n, z_0, model, use_qags_integration);
 }
 
 double get_angle(double x[2], double x_start[2], double C0, double n_ice, double delta_n, double z_0){
@@ -608,7 +615,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	FDF.params = &params;
 	Tfdf = gsl_root_fdfsolver_secant;
 	gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
-	
+
 	// We have to guess at the location of the first root (if it it exists at all).
 	// Because we might not guess correctly, or guess close enough,
 	// it's in our favor (for numerical stability reasons) to try several times.

@@ -428,6 +428,10 @@ class ray_tracing_2D(ray_tracing_base):
         if overwrite_speedup is not None:
             self._use_optimized_calculation = overwrite_speedup
 
+        # If true use gsl_integration_qags instead of gsl_integration_qag for the integration
+        # this is only used for the C++ implementation
+        self._use_qags_integration = 0
+
         self.use_cpp = use_cpp
         if compile_numba:
             if numba_available:
@@ -900,7 +904,8 @@ class ray_tracing_2D(ray_tracing_base):
                 for i, f in enumerate(freqs):
                     tmp[i] = wrapper.get_attenuation_along_path(
                         x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n,
-                        self.medium.z_0, self.attenuation_model_int)
+                        self.medium.z_0, self.attenuation_model_int,
+                        use_qags_integration=self._use_qags_integration)
                 if(np.sum(np.isnan(tmp)) > 0):
                     self.__logger.warning(f"attenuation calculation failed for {np.sum(np.isnan(tmp))}/{len(tmp)} frequencies," + \
                                             "setting attenuation to 0, i.e., no attenuation in these bins")
