@@ -24,6 +24,8 @@ def deserialize(triggers_pkl):
             trigger  = EnvelopePhasedTrigger(None, None, None, None)
         elif(trigger_type == 'rnog_surface_trigger'):
             trigger = RNOGSurfaceTrigger(None, None, None, None)
+        elif(trigger_type == 'PA_SNR'):
+            trigger = PASNRTrigger(None, None, None, None)
         else:
             raise ValueError("unknown trigger type")
         trigger.deserialize(data_pkl)
@@ -532,3 +534,11 @@ class RNOGSurfaceTrigger(Trigger):
         self._coinc_window = channel_coincidence_window
         self._temperature = temperature
         self._Vbias = Vbias
+
+class PASNRTrigger(Trigger):
+
+    def __init__(self, name, snr_threshold, triggered_snr, channels = None, pre_trigger_times = 100 * units.ns):
+        Trigger.__init__(self, name, channels, 'PA_SNR',
+                         pre_trigger_times = pre_trigger_times)
+        self._triggered_snr = triggered_snr
+        self._snr_threshold = snr_threshold
