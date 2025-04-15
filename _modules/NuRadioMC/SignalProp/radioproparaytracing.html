@@ -624,25 +624,22 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.SignalProp.radioproparaytracing</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">attenuation</span> <span class="k">as</span> <span class="n">attenuation_util</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">medium_base</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate</span><span class="p">,</span> <span class="n">optimize</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.geometryUtilities</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">geometryUtilities</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">electricFieldParameters</span> <span class="k">as</span> <span class="n">efp</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.propagation_base_class</span><span class="w"> </span><span class="kn">import</span> <span class="n">ray_tracing_base</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp</span><span class="w"> </span><span class="kn">import</span> <span class="n">analyticraytracing</span> <span class="k">as</span> <span class="n">ana</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">medium</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.propagation</span><span class="w"> </span><span class="kn">import</span> <span class="n">solution_types</span><span class="p">,</span> <span class="n">solution_types_revert</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">medium</span><span class="p">,</span> <span class="n">medium_base</span><span class="p">,</span> <span class="n">attenuation</span> <span class="k">as</span> <span class="n">attenuation_util</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.propagation</span><span class="w"> </span><span class="kn">import</span> <span class="n">solution_types_revert</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">radiopropa</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate</span><span class="p">,</span> <span class="n">optimize</span><span class="p">,</span> <span class="n">constants</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">RadioPropa is a C++ module dedicated for ray tracing. It is a seperate module and</span>
@@ -673,8 +670,8 @@
 <span class="sd">    that have only changing refractive index in z. More information on RadioPropa and</span>
 <span class="sd">    how to install it can be found at https://github.com/nu-radio/RadioPropa&quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="s2">&quot;SP1&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
-                 <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
+                 <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        class initilization</span>
@@ -685,6 +682,7 @@
 <span class="sd">            class describing the index-of-refraction profile</span>
 <span class="sd">        attenuation_model: string</span>
 <span class="sd">            signal attenuation model</span>
+<span class="sd">            (default: None -&gt; &#39;SP1&#39; (see `ray_tracing_base._set__set_arguments`))</span>
 <span class="sd">        log_level: logging object</span>
 <span class="sd">            specify the log level of the ray tracing class</span>
 
@@ -698,8 +696,10 @@
 <span class="sd">            the number of frequencies for which the frequency dependent attenuation</span>
 <span class="sd">            length is being calculated. The attenuation length for all other frequencies</span>
 <span class="sd">            is obtained via linear interpolation.</span>
-<span class="sd">        n_reflections: int (default 0)</span>
+<span class="sd">            (default: None -&gt; 100 (see `ray_tracing_base._set__set_arguments`))</span>
+<span class="sd">        n_reflections: int</span>
 <span class="sd">            in case of a medium with a reflective layer at the bottom, how many reflections should be considered</span>
+<span class="sd">            (default: None -&gt; 0 (see `ray_tracing_base._set__set_arguments`))</span>
 <span class="sd">        config: dict or None</span>
 <span class="sd">            a dictionary with the optional config settings. If None, the default config is used:</span>
 <span class="sd">                config[&#39;propagation&#39;][&#39;attenuate_ice&#39;] = True</span>
@@ -1656,7 +1656,7 @@
             <span class="k">raise</span> <span class="ne">IndexError</span>
 
         <span class="n">refrac_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_correction_path_length</span><span class="p">(</span><span class="n">iS</span><span class="p">)</span> <span class="o">/</span> <span class="p">((</span><span class="n">scipy</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">c</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="p">)</span><span class="o">/</span><span class="n">refrac_index</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_correction_path_length</span><span class="p">(</span><span class="n">iS</span><span class="p">)</span> <span class="o">/</span> <span class="p">((</span><span class="n">constants</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span><span class="p">)</span> <span class="o">/</span> <span class="n">refrac_index</span><span class="p">)</span></div>
 
 
 
@@ -1897,10 +1897,10 @@
         <span class="k">for</span> <span class="n">zenith_reflection</span> <span class="ow">in</span> <span class="n">zenith_reflections</span><span class="p">:</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">zenith_reflection</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="k">continue</span>
-            <span class="n">r_theta</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_r_p</span><span class="p">(</span><span class="n">zenith_reflection</span><span class="p">,</span>
+            <span class="n">r_theta</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_r_p</span><span class="p">(</span><span class="n">zenith_reflection</span><span class="p">,</span>
                 <span class="n">n_2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">+</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">])),</span>
                 <span class="n">n_1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">])))</span>
-            <span class="n">r_phi</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_r_s</span><span class="p">(</span><span class="n">zenith_reflection</span><span class="p">,</span>
+            <span class="n">r_phi</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_r_s</span><span class="p">(</span><span class="n">zenith_reflection</span><span class="p">,</span>
                 <span class="n">n_2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">+</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">])),</span>
                 <span class="n">n_1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">])))</span>
             <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">reflection_coefficient_theta</span><span class="p">]</span> <span class="o">=</span> <span class="n">r_theta</span>

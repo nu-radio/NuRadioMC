@@ -635,7 +635,7 @@
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.propagation_base_class.</span></span><span class="sig-name descname"><span class="pre">ray_tracing_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reflections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_tracing_2D_kwards</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>base class of ray tracer. All ray tracing modules need to prodide the following functions</p>
+<p>Case class of ray tracer. All ray tracing modules need to prodide the following functions</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -724,8 +724,8 @@ will be used. If not, the value from this parameter will be used.</p>
 <li><p>logging.WARNING</p></li>
 <li><p>logging.INFO</p></li>
 <li><p>logging.DEBUG</p></li>
+<li><p>logging.NOTSET (default -&gt; Controlled by global logger level)</p></li>
 </ul>
-<p>default is NOTSET (ie global control)</p>
 </dd>
 <dt><strong>n_frequencies_integration: int</strong></dt><dd><p>if this parameter is also defined in the config file, the value from the config file
 will be used. If not, the value from this parameter will be used.</p>
