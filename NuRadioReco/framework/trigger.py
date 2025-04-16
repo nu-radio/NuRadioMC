@@ -537,7 +537,7 @@ class RNOGSurfaceTrigger(Trigger):
 
 class PASNRTrigger(Trigger):
 
-    def __init__(self, name, snr_threshold, triggered_snr, channels = None, pre_trigger_times = 100 * units.ns):
+    def __init__(self, name, snr_threshold, triggered_snr, channels = None, pre_trigger_times = 55 * units.ns):
         Trigger.__init__(self, name, channels, 'PA_SNR',
                          pre_trigger_times = pre_trigger_times)
         self._triggered_snr = triggered_snr
