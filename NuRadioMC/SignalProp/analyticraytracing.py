@@ -22,7 +22,7 @@ logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 cpp_available = False
 
 try:
-    from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
+    from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
     cpp_available = True
     logger.status("CPP version of ray tracer is available")
 except:
@@ -32,7 +32,7 @@ except:
         import os
         subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  "install.sh"))
-        from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
+        from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
         cpp_available = True
         logger.status("compilation was successful, CPP version of ray tracer is available")
     except:
@@ -867,7 +867,7 @@ class ray_tracing_2D(ray_tracing_base):
     def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq,
                                    reflection=0, reflection_case=1):
 
-        attenuation = np.ones_like(frequency)
+        attenuation_factor = np.ones_like(frequency)
 
         output = f"calculating attenuation for n_ref = {int(reflection):d}: "
         for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection,
@@ -896,19 +896,23 @@ class ray_tracing_2D(ray_tracing_base):
             if self.use_cpp:
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
-                tmp = np.zeros_like(freqs)
+
+                tmp_attenuation_factor = np.zeros_like(freqs)
                 for i, f in enumerate(freqs):
-                    tmp[i] = wrapper.get_attenuation_along_path(
+                    tmp_attenuation_factor[i] = cpp_wrapper.get_attenuation_along_path(
                         x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n,
                         self.medium.z_0, self.attenuation_model_int)
-                if(np.sum(np.isnan(tmp)) > 0):
-                    self.__logger.warning(f"attenuation calculation failed for {np.sum(np.isnan(tmp))}/{len(tmp)} frequencies," + \
-                                            "setting attenuation to 0, i.e., no attenuation in these bins")
-                    tmp[np.isnan(tmp)] = 1
 
-                self.__logger.debug(tmp)
-                tmp_attenuation = np.ones_like(frequency)
-                tmp_attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
+                n_inf_freqs = np.sum(np.isnan(tmp_attenuation_factor))
+                if n_inf_freqs > 0:
+                    self.__logger.warning(
+                        f"CPP wrapper: Attenuation calculation failed for {n_inf_freqs} / {len(tmp_attenuation_factor)} frequencies, "
+                        "setting attenuation (factor) to 1, i.e., no attenuation in these bins")
+                    tmp_attenuation_factor[np.isnan(tmp_attenuation_factor)] = 1
+
+                self.__logger.debug(tmp_attenuation_factor)
+                attenuation_factor_segment = np.ones_like(frequency)
+                attenuation_factor_segment[mask] = np.interp(frequency[mask], freqs, tmp_attenuation_factor)
 
             else:
 
@@ -924,7 +928,7 @@ class ray_tracing_2D(ray_tracing_base):
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 gamma_turn, z_turn = get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2,self.__b, self.medium.z_0, self.medium.delta_n)
                 z_turn = z_turn[0]
-                self.__logger.info(f"_use_optimized_calculation {self._use_optimized_calculation}")
+                self.__logger.info("_use_optimized_calculation {}".format(self._use_optimized_calculation))
 
                 if self._use_optimized_calculation:
                     # The integration of the attenuation factor along the path with scipy.quad is inefficient. The
@@ -958,16 +962,17 @@ class ray_tracing_2D(ray_tracing_base):
                                       min(z_turn + int_window_size / 2, x2_mirrored[1])]
 
                         # Merge two arrays which start and stop at int_window (and thus include it). The width might be slightly different
-                        segments = np.append(get_segments(x1[1], int_window[0], dx), get_segments(int_window[1], x2_mirrored[1], dx))
+                        sub_segments = np.append(get_segments(x1[1], int_window[0], dx), get_segments(int_window[1], x2_mirrored[1], dx))
                     else:
-                        segments = get_segments(x1[1], x2_mirrored[1], dx)
+                        sub_segments = get_segments(x1[1], x2_mirrored[1], dx)
 
                     # get the actual width of each segment and their center
-                    dx_actuals = np.diff(segments)
-                    mid_points = segments[:-1] + dx_actuals / 2
+                    dx_actuals = np.diff(sub_segments)
+                    mid_points = sub_segments[:-1] + dx_actuals / 2
 
-                    # calculate attenuation for the different segments using the middle depth of the segment
-                    attenuation_exp_tmp = np.array(
+                    # calculate attenuation for the different sub segments using the middle depth of the segment
+                    # has the shape (#sub_segments, #frequencies)
+                    attenuation_factor_exponent_tmp = np.array(
                         [[dt(x, C_0, f) * dx_actual for x, dx_actual in zip(mid_points, dx_actuals)]
                         for f in freqs])
 
@@ -975,44 +980,46 @@ class ray_tracing_2D(ray_tracing_base):
                         # for the segment around z_turn fall back to integration. We only integrate ds (and not dt) for performance reasons
 
                         # find segment which contains z_turn
-                        idx = np.digitize(z_turn, segments) - 1
+                        idx = np.digitize(z_turn, sub_segments) - 1
 
                         # if z_turn is outside of segments
-                        if idx == len(segments) - 1:
+                        if idx == len(sub_segments) - 1:
                             idx -= 1
                         elif idx == -1:
                             idx = 0
 
-                        integrand = integrate.quad(self.ds, segments[idx], segments[idx + 1], args=(C_0), epsrel=1e-2, points=[z_turn])[0]
-                        attenuation = (attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs)
-                        att_int = np.array(
-                            [integrand, attenuation])
+                        integrand = integrate.quad(self.ds, sub_segments[idx], sub_segments[idx + 1], args=(C_0), epsrel=1e-2, points=[z_turn])[0]
+                        attenuation = np.array([attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs])
 
-                        attenuation_exp_tmp[:, idx] = att_int
+                        attenuation_factor_exponent_tmp[:, idx] = integrand / attenuation
 
-                    # sum over all segments
-                    attenuation_exp = np.sum(attenuation_exp_tmp, axis=1)
+                    # sum over all sub_segments -> only remaining dimension is frequency
+                    attenuation_factor_exponent = np.sum(attenuation_factor_exponent_tmp, axis=1)
 
                 else:
                     points = None
                     if x1[1] < z_turn and z_turn < x2_mirrored[1]:
                         points = [z_turn]
-                    attenuation_exp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
-                        C_0, f), epsrel=1e-2, points=points)[0] for f in freqs])
-                tmp = np.exp(-1 * attenuation_exp)
 
-                tmp_attenuation = np.ones_like(frequency)
-                tmp_attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
+                    attenuation_factor_exponent = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
+                        C_0, f), epsrel=1e-2, points=points)[0] for f in freqs])
+
+                # Function of the frequency (shape = n_freqs)
+                attenuation_factor_segment_tmp = np.exp(-1 * attenuation_factor_exponent)
+
+                attenuation_factor_segment = np.ones_like(frequency)
+                attenuation_factor_segment[mask] = np.interp(frequency[mask], freqs, attenuation_factor_segment_tmp)
                 self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(
-                    x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / tmp_attenuation))
+                    x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation_factor_segment))
 
             iF = len(frequency) // 3
-            output += f"adding attenuation for path segment {iS:d} -> {tmp_attenuation[iF]:.2g} at {frequency[iF]/units.MHz:.0f} MHz, "
+            output += "adding attenuation for path segment {:d} -> {:.2g} at {:.0f} MHz, ".format(
+                iS, attenuation_factor_segment[iF], frequency[iF] / units.MHz)
 
-            attenuation *= tmp_attenuation
+            attenuation_factor *= attenuation_factor_segment
 
         self.__logger.info(output)
-        return attenuation
+        return attenuation_factor
 
     def get_path_segments(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
@@ -1345,7 +1352,7 @@ class ray_tracing_2D(ray_tracing_base):
             tmp_reflection = copy.copy(self.medium.reflection)
             if(tmp_reflection is None):
                 tmp_reflection = 100  # this parameter will never be used but is required to be an into to be able to pass it to the C++ module, so set it to a positive number, i.e., a reflective layer above the ice
-            solutions = wrapper.find_solutions(x1, x2, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, reflection, reflection_case, tmp_reflection)
+            solutions = cpp_wrapper.find_solutions(x1, x2, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, reflection, reflection_case, tmp_reflection)
 #             print((time.time() -t)*1000.)
             return solutions
         else:
