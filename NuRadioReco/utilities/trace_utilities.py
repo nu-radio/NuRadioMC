@@ -383,19 +383,26 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
     sum_trace: 1-D array of floats
         CSW of the set of traces
     """
-    sum_trace = ref_trace
-
-    for idx, trace in enumerate(trace_set):
+    # Normalize: subtract mean, divide by std (z-score)
+    def process(trace):
         if use_envelope:
-            sig_ref = get_hilbert_envelope(ref_trace)
-            sig_i = get_hilbert_envelope(trace)
-        else:
-            sig_ref = ref_trace
-            sig_i = trace
-        cor = scipy.signal.correlate(sig_ref, sig_i, mode = "full")
-        lag = int(np.argmax((cor)) - (np.size(cor)/2.))
+            trace = get_hilbert_envelope(trace)
+        return (trace - np.mean(trace)) / np.std(trace)
 
-        aligned_trace = np.roll(trace, lag)
+    n_samples = len(ref_trace)
+    ref_processed = process(ref_trace)
+
+    # Process all traces
+    traces_processed = np.array([process(trace) for trace in trace_set])
+
+    sum_trace = np.copy(ref_trace)
+
+    lag_array = scipy.signal.correlation_lags(n_samples, n_samples, mode='full')
+
+    for i, trace in enumerate(trace_set):
+        corr = scipy.signal.correlate(ref_processed, traces_processed[i], mode='full') / n_samples
+        best_lag = lag_array[np.argmax(corr)]
+        aligned_trace = np.roll(trace, best_lag)
         sum_trace += aligned_trace
 
     return sum_trace
