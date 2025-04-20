@@ -458,6 +458,26 @@ def get_kurtosis(trace):
     return kurtosis
 
 
+def get_teager_kaiser_energy(trace):
+    """
+    Uses the Teager-Kaiser Energy Operator (TKEO) on a trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+
+    Returns
+    -------
+    np.abs(tkeo): array of floats
+        TKEO of the input trace
+    """
+    tkeo = np.zeros_like(trace)
+    tkeo[1:-1] = trace[1:-1]**2 - trace[0:-2] * trace[2:]
+
+    return np.abs(tkeo)
+
+
 def is_NAN_or_INF(trace):
     """
     To see if a trace has any NAN or INF.
