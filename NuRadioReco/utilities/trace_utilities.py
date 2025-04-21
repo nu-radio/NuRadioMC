@@ -387,7 +387,7 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
     def process(trace):
         if use_envelope:
             trace = get_hilbert_envelope(trace)
-        return (trace - np.mean(trace, axis=-1)) / np.std(trace, axis=-1)
+        return (trace - np.mean(trace, axis=-1, keepdims=True)) / np.std(trace, axis=-1, keepdims=True)
 
     n_samples = len(ref_trace)
     ref_processed = process(ref_trace)
