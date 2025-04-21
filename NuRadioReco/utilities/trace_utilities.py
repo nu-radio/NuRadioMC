@@ -387,13 +387,14 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
     def process(trace):
         if use_envelope:
             trace = get_hilbert_envelope(trace)
-        return (trace - np.mean(trace)) / np.std(trace)
+        return (trace - np.mean(trace, axis=-1)) / np.std(trace, axis=-1)
 
     n_samples = len(ref_trace)
     ref_processed = process(ref_trace)
 
     # Process all traces
-    traces_processed = np.array([process(trace) for trace in trace_set])
+    trace_set = np.stack(trace_set)  # Make sure it's 2D
+    traces_processed = process(trace_set)
 
     sum_trace = np.copy(ref_trace)
 
