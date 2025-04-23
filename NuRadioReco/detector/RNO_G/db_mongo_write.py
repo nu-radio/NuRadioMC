@@ -7,7 +7,6 @@ from bson import ObjectId
 
 import logging
 logger = logging.getLogger("NuRadioReco.MongoDBWrite")
-logger.setLevel(logging.DEBUG)
 
 
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
