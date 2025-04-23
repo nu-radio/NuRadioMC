@@ -11,7 +11,8 @@ class Detector:
 
     def __init__(
             self, position_path=None, channel_file=None,
-            detector_altitude=460 * units.m, maximum_radius=600 * units.m):
+            detector_altitude=460 * units.m, maximum_radius=600 * units.m,
+            n_samples=1024, sampling_frequency=0.8*units.GHz):
         """
         Simple class to describe an ideal SKA detector.
 
@@ -42,11 +43,17 @@ class Detector:
             Altitude of the detector in meters.
         maximum_radius: float (Default: 600 * units.m)
             Maximum radius of stations to be included when reading from file.
+        n_samples: int (Default: 1024)
+            Number of ADC samples per channel.
+        sampling_frequency: float (Default: 0.8 * units.GHz)
+            Sampling frequency of the channels.
         """
 
         self.logger = logging.getLogger("NuRadioReco.detector.SKA.detector")
         self.detector_altitude = detector_altitude
         self.maximum_radius = maximum_radius
+        self.__n_samples = n_samples 
+        self.__sampling_frequency = sampling_frequency # TODO: move to .json file once these values are confirmed 
 
         if channel_file is None:
             channel_file = os.path.join(
@@ -66,6 +73,37 @@ class Detector:
         self._station_positions = None
         if position_path is not None:
             self.read_antenna_positions(position_path, maximum_radius=maximum_radius)
+
+    def get_number_of_samples(self, station_id=None, channel_id=None):
+        """
+        returns the number of samples of a channel.
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns int
+        """
+
+        return self.__n_samples
+
+    def get_sampling_frequency(self, station_id=None, channel_id=None):
+        """
+        returns the sampling frequency
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns float
+        """
+        return self.__sampling_frequency
 
     def read_antenna_positions(self, base_path, maximum_radius=600 * units.m):
         """ Reads the antenna positions from the given path.
