@@ -116,13 +116,13 @@ jobs:
     - name: "Signal propagation tests"
       if: always()
       run: |
-         export GSLDIR=$(gsl-config --prefix)
-         NuRadioMC/test/SignalProp/run_signal_test.sh
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/SignalProp/run_signal_test.sh
     - name: "Test Birefringence"
       if: always()
       run: |
-         export GSLDIR=$(gsl-config --prefix)
-         NuRadioMC/test/SignalProp/run_birefringence_tests.sh
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/SignalProp/run_birefringence_tests.sh
     - name: "Test Veff example"
       if: always()
       run: |
