@@ -73,7 +73,8 @@ class channelGalacticNoiseAdder:
             freq_range=None,
             interpolation_frequencies=None,
             seed=None,
-            caching=True
+            caching=True,
+            scaling=1.0
     ):
         """
         Set up important parameters for the module
@@ -105,6 +106,9 @@ class channelGalacticNoiseAdder:
         caching: bool, default: True
             If True, the antenna response is cached for each channel. This can speed up this module
             by a lot. If the frequencies of the channels change, the cache is cleared.
+        scaling: float, default: 1.0
+            Scaling factor for the noise. This is useful when doing interferometry with every 
+            nth antenna (in this case one would set the scaling to 1/\sqrt{n}).
         """
         if debug:
             warnings.warn("This argument is deprecated and will be removed in future versions.", DeprecationWarning)
@@ -114,6 +118,7 @@ class channelGalacticNoiseAdder:
         self.solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
 
         self.__caching = caching
+        self.scaling = scaling
         self.__freqs = None
         if self.__caching and self.__n_side >= 10:
             logger.warning(
@@ -347,7 +352,6 @@ class channelGalacticNoiseAdder:
                 channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
                     1j * delta_phases) * np.sin(polarizations) * curr_t_phi
 
-
                 # fold electric field with antenna response
                 if self.__caching:
                     antenna_response = self._get_cached_antenna_response(
@@ -360,6 +364,9 @@ class channelGalacticNoiseAdder:
                     antenna_response['theta'] * channel_noise_spec[1]
                     + antenna_response['phi'] * channel_noise_spec[2]
                 )
+
+                # scale noise spectrum:
+                channel_noise_spectrum *= self.scaling
 
                 # add noise spectrum from pixel in the sky to channel spectrum
                 channel_spectra[channel.get_id()] += channel_noise_spectrum
