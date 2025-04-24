@@ -403,7 +403,7 @@ class ray_tracing_2D(ray_tracing_base):
             default: True if CPP version is available
 
         """
-        self.__logger = logging.getLogger('ray_tracing_2D')
+        self.__logger = logging.getLogger('NuRadioMC.ray_tracing_2D')
         self.__logger.setLevel(log_level)
         if cpp_available:
             if not use_cpp:
@@ -429,8 +429,7 @@ class ray_tracing_2D(ray_tracing_base):
 
         self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
         self.__b = 2 * self.medium.n_ice
-        self.__logger = logging.getLogger('NuRadioMC.ray_tracing_2D')
-        self.__logger.setLevel(log_level)
+
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
         self._use_optimized_calculation = self.attenuation_model in speedup_attenuation_models
