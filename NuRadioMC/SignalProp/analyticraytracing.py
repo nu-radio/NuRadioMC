@@ -913,8 +913,8 @@ class ray_tracing_2D(ray_tracing_base):
                 if n_inf_freqs > 0:
                     self.__logger.warning(
                         f"CPP wrapper: Attenuation calculation failed for {n_inf_freqs} / {len(tmp_attenuation_factor)} frequencies, "
-                        "setting attenuation (factor) to 1, i.e., no attenuation in these bins")
-                    tmp_attenuation_factor[np.isnan(tmp_attenuation_factor)] = 1
+                        "setting attenuation (factor) to 0, i.e., inf attenuation in these bins")
+                    tmp_attenuation_factor[np.isnan(tmp_attenuation_factor)] = 0
 
                 self.__logger.debug(tmp_attenuation_factor)
                 attenuation_factor_segment = np.ones_like(frequency)
