@@ -1356,8 +1356,10 @@ class Detector():
 
 
     def get_site(self, station_id):
-        """
-        This detector class is exclusive for the RNO-G detector at Summit Greenland.
+        """ Returns the site "summit"
+        
+        This detector class is exclusive for the RNO-G detector located
+        at Summit Station on the Greenland ice sheet.
 
         Parameters
         ----------
@@ -1376,6 +1378,10 @@ class Detector():
         """
         Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.
 
+        The returned location corresponds to the position of the DISC borehole which is 
+        used as the origin of the RNO-G coordinate system, i.e., this locations acts as
+        a reference point to define the station positions.
+
         Parameters
         ----------
         station_id: int
@@ -1386,7 +1392,7 @@ class Detector():
         coordinates: tuple(float, float)
             Tuple of latitude and longitude in degrees
         """
-        return (72.57, -38.46)
+        return (72.582793, -38.455815)
 
 
     def get_database(self):
