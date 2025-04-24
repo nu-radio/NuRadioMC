@@ -1,20 +1,22 @@
-from NuRadioReco.utilities import units, ice, geometryUtilities, signal_processing
+from NuRadioReco.utilities import units, ice, geometryUtilities, signal_processing, fft
 from NuRadioReco.modules.base.module import register_run
+
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 import NuRadioReco.detector.antennapattern
-import logging
-import warnings
-import numpy as np
-import scipy.constants
-import scipy.interpolate
-import functools
-from contextlib import redirect_stdout
+
 from numpy.random import Generator, Philox
+from contextlib import redirect_stdout
+import scipy.interpolate
+import numpy as np
+import functools
+import warnings
+
 import healpy
 import astropy.coordinates
 import astropy.units
 
+import logging
 logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
 
 try:
@@ -389,19 +391,26 @@ def get_local_coordinates(coordinates, time, n_side):
         The local coordinates of the pixels of the healpix map
     """
     site_latitude, site_longitude = coordinates
-    site_location = astropy.coordinates.EarthLocation(lat=site_latitude * astropy.units.deg,
-                                                        lon=site_longitude * astropy.units.deg)
+    site_location = astropy.coordinates.EarthLocation(
+        lat=site_latitude * astropy.units.deg, lon=site_longitude * astropy.units.deg)
 
     local_cs = astropy.coordinates.AltAz(location=site_location, obstime=time)
 
+    # because `lonlat=True` function returns angles in degrees
     pixel_longitudes, pixel_latitudes = healpy.pixelfunc.pix2ang(
         n_side, range(healpy.pixelfunc.nside2npix(n_side)), lonlat=True)
 
-    pixel_longitudes *= units.deg
-    pixel_latitudes *= units.deg
+    # First convert deg to rad using the NuRadio unit system
+    # Than convert them to astropy.Quantities to be used with the
+    # astropy class.
+    pixel_longitudes = pixel_longitudes * units.deg * astropy.units.rad
+    pixel_latitudes = pixel_latitudes * units.deg * astropy.units.rad
 
-    galactic_coordinates = astropy.coordinates.Galactic(l=pixel_longitudes * astropy.units.rad,
-                                                        b=pixel_latitudes * astropy.units.rad)
+    galactic_coordinates = astropy.coordinates.Galactic(
+        l=pixel_longitudes,
+        b=pixel_latitudes
+    )
+
     local_coordinates = galactic_coordinates.transform_to(local_cs)
 
     return local_coordinates

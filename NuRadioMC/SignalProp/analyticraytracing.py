@@ -25,7 +25,7 @@ try:
     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
     cpp_available = True
     logger.status("CPP version of ray tracer is available")
-except:
+except Exception:
     logger.info("trying to compile the CPP extension on-the-fly")
     try:
         import subprocess
@@ -34,7 +34,7 @@ except:
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
         cpp_available = True
         logger.status("compilation was successful, CPP version of ray tracer is available")
-    except:
+    except Exception:
         logger.warning(
             "Compilation was not successful, using python version of ray tracer. "
             "Check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation.")
@@ -67,7 +67,7 @@ def get_n_steps(x1, x2, dx):
     return max(int(abs(x1 - x2) // dx), 3)
 
 
-def get_segments(x1, x2, dx):
+def get_equidistant_steps(x1, x2, dx):
     """ Returns equi.dist. segments (np.linspace). Choose number of segments such that
         width of segments is approx. dx
     """
@@ -155,7 +155,7 @@ def get_turning_point(c, b, z_0, delta_n):
         z2 = np.array([0], dtype=np.float64)  # a reflection is just a turning point at z = 0, i.e. cases 2) and 3) are the same
         gamma2 = get_gamma(z2, delta_n, z_0)
 
-    return gamma2  , z2
+    return gamma2, z2
 
 def get_y_with_z_mirror(z, C_0, n_ice, b, delta_n, z_0, C_1=0.0):
     """
@@ -337,15 +337,21 @@ def get_y_diff(z_raw, C_0, n_ice, b, z_0, delta_n, in_air=False):
     #          z_0) + delta_n ** 2 * np.exp(0.2e1 * z / z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
 
     n_z = n(z, n_ice, delta_n, z_0)
-    res = 1 / np.sqrt(C_0**2 * n_z**2 - 1)
+
+    if C_0**2 * n_z**2 > 1:
+        res = 1 / np.sqrt(C_0**2 * n_z**2 - 1)
+    else:
+        res = np.inf
 
     if correct_for_air:
         n_surface = n(0, n_ice, delta_n, z_0)
         theta_ice = np.arctan(res)
         theta_air = np.arcsin(n_surface * np.sin(theta_ice))
         res = np.tan(theta_air)
-    if(z != z_raw):
+
+    if z != z_raw:
         res *= -1
+
     return res
 
 
@@ -442,7 +448,7 @@ class ray_tracing_2D(ray_tracing_base):
                 global get_reflection_point,obj_delta_y_square,get_delta_y
                 global get_y_turn, get_y_with_z_mirror,get_turning_point
                 global get_gamma, get_y, get_C0_from_log
-                global get_z_unmirrored, n
+                global get_z_unmirrored, n, get_y_diff
                 try:
                     get_reflection_point = jit(get_reflection_point, nopython=True, cache=True)
                     obj_delta_y_square = jit(obj_delta_y_square, nopython=True, cache=True)
@@ -454,6 +460,7 @@ class ray_tracing_2D(ray_tracing_base):
                     get_y = jit(get_y, nopython=True, cache=True)
                     get_C0_from_log = jit(get_C0_from_log, nopython=True, cache=True)
                     get_z_unmirrored = jit(get_z_unmirrored, nopython=True, cache=True)
+                    get_y_diff = jit(get_y_diff, nopython=True, cache=True)
                     n = jit(n, nopython=True, cache=True)
                     self.use_cpp = False
                 except Exception:
@@ -877,8 +884,7 @@ class ray_tracing_2D(ray_tracing_base):
         attenuation_factor = np.ones_like(frequency)
 
         output = f"calculating attenuation for n_ref = {int(reflection):d}: "
-        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection,
-                                                            reflection_case)):
+        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
 
             # we can only integrate upward going rays, so if the ray starts downwardgoing,
             # we need to mirror
@@ -891,7 +897,7 @@ class ray_tracing_2D(ray_tracing_base):
                 x2 = x2t
                 x1 = x1t
             else:
-                x11, x1, x22, x2, C_0, C_1 = segment
+                _, x1, _, x2, C_0, C_1 = segment
 
             # treat special ice to air case. Attenuation in air can be neglected, so only
             # calculate attenuation until the ray reaches the surface
@@ -914,8 +920,8 @@ class ray_tracing_2D(ray_tracing_base):
                 if n_inf_freqs > 0:
                     self.__logger.warning(
                         f"CPP wrapper: Attenuation calculation failed for {n_inf_freqs} / {len(tmp_attenuation_factor)} frequencies, "
-                        "setting attenuation (factor) to 1, i.e., no attenuation in these bins")
-                    tmp_attenuation_factor[np.isnan(tmp_attenuation_factor)] = 1
+                        "setting attenuation (factor) to 0, i.e., inf attenuation in these bins")
+                    tmp_attenuation_factor[np.isnan(tmp_attenuation_factor)] = 0
 
                 self.__logger.debug(tmp_attenuation_factor)
                 attenuation_factor_segment = np.ones_like(frequency)
@@ -952,55 +958,56 @@ class ray_tracing_2D(ray_tracing_base):
 
                     # define the width of the vertical (!) segments over which we sum.
                     # Since we use linspace the actual width will differ slightly
-                    dx = 10
+                    dx = 10 * units.m
                     # define the vertical window around a turning point within we will fall back to a numerical integration
-                    int_window_size = 20
+                    integration_window_size = 20 * units.m
 
                     # Check if a turning point "z_turn" is within our ray path or close to it (i.e., right behind the antenna)
                     # if so we need to fallback to numerical integration
                     fallback = False
-                    if x1[1] - int_window_size / 2 < z_turn and z_turn < x2_mirrored[1] + int_window_size / 2:
+                    if x1[1] - integration_window_size / 2 < z_turn and z_turn < x2_mirrored[1] + integration_window_size / 2:
                         fallback = True
 
                     if fallback:
                         # If we need the fallback, make sure that the turning point is in the middle of a segment (unless it is at
                         # the edge of a path). Otherwise the segment next to the turning point will be inaccurate
-                        int_window = [max(x1[1], z_turn - int_window_size / 2),
-                                      min(z_turn + int_window_size / 2, x2_mirrored[1])]
+                        integration_window = [max(x1[1], z_turn - integration_window_size / 2),
+                            min(z_turn + integration_window_size / 2, x2_mirrored[1])]
 
-                        # Merge two arrays which start and stop at int_window (and thus include it). The width might be slightly different
-                        sub_segments = np.append(get_segments(x1[1], int_window[0], dx), get_segments(int_window[1], x2_mirrored[1], dx))
+                        # Merge two arrays which start and stop at integration_window (and thus include it). The width might be slightly different
+                        path_steps = np.append(get_equidistant_steps(x1[1], integration_window[0], dx), get_equidistant_steps(integration_window[1], x2_mirrored[1], dx))
                     else:
-                        sub_segments = get_segments(x1[1], x2_mirrored[1], dx)
+                        path_steps = get_equidistant_steps(x1[1], x2_mirrored[1], dx)
 
                     # get the actual width of each segment and their center
-                    dx_actuals = np.diff(sub_segments)
-                    mid_points = sub_segments[:-1] + dx_actuals / 2
+                    dx_actuals = np.diff(path_steps)
+                    mid_points = path_steps[:-1] + dx_actuals / 2
 
                     # calculate attenuation for the different sub segments using the middle depth of the segment
-                    # has the shape (#sub_segments, #frequencies)
+                    # has the shape (#path_steps, #frequencies)
                     attenuation_factor_exponent_tmp = np.array(
                         [[dt(x, C_0, f) * dx_actual for x, dx_actual in zip(mid_points, dx_actuals)]
                         for f in freqs])
+                    # attenuation_factor_exponent_tmp = dt(mid_points, C_0, freqs) * dx_actuals
 
                     if fallback:
                         # for the segment around z_turn fall back to integration. We only integrate ds (and not dt) for performance reasons
 
                         # find segment which contains z_turn
-                        idx = np.digitize(z_turn, sub_segments) - 1
+                        idx = np.digitize(z_turn, path_steps) - 1
 
                         # if z_turn is outside of segments
-                        if idx == len(sub_segments) - 1:
+                        if idx == len(path_steps) - 1:
                             idx -= 1
                         elif idx == -1:
                             idx = 0
 
-                        integrand = integrate.quad(self.ds, sub_segments[idx], sub_segments[idx + 1], args=(C_0), epsrel=1e-2, points=[z_turn])[0]
-                        attenuation = np.array([attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs])
+                        integrand = integrate.quad(self.ds, path_steps[idx], path_steps[idx + 1], args=(C_0), epsrel=1e-2, points=[z_turn])[0]
+                        attenuation = attenuation_util.get_attenuation_length(z_turn, freqs, self.attenuation_model)
 
                         attenuation_factor_exponent_tmp[:, idx] = integrand / attenuation
 
-                    # sum over all sub_segments -> only remaining dimension is frequency
+                    # sum over all path_steps -> only remaining dimension is frequency
                     attenuation_factor_exponent = np.sum(attenuation_factor_exponent_tmp, axis=1)
 
                 else:
@@ -1051,19 +1058,27 @@ class ray_tracing_2D(ray_tracing_base):
 
         Returns
         -------
-        (original x1, x1 of path segment, original x2, x2 of path segment, C_0, C_1 of path segment)
+        segments: list
+            list of segments, each segment is a list with the following elements:
+
+                * x1: original x1
+                * x1 of path segment
+                * x2: original x2
+                * x2 of path segment
+                * C_0: C_0 of path segment
+                * C_1: C_1 of path segment
+
         """
         x1 = copy.copy(x1)
-        x11 = copy.copy(x1)
-        x22 = copy.copy(x2)
+        x2 = copy.copy(x2)
+        x1_orig = copy.copy(x1)
+        x2_orig = copy.copy(x2)
 
-        if(reflection == 0):
+        if reflection == 0:
             C_1 = self.get_C_1(x1, C_0)
-            return [[x1, x1, x22, x2, C_0, C_1]]
+            return [[x1_orig, x1, x2_orig, x2, C_0, C_1]]
 
-        tmp = []
-
-        if(reflection_case == 2):
+        if reflection_case == 2:
             # the code only allows upward going rays, thus we find a point left from x1 that has an upward going ray
             # that will produce a downward going ray through x1
             y_turn = get_y_turn(C_0, x1, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
@@ -1071,23 +1086,24 @@ class ray_tracing_2D(ray_tracing_base):
             self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
             x1[0] = x1[0] - 2 * dy
 
+        segments = []
         for i in range(reflection + 1):
             self.__logger.debug("calculation path for reflection = {}".format(i + 1))
             C_1 = self.get_C_1(x1, C_0)
             x2 = get_reflection_point(C_0, C_1, self.medium.n_ice, self.reflection, self.__b, self.medium.z_0, self.medium.delta_n)
             stop_loop = False
-            if(x2[0] > x22[0]):
+            if x2[0] > x2_orig[0]:
                 stop_loop = True
-                x2 = x22
-            tmp.append([x11, x1, x22, x2, C_0, C_1])
-            if(stop_loop):
+                x2 = x2_orig
+
+            segments.append([x1_orig, x1, x2_orig, x2, C_0, C_1])
+            if stop_loop:
                 break
-#             yyy, zzz = self.get_path(x1, x2, C_0, n_points)
-#             yy.extend(yyy)
-#             zz.extend(zzz)
+
             self.__logger.debug("setting x1 from {} to {}".format(x1, x2))
             x1 = x2
-        return tmp
+
+        return segments
 
     def get_angle(self, x, x_start, C_0, reflection=0, reflection_case=1, in_air=False):
         """
@@ -1947,7 +1963,10 @@ class ray_tracing(ray_tracing_base):
         if use_cpp:
             self.__logger.status("Using CPP version of ray tracer")
         else:
-            self.__logger.status("Using python version of ray tracer")
+            if compile_numba and numba_available:
+                self.__logger.status("Using python with numba version of ray tracer")
+            else:
+                self.__logger.status("Using python without numba version of ray tracer")
 
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self._n_frequencies_integration,
