@@ -369,7 +369,8 @@ double get_attenuation_integral_GL3(
 
 
 double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
-		double frequency, double n_ice, double delta_n, double z_0, int model){
+		double frequency, double n_ice, double delta_n, double z_0, int model) {
+
 	double x2_mirrored[2]={0.};
 	get_z_mirrored(pos,pos2,C0,x2_mirrored, n_ice, delta_n, z_0);
     if(model == 5) {
@@ -381,13 +382,17 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(2000);
 	gsl_function F;
 	F.function = &dt_freq;
-	struct dt_freq_params params = {C0,frequency, n_ice, delta_n, z_0, model};
+	struct dt_freq_params params = {C0, frequency, n_ice, delta_n, z_0, model};
 	F.params=&params;
 
 	double result, error;
-	double epsrel = 1.e-7; //small initial absolute error
-	int max_badfunc_tries=6;
-	int num_badfunc_tries=0;
+	double epsabs = 1.e-4; // small initial absolute error
+	double epsrel = 1.e-5; // small initial relative error
+	double max_epsrel = 1.e-3; // max excepted relative error
+	int max_badfunc_tries = 5;
+	int num_badfunc_tries = 0;
+	double delta_epsrel = (max_epsrel - epsrel) / max_badfunc_tries; // small initial relative error
+
 	int status;
 
 	/*
@@ -400,22 +405,37 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 	*/
 	gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
 	do{
-		status = gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,epsrel,2000,w,&result,&error);
-		if(status!=GSL_SUCCESS){
-			status=GSL_CONTINUE;
+		status = gsl_integration_qag(&F, pos[1], x2_mirrored[1], epsabs, epsrel, 2000, 1, w, &result, &error);
+
+		// Break after reaching max excepted rel error
+		if (num_badfunc_tries == max_badfunc_tries)
+			break;
+
+		if (status != GSL_SUCCESS) {
+			status = GSL_CONTINUE;
 			num_badfunc_tries++;
-			epsrel*=2.; //double the size of the relative error
+			epsrel += delta_epsrel; //double the size of the relative error
 		}
-	}while(status == GSL_CONTINUE && num_badfunc_tries<max_badfunc_tries);
-	gsl_set_error_handler (myhandler); //restore original error handler
+
+	} while (status == GSL_CONTINUE && num_badfunc_tries <= max_badfunc_tries);
+
+	if (status != GSL_SUCCESS) {
+		std::cout << "GSL integtration needed " << num_badfunc_tries
+				<< " iterations to converge. Result / Error: " << result << " / " << error << " with target error: "
+				<< max(epsabs, epsrel * result) << " (epsabs: " << epsabs
+				<< ", epsrel: " << epsrel << ")" << std::endl;
+	}
+
+	gsl_set_error_handler(myhandler); //restore original error handler
 	gsl_integration_workspace_free(w);
+
 	double attenuation;
-	if(status==GSL_SUCCESS){
+	if (status == GSL_SUCCESS) {
 		attenuation = exp(-1 * result);
+	} else {
+		attenuation = NAN;
 	}
-	else{
-		attenuation=NAN;
-	}
+
 	return attenuation;
 }
 
@@ -697,7 +717,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	FDF.params = &params;
 	Tfdf = gsl_root_fdfsolver_secant;
 	gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
-	
+
 	// We have to guess at the location of the first root (if it it exists at all).
 	// Because we might not guess correctly, or guess close enough,
 	// it's in our favor (for numerical stability reasons) to try several times.
