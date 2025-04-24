@@ -424,7 +424,7 @@ class channelGalacticNoiseAdder:
 
             polarisation = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
-            spectrum[window] += spectrum_pixel * np.cos(polarisation)
+            spectrum[window] += spectrum_pixel# * np.cos(polarisation)
 
         return np.std(fft.freq2time(spectrum, sampling_rate))
 
@@ -469,6 +469,7 @@ def get_local_coordinates(coordinates, time, n_side):
 if __name__ == "__main__":
 
     from astropy.time import Time
+    from NuRadioReco.utilities import fft
     location = (42.93, 79.999099)
 
     dh = np.arange(-12, 12, 0.5)
