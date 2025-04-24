@@ -6,9 +6,7 @@ import datetime
 from bson import ObjectId
 
 import logging
-logging.basicConfig()
-logger = logging.getLogger("database")
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("NuRadioReco.MongoDBWrite")
 
 
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
@@ -140,7 +138,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         self.db[collection].update_one({identification_key: identification_value},
                                        {'$push': {'measurements': data_dict}}, upsert=True)
 
-    def add_general_station_info(self, station_id, station_name, station_comment, number_of_samples, sampling_rate, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
+    def add_general_station_info(self, station_id, station_name, station_comment, signal_digitizer_config_id, trigger_digitizer_config_id, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
         # check if an active station exist; if true, the active station will be decommissioned
         # filter to get all active stations with the correct id
         time = self.__detector_time
@@ -162,8 +160,8 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
                                         'name': station_name,
                                         'commission_time': commission_time,
                                         'decommission_time': decommission_time,
-                                        'number_of_samples': number_of_samples,
-                                        'sampling_rate': sampling_rate,
+                                        'signal_digitizer_config': signal_digitizer_config_id,
+                                        'trigger_digitizer_config': trigger_digitizer_config_id,
                                         'station_comment': station_comment,
                                         'id_position': position_identifier,
                                         'channels': [],

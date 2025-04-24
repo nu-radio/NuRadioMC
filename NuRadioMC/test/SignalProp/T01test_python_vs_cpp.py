@@ -6,8 +6,8 @@ from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 import logging
 from numpy import testing
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('test_raytracing')
+logger = logging.getLogger('NuRadioMC.test_raytracing')
+logger.setLevel(logging.INFO)
 
 ice = medium.southpole_simple()
 
@@ -33,9 +33,9 @@ results_A_cpp = np.zeros((n_events, 2, n_freqs))
 t_start = time.time()
 ff = np.linspace(0, 500*units.MHz, n_freqs)
 # tt = 0
+r = ray.ray_tracing(ice)
 for iX, x in enumerate(points):
 #     t_start2 = time.time()
-    r = ray.ray_tracing(ice)
     r.set_start_and_end_point(x, x_receiver, )
 #     tt += (time.time() - t_start2)
     r.find_solutions()
@@ -51,8 +51,8 @@ print("CPP time = {:.1f} seconds = {:.2f}ms/event".format(t_cpp, 1000. * t_cpp /
 results_C0s_python = np.zeros((n_events, 2))
 results_A_python = np.zeros((n_events, 2, n_freqs))
 t_start = time.time()
+r = ray.ray_tracing(ice, use_cpp=False)
 for iX, x in enumerate(points):
-    r = ray.ray_tracing(ice, use_cpp=False)
     r.set_start_and_end_point(x, x_receiver)
     r.find_solutions()
     if(r.has_solution()):
@@ -61,6 +61,30 @@ for iX, x in enumerate(points):
             results_A_python[iX, iS] = r.get_attenuation(iS, ff)
 t_python = time.time() - t_start
 print("Python time = {:.1f} seconds = {:.2f}ms/event".format(t_python, 1000. * t_python / n_events))
+
+
+# Numba testing
+try:
+    from numba import jit
+except:
+    raise NotImplementedError("Numba is not implemented")
+
+results_C0s_numba = np.zeros((n_events, 2))
+results_A_numba = np.zeros((n_events, 2, n_freqs))
+t_start = time.time()
+r = ray.ray_tracing(ice, use_cpp=False,compile_numba = True)
+for iX, x in enumerate(points):
+    r.set_start_and_end_point(x, x_receiver)
+    r.find_solutions()
+    if(r.has_solution()):
+        for iS in range(r.get_number_of_solutions()):
+            results_C0s_numba[iX, iS] = r.get_results()[iS]['C0']
+            results_A_numba[iX, iS] = r.get_attenuation(iS, ff)
+t_numba = time.time() - t_start
+print("Numba time = {:.1f} seconds = {:.2f}ms/event".format(t_numba, 1000. * t_numba / n_events))
+
+testing.assert_allclose(results_C0s_numba, results_C0s_python, atol=1e-08, rtol=1e-05)
+testing.assert_allclose(results_A_numba, results_A_python, rtol=1e-2, atol=1e-3)
 
 testing.assert_allclose(results_C0s_cpp, results_C0s_python, atol=1e-08, rtol=1e-05)
 testing.assert_allclose(results_A_cpp, results_A_python, rtol=1e-2, atol=1e-3)

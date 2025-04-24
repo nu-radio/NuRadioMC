@@ -38,15 +38,28 @@ class stationParameters(Enum):
     distance_correlations = 30
     shower_energy = 31 #: the energy of the shower
     viewing_angles = 32 #: reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
-    flagged_channels = 60  #: a set of flagged channel ids (calculated by readLOFARData and adjusted by stationRFIFilter)
+    flagged_channels = 60  #: a defaultdict of flagged NRR channel ids with as value a list of the reason(s) for flagging (used in readLOFARData, stationRFIFilter)
     cr_dominant_polarisation = 61  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
     dirty_fft_channels = 62  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
+    channels_max_amplitude_norm = 63  #: maximum std-normalised peak to peak amplitude of all chosen channels
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction
     azimuth = 2  #: azimuth angle of the incoming signal direction
     maximum_amplitude = 4  #: the maximum ampliude of the magnitude of the trace
-    SNR = 5  #: an dictionary of various signal-to-noise ratio definitions
+    SNR = 5  #: a dictionary with the following signal-to-noise ratio definitions:
+    # 'integrated_power':
+        # Difference of the sum of the squared amplitudes in the signal window and in the noise window
+        # SNR = sum_sig(V_i^2) - sum_noise(V_i^2)
+    # 'peak_amplitude':
+        # Maximum amplitude of the absolute signal trace divided by the rms of the noise window
+        # SNR = max(abs(V_sig))/V_rms_noise
+    # 'peak_2_peak_amplitude':
+        # Difference between max and min of the signal trace divided by twice the rms value in the noise window
+        # SNR = (max(V_sig)-min(V_sig))/2*V_rms_noise
+    # 'peak_2_peak_amplitude_split_noise_rms':
+        # Peak to peak amplitude in the trace divided by twice the noise rms value, where the latter is calculated by splitting the trace into segments and taking the mean of the lowest few segment rms values
+        # SNR = V_p2p/2*V_rms_noise
     maximum_amplitude_envelope = 6  #: the maximum ampliude of the hilbert envelope of the trace
     P2P_amplitude = 7  #: the peak to peak amplitude
     cr_xcorrelations = 8  #: dict of result of crosscorrelations with cr templates
@@ -60,7 +73,26 @@ class channelParameters(Enum):
     signal_ray_type = 16        #: type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
     signal_receiving_azimuth = 17   #: the azimuth angle of direction at which the radio signal arrived at the antenna
     block_offsets = 18 #: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
+    Vrms_NuRadioMC_simulation = 19  #: the noise rms used in the MC simulation
+    bandwidth_NuRadioMC_simulation = 20  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
+    Vrms_trigger_NuRadioMC_simulation = 21  #: the noise rms of the trigger channels (optional) used in the MC simulation
+    root_power_ratio = 22 #: the root power ratio (float)
+    impulsivity = 23  #: average of the CDF about the peak of the coherently summed waveform
+    entropy = 24  #: Shannon entropy of a waveform
+    kurtosis = 25  #: kurtosis of a waveform
 
+class channelParametersRNOG(Enum):
+    # RNO-G specific channel parameters
+    # FS: I did not start with a negative parameter on the 1, hence I chose 100
+    glitch = 100 #: True if channel is likely to have a glitch. See 'NuRadioReco.modules.RNO_G.channelGlitchDetector'
+    glitch_test_statistic = 101 #: Numerical value delivered by the glitch detector. Positive values indicate a likely glitch.
+
+class stationParametersRNOG(Enum):
+    # RNO-G specific station parameters
+    coherent_snr = 1  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr
+    coherent_impulsivity = 2  #: impulsivity of the coherently summed waveform
+    coherent_entropy = 3  #: Shannon entropy of the coherently summed waveform
+    coherent_kurtosis = 4  #: kurtosis of the coherently summed waveform
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
@@ -79,7 +111,9 @@ class electricFieldParameters(Enum):
     reflection_coefficient_phi = 15  #: for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
     cr_spectrum_quadratic_term = 16  #: result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
     energy_fluence_ratios = 17   #: Ratios of the energy fluences in different passbands
-
+    nu_vertex_propagation_time = 18  #: the time it takes for the signal to propagate from the vertex to the channel
+    raytracing_solution = 19  #: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)
+    launch_vector = 20  #: the launch vector of the ray from which this efield originates (only available for in-ice simulations)
 
 class ARIANNAParameters(Enum):  #: this class stores parameters specific to the ARIANNA data taking
     seq_start_time = 1  #: the start time of a sequence
@@ -121,6 +155,7 @@ class showerParameters(Enum):
     interaction_type = 109  #: the interaction type, e.g. cc or nc
     k_L = 110  #: the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile
     flavor = 111  #: the flavor of the particle initiating the shower
+    n_interaction = 112 #: Hierarchical counter for the number of showers per event group (also accounts for showers which did not trigger and might not be saved)
 
     interferometric_shower_maximum = 120  #: depth of the maximum of the longitudinal profile of the beam-formed signal
     interferometric_shower_axis = 121  #: shower axis (direction) derived from beam-formed signal
@@ -139,6 +174,8 @@ class emitterParameters(Enum):
     rotation_phi = 9  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
     rotation_theta = 10  #: the orientation of the emiting antenna, defined via two vectors that are defined with two angles each
     realization_id = 11  #: the id of the measurement of the emitted electric field
+    antenna_type =  12  #: the type of the antenna used to simulate the emission
+    time = 13  #: the time when the signal was emitted
 
 
 class particleParameters(Enum):
@@ -153,6 +190,7 @@ class particleParameters(Enum):
     inelasticity = 11  #: inelasticity ot neutrino interaction
     interaction_type = 12  #: interaction type, e.g., cc, nc
     n_interaction = 13 #: number of interaction
+    shower_id = 14 #: the shower id associated with this particle. This is needed to generate HDF5 files that contain the primary particle
 
     cr_energy = 101  #: the cosmic-ray energy
     cr_zenith = 102  #: zenith angle of the cosmic-ray incoming direction
@@ -198,6 +236,9 @@ class generatorAttributes(Enum):
 
     flavors = 26 #: list of simulated event flavours
     dt = 27 #: inverse of sampling rate used in the simulation
+    Tnoise = 28 #: noise temperature used in the simulation
+    Vrms = 29 #: noise rms used in the simulation,
+    bandwidth = 30 #: integrated channel response used in the simulation
 
     # simulated statistics
     n_events = 100

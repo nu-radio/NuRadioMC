@@ -6,8 +6,8 @@ from NuRadioReco.utilities import io_utilities, units
 import logging
 import pickle
 from numpy import testing
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('test_raytracing')
+logger = logging.getLogger('NuRadioMC.test_raytracing')
+logger.setLevel(logging.INFO)
 
 ice = medium.mooresbay_simple()
 
@@ -33,8 +33,8 @@ results_A_cpp = np.zeros((n_events, 2, n_freqs))
 t_start = time.time()
 ff = np.linspace(0, 500*units.MHz, n_freqs)
 # tt = 0
+r = ray.ray_tracing(ice, n_reflections=2)
 for iX, x in enumerate(points):
-    r = ray.ray_tracing(ice, n_reflections=2)
     r.set_start_and_end_point(x, x_receiver)
     r.find_solutions()
     if(r.has_solution()):

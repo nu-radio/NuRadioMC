@@ -9,3 +9,4 @@ python3 T06unit_test_C0_mooresbay.py
 cd ../../SignalProp/examples
 python3 example_3d.py
 python3 A01IceCubePulserToARA.py
+python3 ray_tracing_modules.py
