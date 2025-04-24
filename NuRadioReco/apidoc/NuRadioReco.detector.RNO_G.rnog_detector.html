@@ -744,7 +744,7 @@ new connection. Set to True to create a new database connection.</p>
 <td><p>Returns a <em class="xref py py-obj">detector.response.Response</em> object which describes the complex response of the entire signal chain, i.e., the combined reponse of all components of one channel.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site</span></code></a>(station_id)</p></td>
-<td><p>This detector class is exclusive for the RNO-G detector at Summit Greenland.</p></td>
+<td><p>Returns the site &quot;summit&quot;</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates" title="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_coordinates</span></code></a>([station_id])</p></td>
 <td><p>Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.</p></td>
@@ -1345,7 +1345,9 @@ by the response provided by <a class="reference internal" href="#NuRadioReco.det
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site">
 <span class="sig-name descname"><span class="pre">get_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_site"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site" title="Link to this definition"></a></dt>
-<dd><p>This detector class is exclusive for the RNO-G detector at Summit Greenland.</p>
+<dd><p>Returns the site “summit”</p>
+<p>This detector class is exclusive for the RNO-G detector located
+at Summit Station on the Greenland ice sheet.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1366,6 +1368,9 @@ by the response provided by <a class="reference internal" href="#NuRadioReco.det
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates">
 <span class="sig-name descname"><span class="pre">get_site_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector.html#Detector.get_site_coordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site_coordinates" title="Link to this definition"></a></dt>
 <dd><p>Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.</p>
+<p>The returned location corresponds to the position of the DISC borehole which is 
+used as the origin of the RNO-G coordinate system, i.e., this locations acts as
+a reference point to define the station positions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">

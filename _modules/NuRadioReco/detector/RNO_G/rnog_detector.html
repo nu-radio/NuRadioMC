@@ -2070,8 +2070,10 @@
 <div class="viewcode-block" id="Detector.get_site">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This detector class is exclusive for the RNO-G detector at Summit Greenland.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the site &quot;summit&quot;</span>
+<span class="sd">        </span>
+<span class="sd">        This detector class is exclusive for the RNO-G detector located</span>
+<span class="sd">        at Summit Station on the Greenland ice sheet.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2093,6 +2095,10 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.</span>
 
+<span class="sd">        The returned location corresponds to the position of the DISC borehole which is </span>
+<span class="sd">        used as the origin of the RNO-G coordinate system, i.e., this locations acts as</span>
+<span class="sd">        a reference point to define the station positions.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        station_id: int</span>
@@ -2103,7 +2109,7 @@
 <span class="sd">        coordinates: tuple(float, float)</span>
 <span class="sd">            Tuple of latitude and longitude in degrees</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="mf">72.57</span><span class="p">,</span> <span class="o">-</span><span class="mf">38.46</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="mf">72.582793</span><span class="p">,</span> <span class="o">-</span><span class="mf">38.455815</span><span class="p">)</span></div>
 
 
 
