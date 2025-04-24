@@ -1,1 +1,1 @@
-Waveform templates for RNO-G's calibration pulser. Using chicago measurements from 2024 of cal_pulser waveforms with DAQbox at the following temperatures: 25C, 4C, -3C and -18C. Details on the measurement available at /mnt/labdata/chicago-rnog-system-response-2024/cal_pulse_temp_dependence.
+Waveform templates for RNO-G's calibration pulser. Using chicago measurements from 2025 of cal_pulser waveforms with DAQbox at 5C and attenuation settings 0,5,10,15,20dB. Measurement available at /mnt/labdata/nalden/chicago-calpulser-amplitudes on chicago server.
