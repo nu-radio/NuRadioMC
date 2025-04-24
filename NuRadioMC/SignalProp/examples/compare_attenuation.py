@@ -22,7 +22,7 @@ Only one raytracing implementation is used!
 """
 
 # Define the frequency range for the attenuation calculation
-nyquist_frequency = 0.8 * units.GHz
+nyquist_frequency = 0.5 * units.GHz
 frequencies = np.linspace(50 * units.MHz, nyquist_frequency, 100)
 
 
@@ -196,7 +196,7 @@ for attenuation_model in attenuation_models:
         ice, attenuation_model,
         n_frequencies_integration=25,
         n_reflections=0, use_cpp=False, compile_numba=True,
-        ray_tracing_2D_kwards={"overwrite_speedup": True}
+        # ray_tracing_2D_kwards={"overwrite_speedup": False}
     )
 
     for idx, initial_point in enumerate(get_initial_points()):
@@ -298,7 +298,7 @@ ax.scatter(
 )
 
 cb = plt.colorbar(sct, pad=0.02)
-cb.set_label(r"$\langle a_{cpp} / a_{python} - 1\rangle_{50-800MHz}$")
+cb.set_label(r"$\langle a_{cpp} / a_{python} - 1\rangle_{50-500MHz}$")
 
 ax.set_xlabel("horizontal distance [m]")
 ax.set_ylabel("z [m]")
