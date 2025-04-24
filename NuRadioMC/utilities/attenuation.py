@@ -138,7 +138,7 @@ def get_temperature(z):
     """
     # from https://icecube.wisc.edu/~araproject/radio/#icetabsorption
 
-    z2 = np.abs(z / units.m)
+    z2 = np.abs(z) / units.m
     return 1.83415e-09 * z2 ** 3 + (-1.59061e-08 * z2 ** 2) + 0.00267687 * z2 + (-51.0696)
 
 
