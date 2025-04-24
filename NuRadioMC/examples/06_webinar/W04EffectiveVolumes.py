@@ -4,9 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 
-# Setup logging
-from NuRadioReco.utilities.logging import setup_logger
-logger = setup_logger(name="")
 
 """
 This file explains how to use the utilities.Veff module to calculate and plot

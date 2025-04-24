@@ -1,18 +1,51 @@
 Antenna Models
 =========================================
 
-Overview of available Antenna Models
--------------------------------------
-
-The following antenna models are available in NuRadioReco.
-The headings are the unique identifiers of the antenna model that need to specified as  ``antenna_type`` in the detector description.
-
 All antenna models are stored on a central data server and are downloaded automatically on-demand
 whenever the user requests the antenna model for the first time.
 
 For developers:
 If you add new an antenna model please add the sha1sum = hashlib.sha1() to this list and send Christian
 the antenna model so that he can put it on our central server.
+
+Implemetation of Antenna Models
+===============================
+
+For the antenna orientation and rotation, the conventions are described in :ref:`Properties of Detector Description <NuRadioReco/pages/detector/detector_database_fields:Properties of Detector Description>`
+
+The antenna models are accessed in the `AntennaPattern` class in the `nuradioreco.detector.antennapattern.py` module.
+Different software packages are used to simulate the antennas, internally, NuRadioReco converts the data to a common pickle format in which they are
+stored.
+
+The antenna pickle files contains 9 lists of the following data:
+
+    - orientation theta: float
+        orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down)
+    - orientation phi: float
+        orientation of the antenna, as an azimuth angle (counting from East counterclockwise)
+    - rotation theta: float
+        rotation of the antenna
+    - rotation phi: float
+        rotation of the antenna
+    - freqs: array of floats
+        array of frequencies for which the realized vector effective length is provided
+    - theta: array of floats
+        zenith angles for the realized vector effective length with respect to the antenna
+    - phi: array of floats
+        azimuth angles for the realized vector effective length with respect to the antenna
+    - H_phi: array of floats
+        the complex realized vector effective length of the ePhi polarization component as described in (A.13) of the NuRadioReco paper `arxiv:1903.07023 <https://arxiv.org/abs/1903.07023>`__
+    - H_theta: array of floats
+        the complex realized vector effective length of the eTheta polarization component as described in (A.13) of the NuRadioReco paper `arxiv:1903.07023 <https://arxiv.org/abs/1903.07023>`__
+
+The calculation of the vector effective length is described in Appendix A.1, A.2 and A.3 of the NuRadioReco paper `arxiv:1903.07023 <https://arxiv.org/abs/1903.07023>`__.
+
+
+Overview of available Antenna Models
+====================================
+
+The following antenna models are available in NuRadioReco.
+The headings are the unique identifiers of the antenna model that need to specified as  ``antenna_type`` in the detector description.
 
 Inf means usually an infinite medium, firn has a refractive index n = 1.3-1.4. Since this is a bit imprecise
 we changed the naming to the actual refractive index.
@@ -392,6 +425,22 @@ Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
 
 Last updated: 2020
 
+RNOG_vpol_v3_5inch_center_n1.74
+-------------------------------
+XFdtd simulations for the RNO-G VPol in an 11.2 inch diameter borehole with index of refraction of ice n=1.74. The antenna is placed in the center (x, y) of the borehole. Theta range [0, 180] Phi range [0, 360] Freq range [0, 1000]MHz. No power feed-through cable included.
+
+Note: Simulation ran with Theta range [0, 90] and Phi range [0, 90] due to simulation size constraints and was extended to range noted above using symmetry.
+
+Last updated: 2025
+
+RNOG_hpol_v4_8inch_center_n1.74
+-------------------------------
+XFdtd simulations for the RNO-G HPol in an 11.2 inch diameter borehole with index of refraction of ice n=1.74. The antenna is placed in the center (x, y) of the borehole. Theta range [0, 180] Phi range [0, 360] Freq range [0, 1000]MHz. No power feed-through cable included.
+
+Note: Simulation ran with Theta range [0, 90] and Phi range [0, 90] due to simulation size constraints and was extended to range noted above using symmetry.
+
+Last updated: 2025
+
 RNOG_quadslot_v1_n1.74
 -----------------------
 XFdtd simulations for the RNOG Hpol.
@@ -414,7 +463,7 @@ RNOG_quadslot_v2_rescaled_fineFreq
 RNOG_quadslot_v3_air_rescaled_to_n1.74
 ---------------------------------------
 XFdtd simulations in for the RNO-G Hpol.
-Simulations are done in air, frequencies are rescaled with n=1.74. 
+Simulations are done in air, frequencies are rescaled with n=1.74.
 Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
 
 Last updated: 2020
@@ -426,6 +475,38 @@ The complex (magnitude + phase) vector effective length of both polarization com
 Theta range [0, 90]; Phi range [0, 360]; Freq range [50, 350]MHz
 For more information, see: https://ieeexplore.ieee.org/abstract/document/7297231/authors#authors
 Last updated: 2021
+
+SmallBlackSpider_ground2_measured
+---------------------------------
+The Small Black Spider LPDA of the AERA detector at the Pierre Auger Observatory.
+The antenna model is based on an extensive in-situ measurement campaign which is documented in this paper: 10.1088/1748-0221/12/10/T10005
+Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. Therefore, the 
+vector effective length is in the order of 5-10m.
+If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
+Added: 2025
+
+Butterfly_ground2
+-----------------
+The Butterfly antenna of the AERA detector at the Pierre Auger Observatory. The antenna model is based on simulations.
+Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
+If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
+Added: 2025
+
+Butterfly_ground2_East
+----------------------
+The East arm of the Butterfly antenna of the AERA detector at the Pierre Auger Observatory.
+The antenna model is based on an extensive in-situ measurement campaign which is documented in this PhD thesis: http://doi.org/10.18154/RWTH-2018-225398
+Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
+If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
+Added: 2025
+
+Butterfly_ground2_North
+-----------------------
+The North arm of the Butterfly antenna of the AERA detector at the Pierre Auger Observatory.
+The antenna model is based on an extensive in-situ measurement campaign which is documented in this PhD thesis: http://doi.org/10.18154/RWTH-2018-225398
+Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
+If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
+Added: 2025
 
 
 Additional Models

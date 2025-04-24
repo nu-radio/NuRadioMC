@@ -8,8 +8,8 @@ import logging
 import time
 from radiotools import helper as hp
 from radiotools import plthelpers as php
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('test_raytracing')
+logger = logging.getLogger('NuRadioMC.test_raytracing')
+logger.setLevel(logging.INFO)
 
 ice = medium.southpole_simple()
 

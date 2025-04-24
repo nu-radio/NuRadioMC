@@ -8,8 +8,8 @@ import NuRadioReco.framework.electric_field
 import logging
 from radiotools import helper as hp
 from radiotools import plthelpers as php
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('raytracing')
+logger = logging.getLogger('NuRadioMC.SignalProp.raytracing')
+logger.setLevel(logging.INFO)
 # ray.cpp_available=False
 
 x1 = np.array([0, 0., -149.]) * units.m
@@ -62,20 +62,20 @@ for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
             receive_vectors[i, iS] = receive_vector
             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
             print("     Receiving Zenith %.3f and Azimuth %.3f " % (zenith / units.deg, azimuth / units.deg))
-            
+
             # get focussing factor
             focusing = r.get_focusing(0)
             print(f"     focusing factor = {focusing:.8f}")
 
             att = r.get_attenuation(iS, np.array([100, 200]) * units.MHz)
             print(f"     attenuation: {att}")
-            
-            
+
+
             efield=NuRadioReco.framework.electric_field.ElectricField([0])
             efield.set_trace(np.ones((3,200)), 1)
             efield2 = r.apply_propagation_effects(efield, 0)
-            
-            
+
+
             xx, zz = r.get_ray_path(iS)
 
             # # to readout the actual trace, we have to flatten to 2D
