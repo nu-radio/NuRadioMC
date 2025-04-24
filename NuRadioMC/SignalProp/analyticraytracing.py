@@ -438,6 +438,7 @@ class ray_tracing_2D(ray_tracing_base):
 
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
+
         self._use_optimized_calculation = self.attenuation_model in speedup_attenuation_models
         if overwrite_speedup is not None:
             self._use_optimized_calculation = overwrite_speedup
@@ -958,6 +959,7 @@ class ray_tracing_2D(ray_tracing_base):
 
                     # define the width of the vertical (!) segments over which we sum.
                     # Since we use linspace the actual width will differ slightly
+                    # The data for the attenuation length of GL3 is also spaced by 10m.
                     dx = 10 * units.m
                     # define the vertical window around a turning point within we will fall back to a numerical integration
                     integration_window_size = 20 * units.m
