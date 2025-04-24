@@ -368,6 +368,66 @@ class channelGalacticNoiseAdder:
         for channel in station.iter_channels(use_channels=selected_channel_ids):
             channel.set_frequency_spectrum(channel_spectra[channel.get_id()], "same")
 
+    def get_electric_field_strength(
+            self, location, time, n_samples, sampling_rate, bandpass=None, n_side=4):
+        """
+        Returns the electric field strength at a given location and time
+
+        Parameters
+        ----------
+        location: tuple of floats
+            The latitude and longitude in deg.
+        time: astropy.time.Time
+            The time at which the electric field strength is calculated
+        n_samples: int
+            The number of samples in the time domain
+        sampling_rate: float
+            The sampling rate of the trace
+        bandpass: list of floats, optional
+            The lower and upper bound of the frequency range in which the electric field strength
+            shall be calculated. By default no bandpass is applied (frequency range is from
+            0 to sampling_rate / 2)
+
+        Returns
+        -------
+        electric_field_strength: float
+            The electric field strength at the given location and time
+        """
+
+        local_coordinates = get_local_coordinates(location, time, n_side)
+        solid_angle = healpy.pixelfunc.nside2pixarea(n_side, degrees=False)
+
+        if bandpass is None:
+            bandpass = [10 * units.MHz, sampling_rate / 2]
+
+        freqs = fft.freqs(n_samples, sampling_rate)
+        spectrum = np.zeros_like(freqs, dtype=complex)
+
+        window = np.zeros_like(freqs, dtype=bool)
+        window[np.logical_and(bandpass[0] < freqs, freqs < bandpass[1])] = True
+
+        for i_pixel in range(healpy.pixelfunc.nside2npix(n_side)):
+            zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad # this is the in-air zenith
+
+            if zenith > 90. * units.deg:
+                continue
+
+            temperature_interpolator = scipy.interpolate.interp1d(
+                self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
+            noise_temperature = np.power(10, temperature_interpolator(freqs[window]))
+
+            efield_amplitude = signal_processing.get_electric_field_from_temperature(
+                freqs[window], noise_temperature, solid_angle)
+
+            phases = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
+            spectrum_pixel = np.exp(1j * phases) * efield_amplitude
+
+            polarisation = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
+
+            spectrum[window] += spectrum_pixel * np.cos(polarisation)
+
+        return np.std(fft.freq2time(spectrum, sampling_rate))
+
 
 @functools.lru_cache(maxsize=1)
 def get_local_coordinates(coordinates, time, n_side):
@@ -403,5 +463,36 @@ def get_local_coordinates(coordinates, time, n_side):
     galactic_coordinates = astropy.coordinates.Galactic(l=pixel_longitudes * astropy.units.rad,
                                                         b=pixel_latitudes * astropy.units.rad)
     local_coordinates = galactic_coordinates.transform_to(local_cs)
-
     return local_coordinates
+
+
+if __name__ == "__main__":
+
+    from astropy.time import Time
+    location = (42.93, 79.999099)
+
+    dh = np.arange(-12, 12, 0.5)
+    t0 = Time.now()
+    times = t0 + dh * astropy.units.hour
+
+    noise_adder = channelGalacticNoiseAdder()
+    noise_adder.begin(n_side=4, freq_range=np.array([0.01, 0.4]) * units.GHz)
+
+
+    ampls = []
+    for t in times:
+        ampls.append(np.mean([noise_adder.get_electric_field_strength(
+            location, t, int(2048), 0.5 * units.GHz, [0.05, 0.2])
+                              for _ in range(5)]))
+
+    from matplotlib import pyplot as plt
+
+    fig, ax = plt.subplots()
+
+    ax.plot(dh, np.array(ampls) / units.microvolt)
+
+    ax.set_xlabel("time / hours")
+    ax.set_ylabel(r"electric field amplitude [$\mu$V/m]")
+
+    fig.tight_layout()
+    plt.show()
