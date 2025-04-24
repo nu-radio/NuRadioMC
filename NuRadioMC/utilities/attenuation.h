@@ -135,7 +135,7 @@ double fit_GL3(double z, double frequency){
         return GL3_slopes[299] * frequency + GL3_offsets[299];
     }
     if (i_row < 0) {
-    i_row = 0;
+        i_row = 0;
     }
 
     double slope_diff = GL3_slopes[i_row + 1] - GL3_slopes[i_row];
