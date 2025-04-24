@@ -143,10 +143,8 @@ double fit_GL3(double z, double frequency){
     double offset_diff = GL3_offsets[i_row + 1] - GL3_offsets[i_row];
     double offset_interpolation = GL3_offsets[i_row] + offset_diff * (-z - i_row * z_step - z_start) / z_step;
     // Restrict frequency to prevent negative attenuation lengths
-    return min(frequency, 0.6) * slope_interpolation + offset_interpolation;
-
-
-
+    // return min(frequency, 0.6) * slope_interpolation + offset_interpolation;
+    return frequency * slope_interpolation + offset_interpolation;
 }
 
 double get_temperature(double z){
