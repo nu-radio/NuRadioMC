@@ -4,7 +4,7 @@ from NuRadioReco.framework.event import Event
 from NuRadioReco.framework.station import Station
 from NuRadioReco.framework.channel import Channel
 
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units, fft, signal_processing
 from NuRadioReco.detector.RNO_G import rnog_detector
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
@@ -65,45 +65,6 @@ hardwareResponse.begin(trigger_channels=deep_trigger_channels)
 # Define the thresholds for the trigger simulation
 sigma_thresholds = np.linspace(3.2, 4, 20)
 high_low_trigger_thresholds = {s: s for s in sigma_thresholds}
-
-
-def calculate_vrms_from_temperature(noise_temp_channel, bandwidth=None, response=None):
-    """ Helper function to calculate the noise vrms from a given noise temperature and bandwidth.
-
-    This function does not take into account the individual channel response.
-    It assumes a flat rectangular filter with the given bandwidth. We have to
-    simulate the noise for each channel in the exact same bandwith and apply
-    the hardware response afterwards to get correct results.
-
-    Parameters
-    ----------
-    noise_temp_channel: float
-        The noise temperature of the channel in Kelvin
-    bandwidth: tuple (list of 2 floats) (default: None)
-        The lower and upper frequency of the bandwidth. Required unless response is specified.
-    response: `NuRadioReco.detector.response.Response` (default: None)
-        If not None, the response of the channel is taken into account to calculate the noise vrms.
-
-    Returns
-    -------
-    vrms_per_channel: float
-        The vrms of the channel
-    """
-    if bandwidth is None and response is None:
-        raise ValueError("Please specify bandwidht or response")
-
-    if response is None:
-        vrms_per_channel = (noise_temp_channel * 50 * constants.k *
-                            (bandwidth[1] - bandwidth[0]) / units.Hz) ** 0.5
-    else:
-        freqs = np.arange(0, 2500, 0.1) * units.MHz
-
-        # Bandwidth, i.e., \Delta f in equation
-        integrated_channel_response = np.trapz(np.abs(response(freqs)) ** 2, freqs)
-        vrms_per_channel = (noise_temp_channel * 50 * constants.k *
-                            integrated_channel_response / units.Hz) ** 0.5
-
-    return vrms_per_channel
 
 
 def get_vrms_per_channel(args, noise_kwargs, det, filters):
@@ -351,7 +312,7 @@ if __name__ == "__main__":
 
     # Calculate the vrms for the given temperature and bandwidth. It is _CORRECT_
     # to not account for the response of the channel here.
-    vrms = calculate_vrms_from_temperature(300 * units.kelvin, bandwidth)
+    vrms = signal_processing.calculate_vrms_from_temperature(300 * units.kelvin, bandwidth)
     logger.info(f"VRMS [for bandwidth {bandwidth / units.MHz} MHz]: {vrms / units.microvolt:.2f} muV")
     noise_kwargs = {
         "amplitude": vrms,
@@ -368,7 +329,7 @@ if __name__ == "__main__":
         # this might return slightly different results than the function get_vrms_per_channel
         # because of the frequency resolution with which the spectra are sampled.
         vrms_per_channel = np.array(
-            [calculate_vrms_from_temperature(
+            [signal_processing.calculate_vrms_from_temperature(
                 300 * units.kelvin,
                 response=det.get_signal_chain_response(args.station_id, channel_id, trigger=True))
             for channel_id in deep_trigger_channels]
