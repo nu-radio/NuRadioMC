@@ -1053,19 +1053,27 @@
 <span class="sd">    sum_trace: 1-D array of floats</span>
 <span class="sd">        CSW of the set of traces</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">sum_trace</span> <span class="o">=</span> <span class="n">ref_trace</span>
-
-    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trace_set</span><span class="p">):</span>
+    <span class="c1"># Normalize: subtract mean, divide by std (z-score)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="n">trace</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">use_envelope</span><span class="p">:</span>
-            <span class="n">sig_ref</span> <span class="o">=</span> <span class="n">get_hilbert_envelope</span><span class="p">(</span><span class="n">ref_trace</span><span class="p">)</span>
-            <span class="n">sig_i</span> <span class="o">=</span> <span class="n">get_hilbert_envelope</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">sig_ref</span> <span class="o">=</span> <span class="n">ref_trace</span>
-            <span class="n">sig_i</span> <span class="o">=</span> <span class="n">trace</span>
-        <span class="n">cor</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">correlate</span><span class="p">(</span><span class="n">sig_ref</span><span class="p">,</span> <span class="n">sig_i</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;full&quot;</span><span class="p">)</span>
-        <span class="n">lag</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">((</span><span class="n">cor</span><span class="p">))</span> <span class="o">-</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">cor</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span><span class="p">))</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">get_hilbert_envelope</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">trace</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">aligned_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">lag</span><span class="p">)</span>
+    <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_trace</span><span class="p">)</span>
+    <span class="n">ref_processed</span> <span class="o">=</span> <span class="n">process</span><span class="p">(</span><span class="n">ref_trace</span><span class="p">)</span>
+
+    <span class="c1"># Process all traces</span>
+    <span class="n">trace_set</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">trace_set</span><span class="p">)</span>  <span class="c1"># Make sure it&#39;s 2D</span>
+    <span class="n">traces_processed</span> <span class="o">=</span> <span class="n">process</span><span class="p">(</span><span class="n">trace_set</span><span class="p">)</span>
+
+    <span class="n">sum_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">ref_trace</span><span class="p">)</span>
+
+    <span class="n">lag_array</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">correlation_lags</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trace_set</span><span class="p">):</span>
+        <span class="n">corr</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">correlate</span><span class="p">(</span><span class="n">ref_processed</span><span class="p">,</span> <span class="n">traces_processed</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_samples</span>
+        <span class="n">best_lag</span> <span class="o">=</span> <span class="n">lag_array</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">corr</span><span class="p">)]</span>
+        <span class="n">aligned_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">best_lag</span><span class="p">)</span>
         <span class="n">sum_trace</span> <span class="o">+=</span> <span class="n">aligned_trace</span>
 
     <span class="k">return</span> <span class="n">sum_trace</span></div>
@@ -1125,6 +1133,29 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">kurtosis</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">kurtosis</span></div>
+
+
+
+<div class="viewcode-block" id="get_teager_kaiser_energy">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_teager_kaiser_energy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_teager_kaiser_energy</span><span class="p">(</span><span class="n">trace</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Uses the Teager-Kaiser Energy Operator (TKEO) on a trace.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace: array of floats</span>
+<span class="sd">        Trace of a waveform</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.abs(tkeo): array of floats</span>
+<span class="sd">        TKEO of the input trace</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tkeo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+    <span class="n">tkeo</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">trace</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">trace</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">tkeo</span><span class="p">)</span></div>
 
 
 
