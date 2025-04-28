@@ -1456,10 +1456,12 @@ class simulation:
 
         # loop over event groups
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
-            logger.debug(f"simulating event group id {event_group_id}")
             if self._event_group_list is not None and event_group_id not in self._event_group_list:
-                logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
+                logger.debug(f"Skipping event group {event_group_id} because it is not in the event "
+                             "group list provided to the __init__ function")
                 continue
+
+            logger.debug(f"Simulating event group id {event_group_id}")
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(event_group_ids == event_group_id)))
 
             self.__time_logger.show_time(len(unique_event_group_ids), i_event_group_id)
@@ -1639,7 +1641,7 @@ class simulation:
                                         f"{len(sim_station.get_electric_fields())} efields, skipping to next channel")
                             continue
 
-                            
+
                         # applies the detector response to the electric fields (the antennas are defined
                         # in the json detector description file)
                         apply_det_response_sim(
@@ -1873,8 +1875,8 @@ def _calculate_amp_per_ray_solution(station):
     """ Calculate the max amplitude and time of the ray solutions
 
     Instead of using the channelSignalReconstructor module which calculates
-    these parameters (and may more) too, we use this function to save time 
-    (the other parameters calculated by the channelSignalReconstructor 
+    these parameters (and may more) too, we use this function to save time
+    (the other parameters calculated by the channelSignalReconstructor
     are not used/saved by the simulation.py).
 
     Parameters
