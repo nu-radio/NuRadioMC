@@ -10,8 +10,6 @@ from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoard
 from NuRadioReco.modules.trigger import highLowThreshold
 import NuRadioReco.modules.channelGenericNoiseAdder
 
-from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import get_response_conversion, get_average_vrms_from_data_driven_noise
-
 from matplotlib import pyplot as plt
 from collections import defaultdict
 import datetime as dt
@@ -20,9 +18,6 @@ import argparse
 import copy
 import time
 import json
-import sys
-import os
-
 
 import NuRadioMC  # to init the logger
 import logging
@@ -296,9 +291,13 @@ if __name__ == "__main__":
     parser.add_argument("--index", type=int, default=0, help="")
     parser.add_argument("--ray", action="store_true")
     parser.add_argument("--label", type=str, default="")
+    parser.add_argument("--noise_type", type=str, default="rayleigh")
     parser.add_argument("--running_vrms", action="store_true")
 
     args = parser.parse_args()
+
+    if args.noise_type != "rayleigh":
+        raise NotImplementedError("Only \"rayleigh\" noise is currently implemented.")
 
     if args.label != "":
         args.label = f"_{args.label}"
