@@ -600,9 +600,6 @@ def apply_det_response(
                 # normalize noise level to the bandwidth its generated for
                 Vrms[channel_id] = Vrms_per_channel[station.get_id()][channel_id] / (norm / max_freq) ** 0.5
 
-            # Here we can only add "rayleigh" noise and not "data-driven" noise because we
-            # apply the hardware response afterwards with detector_simulation_filter_amp.
-            # If you want to use data-driven noise, you need to define detector_simulation_part2
             channelGenericNoiseAdder.run(
                 evt, station, det, amplitude=Vrms, min_freq=0 * units.MHz,
                 max_freq=max_freq, type='rayleigh',
@@ -1222,11 +1219,6 @@ class simulation:
             logger.error(err_msg)
             raise ValueError(err_msg)
 
-        # If you want to simulate data-driven noise you have to provide the detector_simulation_part2 function
-        if self._config['noise_kwargs']["noise_type"] == "data-driven" and self.detector_simulation_part2 is None:
-            logger.error("Data-driven noise is enabled but no detector_simulation_part2 function is provided.")
-            raise ValueError("Data-driven noise is enabled but no detector_simulation_part2 function is provided.")
-
         # Initialize detector
         self._antenna_pattern_provider = antennapattern.AntennaPatternProvider()
         if det is None:
@@ -1344,6 +1336,7 @@ class simulation:
         self._Vrms_efield_per_channel = collections.defaultdict(dict)
         self._Vrms_per_trigger_channel = collections.defaultdict(dict)  # Only used for trigger channels in a custom trigger simulation (optional)
 
+
         if noise_temp is not None:
             if noise_temp == "detector":
                 logger.status("Use noise temperature from detector description to determine noise Vrms in each channel.")
@@ -1431,11 +1424,7 @@ class simulation:
         # identical arrival direction at an antenna twice. On the other side the trace lengths vary from event to
         # event which requires the clear the cache very often.
         efieldToVoltageConverter.begin(caching=False)
-
-        channelGenericNoiseAdder.begin(
-            seed=self._config['seed'],
-            scale_parameter_dir=self._config['noise_kwargs']["parameterization_directory"])
-
+        channelGenericNoiseAdder.begin(seed=self._config['seed'])
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
 
@@ -1467,12 +1456,10 @@ class simulation:
 
         # loop over event groups
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
+            logger.debug(f"simulating event group id {event_group_id}")
             if self._event_group_list is not None and event_group_id not in self._event_group_list:
-                logger.debug(f"Skipping event group {event_group_id} because it is not in the event "
-                             "group list provided to the `__init__` function")
+                logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
                 continue
-
-            logger.debug(f"Simulating event group id {event_group_id}")
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(event_group_ids == event_group_id)))
 
             self.__time_logger.show_time(len(unique_event_group_ids), i_event_group_id)
@@ -1652,7 +1639,7 @@ class simulation:
                                         f"{len(sim_station.get_electric_fields())} efields, skipping to next channel")
                             continue
 
-
+                            
                         # applies the detector response to the electric fields (the antennas are defined
                         # in the json detector description file)
                         apply_det_response_sim(
@@ -1695,8 +1682,7 @@ class simulation:
                     # because we need to add noise to traces where the amplifier response
                     # was already applied to.
                     if bool(self._config['noise']):
-                        self.add_filtered_noise_to_channels(
-                            evt, station, non_trigger_channels, noise_type=self._config['noise_kwargs']['noise_type'])
+                        self.add_filtered_noise_to_channels(evt, station, non_trigger_channels)
 
                     channelSignalReconstructor.run(evt, station, self._det)
                     self._set_event_station_parameters(evt)
@@ -1745,7 +1731,7 @@ class simulation:
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
-    def add_filtered_noise_to_channels(self, evt, station, channel_ids, noise_type='rayleigh'):
+    def add_filtered_noise_to_channels(self, evt, station, channel_ids):
         """
         Add noise to the traces of the channels in the event.
         This function is used to add noise to the traces of the non-trigger channels.
@@ -1768,7 +1754,7 @@ class simulation:
             noise = channelGenericNoiseAdder.bandlimited_noise_from_spectrum(
                 channel.get_number_of_samples(), channel.get_sampling_rate(),
                 spectrum=filt, amplitude=self._Vrms_per_channel[station.get_id()][channel_id],
-                type=noise_type, time_domain=False, station_id=station.get_id(), channel_id=channel_id)
+                type='rayleigh', time_domain=False)
 
             channel.set_frequency_spectrum(channel.get_frequency_spectrum() + noise, channel.get_sampling_rate())
 
@@ -1887,8 +1873,8 @@ def _calculate_amp_per_ray_solution(station):
     """ Calculate the max amplitude and time of the ray solutions
 
     Instead of using the channelSignalReconstructor module which calculates
-    these parameters (and may more) too, we use this function to save time
-    (the other parameters calculated by the channelSignalReconstructor
+    these parameters (and may more) too, we use this function to save time 
+    (the other parameters calculated by the channelSignalReconstructor 
     are not used/saved by the simulation.py).
 
     Parameters
