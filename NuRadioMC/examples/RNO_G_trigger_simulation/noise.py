@@ -141,7 +141,8 @@ def get_noise_event(noiseAdder, det, channel_ids, noise_kwargs):
 
         noise_spec = noiseAdder.bandlimited_noise(
             sampling_rate=sampling_rate, time_domain=False,
-            station_id=station_id, channel_id=channel_id, **noise_kwargs)
+            # station_id=station_id, channel_id=channel_id,
+            **noise_kwargs)
 
         channel.set_frequency_spectrum(noise_spec, sampling_rate)
         station.add_channel(channel)
