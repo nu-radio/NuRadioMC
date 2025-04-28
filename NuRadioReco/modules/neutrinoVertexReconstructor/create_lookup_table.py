@@ -66,7 +66,7 @@ if __name__ == "__main__":
     z_pos = np.arange(-args.z_min, -args.z_max, args.d_z)
 
     ice = NuRadioMC.utilities.medium.get_ice_model(args.ice_model)
-    ray_tracing = NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D(ice, n_frequencies_integration=25)
+    ray_tracing = NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D(ice)
     channel_types = [{
         'name': 'antenna_{}'.format(args.antenna_depth),
         'z': -1. * args.antenna_depth

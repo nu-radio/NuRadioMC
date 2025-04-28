@@ -22,7 +22,7 @@ logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 cpp_available = False
 
 try:
-    from NuRadioMC.SignalProp.CPPAnalyticRayTracing import cpp_wrapper
+    from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
     cpp_available = True
     logger.status("CPP version of ray tracer is available")
 except:
@@ -32,7 +32,7 @@ except:
         import os
         subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  "install.sh"))
-        from NuRadioMC.SignalProp.CPPAnalyticRayTracing import cpp_wrapper
+        from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
         cpp_available = True
         logger.status("compilation was successful, CPP version of ray tracer is available")
     except:
@@ -2966,5 +2966,9 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['focusing_limit'] = 2
             self._config['propagation']['focusing'] = False
             self._config['propagation']['birefringence'] = False
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
         else:
             self._config = config

@@ -638,7 +638,7 @@ def parse_AERA_XML_file(path):
         logger.error("AERA antenna file {} not found".format(path))
         raise OSError
 
-    antenna_file = open(path, "rb")
+    antenna_file = open(path, "r")
 
     antenna_data = "<antenna>" + antenna_file.read() + "</antenna>"  # add pseudo root element
 
@@ -725,7 +725,7 @@ def preprocess_AERA(path):
     orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
 
     fname = os.path.split(os.path.basename(path))[1].replace('.xml', '')
-    output_filename = '{}_InfAir.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
+    output_filename = '{}.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
 
     directory = os.path.dirname(output_filename)
     if not os.path.exists(directory):
@@ -1352,7 +1352,7 @@ class AntennaPattern(AntennaPatternBase):
 
         consistency_check: bool (default: False)
             if True, the consistency of the antenna response is checked. Although the default is False,
-            this the check is always performed if the antenna response file could not be verified.
+            the check is always performed if the antenna response file could not be verified.
         """
 
         self._name = antenna_model
