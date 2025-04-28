@@ -1,13 +1,11 @@
 #!/bin/env python3
 
 import argparse
-import copy
 import numpy as np
 import os
 import secrets
 import functools
 import datetime as dt
-from scipy import constants
 
 from NuRadioMC.EvtGen import generator
 from NuRadioMC.simulation import simulation
@@ -33,9 +31,7 @@ efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldTo
 efieldToVoltageConverter.begin(caching=False, pre_pulse_time=400 * units.ns)
 
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-channelGenericNoiseAdder.begin(
-    scale_parameter_dir=os.path.join(os.path.dirname(__file__), "data_driven_noise_files")
-)
+channelGenericNoiseAdder.begin()
 
 rnogHardwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
 rnogHardwareResponse.begin(trigger_channels=deep_trigger_channels)
@@ -44,48 +40,10 @@ highLowThreshold = highLowThreshold.triggerSimulator()
 rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
 rnogADCResponse.begin(clock_offset=0, adc_output="counts")
 
-def get_average_vrms_from_data_driven_noise(det, station_id, channels, trigger=False):
-    """ Get the average vrms from the data-driven noise.
-
-    This function calculates the average vrms from the data-driven noise for the given channels.
-
-    Parameters
-    ----------
-    station_id : int
-        The station id.
-    channels : list
-        The channels to calculate the average vrms for.
-    trigger : bool, optional
-        If True, calculate the average vrms for the trigger channels. If False, calculate the average vrms for the RADIANT channels.
-
-    Returns
-    -------
-    vrms: array of float
-        The average vrms.
-    """
-    vrms = []
-
-    for channel_id in channels:
-        noise_spec = channelGenericNoiseAdder.bandlimited_noise(
-            min_freq=10 * units.MHz, max_freq=1000 * units.MHz,
-            n_samples=2048 * 100, sampling_rate=3.2 * units.GHz,
-            amplitude=None, type='data-driven', time_domain=False,
-            station_id=station_id, channel_id=channel_id)
-
-        if trigger:
-            freqs = fft.freqs(2048 * 100, 3.2 * units.GHz)
-            noise_spec = noise_spec * get_response_conversion(det, station_id, channel_id)(freqs)
-
-        noise_trace = fft.freq2time(noise_spec, 3.2 * units.GHz)
-        vrms.append(np.sqrt(np.mean(noise_trace**2)))
-
-    return np.array(vrms)
-
 
 def detector_simulation(evt, station, det, noise_vrms, max_freq):
     """ Run the detector simulation.
 
-    This function is a wrapper around the detector simulation that adds data-driven noise to the channels.
     It performs the following steps:
     - efieldToVoltageConverter: Convert the electric fields to voltages
     - channelGenericNoiseAdder: Add noise to the channels
@@ -112,48 +70,6 @@ def detector_simulation(evt, station, det, noise_vrms, max_freq):
         max_freq=max_freq, type='rayleigh')
 
     rnogHardwareResponse.run(evt, station, det, sim_to_data=True)
-
-
-def detector_simulation_with_data_driven_noise(evt, station, det):
-    """ Run the detector simulation with data-driven noise.
-
-    This function is a wrapper around the detector simulation that adds data-driven noise to the channels.
-    It performs the following steps:
-    - efieldToVoltageConverter: Convert the electric fields to voltages
-    - rnogHardwareResponse: Apply the hardware response (for RADIANT and FLOWER channels)
-    - channelGenericNoiseAdder: Add data-driven noise to the channels
-
-    Parameters
-    ----------
-    evt : NuRadioMC.framework.event.Event
-        The event to simulate the detector response for.
-    station : NuRadioMC.framework.station.Station
-        The station to simulate the detector response for.
-    det : NuRadioReco.detector.RNO_G.rnog_detector.Detector
-        The detector description.
-    trigger_channels : list, optional
-        The extra trigger channels (FLOWER) to simulate. If not given only the RADIANT channels are simulated.
-    """
-
-    efieldToVoltageConverter.run(evt, station, det, channel_ids=deep_trigger_channels)
-    rnogHardwareResponse.run(evt, station, det, sim_to_data=True)
-
-    for channel in station.iter_channels():
-        channel_id = channel.get_id()
-        noise_spec = channelGenericNoiseAdder.bandlimited_noise(
-            min_freq=10 * units.MHz, max_freq=1000 * units.MHz,
-            n_samples=channel.get_number_of_samples(), sampling_rate=channel.get_sampling_rate(),
-            amplitude=None, type='data-driven', time_domain=False,
-            station_id=station.get_id(), channel_id=channel_id)
-
-        channel.set_frequency_spectrum(
-            channel.get_frequency_spectrum() + noise_spec, "same")
-
-        if deep_trigger_channels is not None and channel_id in deep_trigger_channels:
-            trigger_noise_spec = noise_spec * get_response_conversion(det, station.get_id(), channel_id)(channel.get_frequencies())
-            trigger_channel = channel.get_trigger_channel()
-            trigger_channel.set_frequency_spectrum(
-                trigger_channel.get_frequency_spectrum() + trigger_noise_spec, "same")
 
 
 def rnog_flower_board_high_low_trigger_simulations(evt, station, det, trigger_channels, trigger_channel_noise_vrms, high_low_trigger_thresholds):
@@ -322,19 +238,17 @@ if __name__ == "__main__":
 
             # Read config to get noise type
             tmp_config = simulation.get_config(kwargs["config_file"])
-            if tmp_config["noise_kwargs"]["noise_type"] == "data-driven" and tmp_config["noise"]:
-                logger.info("Using data-driven noise")
-                self._detector_simulation_part2 = detector_simulation_with_data_driven_noise
-            else:
-                def wrapper_detector_simulation(*args, **kwargs):
-                    noise_vrms = signal_processing.calculate_vrms_from_temperature(
-                        temperature=tmp_config['trigger']['noise_temperature'], bandwidth=tmp_config["sampling_rate"] / 2)
-                    print(noise_vrms)
-                    detector_simulation(
-                        *args, **kwargs, noise_vrms=noise_vrms,
-                        max_freq=tmp_config["sampling_rate"] / 2)
 
-                self._detector_simulation_part2 = wrapper_detector_simulation
+            def wrapper_detector_simulation(*args, **kwargs):
+                noise_vrms = signal_processing.calculate_vrms_from_temperature(
+                    temperature=tmp_config['trigger']['noise_temperature'],
+                    bandwidth=tmp_config["sampling_rate"] / 2)
+
+                detector_simulation(
+                    *args, **kwargs, noise_vrms=noise_vrms,
+                    max_freq=tmp_config["sampling_rate"] / 2)
+
+            self._detector_simulation_part2 = wrapper_detector_simulation
 
             super().__init__(*args, **kwargs)
 
@@ -405,13 +319,9 @@ if __name__ == "__main__":
     det.update(event_time)
     config = simulation.get_config(args.config)
 
-    if config["noise_kwargs"]["noise_type"] == "data-driven":
-        trigger_channel_noise_vrms = get_average_vrms_from_data_driven_noise(
-            det, args.station_id, deep_trigger_channels, trigger=True)
-    else:
-        # Get the trigger channel noise vrms
-        trigger_channel_noise_vrms = get_vrms_from_temperature_for_trigger_channels(
-            det, args.station_id, deep_trigger_channels, config['trigger']['noise_temperature'])
+    # Get the trigger channel noise vrms
+    trigger_channel_noise_vrms = get_vrms_from_temperature_for_trigger_channels(
+        det, args.station_id, deep_trigger_channels, config['trigger']['noise_temperature'])
 
     logger.info(f"Trigger channel noise vrms (used for the definition of the trigger threshold): {np.around(trigger_channel_noise_vrms / units.mV, 2)} mV")
 
