@@ -583,7 +583,7 @@ def apply_det_response(
     station = evt.get_station()  # will raise an error if there are more than one station, but this should never happen
     # convert efields to voltages at digitizer
     if detector_simulation_part2 is not None:
-        detector_simulation_part2(evt, station, det)
+        detector_simulation_part2(evt, station, det, add_noise=add_noise)
     else:
         dt = 1. / (config['sampling_rate'])
         # start detector simulation
@@ -1105,7 +1105,7 @@ class simulation:
             file_overwrite=False,
             write_detector=True,
             event_list=None,
-            log_level_propagation=logging.WARNING,
+            log_level_propagation=LOGGING_STATUS,
             ice_model=None,
             trigger_channels = None,
             **kwargs):
@@ -1385,7 +1385,7 @@ class simulation:
                 mean_integrated_response = self._integrated_channel_response_normalization[station_id][channel_id]
 
                 status_message += (
-                    f'\n     {station_id}.{channel_id:02d}      |      {noise_temp_channel}  K     | '
+                    f'\n   {station_id: 4d}.{channel_id:02d}      |      {noise_temp_channel}  K     | '
                     f'  {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz   | '
                     f'     {max_amplification:8.2f}      | '
                     f'    {integrated_channel_response / units.MHz:.2e} MHz    | '

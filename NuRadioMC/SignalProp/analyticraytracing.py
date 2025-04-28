@@ -1927,7 +1927,7 @@ class ray_tracing(ray_tracing_base):
             default: True if CPP version is available
 
         """
-        self.__logger = logging.getLogger('NuRadioMC.ray_tracing_analytic')
+        self.__logger = logging.getLogger('NuRadioMC.ray_tracing')
         self.__logger.setLevel(log_level)
 
         from NuRadioMC.utilities.medium_base import IceModelSimple
