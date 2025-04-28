@@ -320,7 +320,6 @@ class ARZ(object):
 
     def __init__(self, seed=1234, interp_factor=1, interp_factor2=100, library=None,
                  arz_version='ARZ2020', use_numba=True):
-        logger.status("Setting seed to {}".format(seed))
         self._random_generator = np.random.RandomState(seed)
         self._interp_factor = interp_factor
         self._interp_factor2 = interp_factor2
@@ -337,14 +336,17 @@ class ARZ(object):
 
         self.__set_model_parameters(arz_version)
 
-        logger.status("Loading shower library ({}) into memory".format(library))
         self._library = io_utilities.read_pickle(library)
         self._use_numba = use_numba
         if use_numba & (not numba_available):
             logger.warning('Numba implementation was requested, but Numba is unavailable. Using Python implementation instead.')
             self._use_numba = False
 
-        logger.status("Using {} implementation to calculate ARZ vector potentials".format(["Python", "Numba"][self._use_numba]))
+        logger.status(
+            f"\n\tSetting seed to {seed}"
+            f"\n\tLoading shower library from: {library}"
+            f"\n\tUsing {['Python', 'Numba'][self._use_numba]} implementation to calculate ARZ vector potentials"
+            )
 
     def __check_and_get_library(self):
         """

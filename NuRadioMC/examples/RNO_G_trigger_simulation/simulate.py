@@ -41,7 +41,7 @@ rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
 rnogADCResponse.begin(clock_offset=0, adc_output="counts")
 
 
-def detector_simulation(evt, station, det, noise_vrms, max_freq):
+def detector_simulation(evt, station, det, noise_vrms, max_freq, add_noise=True):
     """ Run the detector simulation.
 
     It performs the following steps:
@@ -64,10 +64,10 @@ def detector_simulation(evt, station, det, noise_vrms, max_freq):
     """
 
     efieldToVoltageConverter.run(evt, station, det, channel_ids=deep_trigger_channels)
-
-    channelGenericNoiseAdder.run(
-        evt, station, det, amplitude=noise_vrms, min_freq=0 * units.MHz,
-        max_freq=max_freq, type='rayleigh')
+    if add_noise:
+        channelGenericNoiseAdder.run(
+            evt, station, det, amplitude=noise_vrms, min_freq=0 * units.MHz,
+            max_freq=max_freq, type='rayleigh')
 
     rnogHardwareResponse.run(evt, station, det, sim_to_data=True)
 
