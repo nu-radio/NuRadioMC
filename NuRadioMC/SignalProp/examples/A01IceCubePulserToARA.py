@@ -11,7 +11,7 @@ logger.setLevel(logging.INFO)
 x1 = [-2 * units.km, -1500. * units.m]  # pulser position
 x2 = [0., -200. * units.m]  # ARA antanna
 
-r = ray.ray_tracing_2D(medium.southpole_simple(), n_frequencies_integration=25)
+r = ray.ray_tracing_2D(medium.southpole_simple())
 solution = r.find_solutions(x1, x2)
 fig, ax = plt.subplots(1, 1)
 yyy, zzz = r.get_path(x1, x2, solution[0]['C0'])
@@ -27,7 +27,7 @@ fig.savefig("IceCubePulserToARA1.png")
 x1 = [-4 * units.km, -1500. * units.m]  # pulser position
 x2 = [0., -200. * units.m]  # ARA antanna
 
-r = ray.ray_tracing_2D(medium.southpole_simple(), n_frequencies_integration=25)
+r = ray.ray_tracing_2D(medium.southpole_simple())
 solution = r.find_solutions(x1, x2)
 fig, ax = plt.subplots(1, 1)
 yyy, zzz = r.get_path(x1, x2, solution[0]['C0'])
