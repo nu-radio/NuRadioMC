@@ -41,13 +41,13 @@ def get_propagation_module(name=None):
     if name is None:
         from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
         return ray_tracing_base
-    elif name==available_modules[0]:
+    elif name == available_modules[0]:
         from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
         return ray_tracing
-    elif name==available_modules[2]:
+    elif name == available_modules[2]:
         from NuRadioMC.SignalProp.directRayTracing import direct_ray_tracing
         return direct_ray_tracing
-    elif name==available_modules[1]:
+    elif name == available_modules[1]:
         from NuRadioMC.SignalProp.radioproparaytracing import radiopropa_ray_tracing
         return radiopropa_ray_tracing
     else:

@@ -391,6 +391,7 @@ if __name__ == "__main__":
         trigger_channels=deep_trigger_channels,
         trigger_channel_noise_vrms=trigger_channel_noise_vrms,
         event_list=args.event_list,
+        use_cpp=True,
     )
 
     sim.run()
