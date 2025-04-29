@@ -369,7 +369,7 @@ class channelGalacticNoiseAdder:
             channel.set_frequency_spectrum(channel_spectra[channel.get_id()], "same")
 
     def get_electric_field_strength(
-            self, location, time, n_samples, sampling_rate, bandpass=None, n_side=4):
+            self, location, time, n_samples, sampling_rate, bandpass=None):
         """
         Returns the electric field strength at a given location and time
 
@@ -394,8 +394,8 @@ class channelGalacticNoiseAdder:
             The electric field strength at the given location and time
         """
 
-        local_coordinates = get_local_coordinates(location, time, n_side)
-        solid_angle = healpy.pixelfunc.nside2pixarea(n_side, degrees=False)
+        local_coordinates = get_local_coordinates(location, time, self.__n_side)
+        solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
 
         if bandpass is None:
             bandpass = [10 * units.MHz, sampling_rate / 2]
@@ -406,7 +406,7 @@ class channelGalacticNoiseAdder:
         window = np.zeros_like(freqs, dtype=bool)
         window[np.logical_and(bandpass[0] < freqs, freqs < bandpass[1])] = True
 
-        for i_pixel in range(healpy.pixelfunc.nside2npix(n_side)):
+        for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
             zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad # this is the in-air zenith
 
             if zenith > 90. * units.deg:
@@ -422,9 +422,7 @@ class channelGalacticNoiseAdder:
             phases = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
             spectrum_pixel = np.exp(1j * phases) * efield_amplitude
 
-            polarisation = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
-
-            spectrum[window] += spectrum_pixel# * np.cos(polarisation)
+            spectrum[window] += spectrum_pixel
 
         return np.std(fft.freq2time(spectrum, sampling_rate))
 
@@ -468,32 +466,147 @@ def get_local_coordinates(coordinates, time, n_side):
 
 if __name__ == "__main__":
 
+    from astropy.coordinates import EarthLocation, Galactic, AltAz
     from astropy.time import Time
-    from NuRadioReco.utilities import fft
-    location = (42.93, 79.999099)
-
-    dh = np.arange(-12, 12, 0.5)
-    t0 = Time.now()
-    times = t0 + dh * astropy.units.hour
-
-    noise_adder = channelGalacticNoiseAdder()
-    noise_adder.begin(n_side=4, freq_range=np.array([0.01, 0.4]) * units.GHz)
-
-
-    ampls = []
-    for t in times:
-        ampls.append(np.mean([noise_adder.get_electric_field_strength(
-            location, t, int(2048), 0.5 * units.GHz, [0.05, 0.2])
-                              for _ in range(5)]))
-
     from matplotlib import pyplot as plt
+
+    import time as pytime
+
+    pyt0 = pytime.time()
+
+
+    summit = EarthLocation(lat=72.579583 * astropy.units.deg, lon=-38.4591 * astropy.units.deg)
+    location = (72.579583, -38.4591)
+
+    gc = Galactic(l=0 * astropy.units.rad, b=0 * astropy.units.rad)
+
+
+    t0 = Time('2023-01-01 00:00:00', scale='utc', location=summit)
+    times = t0 + np.linspace(0, 24) * astropy.units.hour
 
     fig, ax = plt.subplots()
 
-    ax.plot(dh, np.array(ampls) / units.microvolt)
+    # aa = AltAz(gc, obstime=times, location=summit)
+    gc2 = gc.transform_to(AltAz(obstime=t0, location=summit))
+    azimuth_gc_summit = [gc.transform_to(AltAz(obstime=t, location=summit)).az.to_value(astropy.units.rad) for t in times]
+    zenith_gc_summit = [np.pi / 2 - gc.transform_to(AltAz(obstime=t, location=summit)).alt.to_value(astropy.units.rad) for t in times]
 
-    ax.set_xlabel("time / hours")
-    ax.set_ylabel(r"electric field amplitude [$\mu$V/m]")
+    lst = np.array([
+        t.sidereal_time("mean").hour for t in times
+    ])
+    sort = np.argsort(lst)
 
+    # t_siderial = [t.sidereal_time('mean').hour for t in times]
+    ax.plot(lst[sort], np.rad2deg(zenith_gc_summit)[sort], "k-")
+
+    ax.invert_yaxis()
+    ax.set_xlabel("LST [h]")
+    ax.set_ylabel("Zenith of GC [deg]")
+
+    ax2 = ax.twiny()
+    ax2.set_xlabel("Azimuth of GC [deg]")
+
+    from scipy.interpolate import interp1d
+
+    lst_to_azi = interp1d(
+        lst,
+        np.rad2deg(azimuth_gc_summit),
+        bounds_error=False,
+        fill_value=(np.nan, np.nan),
+    )
+
+    ax.set_xticks([5.75, 11.75, 17.75])
+
+    lim = ax.get_xlim()
+    xticks = ax.get_xticks()
+
+    ax2.set_xticks(xticks)
+    ax2.set_xticklabels([f"{x:.1f}" for x in lst_to_azi(xticks)])
+
+    ax2.set_xlim(lim)
+    ax.set_xlim(lim)
+
+    ax.grid()
+    # ax2.legend()
+    fig.tight_layout()
+
+    from NuRadioReco.utilities import fft
+
+    noise_adder = channelGalacticNoiseAdder()
+    noise_adder.begin(n_side=8, freq_range=np.array([0.01, 0.15]) * units.GHz)
+
+    ax3 = ax.twinx()
+    ax3.set_ylabel(r"amplitude [$\mu$V]")
+
+    det = NuRadioReco.detector.detector.Detector(json_filename="/Users/felix/software/nuRadio/NuRadioReco/detector/RNO_G/RNO_season_2024.json", antenna_by_depth=False)
+    n = 100
+    ampls = []
+    for t in times:
+        ampls.append([noise_adder.get_electric_field_strength(
+            location, t, int(2048), 0.3 * units.GHz, [0.05, 0.12])
+                              for _ in range(n)])
+
+    ampls = np.array(ampls) / 5.5
+    ampls_mean = np.mean(ampls, axis=1)
+    ampls_std = np.std(ampls, axis=1)
+    ampls_err_mean = ampls_std / np.sqrt(ampls.shape[-1])
+
+    if 0:
+        ax3.plot(lst[sort], ampls_mean[sort] / units.microvolt, marker=".", ls="-", lw=1, label="total electric field / 5.5m")
+        ax3.fill_between(
+            lst[sort],
+            (ampls_mean - ampls_err_mean)[sort] / units.microvolt,
+            (ampls_mean + ampls_err_mean)[sort] / units.microvolt,
+            alpha=0.2,
+        )
+    else:
+        ax3.errorbar(lst[sort], ampls_mean[sort] / units.microvolt, ampls_err_mean / units.microvolt, marker=".", ls="-", lw=1, label="total electric field / 5.5m")
+        ax3.fill_between(
+            lst[sort],
+            (ampls_mean - ampls_std)[sort] / units.microvolt,
+            (ampls_mean + ampls_std)[sort] / units.microvolt,
+            alpha=0.2,
+        )
+
+
+    # ampls_channels = []
+    # for t in times:
+    #     ampls_channels_tmp = []
+    #     for _ in range(n):
+
+    #         event = NuRadioReco.framework.event.Event(0, 0)
+    #         station = NuRadioReco.framework.station.Station(11)
+    #         station.set_station_time(t)
+    #         det.update(t)
+    #         for ch in [13, 16, 19]:
+    #             channel = NuRadioReco.framework.channel.Channel(ch)
+    #             channel.set_trace(np.zeros(2048), 3.2 * units.GHz)
+    #             station.add_channel(channel)
+
+    #         noise_adder.run(event, station, det, passband=[0.05 * units.GHz, 0.12 * units.GHz])
+
+    #         ampls_channels_tmp.append([np.std(ch.get_trace()) for ch in station.iter_channels()])
+    #     ampls_channels.append(ampls_channels_tmp)
+
+    # ampls_channels = np.array(ampls_channels)
+
+    # for ch, ele in zip([13, 16, 19], ampls_channels.T):
+    #     mean_amplitude = np.mean(ele, axis=0)[sort]
+    #     err_mean_amplitude = np.std(ele, axis=0)[sort] / np.sqrt(ele.shape[0])
+    #     ax3.plot(lst[sort], mean_amplitude / units.microvolt, marker=".", ls="-", lw=1, label=f"Ch {ch} trace")
+    #     ax3.fill_between(
+    #         lst[sort],
+    #         (mean_amplitude - err_mean_amplitude) / units.microvolt,
+    #         (mean_amplitude + err_mean_amplitude) / units.microvolt,
+    #         alpha=0.2,
+    #     )
+
+    ax3.plot(np.nan, np.nan, "k-", label="Position GC")
+
+    # ax.set_xlabel("time / hours")
+    # ax.set_ylabel(r"electric field amplitude [$\mu$V/m]")
+    ax3.legend()
+
+    print(pytime.time() - pyt0)
     fig.tight_layout()
     plt.show()
