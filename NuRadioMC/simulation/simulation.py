@@ -1246,7 +1246,8 @@ class simulation:
             self._ice,
             log_level=self._log_level_ray_propagation,
             config=self._config,
-            detector=self._det
+            detector=self._det,
+            use_cpp=kwargs.get('use_cpp', True),
         )
 
         self._station_ids = self._det.get_station_ids()

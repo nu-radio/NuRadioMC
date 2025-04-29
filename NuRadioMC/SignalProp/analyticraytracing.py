@@ -30,8 +30,7 @@ except:
     try:
         import subprocess
         import os
-        subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                 "install.sh"))
+        subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)), "install.sh"))
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
         cpp_available = True
         logger.status("compilation was successful, CPP version of ray tracer is available")
@@ -1010,7 +1009,7 @@ class ray_tracing_2D(ray_tracing_base):
                 attenuation_factor_segment = np.ones_like(frequency)
                 attenuation_factor_segment[mask] = np.interp(frequency[mask], freqs, attenuation_factor_segment_tmp)
                 self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(
-                    x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation_factor_segment))
+                    x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1],  attenuation_factor_segment))
 
             iF = len(frequency) // 3
             output += "adding attenuation for path segment {:d} -> {:.2g} at {:.0f} MHz, ".format(
@@ -1871,7 +1870,7 @@ class ray_tracing(ray_tracing_base):
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
                  detector=None, ray_tracing_2D_kwards={},
-                 use_cpp=cpp_available, compile_numba=False):
+                 use_cpp=cpp_available, compile_numba=None):
         """
         class initilization
 
@@ -1926,6 +1925,8 @@ class ray_tracing(ray_tracing_base):
             if True, use CPP implementation of minimization routines
             default: True if CPP version is available
 
+        compile_numba: bool (default: None)
+            Only relevant if `use_cpp` is False. If None, the default is True (if `use_cpp` is False).
         """
         self.__logger = logging.getLogger('NuRadioMC.ray_tracing')
         self.__logger.setLevel(log_level)
@@ -1949,7 +1950,14 @@ class ray_tracing(ray_tracing_base):
         if use_cpp:
             self.__logger.status("Using CPP version of ray tracer")
         else:
-            self.__logger.status("Using python version of ray tracer")
+            # If we do not want to or can not use CPP, by default we try to use numba
+            if compile_numba is None:
+                compile_numba = True
+
+            if compile_numba and numba_available:
+                self.__logger.status("Using python with numba version of ray tracer")
+            else:
+                self.__logger.status("Using python without numba version of ray tracer")
 
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self._n_frequencies_integration,
