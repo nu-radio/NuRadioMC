@@ -194,7 +194,8 @@ double ds (double t, void *p){
 }
 
 double get_path_length(double pos[2], double pos2[2], double C0, double n_ice, double delta_n, double z_0){
-	double x2_mirrored[2]={0.};
+
+	double x2_mirrored[2] = {0.};
 	get_z_mirrored(pos,pos2,C0,x2_mirrored,n_ice, delta_n, z_0);
 
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(1000);
@@ -269,7 +270,6 @@ double get_travel_time(double pos[2], double pos2[2], double C0, double n_ice, d
 }
 
 
-
 //this function is explicitly prepared for gsl integration in get_attenuation_along_path
 struct dt_freq_params{ double a; double c; double d; double e; double f; int model;}; //a=C0, c=freq, d=n_ice, e=delta_n, f=z_0
 double dt_freq (double t, void *p){
@@ -284,21 +284,38 @@ double dt_freq (double t, void *p){
 	return sqrt((pow(get_y_diff(t,C0,n_ice, delta_n, z_0),2.)+1)) / get_attenuation_length(z,freq, params->model);
 }
 
+// forward-declaration
+double get_attenuation_integral_GL3(
+    double pos[2], double pos2[2], double C0,
+    double frequency, double n_ice, double delta_n, double z_0, int model);
+
 double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
-		double frequency, double n_ice, double delta_n, double z_0, int model){
-	double x2_mirrored[2]={0.};
-	get_z_mirrored(pos,pos2,C0,x2_mirrored, n_ice, delta_n, z_0);
+		double frequency, double n_ice, double delta_n, double z_0, int model) {
+
+	if (model == 5) {
+        double attenuation_integral = get_attenuation_integral_GL3(
+			pos, pos2, C0, frequency, n_ice, delta_n, z_0, 5
+        );
+        return exp(-1 * attenuation_integral);
+    }
+
+	double x2_mirrored[2] = {0.};
+	get_z_mirrored(pos, pos2, C0, x2_mirrored, n_ice, delta_n, z_0);
 
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(2000);
 	gsl_function F;
 	F.function = &dt_freq;
-	struct dt_freq_params params = {C0,frequency, n_ice, delta_n, z_0, model};
+	struct dt_freq_params params = {C0, frequency, n_ice, delta_n, z_0, model};
 	F.params=&params;
 
 	double result, error;
-	double epsrel = 1.e-7; //small initial absolute error
-	int max_badfunc_tries=6;
-	int num_badfunc_tries=0;
+	double epsabs = 1.e-4; // small initial absolute error
+	double epsrel = 1.e-5; // small initial relative error
+	double max_epsrel = 1.e-3; // max excepted relative error
+	int max_badfunc_tries = 5;
+	int num_badfunc_tries = 0;
+	double delta_epsrel = (max_epsrel - epsrel) / max_badfunc_tries; // small initial relative error
+
 	int status;
 
 	/*
@@ -311,22 +328,37 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 	*/
 	gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
 	do{
-		status = gsl_integration_qags(&F, pos[1], x2_mirrored[1],0,epsrel,2000,w,&result,&error);
-		if(status!=GSL_SUCCESS){
-			status=GSL_CONTINUE;
+		status = gsl_integration_qag(&F, pos[1], x2_mirrored[1], epsabs, epsrel, 2000, 1, w, &result, &error);
+
+		// Break after reaching max excepted rel error
+		if (num_badfunc_tries == max_badfunc_tries)
+			break;
+
+		if (status != GSL_SUCCESS) {
+			status = GSL_CONTINUE;
 			num_badfunc_tries++;
-			epsrel*=2.; //double the size of the relative error
+			epsrel += delta_epsrel; //double the size of the relative error
 		}
-	}while(status == GSL_CONTINUE && num_badfunc_tries<max_badfunc_tries);
-	gsl_set_error_handler (myhandler); //restore original error handler
+
+	} while (status == GSL_CONTINUE && num_badfunc_tries <= max_badfunc_tries);
+
+	if (status != GSL_SUCCESS) {
+		std::cout << "GSL integtration needed " << num_badfunc_tries
+				<< " iterations to converge. Result / Error: " << result << " / " << error << " with target error: "
+				<< max(epsabs, epsrel * result) << " (epsabs: " << epsabs
+				<< ", epsrel: " << epsrel << ")" << std::endl;
+	}
+
+	gsl_set_error_handler(myhandler); //restore original error handler
 	gsl_integration_workspace_free(w);
+
 	double attenuation;
-	if(status==GSL_SUCCESS){
+	if (status == GSL_SUCCESS) {
 		attenuation = exp(-1 * result);
+	} else {
+		attenuation = NAN;
 	}
-	else{
-		attenuation=NAN;
-	}
+
 	return attenuation;
 }
 
@@ -567,8 +599,6 @@ double obj_delta_y(double logC0, void *p){
 }
 
 
-
-
 vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ice, double delta_n,
 										 double z_0, int reflection=0, int reflection_case=1, double ice_reflection=0.){
 	//function finds all ray tracing solutions
@@ -608,7 +638,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	FDF.params = &params;
 	Tfdf = gsl_root_fdfsolver_secant;
 	gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
-	
+
 	// We have to guess at the location of the first root (if it it exists at all).
 	// Because we might not guess correctly, or guess close enough,
 	// it's in our favor (for numerical stability reasons) to try several times.
@@ -843,26 +873,28 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	return results;
 }
 
- void find_solutions2(double*& C0s, double*& C1s, int*& types, int& nSolutions, double y1, double z1, double y2,
-		 double z2,  double n_ice, double delta_n, double z_0,
-		 int reflection=0, int reflection_case=1, double ice_reflection=0.) {
+
+void find_solutions2(double*& C0s, double*& C1s, int*& types, int& nSolutions, double y1, double z1, double y2,
+		double z2,  double n_ice, double delta_n, double z_0,
+		int reflection=0, int reflection_case=1, double ice_reflection=0.) {
 	// clock_t begin = clock();
- 	double x1[2] = {y1, z1};
- 	double x2[2] = {y2, z2};
- 	vector < vector<double> > solutions2 = find_solutions(x1, x2, n_ice, delta_n, z_0, reflection, reflection_case, ice_reflection);
- 	nSolutions = solutions2.size();
- 	C0s = new double[nSolutions];
- 	C1s = new double[nSolutions];
- 	types = new int[nSolutions];
- 	for (int i = 0; i < nSolutions; ++i) {
- 		C0s[i] = solutions2[i][1];
- 		C1s[i] = solutions2[i][2];
- 		types[i] = solutions2[i][3];
- 	}
+	double x1[2] = {y1, z1};
+	double x2[2] = {y2, z2};
+	vector < vector<double> > solutions2 = find_solutions(x1, x2, n_ice, delta_n, z_0, reflection, reflection_case, ice_reflection);
+	nSolutions = solutions2.size();
+	C0s = new double[nSolutions];
+	C1s = new double[nSolutions];
+	types = new int[nSolutions];
+	for (int i = 0; i < nSolutions; ++i) {
+		C0s[i] = solutions2[i][1];
+		C1s[i] = solutions2[i][2];
+		types[i] = solutions2[i][3];
+	}
 	// clock_t end = clock();
  	// double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
 	// printf("%f (%d solutions)\n", 1000* elapsed_secs, nSolutions);
- }
+}
+
 
 void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[2], double C0, vector<double> &res, vector<double> &zs, int n_points=100){
 
@@ -880,7 +912,7 @@ void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[
 	//zs are z coordinates
 
 
-	double c = pow(n_ice,2.) - pow(C0,-.2);
+	double c = pow(n_ice,2.) - pow(C0,-2.);
 	double C1 = x1[0] - get_y_with_z_mirror(n_ice, delta_n, z_0, x1[1],C0);
 	double gamma_turn, z_turn;
 	get_turning_point(c, gamma_turn, z_turn, n_ice, delta_n, z_0);
@@ -918,6 +950,31 @@ void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[
 		}
 	}
 }
+
+
+double get_attenuation_integral_GL3(
+    double pos[2], double pos2[2], double C0,
+    double frequency, double n_ice, double delta_n, double z_0, int model)
+{
+    double step_size = 5;
+    double pos2_mirrored[2] = {0.};
+	get_z_mirrored(pos, pos2, C0, pos2_mirrored, n_ice, delta_n, z_0);
+    int n_points = abs(pos[1] - pos2_mirrored[1]) / step_size + 1;
+    vector<double> xx, zz;
+    vector<double> xx_fine, zz_fine;
+    get_path(n_ice, delta_n, z_0, pos, pos2, C0, xx, zz, n_points);
+
+    double attenuation_integral = 0;
+    double delta_x, delta_z, segment_length;
+    for (int i=0;i < n_points - 1; i++) {
+        delta_x = xx[i] - xx[i + 1];
+        delta_z = zz[i] - zz[i + 1];
+        segment_length = sqrt(delta_x * delta_x + delta_z * delta_z);
+        attenuation_integral = attenuation_integral + segment_length / get_attenuation_length(zz[i], frequency, 5);
+    }
+    return attenuation_integral;
+}
+
 
 int main(int argc, char **argv){
 
