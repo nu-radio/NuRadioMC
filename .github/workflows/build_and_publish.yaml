@@ -1,6 +1,6 @@
 name: Build and publish
 
-on: 
+on:
   pull_request:
   workflow_dispatch:
   push:
@@ -75,6 +75,9 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token}}
       run: |
+        git config --global user.email "sjoerd.bouma@fau.de"
+        git config --global user.name "Sjoerd Bouma"
+
         export VERSION_NEW="$(poetry version -s)"
         export NEW_TAG=v$VERSION_NEW
         git tag $NEW_TAG -m "$NEW_TAG release"
