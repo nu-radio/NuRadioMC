@@ -297,9 +297,18 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 	F.params=&params;
 
 	double result, error;
-	double epsabs = 1.e-4; // small initial absolute error
-	double epsrel = 1.e-5; // small initial relative error
-	double max_epsrel = 1.e-3; // max excepted relative error
+	double epsabs = 0; // 0 -> only take into account relative error
+	double epsrel = 1.e-7; // small initial relative error
+	double max_epsrel = 1.e-5; // max excepted relative error
+
+	// We have to tolerate larger uncertainties for the GL3 model because it's rougthness is
+	// a challange for the integration
+	if (model == 5) {
+		epsabs = 1.e-4;
+		epsrel = 1.e-5;
+		max_epsrel = 1.e-3;
+	}
+	
 	int max_badfunc_tries = 5;
 	int num_badfunc_tries = 0;
 	double delta_epsrel = (max_epsrel - epsrel) / max_badfunc_tries; // small initial relative error
