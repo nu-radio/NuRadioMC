@@ -58,7 +58,7 @@ def FC_limits(counts):
     """
     Returns the 68% confidence belt for a number of counts, using the
     Feldman-Cousins method.
-    Published in Phys. Rev. D 57, 3873, DOI 10.1103/PhysRevD.57.3873 
+    Published in Phys. Rev. D 57, 3873, DOI 10.1103/PhysRevD.57.3873
 
     Parameters
     ----------
@@ -157,35 +157,35 @@ def get_veff_output(volume, counts, all_events):
     if counts:
         v_eff_error = v_eff / np.sqrt(counts)
     else:
-        v_eff_error = 0         
-                    
+        v_eff_error = 0
+
     v_eff_low = volume * fc_low / all_events
     v_eff_high = volume * fc_high / all_events
-    
+
     return [v_eff, v_eff_error, counts, v_eff_low, v_eff_high]
 
 
 def get_Veff_Aeff_single(
-        filename, trigger_names, trigger_names_dict, trigger_combinations, 
+        filename, trigger_names, trigger_names_dict, trigger_combinations,
         deposited, station, veff_aeff="veff", bounds_theta=[0, np.pi]):
     """
-    Calculates the effective volume or effective area from surface muons from 
+    Calculates the effective volume or effective area from surface muons from
     a single NuRadioMC hdf5 file
 
-    The effective volume is NOT normalized to a water equivalent. It is also NOT 
+    The effective volume is NOT normalized to a water equivalent. It is also NOT
     multiplied with the solid angle (typically 4pi).
 
     Parameters
     ----------
     filename: string
         filename of the hdf5 file
-        
+
     trigger_names: list of strings
         list of the trigger names contained in the file
-        
+
     trigger_names_dict: dict
         map from trigger name to index
-        
+
     trigger_combinations: dict, optional
         keys are the names of triggers to calculate. Values are dicts again:
 
@@ -196,7 +196,7 @@ def get_Veff_Aeff_single(
 
         * 'efficiency': dict
             allows to apply an (analysis) efficiency cut for calculating effective volumes
-            
+
             * 'func': function
                 a function that paramaterized the efficiency as a function of SNR (=Vmax/Vrms)
             * 'channel_ids': array on ints
@@ -210,7 +210,7 @@ def get_Veff_Aeff_single(
 
     station: int
         the station that should be considered
-        
+
     veff_aeff: string
         specifiy if the effective volume or the effective area for surface muons is calculated
         can be
@@ -222,17 +222,17 @@ def get_Veff_Aeff_single(
         restrict theta to sub-range wrt. the simulated range in the file
         Note: assumes events were simulated uniformly in cos(theta)
         bounds_theta should be a (two-item) list, but will care only about the min/max values
-    
+
     Returns
     -------
-    
+
     list of dictionaries
         Each file is one entry. The dictionary keys store all relevant properties
-    
+
     """
     if(veff_aeff not in ["veff", "aeff_surface_muons"]):
         raise AttributeError(f"the paramter `veff_aeff` needs to be one of either `veff` or `aeff_surface_muons`")
-    
+
     logger.warning(f"processing file  {filename}")
     fin = h5py.File(filename, 'r')
     n_events = fin.attrs['n_events']
@@ -258,7 +258,7 @@ def get_Veff_Aeff_single(
     if max(bounds_theta) < thetamax:
         logger.info("restricting thetamax from {} to {}".format(thetamax, max(bounds_theta)))
         thetamax = max(bounds_theta)
-    
+
     # The restriction assumes isotropic event generation in cos(theta) band
     theta_fraction = abs(np.cos(thetamin) - np.cos(thetamax)) / theta_width_file
     if theta_fraction < 1:
@@ -286,7 +286,7 @@ def get_Veff_Aeff_single(
     out[veff_aeff] = {}
     out['n_triggered_weighted'] = {}
     out['SNRs'] = {}
-    
+
     fc_low_0, fc_high_0 = FC_limits(0)
     v_eff_low_0 = volume_proj_area * fc_low_0 / n_events
     v_eff_high_0 = volume_proj_area * fc_high_0 / n_events
@@ -297,7 +297,7 @@ def get_Veff_Aeff_single(
             out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
         for trigger_name, values in iteritems(trigger_combinations):
             out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
-        
+
         return out
 
     triggered = np.array(fin['triggered'])
@@ -329,9 +329,9 @@ def get_Veff_Aeff_single(
             out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
         for trigger_name, values in iteritems(trigger_combinations):
             out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
-        
+
         return out
-        
+
     for iT, trigger_name in enumerate(trigger_names):
         triggered = np.array(fin['multiple_triggers'][:, iT], dtype=bool)
         triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
@@ -340,7 +340,7 @@ def get_Veff_Aeff_single(
     for trigger_name, values in iteritems(trigger_combinations):
         indiv_triggers = values['triggers']
         triggered = np.zeros_like(fin['multiple_triggers'][:, 0], dtype=bool)
-        
+
         if isinstance(indiv_triggers, str):
             triggered = triggered | \
                 np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=bool)
@@ -348,11 +348,11 @@ def get_Veff_Aeff_single(
             for indiv_trigger in indiv_triggers:
                 triggered = triggered | \
                     np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=bool)
-        
+
         if 'triggerAND' in values:
             triggered = triggered & \
                 np.array(fin['multiple_triggers'][:, trigger_names_dict[values['triggerAND']]], dtype=bool)
-        
+
         if 'notriggers' in values:
             indiv_triggers = values['notriggers']
             if(isinstance(indiv_triggers, str)):
@@ -362,12 +362,12 @@ def get_Veff_Aeff_single(
                 for indiv_trigger in indiv_triggers:
                     triggered = triggered & \
                         ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=bool)
-        
+
         if 'min_sigma' in values.keys():
             if isinstance(values['min_sigma'], list):
                 if trigger_name not in out['SNR']:
                     out['SNR'][trigger_name] = {}
-                
+
                 masks = np.zeros_like(triggered)
                 for iS in range(len(values['min_sigma'])):
                     As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
@@ -378,7 +378,7 @@ def get_Veff_Aeff_single(
                         As[:, values['channels'][iS]] >= (values['min_sigma'][iS] * Vrms), axis=1) >= values['n_channels'][iS]
                     masks = masks | mask
                     out['SNR'][trigger_name][iS] = max_amplitude[mask] / Vrms
-                
+
                 triggered = triggered & masks
             else:
                 As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
@@ -389,7 +389,7 @@ def get_Veff_Aeff_single(
                 mask = np.sum(As[:, values['channels']] >= (values['min_sigma'] * Vrms), axis=1) >= values['n_channels']
                 out['SNR'][trigger_name] = As_sorted[mask] / Vrms
                 triggered = triggered & mask
-        
+
         if 'ray_solution' in values.keys():
             As = np.array(fin['max_amp_ray_solution'])
             max_amps = np.argmax(As[:, values['ray_channel']], axis=-1)
@@ -406,7 +406,7 @@ def get_Veff_Aeff_single(
                 triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[..., max_amps, 0][:, 0] == values['n_reflections'])
 
         triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
-     
+
         v_eff, v_eff_err, count, v_eff_low, v_eff_high = \
             get_veff_output(volume_proj_area, np.sum(weights[triggered]), n_events)
 
@@ -434,40 +434,40 @@ def get_Veff_Aeff_single(
                 if key.startswith("station_"):
                     if 'event_group_ids' not in fin[key]:
                         continue  # the station might have no triggers
-                    
+
                     sgids = np.array(fin[key]['event_group_ids'])
                     usgids = np.unique(sgids)
                     usgids, comm1, comm2 = np.intersect1d(usgids, ugids_triggered, assume_unique=True, return_indices=True)  # select only the gids that triggered
                     common_mask = np.isin(sgids, usgids)
                     sgids = sgids[common_mask]  # also reduce gids array to the event groups that triggered
-                    
+
                     if(len(usgids) == 0):  # skip stations that don't have any trigger for this trigger combination
                         continue
-                    
+
                     usgids_index = sorter[np.searchsorted(ugids_triggered, usgids, sorter=sorter)]
                     # each station might have multiple triggeres per event group id. We need to select the one
                     # event with the largest amplitude. Let's first check if one event group created more than one event
                     max_amps_per_event_channel = np.nan_to_num(np.array(fin[key]['maximum_amplitudes_envelope'])[common_mask])
                     max_amps_per_event = np.amax(max_amps_per_event_channel[:, channel_ids], axis=1)  # select the maximum amplitude of all considered channels
-                    
+
                     if len(sgids) != len(usgids):
                         # at least one event group created more than one event. Let's calculate it the slow but correct way
                         for sgid in np.unique(sgids):  # loop over all event groups which triggered this station
-                            
+
                             if(sgid not in usgids):
                                 continue
-                            
+
                             mask_gid = sgid == sgids  # select all event that are part of this event group
                             index = np.squeeze(np.argwhere(ugids_triggered == sgid))
                             max_amplitudes[index] = max(max_amplitudes[index], max_amps_per_event[mask_gid].max())
                     else:
                         max_amplitudes[usgids_index] = np.maximum(max_amplitudes[usgids_index], max_amps_per_event)
-            
+
             if 'scale' in values['efficiency']:
                 max_amplitudes *= values['efficiency']['scale']
             if "Vrms" in values['efficiency']:
                 Vrms = values['efficiency']['Vrms']
-            
+
             e = get_efficiency(max_amplitudes / Vrms)  # we calculated the maximum amplitudes for all gids, now we select only those that triggered
             v_eff, v_eff_err, count, v_eff_low, v_eff_high = \
                 get_veff_output(volume_proj_area, np.sum(weights[triggered] * e), n_events)
@@ -481,11 +481,12 @@ def get_Veff_Aeff_single_wrapper(args):
     return get_Veff_Aeff_single(*args)
 
 
-def get_Veff_Aeff(folder,
-             trigger_combinations={},
-             station=101,
-             veff_aeff="veff",
-             n_cores=1, oversampling_theta=1):
+def get_Veff_Aeff(
+        folder,
+        trigger_combinations={},
+        station=101,
+        veff_aeff="veff",
+        n_cores=1, oversampling_theta=1):
     """
     calculates the effective volume or effective area from surface muons from NuRadioMC hdf5 files
 
@@ -497,12 +498,12 @@ def get_Veff_Aeff(folder,
         folder conaining the hdf5 files, one per energy OR filename
     trigger_combinations: dict, optional
         keys are the names of triggers to calculate. Values are dicts again:
-            
+
         * 'triggers': list of strings
             name of individual triggers that are combined with an OR
 
         the following additional options are optional
-        
+
         * 'efficiency': dict
             allows to apply an (analysis) efficiency cut for calculating effective volumes
 
@@ -524,18 +525,18 @@ def get_Veff_Aeff(folder,
 
         * "veff" (default)
         * "aeff_surface_muons"
-        
+
     n_cores: int
         the number of cores to use
 
     oversampling_theta: int
         calculate the effective volume for finer binning (<oversampling_theta> data points per file):
-        
+
         * 1: no oversampling
         * >1: oversampling with <oversampling_theta> equal-size cos(theta) bins within thetamin/max of the input file
-        
+
         .. Note:: oversampling assumes that events were simulated uniformly in cos(theta)
-    
+
     Returns
     -------
     list of dictionaries.
@@ -553,11 +554,12 @@ def get_Veff_Aeff(folder,
         filenames = glob.glob(os.path.join(folder, '*.hdf5'))
         if len(filenames) == 0:
             raise FileNotFoundError(f"couldnt find any hdf5 file in folder {folder}")
-        
+
         filenames = sorted(filenames)
 
     for iF, filename in enumerate(filenames):
         fin = h5py.File(filename, 'r')
+
         if 'deposited' in fin.attrs:
             deposited = fin.attrs['deposited']
             if prev_deposited is None:
@@ -572,7 +574,7 @@ def get_Veff_Aeff(folder,
             if len(trigger_names) > 0:
                 for iT, trigger_name in enumerate(trigger_names):
                     trigger_names_dict[trigger_name] = iT
-                
+
                 logger.info(f"first file with triggernames {filename}: {trigger_names}")
                 break
 
@@ -586,8 +588,6 @@ def get_Veff_Aeff(folder,
                 logger.warning(f"trigger {value} not available, removing this trigger from the trigger combination {key}")
                 trigger_combinations[key]['triggers'].pop(i)
                 i -= 1
-    from multiprocessing import Pool
-    logger.warning(f"running {len(filenames)} jobs on {n_cores} cores")
 
     args = []
     if oversampling_theta == 1:
@@ -612,6 +612,9 @@ def get_Veff_Aeff(folder,
             output.append(get_Veff_Aeff_single_wrapper(arg))
         return output
     else:
+        from multiprocessing import Pool
+        logger.warning(f"running {len(filenames)} jobs on {n_cores} cores")
+
         with Pool(n_cores) as p:
             output = p.map(get_Veff_Aeff_single_wrapper, args)
             print("output")
@@ -633,7 +636,7 @@ def get_Veff_Aeff_array(data):
 
     Returns
     -------
-    
+
     * (n_energy, n_zenith_bins, n_triggernames, 5) dimensional array of floats
     * array of unique mean energies (the mean is calculated in the logarithm of the energy)
     * array of unique lower bin edges of energies
@@ -662,12 +665,12 @@ def get_Veff_Aeff_array(data):
         ax.semilogx(True)
         fig.tight_layout()
         plt.show()
-    
+
 
     To plot the effective volume for different declination bands do
 
     .. code-block:: python
-    
+
         fig, ax = plt.subplots(1, 1)
         tname = "LPDA_2of4_100Hz"
         iZ = 9
@@ -694,7 +697,7 @@ def get_Veff_Aeff_array(data):
         ax.semilogx(True)
         fig.tight_layout()
         plt.show()
-    
+
 
     """
     energies = []
@@ -707,13 +710,13 @@ def get_Veff_Aeff_array(data):
         if(veff_aeff is None):
             if "veff" in d:
                 veff_aeff = "veff"
-                print(f"data contains effective volume")
+                print("data contains effective volume")
             elif "aeff_surface_muons" in d:
                 veff_aeff = "aeff_surface_muons"
-                print(f"data contains effective area for surface muons")
+                print("data contains effective area for surface muons")
             else:
-                print(f"dictionary does neither contain key `veff` nor `aeff_surface_muons`")
-                raise AttributeError(f"dictionary does neither contain key `veff` nor `aeff_surface_muons`")
+                print("dictionary does neither contain key `veff` nor `aeff_surface_muons`")
+                raise AttributeError("dictionary does neither contain key `veff` nor `aeff_surface_muons`")
         energies.append(d['energy'])
         energies_min.append(d['energy_min'])
         energies_max.append(d['energy_max'])
