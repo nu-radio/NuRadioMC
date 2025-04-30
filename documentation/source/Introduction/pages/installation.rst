@@ -207,7 +207,7 @@ use ``pip install nuradiomc[all]`` to install all optional dependencies (or ``[a
 
   .. code-block:: bash
 
-    pip install git+https://github.com/nu-radio/cr-pulse-interpolator
+    pip install cr-pulse-interpolator
 
 - ``[dev]``
 
