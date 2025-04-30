@@ -1,8 +1,11 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 cd CPPAnalyticRayTracing
-rm wrapper.so  # first delete already existing module
-rm wrapper.*.so #also the versions on mac
+
+# Remove old wrapper files, do not report errors if they do not exist
+rm -v wrapper.so 2> /dev/null
+rm -v wrapper.*.so 2> /dev/null
+
 if [[ -z "${GSLDIR}" ]]; then
 	echo "GSLDIR environment variable undefined"
 	echo "setting GSLDIR to " $(gsl-config --prefix)

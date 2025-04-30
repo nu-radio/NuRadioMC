@@ -24,9 +24,9 @@ def generate_my_events(filename, n_events):
     # first set the meta attributes
     attributes = {}
     n_events = int(n_events)
-    attributes['simulation_mode'] = "emitter"  # must be specified to work for radio emittimg models 
+    attributes['simulation_mode'] = "emitter"  # must be specified to work for radio emittimg models
     attributes['n_events'] = n_events  # the number of events contained in this file
-    attributes['start_event_id'] = 0  
+    attributes['start_event_id'] = 0
 
     ########### FOR Emitter ###############
     data_sets = {}
@@ -35,7 +35,7 @@ def generate_my_events(filename, n_events):
     data_sets["emitter_amplitudes"] = np.ones(n_events)
 
     # we also have choice for the half width and frequency
-    data_sets["emitter_half_width"]= 1.0 * np.ones(n_events) *units.ns        # this will be the width of square and tone_burst signal  
+    data_sets["emitter_half_width"]= 1.0 * np.ones(n_events) *units.ns        # this will be the width of square and tone_burst signal
     data_sets["emitter_frequency"] = 0.3 * np.ones(n_events)  *units.GHz       # this will be frequency of a signal ( for cw and tone_burst model)
 
     #the position of the emitter
@@ -60,4 +60,3 @@ def generate_my_events(filename, n_events):
 
 if __name__ == "__main__":
     generate_my_events("emitter_event_list.hdf5", 5)
-

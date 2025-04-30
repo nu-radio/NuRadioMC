@@ -26,14 +26,14 @@ try:
     cpp_available = True
     logger.status("CPP version of ray tracer is available")
 except Exception:
-    logger.info("trying to compile the CPP extension on-the-fly")
+    logger.status("Trying to compile the CPP extension on-the-fly ...")
     try:
         import subprocess
         import os
         subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)), "install.sh"))
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
         cpp_available = True
-        logger.status("compilation was successful, CPP version of ray tracer is available")
+        logger.status("... compilation was successful, CPP version of ray tracer is available")
     except Exception:
         logger.warning(
             "Compilation was not successful, using python version of ray tracer. "
