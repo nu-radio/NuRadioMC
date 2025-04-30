@@ -864,7 +864,7 @@ class ray_tracing_2D(ray_tracing_base):
             w_theta * w_phi / s**2
         )
 
-        return np.sqrt(1/f_inverse_squared)
+        return np.sqrt(1 / f_inverse_squared)
 
     def __get_frequencies_for_attenuation(self, frequency, max_detector_freq):
         """ Returns a frequency vector for the attenuation calculation.
@@ -928,6 +928,9 @@ class ray_tracing_2D(ray_tracing_base):
             if self.use_cpp:
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
+
+                if freqs[-1] > 1.5 * units.GHz:
+                    self.__logger.warning("CPP wrapper: Attenuation calculation for frequencies > 1.5 GHz")
 
                 tmp_attenuation_factor = np.zeros_like(freqs)
                 for i, f in enumerate(freqs):
@@ -2919,10 +2922,8 @@ class ray_tracing(ray_tracing_base):
 
         apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
-            if self._max_detector_frequency is None:
-                max_freq = np.max(efield.get_frequencies())
-            else:
-                max_freq = self._max_detector_frequency
+            max_freq = self._max_detector_frequency or np.max(efield.get_frequencies())
+
             attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
             spec *= attenuation
 
@@ -2930,9 +2931,10 @@ class ray_tracing(ray_tracing_base):
         for zenith_reflection in zenith_reflections:  # loop through all possible reflections
             if (zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
                 continue
+
             if(self._x2[1] > 0):  # we need to treat the case of air to ice/ice to air propagation sepatately:
                 # air/ice propagation
-                self.__logger.warning(f"calculation of transmission coefficients and focussing factor for air/ice propagation is experimental and needs further validation")
+                self.__logger.warning("calculation of transmission coefficients and focussing factor for air/ice propagation is experimental and needs further validation")
                 if(not self._swap):  # ice to air case
                     t_theta = geometryUtilities.get_fresnel_t_p(
                         zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
@@ -2961,6 +2963,7 @@ class ray_tracing(ray_tracing_base):
                     "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
                         zenith_reflection / units.deg,
                         r_theta, r_phi))
+
         i_reflections = self.get_results()[i_solution]['reflection']
         if (i_reflections > 0):  # take into account possible bottom reflections
             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
@@ -2992,6 +2995,7 @@ class ray_tracing(ray_tracing_base):
                 spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate) #, bire_model = bire_model --> has to be implemented
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
+
         return efield
 
     def set_config(self, config):

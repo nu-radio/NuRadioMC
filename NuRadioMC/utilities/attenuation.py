@@ -165,6 +165,10 @@ def get_attenuation_length(z, frequency, model):
           Phd Thesis C. Persichilli (depth dependence)
 
     """
+    # Attenuation length smaller than min_length are set to min_length
+    min_length = 1 * units.m
+
+
     if model == "SP1":
         t = get_temperature(z)
         f0 = 0.0001
@@ -206,14 +210,11 @@ def get_attenuation_length(z, frequency, model):
     elif model == 'GL3':
         slopes = gl3_slope_interpolation(-z)
         offsets = gl3_offset_interpolation(-z)
-        # # restric frequency to prevent negative attenuation lengths
-        # if hasattr(frequency, '__len__'):
-        #     frequency[frequency > 0.6 * units.GHz] = 0.6 * units.GHz
-        # else:
-        #     if frequency > 0.6 * units.GHz:
-        #         frequency = 0.6 * units.GHz
-
         att_length_f = slopes * frequency + offsets
+        if np.any(att_length_f < 0):
+            # Negative attenuation length are set to `min_length` a few lines below
+            logger.warning(("Negative attenuation length detected for GL3: {0} m (for frequencies: {1}). "
+                           "Any attenuation lenght smaller {2} will be set to {2}").format(att_length_f, frequency, min_length))
 
     elif model == "MB1":
         # 10.3189/2015JoG14J214 measured the depth-averaged attenuation length as a function of frequency
@@ -243,7 +244,6 @@ def get_attenuation_length(z, frequency, model):
     if hasattr(z, '__len__') and not np.any(z <= 0):
         logger.warning("You requested the attenuation length for exlusively positive depths, i.e., for air. Return inf for all frequencies.")
 
-    min_length = 1 * units.m
     if not hasattr(frequency, '__len__') and not hasattr(z, '__len__'):
         if att_length_f < min_length:
             att_length_f = min_length
