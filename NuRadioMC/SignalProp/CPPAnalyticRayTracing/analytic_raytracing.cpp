@@ -292,12 +292,13 @@ double get_attenuation_integral_GL3(
 double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 		double frequency, double n_ice, double delta_n, double z_0, int model) {
 
+	// Use an optimized calculation for GL3
 	if (model == 5) {
-        double attenuation_integral = get_attenuation_integral_GL3(
+		double attenuation_integral = get_attenuation_integral_GL3(
 			pos, pos2, C0, frequency, n_ice, delta_n, z_0, 5
-        );
-        return exp(-1 * attenuation_integral);
-    }
+        	);
+        	return exp(-1 * attenuation_integral);
+    	}
 
 	double x2_mirrored[2] = {0.};
 	get_z_mirrored(pos, pos2, C0, x2_mirrored, n_ice, delta_n, z_0);
@@ -309,9 +310,9 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 	F.params=&params;
 
 	double result, error;
-	double epsabs = 1.e-4; // small initial absolute error
-	double epsrel = 1.e-5; // small initial relative error
-	double max_epsrel = 1.e-3; // max excepted relative error
+	double epsabs = 0; // 0 -> only rel error relevant
+	double epsrel = 1.e-7; // small initial relative error
+	double max_epsrel = 1.e-5; // max excepted relative error
 	int max_badfunc_tries = 5;
 	int num_badfunc_tries = 0;
 	double delta_epsrel = (max_epsrel - epsrel) / max_badfunc_tries; // small initial relative error
