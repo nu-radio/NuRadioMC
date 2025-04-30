@@ -975,6 +975,10 @@ double get_attenuation_integral_GL3(
     return attenuation_integral;
 }
 
+double get_attenuation_length_wrapper(double z, double frequency, int model) {
+	return get_attenuation_length(z, frequency, model);
+}
+
 
 int main(int argc, char **argv){
 
