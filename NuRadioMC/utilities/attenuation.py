@@ -264,7 +264,9 @@ def get_attenuation_length(z, frequency, model):
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
 
+<<<<<<< HEAD
     z = np.linspace(1*units.km,-3*units.km,1000)
     frequencies = [0.5*units.GHz] #np.linspace(0,1*units.GHz,10)
     for frequency in frequencies:
@@ -276,3 +278,34 @@ if __name__ == "__main__":
     plt.title("attenuation length (inf masked to +3333m)")
     plt.legend()
     plt.savefig("attenuation_length_models.png")
+=======
+    z = np.linspace(-10 * units.m, -3 * units.km, 1000)
+
+    fig, ax = plt.subplots()
+    for idx, freq in enumerate([0.5, 1, 1.5, 2, 2.5]):
+        for model, ls in zip(["GL1", "GL3", "SP1"], ["-", "--", ":"]):
+            fmt = f"C{idx}" + ls
+            atteniaton_length = np.array([get_attenuation_length(d, freq * units.GHz, model) for d in z])
+            label = ""
+            if model == "GL1":
+                label = f"{freq} GHz"
+            ax.plot(atteniaton_length, z, fmt, lw=1, label=label)
+
+            model_int = model_to_int[model]
+            atteniaton_length_cpp = np.array([cpp_wrapper.get_attenuation_length(d, freq * units.GHz, model_int) for d in z])
+            ax.plot(atteniaton_length_cpp, z, fmt, lw=2)
+
+    ax.plot(np.nan, np.nan, "k-", lw=1, label="GL1")
+    ax.plot(np.nan, np.nan, "k--", lw=1, label="GL3")
+    ax.plot(np.nan, np.nan, "k:", lw=1, label="SP1")
+
+    ax.set_xlim(ax.get_xlim())
+    ax.axvspan(ax.get_xlim()[0], 1, color="gray", alpha=0.2, zorder=0)
+
+    ax.grid()
+    ax.set_xlabel("attenuation length [m]")
+    ax.set_ylabel("depth [m]")
+    ax.legend(title="Thin lines: Python\nthick lines: C++")
+    fig.tight_layout()
+    plt.show()
+>>>>>>> 88d0b93c7 (Add wrapper for the cpp implementation of the attenuation length. Implement the same min_length in the cpp wrapper as in the python wrapper)
