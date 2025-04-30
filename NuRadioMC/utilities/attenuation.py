@@ -266,19 +266,6 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
 
-<<<<<<< HEAD
-    z = np.linspace(1*units.km,-3*units.km,1000)
-    frequencies = [0.5*units.GHz] #np.linspace(0,1*units.GHz,10)
-    for frequency in frequencies:
-        for model in ["SP1", "GL1", "GL2", "MB1"]:
-            plt.plot(-z/units.m, np.nan_to_num(get_attenuation_length(z, frequency, model)/units.m, posinf=3333), label=f"{model}")
-    plt.xlabel("depth [m]")
-    plt.ylabel("attenuation length [m]")
-    plt.ylim(0,None)
-    plt.title("attenuation length (inf masked to +3333m)")
-    plt.legend()
-    plt.savefig("attenuation_length_models.png")
-=======
     z = np.linspace(-10 * units.m, -3 * units.km, 1000)
 
     fig, ax = plt.subplots()
@@ -308,4 +295,3 @@ if __name__ == "__main__":
     ax.legend(title="Thin lines: Python\nthick lines: C++")
     fig.tight_layout()
     plt.show()
->>>>>>> 88d0b93c7 (Add wrapper for the cpp implementation of the attenuation length. Implement the same min_length in the cpp wrapper as in the python wrapper)
