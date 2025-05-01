@@ -9,7 +9,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 import logging
-logger = logging.getLogger('efieldTimeDirectionFitter')
+logger = logging.getLogger('NuRadioReco.efieldTimeDirectionFitter')
 
 
 class efieldTimeDirectionFitter:
@@ -32,7 +32,7 @@ class efieldTimeDirectionFitter:
     def run(self, evt, station, det, channels_to_use=None, cosmic_ray=False):
         """
         Parameters
-        ----------------
+        ----------
         evt: Event
             The event to run the module on
         station: Station

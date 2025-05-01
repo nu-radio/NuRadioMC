@@ -8,7 +8,7 @@ from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverte
 import numpy as np
 from scipy import constants
 import logging
-logger = logging.getLogger('phasedTriggerSimulator')
+logger = logging.getLogger('NuRadioReco.phasedTriggerSimulator')
 
 cspeed = constants.c * units.m / units.s
 
@@ -102,7 +102,7 @@ class triggerSimulator(phasedTrigger):
                                               adc_type='perfect_floor_comparator',
                                               diode=diode)
                 time_step = 1 / det.get_channel(station_id, channel_id)['trigger_adc_sampling_frequency']
-                times = np.arange(len(trace), dtype=np.float) * time_step
+                times = np.arange(len(trace), dtype=float) * time_step
                 times += channel.get_trace_start_time()
 
             else:

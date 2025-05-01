@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
 from NuRadioReco.utilities import units
@@ -12,7 +12,9 @@ from time import time
 from NuRadioMC.SignalGen.ARZ import ARZ
 from radiotools import coordinatesystems as cstrafo
 import logging
-logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger("NuRadioMC.T02TestARZ")
+logger.setLevel(logging.INFO)
 
 shower_energy = 1.24e18 *units.eV
 theta = 56 * units.deg

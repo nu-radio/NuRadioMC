@@ -8,6 +8,7 @@ rm minimal_eventlist.hdf5
 rm output_PA*hdf5
 cd ../Noise_trigger_rate
 python3 T01MeasureNoiselevel.py --ntries 10
+rm -v *xupsampling.txt
 cd ../SNR_curves
 python3 T01generate_event_list.py
 python3 T02RunSNR.py --inputfilename 25.0deg_12/25.00_12_00_1.00e+18_1.26e+18/input/25.00_12_00_1.00e+18_1.26e+18.hdf5 --detectordescription ../Effective_volume/8antennas_100m_0.5GHz.json --config config.yaml --outputfilename output_file.hdf5 --outputSNR output_snr.json
@@ -33,7 +34,6 @@ rm output_snr.json
 #python3 noise_trigger_rate.py --ntries 10
 # Full reconstruction
 cd ../..
-python3 FullReconstruction.py 32 example_data/example_data.hdf5 example_data/arianna_station_32.json
 python3 read_full_CoREAS_shower.py example_data/example_data.hdf5
 python3 SimpleMCReconstruction.py
 python3 CustomHybridDetector.py

@@ -119,7 +119,6 @@ km3 = kilometer3
 radian = 1
 milliradian = milli * radian
 degree = (3.14159265358979323846 / 180) * radian
-
 steradian = 1
 
 # symbols
@@ -139,25 +138,29 @@ femtosecond = femto * second
 minute = 60 * second
 hour = 60 * minute
 day = 24 * hour
-year = 356 * day
+year = 365.25 * day
 
+# symbols
+h = hour
+s = second
+ms = millisecond
+mus = microsecond
+ns = nanosecond
+ps = picosecond
+fs = femtosecond
+
+# Frequency [T^-1]
 hertz = 1 / second
 kilohertz = kilo * hertz
 megahertz = mega * hertz
 gigahertz = giga * hertz
 
+# symbols
 mHz = milli * hertz
 Hz = hertz
 kHz = kilohertz
 MHz = megahertz
 GHz = gigahertz
-
-# symbols
-ns = nanosecond
-ps = picosecond
-fs = femtosecond
-s = second
-ms = millisecond
 
 # Electric charge [Q]
 eplus = 1  # positron charge
@@ -166,8 +169,8 @@ coulomb = eplus / eSI  # coulomb = 6.24150 e+18*eplus
 
 # Energy [E]
 electronvolt = 1
-megaelectronvolt = mega * electronvolt
 kiloelectronvolt = kilo * electronvolt
+megaelectronvolt = mega * electronvolt
 gigaelectronvolt = giga * electronvolt
 teraelectronvolt = tera * electronvolt
 petaelectronvolt = peta * electronvolt
@@ -175,6 +178,7 @@ exaelectronvolt = exa * electronvolt
 zettaelectronvolt = zetta * electronvolt
 
 joule = electronvolt / eSI  # joule = 6.24150 e+12 * MeV
+erg = 1e-7 * joule  # erg = 624.15 GeV
 
 # symbols
 eV = electronvolt
@@ -217,14 +221,16 @@ microampere = micro * ampere
 nanoampere = nano * ampere
 
 # Electric potential [E][Q^-1]
-megavolt = megaelectronvolt / eplus
-kilovolt = milli * megavolt
-volt = micro * megavolt
-millivolt = milli * volt
+volt = electronvolt / eplus  # == 1
 microvolt = micro * volt
+millivolt = milli * volt
+kilovolt = kilo * volt
+megavolt = mega * volt
 
+# symbols
 V = volt
 mV = millivolt
+muV = microvolt
 
 # Electric resistance [E][T][Q^-2]
 ohm = volt / ampere  # ohm = 1.60217e-16*(MeV/eplus)/(eplus/ns)

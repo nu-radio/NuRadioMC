@@ -1,15 +1,15 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import absolute_import, division, print_function
 import argparse
 # import detector simulation modules
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelBandPassFilter
+
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
-import logging
 import os
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("runstrawman")
+
+
 
 # initialize detector sim modules
 triggerSimulatorHighLow = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
@@ -57,6 +57,6 @@ sim = mySimulation(inputfilename=os.path.join(path, args.inputfilename),
                             outputfilename=os.path.join(path, args.outputfilename),
                             detectorfile=os.path.join(path, args.detectordescription),
                             outputfilenameNuRadioReco=outputfilenameNuRadioReco,
-                            config_file=os.path.join(path, args.config))
+                            config_file=os.path.join(path, args.config),
+                            file_overwrite=True)
 sim.run()
-

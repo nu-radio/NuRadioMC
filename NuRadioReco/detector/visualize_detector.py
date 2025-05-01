@@ -9,15 +9,28 @@ from astropy.time import Time
 
 if __name__ == "__main__":
     pio.renderers.default = "browser"
-    det = detector.GenericDetector(json_filename=sys.argv[1], default_station=101)
+    det = detector.GenericDetector(json_filename=sys.argv[1])
     det.update(Time.now())
 
-    sid = 101
+    station_ids = det.get_station_ids()
+
+    sid = station_ids[0]
+    if len(station_ids) > 1:
+        if len(sys.argv)>2:
+            sid = int(sys.argv[2])
+            print(f"WARNING: Found several stations, requested to plot station {sid}!")
+        else:
+            print("WARNING: Found several stations, only plot the first one since no second command line argument passed to pick station!")
     ll = 1 * units.m
 
     data = []
 
     for cid in det.get_channel_ids(sid):
+        if len(sys.argv)>3:
+            if sys.argv[3] not in det.get_antenna_type(sid, cid):
+                print(f"skipping channel ({sid}, {cid})")
+                continue
+
         ori_zen, ori_az, rot_zen, rot_az = det.get_antenna_orientation(sid, cid)
         x, y, z = det.get_relative_position(sid, cid)
 

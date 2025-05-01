@@ -6,4 +6,5 @@ Introduction
 
     introduction
     installation
+    conventions
     contributing

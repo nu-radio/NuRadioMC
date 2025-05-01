@@ -4,7 +4,7 @@ from NuRadioReco.utilities import units
 from NuRadioMC.utilities import cross_sections
 from radiotools import helper as hp
 import logging
-logger = logging.getLogger("utilities.earth_attenuation")
+logger = logging.getLogger("NuRadioMC.earth_attenuation")
 
 AMU = 1.66e-27 * units.kg
 
@@ -155,7 +155,7 @@ class PREM:
     References
     ----------
     .. [1] A. Dziewonski & D. Anderson, "Preliminary reference Earth model."
-        Physics of the Earth and Planetary Interiors **25**, 297–356 (1981). :ref:`https://doi.org/10.1016/0031-9201(81)90046-7`
+        Physics of the Earth and Planetary Interiors **25**, 297–356 (1981). https://doi.org/10.1016/0031-9201(81)90046-7
 
     """
     earth_radius = 6.3710e6 * units.m

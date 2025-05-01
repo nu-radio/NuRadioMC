@@ -3,7 +3,7 @@ from NuRadioReco.utilities import units, fft
 from scipy import constants
 from scipy.optimize import curve_fit
 import logging
-logger = logging.getLogger("HCRB2017")
+logger = logging.getLogger("NuRadioMC.SignalGen.HCRB2017")
 logger.setLevel(logging.INFO)
 
 
@@ -127,7 +127,7 @@ def _get_E_omega(ff, E, R, theta, n_index, EM=True,
     use get_frequency_spectrum() instead
 
     Parameters
-    -----------
+    ----------
     ff: np.array of floats
         array of frequencies
     E: float
@@ -152,8 +152,12 @@ def _get_E_omega(ff, E, R, theta, n_index, EM=True,
         if True, the shower width parameterization of LPM showers is rescaled to match
         the Greisen parameterization at energies below the E_LPM, i.e., at energies where the LPM effect is negligible
 
-    Returns:
-        eR, eTheta component of electric field in frequency domain
+    Returns
+    -------
+    eR: array of floats
+        eR component of electric field in frequency domain
+    eTheta: array of floats
+        eTheta component of electric field in frequency domain
 
     """
 

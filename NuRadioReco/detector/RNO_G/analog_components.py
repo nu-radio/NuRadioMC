@@ -4,7 +4,7 @@ import os
 from NuRadioReco.utilities import units
 from radiotools import helper as hp
 import logging
-logger = logging.getLogger('analog_components')
+logger = logging.getLogger('NuRadioReco.analog_components')
 
 
 def load_amp_response(amp_type='rno_surface', temp=293.15,
@@ -22,7 +22,7 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
     by studying its gain in a climate chamber at different temperatures.
     
     Parameters
-    -------------
+    ----------
     amp_type: string
         * "rno_surface": the surface signal chain
         * "iglu": the in-ice signal chain
@@ -43,44 +43,44 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
     amp_response = {}
     correction_function = None
     if amp_type == 'rno_surface':
-        ph = os.path.join(path, 'HardwareResponses/surface_chan0_LinA.csv')
-        ff = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=0)
+        ph = os.path.join(path, 'HardwareResponses/surface_placeholder.csv')
+        ff = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=0)
         ff *= units.Hz
-        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=5)
-        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=6)
-        amp_phase_discrete *= units.degree
+        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=1)
+        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=2)
         correction_function = surface_correction_func
     elif amp_type == 'iglu':
-        ph = os.path.join(path, 'HardwareResponses/iglu_drab_chan0_LinA.csv')
-        ff = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=0)
+        ph = os.path.join(path, 'HardwareResponses/iglu_drab_placeholder.csv')
+        ff = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=0)
         ff *= units.Hz
-        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=5)
-        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=7, usecols=6)
-        amp_phase_discrete *= units.degree
+        amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=1)
+        amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=2)
         correction_function = iglu_correction_func
-    elif amp_type == 'phased_array':
+    elif amp_type == 'phased_array' or amp_type == 'ULP_216':
         ph = os.path.join(path, 'HardwareResponses/ULP-216+_Plus25DegC.s2p')
-        ff, S11gain, S21deg, S21gain, S21deg, S12gain, S12deg, S22gain, S22deg = np.loadtxt(ph, comments=['#', '!'], unpack=True)
+        ff, S11gain, S11deg, S21gain, S21deg, S12gain, S12deg, S22gain, S22deg = np.loadtxt(ph, comments=['#', '!'], unpack=True)
         ff *= units.MHz
         amp_gain_discrete = hp.dB_to_linear(S21gain)
         amp_phase_discrete = S21deg * units.deg
     else:
-        logger.error("Amp type not recognized")
-        return amp_response
+        msg = f"Amp type `{amp_type}` not recognized. possible values are {get_available_amplifiers()}"
+        logger.error(msg)
+        raise ValueError(msg)
 
     amp_gain_f = interp1d(ff, amp_gain_discrete, bounds_error=False, fill_value=0)
     # all requests outside of measurement range are set to 1
 
     def get_amp_gain(freqs, temp=temp):
-        if(correction_function is not None):
+        if correction_function is not None:
             amp_gain = correction_function(temp, freqs) * amp_gain_f(freqs)
         else:
             amp_gain = amp_gain_f(freqs)
+        
         return amp_gain
 
-    # Convert to MHz and broaden range
+    # Convert to MHz and broaden range (all requests outside of measurement range are set to 0)
     amp_phase_f = interp1d(ff, np.unwrap(amp_phase_discrete),
-                           bounds_error=False, fill_value=0)  # all requests outside of measurement range are set to 0
+                           bounds_error=False, fill_value=0)
 
     def get_amp_phase(freqs):
         amp_phase = amp_phase_f(freqs)
@@ -93,4 +93,4 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
 
 
 def get_available_amplifiers():
-    return ['iglu', 'rno_surface', 'phased_array']
+    return ['iglu', 'rno_surface', 'phased_array', 'ULP_216']

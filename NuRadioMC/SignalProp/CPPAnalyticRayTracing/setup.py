@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 from Cython.Build import cythonize
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
@@ -16,14 +16,14 @@ if __name__ == "__main__":
         Extension('wrapper', ['wrapper.pyx'],
                 include_dirs=[numpy.get_include(), '../../utilities/', str(os.environ['GSLDIR']) + '/include/'],
                 library_dirs=[str(os.environ['GSLDIR']) + '/lib/'],
-                extra_compile_args=['-O3',"-mfpmath=sse"],
+                extra_compile_args=['-O3'],
                 libraries=['gsl', 'gslcblas'],
                 language='c++'
                 ),
     ]
 
     setup(
-        ext_modules=cythonize(extensions),
+        ext_modules=cythonize(extensions, language_level=3),
         cmdclass = {'build_ext': build_ext}
     # extra_compile_args=["-mfpmath=sse"]
     )

@@ -19,6 +19,7 @@
 #
 import os
 import sys
+import time
 import fnmatch
 import NuRadioMC # we need this for the version number
 sys.path.insert(0, os.path.abspath('.'))
@@ -61,7 +62,7 @@ master_doc = 'main'
 
 # General information about the project.
 project = 'NuRadio'
-copyright = '2021, The NuRadio Group'
+copyright = '{}, The NuRadio Group'.format(time.asctime()[-4:])
 author = 'The NuRadio Group'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -78,7 +79,7 @@ release = NuRadioMC.__version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -108,7 +109,8 @@ html_theme_options = {
     'sticky_navigation': True,
     'navigation_depth': 5
 }
-html_css_files = [os.path.abspath('custom_scripts/styling.css')]
+html_static_path = ['custom_scripts']
+html_css_files = ['styling.css']
 
 html_logo = 'logo_small.png'
 
@@ -211,7 +213,13 @@ epub_exclude_files = ['search.html']
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy', None),
+    'numpy': ("https://numpy.org/doc/stable", None),
+    'astropy': ("https://docs.astropy.org/en/stable", None)
+}
+default_role = 'autolink' #TODO: probably switch to py:obj?
 
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
@@ -219,16 +227,34 @@ autosectionlabel_prefix_document = True
 # Don't make toctrees for class methods (doesn't seem to work with apidoc)
 numpydoc_class_members_toctree = False
 
+autoclass_content = 'both' # include __init__ docstrings in class description
+autodoc_default_options = {
+    'show-inheritance': True, # show 'Bases: Parent' for classes that inherit from parent classes
+    'inherited-members': True, # also document inherited methods; mostly done to avoid missing cross-references
+}
+autodoc_member_order = 'bysource' # list methods/variables etc. by the order they are defined, rather than alphabetically
 # 
 # coverage_ignore_modules
 
 
 autodoc_mock_imports = [
     'ROOT', 'mysql-python', 'pygdsm', 'MySQLdb', 'healpy', 'scripts',
-    'uproot', 'proposal', 'radiopropa', 'plotly', 'past'
+    'uproot', 'radiopropa', 'plotly', 'past',
+    'nifty5', 'mattak', 'MCEq', 'crflux'
     ]
 # Raise warnings if any cross-references are broken
 nitpicky = True
+
+# this ignores some cross-reference errors inside docstrings
+# that we don't care about
+nitpick_ignore_regex = [
+    ("py:class", "aenum._enum.Enum"),
+    ("py:class", "aenum.Enum"),
+    ("py:class", "tinydb_serialization.Serializer"),
+    ("py:class", "radiopropa.ScalarField"),
+    ("py:class", "nifty5.*"),
+    ("py:obj",".*__call__") # not sure why this method is listed sometimes - it shouldn't be?
+]
 
 # def skip_modules(app, what, name, obj, skip, options):
 #     if skip: # we ignore anything autodoc is configured to ignore

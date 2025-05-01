@@ -47,7 +47,7 @@ vertex_angle_min = 90 * units.deg
 vertex_angle_max = 145 * units.deg
 vertex_angles = np.random.uniform(vertex_angle_min, vertex_angle_max, n_events)
 
-data_sets["yy"] = np.zeros(n_events, dtype=np.float)
+data_sets["yy"] = np.zeros(n_events, dtype=float)
 data_sets["zz"] = z_ant + distance * np.cos(vertex_angles)
 data_sets["xx"] = distance * np.sin(vertex_angles)
 
@@ -59,7 +59,7 @@ data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
 data_sets["event_group_ids"] = np.arange(n_events)
 data_sets["shower_ids"] = np.arange(n_events)
 data_sets["n_interaction"] = np.ones(n_events, dtype=int)
-data_sets["vertex_times"] = np.zeros(n_events, dtype=np.float)
+data_sets["vertex_times"] = np.zeros(n_events, dtype=float)
 data_sets["flavors"] = np.ones(n_events, dtype=int) * flavor
 data_sets["energies"] = np.ones(n_events, dtype=int) * energy
 data_sets["interaction_type"] = ['cc'] * n_events

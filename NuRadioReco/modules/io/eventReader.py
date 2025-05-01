@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.io import NuRadioRecoio
 import logging
-logger = logging.getLogger('eventReader')
+logger = logging.getLogger('NuRadioReco.eventReader')
 
 
 class eventReader:
@@ -10,12 +10,12 @@ class eventReader:
     read events from file
     """
 
-    def begin(self, filename, read_detector=False, log_level=logging.WARNING):
+    def begin(self, filename, read_detector=False, log_level=logging.NOTSET):
         """
         Setup function for the eventReader module
 
         Parameters
-        -----------
+        ----------
         filename: array if strings
             names of the input files
         read_detector: boolean

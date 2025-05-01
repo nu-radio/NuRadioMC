@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function
 import numpy as np
@@ -8,7 +8,9 @@ from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 import logging
-logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger("NuRadioMC.T04MooresBay")
+logger.setLevel(logging.INFO)
 
 ice = medium.mooresbay_simple()
 
@@ -43,8 +45,8 @@ d_numeric = 0
 d_analytic = 0
 t_numeric = 0
 t_analytic = 0
+r = ray.ray_tracing(ice, log_level=logging.WARNING, n_reflections=1)
 for iX, x in enumerate(points):
-    r = ray.ray_tracing(ice, log_level=logging.WARNING, n_reflections=1)
     r.set_start_and_end_point(x, x_receiver)
     r.find_solutions()
     if(r.has_solution()):

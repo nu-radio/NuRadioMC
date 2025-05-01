@@ -15,12 +15,9 @@ from NuRadioReco.eventbrowser.apps import simulation
 import os
 import argparse
 import NuRadioReco.eventbrowser.dataprovider
-import NuRadioReco.eventbrowser.dataprovider_root
 import logging
 import webbrowser
-from NuRadioReco.modules.base import module
 
-logger = module.setup_logger(level=logging.INFO)
 
 argparser = argparse.ArgumentParser(description="Starts the Event Display, which then can be accessed via a webbrowser")
 argparser.add_argument('file_location', type=str, help="Path of folder or filename.")
@@ -192,11 +189,11 @@ def get_page_content(selection):
      Input('event-info-id', 'value'),
      Input('event-click-coordinator', 'children'),
      Input('filename', 'value'),
-     Input('event-counter-slider', 'value')],
-    [State('event-info-run', 'value'),
-     State('user_id', 'children')]
+     Input('event-counter-slider', 'value'),
+     Input('event-info-run', 'value')],
+    [State('user_id', 'children')]
 )
-def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, event_id, j_plot_click_info, filename, 
+def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, event_id, j_plot_click_info, filename,
                      i_event, run_number, juser_id):
     context = dash.callback_context
     if filename is None:
@@ -214,7 +211,7 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, event_i
     if context.triggered[0]['prop_id'] == 'event-counter-slider.value':
         return i_event, event_ids[i_event][0], event_ids[i_event][1]
     else:
-        if context.triggered[0]['prop_id'] == 'event-info-id.value':
+        if context.triggered[0]['prop_id'] in ['event-info-id.value', 'event-info-run.value']:
             mask = event_ids == (run_number, event_id)
             event_i = np.where(mask[:,0] * mask[:,1])[0][0]
             return event_i, run_number, event_id
@@ -271,9 +268,9 @@ def update_slider_marks(filename, juser_id):
     step_size = int(np.power(10., int(np.log10(n_events))))
     marks = {}
     for i in range(0, n_events, step_size):
-        marks[i] = str(i)
+        marks[int(i)] = str(i)
     if n_events % step_size != 0:
-        marks[n_events] = str(n_events)
+        marks[int(n_events)] = str(n_events)
     return marks
 
 
@@ -424,9 +421,11 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
 
 
 if __name__ == '__main__':
-    if int(dash.__version__.split('.')[0]) < 2:
-        print(
-            'WARNING: Dash version 2.0.0 or newer is required, you are running version {}. Please update.'.format(
+    dash_version = [int(i) for i in dash.__version__.split('.')]
+    if dash_version[0] <= 2:
+        if (dash_version[1] < 9) or (dash_version[0] < 2):
+            print(
+                'WARNING: Dash version 2.9.2 or newer is required, you are running version {}. Please update.'.format(
                 dash.__version__))
     if not parsed_args.debug:
         werkzeug_logger = logging.getLogger('werkzeug')
