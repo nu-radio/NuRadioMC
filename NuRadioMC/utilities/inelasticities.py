@@ -7,7 +7,7 @@ import os
 import lzma
 import logging
 logging.basicConfig()
-logger = logging.getLogger('inelasticities')
+logger = logging.getLogger('NuRadioMC.inelasticities')
 
 e_mass = constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
 mu_mass = constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV
@@ -58,7 +58,8 @@ def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
         uNCCC = np.unique(ncccs)
         for E in uEE:
             if(E > 10 * units.EeV):
-                logger.warning(f"You are requesting inelasticities for energies outside of the validity of the BGR18 model. You requested {E/units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
+                logger.warning("You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
+                               f"You requested {E/units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
             for flavor in uFlavor:
                 for nccc in uNCCC:
                     mask = (nu_energies == E) & (flavor == flavors) & (nccc == ncccs)
@@ -117,7 +118,7 @@ def random_tau_branch(rnd=None):
     """
     Calculates a random tau branch decay
     See http://dx.doi.org/10.1016/j.cpc.2013.04.001
-    
+
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
 
@@ -207,7 +208,6 @@ def inelasticity_tau_decay(tau_energy, branch, rnd=None):
         elif (branch == 'tau_mu'):
             m_l = mu_mass
 
-        nu_min = m_l
         nu_max = (mu ** 2 + m_l ** 2) / 2 / mu
 
         # Fraction energy distibution in the decaying particle rest frame
@@ -252,13 +252,12 @@ def rejection_sampling(f, xmin, xmax, ymax, rnd=None):
     x: float
         Random value from the distribution
     """
-    if(rnd is None):
-        rnd = np.random.default_rng()
-    reject = True
+    rnd = rnd or np.random.default_rng()
 
-    while(reject):
+    while True:
         x = rnd.uniform(xmin, xmax)
         y = rnd.uniform(0, ymax)
-        reject = f(x) < y
+        if f(x) >= y:
+            break
 
     return x
