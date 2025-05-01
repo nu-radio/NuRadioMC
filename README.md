@@ -13,7 +13,7 @@ The documentation including detailed installation instructions can be found at h
 
 Developers should clone the git repository and run:
 ```
-pip install -e .[dev]
+pip install -e .[dev]  # zsh user might have to wrap the argument in quotes: -e '.[dev]'
 pre-commit install
 ```
 Users can use the stable pip release with:
