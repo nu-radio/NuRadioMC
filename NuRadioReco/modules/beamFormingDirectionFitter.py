@@ -10,6 +10,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 import NuRadioReco.modules.voltageToEfieldConverterPerChannel
 import NuRadioReco.modules.electricFieldBandPassFilter
+from NuRadioReco.modules.base.module import register_run
 
 
 electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
@@ -38,7 +39,7 @@ def get_array_of_channels(station, det, zenith, azimuth, polarization):
     time_shifts = np.zeros(8)
     t_geos = np.zeros(8)
 
-    sampling_rate = station.get_channel(0).get_sampling_rate()
+    sampling_rate = next(station.iter_channels()).get_sampling_rate()
     station_id = station.get_id()
     site = det.get_site(station_id)
     for iCh, channel in enumerate(station.get_electric_fields()):
@@ -94,11 +95,11 @@ class beamFormingDirectionFitter:
         self.begin()
         self.logger = logging.getLogger("NuRadioReco.beamFormingDirectionFitter")
 
-    def begin(self, debug=False, log_level=None):
-        if(log_level is not None):
-            self.logger.setLevel(log_level)
+    def begin(self, debug=False, log_level=logging.NOTSET):
+        self.logger.setLevel(log_level)
         self.__debug = debug
 
+    @register_run()
     def run(self, evt, station, det, polarization, n_index=None, channels=None, ZenLim=None,
             AziLim=None):
         """
@@ -185,7 +186,7 @@ class beamFormingDirectionFitter:
         positions = []
         for chan in channels:
             positions.append(det.get_relative_position(station_id, chan))
-        sampling_rate = station.get_channel(0).get_sampling_rate()
+        sampling_rate = station.get_channel(channels[0]).get_sampling_rate()
 
         ll = opt.brute(
             ll_regular_station,

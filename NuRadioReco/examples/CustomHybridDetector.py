@@ -1,11 +1,13 @@
 import argparse
-import NuRadioReco.modules.io.coreas.readCoREAS
+import NuRadioReco.modules.io.coreas.readCoREASStation
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.framework.hybrid_shower
 import NuRadioReco.detector.detector
 import pickle
 import datetime
 import numpy
+
+
 """
 To accomodate radio experiments that are part of a hybrid detector, NuRadioReco
 can support custom detector classes and write them into  NuRadioReco event files.
@@ -14,14 +16,14 @@ can be added to an event file.
 """
 parser = argparse.ArgumentParser(description='Example showing how a custom hybrid detector can be added to an event file.')
 parser.add_argument('--inputfilename', type=str, help='path to CoREAS file', default='example_data/example_event.h5')
-parser.add_argument('--detectorfilename', type=str, help='path to detector description', default='example_data/arianna_detector_db.json')
+parser.add_argument('--detectorfilename', type=str, help='path to detector description', default='example_data/arianna_station_32.json')
 parser.add_argument('--stationID', type=int, help='ID of the station to simulate', default=32)
 parser.add_argument('--outputfilename', type=str, help='name of the output file', default='custom_detector.nur')
 args = parser.parse_args()
 
 # setting up stuff we need to read the CoREAS file
-coreas_reader = NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS()
-coreas_reader.begin([args.inputfilename], args.stationID)
+readCoREASStation = NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation()
+readCoREASStation.begin([args.inputfilename],  args.stationID, debug=False)
 event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
 event_writer.begin(args.outputfilename)
 detector = NuRadioReco.detector.detector.Detector(args.detectorfilename)
@@ -50,7 +52,7 @@ class CustomDetector():
         self.__data = pickle.loads(data_pkl)
 
 
-for event in coreas_reader.run(detector):
+for event in readCoREASStation.run(detector):
     # This import is needed so we can read it later
     # Create custom detector
     custom_detector = CustomDetector()

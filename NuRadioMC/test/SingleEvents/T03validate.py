@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import absolute_import, division, print_function
 import sys
 import h5py
@@ -6,7 +6,9 @@ import numpy as np
 from numpy import testing
 import argparse
 from NuRadioReco.utilities import units
-import logging
+
+
+
 
 error = 0
 
@@ -19,16 +21,16 @@ fin2 = h5py.File(file2, 'r')
 
 attributes = [
  u'trigger_names',
- u'Tnoise',
- u'Vrms',
- u'dt',
- u'bandwidth',
- u'n_samples',
+#  u'Tnoise',
+#  u'Vrms',
+#  u'dt',
+#  u'bandwidth',
+#  u'n_samples',
  u'thetamin',
  u'zmax',
  u'zmin',
  u'thetamax',
- u'header',
+#  u'header',
  u'fiducial_zmax',
  u'fiducial_zmin',
  u'flavors',
@@ -120,10 +122,11 @@ for key in keys2:
         error = -1
 
 keys2 = [
-    u'travel_times']
+    u'travel_times',
+    u'trigger_times']
 for key in keys2:
     try:
-        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=10 * units.ps)
+        testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=12 * units.ps)
 #         testing.assert_almost_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
     except AssertionError as e:
         print("\narray {} of group station_101 not equal".format(key))

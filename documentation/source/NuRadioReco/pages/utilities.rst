@@ -26,7 +26,8 @@ consistent.
 Fourier Transformation
 --------------------------
 Helper functions to perform fast Fourier Transform between time and frequency
-domain. The functions are wrappers around the the numpy real Fourier transform
+domain. They can be found :mod:`here <NuRadioReco.utilities.fft>`. 
+The functions are wrappers around the the numpy real Fourier transform
 (since we know that signals are real in the time domain we can omit the negative
 frequencies).
 The spectrum is defined in volt/GHz instead of volt/bin, so that the values are

@@ -1,9 +1,8 @@
-from __future__ import print_function
-from NuRadioReco.modules.base.module import register_run
-import numpy as np
-from NuRadioReco.utilities import units, fft
-import numpy.random
 import logging
+import numpy as np
+from numpy.random import Generator, Philox
+from NuRadioReco.utilities import units, fft
+from NuRadioReco.modules.base.module import register_run
 
 
 class channelGenericNoiseAdder:
@@ -27,7 +26,7 @@ class channelGenericNoiseAdder:
         """
         amps = np.array(amps, dtype='complex')
         Np = (n_samples_time_domain - 1) // 2
-        phases = self.__random_generator.rand(Np) * 2 * np.pi
+        phases = self.__random_generator.random(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
         amps[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
 
@@ -45,7 +44,7 @@ class channelGenericNoiseAdder:
         """
         f = np.array(f, dtype='complex')
         Np = (len(f) - 1) // 2
-        phases = self.__random_generator.rand(Np) * 2 * np.pi
+        phases = self.__random_generator.random(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
         f[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
         f[-1:-1 - Np:-1] = np.conj(f[1:Np + 1])
@@ -106,7 +105,7 @@ class channelGenericNoiseAdder:
         *   Add 'multi_white' noise option on 20-Sept-2018 (RL)
 
         """
-        frequencies = np.fft.rfftfreq(n_samples, 1. / sampling_rate)
+        frequencies = fft.freqs(n_samples, sampling_rate)
 
         n_samples_freq = len(frequencies)
 
@@ -116,22 +115,26 @@ class channelGenericNoiseAdder:
             # to take the difference between two frequencies to determine the minimum frequency, in case
             # future versions of numpy change the order and maybe put the negative frequencies first
             min_freq = 0.5 * (frequencies[2] - frequencies[1])
-            self.logger.info(' Set min_freq from None to {} MHz!'.format(min_freq / units.MHz))
+            self.logger.info('Set min_freq from None to {} MHz!'.format(min_freq / units.MHz))
+
         if max_freq is None:
             # sample up to Nyquist frequency
             max_freq = max(frequencies)
-            self.logger.info(' Set max_freq from None to {} GHz!'.format(max_freq / units.GHz))
+            self.logger.info('Set max_freq from None to {} GHz!'.format(max_freq / units.GHz))
+        else:
+            if round(max_freq, 3) > round(frequencies[-1], 3):
+                self.logger.warning(
+                    f'max_freq ({max_freq / units.MHz:.2f} MHz) is above the Nyquist frequency '
+                    f'({frequencies[-1] / units.MHz:.2f} MHz). This means the simulated noise ampitude '
+                    'might deviate from what you intended. To fix that, you either need to lower '
+                    'max_freq or increase the sampling_rate.')
+
         selection = (frequencies >= min_freq) & (frequencies <= max_freq)
 
         nbinsactive = np.sum(selection)
         self.logger.debug('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples, nbinsactive))
 
-        # Debug plots
-#         f1 = plt.figure()
-#         plt.plot (frequencies/max(frequencies))
-#         plt.plot(fbinsactive,'kx')
-
-        if(bandwidth is not None):
+        if bandwidth is not None:
             sampling_bandwidth = min(0.5 * sampling_rate, max_freq) - min_freq
             amplitude *= 1. / (bandwidth / (sampling_bandwidth)) ** 0.5  # normalize noise level to the bandwidth its generated for
 
@@ -142,21 +145,22 @@ class channelGenericNoiseAdder:
         elif type == 'rayleigh':
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
-#         elif type == 'white':
-# FIXME: amplitude normalization is not correct for 'white'
-#             ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
+        # FIXME: amplitude normalization is not correct for 'white'
+        # elif type == 'white':
+        #   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
         else:
             self.logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
         noise = self.add_random_phases(ampl, n_samples) / sampling_rate
-        if(time_domain):
+        if time_domain:
             return fft.freq2time(noise, sampling_rate, n=n_samples)
         else:
             return noise
 
-    def precalculate_bandlimited_noise_parameters(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='perfect_white',
-                          bandwidth=None):
+    def precalculate_bandlimited_noise_parameters(
+            self, min_freq, max_freq, n_samples, sampling_rate, amplitude,
+            type='perfect_white', bandwidth=None):
         """
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
 
@@ -300,6 +304,66 @@ class channelGenericNoiseAdder:
             return noise
 
 
+    def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude=None, type='perfect_white',
+                          time_domain=True):
+        """
+        Generating noise of n_samples in a bandwidth [min_freq,max_freq].
+
+        Parameters
+        ----------
+        n_samples: int
+            number of samples in the time domain
+        sampling_rate: float
+            desired sampling rate of data
+        spectrum: numpy.ndarray, function
+            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function
+            that takes the frequencies as an argument and returns the amplitudes. The overall normalization
+            of the spectrum is ignored if the paramter "amplitude" is set.
+        amplitude: float, optional
+            desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the
+            power of the spectrum.
+        type: string
+            perfect_white: flat frequency spectrum
+            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            # white: flat frequency spectrum with random jitter
+        time_domain: bool (default True)
+            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
+            might be more performant as the noise is generated internally in the frequency domain.
+        """
+        frequencies = np.fft.rfftfreq(n_samples, 1. / sampling_rate)
+        selection = frequencies > 0
+        n_samples_freq = np.sum(selection)
+
+        if callable(spectrum):
+            spectrum = spectrum(frequencies)
+
+        if amplitude is not None:
+            # power = np.sum(spectrum**2)
+            norm = np.trapz(np.abs(spectrum) ** 2, frequencies)
+            max_freq = frequencies[-1]
+            amplitude = amplitude / (norm / max_freq) ** 0.5
+            sigscale = (1. * n_samples) / np.sqrt(n_samples_freq)
+        elif amplitude is None:
+            amplitude = np.sqrt(n_samples)
+            sigscale = 1
+
+        ampl = np.zeros(len(frequencies), dtype=complex)
+        if type == 'perfect_white':
+            ampl = amplitude * sigscale
+        elif type == 'rayleigh':
+            fsigma = amplitude * sigscale / np.sqrt(2.)
+            ampl[selection] = self.__random_generator.rayleigh(fsigma, n_samples_freq)
+        else:
+            self.logger.error("Other types of noise not yet implemented.")
+            raise NotImplementedError("Other types of noise not yet implemented.")
+
+        noise = self.add_random_phases(ampl, n_samples) / sampling_rate
+        noise *= spectrum
+        if time_domain:
+            return fft.freq2time(noise, sampling_rate, n=n_samples)
+        else:
+            return noise
+
     def __init__(self):
         self.__debug = None
         self.__random_generator = None
@@ -308,7 +372,7 @@ class channelGenericNoiseAdder:
 
     def begin(self, debug=False, seed=None):
         self.__debug = debug
-        self.__random_generator = np.random.RandomState(seed)
+        self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
 

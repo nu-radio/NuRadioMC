@@ -50,17 +50,19 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.utilities.diodeSimulator
-from NuRadioReco.utilities.traceWindows import get_window_around_maximum
+
+
+from NuRadioReco.utilities.diodeSimulator import get_window_around_maximum
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import NuRadioReco.modules.analogToDigitalConverter
-from NuRadioReco.utilities.trace_utilities import butterworth_filter_trace
+from NuRadioReco.utilities.signal_processing import butterworth_filter_trace
 from scipy import constants
 import numpy as np
 import json
 import logging
-logging.basicConfig(level=logging.CRITICAL)
-logger = logging.getLogger("runstrawman")
+logger = logging.getLogger("NuRadioReco.runstrawman")
+
 
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,

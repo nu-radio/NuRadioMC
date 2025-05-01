@@ -1,46 +1,25 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-from NuRadioReco.modules.base.module import register_run
-import os
-import time
-import random
+
 import numpy as np
 from scipy import signal
-from scipy.signal import correlate
+
 from scipy import optimize as opt
 import matplotlib.pyplot as plt
-from scipy.optimize import Bounds
-from types import SimpleNamespace
-import collections
 
-from radiotools import helper as hp
-from radiotools import plthelpers as php
-from radiotools import coordinatesystems as cs
-
-from NuRadioReco.detector import detector
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import units, fft, trace_utilities
-
-
-from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.modules import channelResampler as CchannelResampler
-import NuRadioReco.framework.electric_field
-from NuRadioReco.utilities.geometryUtilities import get_time_delay_from_direction
-
-from NuRadioMC.SignalProp import propagation
-from NuRadioMC.SignalGen.parametrizations import get_time_trace
-
-from NuRadioMC.utilities import medium
-from radiotools import coordinatesystems as cstrans
-from NuRadioMC.SignalProp import analyticraytracing as ray
-from radiotools import plthelpers as php
+from NuRadioReco.utilities import units, fft, geometryUtilities as geo_utl
 from NuRadioMC.SignalGen import askaryan as ask
-from NuRadioReco.utilities import geometryUtilities as geo_utl
-import time
+from NuRadioMC.SignalProp import analyticraytracing as ray
+from NuRadioReco.framework.parameters import stationParameters as stnp, showerParameters as shp
 
-channelResampler = CchannelResampler.channelResampler()
-channelResampler.begin(debug=False)
+import NuRadioReco.modules.channelResampler
+import NuRadioReco.framework.electric_field
+
+from radiotools import plthelpers as php, coordinatesystems as cstrans, helper as hp
+
+
+channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 
 class voltageToAnalyticEfieldConverterNeutrinos:
     """
@@ -68,6 +47,7 @@ class voltageToAnalyticEfieldConverterNeutrinos:
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         pass
 
+    @register_run()
     def run(self, evt, station, det, icemodel, shower_type='HAD', use_channels=[0,1,2,3], attenuation_model='SP1',
             parametrization='Alvarez2000', hilbert=False, use_bandpass_filter=False, passband_low={}, passband_high={},
             include_focusing=False, use_MC=True, n_samples_multiplication_factor=1, plot_traces_with_true_input=False, debug=False):
@@ -187,14 +167,14 @@ class voltageToAnalyticEfieldConverterNeutrinos:
                     order = 5
                     b, a = signal.butter(order, passband_high[use_channels[iA]], 'bandpass', analog=True)
                     w, h = signal.freqs(b, a, ff[mask])
-                    f = np.zeros_like(ff, dtype=np.complex)
+                    f = np.zeros_like(ff, dtype=complex)
                     f[mask] = h
                     trace_spectrum *= f
 
                     order = 10
                     b, a = signal.butter(order, passband_low[use_channels[iA]], 'bandpass', analog=True)
                     w, h = signal.freqs(b, a, ff[mask])
-                    f = np.zeros_like(ff, dtype=np.complex)
+                    f = np.zeros_like(ff, dtype=complex)
                     f[mask] = h
                     trace_spectrum *= f
 
@@ -352,8 +332,8 @@ class voltageToAnalyticEfieldConverterNeutrinos:
         travel_distance = np.zeros((n_antennas, maxNumRayTracingSolPerChan))
         attenuation = np.zeros((n_antennas, maxNumRayTracingSolPerChan, len(ff)))
         focusing = np.zeros((n_antennas, maxNumRayTracingSolPerChan, 1))
-        reflection_coefficients_theta = np.ones((n_antennas, maxNumRayTracingSolPerChan), dtype=np.complex)
-        reflection_coefficients_phi = np.ones((n_antennas, maxNumRayTracingSolPerChan), dtype=np.complex)
+        reflection_coefficients_theta = np.ones((n_antennas, maxNumRayTracingSolPerChan), dtype=complex)
+        reflection_coefficients_phi = np.ones((n_antennas, maxNumRayTracingSolPerChan), dtype=complex)
         travel_time_min = float('inf')
         for iA, position in enumerate(antenna_positions):
             r = ray.ray_tracing(icemodel, attenuation_model=attenuation_model, n_frequencies_integration=25, n_reflections=n_reflections)

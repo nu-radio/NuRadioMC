@@ -3,7 +3,7 @@ import scipy.constants
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import cross_sections
 import logging
-logger = logging.getLogger('fluxes')
+logger = logging.getLogger('NuRadioMC.fluxes')
 
 
 def get_limit_from_aeff(energy, aeff,
@@ -208,7 +208,7 @@ def get_number_of_events_for_flux(energies, flux, Veff, livetime, cross_section_
     calculates the number of expected neutrinos for a certain flux assumption
 
     Parameters
-    -----------
+    ----------
     energies: array of floats
         energies (the bin centers), the binning in log10(E) must be equidistant!
     flux: array of floats

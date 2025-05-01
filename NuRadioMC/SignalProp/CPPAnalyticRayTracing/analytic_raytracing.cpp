@@ -572,7 +572,7 @@ double obj_delta_y(double logC0, void *p){
 vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ice, double delta_n,
 										 double z_0, int reflection=0, int reflection_case=1, double ice_reflection=0.){
 	//function finds all ray tracing solutions
-	//we assume that x2 is above and to the right of x2_mirrored
+	//we assume that x2 (stop) is above and to the right of x1 (start)
 	//this is perfectly general, as a coordinate transform can put any system in this configuration
 	// printf("finding solution from %f %f to %f %f with %f %f %f", x1[0], x1[1], x2[0], x2[1], n_ice, delta_n, z_0);
 
@@ -612,40 +612,68 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	// We have to guess at the location of the first root (if it it exists at all).
 	// Because we might not guess correctly, or guess close enough,
 	// it's in our favor (for numerical stability reasons) to try several times.
-	// So, we start at 0, and walk back wards.
 	// This issue on GitHub (https://github.com/nu-radio/NuRadioMC/issues/286)
 	// revealed this case where only checking -1 didn't get us close enough
 	// for the method (which is admittedly a *polishing* algorithm) to find the root.
+	// It also turns out that the most difficult region of parameter space
+	// are (1) vertices that are mostly sideways from the receiver
+	// and (2) within ~100m of the receiver
 
-	for (double x_guess_start = -1; x_guess_start>-3; x_guess_start-=1){
-		if(found_root_1) break;
-		double x_guess = x_guess_start;
-		sfdf = gsl_root_fdfsolver_alloc(Tfdf);
-		gsl_root_fdfsolver_set(sfdf,&FDF,x_guess);
-		do{
-			iter++;
-			// cout<<"Got to iter "<<iter<<", guess is "<<x_guess<<" val is "<<GSL_FN_FDF_EVAL_F(&FDF,x_guess)<<endl;
-			status = gsl_root_fdfsolver_iterate(sfdf);
-			
-			//we need to manually protect against the function blowing up, which *is an error*, but will casue GSL to fail
-			//so, if we get a GSL_EBADFUNC, we want to manually say skip this, but re-enable the continue flag
-			if(status==GSL_EBADFUNC) {status=GSL_CONTINUE; num_badfunc_tries++; continue;}
-			
-			root_1 = x_guess;
-			x_guess = gsl_root_fdfsolver_root(sfdf);
-			status = gsl_root_test_residual(GSL_FN_FDF_EVAL_F(&FDF,root_1),precision_fit);
-			if(status == GSL_SUCCESS){
-				// printf("Converged on root 1! Iteration %d\n",iter);
-				// printf("minima =  %f\n",pow(get_delta_y(get_C0_from_log(root_1, n_ice, delta_n, z_0), x1, x2, n_ice, delta_n, z_0), 2));
-				found_root_1=true;
+	double x_guess_start_ic = 3;
+	double x_guess_stop_ic = -2;
+	double step_size = 1;
+
+	double start_depth = x1[1];
+	double horz_distance = abs(x2[0] - x1[0]);
+	double vert_dist = abs(x2[1] - x1[1]);
+	double total_dist = sqrt(pow(x1[0] - x2[0], 2.) + pow(x1[1] - x2[1], 2.) );
+
+	// first trouble region: vertices mostly horizontal from the receiver
+	if( abs(vert_dist) < abs(start_depth)/100.
+		&&
+		abs(horz_distance) < abs(start_depth)/5 )
+		{
+			x_guess_start_ic = 10.;
+			step_size = 0.25;
+	}
+	// second trouble region: vertices very close to the receiver
+	if( total_dist < 100){
+		x_guess_start_ic = 10.;
+		step_size = 0.25;
+	}
+
+	for (double x_guess_start = x_guess_start_ic;
+				x_guess_start > x_guess_stop_ic;
+				x_guess_start-=step_size){
+
+			if(found_root_1) break;
+			double x_guess = x_guess_start;
+			sfdf = gsl_root_fdfsolver_alloc(Tfdf);
+			gsl_root_fdfsolver_set(sfdf,&FDF,x_guess);
+			do{
+				iter++;
+				// cout<<"Got to iter "<<iter<<", guess is "<<x_guess<<" val is "<<GSL_FN_FDF_EVAL_F(&FDF,x_guess)<<endl;
+				status = gsl_root_fdfsolver_iterate(sfdf);
+
+				//we need to manually protect against the function blowing up, which *is an error*, but will casue GSL to fail
+				//so, if we get a GSL_EBADFUNC, we want to manually say skip this, but re-enable the continue flag
+				if(status==GSL_EBADFUNC) {status=GSL_CONTINUE; num_badfunc_tries++; continue;}
+
+				root_1 = x_guess;
+				x_guess = gsl_root_fdfsolver_root(sfdf);
+				status = gsl_root_test_residual(GSL_FN_FDF_EVAL_F(&FDF,root_1),precision_fit);
+				if(status == GSL_SUCCESS){
+					// printf("Converged on root 1! Iteration %d\n",iter);
+					// printf("minima =  %f\n",pow(get_delta_y(get_C0_from_log(root_1, n_ice, delta_n, z_0), x1, x2, n_ice, delta_n, z_0), 2));
+					found_root_1=true;
+				}
+			} while (status == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
+			gsl_root_fdfsolver_free (sfdf);
+			if(!found_root_1){ //reset
+				num_badfunc_tries=0;
+				iter=0;
+				status = GSL_CONTINUE;
 			}
-		} while (status == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
-		gsl_root_fdfsolver_free (sfdf);		
-		if(!found_root_1){ //reset
-			num_badfunc_tries=0;
-			iter=0;
-			status = GSL_CONTINUE;
-		}
 	}
 	gsl_set_error_handler (myhandler); //restore original error handler
 

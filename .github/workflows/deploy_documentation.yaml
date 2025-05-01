@@ -1,22 +1,25 @@
 name: Deploy Documentation
 
-on: push
+on: [push, pull_request, workflow_dispatch]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
 
     steps:
-      - uses: actions/checkout@v2.4.0 # get the develop branch
+      - uses: actions/checkout@v4 # get the develop branch
         with:
           ref: 'refs/heads/develop'
-      - uses: actions/checkout@v2.4.0        
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.7
+          python-version: "3.10"
 
       - name: Cache pip
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           # This path is specific to Ubuntu
           path: ~/.cache/pip
@@ -31,9 +34,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest
           export GSLDIR=$(gsl-config --prefix)
-          python install_dev.py --install --dev documentation --no-interactive
+          pip install -e .[dev,proposal,cr_interpolator]
           export PYTHONPATH=$PWD:$PYTHONPATH
           echo $PYTHONPATH
+          NuRadioMC/SignalProp/install.sh
 
       - name: Debugging
         run: |
@@ -56,7 +60,7 @@ jobs:
         run: |
           export PYTHONPATH=$(pwd):$PYTHONPATH
           cd documentation/
-          python make_docs.py
+          python make_docs.py --debug
 
       - name: No Jekyll
         if: ${{ github.ref == 'refs/heads/develop'}}
@@ -66,7 +70,7 @@ jobs:
 
       - name: Deploy 🚀
         if: ${{ github.ref == 'refs/heads/develop'}} # only runs if the push is to develop
-        uses: JamesIves/github-pages-deploy-action@4.1.6
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: documentation/build/html # The folder the action should deploy.

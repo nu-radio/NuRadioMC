@@ -7,8 +7,8 @@ from NuRadioMC.utilities import medium
 import logging
 from radiotools import helper as hp
 from radiotools import plthelpers as php
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('raytracing')
+logger = logging.getLogger('NuRadioMC.SignalProp.raytracing')
+logger.setLevel(logging.INFO)
 # ray.cpp_available=False
 
 x1 = np.array([478., 0., -149.]) * units.m
@@ -43,6 +43,8 @@ for i, x in enumerate([x2, x3, x4, x5]):
             R = r.get_path_length(iS)  # calculate path length
             T = r.get_travel_time(iS)  # calculate travel time
             print("     Ray Distance %.3f and Travel Time %.3f" % (R / units.m, T / units.ns))
+
+
             receive_vector = r.get_receive_vector(iS)
             receive_vectors[i, iS] = receive_vector
             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)

@@ -1,16 +1,17 @@
 import argparse
 # import detector simulation modules
-import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
+
 from NuRadioReco.utilities import units
 import numpy as np
 from NuRadioMC.simulation import simulation
 import matplotlib.pyplot as plt
 import os
+
 
 if __name__ == "__main__":
     results_folder = 'results'
@@ -56,7 +57,6 @@ if __name__ == "__main__":
     First we initialise the modules we are going to use. For our simulation, we are
     going to need the following ones, which are explained below.
     """
-    efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
     simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
     highLowThreshold = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
     channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
@@ -69,14 +69,14 @@ if __name__ == "__main__":
     functions that controls what the detector does after the electric field arrives
     at the antenna. That allows us to create our own class that inherits from
     the simulation class that we will call mySimulation, and define in it a
-    _detector_simulation_filter_amp and _detector_simulation_trigger 
+    _detector_simulation_filter_amp and _detector_simulation_trigger
     function with all the characteristics of our detector setup.
     """
 
 
     class mySimulation(simulation.simulation):
         """
-        
+
         """
 
         def _detector_simulation_filter_amp(self, evt, station, det):
@@ -143,10 +143,8 @@ if __name__ == "__main__":
     """
 
     sim = mySimulation(inputfilename=args.inputfilename,
-                    outputfilename=args.outputfilename,
-                    detectorfile=args.detectordescription,
-                    outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                    config_file=args.config,
-                    default_detector_station=101,
-                    default_detector_channel=0)
+                       outputfilename=args.outputfilename,
+                       detectorfile=args.detectordescription,
+                       outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
+                       config_file=args.config)
     sim.run()

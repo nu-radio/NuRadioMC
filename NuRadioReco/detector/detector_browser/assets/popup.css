@@ -1,0 +1,22 @@
+.popup-container:hover > .popup-box {
+  visibility: visible;
+  display: inline;
+  position: absolute;
+  z-index: 10;
+}
+.popup-box {
+  display: none;
+  visibility: hidden;
+  padding: 10px;
+  background-color: #f7f7f7;
+  width: 150px;
+  border-color: #ddd;
+  border: 1px solid;
+  border-radius: 3px;
+}
+.popup-symbol {
+  font-size: 150%;
+}
+.popup-container {
+  padding: 5px 10px;
+}

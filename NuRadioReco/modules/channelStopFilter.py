@@ -3,13 +3,20 @@ import numpy as np
 import logging
 from NuRadioReco.utilities import units
 import scipy.signal.windows
-logger = logging.getLogger('channelStopFilter')
+logger = logging.getLogger('NuRadioReco.channelStopFilter')
 
 
 class channelStopFilter:
     """
-    at the beginning and end of the trace (around the 'stop') our electronic produces a glitch
-    this modules smoothly filters the beginning and the end of the trace
+    Apply tapering towards zero to channel traces
+
+    This class applies a Tukey window to the ends of the traces
+    to gradually taper them towards zero, and appends zeros at either end.
+    This prevents unphysical features that can result from applying transformations
+    to the data in the frequency domain (see :doc:`additional explanation here </NuRadioReco/pages/times>`)
+
+    For ARIANNA data, this module should always be used to remove the glitch around
+    the beginning and end of the trace (around the 'stop').
     """
 
     def begin(self):
@@ -18,7 +25,7 @@ class channelStopFilter:
     @register_run()
     def run(self, evt, station, det, filter_size=0.1, prepend=128 * units.ns, append=128 * units.ns):
         """
-        parameters
+        Parameters
         ----------
         evt: Event
             The event to run the module on
@@ -39,9 +46,11 @@ class channelStopFilter:
             sampling_rate = channel.get_sampling_rate()
             window = scipy.signal.windows.tukey(len(trace), filter_size)
             trace *= window
-            trace = np.append(np.zeros(int(np.round(prepend * sampling_rate))), trace)
+            prepend_samples = int(np.round(prepend * sampling_rate))
+            trace = np.append(np.zeros(prepend_samples), trace)
             trace = np.append(trace, np.zeros(int(np.round(append * sampling_rate))))
             channel.set_trace(trace, sampling_rate)
+            channel.add_trace_start_time(-prepend_samples / sampling_rate)
 
     def end(self):
         pass

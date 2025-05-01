@@ -1,13 +1,13 @@
-from NuRadioReco.utilities import units
+
+from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
+from NuRadioReco.utilities import units, fft
+import NuRadioReco.framework.channel
+
 import numpy as np
 import logging
 import scipy.signal
-from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
-from NuRadioReco.utilities.fft import time2freq, freq2time
-from scipy.signal import butter, freqs
-import NuRadioReco.framework.channel
 
-logger = logging.getLogger('diodeSimulator')
+logger = logging.getLogger('NuRadioReco.diodeSimulator')
 
 
 class diodeSimulator:
@@ -86,8 +86,9 @@ class diodeSimulator:
         diode_resp = self._td_fdown1(times) + self._td_fdown2(times)
         t_slice = times > self._td_args['up'][1]
         diode_resp[t_slice] += self._td_fup(times[t_slice])
-        conv = scipy.signal.convolve(channel.get_trace() ** 2 / antenna_resistance,
-                                     diode_resp, mode='full')
+        conv = scipy.signal.convolve(
+            channel.get_trace() ** 2 / antenna_resistance, diode_resp, mode='full')
+
         # conv multiplied by dt so that the amplitude stays constant for
         # varying dts (determined emperically, see ARVZAskaryanSignal comments)
         # Setting output
@@ -98,14 +99,14 @@ class diodeSimulator:
         if self._output_passband != (None, None):
 
             sampling_rate = channel.get_sampling_rate()
-            trace_spectrum = time2freq(trace_after_tunnel_diode, sampling_rate)
+            trace_spectrum = fft.time2freq(trace_after_tunnel_diode, sampling_rate)
             frequencies = np.linspace(0, sampling_rate / 2, len(trace_spectrum))
             if self._output_passband[0] is None:
-                b, a = butter(6, self._output_passband[1], 'lowpass', analog=True)
+                b, a = scipy.signal.butter(6, self._output_passband[1], 'lowpass', analog=True)
             else:
-                b, a = butter(6, self._output_passband, 'bandpass', analog=True)
-            w, h = freqs(b, a, frequencies)
-            trace_after_tunnel_diode = freq2time(h * trace_spectrum, sampling_rate)
+                b, a = scipy.signal.butter(6, self._output_passband, 'bandpass', analog=True)
+            w, h = scipy.signal.freqs(b, a, frequencies)
+            trace_after_tunnel_diode = fft.freq2time(h * trace_spectrum, sampling_rate)
 
         return trace_after_tunnel_diode
 
@@ -150,15 +151,16 @@ class diodeSimulator:
         power_std_list = []
 
         for i_try in range(n_tries):
-
             noise = NuRadioReco.framework.channel.Channel(0)
 
-            long_noise = channelGenericNoiseAdder().bandlimited_noise(min_freq=min_freq,
-                                                                      max_freq=max_freq,
-                                                                      n_samples=n_samples,
-                                                                      sampling_rate=sampling_rate,
-                                                                      amplitude=amplitude,
-                                                                      type=type)
+            long_noise = channelGenericNoiseAdder().bandlimited_noise(
+                min_freq=min_freq,
+                max_freq=max_freq,
+                n_samples=n_samples,
+                sampling_rate=sampling_rate,
+                amplitude=amplitude,
+                type=type
+            )
 
             noise.set_trace(long_noise, sampling_rate)
             power_noise = self.tunnel_diode(noise)
@@ -172,5 +174,83 @@ class diodeSimulator:
         return power_mean, power_std
 
     def end(self):
-
         pass
+
+
+def get_window_around_maximum(station,
+                              diode=None,
+                              triggered_channels=None,
+                              ratio=0.01,
+                              edge=20 * units.ns):
+    """
+    This function filters the signal using a diode model and calculates
+    the times around the filtered maximum where the signal is the ratio
+    parameter times the maximum. Then, it creates a time window by substracting
+    and adding the edge parameter to these times. This function is useful
+    for reducing the probability of noise-triggered events while using the
+    envelope phased array, although it can also be applied to the standard
+    phased array.
+
+    Parameters
+    ----------
+    station: NuRadioReco station
+        Station containing the information on the detector
+    diode: diodeSimulator or None
+        Diode model to be applied. If None, a diode with an output 200 MHz low-pass
+        filter is chosen
+    triggered_channels: array of integers
+        Channels used for the trigger, and also for creating the window
+    ratio: float
+        Cut parameter
+    edge: float
+        Times to be sustracted from the points defined by the ratio cut to
+        create the window
+
+    Returns
+    -------
+    (left_time, right_time): (float, float) tuple
+        Tuple containing the edges of the time window
+    """
+
+    if diode is None:
+        diode_passband = (None, 200 * units.MHz)
+        diode = diodeSimulator(diode_passband)
+
+    left_times = []
+    right_times = []
+
+    if (triggered_channels is None):
+        triggered_channels = [channel._id for channel in station.iter_channels()]
+
+    for channel in station.iter_channels():  # loop over all channels (i.e. antennas) of the station
+
+        if channel.get_id() not in triggered_channels:
+            continue
+
+        times = channel.get_times()
+
+        trace = diode.tunnel_diode(channel)
+        trace_max = np.max(np.max(trace))
+        argmax = np.argmax(trace)
+        argmin = np.argmin(trace)
+
+        if (argmin == len(trace) - 1):
+            argmin = len(trace) - 2
+        if (argmin == argmax):
+            if (argmin + 5 < len(trace)):
+                argmax = argmin + 5
+            else:
+                argmax = len(trace) - 1
+        if (argmin == 0):
+            argmin = 1
+
+        left_bin = argmin - np.argmin(np.abs(trace[0:argmin][::-1] + ratio * trace_max))
+        left_times.append(times[left_bin])
+
+        right_bin = argmax + np.argmin(np.abs(trace[argmax:None] - ratio * trace_max))
+        right_times.append(times[right_bin])
+
+    left_time = np.min(left_times) - edge
+    right_time = np.max(right_times) + edge
+
+    return (left_time, right_time)

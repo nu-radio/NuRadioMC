@@ -10,7 +10,7 @@ from radiotools import helper as hp
 from radiotools import coordinatesystems
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units, fft, trace_utilities
+from NuRadioReco.utilities import units, fft, trace_utilities, signal_processing
 from NuRadioReco.utilities import analytic_pulse as pulse
 from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -18,7 +18,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import NuRadioReco.framework.electric_field
 
 import logging
-logger = logging.getLogger('voltageToAnalyticEfieldConverter')
+logger = logging.getLogger('NuRadioReco.voltageToAnalyticEfieldConverter')
 
 
 def covariance(function, vmin, up, fast=False):
@@ -314,10 +314,10 @@ class voltageToAnalyticEfieldConverter:
         efield_antenna_factor, V, V_timedomain = get_array_of_channels(station, use_channels,
                                                                        det, zenith, azimuth, self.antenna_provider,
                                                                        time_domain=True)
-        sampling_rate = station.get_channel(0).get_sampling_rate()
+        sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate()
         n_samples_time = V_timedomain.shape[1]
 
-        noise_RMS = det.get_noise_RMS(station.get_id(), 0)
+        noise_RMS = det.get_noise_RMS(station.get_id(), use_channels[0])
 
         def obj_xcorr(params):
             if(len(params) == 3):
@@ -482,9 +482,10 @@ class voltageToAnalyticEfieldConverter:
                     ax[iCh][1].axvline(imin, linestyle='--', alpha=.8)
                     ax[iCh][1].axvline(imax, linestyle='--', alpha=.8)
             if(debug_obj and self.i_slope_fit_iterations % 50 == 0):
-                sim_channel = station.get_sim_station().get_channel(0)[0]
+                sim_station = station.get_sim_station()
+                sim_channel = next(sim_station.iter_channels())
                 ax[4][0].plot(sim_channel.get_frequencies() / units.MHz, np.abs(pulse.get_analytic_pulse_freq(ampTheta, slope, phase, len(sim_channel.get_times()), sim_channel.get_sampling_rate(), bandpass=bandpass, quadratic_term=second_order)), '--', color='orange')
-                ax[4][0].plot(sim_channel.get_frequencies() / units.MHz, np.abs(station.get_sim_station().get_channel(0)[0].get_frequency_spectrum()[1]), color='blue')
+                ax[4][0].plot(sim_channel.get_frequencies() / units.MHz, np.abs(sim_channel.get_frequency_spectrum()[1]), color='blue')
                 ax[4][1].plot(sim_channel.get_frequencies() / units.MHz, np.abs(pulse.get_analytic_pulse_freq(ampPhi, slope, phase, len(sim_channel.get_times()), sim_channel.get_sampling_rate(), bandpass=bandpass, quadratic_term=second_order)), '--', color='orange')
                 ax[4][1].plot(sim_channel.get_frequencies() / units.MHz, np.abs(sim_channel.get_frequency_spectrum()[2]), color='blue')
                 ax[4][0].set_xlim([20, 500])
@@ -624,7 +625,7 @@ class voltageToAnalyticEfieldConverter:
         second_order_correction = res_amp_second_order.x[2]
         electric_field.set_parameter(efp.cr_spectrum_quadratic_term, second_order_correction)
         # figure out the timing of the electric field
-        voltages_from_efield = trace_utilities.get_channel_voltage_from_efield(station, electric_field, use_channels, det, zenith, azimuth, self.antenna_provider, False)
+        voltages_from_efield = signal_processing.get_channel_voltage_from_efield(station, electric_field, use_channels, det, zenith, azimuth, self.antenna_provider, False)
         correlation = np.zeros(voltages_from_efield.shape[1] + station.get_channel(use_channels[0]).get_trace().shape[0] - 1)
         channel_trace_start_times = []
         for channel_id in use_channels:

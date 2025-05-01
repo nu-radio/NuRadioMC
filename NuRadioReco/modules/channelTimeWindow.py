@@ -28,7 +28,7 @@ class channelTimeWindow:
             ):
         """
         Parameters
-        -----------
+        ----------
         evt, station, det
             Event, Station, Detector
         window: list or None

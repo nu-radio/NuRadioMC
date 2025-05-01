@@ -8,14 +8,12 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 Used in the trace from efield and trace frm sim-efield plots. Keep them
 commented out for later
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.utilities import geometryUtilities
-from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import signal_processing, geometryUtilities
 """
 import numpy as np
-from dash import html
-from dash import dcc
+from dash import dcc, html, callback
 from dash.dependencies import Input, Output, State
-from NuRadioReco.eventbrowser.app import app
+# from NuRadioReco.eventbrowser.app import app
 import os
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.eventbrowser.dataprovider
@@ -72,7 +70,7 @@ layout = [
 ]
 
 
-@app.callback(
+@callback(
     dash.dependencies.Output('dropdown-traces', 'options'),
     [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
@@ -99,7 +97,7 @@ def get_dropdown_traces_options(evt_counter, filename, station_id, juser_id):
     return options
 
 
-@app.callback(
+@callback(
     Output('template-input-group', 'style'),
     [Input('dropdown-traces', 'value')]
 )
@@ -117,7 +115,7 @@ def get_L1(a):
     return l1
 
 
-@app.callback(
+@callback(
     dash.dependencies.Output('time-traces', 'figure'),
     [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
@@ -126,9 +124,11 @@ def get_L1(a):
      dash.dependencies.Input('station-id-dropdown', 'value'),
      dash.dependencies.Input('open-template-button', 'n_clicks_timestamp')],
     [State('user_id', 'children'),
-     State('template-directory-input', 'value')])
+     State('template-directory-input', 'value'),
+     State('channel-spectrum-log-linear-switch', 'children')]
+)
 def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_info, station_id,
-                              open_template_timestamp, juser_id, template_directory):
+                              open_template_timestamp, juser_id, template_directory, yscale):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
@@ -205,7 +205,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                 opacity=0.7,
                 line=dict(
                     width=4,
-                    dash='dot'),  
+                    dash='dot'),
                 marker={
                     'color': colors[i % len(colors)],
                     'line': {'color': colors[i % len(colors)]}
@@ -350,7 +350,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             channel_ids.append(channel.get_id())
         for electric_field in station.get_electric_fields():
             for i_trace, trace in enumerate(
-                    trace_utilities.get_channel_voltage_from_efield(station, electric_field, channel_ids, det,
+                    signal_processing.get_channel_voltage_from_efield(station, electric_field, channel_ids, det,
                                                                     station.get_parameter(stnp.zenith),
                                                                     station.get_parameter(stnp.azimuth),
                                                                     antenna_pattern_provider)):
@@ -381,7 +381,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
         for i_channel, channel in enumerate(station.iter_channels()):
             for electric_field in sim_station.get_electric_fields_for_channels([channel.get_id()]):
                 trace = \
-                    trace_utilities.get_channel_voltage_from_efield(sim_station, electric_field, [channel.get_id()],
+                    signal_processing.get_channel_voltage_from_efield(sim_station, electric_field, [channel.get_id()],
                                                                     det,
                                                                     electric_field.get_parameter(efp.zenith),
                                                                     electric_field.get_parameter(efp.azimuth),
@@ -420,6 +420,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(
             title='<b>Ch. {}</b><br>voltage [mV]'.format(channel_id)
         )
+        fig['layout']['yaxis{:d}'.format(i * 2 + 2)].update(type=yscale)
 
         if channel.get_trace() is None:
             continue
