@@ -16,6 +16,8 @@ Developers should clone the git repository and run:
 pip install -e .[dev]  # zsh user might have to wrap the argument in quotes: -e '.[dev]'
 pre-commit install
 ```
+Additional optional dependencies are e.g. `-e [rno-g,proposal,galacticnoise,cr_interpolator]`. To install all optional dependencies use `-e [all]`
+
 Users can use the stable pip release with:
 ```
 pip install NuRadioMC
