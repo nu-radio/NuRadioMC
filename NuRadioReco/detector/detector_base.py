@@ -951,6 +951,15 @@ class DetectorBase(object):
                 antenna_model = antenna_type
         else:
             antenna_model = antenna_type
+
+        # After changing the default value of antenna_by_depth to False, we need to check if the antenna model is consistent with the position
+        if antenna_type.startswith('analytic') or antenna_type.startswith('createLPDA_100MHz'):
+            if (antenna_relative_position[2] > 0 and not antenna_model.endswith('InfAir')) or \
+                (antenna_relative_position[2] < 0 and not antenna_model.endswith('InfFirn')):
+                logger.warning(
+                    'Antenna model {} is not consistent with antenna position {}. Expecting InfAir/InfFirm suffix.'.format(
+                        antenna_model, antenna_relative_position))
+
         return antenna_model
 
     def get_channel_group_id(self, station_id, channel_id):
