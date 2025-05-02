@@ -624,7 +624,10 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.version</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">subprocess</span><span class="w"> </span><span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioMC</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">subprocess</span><span class="w"> </span><span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
@@ -647,6 +650,9 @@
     <span class="k">return</span> <span class="n">h</span></div>
 
 
+<span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">NuRadioMC</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
+<span class="n">NuRadioMC_hash</span> <span class="o">=</span> <span class="n">get_git_commit_hash</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="get_NuRadioMC_commit_hash">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html#NuRadioReco.utilities.version.get_NuRadioMC_commit_hash">[docs]</a>
@@ -654,11 +660,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    returns the hash of the current commit of the NuRadioMC git repository</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioMC</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">NuRadioMC</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">get_git_commit_hash</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">NuRadioMC_hash</span></div>
 
 
+<span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
+<span class="n">NuRadioReco_hash</span> <span class="o">=</span> <span class="n">get_git_commit_hash</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
 <div class="viewcode-block" id="get_NuRadioReco_commit_hash">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html#NuRadioReco.utilities.version.get_NuRadioReco_commit_hash">[docs]</a>
@@ -666,9 +672,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    returns the hash of the current commit of the NuRadioReco git repository</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">get_git_commit_hash</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">NuRadioReco_hash</span></div>
 
 </pre></div>
 
