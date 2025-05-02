@@ -4,6 +4,8 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.1.0-dev
 new features:
+- Change of the default value for the detector class argument `antenna_by_depth` from `True` to `False`. Now, by default, the string passed as antenna model
+  is taken at face value an nothing is appended to it.
 
 bugfixes:
 

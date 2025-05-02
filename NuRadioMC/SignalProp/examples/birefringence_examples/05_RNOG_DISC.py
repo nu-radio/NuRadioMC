@@ -15,7 +15,7 @@ import NuRadioReco.modules.efieldToVoltageConverterPerEfield
 import NuRadioReco.framework.sim_station
 """
 ###-----------------------------------------
-#   EXAMPLE: Script to simulate the effects of birefringence on the vpol and hpol amplitude at the RNOG stations. 
+#   EXAMPLE: Script to simulate the effects of birefringence on the vpol and hpol amplitude at the RNOG stations.
 ###-----------------------------------------
 """
 
@@ -34,7 +34,7 @@ loc_2_in_DISC_cord = loc_2_in_BIG_cord - DISC_in_BIG_cord
 loc_3_in_DISC_cord = loc_3_in_BIG_cord - DISC_in_BIG_cord
 loc_4_in_DISC_cord = loc_4_in_BIG_cord - DISC_in_BIG_cord
 
-detector_file = detector.Detector(json_filename='../../../../NuRadioReco/detector/RNO_G/RNO_season_2022.json', antenna_by_depth=False)
+detector_file = detector.Detector(json_filename='../../../../NuRadioReco/detector/RNO_G/RNO_season_2022.json')
 evt_time=datetime.datetime(2023, 1, 1)
 detector_file.update(evt_time)
 sim_station = NuRadioReco.framework.sim_station
@@ -90,7 +90,7 @@ for direction_id in range(len(flow_directions)):
 
             for channel_id in range(len(channels)):
                 #print('channel: ', channels[channel_id])
-                
+
                 for depth in range(len(depths)):
                     #print('depth: ', depths[depth])
 
@@ -100,11 +100,11 @@ for direction_id in range(len(flow_directions)):
                     elif emitter == 'loc1':
                         emitter_position = np.array([loc_1_in_DISC_cord[0] , loc_1_in_DISC_cord[1] , depths[depth] ])* units.m #loc1 hole
                     elif emitter == 'loc2':
-                        emitter_position = np.array([loc_2_in_DISC_cord[0] , loc_2_in_DISC_cord[1] , depths[depth] ])* units.m #loc1 hole                    
+                        emitter_position = np.array([loc_2_in_DISC_cord[0] , loc_2_in_DISC_cord[1] , depths[depth] ])* units.m #loc1 hole
                     elif emitter == 'loc3':
                         emitter_position = np.array([loc_3_in_DISC_cord[0] , loc_3_in_DISC_cord[1] , depths[depth] ])* units.m #loc1 hole
                     elif emitter == 'loc4':
-                        emitter_position = np.array([loc_4_in_DISC_cord[0] , loc_4_in_DISC_cord[1] , depths[depth] ])* units.m #loc1 hole  
+                        emitter_position = np.array([loc_4_in_DISC_cord[0] , loc_4_in_DISC_cord[1] , depths[depth] ])* units.m #loc1 hole
 
                     antenna_position = detector_file.get_relative_position(stations[station_id], channels[channel_id]) + detector_file.get_absolute_position(stations[station_id])
 
@@ -123,7 +123,7 @@ for direction_id in range(len(flow_directions)):
 
                     length = rays.get_path_length(ray_tracing_solution)
                     shift = 10
-                    
+
                     path_properties = rays.get_path_properties_birefringence(ray_tracing_solution, bire_model = bire_ice_model)
 
                     time_delays_simple[direction_id, model_id, station_id, channel_id, depth] = np.sum(path_properties['second_time_delay']) - np.sum(path_properties['first_time_delay'])
@@ -155,13 +155,12 @@ for direction_id in range(len(flow_directions)):
             ax[direction_id, model_id].set_xlabel('emitter depth [m]')
 
         if (flow_directions[direction_id] == -10) and (ice_models[model_id] == 'A'):
-            ax[direction_id, model_id].legend()     
+            ax[direction_id, model_id].legend()
 
         ax[direction_id, model_id].set_ylim(0, 20)
         ax[direction_id, model_id].grid(True)
         ax[direction_id, model_id].set_xlim(np.min(depths), np.max(depths))
         ax[direction_id, model_id].set_title('direction: ' + str(flow_directions[direction_id]) + ', model: ' + str(ice_models[model_id]))
 
-plt.tight_layout() 
+plt.tight_layout()
 plt.savefig(emitter + '_greenland', dpi=600)
-

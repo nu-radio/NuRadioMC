@@ -136,7 +136,7 @@ class DetectorBase(object):
     """
 
     def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',
-                 dictionary=None, assume_inf=True, antenna_by_depth=True):
+                 dictionary=None, assume_inf=True, antenna_by_depth=False):
         """
         Initialize the stations detector properties.
         By default, a new detector instance is only created of none exists yet, otherwise the existing instance
@@ -977,7 +977,7 @@ class DetectorBase(object):
             return channel_id
         else:
             return res['channel_group_id']
-        
+
     def get_antenna_mode(self, station_id, channel_id):
         """
         returns the antenna mode of a given channel - this is specific to LOFAR antennas, as they operate in either inner or outer mode.

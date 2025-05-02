@@ -10,7 +10,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector_base.DetectorBase):
     """
 
     def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',
-                 dictionary=None, assume_inf=True, antenna_by_depth=True):
+                 dictionary=None, assume_inf=True, antenna_by_depth=False):
         """
         Initialize the stations detector properties.
 

@@ -115,7 +115,7 @@ def Detector(*args, **kwargs):
             return detector_base.DetectorBase(
                 json_filename=None, source=source, dictionary=dictionary,
                 assume_inf=_if_not_None(assume_inf, True),
-                antenna_by_depth=_if_not_None(antenna_by_depth, True))
+                antenna_by_depth=_if_not_None(antenna_by_depth, False))
 
         elif source == "rnog_mongo":
             return rnog_detector.Detector(*args, **kwargs)
@@ -181,4 +181,4 @@ def Detector(*args, **kwargs):
             return detector_base.DetectorBase(
                 json_filename=filename, source=source, dictionary=dictionary,
                 assume_inf=_if_not_None(assume_inf, True),
-                antenna_by_depth=_if_not_None(antenna_by_depth, True), **kwargs)
+                antenna_by_depth=_if_not_None(antenna_by_depth, False), **kwargs)
