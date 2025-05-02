@@ -116,7 +116,8 @@ class triggerSimulator:
             Vrms=None,
             trigger_adc=True,
             clock_offset=0,
-            adc_output='voltage'):
+            adc_output='voltage',
+            pre_trigger_time=55 * units.ns):
         """
         simulate ARIANNA trigger logic
 
@@ -159,6 +160,9 @@ class triggerSimulator:
             Options:
             * 'voltage' to store the ADC output as discretised voltage trace
             * 'counts' to store the ADC output in ADC counts
+
+        pre_trigger_time: float (default: 55 ns)
+            The time data before the trigger occured is stored (i.e., defines the readout window).
         """
         t = time.time()
 
@@ -232,7 +236,8 @@ class triggerSimulator:
             has_triggered = False
 
         trigger = HighLowTrigger(trigger_name, threshold_high, threshold_low, high_low_window,
-                                 coinc_window, channels=triggered_channels, number_of_coincidences=number_concidences)
+                                 coinc_window, channels=triggered_channels, pre_trigger_times=pre_trigger_time,
+                                 number_of_coincidences=number_concidences)
         trigger.set_triggered_channels(channels_that_passed_trigger)
 
         if not has_triggered:

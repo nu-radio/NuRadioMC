@@ -1351,8 +1351,8 @@ class AntennaPattern(AntennaPatternBase):
             * 'magphase' interpolate magnitude and phase of vector effective length
 
         consistency_check: bool (default: True)
-            If True, the consistency of the antenna response is checked but only if the antenna could not be
-            verifed from its hash sum. 
+            If True, the consistency of the antenna response is checked but only if antenna
+            file could not be verified (via hash sum).
         """
 
         self._name = antenna_model
