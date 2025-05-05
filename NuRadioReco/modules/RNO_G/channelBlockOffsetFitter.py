@@ -96,6 +96,10 @@ class channelBlockOffsets:
             else:
                 channel.set_parameter(channelParameters.block_offsets, add_offsets)
 
+            vrms = np.std(channel.get_trace())
+            if np.max(np.abs(add_offsets)) > 0.5 * vrms:
+                logger.info(f"Applying offsets > 50% of vrms={vrms:.2f}) to channel {channel_id}") 
+
             channel.set_trace(
                 channel.get_trace() + np.repeat(add_offsets, self.block_size),
                 channel.get_sampling_rate()
@@ -170,7 +174,7 @@ class channelBlockOffsets:
                 offsets[channel_id] = -block_offsets
 
         self.add_offsets(event, station, offsets, channel_ids)
-        
+
         end_time = time.perf_counter()
         logger.info(f"Removed block offsets from {len(channel_ids)} channels in {(end_time - start_time)*1e3} ms")
 
