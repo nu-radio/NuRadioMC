@@ -17,6 +17,7 @@ from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import scipy.optimize
 import logging
+import time
 
 logger = logging.getLogger('NuRadioReco.RNO_G.channelBlockOffsetFitter')
 
@@ -143,6 +144,8 @@ class channelBlockOffsets:
         if channel_ids  is None:
             channel_ids = station.get_channel_ids()
 
+        start_time = time.perf_counter()
+
         offsets = {}
         if mode == 'stored': # remove offsets stored in channelParameters.block_offsets
             offsets = {
@@ -167,6 +170,9 @@ class channelBlockOffsets:
                 offsets[channel_id] = -block_offsets
 
         self.add_offsets(event, station, offsets, channel_ids)
+        
+        end_time = time.perf_counter()
+        logger.info(f"Removed block offsets from {len(channel_ids)} channels in {(end_time - start_time)*1e3} ms")
 
     def begin(self):
         """(Unused)"""
