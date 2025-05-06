@@ -1,19 +1,20 @@
-import numpy as np
-import json
-import os
 from NuRadioReco.utilities import units, io_utilities
-from radiotools import helper as hp
-from radiotools import coordinatesystems as cs
+from radiotools import helper as hp, coordinatesystems as cs
+
 from scipy import constants
+from time import time
+import numpy as np
 import logging
 import pickle
-import csv
 import cmath
 import scipy
+import json
+import csv
+import os
 
 logger = logging.getLogger('NuRadioReco.antennapattern')
-
 path_to_antennamodels = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'AntennaModels')
+
 
 def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
     """
@@ -535,17 +536,19 @@ def save_preprocessed_WIPLD_forARA(path):
                                                                                 np.angle(H_theta[mask][i]) / units.deg,
                                                                                 np.angle(H_phi[mask][i]) / units.deg))
 
-def get_pickle_antenna_response(path):
+def get_pickle_antenna_response(path, return_verified=False):
     """
-    opens and return the pickle file containing the preprocessed e.g. WIPL-D antenna simulation in NuRadioReco conventions.
+    Opens and return the pickle file containing the preprocessed e.g. WIPL-D antenna simulation in NuRadioReco conventions.
 
     If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
-    the file will be downloaded from a central data server
+    the file will be downloaded from a central data server.
 
     Parameters
     ----------
     path: string
         the path to the pickle file
+    return_verified: bool (default: False)
+        if True, the function will return a boolean indicating whether the file was verified/downloaded or not.
 
     Returns
     -------
@@ -571,9 +574,12 @@ def get_pickle_antenna_response(path):
         * H_theta: array of floats
             the complex realized vector effective length of the eTheta polarization component
 
+    verified: bool
+        boolean indicating whether the file was verified/downloaded or not (only returned if ``return_verified == True``)
     """
 
     download_file = False
+    verified = False
 
     # check if gziped pickle file already exists
     if not os.path.exists(path):
@@ -597,6 +603,7 @@ def get_pickle_antenna_response(path):
             antenna_hashs = json.load(fin)
             logger.info('search for {}'.format(os.path.basename(path)))
             if os.path.basename(path) in antenna_hashs.keys():
+                verified = True  # either hash is correct or the file is downloaded
                 if sha1.hexdigest() != antenna_hashs[os.path.basename(path)]:
                     logger.status("antenna model {} has changed on the server. downloading newest version...".format(
                         os.path.basename(path)))
@@ -617,7 +624,11 @@ def get_pickle_antenna_response(path):
     # # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
     # preprocess_WIPLD(path)
     res = io_utilities.read_pickle(path, encoding='bytes')
-    return res
+
+    if return_verified:
+        return res, verified
+    else:
+        return res
 
 
 def parse_AERA_XML_file(path):
@@ -627,7 +638,7 @@ def parse_AERA_XML_file(path):
         logger.error("AERA antenna file {} not found".format(path))
         raise OSError
 
-    antenna_file = open(path, "rb")
+    antenna_file = open(path, "r")
 
     antenna_data = "<antenna>" + antenna_file.read() + "</antenna>"  # add pseudo root element
 
@@ -714,7 +725,7 @@ def preprocess_AERA(path):
     orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
 
     fname = os.path.split(os.path.basename(path))[1].replace('.xml', '')
-    output_filename = '{}_InfAir.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
+    output_filename = '{}.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
 
     directory = os.path.dirname(output_filename)
     if not os.path.exists(directory):
@@ -1338,17 +1349,21 @@ class AntennaPattern(AntennaPatternBase):
 
             * 'complex' (default) interpolate real and imaginary part of vector effective length
             * 'magphase' interpolate magnitude and phase of vector effective length
+
+        consistency_check: bool (default: True)
+            If True, the consistency of the antenna response is checked but only if the antenna could not be
+            verifed from its hash sum. 
         """
 
         self._name = antenna_model
         self._interpolation_method = interpolation_method
-        from time import time
-        t = time()
+
+        t0 = time()
         filename = os.path.join(path, antenna_model, "{}.pkl".format(antenna_model))
         self._notfound = False
         try:
-            self._orientation_theta, self._orientation_phi, self._rotation_theta, self._rotation_phi, \
-                ff, thetas, phis, H_phi, H_theta = get_pickle_antenna_response(filename)
+            (self._orientation_theta, self._orientation_phi, self._rotation_theta, self._rotation_phi, \
+                ff, thetas, phis, H_phi, H_theta), verified = get_pickle_antenna_response(filename, return_verified=True)
 
         except IOError:
             self._notfound = True
@@ -1377,7 +1392,8 @@ class AntennaPattern(AntennaPatternBase):
         self.VEL_phi = H_phi
         self.VEL_theta = H_theta
 
-        if do_consistency_check:
+        if do_consistency_check and not verified:
+            logger.debug("Performing consistency check on antenna response ...")
             # additional consistency check
             for iFreq, freq in enumerate(self.frequencies):
                 for iPhi, phi in enumerate(self.phi_angles):
@@ -1399,7 +1415,7 @@ class AntennaPattern(AntennaPatternBase):
                                 freq, ff[index]))
                             raise Exception("frequency has changed")
 
-        logger.status('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
+        logger.status('Loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t0))
 
     def _get_index(self, iFreq, iTheta, iPhi):
         """
