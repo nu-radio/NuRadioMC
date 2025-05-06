@@ -1,6 +1,10 @@
-from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import copy
+import functools
+import logging
+import matplotlib.pyplot as plt
+
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import ice
@@ -8,8 +12,6 @@ from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import signal_processing
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
-import matplotlib.pyplot as plt
-import logging
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
