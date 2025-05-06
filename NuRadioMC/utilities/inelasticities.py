@@ -1,12 +1,15 @@
-import numpy as np
-from NuRadioReco.utilities import units
-from scipy import constants
-from scipy import interpolate as intp
-import pickle
 import os
 import lzma
+import pickle
+import numpy as np
+from scipy import constants
+from scipy import interpolate as intp
+
+from NuRadioReco.utilities import units
+from NuRadioMC.utilities import cross_sections
+
+
 import logging
-logging.basicConfig()
 logger = logging.getLogger('NuRadioMC.inelasticities')
 
 e_mass = constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
@@ -43,75 +46,96 @@ def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
     inelasticies: array
         Array with the inelasticities
     """
-    if(rnd is None):
-        rnd = np.random.default_rng()
+    rnd = rnd or np.random.default_rng()
+
     if model == "CTW":
         # based on shelfmc
         R1 = 0.36787944
         R2 = 0.63212056
         return (-np.log(R1 + rnd.uniform(0., 1., n_events) * R2)) ** 2.5
 
-    if model == "BGR18":
+    elif model == "BGR18":
         yy = np.zeros(n_events)
         uEE = np.unique(nu_energies)
         uFlavor = np.unique(flavors)
         uNCCC = np.unique(ncccs)
-        for E in uEE:
-            if(E > 10 * units.EeV):
+        for energy in uEE:
+            if energy > 10 * units.EeV:
                 logger.warning("You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
-                               f"You requested {E/units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
+                               f"You requested {energy / units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
+
             for flavor in uFlavor:
                 for nccc in uNCCC:
-                    mask = (nu_energies == E) & (flavor == flavors) & (nccc == ncccs)
+                    mask = (nu_energies == energy) & (flavor == flavors) & (nccc == ncccs)
                     size = n_events
-                    if(isinstance(mask, np.ndarray)):
+                    if isinstance(mask, np.ndarray):
                         size = np.sum(mask)
+
                     nccc = nccc.upper()
                     iF = np.argwhere(flavors_ref == flavor)[0][0]
                     inccc = np.argwhere(ncccs_ref == nccc)[0][0]
-                    iE = np.argmin(np.abs(E - nu_energies_ref))
-                    get_y = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]), fill_value="extrapolate", kind="cubic")
+                    iE = np.argmin(np.abs(energy - nu_energies_ref))
+                    get_y = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]),
+                                          fill_value="extrapolate", kind="cubic")
+
                     yyy = np.linspace(0, 1, 1000)
                     yyy = 0.5 * (yyy[:-1] + yyy[1:])
                     dsigma_dyy = 10 ** get_y(np.log10(yyy))
 
                     yy[mask] = rnd.choice(yyy, size=size, p=dsigma_dyy / np.sum(dsigma_dyy))
         return yy
+
     else:
         raise AttributeError(f"inelasticity model {model} is not implemented.")
 
 
-def get_ccnc(n_events, rnd=None):
+def get_ccnc(n_events, rnd=None, model="CTW", energy=None):
     """
     Get the nature of the interaction current: cc or nc
-    Ported from Shelf MC
-    https://github.com/persic/ShelfMC/blob/daf56916d85de019e848f415c2e9f4643a744674/functions.cc#L1055-L1064
-    based on CTW cross sections https://link.aps.org/doi/10.1103/PhysRevD.83.113009
 
     Parameters
     ----------
     n_events: int
         Number of events to be returned
-    rnd: random generator object
-        if None is provided, a new default random generator object is initialized
+    rnd: random generator object (default: None)
+        If None is provided, a new default random generator object is initialized
+    model: string (default: "CTW")
+        The cross section model to determine cc fraction. For options see cross_sections.py
+    energy: float or array (default: None)
+        Energy of the neutrino. If None is provided a constant value is used (only for CTW model).
 
     Returns
     -------
     ccnc: array
         Array with 'cc' or 'nc'
-    """
-    if(rnd is None):
-        rnd = np.random.default_rng()
-    random_sequence = rnd.uniform(0., 1., n_events)
-    ccnc = []
-    for i, r in enumerate(random_sequence):
-        #    if (r <= 0.6865254):#from AraSim
-        if(r <= 0.7064):
-            ccnc.append('cc')
-        else:
-            ccnc.append('nc')
 
-    return np.array(ccnc)
+    Also see
+    ---------
+    NuRadioMC.utilities.cross_sections.get_nu_cross_section
+    """
+    rnd = rnd or np.random.default_rng()
+
+    random_sequence = rnd.uniform(0., 1., n_events)
+
+    if energy is None:
+        assert model == "CTW", "Only CTW supports energy-independent cc/nc fraction Energy is required for BGR18 model"
+        # Ported from Shelf MC
+        # https://github.com/persic/ShelfMC/blob/daf56916d85de019e848f415c2e9f4643a744674/functions.cc#L1055-L1064
+        # based on CTW cross sections https://link.aps.org/doi/10.1103/PhysRevD.83.113009
+        ccnc = np.where(random_sequence <= 0.7064, 'cc', 'nc')
+    else:
+        if not isinstance(energy, (float, int)):
+            assert len(energy) == n_events, "Energy must be a scalar or an array of the same length as n_events"
+
+        # Flavor only relevant to determine if its a neutrino or antineutrino. For cross section ratio it
+        # hopefully doesn't matter
+        cc = cross_sections.get_nu_cross_section(energy, flavors=12, inttype="cc", cross_section_type=model.lower())
+        nc = cross_sections.get_nu_cross_section(energy, flavors=12, inttype="nc", cross_section_type=model.lower())
+
+        cc_fraction = cc / (cc + nc)
+        ccnc = np.where(random_sequence <= cc_fraction, 'cc', 'nc')
+
+    return ccnc
 
 
 def random_tau_branch(rnd=None):
@@ -127,8 +151,7 @@ def random_tau_branch(rnd=None):
     branch: string
         The corresponding decay branch
     """
-    if(rnd is None):
-        rnd = np.random.default_rng()
+    rnd = rnd or np.random.default_rng()
 
     branching_ratios = np.array([0.18, 0.18])
     branching = rnd.uniform(0, 1)
@@ -165,8 +188,8 @@ def inelasticity_tau_decay(tau_energy, branch, rnd=None):
     inelasticity: float
         The fraction of energy carried by the leptonic or hadronic products
     """
-    if(rnd is None):
-        rnd = np.random.default_rng()
+    rnd = rnd or np.random.default_rng()
+
     if (branch == 'tau_had'):
 
         branching = np.array([0.12, 0.26, 0.13, 0.13])
