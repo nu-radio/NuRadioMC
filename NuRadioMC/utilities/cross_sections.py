@@ -14,9 +14,12 @@ def param(energy, inttype='cc', parameterization='ctw'):
     See documentation there for details
 
     """
-    if(np.any(energy < 1e4 * units.GeV)):
-        logger.warning(f"CTW / BGR neutrino nucleon cross sections not valid for energies below 1e4 GeV, ({energy/units.GeV}GeV was requested)")
-        if(hasattr(energy, "__len__")):
+    if np.any(energy < 1e4 * units.GeV):
+        logger.warning(
+            "CTW / BGR neutrino nucleon cross sections not valid for energies below 1e4 GeV, "
+            f"({energy / units.GeV}GeV was requested)")
+
+        if hasattr(energy, "__len__"):
             return np.nan * np.ones_like(energy)
         else:
             return np.nan
@@ -53,6 +56,7 @@ def param(energy, inttype='cc', parameterization='ctw'):
         else:
             logger.error("Type {0} of interaction not defined for 'ctw'".format(inttype))
             raise NotImplementedError
+
     elif parameterization == 'hedis_bgr18':
         """
         Parameterization as above fitted to GENIE HEDIS module (with BGR18) cross sections
@@ -72,6 +76,7 @@ def param(energy, inttype='cc', parameterization='ctw'):
         else:
             logger.error("Type {0} of interaction not defined for 'hedis_bgr18'".format(inttype))
             raise NotImplementedError
+
     else:
         logger.error("Parameterization {0} of interaction cross section not defined".format(parameterization))
         raise NotImplementedError
@@ -89,7 +94,7 @@ def csms(energy, inttype, flavors):
     Amanda Cooper-Sarkar, Philipp Mertsch, Subir Sarkar
     JHEP 08 (2011) 042
     """
-    if type(inttype) == str:
+    if isinstance(inttype, str):
         inttype = np.array([inttype] * energy.shape[0])
 
     if isinstance(flavors, (int, np.integer)):
@@ -183,7 +188,7 @@ def csms(energy, inttype, flavors):
     particles_nc = np.where((flavors >= 0) & (inttype == 'nc'))
     antiparticles_cc = np.where((flavors < 0) & (inttype == 'cc'))
     antiparticles_nc = np.where((flavors < 0) & (inttype == 'nc'))
-#
+
     crscn[particles_cc] = neutrino_cc(energy[particles_cc])
     crscn[particles_nc] = neutrino_nc(energy[particles_nc])
     crscn[antiparticles_cc] = antineutrino_cc(energy[antiparticles_cc])
@@ -198,13 +203,13 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
 
     Parameters
     ----------
-    energy: float/ array of floats
+    energy: float / array of floats
         neutrino energies/momenta in standard units
 
     flavors: float / array of floats
         neutrino flavor (integer) encoded as using PDG numbering scheme,
         particles have positive sign, anti-particles have negative sign, relevant are:
-        
+
         * 12: electron neutrino
         * 14: muon neutrino
         * 16: tau neutrino
@@ -215,6 +220,8 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
         * nc : neutral current
         * cc : charged current
         * total: total (for non-array type)
+        * total_up : (only for ctw) total cross-section up uncertainty
+        * total_down : (only for ctw) total cross-section down uncertainty
 
     cross_section_type: {'ctw', 'ghandi', 'csms'}, default 'ctw'
         defines model of cross-section. Options:
@@ -232,7 +239,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
 
     elif cross_section_type == 'ctw' or cross_section_type == 'hedis_bgr18':
         crscn = np.zeros_like(energy)
-        if type(inttype) == str:
+        if isinstance(inttype, str):
             if inttype == 'total':
 
                 if isinstance(flavors, (int, np.integer)):
@@ -246,6 +253,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
 
                     crscn[particles] = param(energy[particles], 'nc', parameterization=cross_section_type) + param(energy[particles], 'cc', parameterization=cross_section_type)
                     crscn[antiparticles] = param(energy[antiparticles], 'nc_bar', parameterization=cross_section_type) + param(energy[antiparticles], 'cc_bar', parameterization=cross_section_type)
+
             elif inttype == 'total_up':
 
                 if isinstance(flavors, (int, np.integer)):
@@ -259,6 +267,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
 
                     crscn[particles] = param(energy[particles], 'nc_up') + param(energy[particles], 'cc_up', parameterization=cross_section_type)
                     crscn[antiparticles] = param(energy[antiparticles], 'nc_bar_up') + param(energy[antiparticles], 'cc_bar_up', parameterization=cross_section_type)
+
             elif inttype == 'total_down':
 
                 if isinstance(flavors, (int, np.integer)):
@@ -329,7 +338,7 @@ def get_interaction_length(Enu, density=.917 * units.g / units.cm ** 3, flavor=1
     flavors: float / array of floats
         neutrino flavor (integer) encoded as using PDG numbering scheme,
         particles have positive sign, anti-particles have negative sign, relevant are:
-        
+
         * 12: electron neutrino
         * 14: muon neutrino
         * 16: tau neutrino
