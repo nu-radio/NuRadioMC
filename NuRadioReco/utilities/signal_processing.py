@@ -108,7 +108,82 @@ def resample(trace, sampling_factor):
     return resampled_trace
 
 
-def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7):
+def digital_upsampling(
+        trace, adc_sampling_frequency, upsampling_method='fft',
+        upsampling_factor=2, coeff_gain=1, filter_taps=45,
+        adc_output='voltage'):
+    """
+    Digital upsampling with various methods and settings.
+
+    Parameters
+    ----------
+    trace : 1d array (float or int)
+        Input trace to upsample
+    adc_sampling_frequency : float
+        Original sampling frequency for trace
+    upsampling_method: str (default 'fft')
+        Choose between FFT, FIR, or Linear Interpolaion based upsampling methods
+    upsampling_factor : float (default 2)
+        The factor which the sampling frequency increases
+    coeff_gain: int (default 1)
+        If using the FIR upsampling, this will convert the floating point output of the
+        scipy filter to a fixed point value by multiplying by this factor and rounding to an int.
+        If set to 1, this will preserve the float value of the filter coefficients.
+    filter_taps : int (default 45)
+        Number of taps in the FIR filter in FIR-based upsampling.
+    adc_output: string (default "voltage")
+        Output type of the upsampled trace:
+
+            - "voltage" : keep upsampled trace as floats
+            - "counts" : round upsampling trace to ints
+
+
+    Returns
+    -------
+    upsampled_trace : 1d array (float or int)
+        Upsampled trace at the new sampling frequency
+    new_sampling_frequency : float
+        New sampling frequency
+    """
+
+    if np.abs(int(upsampling_factor) - upsampling_factor) > 1e-3:
+        warning_msg = "The input upsampling factor does not seem to be close to an integer."
+        warning_msg += "It has been rounded to {}".format(int(upsampling_factor))
+        logger.warning(warning_msg)
+
+    upsampling_factor = int(upsampling_factor)
+
+    if upsampling_factor <= 1:
+        error_msg = "Upsampling factor is less or equal to 1. Upsampling will not be performed."
+        upsampled_trace = trace
+        new_sampling_freq = adc_sampling_frequency
+
+    else:
+        new_sampling_freq = adc_sampling_frequency * upsampling_factor
+        new_len = len(trace) * upsampling_factor
+
+        if upsampling_method == 'fft':
+            upsampled_trace = signal.resample(trace, new_len)
+
+        elif upsampling_method == 'lin':
+            cur_t = np.arange(0, 1 / adc_sampling_frequency * len(trace), 1 / adc_sampling_frequency)
+            new_t = np.arange(0, 1 / adc_sampling_frequency * len(trace), 1 / new_sampling_freq)
+            upsampled_trace = np.interp(new_t, cur_t, trace)
+
+        elif upsampling_method == 'fir':
+            upsampled_trace = upsampling_fir(
+                trace, adc_sampling_frequency, int_factor=upsampling_factor, ntaps=filter_taps, coeff_gain=coeff_gain)
+
+        else:
+            error_msg = 'Interpolation method must be lin, fft, or fir'
+            raise NotImplementedError(error_msg)
+
+        if adc_output=='counts':
+            upsampled_trace = np.round(upsampled_trace)
+
+    return upsampled_trace, new_sampling_freq
+
+def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7, coeff_gain=128):
     """
     This function performs an upsampling by inserting a number of zeroes
     between samples and then applying a finite impulse response (FIR) filter.
@@ -131,35 +206,17 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7)
         The upsampled trace
     """
 
-    if np.abs(int(int_factor) - int_factor) > 1e-3:
-        warning_msg = (
-            "The input upsampling factor does not seem to be close to an integer."
-        )
-        warning_msg += "It has been rounded to {}".format(int(int_factor))
-        logger.warning(warning_msg)
+    cutoff = 0.5
+    up_filt = signal.firwin(
+        ntaps, original_sampling_frequency*cutoff, pass_zero='lowpass',
+        fs=original_sampling_frequency*int_factor)
 
-    int_factor = int(int_factor)
+    if coeff_gain != 1:
+        up_filt = np.round(up_filt*coeff_gain) / coeff_gain
 
-    if int_factor <= 1:
-        error_msg = (
-            "Upsampling factor is less or equal to 1. Upsampling will not be performed."
-        )
-        raise ValueError(error_msg)
-
-    zeroed_trace = np.zeros(len(trace) * int_factor)
-    for i_point, point in enumerate(trace[:-1]):
-        zeroed_trace[i_point * int_factor] = point
-
-    upsampled_delta_time = 1 / (int_factor * original_sampling_frequency)
-    upsampled_times = np.arange(
-        0, len(zeroed_trace) * upsampled_delta_time, upsampled_delta_time
-    )
-
-    cutoff = 1.0 / int_factor
-    fir_coeffs = signal.firwin(ntaps, cutoff, window="boxcar")
-    upsampled_trace = (
-        np.convolve(zeroed_trace, fir_coeffs)[: len(upsampled_times)] * int_factor
-    )
+    zero_padded_sig = np.zeros(len(trace)*int_factor)
+    zero_padded_sig[::int_factor] = trace[:]
+    upsampled_trace = np.convolve(zero_padded_sig, up_filt, mode='full')[len(up_filt) // 2 : len(zero_padded_sig) + len(up_filt) // 2] * int_factor
 
     return upsampled_trace
 
