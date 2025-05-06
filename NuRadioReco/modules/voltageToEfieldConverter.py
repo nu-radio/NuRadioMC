@@ -173,7 +173,7 @@ class voltageToEfieldConverter:
             # Get the antenna pattern and orientation for the current channel
             antenna_pattern, antenna_orientation = self.get_antenna_pattern_and_orientation(
                 detector, station, channel_id, zenith_antenna)
-            VEL = self._get_cached_antenna_response(antenna_pattern, frequencies, zenith_antenna, azimuth, *ori)
+            VEL = self._get_cached_antenna_response(antenna_pattern, zenith_antenna, azimuth, *antenna_orientation)
             efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
 
         return efield_antenna_factor
