@@ -15,82 +15,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
 logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
-
-def get_array_of_channels(station, use_channels, det, zenith, azimuth,
-                          antenna_pattern_provider, time_domain=False):
-    time_shifts = np.zeros(len(use_channels))
-    t_cables = np.zeros(len(use_channels))
-    t_geos = np.zeros(len(use_channels))
-
-    station_id = station.get_id()
-    site = det.get_site(station_id)
-    for iCh, channel in enumerate(station.iter_channels(use_channels)):
-        channel_id = channel.get_id()
-
-        antenna_position = det.get_relative_position(station_id, channel_id)
-        # determine refractive index of signal propagation speed between antennas
-        refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
-        if station.is_cosmic_ray():
-            if(zenith > 0.5 * np.pi):
-                refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
-        if station.is_neutrino():
-            refractive_index = ice.get_refractive_index(antenna_position[2], site)
-        time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
-        t_geos[iCh] = time_shift
-        t_cables[iCh] = channel.get_trace_start_time()
-        logger.debug("time shift channel {}: {:.2f}ns (signal prop), {:.2f}ns (trace start time)".format(channel.get_id(), time_shift, channel.get_trace_start_time()))
-        time_shift += channel.get_trace_start_time()
-        time_shifts[iCh] = time_shift
-
-    delta_t = time_shifts.max() - time_shifts.min()
-    tmin = time_shifts.min()
-    tmax = time_shifts.max()
-    logger.debug("adding relative station time = {:.0f}ns".format((t_cables.min() + t_geos.max()) / units.ns))
-    logger.debug("delta t is {:.2f}".format(delta_t / units.ns))
-    trace_length = station.get_channel(use_channels[0]).get_times()[-1] - station.get_channel(use_channels[0]).get_times()[0]
-    debug_cut = 0
-    if(debug_cut):
-        fig, ax = plt.subplots(len(use_channels), 1)
-
-    traces = []
-    n_samples = None
-    for iCh, channel in enumerate(station.iter_channels(use_channels)):
-        tstart = delta_t - (time_shifts[iCh] - tmin)
-        tstop = tmax - time_shifts[iCh] - delta_t + trace_length
-        iStart = int(round(tstart * channel.get_sampling_rate()))
-        iStop = int(round(tstop * channel.get_sampling_rate()))
-        if(n_samples is None):
-            n_samples = iStop - iStart
-            if(n_samples % 2):
-                n_samples -= 1
-
-        trace = copy.copy(channel.get_trace())  # copy to not modify data structure
-        trace = trace[iStart:(iStart + n_samples)]
-        if(debug_cut):
-            ax[iCh].plot(trace)
-        base_trace = NuRadioReco.framework.base_trace.BaseTrace()  # create base trace class to do the fft with correct normalization etc.
-        base_trace.set_trace(trace, channel.get_sampling_rate())
-        traces.append(base_trace)
-    times = traces[0].get_times()  # assumes that all channels have the same sampling rate
-    if(time_domain):  # save time domain traces first to avoid extra fft
-        V_timedomain = np.zeros((len(use_channels), len(times)))
-        for iCh, trace in enumerate(traces):
-            V_timedomain[iCh] = trace.get_trace()
-    frequencies = traces[0].get_frequencies()  # assumes that all channels have the same sampling rate
-    V = np.zeros((len(use_channels), len(frequencies)), dtype=complex)
-    for iCh, trace in enumerate(traces):
-        V[iCh] = trace.get_frequency_spectrum()
-
-    efield_antenna_factor = signal_processing.get_efield_antenna_factor(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
-
-    if(debug_cut):
-        plt.show()
-
-    if(time_domain):
-        return efield_antenna_factor, V, V_timedomain
-
-    return efield_antenna_factor, V
-
+maxsize = 1024
 
 def stacked_lstsq(L, b, rcond=1e-10):
     """
@@ -139,9 +64,218 @@ class voltageToEfieldConverter:
         self.antenna_provider = None
         self.begin()
 
-    def begin(self):
+    def begin(self, caching=True):
+        """
+        Begin method, sets general parameters of module
+
+        Parameters
+        ----------
+        caching : bool
+            enable/disable caching of antenna response to save loading times (default: True)
+        """
         self.antenna_provider = antennapattern.AntennaPatternProvider()
+        self.__caching = caching
+        self.__freqs = None
         pass
+    
+    def antenna_provider(self):
+        logger.warning("Deprecation warning: `antenna_provider` is deprecated.")
+        return self.antenna_provider
+
+    @functools.lru_cache(maxsize=maxsize)
+    def _get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
+        """
+        Returns the cached antenna reponse for a given antenna pattern, antenna orientation
+        and signal arrival direction. This wrapper is necessary as arrays and list are not
+        hashable (i.e., can not be used as arguments in functions one wants to cache).
+        This module ensures that the cache is clearied if the vector `self.__freqs` changes.
+        """
+        return ant_pattern.get_antenna_response_vectorized(self.__freqs, zen, azi, *ant_orient)
+    
+    def get_antenna_pattern_and_orientation(self, det, station, channel_id, zenith):
+        """ Get the antenna pattern and orientation for a given channel and zenith angle.
+
+        Parameters
+        ----------
+        det: Detector
+            Detector object
+        station: Station
+            Station object
+        channel_id: int
+            Channel id of the channel
+        zenith: float
+            Zenith angle in radians. For some antenna models, the zenith angle is needed
+            to get the correct antenna pattern.
+
+        Returns
+        -------
+        antenna_pattern: AntennaPattern
+            Antenna pattern object
+        antenna_orientation: list
+            Antenna orientation in radians
+        """
+        antenna_model = det.get_antenna_model(station.get_id(), channel_id, zenith)
+        antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model)
+        antenna_orientation = det.get_antenna_orientation(station.get_id(), channel_id)
+        return antenna_pattern, antenna_orientation
+
+    def get_efield_antenna_factor_caching(self, station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=False):
+        """
+        Returns the antenna response to a radio signal coming from a specific direction
+
+        Parameters
+        ----------
+        station: Station
+        frequencies: array of complex
+            frequencies of the radio signal for which the antenna response is needed
+        channels: array of int
+            IDs of the channels
+        detector: Detector
+        zenith, azimuth: float, float
+            incoming direction of the signal. Note that refraction and reflection at the ice/air boundary are taken into account
+        antenna_pattern_provider: AntennaPatternProvider
+        efield_is_at_antenna: bool (defaul: False)
+            If True, the electric field is assumed to be at the antenna.
+            If False, the effects of an air-ice boundary are taken into account if necessary.
+            The default is set to False to keep backwards compatibility.
+
+        Returns
+        -------
+        efield_antenna_factor: list of array of complex values
+            The antenna response for each channel at each frequency
+
+        See Also
+        --------
+        NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith : function that calculates the Fresnel factors
+        """
+
+        efield_antenna_factor = np.zeros((len(channels), 2, len(frequencies)), dtype=complex)  # from antenna model in e_theta, e_phi
+        for iCh, channel_id in enumerate(channels):
+            if not efield_is_at_antenna:
+                zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(
+                    detector, station, channel_id, zenith)
+            else:
+                zenith_antenna = zenith
+                t_theta = 1
+                t_phi = 1
+
+            if zenith_antenna is None:
+                logger.warning(
+                    "Fresnel reflection at air-firn boundary leads to unphysical results, "
+                    "no reconstruction possible")
+                return None
+
+            logger.debug("angles: zenith {0:.0f}, zenith antenna {1:.0f}, azimuth {2:.0f}".format(
+                np.rad2deg(zenith), np.rad2deg(zenith_antenna), np.rad2deg(azimuth)))
+
+            # Get the antenna pattern and orientation for the current channel
+            antenna_pattern, antenna_orientation = self.get_antenna_pattern_and_orientation(
+                detector, station, channel_id, zenith_antenna)
+            VEL = self._get_cached_antenna_response(antenna_pattern, frequencies, zenith_antenna, azimuth, *ori)
+            efield_antenna_factor[iCh] = np.array([VEL['theta'] * t_theta, VEL['phi'] * t_phi])
+
+        return efield_antenna_factor
+
+    def get_array_of_channels(self, station, use_channels, det, zenith, azimuth,
+                          antenna_pattern_provider, time_domain=False):
+        time_shifts = np.zeros(len(use_channels))
+        t_cables = np.zeros(len(use_channels))
+        t_geos = np.zeros(len(use_channels))
+
+        station_id = station.get_id()
+        site = det.get_site(station_id)
+        for iCh, channel in enumerate(station.iter_channels(use_channels)):
+            channel_id = channel.get_id()
+
+            antenna_position = det.get_relative_position(station_id, channel_id)
+            # determine refractive index of signal propagation speed between antennas
+            refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
+            if station.is_cosmic_ray(): # TODO remove `is_cosmic_ray` dependency 
+                if(zenith > 0.5 * np.pi):
+                    refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
+            if station.is_neutrino():
+                refractive_index = ice.get_refractive_index(antenna_position[2], site)
+            time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
+            t_geos[iCh] = time_shift
+            t_cables[iCh] = channel.get_trace_start_time()
+            logger.debug("time shift channel {}: {:.2f}ns (signal prop), {:.2f}ns (trace start time)".format(channel.get_id(), time_shift, channel.get_trace_start_time()))
+            time_shift += channel.get_trace_start_time()
+            time_shifts[iCh] = time_shift
+
+        delta_t = time_shifts.max() - time_shifts.min()
+        tmin = time_shifts.min()
+        tmax = time_shifts.max()
+        logger.debug("adding relative station time = {:.0f}ns".format((t_cables.min() + t_geos.max()) / units.ns))
+        logger.debug("delta t is {:.2f}".format(delta_t / units.ns))
+        trace_length = station.get_channel(use_channels[0]).get_times()[-1] - station.get_channel(use_channels[0]).get_times()[0]
+        debug_cut = 0
+        if(debug_cut):
+            fig, ax = plt.subplots(len(use_channels), 1)
+
+        traces = []
+        n_samples = None
+        for iCh, channel in enumerate(station.iter_channels(use_channels)):
+            tstart = delta_t - (time_shifts[iCh] - tmin)
+            tstop = tmax - time_shifts[iCh] - delta_t + trace_length
+            iStart = int(round(tstart * channel.get_sampling_rate()))
+            iStop = int(round(tstop * channel.get_sampling_rate()))
+            if(n_samples is None):
+                n_samples = iStop - iStart
+                if(n_samples % 2):
+                    n_samples -= 1
+
+            trace = copy.copy(channel.get_trace())  # copy to not modify data structure
+            trace = trace[iStart:(iStart + n_samples)]
+            if(debug_cut):
+                ax[iCh].plot(trace)
+            base_trace = NuRadioReco.framework.base_trace.BaseTrace()  # create base trace class to do the fft with correct normalization etc.
+            base_trace.set_trace(trace, channel.get_sampling_rate())
+            traces.append(base_trace)
+        times = traces[0].get_times()  # assumes that all channels have the same sampling rate
+        if(time_domain):  # save time domain traces first to avoid extra fft
+            V_timedomain = np.zeros((len(use_channels), len(times)))
+            for iCh, trace in enumerate(traces):
+                V_timedomain[iCh] = trace.get_trace()
+        frequencies = traces[0].get_frequencies()  # assumes that all channels have the same sampling rate
+        
+        # If we cache the antenna pattern, we need to make sure that the frequencies have not changed
+        # between stations. If they have, we need to clear the cache.
+        if self.__caching:
+            if self.__freqs is None:
+                self.__freqs = frequencies
+            else:
+                if len(self.__freqs) != len(frequencies):
+                    self.__freqs = frequencies
+                    self._get_cached_antenna_response.cache_clear()
+                    logger.warning(
+                        "Frequencies have changed (array length). Clearing antenna response cache. "
+                        "If you similate neutrinos/in-ice radio emission, this is not surprising. Please disable caching "
+                        "By passing `caching==False` to the begin method. If you simulate air showers and this happens often, "
+                        "something might be wrong...")
+                elif not np.allclose(self.__freqs, frequencies, rtol=0, atol=0.01 * units.MHz):
+                    self.__freqs = frequencies
+                    self._get_cached_antenna_response.cache_clear()
+                    logger.warning(
+                        "Frequencies have changed (values). Clearing antenna response cache. "
+                        "If you similate neutrinos/in-ice radio emission, this is not surprising. Please disable caching "
+                        "By passing `caching==False` to the begin method. If you simulate air showers and this happens often, "
+                        "something might be wrong...")
+
+        V = np.zeros((len(use_channels), len(frequencies)), dtype=complex)
+        for iCh, trace in enumerate(traces):
+            V[iCh] = trace.get_frequency_spectrum()
+        if not self.__caching:
+            efield_antenna_factor = signal_processing.get_efield_antenna_factor(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
+        else:
+            efield_antenna_factor = self.get_efield_antenna_factor_caching(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
+
+        if(debug_cut):
+            plt.show()
+
+        if(time_domain):
+            return efield_antenna_factor, V, V_timedomain
+
+        return efield_antenna_factor, V
 
     @register_run()
     def run(self, evt, station, det, use_channels=None, use_MC_direction=False, force_Polarization=''):
