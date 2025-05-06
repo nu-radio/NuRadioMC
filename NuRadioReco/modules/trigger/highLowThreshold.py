@@ -14,7 +14,7 @@ logger = logging.getLogger('NuRadioReco.HighLowTriggerSimulator')
 def get_high_low_triggers(trace, high_threshold, low_threshold,
                           time_coincidence=5 * units.ns, dt=1 * units.ns):
     """
-    calculates a high low trigger in a time coincidence window
+    Calculates a high low trigger in a time coincidence window
 
     Parameters
     ----------
@@ -50,7 +50,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
 
 def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns):
     """
-    calculates a majority logic trigger
+    Calculates a majority logic trigger
 
     Parameters
     ----------
@@ -116,10 +116,8 @@ class triggerSimulator:
             Vrms=None,
             trigger_adc=True,
             clock_offset=0,
-            adc_output='voltage',
-            **kwargs):
+            adc_output='voltage'):
         """
-        simulate ARIANNA trigger logic
 
         Parameters
         ----------

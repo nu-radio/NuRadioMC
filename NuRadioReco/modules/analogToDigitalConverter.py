@@ -342,7 +342,7 @@ class analogToDigitalConverter:
             logger.debug("Adding a baseline voltage of {:.2f} V to the trace".format(adc_baseline_voltage))
             channel.set_trace(channel.get_trace() + adc_baseline_voltage, "same")
 
-        if adc_sampling_frequency != sampling_frequency:
+        if not np.allclose(adc_sampling_frequency, sampling_frequency):
             # Upsampling to 5 GHz before downsampling using interpolation.
             # We cannot downsample with a Fourier method because we want to keep
             # the higher Nyquist zones.
