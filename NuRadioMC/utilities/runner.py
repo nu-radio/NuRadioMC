@@ -4,6 +4,7 @@ import os
 import multiprocessing
 from multiprocessing import Queue
 import time
+from NuRadioMC.simulation.time_logger import pretty_time_delta
 
 
 class NuRadioMCRunner(object):
@@ -70,6 +71,8 @@ class NuRadioMCRunner(object):
                     else:
                         if(not self.q.empty()):
                             n_trig = self.q.get_nowait()
+                            if n_trig is None:
+                                n_trig=0
                             self.n_triggers += n_trig
                     print(f"{iN} has finished with {n_trig} events, total number of triggered events is {self.n_triggers}", flush=True)
                     outputfilename = self.get_outputfilename()
@@ -89,7 +92,8 @@ class NuRadioMCRunner(object):
                 if(self.n_triggers > self.n_triggers_max):
                     print(f"more than {self.n_triggers_max} triggers, waiting for workers to stop \n\n\n\n\n\n", flush=True)
                 else:
-                    print(f"{simulation.pretty_time_delta(time.time()-self.start_time)} passed. No more jobs will be submitted.", flush=True)
+                    # TODO Add time delta back in
+                    print(f"Ran for {pretty_time_delta(time.time()-self.start_time)}. No more jobs will be submitted.", flush=True)
                 for iN, n in enumerate(self.worker):
                     if(not self.q.empty()):
                         n_trig = self.q.get()
