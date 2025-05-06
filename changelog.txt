@@ -2,8 +2,12 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 3.1.0-dev
+new features:
 
-version 3.0.0-dev
+bugfixes:
+
+version 3.0.0
 NuRadioMC 3.0 is a complete refactor of the NuRadioMC core (simulation.py), enabling long-awaited features such as:
 - exposing functions to calculate voltage traces from showers for stand-alone use (needed e.g. for Likelihood forward folding reconstruction)
 - separate simulation of trigger channels (-> significant speed up of simulations)
@@ -14,10 +18,10 @@ NuRadioMC 3.0 is a complete refactor of the NuRadioMC core (simulation.py), enab
 To enable resimulation from nur files, the nur files are the master file format and contain all information of the simulation. The hdf5 files
 are still generated from the nur files to have the main simulation results available in a simple table, e.g., for quick effective volume calculations.
 
-The changes are transparent to the user. All usecode still works and produces identical results. (Only the triggerTimeAdjuster module
+The changes are transparent to the user. All user code still works and produces identical results. (Only the triggerTimeAdjuster module
 was integrated into the main simulation routine and is not needed anymore in the user code.)
 See https://github.com/nu-radio/NuRadioMC/pull/680 for details.
-To simulate trigger channels separately, a list of trigger channels ids need to be passed to the __init__ function of the simulation class.
+To simulate trigger channels separately, a list of trigger channels ids needs to be passed to the __init__ function of the simulation class.
 
 new features:
 - Added birefringent ice models from https://doi.org/10.1140/epjc/s10052-023-11238-y
@@ -66,8 +70,6 @@ new features:
 - added LOFAR modules to fit the arrival direction using a planewave fit and to visualize the results of the pipeline
 - added support for LBA INNER in the LOFAR reader
 - added LOFAR detector description in JSON format
-- cleaned up the LOFAR beamforming utilities module
-- updated logging in all LOFAR modules
 - added support for more Galactic noise models in channelGalacticNoiseAdder
 - added support for "ant_mode" keyword in detector description
 - added option to choose dipole orientation when creating the LOFAR LBA antenna pattern
@@ -76,7 +78,7 @@ new features:
   we added an optional trigger_channel object which lives within the corresponding channel obejct.
 - major refactoring of the coreas interface, together with a new function to read in HDF5 files
 - implementation of the interface for cosmic ray pulse interpolation, as well as a new module to combine the
-interpolation with a Detector (readCoREASDetector)
+  interpolation with a Detector (readCoREASDetector)
 - removed readCoREAS and readCoREASStationGrid modules
 - removed tiny_reconstruction test and FullReconstruction example
 - simplified cr_efficiency_analysis example and renamed it to cr_analysis
@@ -87,11 +89,14 @@ interpolation with a Detector (readCoREASDetector)
 - Consolidated structure of NuRadioReco.utilities. We deprecated a few modules and moved functions around.
   We maintained backwards compatibility when possible.
 - Added module doc-strings in NuRadioReco.utilities.
+- Added a fifth-degree exponential polynomial ice model for Summit, Greenland
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
 - Fixed minor bugs in analyticraytracing module. Path length and travel times are affected by O(0.001) ns,
   and the focusing factor is reduced by <1% for most geometries. See #649 for details.
+- updated reference channel check in GenericDetector to look into the reference station when the channel
+  is not found in the current station
 
 deprecations:
 - Remove support for Python 3.6. Most features will still work, but are no longer tested and may therefore
@@ -138,8 +143,6 @@ new features:
 bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
 - fixed wrong number in Feldman-Cousins upper limit
-- updated reference channel check in GenericDetector to look into the reference station when the channel
-is not found in the current station
 - in antennapattern.py, fixed line 1398; was masking frequencies >= 0 instead of frequencies > 0, causing NaN errors
 - Fixed issue where saving empty traces (channels or Efields) created unreadable .nur files
 
