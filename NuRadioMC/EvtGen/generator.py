@@ -1234,7 +1234,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         logger.debug("interaction type")
         if interaction_type == "ccnc":
             data_sets["interaction_type"] = inelasticities.get_ccnc(
-                n_events_batch, rnd=rnd, model="BGR18", energy=data_sets["energies"])
+                n_events_batch, rnd=rnd, model="hedis_bgr18", energy=data_sets["energies"])
         elif interaction_type == "cc" or interaction_type == "nc":
             data_sets["interaction_type"] = np.full(n_events_batch, interaction_type, dtype='U2')
         else:
@@ -1244,7 +1244,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         # generate inelasticity
         logger.debug("generating inelasticities")
         data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(
-            n_events_batch, rnd=rnd, model="BGR18",  nu_energies=data_sets["energies"],
+            n_events_batch, rnd=rnd, model="hedis_bgr18",  nu_energies=data_sets["energies"],
             flavors=data_sets["flavors"], ncccs=data_sets["interaction_type"])
 
         if deposited:
