@@ -27,7 +27,7 @@ nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = pickle.load(lzm
 ncccs_ref = np.array(ncccs_ref)
 
 
-def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
+def get_neutrino_inelasticity(n_events, model="bgr18", rnd=None,
                               nu_energies=1 * units.EeV, flavors=12, ncccs="CC"):
     """
     Standard inelasticity for deep inelastic scattering used so far.
@@ -48,13 +48,13 @@ def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
     """
     rnd = rnd or np.random.default_rng()
 
-    if model == "CTW":
+    if model.lower() == "ctw":
         # based on shelfmc
         R1 = 0.36787944
         R2 = 0.63212056
         return (-np.log(R1 + rnd.uniform(0., 1., n_events) * R2)) ** 2.5
 
-    elif model == "BGR18":
+    elif model.lower() == "bgr18" or model.lower() == "hedis_bgr18":
         yy = np.zeros(n_events)
         uEE = np.unique(nu_energies)
         uFlavor = np.unique(flavors)
@@ -89,7 +89,7 @@ def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
         raise AttributeError(f"inelasticity model {model} is not implemented.")
 
 
-def get_ccnc(n_events, rnd=None, model="CTW", energy=None):
+def get_ccnc(n_events, rnd=None, model="hedis_bgr18", energy=None):
     """
     Get the nature of the interaction current: cc or nc
 
@@ -99,7 +99,7 @@ def get_ccnc(n_events, rnd=None, model="CTW", energy=None):
         Number of events to be returned
     rnd: random generator object (default: None)
         If None is provided, a new default random generator object is initialized
-    model: string (default: "CTW")
+    model: string (default: "hedis_bgr18")
         The cross section model to determine cc fraction. For options see cross_sections.py
     energy: float or array (default: None)
         Energy of the neutrino. If None is provided a constant value is used (only for CTW model).
@@ -118,7 +118,7 @@ def get_ccnc(n_events, rnd=None, model="CTW", energy=None):
     random_sequence = rnd.uniform(0., 1., n_events)
 
     if energy is None:
-        assert model == "CTW", "Only CTW supports energy-independent cc/nc fraction Energy is required for BGR18 model"
+        assert model.lower() == "ctw", "Only CTW supports energy-independent cc/nc fraction Energy is required for BGR18 model"
         # Ported from Shelf MC
         # https://github.com/persic/ShelfMC/blob/daf56916d85de019e848f415c2e9f4643a744674/functions.cc#L1055-L1064
         # based on CTW cross sections https://link.aps.org/doi/10.1103/PhysRevD.83.113009
