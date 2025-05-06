@@ -27,7 +27,7 @@ nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = pickle.load(lzm
 ncccs_ref = np.array(ncccs_ref)
 
 
-def get_neutrino_inelasticity(n_events, model="bgr18", rnd=None,
+def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
                               nu_energies=1 * units.EeV, flavors=12, ncccs="CC"):
     """
     Standard inelasticity for deep inelastic scattering used so far.
