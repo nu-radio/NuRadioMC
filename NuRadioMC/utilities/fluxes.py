@@ -30,7 +30,6 @@ def get_limit_from_aeff(energy, aeff,
     upperLimOnEvents: float
          2.3 for Neyman UL w/ 0 background,
          2.44 for F-C UL w/ 0 background, etc
-
     """
 
     evtsPerFluxPerEnergy = aeff * signalEff
@@ -48,7 +47,7 @@ def get_limit_flux(energy, veff_sr,
                     signalEff=1.00,
                     energyBinsPerDecade=1.000,
                     upperLimOnEvents=2.44,
-                    nuCrsScn='ctw',
+                    nuCrsScn='hedis_bgr18',
                     inttype="total"):
 
     """
@@ -71,8 +70,6 @@ def get_limit_flux(energy, veff_sr,
          2.44 for F-C UL w/ 0 background, etc
     nuCrsScn: str
         type of neutrino cross-section
-
-
     """
 
     evtsPerFluxPerEnergy = veff_sr * signalEff
@@ -89,7 +86,7 @@ def get_limit_flux(energy, veff_sr,
 #                               livetime,
 #                               signalEff = 1.00,
 #                               upperLimOnEvents=2.44,
-#                               nuCrsScn='ctw'):
+#                               nuCrsScn='hedis_bgr18'):
 #
 #     """
 #     Limit from effective volume on E^2 flux plot
@@ -131,7 +128,7 @@ def get_limit_e1_flux(energy, veff_sr,
                     signalEff=1.00,
                     energyBinsPerDecade=1.000,
                     upperLimOnEvents=2.44,
-                    nuCrsScn='ctw',
+                    nuCrsScn='hedis_bgr18',
                     inttype="total"):
 
     """
@@ -154,8 +151,6 @@ def get_limit_e1_flux(energy, veff_sr,
          2.44 for F-C UL w/ 0 background, etc
     nuCrsScn: str
         type of neutrino cross-section
-
-
     """
 
     evtsPerFluxPerEnergy = veff_sr * signalEff
@@ -173,7 +168,7 @@ def get_limit_e2_flux(energy, veff_sr,
                     signalEff=1.00,
                     energyBinsPerDecade=1.000,
                     upperLimOnEvents=2.44,
-                    nuCrsScn='ctw',
+                    nuCrsScn='hedis_bgr18',
                     inttype="total"):
     """
     Limit from effective volume on E^2 flux plot
@@ -202,8 +197,9 @@ def get_limit_e2_flux(energy, veff_sr,
                                         nuCrsScn, inttype)
 
 
-def get_number_of_events_for_flux(energies, flux, Veff, livetime, cross_section_type='ctw',
-                                  inttype="total"):
+def get_number_of_events_for_flux(
+        energies, flux, Veff, livetime, cross_section_type='hedis_bgr18',
+        inttype="total"):
     """
     calculates the number of expected neutrinos for a certain flux assumption
 
@@ -217,22 +213,10 @@ def get_number_of_events_for_flux(energies, flux, Veff, livetime, cross_section_
         the effective volume per energy logE
     livetime: float
         the livetime of the detector (including signal efficiency)
-    cross_section_type: {'ctw', 'ghandi', 'csms'}, default 'ctw'
-        defines model of cross-section. Options:
-
-        * ctw: A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
-          cross-sections for all interaction types and flavors
-        * ghandi: according to Ghandi et al. Phys.Rev.D58:093009,1998
-          only one cross-section for all interactions and flavors
-        * csms: A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
-        * hedis_bgr18
-
+    cross_section_type: str (default: 'hedis_bgr18')
+        Defines model of cross-section. For options see `cross_sections.get_nu_cross_section`
     inttype: str, array of str
-        interaction type. Options:
-
-        * nc : neutral current
-        * cc : charged current
-        * total: total (for non-array type)
+        Interaction type. For options see `cross_sections.get_nu_cross_section`
 
     Returns
     -------
@@ -242,8 +226,8 @@ def get_number_of_events_for_flux(energies, flux, Veff, livetime, cross_section_
     Veff = np.array(Veff)
     logE = np.log10(energies)
     dlogE = logE[1] - logE[0]
-    return np.log(10) * livetime * flux * energies * Veff / cross_sections.get_interaction_length(energies, cross_section_type=cross_section_type,
-                                                                                                  inttype=inttype) * dlogE
+    return np.log(10) * livetime * flux * energies * Veff / cross_sections.get_interaction_length(
+        energies, cross_section_type=cross_section_type, inttype=inttype) * dlogE
 
 
 def get_exposure(energy, Veff, field_of_view=2 * np.pi):

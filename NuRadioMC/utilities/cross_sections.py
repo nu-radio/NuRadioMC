@@ -197,9 +197,8 @@ def csms(energy, inttype, flavors):
     return crscn
 
 
-def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='ctw'):
-    """
-    return neutrino cross-section
+def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='hedis_bgr18'):
+    """ Returns neutrino cross-section
 
     Parameters
     ----------
@@ -223,7 +222,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
         * total_up : (only for ctw) total cross-section up uncertainty
         * total_down : (only for ctw) total cross-section down uncertainty
 
-    cross_section_type: {'ctw', 'ghandi', 'csms'}, default 'ctw'
+    cross_section_type: {'ctw', 'ghandi', 'csms', 'hedis_bgr18'}, default 'hedis_bgr18'
         defines model of cross-section. Options:
 
         * ctw : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
@@ -231,7 +230,12 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
         * ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998
           only one cross-section for all interactions and flavors
         * csms : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
+        * hedis_bgr18 : Parameterization from arXiv:2004.04756v2 (prepared for JCAP)
 
+    Returns
+    -------
+    crscn: float / array of floats
+        Cross-section in m^2
     """
 
     if cross_section_type == 'ghandi':
@@ -324,8 +328,9 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
     return crscn
 
 
-def get_interaction_length(Enu, density=.917 * units.g / units.cm ** 3, flavor=12, inttype='total',
-                           cross_section_type='ctw'):
+def get_interaction_length(
+        Enu, density=.917 * units.g / units.cm ** 3, flavor=12, inttype='total',
+        cross_section_type='hedis_bgr18'):
     """
     calculates interaction length from cross section
 
@@ -336,34 +341,19 @@ def get_interaction_length(Enu, density=.917 * units.g / units.cm ** 3, flavor=1
     density: float (optional)
         density of the medium, default density of ice = 0.917 g/cm**3
     flavors: float / array of floats
-        neutrino flavor (integer) encoded as using PDG numbering scheme,
-        particles have positive sign, anti-particles have negative sign, relevant are:
-
-        * 12: electron neutrino
-        * 14: muon neutrino
-        * 16: tau neutrino
+        Neutrino flavor (integer) encoded as using PDG numbering scheme.
+        For more information see get_nu_cross_section()
 
     inttype: str, array of str
-        interaction type. Options:
+        interaction type.  For options see get_nu_cross_section()
 
-        * nc : neutral current
-        * cc : charged current
-        * total: total (for non-array type)
-
-    cross_section_type: {'ctw', 'ghandi', 'csms'}, default 'ctw'
-        defines model of cross-section. Options:
-
-        * ctw: A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
-          cross-sections for all interaction types and flavors
-        * ghandi: according to Ghandi et al. Phys.Rev.D58:093009,1998
-          only one cross-section for all interactions and flavors
-        * csms: A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
+    cross_section_type: str (default: 'hedis_bgr18')
+        Defines model of cross-section. For options see get_nu_cross_section()
 
     Returns
     -------
     L_int: float
         interaction length
-
     """
     m_n = constants.m_p * units.kg  # nucleon mass, assuming proton mass
     L_int = m_n / get_nu_cross_section(Enu, flavors=flavor, inttype=inttype, cross_section_type=cross_section_type) / density
