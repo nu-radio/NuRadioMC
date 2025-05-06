@@ -4,6 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.1.0-dev
 new features:
+- energy-dependent inelasticity distribution (only BGR18 model) and cc / nc fraction (all models)
 
 bugfixes:
 
