@@ -11,17 +11,19 @@ The documentation including detailed installation instructions can be found at h
 
 **TL;DR:**
 
+The stable pip release can be installed directly from pypi:
+```
+pip install NuRadioMC
+```
+
 Developers should clone the git repository and run:
 ```
 pip install -e .[dev]  # zsh user might have to wrap the argument in quotes: -e '.[dev]'
 pre-commit install
 ```
-Additional optional dependencies are e.g. `-e [rno-g,proposal,galacticnoise,cr_interpolator]`. To install all optional dependencies use `-e [all]`
 
-Users can use the stable pip release with:
-```
-pip install NuRadioMC
-```
+Additional optional dependencies are `[rno-g,proposal,galacticnoise,cr_interpolator]`, and can be installed by adding the desired option inside the
+square brackets, i.e. `pip install -e .[dev,proposal]`. To install all optional dependencies, use `[all]`.
 
 ## Cite
 
@@ -51,7 +53,7 @@ If you would like to contribute, please contact @cg-laser or @anelles for permis
 Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html for details on our workflow and coding conventions.
 
 
-## Publications builing up on NuRadioMC/Reco
+## Publications using NuRadioMC/Reco
 NuRadioMC is used in an increasing number of studies. To get an overview of what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
 
 * A. Nozdrina and D. Besson, "Implications of in-ice volume scattering for radio-frequency neutrino experiments", Journal of Cosmology and Astroparticle Physics 10(2024)086, [doi:10.1088/1475-7516/2024/10/086](https://doi.org/10.1088/1475-7516/2024/10/086)
