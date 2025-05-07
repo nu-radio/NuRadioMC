@@ -12,8 +12,7 @@ class PhasedArrayBase():
     Base class for all phased array trigger modules.
     """
 
-    def __init__(self, log_level=logging.WARNING):
-        self.__t = 0
+    def __init__(self, log_level=logging.NOTSET):
         self.__pre_trigger_time = None
         self.__debug = None
         logger.setLevel(log_level)
@@ -208,6 +207,69 @@ class PhasedArrayBase():
             running_i += 1
 
         return phased_traces
+
+    def power_sum(self, coh_sum, window, step, adc_output='voltage', averaging_divisor=None):
+        """
+        Calculate power summed over a length defined by 'window', overlapping at intervals defined by 'step'
+
+        Parameters
+        ----------
+        coh_sum: array of floats
+            Phased signal to be integrated over
+        window: int
+            Power integral window
+            Units of ADC time ticks
+        step: int
+            Time step in power integral. If equal to window, there is no time overlap
+            in between neighboring integration windows
+            Units of ADC time ticks.
+        adc_output: string
+            Options:
+
+                - 'voltage' to store the ADC output as discretised voltage trace
+                - 'counts' to store the ADC output in ADC counts
+
+        averaging_divisor: int (default None)
+            Power integral divisor for averaging. If not specified,
+            the divisor is the same as the summation window.
+
+        Returns
+        -------
+        power:
+            Integrated power in each integration window
+        num_frames
+            Number of integration windows calculated
+
+        """
+
+        # If not specified, the divisor is the same as the summation window.
+        if averaging_divisor is None:
+            averaging_divisor = window
+
+        if adc_output != 'voltage' and adc_output != 'counts':
+            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
+            raise ValueError(error_msg)
+
+        num_frames = int(np.floor((len(coh_sum) - window) / step))
+
+        coh_sum_squared = (coh_sum * coh_sum)
+
+        # if(adc_output == 'voltage'):
+        #     coh_sum_squared = (coh_sum * coh_sum).astype(float)
+        # elif(adc_output == 'counts'):
+        #     coh_sum_squared = (coh_sum * coh_sum).astype(int)
+
+        coh_sum_windowed = np.lib.stride_tricks.as_strided(
+            coh_sum_squared, (num_frames, window),
+            (coh_sum_squared.strides[0] * step, coh_sum_squared.strides[0]))
+
+        power = np.sum(coh_sum_windowed, axis=1)
+        return_power = power.astype(float) / averaging_divisor
+
+        if adc_output=='counts':
+            return_power = np.round(return_power)
+
+        return return_power, num_frames
 
     def end(self):
         pass

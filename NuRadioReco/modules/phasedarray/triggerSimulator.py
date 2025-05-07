@@ -28,63 +28,6 @@ class triggerSimulator(PhasedArrayBase):
     See https://arxiv.org/pdf/1809.04573.pdf
     """
 
-    def __init__(self, log_level=logging.NOTSET):
-        self.__t = 0
-        self.__pre_trigger_time = None
-        self.__debug = None
-        logger.setLevel(log_level)
-        self.begin()
-
-    def begin(self, debug=False, pre_trigger_time=100 * units.ns):
-        self.__pre_trigger_time = pre_trigger_time
-        self.__debug = debug
-
-    def power_sum(self, coh_sum, window, step, adc_output='voltage'):
-        """
-        Calculate power summed over a length defined by 'window', overlapping at intervals defined by 'step'
-
-        Parameters
-        ----------
-        coh_sum: array of floats
-            Phased signal to be integrated over
-        window: int
-            Power integral window
-            Units of ADC time ticks
-        step: int
-            Time step in power integral. If equal to window, there is no time overlap
-            in between neighboring integration windows
-            Units of ADC time ticks.
-        adc_output: string
-
-            - 'voltage' to store the ADC output as discretised voltage trace
-            - 'counts' to store the ADC output in ADC counts
-
-        Returns
-        -------
-        power:
-            Integrated power in each integration window
-        num_frames
-            Number of integration windows calculated
-
-        """
-
-        if(adc_output != 'voltage' and adc_output != 'counts'):
-            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
-            raise ValueError(error_msg)
-
-        num_frames = int(np.floor((len(coh_sum) - window) / step))
-
-        if(adc_output == 'voltage'):
-            coh_sum_squared = (coh_sum * coh_sum).astype(float)
-        elif(adc_output == 'counts'):
-            coh_sum_squared = (coh_sum * coh_sum).astype(int)
-
-        coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, window),
-                                                           (coh_sum_squared.strides[0] * step, coh_sum_squared.strides[0]))
-        power = np.sum(coh_sum_windowed, axis=1)
-
-        return power.astype(float) / window, num_frames
-
     def phased_trigger(
             self, station, det,
             Vrms=None,

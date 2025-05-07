@@ -26,56 +26,6 @@ class triggerSimulator(PhasedArrayBase):
     See https://arxiv.org/pdf/1809.04573.pdf
     """
 
-    def power_sum(self, coh_sum, window, step, averaging_divisor=None, adc_output='voltage'):
-        """
-        Calculate power summed over a length defined by 'window', overlapping at intervals defined by 'step'
-
-        Parameters
-        ----------
-        coh_sum: array of floats
-            Phased signal to be integrated over
-        window: int
-            Power integral window
-            Units of ADC time ticks
-        step: int
-            Time step in power integral. If equal to window, there is no time overlap
-            in between neighboring integration windows
-            Units of ADC time ticks.
-        adc_output: string
-            - 'voltage' to store the ADC output as discretised voltage trace
-            - 'counts' to store the ADC output in ADC counts
-
-        Returns
-        -------
-        power:
-            Integrated power in each integration window
-        num_frames
-            Number of integration windows calculated
-
-        """
-
-        # If not specified, the divisor is the same as the summation window.
-        if averaging_divisor is None:
-            averaging_divisor=window
-
-        if(adc_output != 'voltage' and adc_output != 'counts'):
-            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
-            raise ValueError(error_msg)
-
-        num_frames = int(np.floor((len(coh_sum) - window) / step))
-
-        coh_sum_squared = (coh_sum * coh_sum)
-
-        coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, window),
-                                                           (coh_sum_squared.strides[0] * step, coh_sum_squared.strides[0]))
-
-        power = np.sum(coh_sum_windowed, axis=1)
-        return_power=power.astype(float) / averaging_divisor
-
-        if adc_output=='counts': return_power = np.round(return_power)
-
-        return return_power, num_frames
-
     def phased_trigger(self, station, det,
                        Vrms=None,
                        threshold=60 * units.mV,
