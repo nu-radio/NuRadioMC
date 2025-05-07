@@ -143,9 +143,9 @@ class PhasedArrayBase():
                 channel_trace_start_time = channel.get_trace_start_time()
 
             elif channel_trace_start_time != channel.get_trace_start_time():
-                error_msg = 'Phased array channels do not have matching trace start times. '
-                error_msg += 'This module is not prepared for this case.'
-                raise ValueError(error_msg)
+                raise ValueError(
+                    'Phased array channels do not have matching trace start times. '
+                    'This module is not prepared for this case.')
 
         return channel_trace_start_time
 
@@ -249,9 +249,8 @@ class PhasedArrayBase():
         if averaging_divisor is None:
             averaging_divisor = window
 
-        if adc_output != 'voltage' and adc_output != 'counts':
-            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
-            raise ValueError(error_msg)
+        if adc_output not in ['voltage', 'counts']:
+            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
 
         num_frames = int(np.floor((len(coh_sum) - window) / step))
 

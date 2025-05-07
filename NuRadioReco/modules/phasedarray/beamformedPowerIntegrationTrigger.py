@@ -132,23 +132,17 @@ class triggerSimulator(PhasedArrayBase):
             list of bools for which beams triggered
         """
 
-        if(trigger_channels is None):
+        if trigger_channels is None:
             trigger_channels = [channel.get_id() for channel in station.iter_trigger_channels()]
+        logger.debug("trigger channels: {}".format(trigger_channels))
 
-        if(adc_output != 'voltage' and adc_output != 'counts'):
-            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
-            raise ValueError(error_msg)
+        if adc_output not in ['voltage', 'counts']:
+            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
 
         is_triggered = False
         trigger_delays = {}
-
-        logger.debug(f"trigger channels: {trigger_channels}")
-
         traces = {}
         for channel in station.iter_trigger_channels(use_channels=trigger_channels):
-            channel_id = channel.get_id()
-
-            trace = np.array(channel.get_trace())
 
             if apply_digitization:
                 trace, adc_sampling_frequency = self._adc_to_digital_converter.get_digital_trace(
@@ -161,40 +155,38 @@ class triggerSimulator(PhasedArrayBase):
                     adc_output=adc_output,
                     trigger_filter=None)
             else:
+                trace = channel.get_trace()
                 adc_sampling_frequency = channel.get_sampling_rate()
 
             if not isinstance(upsampling_factor, int):
                 try:
                     upsampling_factor = int(upsampling_factor)
-                except:
+                except Exception:
                     raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
 
-            if(upsampling_factor >= 2):
-                upsampled_trace, new_sampling_frequency = signal_processing.digital_upsampling(trace, adc_sampling_frequency, upsampling_method=upsampling_method,
-                                                                                              upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
-                                                                                              adc_output=adc_output, filter_taps=filter_taps)
-
-                #  If upsampled is performed, the final sampling frequency changes
-                trace = upsampled_trace[:]
+            if upsampling_factor >= 2:
+                trace, adc_sampling_frequency = signal_processing.digital_upsampling(
+                    trace, adc_sampling_frequency, upsampling_method=upsampling_method,
+                    upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
+                    adc_output=adc_output, filter_taps=filter_taps)
 
                 if(len(trace) % 2 == 1):
                     trace = trace[:-1]
 
-            traces[channel_id] = trace[:]
-
-        adc_sampling_frequency *= upsampling_factor
+            traces[channel.get_id()] = trace
 
         time_step = 1.0 / adc_sampling_frequency
-        beam_rolls = self.calculate_time_delays(station, det,
-                                                trigger_channels,
-                                                phasing_angles,
-                                                ref_index=ref_index,
-                                                sampling_frequency=adc_sampling_frequency)
+        beam_rolls = self.calculate_time_delays(
+            station, det,
+            trigger_channels,
+            phasing_angles,
+            ref_index=ref_index,
+            sampling_frequency=adc_sampling_frequency)
 
         phased_traces = self.phase_signals(traces, beam_rolls, adc_output=adc_output, saturation_bits=saturation_bits)
 
         if adc_output == "counts":
-            threshold=np.trunc(threshold)
+            threshold = np.trunc(threshold)
 
         trigger_time = None
         trigger_times = {}
@@ -208,11 +200,12 @@ class triggerSimulator(PhasedArrayBase):
         for iTrace, phased_trace in enumerate(phased_traces):
             is_triggered=False
 
-            squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, averaging_divisor=averaging_divisor, adc_output=adc_output)
+            squared_mean, num_frames = self.power_sum(
+                coh_sum=phased_trace, window=window, step=step, averaging_divisor=averaging_divisor, adc_output=adc_output)
             maximum_amps[iTrace] = np.max(squared_mean)
 
             if True in (squared_mean > threshold):
-                n_trigs += len(np.where((squared_mean > threshold)==True)[0])
+                n_trigs += len(np.where(squared_mean > threshold)[0])
                 trigger_delays[iTrace] = {}
 
                 for channel_id in beam_rolls[iTrace]:
@@ -228,13 +221,13 @@ class triggerSimulator(PhasedArrayBase):
 
             triggered_beams.append(is_triggered)
 
-        is_triggered=np.any(triggered_beams)
+        is_triggered = np.any(triggered_beams)
 
         if is_triggered:
             logger.debug("Trigger condition satisfied!")
-            logger.debug("all trigger times", trigger_times)
+            logger.debug("all trigger times {}".format(trigger_times))
             trigger_time = min([x.min() for x in trigger_times.values()])
-            logger.debug(f"minimum trigger time is {trigger_time:.0f}ns")
+            logger.debug("minimum trigger time is {:.0f}ns".format(trigger_time))
 
         return is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps, n_trigs, triggered_beams
 
@@ -349,43 +342,43 @@ class triggerSimulator(PhasedArrayBase):
             Count of the total number of triggers in all beamformed traces
         """
 
-        if(trigger_channels is None):
+        if trigger_channels is None:
             trigger_channels = [channel.get_id() for channel in station.iter_trigger_channels()]
 
-        if(adc_output != 'voltage' and adc_output != 'counts'):
-            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
-            raise ValueError(error_msg)
+        if adc_output not in ['voltage', 'counts']:
+            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
 
         is_triggered = False
         trigger_delays = {}
 
-        if(set_not_triggered):
+        if set_not_triggered:
             is_triggered = False
             trigger_delays = {}
             triggered_beams = []
         else:
-            is_triggered, trigger_delays, trigger_time, trigger_times,\
-                  maximum_amps, n_triggers, triggered_beams = self.phased_trigger(station=station,
-                                                                                    det=det,
-                                                                                    Vrms=Vrms,
-                                                                                    threshold=threshold,
-                                                                                    trigger_channels=trigger_channels,
-                                                                                    phasing_angles=phasing_angles,
-                                                                                    ref_index=ref_index,
-                                                                                    trigger_adc=trigger_adc,
-                                                                                    clock_offset=clock_offset,
-                                                                                    adc_output=adc_output,
-                                                                                    trigger_filter=trigger_filter,
-                                                                                    upsampling_factor=upsampling_factor,
-                                                                                    window=window,
-                                                                                    averaging_divisor=averaging_divisor,
-                                                                                    step=step,
-                                                                                    apply_digitization=apply_digitization,
-                                                                                    upsampling_method=upsampling_method,
-                                                                                    coeff_gain=coeff_gain,
-                                                                                    filter_taps=filter_taps,
-                                                                                    saturation_bits=saturation_bits
-                                                                                    )
+            is_triggered, trigger_delays, trigger_time, trigger_times, \
+                maximum_amps, n_triggers, triggered_beams = self.phased_trigger(
+                    station=station,
+                    det=det,
+                    Vrms=Vrms,
+                    threshold=threshold,
+                    trigger_channels=trigger_channels,
+                    phasing_angles=phasing_angles,
+                    ref_index=ref_index,
+                    trigger_adc=trigger_adc,
+                    clock_offset=clock_offset,
+                    adc_output=adc_output,
+                    trigger_filter=trigger_filter,
+                    upsampling_factor=upsampling_factor,
+                    window=window,
+                    averaging_divisor=averaging_divisor,
+                    step=step,
+                    apply_digitization=apply_digitization,
+                    upsampling_method=upsampling_method,
+                    coeff_gain=coeff_gain,
+                    filter_taps=filter_taps,
+                    saturation_bits=saturation_bits
+            )
 
         # Create a trigger object to be returned to the station
 
@@ -400,11 +393,13 @@ class triggerSimulator(PhasedArrayBase):
             maximum_amps=maximum_amps
         )
 
-
         trigger.set_triggered(is_triggered)
 
         if is_triggered:
-            #trigger_time(s)= time(s) from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction; time offset to interaction time (channel_trace_start_time) already recognized in self.phased_trigger
+            #trigger_time(s)= time(s) from start of trace + start time of trace with
+            # respect to moment of first interaction = trigger time from moment of first
+            # interaction; time offset to interaction time (channel_trace_start_time)
+            # already recognized in self.phased_trigger
             trigger.set_trigger_time(trigger_time)
             trigger.set_trigger_times(trigger_times)
         else:

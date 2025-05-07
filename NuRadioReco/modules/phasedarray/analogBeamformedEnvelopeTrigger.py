@@ -26,22 +26,23 @@ class triggerSimulator(PhasedArrayBase):
     and https://elog.phys.hawaii.edu/elog/anita_notes/080827_041639/powertrigger.pdf
     """
 
-    def envelope_trigger(self,
-                         station,
-                         det,
-                         phasing_angles,
-                         ref_index,
-                         triggered_channels,
-                         envelope_type="diode",
-                         threshold_factor=None,
-                         power_mean=None,
-                         power_std=None,
-                         output_passband=(None, 200 * units.MHz),
-                         threshold=None,
-                         trigger_adc=False,
-                         apply_digitization=False,
-                         adc_output="voltage"
-                         ):
+    def envelope_trigger(
+            self,
+            station,
+            det,
+            phasing_angles,
+            ref_index,
+            triggered_channels,
+            envelope_type="diode",
+            threshold_factor=None,
+            power_mean=None,
+            power_std=None,
+            output_passband=(None, 200 * units.MHz),
+            threshold=None,
+            trigger_adc=False,
+            apply_digitization=False,
+            adc_output="voltage"
+        ):
         """
         Calculates the envelope trigger for a certain phasing configuration.
         Beams are formed. Then, each channel to be phased is filtered with a
@@ -110,7 +111,6 @@ class triggerSimulator(PhasedArrayBase):
                 times += channel.get_trace_start_time()
 
             else:
-
                 trace = diode.tunnel_diode(channel)  # get the enveloped trace
                 times = np.copy(channel.get_times())  # get the corresponding time bins
 
@@ -127,12 +127,10 @@ class triggerSimulator(PhasedArrayBase):
 
         trigger_time = None
         trigger_times = {}
-        channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
-
         trigger_delays = {}
-        maximum_amps = np.zeros(len(phased_traces))
         n_trigs = 0
         triggered_beams = []
+        maximum_amps = np.zeros(len(phased_traces))
 
         for iTrace, phased_trace in enumerate(phased_traces):
             is_triggered = False
@@ -154,7 +152,7 @@ class triggerSimulator(PhasedArrayBase):
 
             triggered_beams.append(is_triggered)
 
-        is_triggered=np.any(triggered_beams)
+        is_triggered = np.any(triggered_beams)
 
         if is_triggered:
             logger.debug("Trigger condition satisfied!")
@@ -237,42 +235,42 @@ class triggerSimulator(PhasedArrayBase):
             True if the triggering condition is met
         """
 
-        if (triggered_channels is None):
+        if triggered_channels is None:
             triggered_channels = [channel.get_id() for channel in station.iter_channels()]
 
-        if (power_mean is None) or (power_std is None):
-            error_msg = 'The power_mean or power_std parameters are not defined. '
-            error_msg += 'Please define them. You can use the calculate_noise_parameters '
-            error_msg += 'function in utilities.diodeSimulator to do so.'
-            raise ValueError(error_msg)
+        if power_mean is None or power_std is None:
+            raise ValueError('The power_mean or power_std parameters are not defined. '
+                'Please define them. You can use the calculate_noise_parameters '
+                'function in utilities.diodeSimulator to do so.')
 
         if set_not_triggered:
-
             is_triggered = False
             trigger_delays = {}
 
         else:
+            logger.debug("primary channels: {}".format(triggered_channels))
 
-            logger.debug("primary channels:", triggered_channels)
+            is_triggered, trigger_delays, trigger_time, trigger_times, n_triggers = self.envelope_trigger(
+                station,
+                det,
+                phasing_angles,
+                ref_index,
+                triggered_channels=triggered_channels,
+                threshold_factor=threshold_factor,
+                power_mean=power_mean,
+                power_std=power_std,
+                output_passband=output_passband,
+                threshold=threshold,
+                trigger_adc=trigger_adc,
+                apply_digitization=apply_digitization,
+                adc_output=adc_output
+            )
 
-            is_triggered, trigger_delays, trigger_time, \
-                trigger_times, n_triggers = self.envelope_trigger(station,
-                                                                    det,
-                                                                    phasing_angles,
-                                                                    ref_index,
-                                                                    triggered_channels=triggered_channels,
-                                                                    threshold_factor=threshold_factor,
-                                                                    power_mean=power_mean,
-                                                                    power_std=power_std,
-                                                                    output_passband=output_passband,
-                                                                    threshold=threshold,
-                                                                    trigger_adc=trigger_adc,
-                                                                    apply_digitization=apply_digitization,
-                                                                    adc_output=adc_output)
+        trigger = AnalogEnvelopePhasedTrigger(
+            trigger_name, threshold_factor, power_mean, power_std,
+            triggered_channels, phasing_angles, trigger_delays,
+            output_passband)
 
-        trigger = AnalogEnvelopePhasedTrigger(trigger_name, threshold_factor, power_mean, power_std,
-                                        triggered_channels, phasing_angles, trigger_delays,
-                                        output_passband)
         trigger.set_triggered(is_triggered)
 
         if is_triggered:

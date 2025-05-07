@@ -113,13 +113,11 @@ class triggerSimulator(PhasedArrayBase):
             the maximum value of all the integration windows for each of the phased waveforms
         """
 
-        if(triggered_channels is None):
+        if triggered_channels is None:
             triggered_channels = [channel.get_id() for channel in station.iter_channels()]
 
-        if(adc_output != 'voltage' and adc_output != 'counts'):
-            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
-            raise ValueError(error_msg)
-
+        if adc_output not in ['voltage', 'counts']:
+            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
 
         is_triggered = False
         trigger_delays = {}
@@ -297,9 +295,8 @@ class triggerSimulator(PhasedArrayBase):
         if triggered_channels is None:
             triggered_channels = [channel.get_id() for channel in station.iter_channels()]
 
-        if adc_output != 'voltage' and adc_output != 'counts':
-            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
-            raise ValueError(error_msg)
+        if adc_output not in ['voltage', 'counts']:
+            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}' )
 
         is_triggered = False
         trigger_delays = {}

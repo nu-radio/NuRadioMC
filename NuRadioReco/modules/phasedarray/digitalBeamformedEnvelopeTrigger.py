@@ -161,12 +161,12 @@ class triggerSimulator(PhasedArrayBase):
             list of bools for which beams triggered
         """
 
-        if(trigger_channels is None):
+        if trigger_channels is None:
             trigger_channels = [channel.get_id() for channel in station.iter_trigger_channels()]
 
-        if(adc_output != 'voltage' and adc_output != 'counts'):
-            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
-            raise ValueError(error_msg)
+        if adc_output not in ['voltage', 'counts']:
+            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
+
 
         is_triggered = False
         trigger_delays = {}
@@ -369,12 +369,11 @@ class triggerSimulator(PhasedArrayBase):
             Count of the total number of triggers in all beamformed traces
         """
 
-        if(trigger_channels is None):
+        if trigger_channels is None:
             trigger_channels = [channel.get_id() for channel in station.iter_trigger_channels()]
 
-        if(adc_output != 'voltage' and adc_output != 'counts'):
-            error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
-            raise ValueError(error_msg)
+        if adc_output not in ['voltage', 'counts']:
+            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
 
         is_triggered = False
         trigger_delays = {}
