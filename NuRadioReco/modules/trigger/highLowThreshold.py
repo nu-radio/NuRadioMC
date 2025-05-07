@@ -14,7 +14,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
                           time_coincidence=5 * units.ns, dt=1 * units.ns,
                           step=1, align_strides_to_start=False):
     """
-    calculates a high low trigger in a time coincidence window
+    Calculates a high low trigger in a time coincidence window
 
     Parameters
     ----------
@@ -82,7 +82,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
 def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns,
                        step=1, align_strides_to_start=False):
     """
-    calculates a majority logic trigger
+    Calculates a majority logic trigger
 
     Parameters
     ----------
@@ -174,7 +174,6 @@ class triggerSimulator:
             step=1,
             align_strides_to_start=False):
         """
-        simulate ARIANNA trigger logic
 
         Parameters
         ----------
@@ -313,6 +312,8 @@ class triggerSimulator:
         station.set_trigger(trigger)
 
         self.__t += time.time() - t
+
+        return has_triggered
 
     def end(self):
         from datetime import timedelta
