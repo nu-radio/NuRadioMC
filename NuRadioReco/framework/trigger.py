@@ -1,6 +1,7 @@
-from six import iteritems
 import pickle
 import numpy as np
+from six import iteritems
+
 from NuRadioReco.utilities import units
 
 
@@ -8,15 +9,15 @@ def deserialize(triggers_pkl):
     triggers = {}
     for data_pkl in triggers_pkl:
         trigger_type = pickle.loads(data_pkl)['_trigger_type']
-        if(trigger_type == 'default'):
+        if trigger_type == 'default':
             trigger = Trigger(None)
-        elif(trigger_type == 'simple_threshold'):
+        elif trigger_type == 'simple_threshold':
             trigger = SimpleThresholdTrigger(None, None)
-        elif(trigger_type == 'high_low'):
+        elif trigger_type == 'high_low':
             trigger = HighLowTrigger(None, None, None, None, None)
-        elif(trigger_type == 'power_integration_phased'):
+        elif trigger_type == 'power_integration_phased':
             trigger = PowerIntegrationPhasedTrigger(None, None)
-        elif(trigger_type == 'envelope_trigger'):
+        elif trigger_type == 'envelope_trigger':
             trigger = EnvelopeTrigger(None, None, None, None)
         elif trigger_type == 'int_power':
             trigger = IntegratedPowerTrigger(None, None, None)
@@ -24,12 +25,14 @@ def deserialize(triggers_pkl):
             trigger  = AnalogEnvelopePhasedTrigger(None, None, None, None)
         elif trigger_type == 'analog_envelope_phased':
             trigger  = DigitalEnvelopePhasedTrigger(None, None, None)
-        elif(trigger_type == 'rnog_surface_trigger'):
+        elif trigger_type == 'rnog_surface_trigger':
             trigger = RNOGSurfaceTrigger(None, None, None, None)
         else:
             raise ValueError("unknown trigger type")
+
         trigger.deserialize(data_pkl)
         triggers[trigger.get_name()] = trigger
+
     return triggers
 
 
@@ -535,7 +538,7 @@ class EnvelopeTrigger(Trigger):
         self._coinc_window = channel_coincidence_window
 
 class RNOGSurfaceTrigger(Trigger):
-    from NuRadioReco.utilities import units
+
     def __init__(self, name, threshold, number_of_coincidences=1,
                  channel_coincidence_window=60*units.ns, channels=[13, 16, 19],
                  temperature=250*units.kelvin, Vbias=2*units.volt, pre_trigger_times=55 * units.ns):

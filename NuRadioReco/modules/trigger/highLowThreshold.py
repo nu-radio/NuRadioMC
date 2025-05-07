@@ -158,6 +158,11 @@ class triggerSimulator:
             Options:
             * 'voltage' to store the ADC output as discretised voltage trace
             * 'counts' to store the ADC output in ADC counts
+
+        Returns
+        -------
+        has_triggered: bool
+            True if the trigger condition was met
         """
         t = time.time()
 
