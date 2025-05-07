@@ -19,6 +19,82 @@ logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 maxsize = 1024
 
+def get_array_of_channels(station, use_channels, det, zenith, azimuth,
+                          antenna_pattern_provider, time_domain=False):
+    """Returns the efield antenna factor and traces in frequency domain (and time domain if requested)."""
+    time_shifts = np.zeros(len(use_channels))
+    t_cables = np.zeros(len(use_channels))
+    t_geos = np.zeros(len(use_channels))
+
+    station_id = station.get_id()
+    site = det.get_site(station_id)
+    for iCh, channel in enumerate(station.iter_channels(use_channels)):
+        channel_id = channel.get_id()
+
+        antenna_position = det.get_relative_position(station_id, channel_id)
+        # determine refractive index of signal propagation speed between antennas
+        refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
+        if station.is_cosmic_ray():
+            if(zenith > 0.5 * np.pi):
+                refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
+        if station.is_neutrino():
+            refractive_index = ice.get_refractive_index(antenna_position[2], site)
+        time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
+        t_geos[iCh] = time_shift
+        t_cables[iCh] = channel.get_trace_start_time()
+        logger.debug("time shift channel {}: {:.2f}ns (signal prop), {:.2f}ns (trace start time)".format(channel.get_id(), time_shift, channel.get_trace_start_time()))
+        time_shift += channel.get_trace_start_time()
+        time_shifts[iCh] = time_shift
+
+    delta_t = time_shifts.max() - time_shifts.min()
+    tmin = time_shifts.min()
+    tmax = time_shifts.max()
+    logger.debug("adding relative station time = {:.0f}ns".format((t_cables.min() + t_geos.max()) / units.ns))
+    logger.debug("delta t is {:.2f}".format(delta_t / units.ns))
+    trace_length = station.get_channel(use_channels[0]).get_times()[-1] - station.get_channel(use_channels[0]).get_times()[0]
+    debug_cut = 0
+    if(debug_cut):
+        fig, ax = plt.subplots(len(use_channels), 1)
+
+    traces = []
+    n_samples = None
+    for iCh, channel in enumerate(station.iter_channels(use_channels)):
+        tstart = delta_t - (time_shifts[iCh] - tmin)
+        tstop = tmax - time_shifts[iCh] - delta_t + trace_length
+        iStart = int(round(tstart * channel.get_sampling_rate()))
+        iStop = int(round(tstop * channel.get_sampling_rate()))
+        if(n_samples is None):
+            n_samples = iStop - iStart
+            if(n_samples % 2):
+                n_samples -= 1
+
+        trace = copy.copy(channel.get_trace())  # copy to not modify data structure
+        trace = trace[iStart:(iStart + n_samples)]
+        if(debug_cut):
+            ax[iCh].plot(trace)
+        base_trace = NuRadioReco.framework.base_trace.BaseTrace()  # create base trace class to do the fft with correct normalization etc.
+        base_trace.set_trace(trace, channel.get_sampling_rate())
+        traces.append(base_trace)
+    times = traces[0].get_times()  # assumes that all channels have the same sampling rate
+    if(time_domain):  # save time domain traces first to avoid extra fft
+        V_timedomain = np.zeros((len(use_channels), len(times)))
+        for iCh, trace in enumerate(traces):
+            V_timedomain[iCh] = trace.get_trace()
+    frequencies = traces[0].get_frequencies()  # assumes that all channels have the same sampling rate
+    V = np.zeros((len(use_channels), len(frequencies)), dtype=complex)
+    for iCh, trace in enumerate(traces):
+        V[iCh] = trace.get_frequency_spectrum()
+
+    efield_antenna_factor = signal_processing.get_efield_antenna_factor(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
+
+    if(debug_cut):
+        plt.show()
+
+    if(time_domain):
+        return efield_antenna_factor, V, V_timedomain
+
+    return efield_antenna_factor, V
+
 def stacked_lstsq(L, b, rcond=1e-10):
     """
     Solve L x = b, via SVD least squares cutting of small singular values
@@ -178,7 +254,7 @@ class voltageToEfieldConverter:
 
         return efield_antenna_factor
 
-    def get_array_of_channels(self, station, use_channels, det, zenith, azimuth,
+    def get_array_of_channels_cached(self, station, use_channels, det, zenith, azimuth,
                           antenna_pattern_provider, time_domain=False):
         time_shifts = np.zeros(len(use_channels))
         t_cables = np.zeros(len(use_channels))
@@ -310,7 +386,10 @@ class voltageToEfieldConverter:
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
 
-        efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider)
+        if not self.__caching:
+            efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider)
+        else:
+            efield_antenna_factor, V = self.get_array_of_channels_cached(station, use_channels, det, zenith, azimuth, self.antenna_provider)
         n_frequencies = len(V[0])
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[-1][0])
         mask = np.abs(denom) != 0
