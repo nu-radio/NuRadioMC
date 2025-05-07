@@ -3,8 +3,10 @@ import numpy as np
 from scipy import constants
 
 from NuRadioReco.utilities import units
+from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 
-logger = logging.getLogger('NuRadioReco.PhasedTriggerBase')
+
+logger = logging.getLogger('NuRadioReco.PhasedArrayTriggerBase')
 cspeed = constants.c * units.m / units.s
 
 class PhasedArrayBase():
@@ -16,6 +18,7 @@ class PhasedArrayBase():
         self.__pre_trigger_time = None
         self.__debug = None
         logger.setLevel(log_level)
+        self._adc_to_digital_converter = analogToDigitalConverter()
         self.begin()
 
     def begin(self, debug=False, pre_trigger_time=100 * units.ns):

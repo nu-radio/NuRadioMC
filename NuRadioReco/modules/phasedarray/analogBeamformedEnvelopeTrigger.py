@@ -3,7 +3,6 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import AnalogEnvelopePhasedTrigger
 from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase
 from NuRadioReco.utilities.diodeSimulator import diodeSimulator
-from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import numpy as np
 from scipy import constants
 import logging
@@ -91,7 +90,6 @@ class triggerSimulator(PhasedArrayBase):
         station_id = station.get_id()
 
         diode = diodeSimulator(output_passband)
-        ADC = analogToDigitalConverter()
 
         traces = {}
         for channel in station.iter_channels(use_channels=triggered_channels):
@@ -100,11 +98,13 @@ class triggerSimulator(PhasedArrayBase):
             time_step = 1 / channel.get_sampling_rate()
 
             if trigger_adc:
-                trace = ADC.get_digital_trace(station, det, channel,
-                                            trigger_adc=trigger_adc,
-                                            random_clock_offset=True,
-                                            adc_type='perfect_floor_comparator',
-                                            diode=diode)
+                trace = self._adc_to_digital_converter.get_digital_trace(
+                    station, det, channel,
+                    trigger_adc=trigger_adc,
+                    random_clock_offset=True,
+                    adc_type='perfect_floor_comparator',
+                    diode=diode)
+
                 time_step = 1 / det.get_channel(station_id, channel_id)['trigger_adc_sampling_frequency']
                 times = np.arange(len(trace), dtype=float) * time_step
                 times += channel.get_trace_start_time()

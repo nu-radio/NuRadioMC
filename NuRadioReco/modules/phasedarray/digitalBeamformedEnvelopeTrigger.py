@@ -3,7 +3,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.utilities import signal_processing
 from NuRadioReco.framework.trigger import DigitalEnvelopePhasedTrigger
 from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase
-from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
+
 import logging
 import numpy as np
 from scipy import constants
@@ -168,8 +168,6 @@ class triggerSimulator(PhasedArrayBase):
             error_msg = 'ADC output type must be "counts" or "voltage". Currently set to:' + str(adc_output)
             raise ValueError(error_msg)
 
-        ADC = analogToDigitalConverter()
-
         is_triggered = False
         trigger_delays = {}
 
@@ -182,14 +180,15 @@ class triggerSimulator(PhasedArrayBase):
             trace = np.array(channel.get_trace())
 
             if apply_digitization:
-                trace, adc_sampling_frequency = ADC.get_digital_trace(station, det, channel,
-                                                                  Vrms=Vrms,
-                                                                  trigger_adc=trigger_adc,
-                                                                  clock_offset=clock_offset,
-                                                                  return_sampling_frequency=True,
-                                                                  adc_type='perfect_floor_comparator',
-                                                                  adc_output=adc_output,
-                                                                  trigger_filter=None)
+                trace, adc_sampling_frequency = self._adc_to_digital_converter.get_digital_trace(
+                    station, det, channel,
+                    Vrms=Vrms,
+                    trigger_adc=trigger_adc,
+                    clock_offset=clock_offset,
+                    return_sampling_frequency=True,
+                    adc_type='perfect_floor_comparator',
+                    adc_output=adc_output,
+                    trigger_filter=None)
             else:
                 adc_sampling_frequency = channel.get_sampling_rate()
 
