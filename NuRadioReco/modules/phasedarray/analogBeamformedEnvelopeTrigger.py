@@ -1,14 +1,14 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import AnalogEnvelopePhasedTrigger
-from NuRadioReco.modules.phasedarray.phasedArray import phasedArray
+from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase
 from NuRadioReco.utilities.diodeSimulator import diodeSimulator
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import numpy as np
 from scipy import constants
 import logging
-logger = logging.getLogger('NuRadioReco.phasedTriggerSimulator')
 
+logger = logging.getLogger('NuRadioReco.phasedTriggerSimulator')
 cspeed = constants.c * units.m / units.s
 
 main_low_angle = -50. * units.deg
@@ -16,7 +16,7 @@ main_high_angle = 50. * units.deg
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
 
 
-class triggerSimulator(phasedArray):
+class triggerSimulator(PhasedArrayBase):
     """
     Calculates the trigger for a envelope phased array.
     The channels that participate in the beam forming and the pointing angle for each
@@ -26,7 +26,7 @@ class triggerSimulator(phasedArray):
     See https://arxiv.org/pdf/1903.11043.pdf
     and https://elog.phys.hawaii.edu/elog/anita_notes/080827_041639/powertrigger.pdf
     """
-    
+
     def envelope_trigger(self,
                          station,
                          det,
@@ -121,7 +121,7 @@ class triggerSimulator(phasedArray):
                                                 phasing_angles,
                                                 ref_index=ref_index,
                                                 sampling_frequency=adc_sampling_frequency)
-        
+
         phased_traces = self.phase_signals(traces, beam_rolls)
 
 
@@ -288,4 +288,3 @@ class triggerSimulator(phasedArray):
             return is_triggered, n_triggers
         else:
             return is_triggered
-

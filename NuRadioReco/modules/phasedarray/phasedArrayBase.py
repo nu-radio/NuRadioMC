@@ -1,15 +1,13 @@
-from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units
 import logging
-import scipy
 import numpy as np
 from scipy import constants
 
-logger = logging.getLogger('phasedTriggerBase')
+from NuRadioReco.utilities import units
 
+logger = logging.getLogger('NuRadioReco.PhasedTriggerBase')
 cspeed = constants.c * units.m / units.s
 
-class phasedArray():
+class PhasedArrayBase():
     """
     Base class for all phased array trigger modules.
     """

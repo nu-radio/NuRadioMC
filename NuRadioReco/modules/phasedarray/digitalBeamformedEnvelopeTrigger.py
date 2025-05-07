@@ -2,16 +2,14 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import signal_processing
 from NuRadioReco.framework.trigger import DigitalEnvelopePhasedTrigger
-from NuRadioReco.modules.phasedarray.phasedArray import phasedArray
+from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import logging
-import scipy
 import numpy as np
 from scipy import constants
 from scipy.signal import hilbert
-import matplotlib.pyplot as plt
-logger = logging.getLogger('phasedEnvelopeTriggerSimulator')
 
+logger = logging.getLogger('NuRadioReco.phasedEnvelopeTriggerSimulator')
 cspeed = constants.c * units.m / units.s
 
 main_low_angle = np.deg2rad(-55.0)
@@ -19,7 +17,7 @@ main_high_angle = -1.0 * main_low_angle
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
 
 
-class triggerSimulator(phasedArray):
+class triggerSimulator(PhasedArrayBase):
     """
     Calculates the trigger for a phased array with primary beams.
 
