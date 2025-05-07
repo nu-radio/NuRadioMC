@@ -649,7 +649,10 @@ of the brightness temperature is interpolated in between.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([skymodel, debug, n_side, freq_range, ...])</p></td>
 <td><p>Set up important parameters for the module</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector[, passband, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.get_electric_field_strength" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.get_electric_field_strength"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_electric_field_strength</span></code></a>(location, ...[, ...])</p></td>
+<td><p>Returns the electric field strength at a given location and time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run" title="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector[, passband, ...])</p></td>
 <td><p>Adds noise resulting from galactic radio emission to the channel traces</p></td>
 </tr>
 </tbody>
@@ -715,18 +718,48 @@ If None, all channels of the selected station in the detector are used.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.get_electric_field_strength">
+<span class="sig-name descname"><span class="pre">get_electric_field_strength</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#channelGalacticNoiseAdder.get_electric_field_strength"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.get_electric_field_strength" title="Link to this definition"></a></dt>
+<dd><p>Returns the electric field strength at a given location and time</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>location: tuple of floats</strong></dt><dd><p>The latitude and longitude in deg.</p>
+</dd>
+<dt><strong>obs_time: astropy.time.Time</strong></dt><dd><p>The time at which the electric field strength is calculated</p>
+</dd>
+<dt><strong>n_samples: int</strong></dt><dd><p>The number of samples in the time domain</p>
+</dd>
+<dt><strong>sampling_rate: float</strong></dt><dd><p>The sampling rate of the trace</p>
+</dd>
+<dt><strong>bandpass: list of floats, optional</strong></dt><dd><p>The lower and upper bound of the frequency range in which the electric field strength
+shall be calculated. By default no bandpass is applied (frequency range is from
+0 to sampling_rate / 2)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>electric_field_strength: float</dt><dd><p>The electric field strength at the given location and time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelGalacticNoiseAdder.get_local_coordinates">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelGalacticNoiseAdder.</span></span><span class="sig-name descname"><span class="pre">get_local_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_side</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#get_local_coordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.get_local_coordinates" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelGalacticNoiseAdder.</span></span><span class="sig-name descname"><span class="pre">get_local_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_side</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#get_local_coordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.get_local_coordinates" title="Link to this definition"></a></dt>
 <dd><p>Calculates the local coordinates of the pixels of a healpix map given the site coordinates and time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>coordinates: tuple of float</strong></dt><dd><p>The latitude and longitude of the site</p>
 </dd>
-<dt><strong>time: astropy.time.Time</strong></dt><dd><p>The time at which the observation is made (station time)</p>
+<dt><strong>obs_time: astropy.time.Time</strong></dt><dd><p>The time at which the observation is made (station time)</p>
 </dd>
 <dt><strong>n_side: int</strong></dt><dd><p>The n_side parameter of the healpix map</p>
 </dd>

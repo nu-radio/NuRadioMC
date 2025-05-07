@@ -624,24 +624,31 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.channelGalacticNoiseAdder</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">ice</span><span class="p">,</span> <span class="n">geometryUtilities</span><span class="p">,</span> <span class="n">signal_processing</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">ice</span><span class="p">,</span> <span class="n">geometryUtilities</span><span class="p">,</span> <span class="n">signal_processing</span><span class="p">,</span> <span class="n">fft</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.channel</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_station</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.antennapattern</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.constants</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.interpolate</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">redirect_stdout</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Philox</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">healpy</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.coordinates</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.channelGalacticNoiseAdder&#39;</span><span class="p">)</span>
+
+<span class="c1"># This is the maximum number caching entries for the vector effective length and</span>
+<span class="c1"># noise temperature.</span>
+<span class="n">maxsize</span> <span class="o">=</span> <span class="mi">1024</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pygdsm</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -745,9 +752,9 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="o">=</span> <span class="n">caching</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="ow">and</span> <span class="mi">12</span> <span class="o">*</span> <span class="n">n_side</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="n">maxsize</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;Caching for the vector effective length is enabled (with `maxsize=1024`) and `n_side &gt;= 10`, and thus &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Caching for the vector effective length is enabled (with `maxsize=</span><span class="si">{</span><span class="n">maxsize</span><span class="si">}</span><span class="s2">`) and `n_side=</span><span class="si">{</span><span class="n">n_side</span><span class="si">}</span><span class="s2">` is to large, and thus &quot;</span>
                 <span class="s2">&quot;it produces to many different caching entries for two antenna models to be stored of one `station_time`. &quot;</span>
                 <span class="s2">&quot;Either decrease `n_side` or increase `maxsize` (has to be done in the source code).&quot;</span><span class="p">)</span>
 
@@ -795,17 +802,23 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
             <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span><span class="p">),</span> <span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">))</span>
         <span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;generating noise temperatures&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating noise temperatures ..&quot;</span><span class="p">)</span>
 
         <span class="c1"># generating sky maps and noise temperatures from chosen sky model in given frequency range</span>
         <span class="k">for</span> <span class="n">i_freq</span><span class="p">,</span> <span class="n">noise_freq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__radio_sky</span> <span class="o">=</span> <span class="n">sky_model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">noise_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__radio_sky</span> <span class="o">=</span> <span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">ud_grade</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__radio_sky</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span><span class="p">[</span><span class="n">i_freq</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__radio_sky</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span><span class="p">[</span><span class="n">i_freq</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__radio_sky</span>
+
+        <span class="c1"># We can not already interpolate the efield amplitudes because for their normalization the</span>
+        <span class="c1"># frequency resoltion matters.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperature_funcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span><span class="p">[:,</span> <span class="n">i_pixel</span><span class="p">]),</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i_pixel</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">))</span>
+        <span class="p">])</span></div>
 
 
-
-    <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_cached_antenna_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ant_pattern</span><span class="p">,</span> <span class="n">zen</span><span class="p">,</span> <span class="n">azi</span><span class="p">,</span> <span class="o">*</span><span class="n">ant_orient</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the cached antenna reponse for a given antenna patter, antenna orientation</span>
@@ -814,6 +827,38 @@
 <span class="sd">        This module ensures that the cache is clearied if the vector `self.__freqs` changes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">ant_pattern</span><span class="o">.</span><span class="n">get_antenna_response_vectorized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">zen</span><span class="p">,</span> <span class="n">azi</span><span class="p">,</span> <span class="o">*</span><span class="n">ant_orient</span><span class="p">)</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_cached_noise_temperature_for_pixel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_pixel</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the cached electric field amplitude for a given pixel.</span>
+<span class="sd">        This wrapper is necessary as arrays and list are not</span>
+<span class="sd">        hashable (i.e., can not be used as arguments in functions one wants to cache).</span>
+<span class="sd">        This module ensures that the cache is clearied if the vector `self.__freqs` changes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperature_funcs</span><span class="p">[</span><span class="n">i_pixel</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freqs</span><span class="p">):</span>
+        <span class="c1"># If we cache the antenna pattern / sky noise temperature, we need to make sure that the frequencies have not changed</span>
+        <span class="c1"># between stations. If they have, we need to clear the cache.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">freqs</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_noise_temperature_for_pixel</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;Frequencies have changed (array length). Clearing antenna response / efield cache. &quot;</span>
+                        <span class="s2">&quot;(If this happens often, something might be wrong...&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_noise_temperature_for_pixel</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;Frequencies have changed (values). Clearing antenna response / efield cache. &quot;</span>
+                        <span class="s2">&quot;(If this happens often, something might be wrong...&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="channelGalacticNoiseAdder.run">
@@ -870,30 +915,12 @@
 
         <span class="n">freqs</span> <span class="o">=</span> <span class="n">last_freqs</span>
 
-        <span class="c1"># If we cache the antenna pattern, we need to make sure that the frequencies have not changed</span>
-        <span class="c1"># between stations. If they have, we need to clear the cache.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">freqs</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Frequencies have changed (array length). Clearing antenna response cache. &quot;</span>
-                        <span class="s2">&quot;(If this happens often, something might be wrong...&quot;</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Frequencies have changed (values). Clearing antenna response cache. &quot;</span>
-                        <span class="s2">&quot;(If this happens often, something might be wrong...&quot;</span><span class="p">)</span>
-
-
         <span class="k">if</span> <span class="n">passband</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">passband</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">]</span>
 
         <span class="n">passband_filter</span> <span class="o">=</span> <span class="p">(</span><span class="n">freqs</span> <span class="o">&gt;</span> <span class="n">passband</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">freqs</span> <span class="o">&lt;</span> <span class="n">passband</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_cache</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">])</span>
 
         <span class="n">site_latitude</span><span class="p">,</span> <span class="n">site_longitude</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_site_coordinates</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
         <span class="n">station_time</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_station_time</span><span class="p">()</span>
@@ -926,9 +953,10 @@
             <span class="k">if</span> <span class="n">fresnel_zenith</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>
 
-            <span class="n">temperature_interpolator</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span><span class="p">[:,</span> <span class="n">i_pixel</span><span class="p">]),</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">)</span>
-            <span class="n">noise_temperature</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">temperature_interpolator</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
+                <span class="n">noise_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_noise_temperature_for_pixel</span><span class="p">(</span><span class="n">i_pixel</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">noise_temperature</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperature_funcs</span><span class="p">[</span><span class="n">i_pixel</span><span class="p">](</span><span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">]))</span>
 
             <span class="n">efield_amplitude</span> <span class="o">=</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">get_electric_field_from_temperature</span><span class="p">(</span>
                 <span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">],</span> <span class="n">noise_temperature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solid_angle</span><span class="p">)</span>
@@ -990,16 +1018,79 @@
                         <span class="n">freqs</span><span class="p">,</span> <span class="n">curr_fresnel_zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="o">*</span><span class="n">antenna_orientation</span><span class="p">)</span>
 
                 <span class="n">channel_noise_spectrum</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-                    <span class="o">+</span> <span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span>
                 <span class="p">)</span>
 
                 <span class="c1"># add noise spectrum from pixel in the sky to channel spectrum</span>
-                <span class="n">channel_spectra</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">+=</span> <span class="n">channel_noise_spectrum</span>
+                <span class="n">channel_spectra</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()][</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">+=</span> <span class="n">channel_noise_spectrum</span>
 
         <span class="c1"># store the updated channel spectra</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="n">use_channels</span><span class="o">=</span><span class="n">selected_channel_ids</span><span class="p">):</span>
             <span class="n">channel</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">channel_spectra</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()],</span> <span class="s2">&quot;same&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="channelGalacticNoiseAdder.get_electric_field_strength">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.get_electric_field_strength">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_electric_field_strength</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">obs_time</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">bandpass</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the electric field strength at a given location and time</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        location: tuple of floats</span>
+<span class="sd">            The latitude and longitude in deg.</span>
+<span class="sd">        obs_time: astropy.time.Time</span>
+<span class="sd">            The time at which the electric field strength is calculated</span>
+<span class="sd">        n_samples: int</span>
+<span class="sd">            The number of samples in the time domain</span>
+<span class="sd">        sampling_rate: float</span>
+<span class="sd">            The sampling rate of the trace</span>
+<span class="sd">        bandpass: list of floats, optional</span>
+<span class="sd">            The lower and upper bound of the frequency range in which the electric field strength</span>
+<span class="sd">            shall be calculated. By default no bandpass is applied (frequency range is from</span>
+<span class="sd">            0 to sampling_rate / 2)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        electric_field_strength: float</span>
+<span class="sd">            The electric field strength at the given location and time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">local_coordinates</span> <span class="o">=</span> <span class="n">get_local_coordinates</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">obs_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">bandpass</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bandpass</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">sampling_rate</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+
+        <span class="n">window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">window</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">bandpass</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">freqs</span> <span class="o">&lt;</span> <span class="n">bandpass</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_cache</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="n">window</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">i_pixel</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">)):</span>
+            <span class="n">zenith</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.</span> <span class="o">-</span> <span class="n">local_coordinates</span><span class="p">[</span><span class="n">i_pixel</span><span class="p">]</span><span class="o">.</span><span class="n">alt</span><span class="o">.</span><span class="n">rad</span> <span class="c1"># this is the in-air zenith</span>
+
+            <span class="k">if</span> <span class="n">zenith</span> <span class="o">&gt;</span> <span class="mf">90.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
+                <span class="n">noise_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_noise_temperature_for_pixel</span><span class="p">(</span><span class="n">i_pixel</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">noise_temperature</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperature_funcs</span><span class="p">[</span><span class="n">i_pixel</span><span class="p">](</span><span class="n">freqs</span><span class="p">[</span><span class="n">window</span><span class="p">]))</span>
+
+            <span class="n">efield_amplitude</span> <span class="o">=</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">get_electric_field_from_temperature</span><span class="p">(</span>
+                <span class="n">freqs</span><span class="p">[</span><span class="n">window</span><span class="p">],</span> <span class="n">noise_temperature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solid_angle</span><span class="p">)</span>
+
+
+            <span class="n">phases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">efield_amplitude</span><span class="p">))</span>
+            <span class="n">spectrum_pixel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phases</span><span class="p">)</span> <span class="o">*</span> <span class="n">efield_amplitude</span>
+            <span class="n">spectrum</span><span class="p">[</span><span class="n">window</span><span class="p">]</span> <span class="o">+=</span> <span class="n">spectrum_pixel</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">))</span></div>
 </div>
 
 
@@ -1007,7 +1098,7 @@
 <div class="viewcode-block" id="get_local_coordinates">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#NuRadioReco.modules.channelGalacticNoiseAdder.get_local_coordinates">[docs]</a>
 <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_local_coordinates</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">n_side</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_local_coordinates</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">obs_time</span><span class="p">,</span> <span class="n">n_side</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the local coordinates of the pixels of a healpix map given the site coordinates and time.</span>
 
@@ -1015,7 +1106,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    coordinates: tuple of float</span>
 <span class="sd">        The latitude and longitude of the site</span>
-<span class="sd">    time: astropy.time.Time</span>
+<span class="sd">    obs_time: astropy.time.Time</span>
 <span class="sd">        The time at which the observation is made (station time)</span>
 <span class="sd">    n_side: int</span>
 <span class="sd">        The n_side parameter of the healpix map</span>
@@ -1026,21 +1117,23 @@
 <span class="sd">        The local coordinates of the pixels of the healpix map</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">site_latitude</span><span class="p">,</span> <span class="n">site_longitude</span> <span class="o">=</span> <span class="n">coordinates</span>
-    <span class="n">site_location</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">EarthLocation</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="n">site_latitude</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
-                                                        <span class="n">lon</span><span class="o">=</span><span class="n">site_longitude</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+    <span class="n">site_location</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">EarthLocation</span><span class="p">(</span>
+        <span class="n">lat</span><span class="o">=</span><span class="n">site_latitude</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">lon</span><span class="o">=</span><span class="n">site_longitude</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
 
-    <span class="n">local_cs</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">AltAz</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">site_location</span><span class="p">,</span> <span class="n">obstime</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
+    <span class="n">local_cs</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">AltAz</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">site_location</span><span class="p">,</span> <span class="n">obstime</span><span class="o">=</span><span class="n">obs_time</span><span class="p">)</span>
 
     <span class="n">pixel_longitudes</span><span class="p">,</span> <span class="n">pixel_latitudes</span> <span class="o">=</span> <span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">pix2ang</span><span class="p">(</span>
         <span class="n">n_side</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="n">n_side</span><span class="p">)),</span> <span class="n">lonlat</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+    <span class="c1"># convert from deg to rad (NuRadio units)</span>
     <span class="n">pixel_longitudes</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
     <span class="n">pixel_latitudes</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
 
-    <span class="n">galactic_coordinates</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">Galactic</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="n">pixel_longitudes</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
-                                                        <span class="n">b</span><span class="o">=</span><span class="n">pixel_latitudes</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">)</span>
-    <span class="n">local_coordinates</span> <span class="o">=</span> <span class="n">galactic_coordinates</span><span class="o">.</span><span class="n">transform_to</span><span class="p">(</span><span class="n">local_cs</span><span class="p">)</span>
+    <span class="c1"># pass as astropy quantities</span>
+    <span class="n">galactic_coordinates</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">Galactic</span><span class="p">(</span>
+        <span class="n">l</span><span class="o">=</span><span class="n">pixel_longitudes</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="n">pixel_latitudes</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">)</span>
 
+    <span class="n">local_coordinates</span> <span class="o">=</span> <span class="n">galactic_coordinates</span><span class="o">.</span><span class="n">transform_to</span><span class="p">(</span><span class="n">local_cs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">local_coordinates</span></div>
 
 </pre></div>
