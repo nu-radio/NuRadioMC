@@ -109,8 +109,8 @@ def get_ccnc(n_events, rnd=None, model="hedis_bgr18", energy=None):
     ccnc: array
         Array with 'cc' or 'nc'
 
-    Also see
-    ---------
+    See Also
+    --------
     NuRadioMC.utilities.cross_sections.get_nu_cross_section
     """
     rnd = rnd or np.random.default_rng()
