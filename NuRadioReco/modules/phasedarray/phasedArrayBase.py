@@ -52,12 +52,12 @@ class PhasedArrayBase():
 
         return ant_pos
 
-    def calculate_time_delays(self, station, det,
-                                triggered_channels,
-                                phasing_angles=None,
-                                ref_index=1.75,
-                                sampling_frequency=None):
-
+    def calculate_time_delays(
+            self, station, det,
+            triggered_channels,
+            phasing_angles=None,
+            ref_index=1.75,
+            sampling_frequency=None):
         """
         Calculates the delays needed for phasing the array.
 
@@ -82,7 +82,7 @@ class PhasedArrayBase():
         beam_rolls: array of dicts of keys=antenna and content=delay
         """
 
-        if(triggered_channels is None):
+        if triggered_channels is None:
             triggered_channels = [channel.get_id() for channel in station.iter_trigger_channels()]
 
         time_step = 1. / sampling_frequency
@@ -169,7 +169,7 @@ class PhasedArrayBase():
         ant_y = np.fromiter(self.get_antenna_positions(station, det, triggered_channels, 1).values(), dtype=float)
         diff_y = np.abs(ant_y - ant_y[0])
 
-        if (sum(diff_x) > cut or sum(diff_y) > cut):
+        if sum(diff_x) > cut or sum(diff_y) > cut:
             raise NotImplementedError('The phased triggering array should lie on a vertical line')
 
     def phase_signals(self, traces, beam_rolls, adc_output="voltage", saturation_bits=None):
@@ -200,7 +200,7 @@ class PhasedArrayBase():
                 trace = traces[channel_id]
                 phased_trace += np.roll(trace, subbeam_rolls[channel_id])
 
-            if(adc_output == 'counts') and (saturation_bits is not None):
+            if adc_output == 'counts' and saturation_bits is not None:
                 phased_trace[phased_trace>2**(saturation_bits-1)-1] = 2**(saturation_bits-1) - 1
                 phased_trace[phased_trace<-2**(saturation_bits-1)] = -2**(saturation_bits-1)
 
