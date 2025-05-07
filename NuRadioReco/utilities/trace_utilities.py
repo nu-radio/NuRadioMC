@@ -383,19 +383,27 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
     sum_trace: 1-D array of floats
         CSW of the set of traces
     """
-    sum_trace = ref_trace
-
-    for idx, trace in enumerate(trace_set):
+    # Normalize: subtract mean, divide by std (z-score)
+    def process(trace):
         if use_envelope:
-            sig_ref = get_hilbert_envelope(ref_trace)
-            sig_i = get_hilbert_envelope(trace)
-        else:
-            sig_ref = ref_trace
-            sig_i = trace
-        cor = scipy.signal.correlate(sig_ref, sig_i, mode = "full")
-        lag = int(np.argmax((cor)) - (np.size(cor)/2.))
+            trace = get_hilbert_envelope(trace)
+        return (trace - np.mean(trace, axis=-1, keepdims=True)) / np.std(trace, axis=-1, keepdims=True)
 
-        aligned_trace = np.roll(trace, lag)
+    n_samples = len(ref_trace)
+    ref_processed = process(ref_trace)
+
+    # Process all traces
+    trace_set = np.stack(trace_set)  # Make sure it's 2D
+    traces_processed = process(trace_set)
+
+    sum_trace = np.copy(ref_trace)
+
+    lag_array = scipy.signal.correlation_lags(n_samples, n_samples, mode='full')
+
+    for i, trace in enumerate(trace_set):
+        corr = scipy.signal.correlate(ref_processed, traces_processed[i], mode='full') / n_samples
+        best_lag = lag_array[np.argmax(corr)]
+        aligned_trace = np.roll(trace, best_lag)
         sum_trace += aligned_trace
 
     return sum_trace
@@ -449,6 +457,26 @@ def get_kurtosis(trace):
     """
     kurtosis = scipy.stats.kurtosis(trace)
     return kurtosis
+
+
+def get_teager_kaiser_energy(trace):
+    """
+    Uses the Teager-Kaiser Energy Operator (TKEO) on a trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+
+    Returns
+    -------
+    np.abs(tkeo): array of floats
+        TKEO of the input trace
+    """
+    tkeo = np.zeros_like(trace)
+    tkeo[1:-1] = trace[1:-1]**2 - trace[0:-2] * trace[2:]
+
+    return np.abs(tkeo)
 
 
 def is_NAN_or_INF(trace):
