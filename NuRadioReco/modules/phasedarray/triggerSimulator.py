@@ -1,5 +1,5 @@
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
 from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase
@@ -113,60 +113,28 @@ class triggerSimulator(PhasedArrayBase):
             the maximum value of all the integration windows for each of the phased waveforms
         """
 
-        if triggered_channels is None:
-            triggered_channels = [channel.get_id() for channel in station.iter_channels()]
+        traces, adc_sampling_frequency = self.get_traces(
+            station, det,
+            triggered_channels=triggered_channels,
+            apply_digitization=apply_digitization,
+            adc_kwargs=dict(
+                Vrms=Vrms, trigger_adc=trigger_adc, clock_offset=clock_offset,
+                return_sampling_frequency=True, adc_type='perfect_floor_comparator',
+                adc_output=adc_output, trigger_filter=None),
+            upsampling_kwargs=dict(
+                upsampling_factor=upsampling_factor,
+                upsampling_method="fft")
+        )
 
-        if adc_output not in ['voltage', 'counts']:
-            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
+        time_step = 1.0 / adc_sampling_frequency
 
         is_triggered = False
-        trigger_delays = {}
-
-        logger.debug(f"trigger channels: {triggered_channels}")
-
-        traces = {}
-        for channel in station.iter_channels(use_channels=triggered_channels):
-            channel_id = channel.get_id()
-
-            trace = np.array(channel.get_trace())
-
-            if apply_digitization:
-                trace, adc_sampling_frequency = self._adc_to_digital_converter.get_digital_trace(
-                    station, det, channel, Vrms=Vrms, trigger_adc=trigger_adc, clock_offset=clock_offset,
-                    return_sampling_frequency=True, adc_type='perfect_floor_comparator',
-                    adc_output=adc_output, trigger_filter=None)
-            else:
-                adc_sampling_frequency = channel.get_sampling_rate()
-
-            # Upsampling here, linear interpolate to mimic an FPGA internal upsampling
-            if not isinstance(upsampling_factor, int):
-                try:
-                    upsampling_factor = int(upsampling_factor)
-                except:
-                    raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
-
-            if(upsampling_factor >= 2):
-                # FFT upsampling
-                new_len = len(trace) * upsampling_factor
-                upsampled_trace = scipy.signal.resample(trace, new_len)
-
-                #  If upsampled is performed, the final sampling frequency changes
-                trace = upsampled_trace[:]
-
-                if(len(trace) % 2 == 1):
-                    trace = trace[:-1]
-
-                adc_sampling_frequency *= upsampling_factor
-
-            time_step = 1.0 / adc_sampling_frequency
-
-            traces[channel_id] = trace[:]
-
-        beam_rolls = self.calculate_time_delays(station, det,
-                                                triggered_channels,
-                                                phasing_angles,
-                                                ref_index=ref_index,
-                                                sampling_frequency=adc_sampling_frequency)
+        beam_rolls = self.calculate_time_delays(
+            station, det,
+            triggered_channels,
+            phasing_angles,
+            ref_index=ref_index,
+            sampling_frequency=adc_sampling_frequency)
 
         phased_traces = self.phase_signals(traces, beam_rolls)
 
@@ -291,13 +259,6 @@ class triggerSimulator(PhasedArrayBase):
         is_triggered: bool
             True if the triggering condition is met
         """
-
-        if triggered_channels is None:
-            triggered_channels = [channel.get_id() for channel in station.iter_channels()]
-
-        if adc_output not in ['voltage', 'counts']:
-            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}' )
-
         is_triggered = False
         trigger_delays = {}
 

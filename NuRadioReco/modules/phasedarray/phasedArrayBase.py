@@ -2,7 +2,7 @@ import logging
 import numpy as np
 from scipy import constants
 
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 
 
@@ -273,5 +273,63 @@ class PhasedArrayBase():
 
         return return_power, num_frames
 
-    def end(self):
-        pass
+    def get_traces(self, station, det, trigger_channels=None,
+            apply_digitization=False, adc_kwargs={},
+            upsampling_kwargs={}):
+        """
+        Get the traces from the station object
+
+        Parameters
+        ----------
+        station: Station object
+            Description of the current station
+        det: Detector object
+            Description of the current detector
+        trigger_channels: array of ints (default: None)
+            channels ids of the channels that form the primary phasing array
+            if None, all channels are taken
+        apply_digitization: bool
+            If True, the traces are digitized
+        adc_kwargs: dict
+            Keyword arguments for the ADC
+        upsampling_kwargs: dict
+            Keyword arguments for the upsampling function
+
+        Returns
+        -------
+        traces: 2D array of floats
+            Signals from the antennas to be phased together.
+        sampling_frequency: float
+            Sampling frequency of the traces
+        """
+
+        adc_output = adc_kwargs.get('adc_output', None)
+        if adc_output not in ['voltage', 'counts']:
+            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
+
+        traces = {}
+        final_sampling_frequency = None
+        for channel in station.iter_trigger_channels(use_channels=trigger_channels):
+            if apply_digitization:
+                trace, adc_sampling_frequency = self._adc_to_digital_converter.get_digital_trace(
+                    station, det, channel, **adc_kwargs)
+            else:
+                adc_sampling_frequency = channel.get_sampling_rate()
+                trace = channel.get_trace()
+
+            if upsampling_kwargs.get("upsampling_factor") >= 2:
+                trace, adc_sampling_frequency = signal_processing.digital_upsampling(
+                    trace, adc_sampling_frequency, **upsampling_kwargs
+                )
+
+            if final_sampling_frequency is None:
+                final_sampling_frequency = adc_sampling_frequency
+            elif final_sampling_frequency != adc_sampling_frequency:
+                raise ValueError(
+                    'Phased array channels do not have matching sampling frequencies. '
+                    'This module is not prepared for this case.')
+
+            traces[channel.get_id()] = trace
+
+        logger.debug("trigger channels: {}".format(traces.keys()))
+        return traces, final_sampling_frequency

@@ -1,6 +1,5 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities import signal_processing
 from NuRadioReco.framework.trigger import DigitalEnvelopePhasedTrigger
 from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase
 
@@ -42,47 +41,48 @@ class triggerSimulator(PhasedArrayBase):
             #firmware like
 
             #31 sample fir transformer
-            #hil=[ -0.0424413 , 0. , -0.0489708 , 0. , -0.0578745 , 0. , -0.0707355 , 0. , -0.0909457 , 0. , -0.127324 , 0.
-            #       , -0.2122066 , 0. , -0.6366198 , 0., 0.6366198 , 0. , 0.2122066 , 0. , 0.127324 ,0. , 0.0909457 , 0. , .0707355
-            #       , 0. , 0.0578745 , 0. , 0.0489708 , 0. , 0.0424413 ]
+            #hil=[-0.0424413, 0., -0.0489708, 0., -0.0578745, 0., -0.0707355, 0., -0.0909457, 0., -0.127324, 0.
+            #      , -0.2122066, 0., -0.6366198, 0., 0.6366198, 0., 0.2122066, 0., 0.127324,0., 0.0909457, 0., .0707355
+            #      , 0., 0.0578745, 0., 0.0489708, 0., 0.0424413]
 
             #middle 15 coefficients ^
-            hil = np.array([ -0.0909457 , 0. , -0.127324 , 0. , -0.2122066 , 0. , -0.6366198 , 0. , 0.6366198 , 0. , 0.2122066 ,
-                            0. , 0.127324 , 0. , 0.0909457 ])
+            hil = np.array([-0.0909457, 0., -0.127324, 0., -0.2122066, 0., -0.6366198, 0., 0.6366198, 0., 0.2122066,
+                0., 0.127324, 0., 0.0909457])
 
             if coeff_gain!=1:
                 hil = np.round(hil * coeff_gain) / coeff_gain
 
-            imag_an = np.convolve(coh_sum, hil, mode='full')[len(hil)//2 : len(coh_sum) + len(hil)//2]
+            imag_an = np.convolve(coh_sum, hil, mode='full')[len(hil) // 2 : len(coh_sum) + len(hil) // 2]
 
             if adc_output=='counts':
                 imag_an = np.rint(imag_an)
 
-            envelope = np.max(np.array((coh_sum,imag_an)), axis=0) + (3 / 8) * np.min(np.array((coh_sum,imag_an)), axis=0)
+            envelope = np.max(np.array((coh_sum, imag_an)), axis=0) + (3 / 8) * np.min(np.array((coh_sum, imag_an)), axis=0)
 
         if adc_output=='counts':
             envelope = np.rint(envelope)
 
         return envelope
 
-    def envelope_trigger(self, station, det,
-                       Vrms=None,
-                       threshold=60 * units.mV,
-                       trigger_channels=None,
-                       phasing_angles=default_angles,
-                       ref_index=1.75,
-                       trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
-                       clock_offset=0,
-                       adc_output='voltage',
-                       trigger_filter=None,
-                       upsampling_factor=1,
-                       apply_digitization=False,
-                       upsampling_method='fft',
-                       coeff_gain=128,
-                       filter_taps=31,
-                       saturation_bits=8,
-                       ideal_transformer=False
-                       ):
+    def envelope_trigger(
+            self, station, det,
+            Vrms=None,
+            threshold=60 * units.mV,
+            trigger_channels=None,
+            phasing_angles=default_angles,
+            ref_index=1.75,
+            trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
+            clock_offset=0,
+            adc_output='voltage',
+            trigger_filter=None,
+            upsampling_factor=1,
+            apply_digitization=False,
+            upsampling_method='fft',
+            coeff_gain=128,
+            filter_taps=31,
+            saturation_bits=8,
+            ideal_transformer=False
+        ):
         """
         simulates phased array trigger for each event
 
@@ -161,69 +161,37 @@ class triggerSimulator(PhasedArrayBase):
             list of bools for which beams triggered
         """
 
-        if trigger_channels is None:
-            trigger_channels = [channel.get_id() for channel in station.iter_trigger_channels()]
-
-        if adc_output not in ['voltage', 'counts']:
-            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
-
-
-        is_triggered = False
-        trigger_delays = {}
-
-        logger.debug(f"trigger channels: {trigger_channels}")
-
-        traces = {}
-        for channel in station.iter_trigger_channels(use_channels=trigger_channels):
-            channel_id = channel.get_id()
-
-            trace = np.array(channel.get_trace())
-
-            if apply_digitization:
-                trace, adc_sampling_frequency = self._adc_to_digital_converter.get_digital_trace(
-                    station, det, channel,
-                    Vrms=Vrms,
-                    trigger_adc=trigger_adc,
-                    clock_offset=clock_offset,
-                    return_sampling_frequency=True,
-                    adc_type='perfect_floor_comparator',
-                    adc_output=adc_output,
-                    trigger_filter=None)
-            else:
-                adc_sampling_frequency = channel.get_sampling_rate()
-
-            if not isinstance(upsampling_factor, int):
-                try:
-                    upsampling_factor = int(upsampling_factor)
-                except:
-                    raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
-
-            if(upsampling_factor >= 2):
-                upsampled_trace, new_sampling_frequency = signal_processing.digital_upsampling(trace, adc_sampling_frequency, upsampling_method=upsampling_method,
-                                                                            upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
-                                                                            adc_output=adc_output, filter_taps=filter_taps)
-
-                #  If upsampled is performed, the final sampling frequency changes
-                trace = upsampled_trace[:]
-
-                if(len(trace) % 2 == 1):
-                    trace = trace[:-1]
-
-            traces[channel_id] = trace[:]
-
-        adc_sampling_frequency *= upsampling_factor
+        traces, adc_sampling_frequency = self.get_traces(
+            station, det,
+            triggered_channels=trigger_channels,
+            apply_digitization=apply_digitization,
+            adc_kwargs=dict(
+                Vrms=Vrms,
+                trigger_adc=trigger_adc,
+                clock_offset=clock_offset,
+                return_sampling_frequency=True,
+                adc_type='perfect_floor_comparator',
+                adc_output=adc_output,
+                trigger_filter=None),
+            upsampling_kwargs=dict(
+                upsampling_method=upsampling_method, coeff_gain=coeff_gain,
+                upsampling_factor=upsampling_factor,
+                adc_output=adc_output, filter_taps=filter_taps
+            )
+        )
 
         time_step = 1.0 / adc_sampling_frequency
-        beam_rolls = self.calculate_time_delays(station, det,
-                                                trigger_channels,
-                                                phasing_angles,
-                                                ref_index=ref_index,
-                                                sampling_frequency=adc_sampling_frequency)
+        beam_rolls = self.calculate_time_delays(
+            station, det,
+            trigger_channels,
+            phasing_angles,
+            ref_index=ref_index,
+            sampling_frequency=adc_sampling_frequency)
 
         phased_traces = self.phase_signals(traces, beam_rolls, adc_output=adc_output, saturation_bits=saturation_bits)
 
         if adc_output == "counts":
-            threshold=np.trunc(threshold)
+            threshold = np.trunc(threshold)
 
         trigger_time = None
         trigger_times = {}
@@ -235,12 +203,12 @@ class triggerSimulator(PhasedArrayBase):
         triggered_beams = []
 
         for iTrace, phased_trace in enumerate(phased_traces):
-            is_triggered=False
+            is_triggered = False
             hilbert_env = self.hilbert_envelope(coh_sum=phased_trace, adc_output=adc_output, coeff_gain=coeff_gain, ideal_transformer=ideal_transformer)
             maximum_amps[iTrace] = np.max(hilbert_env)
 
-            if True in (hilbert_env>threshold):
-                n_trigs += len(np.where((hilbert_env > threshold)==True)[0])
+            if np.any(hilbert_env > threshold):
+                n_trigs += len(np.where((hilbert_env > threshold))[0])
                 trigger_delays[iTrace] = {}
                 for channel_id in beam_rolls[iTrace]:
                     trigger_delays[iTrace][channel_id] = beam_rolls[iTrace][channel_id] * time_step
@@ -250,7 +218,7 @@ class triggerSimulator(PhasedArrayBase):
 
             triggered_beams.append(is_triggered)
 
-        is_triggered=np.any(triggered_beams)
+        is_triggered = np.any(triggered_beams)
 
         if is_triggered:
             logger.debug("Trigger condition satisfied!")
@@ -384,25 +352,26 @@ class triggerSimulator(PhasedArrayBase):
             triggered_beams = []
         else:
             is_triggered, trigger_delays, trigger_time, trigger_times,\
-                  maximum_amps, n_triggers, triggered_beams = self.envelope_trigger(station=station,
-                                                                                    det=det,
-                                                                                    Vrms=Vrms,
-                                                                                    threshold=threshold,
-                                                                                    trigger_channels=trigger_channels,
-                                                                                    phasing_angles=phasing_angles,
-                                                                                    ref_index=ref_index,
-                                                                                    trigger_adc=trigger_adc,
-                                                                                    clock_offset=clock_offset,
-                                                                                    adc_output=adc_output,
-                                                                                    trigger_filter=trigger_filter,
-                                                                                    upsampling_factor=upsampling_factor,
-                                                                                    apply_digitization=apply_digitization,
-                                                                                    upsampling_method=upsampling_method,
-                                                                                    coeff_gain=coeff_gain,
-                                                                                    filter_taps=filter_taps,
-                                                                                    saturation_bits=saturation_bits,
-                                                                                    ideal_transformer=ideal_transformer
-                                                                                    )
+                maximum_amps, n_triggers, triggered_beams = self.envelope_trigger(
+                    station=station,
+                    det=det,
+                    Vrms=Vrms,
+                    threshold=threshold,
+                    trigger_channels=trigger_channels,
+                    phasing_angles=phasing_angles,
+                    ref_index=ref_index,
+                    trigger_adc=trigger_adc,
+                    clock_offset=clock_offset,
+                    adc_output=adc_output,
+                    trigger_filter=trigger_filter,
+                    upsampling_factor=upsampling_factor,
+                    apply_digitization=apply_digitization,
+                    upsampling_method=upsampling_method,
+                    coeff_gain=coeff_gain,
+                    filter_taps=filter_taps,
+                    saturation_bits=saturation_bits,
+                    ideal_transformer=ideal_transformer
+                    )
 
         # Create a trigger object to be returned to the station
         trigger = DigitalEnvelopePhasedTrigger(

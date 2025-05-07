@@ -82,9 +82,8 @@ def resample(trace, sampling_factor):
     resampled_trace : ndarray
         The resampled trace.
     """
-    resampling_factor = fractions.Fraction(
-        decimal.Decimal(sampling_factor)
-    ).limit_denominator(5000)
+    resampling_factor = fractions.Fraction(decimal.Decimal(sampling_factor)).limit_denominator(5000)
+
     n_samples = trace.shape[-1]
     resampled_trace = copy.copy(trace)
 
@@ -137,7 +136,6 @@ def digital_upsampling(
             - "voltage" : keep upsampled trace as floats
             - "counts" : round upsampling trace to ints
 
-
     Returns
     -------
     upsampled_trace : 1d array (float or int)
@@ -146,15 +144,17 @@ def digital_upsampling(
         New sampling frequency
     """
 
-    if np.abs(int(upsampling_factor) - upsampling_factor) > 1e-3:
-        warning_msg = "The input upsampling factor does not seem to be close to an integer."
-        warning_msg += "It has been rounded to {}".format(int(upsampling_factor))
-        logger.warning(warning_msg)
+    if abs(int(upsampling_factor) - upsampling_factor) > 1e-3:
+        logger.warning("The input upsampling factor does not seem to be close to an integer. "
+            "It has been rounded to {}".format(int(upsampling_factor)))
 
-    upsampling_factor = int(upsampling_factor)
+    try:
+        upsampling_factor = int(upsampling_factor)
+    except Exception:
+        raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
 
     if upsampling_factor <= 1:
-        error_msg = "Upsampling factor is less or equal to 1. Upsampling will not be performed."
+        logger.warning("Upsampling factor is less or equal to 1. Upsampling will not be performed.")
         upsampled_trace = trace
         new_sampling_freq = adc_sampling_frequency
 
@@ -178,10 +178,14 @@ def digital_upsampling(
             error_msg = 'Interpolation method must be lin, fft, or fir'
             raise NotImplementedError(error_msg)
 
-        if adc_output=='counts':
+        if adc_output == 'counts':
             upsampled_trace = np.round(upsampled_trace)
 
+    if len(upsampled_trace) % 2 == 1:
+        upsampled_trace = upsampled_trace[:-1]
+
     return upsampled_trace, new_sampling_freq
+
 
 def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7, coeff_gain=128):
     """

@@ -132,48 +132,24 @@ class triggerSimulator(PhasedArrayBase):
             list of bools for which beams triggered
         """
 
-        if trigger_channels is None:
-            trigger_channels = [channel.get_id() for channel in station.iter_trigger_channels()]
-        logger.debug("trigger channels: {}".format(trigger_channels))
-
-        if adc_output not in ['voltage', 'counts']:
-            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
-
-        is_triggered = False
-        trigger_delays = {}
-        traces = {}
-        for channel in station.iter_trigger_channels(use_channels=trigger_channels):
-
-            if apply_digitization:
-                trace, adc_sampling_frequency = self._adc_to_digital_converter.get_digital_trace(
-                    station, det, channel,
-                    Vrms=Vrms,
-                    trigger_adc=trigger_adc,
-                    clock_offset=clock_offset,
-                    return_sampling_frequency=True,
-                    adc_type='perfect_floor_comparator',
-                    adc_output=adc_output,
-                    trigger_filter=None)
-            else:
-                trace = channel.get_trace()
-                adc_sampling_frequency = channel.get_sampling_rate()
-
-            if not isinstance(upsampling_factor, int):
-                try:
-                    upsampling_factor = int(upsampling_factor)
-                except Exception:
-                    raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
-
-            if upsampling_factor >= 2:
-                trace, adc_sampling_frequency = signal_processing.digital_upsampling(
-                    trace, adc_sampling_frequency, upsampling_method=upsampling_method,
+        traces, adc_sampling_frequency = self.get_traces(
+            station, det,
+            triggered_channels=trigger_channels,
+            apply_digitization=apply_digitization,
+            adc_kwargs=dict(
+                Vrms=Vrms,
+                trigger_adc=trigger_adc,
+                clock_offset=clock_offset,
+                return_sampling_frequency=True,
+                adc_type='perfect_floor_comparator',
+                adc_output=adc_output,
+                trigger_filter=None),
+            upsampling_kwargs=dict(
+                    upsampling_method=upsampling_method,
                     upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
-                    adc_output=adc_output, filter_taps=filter_taps)
-
-                if(len(trace) % 2 == 1):
-                    trace = trace[:-1]
-
-            traces[channel.get_id()] = trace
+                    adc_output=adc_output, filter_taps=filter_taps
+            )
+        )
 
         time_step = 1.0 / adc_sampling_frequency
         beam_rolls = self.calculate_time_delays(
