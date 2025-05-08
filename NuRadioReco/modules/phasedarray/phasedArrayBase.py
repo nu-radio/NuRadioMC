@@ -420,12 +420,12 @@ class PhasedArrayBase():
         window: int (default 32)
             Power integration window for averaging
             Units of ADC time ticks
-        averaging_divisor: int (default 32)
-            Power integral divisor for averaging (division by 2^n much easier in firmware)
-            Units of ADC time ticks
         step: int (default 16)
             Time step in power integral. If equal to window, there is no time overlap
             in between neighboring integration windows.
+            Units of ADC time ticks
+        averaging_divisor: int (default 32)
+            Power integral divisor for averaging (division by 2^n much easier in firmware)
             Units of ADC time ticks
         ideal_transformer: bool (default False)
             TODO: Missing
