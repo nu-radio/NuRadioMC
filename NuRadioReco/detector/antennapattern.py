@@ -1351,8 +1351,8 @@ class AntennaPattern(AntennaPatternBase):
             * 'magphase' interpolate magnitude and phase of vector effective length
 
         consistency_check: bool (default: True)
-            If True, the consistency of the antenna response is checked but only if the antenna could not be
-            verifed from its hash sum. 
+            If True, the consistency of the antenna response is checked but only if antenna
+            file could not be verified (via hash sum).
         """
 
         self._name = antenna_model
@@ -1393,7 +1393,7 @@ class AntennaPattern(AntennaPatternBase):
         self.VEL_theta = H_theta
 
         if do_consistency_check and not verified:
-            logger.debug("Performing consistency check on antenna response ...")
+            logger.status("Performing consistency check on antenna response ...")
             # additional consistency check
             for iFreq, freq in enumerate(self.frequencies):
                 for iPhi, phi in enumerate(self.phi_angles):
@@ -1415,7 +1415,7 @@ class AntennaPattern(AntennaPatternBase):
                                 freq, ff[index]))
                             raise Exception("frequency has changed")
 
-        logger.status('Loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t0))
+        logger.status('Loading antenna file {} took {:.1f} seconds'.format(antenna_model, time() - t0))
 
     def _get_index(self, iFreq, iTheta, iPhi):
         """
