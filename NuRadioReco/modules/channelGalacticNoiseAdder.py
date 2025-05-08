@@ -107,8 +107,10 @@ class channelGalacticNoiseAdder:
             If True, the antenna response is cached for each channel. This can speed up this module
             by a lot. If the frequencies of the channels change, the cache is cleared.
         scaling: float, default: 1.0
-            Scaling factor for the noise. This is useful when doing interferometry with every 
-            nth antenna (in this case one would set the scaling to 1/\sqrt{n}).
+            Scaling factor for the noise. This is useful when doing interferometry with extremely large arrays
+            such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas. 
+            Instead, one can use every nth antenna and scale the noise by a factor of 1/\sqrt{n} (since the SNR 
+            is expected to scale with the square root of the number of antennas when using interferomtery/beamforming).
         """
         if debug:
             warnings.warn("This argument is deprecated and will be removed in future versions.", DeprecationWarning)
