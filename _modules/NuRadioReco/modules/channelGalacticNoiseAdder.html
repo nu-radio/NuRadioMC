@@ -711,7 +711,8 @@
             <span class="n">freq_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">interpolation_frequencies</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">caching</span><span class="o">=</span><span class="kc">True</span>
+            <span class="n">caching</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">scaling</span><span class="o">=</span><span class="mf">1.0</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set up important parameters for the module</span>
@@ -743,6 +744,11 @@
 <span class="sd">        caching: bool, default: True</span>
 <span class="sd">            If True, the antenna response is cached for each channel. This can speed up this module</span>
 <span class="sd">            by a lot. If the frequencies of the channels change, the cache is cleared.</span>
+<span class="sd">        scaling: float, default: 1.0</span>
+<span class="sd">            Scaling factor for the noise. This is useful when doing interferometry with extremely large arrays</span>
+<span class="sd">            such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas. </span>
+<span class="sd">            Instead, one can use every nth antenna and scale the noise by a factor of 1/\sqrt{n} (since the SNR </span>
+<span class="sd">            is expected to scale with the square root of the number of antennas when using interferomtery/beamforming).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This argument is deprecated and will be removed in future versions.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
@@ -752,6 +758,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">solid_angle</span> <span class="o">=</span> <span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">nside2pixarea</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="o">=</span> <span class="n">caching</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span> <span class="o">=</span> <span class="n">scaling</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="ow">and</span> <span class="mi">12</span> <span class="o">*</span> <span class="n">n_side</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="n">maxsize</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
@@ -1009,7 +1016,6 @@
                 <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">=</span> <span class="n">noise_spectrum</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
                     <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">delta_phases</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">polarizations</span><span class="p">)</span> <span class="o">*</span> <span class="n">curr_t_phi</span>
 
-
                 <span class="c1"># fold electric field with antenna response</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
                     <span class="n">antenna_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="p">(</span>
@@ -1022,6 +1028,9 @@
                     <span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span>
                     <span class="o">+</span> <span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span>
                 <span class="p">)</span>
+
+                <span class="c1"># scale noise spectrum:</span>
+                <span class="n">channel_noise_spectrum</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span>
 
                 <span class="c1"># add noise spectrum from pixel in the sky to channel spectrum</span>
                 <span class="n">channel_spectra</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()][</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">+=</span> <span class="n">channel_noise_spectrum</span>
