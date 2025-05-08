@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 from scipy import constants
+from scipy.signal import hilbert
 
 from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
@@ -338,6 +339,45 @@ class PhasedArrayBase():
         logger.debug("trigger channels: {}".format(traces.keys()))
         return traces, final_sampling_frequency
 
+
+    def hilbert_envelope(self, coh_sum, adc_output='voltage', coeff_gain=1, ideal_transformer=True):
+
+        if ideal_transformer:
+
+            imag_an = np.imag(hilbert(coh_sum))
+
+            if adc_output=='counts':
+                imag_an = np.round(imag_an)
+
+            envelope = np.sqrt(coh_sum**2 + imag_an**2)
+
+        else:
+            #firmware like
+
+            #31 sample fir transformer
+            #hil=[-0.0424413, 0., -0.0489708, 0., -0.0578745, 0., -0.0707355, 0., -0.0909457, 0., -0.127324, 0.
+            #      , -0.2122066, 0., -0.6366198, 0., 0.6366198, 0., 0.2122066, 0., 0.127324,0., 0.0909457, 0., .0707355
+            #      , 0., 0.0578745, 0., 0.0489708, 0., 0.0424413]
+
+            #middle 15 coefficients ^
+            hil = np.array([-0.0909457, 0., -0.127324, 0., -0.2122066, 0., -0.6366198, 0., 0.6366198, 0., 0.2122066,
+                0., 0.127324, 0., 0.0909457])
+
+            if coeff_gain != 1:
+                hil = np.round(hil * coeff_gain) / coeff_gain
+
+            imag_an = np.convolve(coh_sum, hil, mode='full')[len(hil) // 2 : len(coh_sum) + len(hil) // 2]
+
+            if adc_output == 'counts':
+                imag_an = np.rint(imag_an)
+
+            envelope = np.max(np.array((coh_sum, imag_an)), axis=0) + (3 / 8) * np.min(np.array((coh_sum, imag_an)), axis=0)
+
+        if adc_output == 'counts':
+            envelope = np.rint(envelope)
+
+        return envelope
+
     def phased_trigger(
             self, station, det,
             Vrms=None,
@@ -357,7 +397,9 @@ class PhasedArrayBase():
             saturation_bits=8,
             upsampling_method='fft',
             coeff_gain=128,
-            filter_taps=31
+            filter_taps=31,
+            ideal_transformer=False,
+            mode="power_sum",
         ):
         """
         simulates phased array trigger for each event
@@ -486,19 +528,25 @@ class PhasedArrayBase():
         for iTrace, phased_trace in enumerate(phased_traces):
             is_triggered = False
 
-            # Create a sliding window
-            squared_mean, num_frames = self.power_sum(
-                coh_sum=phased_trace, window=window, step=step, averaging_divisor=averaging_divisor, adc_output=adc_output)
-            maximum_amps[iTrace] = np.max(squared_mean)
+            if mode == "power_sum":
+                # Create a sliding window
+                sig_trace, _ = self.power_sum(
+                    coh_sum=phased_trace, window=window, step=step, averaging_divisor=averaging_divisor, adc_output=adc_output)
+            elif mode == "hilbert_env":
+                sig_trace = self.hilbert_envelope(coh_sum=phased_trace, adc_output=adc_output, coeff_gain=coeff_gain, ideal_transformer=ideal_transformer)
+            else:
+                raise ValueError("mode must be either 'power_sum' or 'hilbert_env'")
 
-            if np.any(squared_mean > threshold):
+            maximum_amps[iTrace] = np.max(sig_trace)
+
+            if np.any(sig_trace > threshold):
                 is_triggered = True
 
-                n_trigs += np.sum(squared_mean > threshold)
+                n_trigs += np.sum(sig_trace > threshold)
                 trigger_delays[iTrace] = {channel_id: beam_rolls[iTrace][channel_id] * time_step
                     for channel_id in beam_rolls[iTrace]}
 
-                triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(squared_mean > threshold)))
+                triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(sig_trace > threshold)))
                 trigger_times[iTrace] = np.abs(np.min(list(trigger_delays[iTrace]))) + triggered_bins * step * time_step + channel_trace_start_time
 
                 logger.debug(

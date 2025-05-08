@@ -1,18 +1,13 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import AnalogEnvelopePhasedTrigger
-from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase
+from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase, default_angles
 from NuRadioReco.utilities.diodeSimulator import diodeSimulator
+
 import numpy as np
-from scipy import constants
 import logging
 
 logger = logging.getLogger('NuRadioReco.analogBeamformedEnvelopeTrigger')
-cspeed = constants.c * units.m / units.s
-
-main_low_angle = -50. * units.deg
-main_high_angle = 50. * units.deg
-default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
 
 
 class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
