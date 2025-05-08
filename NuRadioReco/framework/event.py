@@ -688,4 +688,5 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         if "__modules_event" in data:
             self.__modules_event = data['__modules_event']
         if "__modules_station" in data:
-            self.__modules_station = data['__modules_station']
+            for key, value in data['__modules_station'].items():
+                self.__modules_station[key] = value

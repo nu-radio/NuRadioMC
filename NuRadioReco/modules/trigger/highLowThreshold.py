@@ -7,12 +7,12 @@ import numpy as np
 import time
 import logging
 
-
 logger = logging.getLogger('NuRadioReco.HighLowTriggerSimulator')
 
 
 def get_high_low_triggers(trace, high_threshold, low_threshold,
-                          time_coincidence=5 * units.ns, dt=1 * units.ns):
+                          time_coincidence=5 * units.ns, dt=1 * units.ns,
+                          step=1, align_strides_to_start=False):
     """
     calculates a high low trigger in a time coincidence window
 
@@ -24,31 +24,63 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
         the high threshold
     low_threshold: float
         the low threshold
-    time_coincidence: float
+    time_coincidence: float (default: 5 ns)
         the time coincidence window between a high + low
-    dt: float
+    dt: float (default: 1 ns)
         the width of a time bin (inverse of sampling rate)
+    step: int (default: 1_
+        stride length for sampling rate and clock rate mismatch in trigger logic
+    align_strides_to_start: bool (default: False)
+        If true, the trace represents real detector data and will force the striding
+        to start at the beginning of the trace without padding. If false, the traces
+        will be zero-padded at the beginning of the trace. This allows a trigger at 
+        beginning of the trace to be associated with the correct trigger time.
 
     Returns
     -------
     triggered bins: array of bools
         the bins where the trigger condition is satisfied
     """
-    n_bins_coincidence = int(np.round(time_coincidence / dt)) + 1
-    c = np.ones(n_bins_coincidence, dtype=bool)
-    logger.debug("length of trace {} bins, coincidence window {} bins".format(len(trace), len(c)))
 
     if trace.dtype != type(high_threshold):
         logger.error(f"The trace ({trace.dtype}) and the threshold ({type(high_threshold)}) must have the same type")
         raise TypeError(f"The trace ({trace.dtype}) and the threshold ({type(high_threshold)}) must have the same type")
 
-    c2 = np.array([1, -1])
-    m1 = np.convolve(trace >= high_threshold, c, mode='full')[:-(n_bins_coincidence - 1)]
-    m2 = np.convolve(trace <= low_threshold, c, mode='full')[:-(n_bins_coincidence - 1)]
-    return np.convolve(m1 & m2, c2, mode='same') > 0
+    n_bins_coincidence = int(np.round(time_coincidence / dt))
+
+    if not align_strides_to_start:
+        # Pad trace so trigger bin matches with sample index
+        padded_trace = np.pad(trace, (n_bins_coincidence - 1, 0), "constant")
+    else:
+        padded_trace = trace
+
+    num_frames = int((len(padded_trace) - n_bins_coincidence) / step)
+    num_real_frames = int(len(trace) / step)
+
+    logger.debug("length of trace {} samples, coincidence window {}, num window bins {}".format(
+        len(padded_trace), n_bins_coincidence, num_frames))
+
+    # This transforms the trace (n samples) to an array with shape (num_frames, window) where each frame
+    # is extracted from the trace in steps of sample intervals
+    # Ex. step=2, window=4, trace=[1, 2, 3, 4, 5, 6, 7, 8], trace_windowed=[[1, 2, 3, 4], [3, 4, 5, 6], ...]
+    trace_windowed = np.lib.stride_tricks.as_strided(
+        padded_trace, (num_frames, n_bins_coincidence),
+        (padded_trace.strides[0] * step, padded_trace.strides[0]),
+        writeable=False)
+
+    # Find high and low triggering windows
+    trace_high = np.any(trace_windowed >= high_threshold, axis=1)
+    trace_low = np.any(trace_windowed <= low_threshold, axis=1)
+    trace_high_low = trace_high & trace_low
+
+    # Keep as many samples as the original trace or cut short to keep triggers in the trace length.
+    trace_high_low = trace_high_low[:num_real_frames]
+
+    return trace_high_low
 
 
-def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns):
+def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns,
+                       step=1, align_strides_to_start=False):
     """
     calculates a majority logic trigger
 
@@ -58,10 +90,17 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         an array of bools that indicate a single channel trigger per channel
     number_of_coincidences: int (default: 2)
         the number of coincidences between channels
-    time_coincidence: float
+    time_coincidence: float (default: 32 ns)
         the time coincidence window between channels
-    dt: float
+    dt: float (default: 1ns)
         the width of a time bin (inverse of sampling rate)
+    step: int (default: 1)
+        stride length for sampling rate and clock rate mismatch in trigger logic
+    align_strides_to_start: bool (default: False)
+        If true, the trace represents real detector data and will force the striding
+        to start at the beginning of the trace without padding. If false, the traces
+        will be zero-padded at the beginning of the trace. This allows a trigger at 
+        beginning of the trace to be associated with the correct trigger time.
 
     Returns
     -------
@@ -72,19 +111,34 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     triggered_times: array of floats
         the trigger times
     """
+
+    n_bins_coincidence = int(np.round(time_coincidence / dt))
     n = len(tts[0])
-    n_bins_coincidence = int(np.round(time_coincidence / dt)) + 1
-    if(n_bins_coincidence > n):  # reduce coincidence window to maximum trace length
+
+    if n_bins_coincidence > n:  # reduce coincidence window to maximum trace length
         n_bins_coincidence = n
-        logger.debug("specified coincidence window longer than tracelenght, reducing coincidence window to trace length")
-    c = np.ones(n_bins_coincidence, dtype=bool)
+        logger.debug("specified coincidence window longer than tracelength, reducing coincidence window to trace length")
 
     for i in range(len(tts)):
-        logger.debug("get_majority_logic() length of trace {} bins, coincidence window {} bins".format(len(tts[i]), len(c)))
-        tts[i] = np.convolve(tts[i], c, mode='full')[:-(n_bins_coincidence - 1)]
-    tts = np.sum(tts, axis=0)
-    ttt = tts >= number_of_coincidences
-    triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(tts >= number_of_coincidences)))
+        if not align_strides_to_start:
+            trace = np.pad(tts[i], (n_bins_coincidence - 1, 0), "constant")
+        else:
+            trace = tts[i]
+
+        num_frames = int((len(trace) - n_bins_coincidence) / step)
+
+        # Use the stride trick again.
+        trace_windowed = np.lib.stride_tricks.as_strided(
+            trace, (num_frames, n_bins_coincidence),
+            (trace.strides[0] * step, trace.strides[0]),
+            writeable=False)
+
+        tts[i] = np.any(trace_windowed, axis=1)
+
+    tt = np.array(tts)
+    ttt = np.sum(np.array(tt), axis=0) >= number_of_coincidences
+    triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(ttt))) * step
+
     return np.any(ttt), triggered_bins, triggered_bins * dt
 
 
@@ -118,6 +172,8 @@ class triggerSimulator:
             clock_offset=0,
             adc_output='voltage',
             pre_trigger_time=55 * units.ns):
+            step=1,
+            align_strides_to_start=False):
         """
         simulate ARIANNA trigger logic
 
@@ -160,9 +216,15 @@ class triggerSimulator:
             Options:
             * 'voltage' to store the ADC output as discretised voltage trace
             * 'counts' to store the ADC output in ADC counts
-
         pre_trigger_time: float (default: 55 ns)
             The time data before the trigger occured is stored (i.e., defines the readout window).
+        step: int
+            stride length for sampling rate and clock rate mismatch in trigger logic
+        align_strides_to_start: bool (default: False)
+            If true, the trace represents real detector data and will force the striding
+            to start at the beginning of the trace without padding. If false, the traces
+            will be zero-padded at the beginning of the trace. This allows a trigger at 
+            beginning of the trace to be associated with the correct trigger time.
         """
         t = time.time()
 
@@ -210,7 +272,7 @@ class triggerSimulator:
                     trace,
                     _get_threshold_channel(threshold_high, channel_id),
                     _get_threshold_channel(threshold_low, channel_id),
-                    high_low_window, dt)
+                    high_low_window, dt, step, align_strides_to_start)
 
                 if np.any(triggerd_bins):
                     channels_that_passed_trigger.append(channel.get_id())
@@ -220,9 +282,10 @@ class triggerSimulator:
 
             if len(triggerd_bins_channels):
                 has_triggered, triggered_bins, triggered_times = get_majority_logic(
-                    triggerd_bins_channels, number_concidences, coinc_window, dt)
+                    triggerd_bins_channels, number_concidences, coinc_window, dt * step, 1, align_strides_to_start)
             else:
                 has_triggered = False
+
             # set maximum signal aplitude
             max_signal = 0
 

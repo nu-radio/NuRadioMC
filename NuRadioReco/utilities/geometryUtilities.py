@@ -327,7 +327,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
         t_theta = get_fresnel_t_p(zenith, n_ice, 1)
         t_phi = get_fresnel_t_s(zenith, n_ice, 1)
         logger.debug((
-            "Channel {:d}: electric field is refracted into the firn. "
+            "Channel {}: electric field is refracted into the firn. "
             "theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) "
             "{:.2f} s (ePhi) {:.2f}".format(channel_id, zenith / units.deg,
             zenith_antenna / units.deg, t_theta, t_phi)))
