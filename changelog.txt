@@ -7,6 +7,10 @@ new features:
 
 bugfixes:
 
+version 3.0.1
+bugfixes:
+- fixed an issue where applying modules to older .nur files might raise a KeyError due to an internal change in the event module registry
+
 version 3.0.0
 NuRadioMC 3.0 is a complete refactor of the NuRadioMC core (simulation.py), enabling long-awaited features such as:
 - exposing functions to calculate voltage traces from showers for stand-alone use (needed e.g. for Likelihood forward folding reconstruction)
