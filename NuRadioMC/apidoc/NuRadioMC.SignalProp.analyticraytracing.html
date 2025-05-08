@@ -646,8 +646,8 @@ Can be overwritten by init.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.get_segments">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">get_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#get_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.get_segments" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.get_equidistant_steps">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">get_equidistant_steps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#get_equidistant_steps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.get_equidistant_steps" title="Link to this definition"></a></dt>
 <dd><p>Returns equi.dist. segments (np.linspace). Choose number of segments such that
 width of segments is approx. dx</p>
 </dd></dl>
@@ -1110,7 +1110,7 @@ as the focusing integral diverges when the ray trajectory becomes horizontal!</p
 <span class="sig-name descname"><span class="pre">get_path_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_path_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_segments" title="Link to this definition"></a></dt>
 <dd><p>Calculates the different segments of the path that makes up the full ray tracing path
 One segment per bottom reflection.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>x1: tuple</strong></dt><dd><p>(y, z) coordinate of start value</p>
@@ -1130,8 +1130,19 @@ One segment per bottom reflection.</p>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>(original x1, x1 of path segment, original x2, x2 of path segment, C_0, C_1 of path segment)</dt><dd></dd>
+<dd class="field-even"><dl>
+<dt>segments: list</dt><dd><p>list of segments, each segment is a list with the following elements:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>x1: original x1</p></li>
+<li><p>x1 of path segment</p></li>
+<li><p>x2: original x2</p></li>
+<li><p>x2 of path segment</p></li>
+<li><p>C_0: C_0 of path segment</p></li>
+<li><p>C_1: C_1 of path segment</p></li>
+</ul>
+</div></blockquote>
+</dd>
 </dl>
 </dd>
 </dl>

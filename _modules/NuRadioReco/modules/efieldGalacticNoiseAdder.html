@@ -696,15 +696,13 @@
         <span class="c1"># check that if all channels field.get_frequencies() are identical</span>
         <span class="n">last_freqs</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
-            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">last_freqs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">last_freqs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
                     <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">last_freqs</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">(),</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The frequencies of each field must be the same, but they are not!&quot;</span><span class="p">)</span>
                 <span class="k">return</span>
             <span class="n">last_freqs</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
 
         <span class="n">freqs</span> <span class="o">=</span> <span class="n">last_freqs</span>
-        <span class="n">d_f</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">freqs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-
         <span class="k">if</span> <span class="n">passband</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">passband</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">]</span>
 

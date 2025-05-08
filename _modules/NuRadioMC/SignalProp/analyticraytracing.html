@@ -651,17 +651,16 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.CPPAnalyticRayTracing</span><span class="w"> </span><span class="kn">import</span> <span class="n">wrapper</span> <span class="k">as</span> <span class="n">cpp_wrapper</span>
     <span class="n">cpp_available</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;CPP version of ray tracer is available&quot;</span><span class="p">)</span>
-<span class="k">except</span><span class="p">:</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;trying to compile the CPP extension on-the-fly&quot;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
-                                 <span class="s2">&quot;install.sh&quot;</span><span class="p">))</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span> <span class="s2">&quot;install.sh&quot;</span><span class="p">))</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.CPPAnalyticRayTracing</span><span class="w"> </span><span class="kn">import</span> <span class="n">wrapper</span> <span class="k">as</span> <span class="n">cpp_wrapper</span>
         <span class="n">cpp_available</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;compilation was successful, CPP version of ray tracer is available&quot;</span><span class="p">)</span>
-    <span class="k">except</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
             <span class="s2">&quot;Compilation was not successful, using python version of ray tracer. &quot;</span>
             <span class="s2">&quot;Check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation.&quot;</span><span class="p">)</span>
@@ -697,9 +696,9 @@
 
 
 
-<div class="viewcode-block" id="get_segments">
-<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.get_segments">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_segments</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dx</span><span class="p">):</span>
+<div class="viewcode-block" id="get_equidistant_steps">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.get_equidistant_steps">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_equidistant_steps</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dx</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns equi.dist. segments (np.linspace). Choose number of segments such that</span>
 <span class="sd">        width of segments is approx. dx</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -802,7 +801,7 @@
         <span class="n">z2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>  <span class="c1"># a reflection is just a turning point at z = 0, i.e. cases 2) and 3) are the same</span>
         <span class="n">gamma2</span> <span class="o">=</span> <span class="n">get_gamma</span><span class="p">(</span><span class="n">z2</span><span class="p">,</span> <span class="n">delta_n</span><span class="p">,</span> <span class="n">z_0</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">gamma2</span>  <span class="p">,</span> <span class="n">z2</span></div>
+    <span class="k">return</span> <span class="n">gamma2</span><span class="p">,</span> <span class="n">z2</span></div>
 
 
 <div class="viewcode-block" id="get_y_with_z_mirror">
@@ -1005,15 +1004,21 @@
     <span class="c1">#          z_0) + delta_n ** 2 * np.exp(0.2e1 * z / z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))</span>
 
     <span class="n">n_z</span> <span class="o">=</span> <span class="n">n</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">n_ice</span><span class="p">,</span> <span class="n">delta_n</span><span class="p">,</span> <span class="n">z_0</span><span class="p">)</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">C_0</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_z</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">C_0</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_z</span><span class="o">**</span><span class="mi">2</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">C_0</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_z</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
     <span class="k">if</span> <span class="n">correct_for_air</span><span class="p">:</span>
         <span class="n">n_surface</span> <span class="o">=</span> <span class="n">n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_ice</span><span class="p">,</span> <span class="n">delta_n</span><span class="p">,</span> <span class="n">z_0</span><span class="p">)</span>
         <span class="n">theta_ice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
         <span class="n">theta_air</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">n_surface</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_ice</span><span class="p">))</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">theta_air</span><span class="p">)</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">z</span> <span class="o">!=</span> <span class="n">z_raw</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">z</span> <span class="o">!=</span> <span class="n">z_raw</span><span class="p">:</span>
         <span class="n">res</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
     <span class="k">return</span> <span class="n">res</span></div>
 
 
@@ -1077,6 +1082,17 @@
 <span class="sd">            default: True if CPP version is available</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.ray_tracing_2D&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cpp_available</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">use_cpp</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;C++ raytracer is available, but Python raytracer was requested. Using Python raytracer&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using C++ raytracer&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;C++ raytracer is not available. Using Python raytracer.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation&quot;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">medium</span> <span class="o">=</span> <span class="n">medium</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="p">,</span> <span class="s2">&quot;reflection&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">reflection</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1092,8 +1108,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model_int</span> <span class="o">=</span> <span class="n">attenuation_util</span><span class="o">.</span><span class="n">model_to_int</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__b</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">n_ice</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.ray_tracing_2D&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_frequencies_integration</span> <span class="o">=</span> <span class="n">n_frequencies_integration</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__use_optimized_start_values</span> <span class="o">=</span> <span class="n">use_optimized_start_values</span>
 
@@ -1107,7 +1122,7 @@
                 <span class="k">global</span> <span class="n">get_reflection_point</span><span class="p">,</span><span class="n">obj_delta_y_square</span><span class="p">,</span><span class="n">get_delta_y</span>
                 <span class="k">global</span> <span class="n">get_y_turn</span><span class="p">,</span> <span class="n">get_y_with_z_mirror</span><span class="p">,</span><span class="n">get_turning_point</span>
                 <span class="k">global</span> <span class="n">get_gamma</span><span class="p">,</span> <span class="n">get_y</span><span class="p">,</span> <span class="n">get_C0_from_log</span>
-                <span class="k">global</span> <span class="n">get_z_unmirrored</span><span class="p">,</span> <span class="n">n</span>
+                <span class="k">global</span> <span class="n">get_z_unmirrored</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">get_y_diff</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">get_reflection_point</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">get_reflection_point</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="n">obj_delta_y_square</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">obj_delta_y_square</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1119,6 +1134,7 @@
                     <span class="n">get_y</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">get_y</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="n">get_C0_from_log</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">get_C0_from_log</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="n">get_z_unmirrored</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">get_z_unmirrored</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">get_y_diff</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">get_y_diff</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="n">n</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">use_cpp</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -1327,7 +1343,6 @@
             <span class="k">def</span><span class="w"> </span><span class="nf">get_s</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
                 <span class="n">s</span> <span class="o">=</span> <span class="n">n_ice</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">z</span> <span class="o">-</span> <span class="n">z_0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">l1</span><span class="p">(</span><span class="n">z</span><span class="p">)))</span> <span class="o">+</span> <span class="n">z_0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">l2</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
                 <span class="k">return</span> <span class="n">s</span>
-
 
             <span class="k">if</span><span class="p">(</span><span class="n">x2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span> <span class="c1"># ice-to-air case</span>
                 <span class="c1"># we need to integrate only until the ray touches the surface</span>
@@ -1572,8 +1587,7 @@
         <span class="n">attenuation_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">frequency</span><span class="p">)</span>
 
         <span class="n">output</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;calculating attenuation for n_ref = </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">reflection</span><span class="p">)</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">: &quot;</span>
-        <span class="k">for</span> <span class="n">iS</span><span class="p">,</span> <span class="n">segment</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_path_segments</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">C_0</span><span class="p">,</span> <span class="n">reflection</span><span class="p">,</span>
-                                                            <span class="n">reflection_case</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">iS</span><span class="p">,</span> <span class="n">segment</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_path_segments</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">C_0</span><span class="p">,</span> <span class="n">reflection</span><span class="p">,</span> <span class="n">reflection_case</span><span class="p">)):</span>
 
             <span class="c1"># we can only integrate upward going rays, so if the ray starts downwardgoing,</span>
             <span class="c1"># we need to mirror</span>
@@ -1586,7 +1600,7 @@
                 <span class="n">x2</span> <span class="o">=</span> <span class="n">x2t</span>
                 <span class="n">x1</span> <span class="o">=</span> <span class="n">x1t</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">x11</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x22</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">C_0</span><span class="p">,</span> <span class="n">C_1</span> <span class="o">=</span> <span class="n">segment</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">C_0</span><span class="p">,</span> <span class="n">C_1</span> <span class="o">=</span> <span class="n">segment</span>
 
             <span class="c1"># treat special ice to air case. Attenuation in air can be neglected, so only</span>
             <span class="c1"># calculate attenuation until the ray reaches the surface</span>
@@ -1609,8 +1623,8 @@
                 <span class="k">if</span> <span class="n">n_inf_freqs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;CPP wrapper: Attenuation calculation failed for </span><span class="si">{</span><span class="n">n_inf_freqs</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp_attenuation_factor</span><span class="p">)</span><span class="si">}</span><span class="s2"> frequencies, &quot;</span>
-                        <span class="s2">&quot;setting attenuation (factor) to 1, i.e., no attenuation in these bins&quot;</span><span class="p">)</span>
-                    <span class="n">tmp_attenuation_factor</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">tmp_attenuation_factor</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="s2">&quot;setting attenuation (factor) to 0, i.e., inf attenuation in these bins&quot;</span><span class="p">)</span>
+                    <span class="n">tmp_attenuation_factor</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">tmp_attenuation_factor</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">tmp_attenuation_factor</span><span class="p">)</span>
                 <span class="n">attenuation_factor_segment</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">frequency</span><span class="p">)</span>
@@ -1647,55 +1661,57 @@
 
                     <span class="c1"># define the width of the vertical (!) segments over which we sum.</span>
                     <span class="c1"># Since we use linspace the actual width will differ slightly</span>
-                    <span class="n">dx</span> <span class="o">=</span> <span class="mi">10</span>
+                    <span class="c1"># The data for the attenuation length of GL3 is also spaced by 10m.</span>
+                    <span class="n">dx</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
                     <span class="c1"># define the vertical window around a turning point within we will fall back to a numerical integration</span>
-                    <span class="n">int_window_size</span> <span class="o">=</span> <span class="mi">20</span>
+                    <span class="n">integration_window_size</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
 
                     <span class="c1"># Check if a turning point &quot;z_turn&quot; is within our ray path or close to it (i.e., right behind the antenna)</span>
                     <span class="c1"># if so we need to fallback to numerical integration</span>
                     <span class="n">fallback</span> <span class="o">=</span> <span class="kc">False</span>
-                    <span class="k">if</span> <span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">int_window_size</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="n">z_turn</span> <span class="ow">and</span> <span class="n">z_turn</span> <span class="o">&lt;</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">int_window_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">integration_window_size</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="n">z_turn</span> <span class="ow">and</span> <span class="n">z_turn</span> <span class="o">&lt;</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">integration_window_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
                         <span class="n">fallback</span> <span class="o">=</span> <span class="kc">True</span>
 
                     <span class="k">if</span> <span class="n">fallback</span><span class="p">:</span>
                         <span class="c1"># If we need the fallback, make sure that the turning point is in the middle of a segment (unless it is at</span>
                         <span class="c1"># the edge of a path). Otherwise the segment next to the turning point will be inaccurate</span>
-                        <span class="n">int_window</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z_turn</span> <span class="o">-</span> <span class="n">int_window_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
-                                      <span class="nb">min</span><span class="p">(</span><span class="n">z_turn</span> <span class="o">+</span> <span class="n">int_window_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+                        <span class="n">integration_window</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z_turn</span> <span class="o">-</span> <span class="n">integration_window_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+                            <span class="nb">min</span><span class="p">(</span><span class="n">z_turn</span> <span class="o">+</span> <span class="n">integration_window_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
 
-                        <span class="c1"># Merge two arrays which start and stop at int_window (and thus include it). The width might be slightly different</span>
-                        <span class="n">sub_segments</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_segments</span><span class="p">(</span><span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">int_window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dx</span><span class="p">),</span> <span class="n">get_segments</span><span class="p">(</span><span class="n">int_window</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dx</span><span class="p">))</span>
+                        <span class="c1"># Merge two arrays which start and stop at integration_window (and thus include it). The width might be slightly different</span>
+                        <span class="n">path_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_equidistant_steps</span><span class="p">(</span><span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">integration_window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dx</span><span class="p">),</span> <span class="n">get_equidistant_steps</span><span class="p">(</span><span class="n">integration_window</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dx</span><span class="p">))</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">sub_segments</span> <span class="o">=</span> <span class="n">get_segments</span><span class="p">(</span><span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dx</span><span class="p">)</span>
+                        <span class="n">path_steps</span> <span class="o">=</span> <span class="n">get_equidistant_steps</span><span class="p">(</span><span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dx</span><span class="p">)</span>
 
                     <span class="c1"># get the actual width of each segment and their center</span>
-                    <span class="n">dx_actuals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">sub_segments</span><span class="p">)</span>
-                    <span class="n">mid_points</span> <span class="o">=</span> <span class="n">sub_segments</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dx_actuals</span> <span class="o">/</span> <span class="mi">2</span>
+                    <span class="n">dx_actuals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">path_steps</span><span class="p">)</span>
+                    <span class="n">mid_points</span> <span class="o">=</span> <span class="n">path_steps</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dx_actuals</span> <span class="o">/</span> <span class="mi">2</span>
 
                     <span class="c1"># calculate attenuation for the different sub segments using the middle depth of the segment</span>
-                    <span class="c1"># has the shape (#sub_segments, #frequencies)</span>
+                    <span class="c1"># has the shape (#path_steps, #frequencies)</span>
                     <span class="n">attenuation_factor_exponent_tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
                         <span class="p">[[</span><span class="n">dt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">C_0</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx_actual</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">dx_actual</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">mid_points</span><span class="p">,</span> <span class="n">dx_actuals</span><span class="p">)]</span>
                         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">freqs</span><span class="p">])</span>
+                    <span class="c1"># attenuation_factor_exponent_tmp = dt(mid_points, C_0, freqs) * dx_actuals</span>
 
                     <span class="k">if</span> <span class="n">fallback</span><span class="p">:</span>
                         <span class="c1"># for the segment around z_turn fall back to integration. We only integrate ds (and not dt) for performance reasons</span>
 
                         <span class="c1"># find segment which contains z_turn</span>
-                        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">z_turn</span><span class="p">,</span> <span class="n">sub_segments</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+                        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">z_turn</span><span class="p">,</span> <span class="n">path_steps</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
 
                         <span class="c1"># if z_turn is outside of segments</span>
-                        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub_segments</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_steps</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                             <span class="n">idx</span> <span class="o">-=</span> <span class="mi">1</span>
                         <span class="k">elif</span> <span class="n">idx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
                             <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
 
-                        <span class="n">integrand</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="p">,</span> <span class="n">sub_segments</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">sub_segments</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">C_0</span><span class="p">),</span> <span class="n">epsrel</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="p">[</span><span class="n">z_turn</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-                        <span class="n">attenuation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">attenuation_util</span><span class="o">.</span><span class="n">get_attenuation_length</span><span class="p">(</span><span class="n">z_turn</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">freqs</span><span class="p">])</span>
+                        <span class="n">integrand</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="p">,</span> <span class="n">path_steps</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">path_steps</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">C_0</span><span class="p">),</span> <span class="n">epsrel</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="p">[</span><span class="n">z_turn</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">attenuation</span> <span class="o">=</span> <span class="n">attenuation_util</span><span class="o">.</span><span class="n">get_attenuation_length</span><span class="p">(</span><span class="n">z_turn</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model</span><span class="p">)</span>
 
                         <span class="n">attenuation_factor_exponent_tmp</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">integrand</span> <span class="o">/</span> <span class="n">attenuation</span>
 
-                    <span class="c1"># sum over all sub_segments -&gt; only remaining dimension is frequency</span>
+                    <span class="c1"># sum over all path_steps -&gt; only remaining dimension is frequency</span>
                     <span class="n">attenuation_factor_exponent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">attenuation_factor_exponent_tmp</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
                 <span class="k">else</span><span class="p">:</span>
@@ -1749,19 +1765,27 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        (original x1, x1 of path segment, original x2, x2 of path segment, C_0, C_1 of path segment)</span>
+<span class="sd">        segments: list</span>
+<span class="sd">            list of segments, each segment is a list with the following elements:</span>
+
+<span class="sd">                * x1: original x1</span>
+<span class="sd">                * x1 of path segment</span>
+<span class="sd">                * x2: original x2</span>
+<span class="sd">                * x2 of path segment</span>
+<span class="sd">                * C_0: C_0 of path segment</span>
+<span class="sd">                * C_1: C_1 of path segment</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x1</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
-        <span class="n">x11</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
-        <span class="n">x22</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span>
+        <span class="n">x1_orig</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
+        <span class="n">x2_orig</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span>
 
-        <span class="k">if</span><span class="p">(</span><span class="n">reflection</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">reflection</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">C_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_C_1</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">C_0</span><span class="p">)</span>
-            <span class="k">return</span> <span class="p">[[</span><span class="n">x1</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x22</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">C_0</span><span class="p">,</span> <span class="n">C_1</span><span class="p">]]</span>
+            <span class="k">return</span> <span class="p">[[</span><span class="n">x1_orig</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2_orig</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">C_0</span><span class="p">,</span> <span class="n">C_1</span><span class="p">]]</span>
 
-        <span class="n">tmp</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="k">if</span><span class="p">(</span><span class="n">reflection_case</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">reflection_case</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="c1"># the code only allows upward going rays, thus we find a point left from x1 that has an upward going ray</span>
             <span class="c1"># that will produce a downward going ray through x1</span>
             <span class="n">y_turn</span> <span class="o">=</span> <span class="n">get_y_turn</span><span class="p">(</span><span class="n">C_0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">z_0</span><span class="p">)</span>
@@ -1769,23 +1793,24 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;relaction case 2: shifting x1 </span><span class="si">{}</span><span class="s2"> to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">dy</span><span class="p">))</span>
             <span class="n">x1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">dy</span>
 
+        <span class="n">segments</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">reflection</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;calculation path for reflection = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
             <span class="n">C_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_C_1</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">C_0</span><span class="p">)</span>
             <span class="n">x2</span> <span class="o">=</span> <span class="n">get_reflection_point</span><span class="p">(</span><span class="n">C_0</span><span class="p">,</span> <span class="n">C_1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reflection</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">z_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">delta_n</span><span class="p">)</span>
             <span class="n">stop_loop</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">x2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">x22</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">x2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">x2_orig</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
                 <span class="n">stop_loop</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">x2</span> <span class="o">=</span> <span class="n">x22</span>
-            <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x11</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x22</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">C_0</span><span class="p">,</span> <span class="n">C_1</span><span class="p">])</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">stop_loop</span><span class="p">):</span>
+                <span class="n">x2</span> <span class="o">=</span> <span class="n">x2_orig</span>
+
+            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x1_orig</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2_orig</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">C_0</span><span class="p">,</span> <span class="n">C_1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">stop_loop</span><span class="p">:</span>
                 <span class="k">break</span>
-<span class="c1">#             yyy, zzz = self.get_path(x1, x2, C_0, n_points)</span>
-<span class="c1">#             yy.extend(yyy)</span>
-<span class="c1">#             zz.extend(zzz)</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;setting x1 from </span><span class="si">{}</span><span class="s2"> to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">))</span>
             <span class="n">x1</span> <span class="o">=</span> <span class="n">x2</span>
-        <span class="k">return</span> <span class="n">tmp</span></div>
+
+        <span class="k">return</span> <span class="n">segments</span></div>
 
 
 <div class="viewcode-block" id="ray_tracing_2D.get_angle">
@@ -2079,13 +2104,10 @@
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;a solution for </span><span class="si">{:d}</span><span class="s2"> reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reflection</span><span class="p">))</span>
 
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">use_cpp</span><span class="p">):</span>
-            <span class="c1">#             t = time.time()</span>
-<span class="c1">#             print(&quot;find solutions&quot;, x1, x2, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, reflection, reflection_case, self.medium.reflection)</span>
             <span class="n">tmp_reflection</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">reflection</span><span class="p">)</span>
             <span class="k">if</span><span class="p">(</span><span class="n">tmp_reflection</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="n">tmp_reflection</span> <span class="o">=</span> <span class="mi">100</span>  <span class="c1"># this parameter will never be used but is required to be an into to be able to pass it to the C++ module, so set it to a positive number, i.e., a reflective layer above the ice</span>
             <span class="n">solutions</span> <span class="o">=</span> <span class="n">cpp_wrapper</span><span class="o">.</span><span class="n">find_solutions</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">z_0</span><span class="p">,</span> <span class="n">reflection</span><span class="p">,</span> <span class="n">reflection_case</span><span class="p">,</span> <span class="n">tmp_reflection</span><span class="p">)</span>
-<span class="c1">#             print((time.time() -t)*1000.)</span>
             <span class="k">return</span> <span class="n">solutions</span>
         <span class="k">else</span><span class="p">:</span>
 
@@ -2158,7 +2180,6 @@
             <span class="n">logC0_stop</span> <span class="o">=</span> <span class="mi">100</span>
             <span class="n">delta_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obj_delta_y</span><span class="p">(</span><span class="n">logC0_start</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">reflection</span><span class="p">,</span> <span class="n">reflection_case</span><span class="p">)</span>
             <span class="n">delta_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obj_delta_y</span><span class="p">(</span><span class="n">logC0_stop</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">reflection</span><span class="p">,</span> <span class="n">reflection_case</span><span class="p">)</span>
-        <span class="c1">#     print(logC0_start, logC0_stop, delta_start, delta_stop, np.sign(delta_start), np.sign(delta_stop))</span>
             <span class="k">if</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">delta_start</span><span class="p">)</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">delta_stop</span><span class="p">)):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;solution with logC0 &gt; </span><span class="si">{:.3f}</span><span class="s2"> exists&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
                 <span class="n">result2</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">brentq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj_delta_y</span><span class="p">,</span> <span class="n">logC0_start</span><span class="p">,</span> <span class="n">logC0_stop</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">reflection</span><span class="p">,</span> <span class="n">reflection_case</span><span class="p">))</span>
@@ -2181,7 +2202,6 @@
             <span class="n">logC0_stop</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.0001</span>
             <span class="n">delta_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obj_delta_y</span><span class="p">(</span><span class="n">logC0_start</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">reflection</span><span class="p">,</span> <span class="n">reflection_case</span><span class="p">)</span>
             <span class="n">delta_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obj_delta_y</span><span class="p">(</span><span class="n">logC0_stop</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">reflection</span><span class="p">,</span> <span class="n">reflection_case</span><span class="p">)</span>
-        <span class="c1">#     print(logC0_start, logC0_stop, delta_start, delta_stop, np.sign(delta_start), np.sign(delta_stop))</span>
             <span class="k">if</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">delta_start</span><span class="p">)</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">delta_stop</span><span class="p">)):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;solution with logC0 &lt; </span><span class="si">{:.3f}</span><span class="s2"> exists&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
                 <span class="n">result3</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">brentq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj_delta_y</span><span class="p">,</span> <span class="n">logC0_start</span><span class="p">,</span> <span class="n">logC0_stop</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">reflection</span><span class="p">,</span> <span class="n">reflection_case</span><span class="p">))</span>
@@ -2266,7 +2286,6 @@
 <span class="c1">#        dydz = self.get_dydz_analytic(C_0, z_pos)</span>
         <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">dydz</span><span class="p">)</span>
 
-        <span class="c1"># print(dydz,angoffdydz)</span>
 
         <span class="k">return</span> <span class="n">angle</span> <span class="o">-</span> <span class="n">angoff</span></div>
 
@@ -2426,9 +2445,8 @@
             <span class="n">C0check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_C_0_from_angle</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="n">C0check</span> <span class="o">=</span> <span class="n">C0check</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">gcheck</span> <span class="o">=</span> <span class="n">get_gamma</span><span class="p">(</span><span class="n">x2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">z_0</span><span class="p">)</span>
-            <span class="c1"># print(&#39;C0check, gcheck&#39;,C0check,gcheck)</span>
             <span class="n">ycheck</span> <span class="o">=</span> <span class="o">-</span><span class="n">get_y</span><span class="p">(</span><span class="n">gcheck</span><span class="p">,</span> <span class="n">C0check</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_C_1</span><span class="p">([</span><span class="n">ycrit</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">C0check</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">z_0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ycrit</span>
-            <span class="c1"># print(&#39;ycheck, x2[1]&#39;,ycheck,x2[1])</span>
+
             <span class="k">if</span> <span class="n">x2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">ycheck</span><span class="p">:</span>
                 <span class="n">refraction</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
@@ -2520,7 +2538,6 @@
         <span class="n">zsurf</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">gamma</span> <span class="o">=</span> <span class="n">get_gamma</span><span class="p">(</span><span class="n">zsurf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">z_0</span><span class="p">)</span>
 
-        <span class="c1"># print(&#39;nxsin = &#39;,nxsin)</span>
         <span class="c1"># find emission angle for starting point x1 to hit the surface at the specified angle</span>
 
         <span class="c1"># look at time and distance it takes for the signal to travel from the emitter to the surface</span>
@@ -2533,7 +2550,6 @@
             <span class="n">C0result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_C_0_from_angle</span><span class="p">(</span><span class="n">th_emit</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
             <span class="n">C0_emit</span> <span class="o">=</span> <span class="n">C0result</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-            <span class="c1"># print(C0_emit)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; emission angle for position </span><span class="si">{}</span><span class="s1">,</span><span class="si">{}</span><span class="s1"> is theta_emit= </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">th_emit</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span>
 
             <span class="c1"># x-coordinate where ray reaches surface; is always bigger than the x-position of the emitter</span>
@@ -2715,7 +2731,10 @@
         <span class="k">if</span> <span class="n">use_cpp</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Using CPP version of ray tracer&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Using python version of ray tracer&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">compile_numba</span> <span class="ow">and</span> <span class="n">numba_available</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Using python with numba version of ray tracer&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Using python without numba version of ray tracer&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span> <span class="o">=</span> <span class="n">ray_tracing_2D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span>
                                     <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_frequencies_integration</span><span class="p">,</span>
@@ -2850,6 +2869,7 @@
 <div class="viewcode-block" id="ray_tracing.get_path">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span>
         <span class="k">if</span><span class="p">(</span><span class="n">iS</span> <span class="o">&gt;=</span> <span class="n">n</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>

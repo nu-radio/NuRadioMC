@@ -698,20 +698,6 @@
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.get_temperature">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">get_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/attenuation.html#get_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.get_temperature" title="Link to this definition"></a></dt>
-<dd><p>Returns the temperature in Celsius as a function of depth for South Pole</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>z: float</strong></dt><dd><p>depth in default units</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.get_attenuation_length">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">get_attenuation_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/attenuation.html#get_attenuation_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.get_attenuation_length" title="Link to this definition"></a></dt>
 <dd><p>Get attenuation length in ice for different ice models</p>
@@ -733,6 +719,100 @@ see: <a class="reference external" href="https://arxiv.org/abs/2201.07846">https
 <li><p>MB1: Moore’s Bay Model, from 10.3189/2015JoG14J214 and
 Phd Thesis C. Persichilli (depth dependence)</p></li>
 </ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.gl3_slope_interpolation_f">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">gl3_slope_interpolation_f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/attenuation.html#gl3_slope_interpolation_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.gl3_slope_interpolation_f" title="Link to this definition"></a></dt>
+<dd><p>Interpolation function for the slope of the GL3 model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">array-like</span></dt><dd><p>Depth in meters. Positive values are below the surface.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array-like</dt><dd><p>Slope of the attenuation length as a function of depth.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.gl3_offset_interpolation_f">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">gl3_offset_interpolation_f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/attenuation.html#gl3_offset_interpolation_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.gl3_offset_interpolation_f" title="Link to this definition"></a></dt>
+<dd><p>Interpolation function for the offset of the GL3 model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">array-like</span></dt><dd><p>Depth in meters. Positive values are below the surface.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array-like</dt><dd><p>Offset of the attenuation length as a function of depth.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.gl3_slope_interpolation">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">gl3_slope_interpolation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.attenuation.gl3_slope_interpolation" title="Link to this definition"></a></dt>
+<dd><p>Interpolation function for the slope of the GL3 model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">array-like</span></dt><dd><p>Depth in meters. Positive values are below the surface.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array-like</dt><dd><p>Slope of the attenuation length as a function of depth.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.gl3_offset_interpolation">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">gl3_offset_interpolation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.attenuation.gl3_offset_interpolation" title="Link to this definition"></a></dt>
+<dd><p>Interpolation function for the offset of the GL3 model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">array-like</span></dt><dd><p>Depth in meters. Positive values are below the surface.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array-like</dt><dd><p>Offset of the attenuation length as a function of depth.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.attenuation.get_temperature">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.attenuation.</span></span><span class="sig-name descname"><span class="pre">get_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/attenuation.html#get_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.attenuation.get_temperature" title="Link to this definition"></a></dt>
+<dd><p>Returns the temperature in Celsius as a function of depth for South Pole</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z: float</strong></dt><dd><p>depth in default units</p>
 </dd>
 </dl>
 </dd>
