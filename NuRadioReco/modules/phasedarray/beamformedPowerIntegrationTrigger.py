@@ -8,15 +8,14 @@ import logging
 import numpy as np
 from scipy import constants
 
-logger = logging.getLogger('NuRadioReco.phasedTriggerSimulator')
+logger = logging.getLogger('NuRadioReco.beamformedPowerIntegrationTrigger')
 cspeed = constants.c * units.m / units.s
 
 main_low_angle = np.deg2rad(-55.0)
 main_high_angle = -1.0 * main_low_angle
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
 
-
-class triggerSimulator(PhasedArrayBase):
+class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
     """
     Calculates the trigger for a phased array with a primary beam.
 

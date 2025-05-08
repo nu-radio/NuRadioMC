@@ -7,7 +7,7 @@ import numpy as np
 from scipy import constants
 import logging
 
-logger = logging.getLogger('NuRadioReco.phasedTriggerSimulator')
+logger = logging.getLogger('NuRadioReco.analogBeamformedEnvelopeTrigger')
 cspeed = constants.c * units.m / units.s
 
 main_low_angle = -50. * units.deg
@@ -15,7 +15,7 @@ main_high_angle = 50. * units.deg
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
 
 
-class triggerSimulator(PhasedArrayBase):
+class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
     """
     Calculates the trigger for a envelope phased array.
     The channels that participate in the beam forming and the pointing angle for each
