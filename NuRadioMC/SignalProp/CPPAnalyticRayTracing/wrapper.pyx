@@ -13,7 +13,7 @@ cdef extern from "numpy/arrayobject.h":
 cdef extern from "analytic_raytracing.cpp":
     void find_solutions2(double * &, double * &, int * &, int & , double, double, double, double, double, double, double, int, int, double)
     double get_attenuation_along_path2(double, double, double, double, double, double, double, double, double, int)
-
+    double get_attenuation_length_wrapper(double, double, int)
 
 cpdef find_solutions(x1, x2, n_ice, delta_n, z_0, reflection, reflection_case, ice_reflection):
     cdef:
@@ -23,9 +23,7 @@ cpdef find_solutions(x1, x2, n_ice, delta_n, z_0, reflection, reflection_case, i
         int size
         np.npy_intp shape[1]
 
-#     t = time.time()
     find_solutions2(C0s, C1s, types, size, x1[0], x1[1], x2[0], x2[1], n_ice, delta_n, z_0, reflection, reflection_case, ice_reflection)
-#     print((time.time() - t) * 1000)
 
     # 1. Make sure that you have called np.import_array()
     # http://gael-varoquaux.info/programming/
@@ -50,12 +48,11 @@ cpdef find_solutions(x1, x2, n_ice, delta_n, z_0, reflection, reflection_case, i
                           'reflection_case': reflection_case})
 
     s = sorted(solutions, key=itemgetter('reflection', 'C0'))
-#     print((time.time() - t) * 1000)
     return s
 
 
 cpdef get_attenuation_along_path(x1, x2, C0, frequency, n_ice, delta_n, z_0, model):
-
-#     t = time.time()
     return get_attenuation_along_path2(x1[0], x1[1], x2[0], x2[1], C0, frequency, n_ice, delta_n, z_0, model)
-#     print((time.time() - t) * 1000)
+
+cpdef get_attenuation_length(z, freq, model):
+    return get_attenuation_length_wrapper(z, freq, model)

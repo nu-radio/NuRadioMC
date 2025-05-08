@@ -608,7 +608,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	FDF.params = &params;
 	Tfdf = gsl_root_fdfsolver_secant;
 	gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
-	
+
 	// We have to guess at the location of the first root (if it it exists at all).
 	// Because we might not guess correctly, or guess close enough,
 	// it's in our favor (for numerical stability reasons) to try several times.
@@ -918,6 +918,12 @@ void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[
 		}
 	}
 }
+
+
+double get_attenuation_length_wrapper(double z, double frequency, int model) {
+	return get_attenuation_length(z, frequency, model);
+}
+
 
 int main(int argc, char **argv){
 
