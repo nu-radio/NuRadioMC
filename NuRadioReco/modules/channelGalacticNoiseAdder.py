@@ -5,6 +5,7 @@ import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 import NuRadioReco.detector.antennapattern
 
+
 import warnings
 import functools
 import numpy as np
@@ -482,16 +483,21 @@ def get_local_coordinates(coordinates, obs_time, n_side):
 
     local_cs = astropy.coordinates.AltAz(location=site_location, obstime=obs_time)
 
+    # because `lonlat=True` function returns angles in degrees
     pixel_longitudes, pixel_latitudes = healpy.pixelfunc.pix2ang(
         n_side, range(healpy.pixelfunc.nside2npix(n_side)), lonlat=True)
 
-    # convert from deg to rad (NuRadio units)
-    pixel_longitudes *= units.deg
-    pixel_latitudes *= units.deg
+    # First convert deg to rad using the NuRadio unit system
+    # Than convert them to astropy.Quantities to be used with the
+    # astropy class.
+    pixel_longitudes = pixel_longitudes * units.deg * astropy.units.rad
+    pixel_latitudes = pixel_latitudes * units.deg * astropy.units.rad
 
-    # pass as astropy quantities
     galactic_coordinates = astropy.coordinates.Galactic(
-        l=pixel_longitudes * astropy.units.rad, b=pixel_latitudes * astropy.units.rad)
+        l=pixel_longitudes,
+        b=pixel_latitudes
+    )
 
     local_coordinates = galactic_coordinates.transform_to(local_cs)
+
     return local_coordinates

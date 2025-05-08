@@ -460,6 +460,7 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     spectral_radiance_per_bin = spectral_radiance * d_f
 
     # calculate electric field per energy bin from the radiance per bin
+    # 1 / (c_vac * epsilon_0) = Z_0 the vaccum impedance
     efield_amplitude = np.sqrt(spectral_radiance_per_bin / (c_vac * epsilon_0)) / d_f
 
     return efield_amplitude
