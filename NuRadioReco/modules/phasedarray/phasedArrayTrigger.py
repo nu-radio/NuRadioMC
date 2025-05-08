@@ -27,153 +27,6 @@ class PhasedArrayTrigger(PhasedArrayBase):
     See https://arxiv.org/pdf/1809.04573.pdf
     """
 
-    def phased_trigger(
-            self, station, det,
-            Vrms=None,
-            threshold=60 * units.mV,
-            triggered_channels=None,
-            phasing_angles=default_angles,
-            ref_index=1.75,
-            trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
-            clock_offset=0,
-            adc_output='voltage',
-            trigger_filter=None,
-            upsampling_factor=1,
-            window=32,
-            step=16,
-            apply_digitization=True,
-        ):
-        """
-        simulates phased array trigger for each event
-
-        Several channels are phased by delaying their signals by an amount given
-        by a pointing angle. Several pointing angles are possible in order to cover
-        the sky. The array triggered_channels controls the channels that are phased,
-        according to the angles phasing_angles.
-
-        Parameters
-        ----------
-        station: Station object
-            Description of the current station
-        det: Detector object
-            Description of the current detector
-        Vrms: float
-            RMS of the noise on a channel, used to automatically create the digitizer
-            reference voltage. If set to None, tries to use reference voltage as defined
-            int the detector description file.
-        threshold: float
-            threshold above (or below) a trigger is issued, absolute amplitude
-        triggered_channels: array of ints
-            channels ids of the channels that form the primary phasing array
-            if None, all channels are taken
-        phasing_angles: array of float
-            pointing angles for the primary beam
-        ref_index: float (default 1.75)
-            refractive index for beam forming
-        trigger_adc: bool (default True)
-            If True, uses the ADC settings from the trigger. It must be specified in the
-            detector file. See analogToDigitalConverter module for information
-            (see option `apply_digitization`)
-        clock_offset: float (default 0)
-            Overall clock offset, for adc clock jitter reasons (see `apply_digitization`)
-        adc_output: string (default 'voltage')
-
-            - 'voltage' to store the ADC output as discretised voltage trace
-            - 'counts' to store the ADC output in ADC counts
-        trigger_filter: array floats (default None)
-            Freq. domain of the response to be applied to post-ADC traces
-            Must be length for "MC freq"
-        upsampling_factor: integer (default 1)
-            Upsampling factor. The trace will be a upsampled to a
-            sampling frequency int_factor times higher than the original one
-            after conversion to digital
-        window: int (default 32)
-            Power integral window
-            Units of ADC time ticks
-        step: int (default 16)
-            Time step in power integral. If equal to window, there is no time overlap
-            in between neighboring integration windows.
-            Units of ADC time ticks
-        apply_digitization: bool (default True)
-            Perform the quantization of the ADC. If set to true, should also set options
-            `trigger_adc`, `adc_output`, `clock_offset`
-
-        Returns
-        -------
-        is_triggered: bool
-            True if the triggering condition is met
-        trigger_delays: dictionary
-            the delays for the primary channels that have caused a trigger.
-            If there is no trigger, it's an empty dictionary
-        trigger_time: float
-            the earliest trigger time with respect to first interaction time.
-        trigger_times: dictionary
-            all time bins that fulfil the trigger condition per beam. The key is the beam number. Time with respect to first interaction time.
-        maximum_amps: list of floats (length equal to that of `phasing_angles`)
-            the maximum value of all the integration windows for each of the phased waveforms
-        """
-
-        traces, adc_sampling_frequency = self.get_traces(
-            station, det,
-            triggered_channels=triggered_channels,
-            apply_digitization=apply_digitization,
-            adc_kwargs=dict(
-                Vrms=Vrms, trigger_adc=trigger_adc, clock_offset=clock_offset,
-                return_sampling_frequency=True, adc_type='perfect_floor_comparator',
-                adc_output=adc_output, trigger_filter=None),
-            upsampling_kwargs=dict(
-                upsampling_factor=upsampling_factor,
-                upsampling_method="fft")
-        )
-
-        time_step = 1.0 / adc_sampling_frequency
-
-        is_triggered = False
-        beam_rolls = self.calculate_time_delays(
-            station, det,
-            triggered_channels,
-            phasing_angles,
-            ref_index=ref_index,
-            sampling_frequency=adc_sampling_frequency)
-
-        phased_traces = self.phase_signals(traces, beam_rolls)
-
-        trigger_time = None
-        trigger_times = {}
-        channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
-
-        trigger_delays = {}
-        maximum_amps = np.zeros_like(phased_traces)
-
-        for iTrace, phased_trace in enumerate(phased_traces):
-
-            # Create a sliding window
-            squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)
-
-            maximum_amps[iTrace] = np.max(squared_mean)
-
-            if True in (squared_mean > threshold):
-                trigger_delays[iTrace] = {}
-
-                for channel_id in beam_rolls[iTrace]:
-                    trigger_delays[iTrace][channel_id] = beam_rolls[iTrace][channel_id] * time_step
-
-                triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(squared_mean > threshold)))
-                logger.debug(f"Station has triggered, at bins {triggered_bins}")
-                logger.debug(trigger_delays)
-                logger.debug(f"trigger_delays {trigger_delays[iTrace][triggered_channels[0]]}")
-                is_triggered = True
-                trigger_times[iTrace] = trigger_delays[iTrace][triggered_channels[0]] + triggered_bins * step * time_step + channel_trace_start_time
-                logger.debug(f"trigger times  = {trigger_times[iTrace]}")
-
-        if is_triggered:
-            logger.debug("Trigger condition satisfied!")
-            logger.debug("all trigger times", trigger_times)
-            trigger_time = min([x.min() for x in trigger_times.values()])
-            logger.debug(f"minimum trigger time is {trigger_time:.0f}ns")
-
-        return is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps
-
     @register_run()
     def run(self, evt, station, det,
             Vrms=None,
@@ -268,11 +121,11 @@ class PhasedArrayTrigger(PhasedArrayBase):
             maximum_amps = np.zeros_like(phasing_angles)
 
         else:
-            is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps = self.phased_trigger(
-                station=station,
-                det=det,
-                Vrms=Vrms,
-                threshold=threshold,
+
+            is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps = \
+                self.phased_trigger(
+                station=station, det=det,
+                Vrms=Vrms, threshold=threshold,
                 triggered_channels=triggered_channels,
                 phasing_angles=phasing_angles,
                 ref_index=ref_index,
@@ -284,6 +137,10 @@ class PhasedArrayTrigger(PhasedArrayBase):
                 window=window,
                 step=step,
                 apply_digitization=apply_digitization,
+                saturation_bits=None,
+                upsampling_method="fft",
+                coeff_gain=None,
+                filter_taps=None,
             )
 
         # Create a trigger object to be returned to the station

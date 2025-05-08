@@ -16,7 +16,7 @@ main_high_angle = -1.0 * main_low_angle
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
 
 
-class triggerSimulator(PhasedArrayBase):
+class PhasedEnvelopeTriggerSimulator(PhasedArrayBase):
     """
     Calculates the trigger for a phased array with primary beams.
 

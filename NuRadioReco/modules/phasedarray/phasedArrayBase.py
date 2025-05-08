@@ -9,6 +9,10 @@ from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverte
 logger = logging.getLogger('NuRadioReco.PhasedArrayTriggerBase')
 cspeed = constants.c * units.m / units.s
 
+main_low_angle = np.deg2rad(-55.0)
+main_high_angle = -1.0 * main_low_angle
+default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
+
 class PhasedArrayBase():
     """
     Base class for all phased array trigger modules.
@@ -333,3 +337,184 @@ class PhasedArrayBase():
 
         logger.debug("trigger channels: {}".format(traces.keys()))
         return traces, final_sampling_frequency
+
+    def phased_trigger(
+            self, station, det,
+            Vrms=None,
+            threshold=60 * units.mV,
+            trigger_channels=None,
+            phasing_angles=default_angles,
+            ref_index=1.75,
+            trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
+            clock_offset=0,
+            adc_output='voltage',
+            trigger_filter=None,
+            upsampling_factor=1,
+            window=32,
+            averaging_divisor=None,
+            step=16,
+            apply_digitization=False,
+            saturation_bits=8,
+            upsampling_method='fft',
+            coeff_gain=128,
+            filter_taps=31
+        ):
+        """
+        simulates phased array trigger for each event
+
+        Several channels are phased by delaying their signals by an amount given
+        by a pointing angle. Several pointing angles are possible in order to cover
+        the sky. The array trigger_channels controls the channels that are phased,
+        according to the angles phasing_angles.
+
+        Parameters
+        ----------
+        station: Station object
+            Description of the current station
+        det: Detector object
+            Description of the current detector
+        Vrms: float
+            RMS of the noise on a channel, used to automatically create the digitizer
+            reference voltage. If set to None, tries to use reference voltage as defined
+            int the detector description file.
+        threshold: float
+            threshold above (or below) a trigger is issued, absolute amplitude
+        trigger_channels: array of ints
+            channels ids of the channels that form the primary phasing array
+            if None, all channels are taken
+        phasing_angles: array of float
+            pointing angles for the primary beam
+        ref_index: float (default 1.75)
+            refractive index for beam forming
+        trigger_adc: bool (default True)
+            If True, uses the ADC settings from the trigger. It must be specified in the
+            detector file. See analogToDigitalConverter module for information
+            (see option `apply_digitization`)
+        clock_offset: float (default 0)
+            Overall clock offset, for adc clock jitter reasons (see `apply_digitization`)
+        adc_output: string (default 'voltage')
+            - 'voltage' to store the ADC output as discretised voltage trace
+            - 'counts' to store the ADC output in ADC counts and apply integer based math
+        trigger_filter: array floats (default None)
+            Freq. domain of the response to be applied to post-ADC traces
+            Must be length for "MC freq"
+        upsampling_factor: integer (default 1)
+            Upsampling factor. The trace will be a upsampled to a
+            sampling frequency int_factor times higher than the original one
+            after conversion to digital
+        window: int (default 32)
+            Power integration window for averaging
+            Units of ADC time ticks
+        averaging_divisor: int (default 32)
+            Power integral divisor for averaging (division by 2^n much easier in firmware)
+            Units of ADC time ticks
+        step: int (default 16)
+            Time step in power integral. If equal to window, there is no time overlap
+            in between neighboring integration windows.
+            Units of ADC time ticks
+        apply_digitization: bool (default True)
+            Perform the quantization of the ADC. If set to true, should also set options
+            `trigger_adc`, `adc_output`, `clock_offset`
+        saturation_bits: int (default None)
+            Determines what the coherenty summed waveforms will saturate to if using adc counts
+        upsampling_method: str (default 'fft')
+            Choose between FFT, FIR, or Linear Interpolaion based upsampling methods
+        coeff_gain: int (default 1)
+            If using the FIR upsampling, this will convert the floating point output of the
+            scipy filter to a fixed point value by multiplying by this factor and rounding to an
+            int.
+        filter_taps: int (default )
+            If doing FIR upsampling, this determine the number of filter coefficients
+
+        Returns
+        -------
+        is_triggered: bool
+            True if the triggering condition is met
+        trigger_delays: dictionary
+            the delays for the primary channels that have caused a trigger.
+            If there is no trigger, it's an empty dictionary
+        trigger_time: float
+            the earliest trigger time with respect to first interaction time.
+        trigger_times: dictionary
+            all time bins that fulfil the trigger condition per beam. The key is the beam number. Time with respect to first interaction time.
+        maximum_amps: list of floats (length equal to that of `phasing_angles`)
+            the maximum value of all the integration windows for each of the phased waveforms
+        n_trigs: int
+            total number of triggers that happened for all beams across the full traces
+        triggered_beams: list
+            list of bools for which beams triggered
+        """
+
+        traces, adc_sampling_frequency = self.get_traces(
+            station, det,
+            trigger_channels=trigger_channels,
+            apply_digitization=apply_digitization,
+            adc_kwargs=dict(
+                Vrms=Vrms, trigger_adc=trigger_adc, clock_offset=clock_offset,
+                return_sampling_frequency=True, adc_type='perfect_floor_comparator',
+                adc_output=adc_output, trigger_filter=None),
+            upsampling_kwargs=dict(
+                    upsampling_method=upsampling_method,
+                    upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
+                    adc_output=adc_output, filter_taps=filter_taps
+            )
+        )
+        trigger_channels = np.array(list(traces.keys()))
+
+        time_step = 1.0 / adc_sampling_frequency
+        beam_rolls = self.calculate_time_delays(
+            station, det,
+            trigger_channels,
+            phasing_angles,
+            ref_index=ref_index,
+            sampling_frequency=adc_sampling_frequency)
+
+        phased_traces = self.phase_signals(traces, beam_rolls, adc_output=adc_output, saturation_bits=saturation_bits)
+
+        if adc_output == "counts":
+            threshold = np.trunc(threshold)
+
+        trigger_time = None
+        trigger_times = {}
+        channel_trace_start_time = self.get_channel_trace_start_time(station, trigger_channels)
+
+        trigger_delays = {}
+        maximum_amps = np.zeros(len(phased_traces))
+        n_trigs = 0
+        triggered_beams = []
+
+        for iTrace, phased_trace in enumerate(phased_traces):
+            is_triggered = False
+
+            # Create a sliding window
+            squared_mean, num_frames = self.power_sum(
+                coh_sum=phased_trace, window=window, step=step, averaging_divisor=averaging_divisor, adc_output=adc_output)
+            maximum_amps[iTrace] = np.max(squared_mean)
+
+            if np.any(squared_mean > threshold):
+                is_triggered = True
+
+                n_trigs += np.sum(squared_mean > threshold)
+                trigger_delays[iTrace] = {channel_id: beam_rolls[iTrace][channel_id] * time_step
+                    for channel_id in beam_rolls[iTrace]}
+
+                triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(squared_mean > threshold)))
+                trigger_times[iTrace] = np.abs(np.min(list(trigger_delays[iTrace]))) + triggered_bins * step * time_step + channel_trace_start_time
+
+                logger.debug(
+                    "Station has triggered, at bins {}\n".format(triggered_bins) +
+                    "Trigger delays: {}\n".format(trigger_delays[iTrace][trigger_channels[0]]) +
+                    "Trigger time is {}ns\n".format(trigger_times[iTrace])
+                )
+
+            triggered_beams.append(is_triggered)
+
+        is_triggered = np.any(triggered_beams)
+
+        if is_triggered:
+            trigger_time = np.amin([x for x in trigger_times.values()])
+            logger.debug("Trigger condition satisfied!\n"
+                "All trigger times: {}\n".format(trigger_times) +
+                "Minimum trigger time is {:.0f}ns".format(trigger_time))
+
+        return is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps, n_trigs, triggered_beams
