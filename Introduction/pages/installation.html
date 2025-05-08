@@ -774,19 +774,6 @@ pip<span class="w"> </span>install<span class="w"> </span>plotly
 They can be installed by including adding <code class="docutils literal notranslate"><span class="pre">[option]</span></code> when installing NuRadioMC. Alternatively,
 use <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">nuradiomc[all]</span></code> to install all optional dependencies (or <code class="docutils literal notranslate"><span class="pre">[all,dev]</span></code> to also install development dependencies).</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">[RNO-G]</span></code></p>
-<p><a class="reference external" href="https://github.com/RNO-G/mattak">mattak</a> is required to open RNO-G root files:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>mattak
-</pre></div>
-</div>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[rno-g-extras]</span></code></p>
-<p>Optionally, to filter RNO-G data (during read in) the <a class="reference external" href="https://github.com/RNO-G/rnog-runtable">RNO-G run table database</a>
-can be used. Note that this requires membership of the RNO-G Github organisation (not public):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+ssh://git@github.com/RNO-G/rnog-runtable.git
-</pre></div>
-</div>
-</li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[proposal]</span></code></p>
 <p><code class="docutils literal notranslate"><span class="pre">proposal</span></code> is needed to use <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#module-NuRadioMC.EvtGen.NuRadioProposal" title="NuRadioMC.EvtGen.NuRadioProposal"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal</span></code></a> module (simulating secondary particles):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">proposal</span><span class="o">==</span><span class="m">7</span>.6.2
@@ -814,7 +801,7 @@ Some additional galactic noise models used by LOFAR for calibration purposes are
 <li><p><code class="docutils literal notranslate"><span class="pre">[cr-interpolator]</span></code></p>
 <p>Installs the cosmic-ray interpolator from <a class="reference external" href="https://github.com/nu-radio/cr-pulse-interpolator">https://github.com/nu-radio/cr-pulse-interpolator</a>,
 used to interpolate cosmic-ray air-shower emission from CoREAS star-shaped patterns:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/nu-radio/cr-pulse-interpolator
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>cr-pulse-interpolator
 </pre></div>
 </div>
 </li>
@@ -829,6 +816,17 @@ These dependencies are needed only if you want to generate the documentation loc
 Note that we use the <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#module-sphinx.ext.autodoc">sphinx autodoc</a>
 feature, which tries to import all modules it documents. So if you are missing some optional dependencies, it will not generate correct documentation for all the code.</p>
 <div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>sphinx<span class="w"> </span>sphinx_rtd_theme<span class="w"> </span>numpydoc
+</pre></div>
+</div>
+</li>
+<li><p>RNO-G-specific dependencies</p>
+<p><a class="reference external" href="https://github.com/RNO-G/mattak">mattak</a> is required to open RNO-G root files:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/RNO-G/mattak
+</pre></div>
+</div>
+<p>Optionally, to filter RNO-G data (during read in) the <a class="reference external" href="https://github.com/RNO-G/rnog-runtable">RNO-G run table database</a>
+can be used. Note that this requires membership of the RNO-G Github organisation (not public):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+ssh://git@github.com/RNO-G/rnog-runtable.git
 </pre></div>
 </div>
 </li>

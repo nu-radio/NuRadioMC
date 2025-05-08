@@ -1444,7 +1444,8 @@
         <span class="k">if</span> <span class="s2">&quot;__modules_event&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__modules_event&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="s2">&quot;__modules_station&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__modules_station&#39;</span><span class="p">]</span></div>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__modules_station&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
 </div>
 
 </pre></div>
