@@ -3,6 +3,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import PowerIntegrationPhasedTrigger
 from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase, default_angles
 
+import numpy as np
 import logging
 logger = logging.getLogger('NuRadioReco.beamformedPowerIntegrationTrigger')
 
@@ -126,47 +127,39 @@ class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
         n_triggers: int (Optional)
             Count of the total number of triggers in all beamformed traces
         """
-
-        if trigger_channels is None:
-            trigger_channels = [channel.get_id() for channel in station.iter_trigger_channels()]
-
-        if adc_output not in ['voltage', 'counts']:
-            raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
-
-        is_triggered = False
-        trigger_delays = {}
-
         if set_not_triggered:
             is_triggered = False
             trigger_delays = {}
-            triggered_beams = []
+            maximum_amps = np.zeros_like(phasing_angles)
         else:
             is_triggered, trigger_delays, trigger_time, trigger_times, \
                 maximum_amps, n_triggers, triggered_beams = self.phased_trigger(
-                    station=station,
-                    det=det,
-                    Vrms=Vrms,
+                    station=station, det=det,
                     threshold=threshold,
                     trigger_channels=trigger_channels,
                     phasing_angles=phasing_angles,
                     ref_index=ref_index,
-                    trigger_adc=trigger_adc,
-                    clock_offset=clock_offset,
-                    adc_output=adc_output,
-                    trigger_filter=trigger_filter,
-                    upsampling_factor=upsampling_factor,
+                    apply_digitization=apply_digitization,
+                    adc_kwargs=dict(
+                        Vrms=Vrms,
+                        trigger_adc=trigger_adc,
+                        clock_offset=clock_offset,
+                        adc_output=adc_output,
+                        trigger_filter=trigger_filter),
+                    upsampling_kwargs=dict(
+                        upsampling_factor=upsampling_factor,
+                        upsampling_method=upsampling_method,
+                        coeff_gain=coeff_gain,
+                        filter_taps=filter_taps),
+                    saturation_bits=saturation_bits,
+                    step=step,
                     window=window,
                     averaging_divisor=averaging_divisor,
-                    step=step,
-                    apply_digitization=apply_digitization,
-                    upsampling_method=upsampling_method,
-                    coeff_gain=coeff_gain,
-                    filter_taps=filter_taps,
-                    saturation_bits=saturation_bits
+                    ideal_transformer=False,
+                    mode="power_sum",
             )
 
         # Create a trigger object to be returned to the station
-
         trigger = PowerIntegrationPhasedTrigger(
             trigger_name,
             threshold,

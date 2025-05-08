@@ -6,7 +6,6 @@ from NuRadioReco.utilities.diodeSimulator import diodeSimulator
 
 import numpy as np
 import logging
-
 logger = logging.getLogger('NuRadioReco.analogBeamformedEnvelopeTrigger')
 
 

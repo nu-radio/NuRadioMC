@@ -30,7 +30,7 @@ class PhasedArrayBase():
         self.__pre_trigger_time = pre_trigger_time
         self.__debug = debug
 
-    def get_antenna_positions(self, station, det, triggered_channels=None, component=2):
+    def _get_antenna_positions(self, station, det, trigger_channels, component=2):
         """
         Calculates the vertical coordinates of the antennas of the detector
 
@@ -40,24 +40,18 @@ class PhasedArrayBase():
             Description of the current station
         det: Detector object
             Description of the current detector
-        triggered_channels: array of ints
-            channels ids of the channels that form the primary phasing array
-            if None, all channels are taken
-        component: int
+        trigger_channels: array of ints
+            Channels ids of the channels that form the primary phasing array.
+        component: int (default: 2)
             Which cartesian coordinate to return
 
         Returns
         -------
-        ant_pos: array of floatss
-            Desired antenna position in requested coordinate
-
+        ant_pos: dict
+            Dictionary of keys=antenna and content=position
         """
-
-        ant_pos = {}
-        for channel in station.iter_channels(use_channels=triggered_channels):
-            ant_pos[channel.get_id()] = det.get_relative_position(station.get_id(), channel.get_id())[component]
-
-        return ant_pos
+        return np.array([det.get_relative_position(station.get_id(), channel_id)[component]
+            for channel_id in trigger_channels])
 
     def calculate_time_delays(
             self, station, det,
@@ -94,30 +88,23 @@ class PhasedArrayBase():
 
         time_step = 1. / sampling_frequency
 
-        ant_z = self.get_antenna_positions(station, det, triggered_channels, 2)
+        ant_z = self._get_antenna_positions(station, det, triggered_channels, 2)
 
         self.check_vertical_string(station, det, triggered_channels)
-        ref_z = np.max(np.fromiter(ant_z.values(), dtype=float))
+        ref_z = np.max(ant_z)
 
         # Need to add in delay for trigger delay
-        cable_delays = {}
-        for channel in station.iter_trigger_channels(use_channels=triggered_channels):
-            cable_delays[channel.get_id()] = det.get_cable_delay(station.get_id(), channel.get_id())
+        cable_delays = np.array([det.get_cable_delay(station.get_id(), channel_id) for channel_id in triggered_channels])
 
         beam_rolls = []
         for angle in phasing_angles:
 
-            delays = []
-            for key in ant_z:
-                delays += [-(ant_z[key] - ref_z) / cspeed * ref_index * np.sin(angle) - cable_delays[key]]
+            delays = -(ant_z - ref_z) / cspeed * ref_index * np.sin(angle) - cable_delays
 
             delays -= np.max(delays)
-            roll = np.array(np.round(np.array(delays) / time_step)).astype(int)
+            roll = np.array(np.round(delays / time_step)).astype(int)
+
             subbeam_rolls = dict(zip(triggered_channels, roll))
-
-            # logger.debug("angle:", angle / units.deg)
-            # logger.debug(subbeam_rolls)
-
             beam_rolls.append(subbeam_rolls)
 
         return beam_rolls
@@ -171,9 +158,9 @@ class PhasedArrayBase():
         """
 
         cut = 1.e-3 * units.m
-        ant_x = np.fromiter(self.get_antenna_positions(station, det, triggered_channels, 0).values(), dtype=float)
+        ant_x = self._get_antenna_positions(station, det, triggered_channels, 0)
         diff_x = np.abs(ant_x - ant_x[0])
-        ant_y = np.fromiter(self.get_antenna_positions(station, det, triggered_channels, 1).values(), dtype=float)
+        ant_y = self._get_antenna_positions(station, det, triggered_channels, 1)
         diff_y = np.abs(ant_y - ant_y[0])
 
         if sum(diff_x) > cut or sum(diff_y) > cut:
@@ -247,7 +234,6 @@ class PhasedArrayBase():
             Integrated power in each integration window
         num_frames
             Number of integration windows calculated
-
         """
 
         # If not specified, the divisor is the same as the summation window.
@@ -273,7 +259,7 @@ class PhasedArrayBase():
         power = np.sum(coh_sum_windowed, axis=1)
         return_power = power.astype(float) / averaging_divisor
 
-        if adc_output=='counts':
+        if adc_output == 'counts':
             return_power = np.round(return_power)
 
         return return_power, num_frames
@@ -308,7 +294,8 @@ class PhasedArrayBase():
             Sampling frequency of the traces
         """
 
-        adc_output = adc_kwargs.get('adc_output', None)
+        adc_output = adc_kwargs.get('adc_output')
+
         if adc_output not in ['voltage', 'counts']:
             raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
 
@@ -329,6 +316,7 @@ class PhasedArrayBase():
 
             if final_sampling_frequency is None:
                 final_sampling_frequency = adc_sampling_frequency
+
             elif final_sampling_frequency != adc_sampling_frequency:
                 raise ValueError(
                     'Phased array channels do not have matching sampling frequencies. '
@@ -353,12 +341,10 @@ class PhasedArrayBase():
 
         else:
             #firmware like
-
             #31 sample fir transformer
             #hil=[-0.0424413, 0., -0.0489708, 0., -0.0578745, 0., -0.0707355, 0., -0.0909457, 0., -0.127324, 0.
             #      , -0.2122066, 0., -0.6366198, 0., 0.6366198, 0., 0.2122066, 0., 0.127324,0., 0.0909457, 0., .0707355
             #      , 0., 0.0578745, 0., 0.0489708, 0., 0.0424413]
-
             #middle 15 coefficients ^
             hil = np.array([-0.0909457, 0., -0.127324, 0., -0.2122066, 0., -0.6366198, 0., 0.6366198, 0., 0.2122066,
                 0., 0.127324, 0., 0.0909457])
@@ -380,24 +366,22 @@ class PhasedArrayBase():
 
     def phased_trigger(
             self, station, det,
-            Vrms=None,
             threshold=60 * units.mV,
             trigger_channels=None,
             phasing_angles=default_angles,
             ref_index=1.75,
-            trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
-            clock_offset=0,
-            adc_output='voltage',
-            trigger_filter=None,
-            upsampling_factor=1,
-            window=32,
-            averaging_divisor=None,
-            step=16,
             apply_digitization=False,
+            adc_kwargs=dict(
+                adc_output='voltage'),
+            upsampling_kwargs=dict(
+                upsampling_factor=1,
+                upsampling_method='fft',
+                coeff_gain=128,
+                filter_taps=31),
             saturation_bits=8,
-            upsampling_method='fft',
-            coeff_gain=128,
-            filter_taps=31,
+            window=32,
+            step=16,
+            averaging_divisor=None,
             ideal_transformer=False,
             mode="power_sum",
         ):
@@ -415,10 +399,6 @@ class PhasedArrayBase():
             Description of the current station
         det: Detector object
             Description of the current detector
-        Vrms: float
-            RMS of the noise on a channel, used to automatically create the digitizer
-            reference voltage. If set to None, tries to use reference voltage as defined
-            int the detector description file.
         threshold: float
             threshold above (or below) a trigger is issued, absolute amplitude
         trigger_channels: array of ints
@@ -428,22 +408,15 @@ class PhasedArrayBase():
             pointing angles for the primary beam
         ref_index: float (default 1.75)
             refractive index for beam forming
-        trigger_adc: bool (default True)
-            If True, uses the ADC settings from the trigger. It must be specified in the
-            detector file. See analogToDigitalConverter module for information
-            (see option `apply_digitization`)
-        clock_offset: float (default 0)
-            Overall clock offset, for adc clock jitter reasons (see `apply_digitization`)
-        adc_output: string (default 'voltage')
-            - 'voltage' to store the ADC output as discretised voltage trace
-            - 'counts' to store the ADC output in ADC counts and apply integer based math
-        trigger_filter: array floats (default None)
-            Freq. domain of the response to be applied to post-ADC traces
-            Must be length for "MC freq"
-        upsampling_factor: integer (default 1)
-            Upsampling factor. The trace will be a upsampled to a
-            sampling frequency int_factor times higher than the original one
-            after conversion to digital
+        apply_digitization: bool (default False)
+            Perform the quantization with the analogToDigitalConverter module.
+        adc_kwargs: dict
+            Keyword arguments for the ADC module. Only used if `apply_digitization == True`.
+            For arguments, see the documentation of the analogToDigitalConverter module.
+        upsampling_kwargs: dict
+            For arguments, see the documentation of the digital_upsampling function
+        saturation_bits: int (default None)
+            Determines what the coherenty summed waveforms will saturate to if using adc counts
         window: int (default 32)
             Power integration window for averaging
             Units of ADC time ticks
@@ -454,19 +427,13 @@ class PhasedArrayBase():
             Time step in power integral. If equal to window, there is no time overlap
             in between neighboring integration windows.
             Units of ADC time ticks
-        apply_digitization: bool (default True)
-            Perform the quantization of the ADC. If set to true, should also set options
-            `trigger_adc`, `adc_output`, `clock_offset`
-        saturation_bits: int (default None)
-            Determines what the coherenty summed waveforms will saturate to if using adc counts
-        upsampling_method: str (default 'fft')
-            Choose between FFT, FIR, or Linear Interpolaion based upsampling methods
-        coeff_gain: int (default 1)
-            If using the FIR upsampling, this will convert the floating point output of the
-            scipy filter to a fixed point value by multiplying by this factor and rounding to an
-            int.
-        filter_taps: int (default )
-            If doing FIR upsampling, this determine the number of filter coefficients
+        ideal_transformer: bool (default False)
+            TODO: Missing
+        mode: string (default: "power_sum")
+            The mode of the trigger. Can be either "power_sum" or "hilbert_env".
+
+                - "power_sum": uses the power_sum method to calculate the trigger
+                - "hilbert_env": uses the hilbert envelope method to calculate the trigger
 
         Returns
         -------
@@ -487,28 +454,21 @@ class PhasedArrayBase():
             list of bools for which beams triggered
         """
 
+        adc_output = adc_kwargs.get('adc_output')
+
         traces, adc_sampling_frequency = self.get_traces(
             station, det,
             trigger_channels=trigger_channels,
             apply_digitization=apply_digitization,
-            adc_kwargs=dict(
-                Vrms=Vrms, trigger_adc=trigger_adc, clock_offset=clock_offset,
-                return_sampling_frequency=True, adc_type='perfect_floor_comparator',
-                adc_output=adc_output, trigger_filter=None),
-            upsampling_kwargs=dict(
-                    upsampling_method=upsampling_method,
-                    upsampling_factor=upsampling_factor, coeff_gain=coeff_gain,
-                    adc_output=adc_output, filter_taps=filter_taps
-            )
+            adc_kwargs=adc_kwargs,
+            upsampling_kwargs=upsampling_kwargs
         )
         trigger_channels = np.array(list(traces.keys()))
 
         time_step = 1.0 / adc_sampling_frequency
         beam_rolls = self.calculate_time_delays(
-            station, det,
-            trigger_channels,
-            phasing_angles,
-            ref_index=ref_index,
+            station, det, trigger_channels,
+            phasing_angles, ref_index=ref_index,
             sampling_frequency=adc_sampling_frequency)
 
         phased_traces = self.phase_signals(traces, beam_rolls, adc_output=adc_output, saturation_bits=saturation_bits)
@@ -516,14 +476,14 @@ class PhasedArrayBase():
         if adc_output == "counts":
             threshold = np.trunc(threshold)
 
-        trigger_time = None
-        trigger_times = {}
         channel_trace_start_time = self.get_channel_trace_start_time(station, trigger_channels)
+        maximum_amps = np.zeros(len(phased_traces))
 
         trigger_delays = {}
-        maximum_amps = np.zeros(len(phased_traces))
         n_trigs = 0
         triggered_beams = []
+        trigger_time = None
+        trigger_times = {}
 
         for iTrace, phased_trace in enumerate(phased_traces):
             is_triggered = False
@@ -533,7 +493,9 @@ class PhasedArrayBase():
                 sig_trace, _ = self.power_sum(
                     coh_sum=phased_trace, window=window, step=step, averaging_divisor=averaging_divisor, adc_output=adc_output)
             elif mode == "hilbert_env":
-                sig_trace = self.hilbert_envelope(coh_sum=phased_trace, adc_output=adc_output, coeff_gain=coeff_gain, ideal_transformer=ideal_transformer)
+                coeff_gain = upsampling_kwargs.get("coeff_gain")
+                sig_trace = self.hilbert_envelope(
+                    coh_sum=phased_trace, adc_output=adc_output, coeff_gain=coeff_gain, ideal_transformer=ideal_transformer)
             else:
                 raise ValueError("mode must be either 'power_sum' or 'hilbert_env'")
 

@@ -1,20 +1,13 @@
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, signal_processing
+from NuRadioReco.utilities import units
 
 from NuRadioReco.framework.trigger import SimplePhasedTrigger
-from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase
+from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase, default_angles
 
 import logging
-import scipy
 import numpy as np
-from scipy import constants
 
 logger = logging.getLogger('NuRadioReco.PhasedArrayTrigger')
-cspeed = constants.c * units.m / units.s
-
-main_low_angle = np.deg2rad(-55.0)
-main_high_angle = -1.0 * main_low_angle
-default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
 
 
 class PhasedArrayTrigger(PhasedArrayBase):
@@ -44,6 +37,7 @@ class PhasedArrayTrigger(PhasedArrayBase):
             window=32,
             step=16,
             apply_digitization=True,
+            return_n_triggers=False,
             ):
 
         """
@@ -112,35 +106,34 @@ class PhasedArrayTrigger(PhasedArrayBase):
         is_triggered: bool
             True if the triggering condition is met
         """
-        is_triggered = False
-        trigger_delays = {}
-
         if set_not_triggered:
             is_triggered = False
             trigger_delays = {}
             maximum_amps = np.zeros_like(phasing_angles)
-
         else:
-
-            is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps = \
-                self.phased_trigger(
+            is_triggered, trigger_delays, trigger_time, trigger_times, \
+                maximum_amps, n_triggers, triggered_beams = self.phased_trigger(
                 station=station, det=det,
-                Vrms=Vrms, threshold=threshold,
+                threshold=threshold,
                 triggered_channels=triggered_channels,
                 phasing_angles=phasing_angles,
                 ref_index=ref_index,
-                trigger_adc=trigger_adc,
-                clock_offset=clock_offset,
-                adc_output=adc_output,
-                trigger_filter=trigger_filter,
-                upsampling_factor=upsampling_factor,
+                apply_digitization=apply_digitization,
+                adc_kwargs=dict(
+                    Vrms=Vrms,
+                    trigger_adc=trigger_adc,
+                    clock_offset=clock_offset,
+                    adc_output=adc_output,
+                    trigger_filter=trigger_filter),
+                upsampling_kwargs=dict(
+                    upsampling_factor=upsampling_factor,
+                    upsampling_method="fft"),
+                saturation_bits=None,
                 window=window,
                 step=step,
-                apply_digitization=apply_digitization,
-                saturation_bits=None,
-                upsampling_method="fft",
-                coeff_gain=None,
-                filter_taps=None,
+                averaging_divisor=None,
+                ideal_transformer=False,
+                mode="power_sum",
             )
 
         # Create a trigger object to be returned to the station
@@ -168,7 +161,10 @@ class PhasedArrayTrigger(PhasedArrayBase):
 
         station.set_trigger(trigger)
 
-        return is_triggered
+        if return_n_triggers:
+            return is_triggered, n_triggers
+        else:
+            return is_triggered
 
     def end(self):
         pass
