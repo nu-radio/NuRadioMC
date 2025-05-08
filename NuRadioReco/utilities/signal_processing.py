@@ -109,10 +109,13 @@ def resample(trace, sampling_factor):
 
 def digital_upsampling(
         trace, adc_sampling_frequency, upsampling_method='fft',
-        upsampling_factor=2, coeff_gain=1, filter_taps=45,
-        adc_output='voltage'):
+        upsampling_factor=2, coeff_gain=1, filter_taps=45):
     """
     Digital upsampling with various methods and settings.
+
+    In this context digital upsampling means that the upsampling factor is an integer.
+    If the input trace is "digital" (i.e., all values are all integers), the output trace will also be
+    digital (upsampled values are rounded to the nearest integer).
 
     Parameters
     ----------
@@ -130,11 +133,6 @@ def digital_upsampling(
         If set to 1, this will preserve the float value of the filter coefficients.
     filter_taps : int (default 45)
         Number of taps in the FIR filter in FIR-based upsampling.
-    adc_output: string (default "voltage")
-        Output type of the upsampled trace:
-
-            - "voltage" : keep upsampled trace as floats
-            - "counts" : round upsampling trace to ints
 
     Returns
     -------
@@ -152,6 +150,8 @@ def digital_upsampling(
         upsampling_factor = int(upsampling_factor)
     except Exception:
         raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
+
+    is_digital_trace = np.allclose(trace, np.round(trace))
 
     if upsampling_factor <= 1:
         logger.warning("Upsampling factor is less or equal to 1. Upsampling will not be performed.")
@@ -172,14 +172,15 @@ def digital_upsampling(
 
         elif upsampling_method == 'fir':
             upsampled_trace = upsampling_fir(
-                trace, adc_sampling_frequency, int_factor=upsampling_factor, ntaps=filter_taps, coeff_gain=coeff_gain)
+                trace, adc_sampling_frequency, upsampling_factor=upsampling_factor,
+                ntaps=filter_taps, coeff_gain=coeff_gain)
 
         else:
             error_msg = 'Interpolation method must be lin, fft, or fir'
             raise NotImplementedError(error_msg)
 
-        if adc_output == 'counts':
-            upsampled_trace = np.round(upsampled_trace)
+        if is_digital_trace:
+            upsampled_trace = np.round(upsampled_trace).astype(int)
 
     if len(upsampled_trace) % 2 == 1:
         upsampled_trace = upsampled_trace[:-1]
@@ -187,7 +188,7 @@ def digital_upsampling(
     return upsampled_trace, new_sampling_freq
 
 
-def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7, coeff_gain=128):
+def upsampling_fir(trace, original_sampling_frequency, upsampling_factor=2, ntaps=2**7, coeff_gain=128):
     """
     This function performs an upsampling by inserting a number of zeroes
     between samples and then applying a finite impulse response (FIR) filter.
@@ -198,10 +199,10 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7,
         Trace to be upsampled
     original_sampling_frequency: float
         Sampling frequency of the input trace
-    int_factor: integer
+    upsampling_factor: int
         Upsampling factor. The resulting trace will have a sampling frequency
-        int_factor times higher than the original one
-    ntaps: integer
+        upsampling_factor times higher than the original one
+    ntaps: int
         Number of taps (order) of the FIR filter
 
     Returns
@@ -210,17 +211,23 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7,
         The upsampled trace
     """
 
+    if abs(int(upsampling_factor) - upsampling_factor) > 1e-5:
+        raise ValueError("The input upsampling factor does not seem to be close to an integer.")
+
+    upsampling_factor = int(upsampling_factor)
+
     cutoff = 0.5
     up_filt = signal.firwin(
-        ntaps, original_sampling_frequency*cutoff, pass_zero='lowpass',
-        fs=original_sampling_frequency*int_factor)
+        ntaps, original_sampling_frequency * cutoff, pass_zero='lowpass',
+        fs=original_sampling_frequency * upsampling_factor)
 
     if coeff_gain != 1:
-        up_filt = np.round(up_filt*coeff_gain) / coeff_gain
+        up_filt = np.round(up_filt * coeff_gain) / coeff_gain
 
-    zero_padded_sig = np.zeros(len(trace)*int_factor)
-    zero_padded_sig[::int_factor] = trace[:]
-    upsampled_trace = np.convolve(zero_padded_sig, up_filt, mode='full')[len(up_filt) // 2 : len(zero_padded_sig) + len(up_filt) // 2] * int_factor
+    zero_padded_sig = np.zeros(len(trace) * upsampling_factor)
+    zero_padded_sig[::upsampling_factor] = trace
+    upsampled_trace = np.convolve(zero_padded_sig, up_filt, mode='full')[
+        len(up_filt) // 2 : len(zero_padded_sig) + len(up_filt) // 2] * upsampling_factor
 
     return upsampled_trace
 
