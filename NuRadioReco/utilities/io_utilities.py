@@ -47,6 +47,9 @@ def _pickle_numpy_scalar(i):
     else:
         raise TypeError(f"Unsupported type of numpy scalar {i} (type {type(i)})")
 
+custom_types = tuple(
+    [np.ndarray]
+    + [dtype for dtype in np.ScalarType if dtype.__module__ == 'numpy'])
 class _NurPickler(pickle.Pickler):
     """
     Custom pickler class that overwrites the pickling of numpy objects
@@ -66,7 +69,7 @@ class _NurPickler(pickle.Pickler):
     # note that this might upcast in some cases
     for dtype in np.ScalarType:
         if dtype.__module__ == 'numpy':
-            copyreg.pickle(dtype, _pickle_numpy_scalar)
+            dispatch_table[dtype] = _pickle_numpy_scalar
 
 def _dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
     """
@@ -78,8 +81,9 @@ def _dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
     of numpy objects.
     """
     f = io.BytesIO()
-    _NurPickler(f, protocol, fix_imports=fix_imports,
-             buffer_callback=buffer_callback).dump(obj)
+    _NurPickler(
+        f, protocol, fix_imports=fix_imports,
+        buffer_callback=buffer_callback).dump(obj)
     res = f.getvalue()
     return res
 
