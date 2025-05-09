@@ -1,17 +1,82 @@
+import os
+import lzma
+import pickle
+import itertools
+import functools
 import numpy as np
-from NuRadioReco.utilities import units
-from scipy.interpolate import interp1d
 from scipy import constants
-import logging
+from scipy.interpolate import interp1d
 
+from NuRadioReco.utilities import units
+
+import logging
 logger = logging.getLogger("NuRadioMC.cross_sections")
+
+
+@functools.lru_cache(maxsize=1)
+def _read_differential_cross_section_BGR18():
+    """
+    Read the differential cross section dsigma / dy.
+    """
+
+
+    # shape of dsigma_dy_ref (flavor, cc_nc, energy, inelaticity)
+    nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = \
+        pickle.load(lzma.open(os.path.join(os.path.dirname(__file__), "data", "BGR18_dsigma_dy.xz")))
+
+    # Convert to NuRadio units. We have to divide by 18 because the differential cross section
+    # is given for the interaction between neutrinos and ice nuclei (which carry 18 nucleons)
+    # while in NuRadio we use the cross section per nucleon.
+    dsigma_dy_ref = np.array(dsigma_dy_ref) * units.cm2 / 18
+
+    flavors_ref = np.array(flavors_ref)
+    nu_energies_ref = np.array(nu_energies_ref)
+    yy_ref = np.array(yy_ref)
+    ncccs_ref = np.array(ncccs_ref)
+
+    return nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref
+
+@functools.lru_cache(maxsize=2)
+def _integrate_over_differential_cross_section_BGR18(simple=True):
+    """
+    Integrate the differential cross section dsigma / dy over y.
+    """
+
+    # shape of dsigma_dy_ref (flavor, cc_nc, energy, inelaticity)
+    nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = _read_differential_cross_section_BGR18()
+
+    if simple:
+        dsigma_dy_integrated = np.trapz(dsigma_dy_ref, yy_ref, axis=-1)
+    else:
+        from scipy.interpolate import interp1d
+        from scipy.integrate import quad
+
+        dsigma_dy_integrated = []
+        for dsigma_dy_ref_ele in dsigma_dy_ref.reshape(-1, dsigma_dy_ref.shape[-1]):
+
+            # Convert dsigma_dy_ref_ele to picobarn for better numerical precision and log10
+            # for better interpolation
+            func = interp1d(yy_ref, np.log10(dsigma_dy_ref_ele / units.picobarn), axis=-1,
+                            bounds_error=False, fill_value="extrapolate")
+
+            res = quad(lambda y: 10 ** func(y), 0, 1, limit=5000, full_output=True)
+            dsigma_dy_integrated.append(res[0] * units.picobarn)  # convert back from picobarn
+
+        dsigma_dy_integrated = np.array(dsigma_dy_integrated).reshape(dsigma_dy_ref.shape[:-1])
+
+    # Extend the cross section to include the total cross section by summing nc and cc contributions
+    cross_section = np.zeros((len(flavors_ref), 3, len(nu_energies_ref)))
+    cross_section[:, :2, :] = dsigma_dy_integrated
+    cross_section[:, 2, :] = dsigma_dy_integrated[:, 0, :] + dsigma_dy_integrated[:, 1, :]
+    ncccs_ref = np.append([ele.lower() for ele in ncccs_ref], 'total')
+
+    return nu_energies_ref, flavors_ref, ncccs_ref, cross_section
 
 
 def param(energy, inttype='cc', parameterization='ctw'):
     """
-    Parameterization and constants as used in
-    get_nu_cross_section()
-    See documentation there for details
+    Parameterization and constants as used in get_nu_cross_section()
+    See documentation there for details.
 
     """
     if np.any(energy < 1e4 * units.GeV):
@@ -56,27 +121,6 @@ def param(energy, inttype='cc', parameterization='ctw'):
         else:
             logger.error("Type {0} of interaction not defined for 'ctw'".format(inttype))
             raise NotImplementedError
-
-    elif parameterization == 'hedis_bgr18':
-        """
-        Parameterization as above fitted to GENIE HEDIS module (with BGR18) cross sections
-        as in arXiv:2004.04756v2 (prepared for JCAP)
-        Precalculated xsec tables for 'nu_mu(_bar)_O16/tot_cc(nc)'/16 for isoscalar target
-        obtained from GHE19_00a_00_000.root in https://github.com/pochoarus/GENIE-HEDIS/tree/nupropearth/genie_xsec
-        Fitted in the energy range above 1 TeV; do not use below
-        """
-        if inttype == 'cc':
-            c = (-1.6049779136562436, -17.7480299104706, -6.748861524562085, 1.5569481852252935, -16.545379184836094)  # nu, CC
-        elif inttype == 'nc':
-            c = (-1.9625311094497564, -17.576550328008224, -6.444583672267122, 1.4702739736023922, -18.6167800243672)  # nu, NC
-        elif inttype == 'cc_bar':
-            c = (-2.28879962998228, -15.725804320703244, -5.273935123272873, 1.0314821502761589, -23.15773837113476)  # nu_bar, CC
-        elif inttype == 'nc_bar':
-            c = (-2.582585867636026, -15.742658435090945, -5.075692336968196, 0.9963850387362603, -24.870843546539973)  # nu_bar, NC
-        else:
-            logger.error("Type {0} of interaction not defined for 'hedis_bgr18'".format(inttype))
-            raise NotImplementedError
-
     else:
         logger.error("Parameterization {0} of interaction cross section not defined".format(parameterization))
         raise NotImplementedError
@@ -241,7 +285,33 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='h
     if cross_section_type == 'ghandi':
         crscn = 7.84e-36 * units.cm ** 2 * np.power(energy / units.GeV, 0.363)
 
-    elif cross_section_type == 'ctw' or cross_section_type == 'hedis_bgr18':
+    elif cross_section_type == 'hedis_bgr18':
+        nu_energies_ref, flavors_ref, ncccs_ref, cross_section_ref = _integrate_over_differential_cross_section_BGR18(simple=True)
+
+        if np.any(energy > nu_energies_ref[-1]):
+            raise ValueError(
+                f"Exceeding energy limit of BGR18 cross-section parameterization (E_lim = {nu_energies_ref[-1]:.2e}eV). "
+                "Please use a different cross-section model.")
+
+        crscn = np.zeros_like(energy)
+        for flav, it in itertools.product(np.unique(flavors), np.unique(inttype)):
+            # If flavors and inttype are not arrays, you want mask to be all True
+            mask = np.ones_like(energy, dtype=bool)
+
+            if isinstance(flavors, np.ndarray):
+                mask = np.logical_and(mask, flavors == flav)
+
+            if isinstance(inttype, np.ndarray):
+                mask = np.logical_and(mask, inttype == it)
+
+            idx_flav = int(np.squeeze(np.argwhere(flavors_ref == flav)))
+            idx_inttype = int(np.squeeze(np.argwhere(ncccs_ref == it.lower())))
+
+            crscn[mask] = 10 ** interp1d(
+                nu_energies_ref, np.log10(cross_section_ref[idx_flav, idx_inttype]),
+                bounds_error=True)(energy[mask])
+
+    elif cross_section_type == 'ctw':
         crscn = np.zeros_like(energy)
         if isinstance(inttype, str):
             if inttype == 'total':
