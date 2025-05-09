@@ -1,6 +1,3 @@
-import os
-import lzma
-import pickle
 import numpy as np
 from scipy import constants
 from scipy import interpolate as intp
@@ -22,9 +19,6 @@ rho1450_mass = 1465 * units.MeV
 a1_mass = 1230 * units.MeV
 cspeed = constants.c * units.m / units.s
 G_F = constants.physical_constants['Fermi coupling constant'][0] * units.GeV ** (-2)
-
-nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = pickle.load(lzma.open(os.path.join(os.path.dirname(__file__), "data", "BGR18_dsigma_dy.xz")))
-ncccs_ref = np.array(ncccs_ref)
 
 
 def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
@@ -50,19 +44,22 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
 
     if model.lower() == "ctw":
         # based on shelfmc
-        R1 = 0.36787944
-        R2 = 0.63212056
-        return (-np.log(R1 + rnd.uniform(0., 1., n_events) * R2)) ** 2.5
+        r1 = 0.36787944
+        r2 = 0.63212056
+        return (-np.log(r1 + rnd.uniform(0., 1., n_events) * r2)) ** 2.5
 
     elif model.lower() == "bgr18" or model.lower() == "hedis_bgr18":
+        nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
+
         yy = np.zeros(n_events)
         uEE = np.unique(nu_energies)
         uFlavor = np.unique(flavors)
         uNCCC = np.unique(ncccs)
         for energy in uEE:
             if energy > 10 * units.EeV:
-                logger.warning("You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
-                               f"You requested {energy / units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
+                logger.warning(
+                    "You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
+                    f"You requested {energy / units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
 
             for flavor in uFlavor:
                 for nccc in uNCCC:
