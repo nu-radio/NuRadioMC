@@ -48,7 +48,6 @@ def _integrate_over_differential_cross_section_BGR18(simple=True):
     if simple:
         dsigma_dy_integrated = np.trapz(dsigma_dy_ref, yy_ref, axis=-1)
     else:
-        from scipy.interpolate import interp1d
         from scipy.integrate import quad
 
         dsigma_dy_integrated = []
@@ -431,30 +430,48 @@ def get_interaction_length(
 
 
 if __name__ == "__main__":  # this part of the code gets only executed it the script is directly called
-
-    n_points = 100
-    inttype = np.array(['cc'] * n_points)
-
-#     inttype = 'cc'
-
-    flavors = np.array([14] * n_points)
-
-#     flavors = 14
-
-    energy = np.logspace(13, 20, n_points) * units.eV
-
-    cc = get_nu_cross_section(energy, flavors, inttype=inttype) / units.picobarn
-    cc_new = get_nu_cross_section(energy, flavors, inttype=inttype, cross_section_type='csms') / units.picobarn
-    cc_hedis_bgr18 = get_nu_cross_section(energy, flavors, inttype=inttype, cross_section_type='hedis_bgr18') / units.picobarn
-
     import matplotlib.pyplot as plt
 
-    plt.figure()
-    plt.loglog(energy / units.GeV, cc, label='CTW')
-    plt.loglog(energy / units.GeV, cc_new, label='CSMS')
-    plt.loglog(energy / units.GeV, cc_hedis_bgr18, label='HEDIS-BGR')
-    plt.xlabel("Energy [GeV]")
-    plt.ylabel("CC [pb]")
-    plt.legend()
+    fig, axs = plt.subplots(2, 2, height_ratios=[2.5, 1], figsize=(8, 5),
+                            sharex=True, sharey="row", gridspec_kw={'hspace': 0.03, 'wspace': 0.03})
+
+    energy = np.logspace(13, 19) * units.eV
+
+    cc_ctw = get_nu_cross_section(energy, 14, inttype="cc", cross_section_type="ctw") / units.picobarn
+    cc_csms = get_nu_cross_section(energy, 14, inttype="cc", cross_section_type='csms') / units.picobarn
+    cc_hedis_bgr18 = get_nu_cross_section(energy, 14, inttype="cc", cross_section_type='hedis_bgr18') / units.picobarn
+
+    axs[0, 0].loglog(energy / units.PeV, cc_ctw, lw=1, label='CTW')
+    axs[0, 0].loglog(energy / units.PeV, cc_csms, lw=1, label='CSMS')
+    axs[0, 0].loglog(energy / units.PeV, cc_hedis_bgr18, lw=1, label='HEDIS-BGR')
+
+    axs[1, 0].plot(energy / units.PeV, cc_ctw / cc_ctw, color='C0', lw=1)
+    axs[1, 0].plot(energy / units.PeV, cc_csms / cc_ctw, color='C1', lw=1)
+    axs[1, 0].plot(energy / units.PeV, cc_hedis_bgr18 / cc_ctw, color='C2', lw=1)
+
+    nc_ctw = get_nu_cross_section(energy, 14, inttype="nc", cross_section_type="ctw") / units.picobarn
+    nc_csms = get_nu_cross_section(energy, 14, inttype="nc", cross_section_type='csms') / units.picobarn
+    nc_hedis_bgr18 = get_nu_cross_section(energy, 14, inttype="nc", cross_section_type='hedis_bgr18') / units.picobarn
+
+    axs[0, 1].loglog(energy / units.PeV, nc_ctw, lw=1, label='CTW')
+    axs[0, 1].loglog(energy / units.PeV, nc_csms, lw=1, label='CSMS')
+    axs[0, 1].loglog(energy / units.PeV, nc_hedis_bgr18, lw=1, label='HEDIS-BGR')
+
+    axs[1, 1].plot(energy / units.PeV, nc_ctw / nc_ctw, color='C0', lw=1)
+    axs[1, 1].plot(energy / units.PeV, nc_csms / nc_ctw, color='C1', lw=1)
+    axs[1, 1].plot(energy / units.PeV, nc_hedis_bgr18 / nc_ctw, color='C2', lw=1)
+
+    fig.supxlabel("Energy [PeV]")
+    axs[0, 0].set_ylabel("cross-section [pb]")
+    axs[1, 0].set_ylabel("residual")
+
+    axs[0, 0].legend(title=r"$\sigma_{\nu N}(CC)$")
+    axs[0, 1].legend(title=r"$\sigma_{\nu N}(NC)$")
+
+    fig.align_ylabels(axs[:, 0])
+    fig.tight_layout()
+
+    for ax in axs.flatten():
+        ax.grid()
 
     plt.show()
