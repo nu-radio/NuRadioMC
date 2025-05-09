@@ -2,6 +2,9 @@ repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
+    -   id: no-commit-to-branch
+        name: branch is not 'develop' or 'master'
+        args: [--branch, master, --branch, develop, --branch, new]
     -   id: check-added-large-files
         args: ['--maxkb=500']
 -   repo: https://github.com/PyCQA/flake8
