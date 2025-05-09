@@ -9,7 +9,7 @@ logger = logging.getLogger("NuRadioMC.earth_attenuation")
 AMU = 1.66e-27 * units.kg
 
 
-def get_weight(theta_nu, pnu, flavors, mode='simple', cross_section_type='ctw',
+def get_weight(theta_nu, pnu, flavors, mode='simple', cross_section_type='hedis_bgr18',
                vertex_position=None, phi_nu=None):
     """
     calculates neutrino weight due to Earth absorption for different models
@@ -26,7 +26,7 @@ def get_weight(theta_nu, pnu, flavors, mode='simple', cross_section_type='ctw',
         * 'core_mantle_crust': approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered
         * 'PREM': density of Earth is parameterized as a fuction of radius, path through Earth to interaction vertex is considered
     cross_section_type: string
-        'ghandi', 'ctw' or 'csms' (see description in `cross_sections.py`)
+        See description in `cross_sections.py`
     vertex_position: 3-dim array or None (default)
         the position of the neutrino interaction
     phi_nu: float
@@ -59,7 +59,7 @@ def get_weight(theta_nu, pnu, flavors, mode='simple', cross_section_type='ctw',
         raise NotImplementedError
 
 
-def get_simple_weight(theta_nu, pnu, cross_section_type='ctw'):
+def get_simple_weight(theta_nu, pnu, cross_section_type='hedis_bgr18'):
     """
     calculates neutrino weight due to Earth absorption, i.e. probability of the
     neutrino to reach the detector
@@ -84,7 +84,7 @@ def get_simple_weight(theta_nu, pnu, cross_section_type='ctw'):
         return np.exp(-d * sigma * DensityCRUST / AMU)
 
 
-def get_core_mantle_crust_weight(theta_nu, pnu, flavors, cross_section_type='ctw'):
+def get_core_mantle_crust_weight(theta_nu, pnu, flavors, cross_section_type='hedis_bgr18'):
     """
     calculates neutrino weight due to Earth absorption with a three layers earth model, i.e. probability of the
     neutrino to reach the detector
@@ -287,4 +287,3 @@ class CoreMantleCrustModel(PREM):
     radii = (np.sqrt(1.2e13) * units.m, earth_radius - 4e4 * units.m, earth_radius)
 
     densities = (14 * units.g / units.cm ** 3, 3.4 * units.g / units.cm ** 3, 2.9 * units.g / units.cm ** 3)
-
