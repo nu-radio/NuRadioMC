@@ -13,6 +13,7 @@ from NuRadioMC.utilities import inelasticities
 from NuRadioMC.simulation.time_logger import pretty_time_delta
 from NuRadioReco.utilities import units, version, particle_names
 
+from NuRadioReco.utilities.constants import c as cspeed
 
 logger = logging.getLogger("NuRadioMC.EvtGen")
 logger.setLevel(logging.NOTSET)
@@ -43,12 +44,6 @@ HEADER = """
 # 10. inelasticity (the fraction of neutrino energy that goes into the hadronic part)
 #
 """
-# Mass energy equivalent of the tau lepton
-tau_mass = constants.physical_constants['tau mass energy equivalent in MeV'][0] * units.MeV
-# Lifetime of the tau (rest frame). Taken from PDG
-tau_rest_lifetime = 290.3 * units.fs
-density_ice = 0.9167 * units.g / units.cm ** 3
-cspeed = constants.c * units.m / units.s
 
 
 def load_input_hdf5(filename):

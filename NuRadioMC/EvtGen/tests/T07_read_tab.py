@@ -1,5 +1,7 @@
-from NuRadioMC.EvtGen.generator import *
+import numpy as np
 import matplotlib.pyplot as plt
+from NuRadioReco.utilities import units
+from NuRadioReco.utilities.constants import tau_rest_lifetime
 
 def get_p(p):
 
