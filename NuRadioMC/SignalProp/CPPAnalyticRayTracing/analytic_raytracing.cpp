@@ -295,10 +295,9 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 	// Use an optimized calculation for GL3
 	if (model == 5) {
 		double attenuation_integral = get_attenuation_integral_GL3(
-			pos, pos2, C0, frequency, n_ice, delta_n, z_0, 5
-        	);
-        	return exp(-1 * attenuation_integral);
-    	}
+			pos, pos2, C0, frequency, n_ice, delta_n, z_0, 5);
+		return exp(-1 * attenuation_integral);
+	}
 
 	double x2_mirrored[2] = {0.};
 	get_z_mirrored(pos, pos2, C0, x2_mirrored, n_ice, delta_n, z_0);
@@ -307,16 +306,16 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 	gsl_function F;
 	F.function = &dt_freq;
 	struct dt_freq_params params = {C0, frequency, n_ice, delta_n, z_0, model};
-	F.params=&params;
+	F.params = &params;
 
 	double result, error;
-	double epsabs = 0; // 0 -> only rel error relevant
+	double epsabs = 0; // 0 -> only take into account relative error
 	double epsrel = 1.e-7; // small initial relative error
 	double max_epsrel = 1.e-5; // max excepted relative error
+
 	int max_badfunc_tries = 5;
 	int num_badfunc_tries = 0;
-	double delta_epsrel = (max_epsrel - epsrel) / max_badfunc_tries; // small initial relative error
-
+	double delta_epsrel = (log10(max_epsrel) - log10(epsrel)) / max_badfunc_tries; // small initial relative error
 	int status;
 
 	/*
@@ -337,8 +336,8 @@ double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 
 		if (status != GSL_SUCCESS) {
 			status = GSL_CONTINUE;
+			epsrel = pow(10, log10(epsrel) + delta_epsrel); //double the size of the relative error
 			num_badfunc_tries++;
-			epsrel += delta_epsrel; //double the size of the relative error
 		}
 
 	} while (status == GSL_CONTINUE && num_badfunc_tries <= max_badfunc_tries);
@@ -812,8 +811,8 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 		else logC0_stop = root_1-0.0001;
 
 		logC0_start = -100.;
-		delta_start = GSL_FN_EVAL(&F,logC0_start);
-		delta_stop = GSL_FN_EVAL(&F,logC0_stop);
+		delta_start = GSL_FN_EVAL(&F, logC0_start);
+		delta_stop = GSL_FN_EVAL(&F, logC0_stop);
 		bool found_root_3 = false;
 		double root_3 = -10000000;
 		if(signbit(delta_start)!=signbit(delta_stop)){
@@ -839,7 +838,7 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 					logC0_start = gsl_root_fsolver_x_lower(s);
 					logC0_stop = gsl_root_fsolver_x_upper(s);
 					// printf("[Iter, Xlo, Xhi]: [%d, %.8f, %.8f] \n",iter,logC0_start,logC0_stop);
-					status3 = gsl_root_test_interval(logC0_start,logC0_stop,0,precision_fit);
+					status3 = gsl_root_test_interval(logC0_start, logC0_stop, 0, precision_fit);
 					if(status3==GSL_EBADFUNC) {status3=GSL_CONTINUE; num_badfunc_tries++; continue;}
 					if(status3 == GSL_SUCCESS){
 						// printf("Converged on root 3! Iteration %d\n",iter);
