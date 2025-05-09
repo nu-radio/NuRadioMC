@@ -86,7 +86,7 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
         raise AttributeError(f"inelasticity model {model} is not implemented.")
 
 
-def get_ccnc(n_events, rnd=None, model="hedis_bgr18", energy=None):
+def get_ccnc(n_events, rnd=None, model="hedis_bgr18", energy=None, flavors=12):
     """
     Get the nature of the interaction current: cc or nc
 
@@ -100,6 +100,9 @@ def get_ccnc(n_events, rnd=None, model="hedis_bgr18", energy=None):
         The cross section model to determine cc fraction. For options see cross_sections.py
     energy: float or array (default: None)
         Energy of the neutrino. If None is provided a constant value is used (only for CTW model).
+    flavors: int (default: 12)
+        The flavor of the neutrino. Only relevant for the BGR18 model. 12 = nu_e, 14 = nu_mu, 16 = nu_tau.
+        Negative values are used for antineutrinos. For the CTW model, this parameter is ignored.
 
     Returns
     -------
@@ -119,18 +122,18 @@ def get_ccnc(n_events, rnd=None, model="hedis_bgr18", energy=None):
         # Ported from Shelf MC
         # https://github.com/persic/ShelfMC/blob/daf56916d85de019e848f415c2e9f4643a744674/functions.cc#L1055-L1064
         # based on CTW cross sections https://link.aps.org/doi/10.1103/PhysRevD.83.113009
-        ccnc = np.where(random_sequence <= 0.7064, 'cc', 'nc')
+        cc_fraction = 0.7064
     else:
         if not isinstance(energy, (float, int)):
             assert len(energy) == n_events, "Energy must be a scalar or an array of the same length as n_events"
 
         # Flavor only relevant to determine if its a neutrino or antineutrino. For cross section ratio it
         # hopefully doesn't matter
-        cc = cross_sections.get_nu_cross_section(energy, flavors=12, inttype="cc", cross_section_type=model.lower())
-        nc = cross_sections.get_nu_cross_section(energy, flavors=12, inttype="nc", cross_section_type=model.lower())
-
+        cc = cross_sections.get_nu_cross_section(energy, flavors=flavors, inttype="cc", cross_section_type=model.lower())
+        nc = cross_sections.get_nu_cross_section(energy, flavors=flavors, inttype="nc", cross_section_type=model.lower())
         cc_fraction = cc / (cc + nc)
-        ccnc = np.where(random_sequence <= cc_fraction, 'cc', 'nc')
+
+    ccnc = np.where(random_sequence <= cc_fraction, 'cc', 'nc')
 
     return ccnc
 
