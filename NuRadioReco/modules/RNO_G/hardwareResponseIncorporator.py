@@ -310,7 +310,7 @@ if __name__ == "__main__":
         file_dir, "../../detector/RNO_G/RNO_single_station.json")
     det_old = detector.generic_detector.GenericDetector(
         json_filename=detectorfile,
-        default_station=11, antenna_by_depth=False)
+        default_station=11)
 
     det = detector.rnog_detector.Detector(log_level=logging.DEBUG, over_write_handset_values={
         "sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=True)

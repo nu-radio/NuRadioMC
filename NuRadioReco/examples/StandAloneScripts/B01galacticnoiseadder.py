@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     noiseadder = channelGalacticNoiseAdder.channelGalacticNoiseAdder()
     noiseadder.begin(skymodel=args.skymodel, seed=1234)
-    det = Detector(json_filename='RNO_G/RNO_season_2023.json', antenna_by_depth=False)
+    det = Detector(json_filename='RNO_G/RNO_season_2023.json')
     det.update(astropy.time.Time.now())
 
     evt = NuRadioReco.framework.event.Event(0, 0)
