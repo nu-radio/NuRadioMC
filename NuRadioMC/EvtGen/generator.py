@@ -1234,7 +1234,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         logger.debug("interaction type")
         if interaction_type == "ccnc":
             data_sets["interaction_type"] = inelasticities.get_ccnc(
-                n_events_batch, rnd=rnd, model="hedis_bgr18", energy=data_sets["energies"])
+                n_events_batch, rnd=rnd, model="hedis_bgr18",
+                energy=data_sets["energies"], flavors=data_sets["flavors"])
         elif interaction_type == "cc" or interaction_type == "nc":
             data_sets["interaction_type"] = np.full(n_events_batch, interaction_type, dtype='U2')
         else:
