@@ -5,9 +5,8 @@ from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase, def
 
 import numpy as np
 import logging
-logger = logging.getLogger('NuRadioReco.phasedEnvelopeTriggerSimulator')
-
-class PhasedEnvelopeTriggerSimulator(PhasedArrayBase):
+logger = logging.getLogger('NuRadioReco.digitalBeamformedEnvelopeTrigger')
+class DigitalBeamformedEnvelopeTrigger(PhasedArrayBase):
     """
     Calculates the trigger for a phased array with primary beams.
 
@@ -151,7 +150,7 @@ class PhasedEnvelopeTriggerSimulator(PhasedArrayBase):
                         filter_taps=filter_taps),
                     saturation_bits=saturation_bits,
                     window=None,
-                    step=None,
+                    step=1,
                     averaging_divisor=None,
                     ideal_transformer=ideal_transformer,
                     mode="hilbert_env"
