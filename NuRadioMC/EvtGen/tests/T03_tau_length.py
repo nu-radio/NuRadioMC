@@ -1,7 +1,10 @@
-from NuRadioMC.EvtGen.generator import *
 import matplotlib.pyplot as plt
 import json
-plt.tight_layout()
+import numpy as np
+
+from NuRadioReco.utilities import units
+from NuRadioReco.utilities.constants import (
+    tau_rest_lifetime, c as cspeed)
 
 """
 This file calculates some percentiles for the tau length and energy distributions
