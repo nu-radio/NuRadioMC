@@ -6,6 +6,7 @@ from scipy.signal import hilbert
 from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 
+from matplotlib import pyplot as plt
 
 logger = logging.getLogger('NuRadioReco.PhasedArrayTriggerBase')
 cspeed = constants.c * units.m / units.s
@@ -500,8 +501,12 @@ class PhasedArrayBase():
                 coeff_gain = upsampling_kwargs.get("coeff_gain")
                 sig_trace = self.hilbert_envelope(
                     coh_sum=phased_trace, adc_output=adc_output, coeff_gain=coeff_gain, ideal_transformer=ideal_transformer)
+                # plt.plot(sig_trace)
+                # plt.axhline(threshold, color='r', linestyle='--')
+                # plt.show()
             else:
                 raise ValueError("mode must be either 'power_sum' or 'hilbert_env'")
+
 
             maximum_amps[iTrace] = np.max(sig_trace)
 
@@ -526,7 +531,7 @@ class PhasedArrayBase():
         is_triggered = np.any(triggered_beams)
 
         if is_triggered:
-            trigger_time = np.amin([x for x in trigger_times.values()])
+            trigger_time = np.amin([np.amin(x) for x in trigger_times.values()])
             logger.debug("Trigger condition satisfied!\n"
                 "All trigger times: {}\n".format(trigger_times) +
                 "Minimum trigger time is {:.0f}ns".format(trigger_time))

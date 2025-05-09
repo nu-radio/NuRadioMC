@@ -8,6 +8,8 @@ from NuRadioReco.utilities import units, fft, signal_processing
 from NuRadioReco.detector.RNO_G import rnog_detector
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
+from NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger import BeamformedPowerIntegrationTrigger
+from NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger import DigitalBeamformedEnvelopeTrigger
 import NuRadioReco.modules.channelGenericNoiseAdder
 
 from matplotlib import pyplot as plt
@@ -59,6 +61,45 @@ triggerBoard.begin(clock_offset=0, adc_output=adc_output)
 
 hardwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
 hardwareResponse.begin(trigger_channels=deep_trigger_channels)
+
+beamformedPowerIntegrationTrigger = BeamformedPowerIntegrationTrigger()
+beamformedPowerIntegrationTrigger.begin()
+
+main_low_angle = np.deg2rad(-60)
+main_high_angle = np.deg2rad(60)
+phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 12))
+power_trigger_kwargs = {
+    "phasing_angles": phasing_angles,
+    "ref_index": 1.75,
+    "apply_digitization": False,
+    "adc_output": "counts",
+    "upsampling_factor": 4,
+    "upsampling_method": "fir",
+    "window": 24,
+    "averaging_divisor": 32,
+    "step": 8,
+    "saturation_bits": 8,
+    "filter_taps":45,
+    "coeff_gain": 256
+}
+
+digitalBeamformedEnvelopeTrigger = DigitalBeamformedEnvelopeTrigger()
+digitalBeamformedEnvelopeTrigger.begin()
+
+envelope_trigger_kwargs = {
+    "phasing_angles": phasing_angles,
+    "ref_index": 1.75,
+    "trigger_adc": True,
+    "trigger_filter": None,
+    "apply_digitization": False,
+    "adc_output": "counts",
+    "upsampling_factor": 1,
+    "upsampling_method": "fir",
+    "saturation_bits": 8,
+    "filter_taps":45,
+    "coeff_gain": 256,
+    "ideal_transformer": False
+}
 
 # Define the thresholds for the trigger simulation
 sigma_thresholds = np.linspace(3.2, 4, 20)
@@ -241,6 +282,22 @@ def trigger_simulation(evt, station, det, vrms=None):
             trigger_name=f"deep_high_low_{thresh_key:.4f}_sigma",
         )
 
+        pa_power_threshold = np.round(25 * np.sqrt(np.sum(np.array(list(threshold_high.values()))**2)))
+        beamformedPowerIntegrationTrigger.run(
+            evt, station, det,
+            trigger_name=f"pa_power_{thresh_key:.4f}_sigma",
+            threshold=pa_power_threshold,
+            **power_trigger_kwargs
+        )
+
+        pa_envelope_threshold = np.round(7 * np.sqrt(np.sum(np.array(list(threshold_high.values())))))
+        digitalBeamformedEnvelopeTrigger.run(
+            evt, station, det,
+            trigger_name=f"pa_envelope_{thresh_key:.4f}_sigma",
+            threshold=pa_envelope_threshold,
+            **envelope_trigger_kwargs
+        )
+
     return vrms_after_gain
 
 
@@ -310,7 +367,7 @@ if __name__ == "__main__":
         detector_file=args.detectordescription, log_level=logging.INFO,
         always_query_entire_description=True, select_stations=args.station_id)
 
-    det.update(dt.datetime(2023, 8, 3))
+    det.update(dt.datetime(2024, 1, 3))
 
     max_freq = det.get_sampling_frequency(args.station_id, None, trigger=True) / 2
     bandwidth = np.array([50, max_freq / units.MHz]) * units.MHz
@@ -420,8 +477,13 @@ if __name__ == "__main__":
         "noise_kwargs": noise_kwargs,
     }
 
+
+    logger.info("Trigger efficiency:")
+    info_str = defaultdict(str)
     for trigger_name, trigger_data in triggers.items():
         threshold = float(trigger_name.split("_")[-2])
+
+        trigger_name2 = trigger_name.replace(f"_{threshold:.4f}_sigma", "")
 
         n_triggers = int(np.sum(trigger_data))
         efficiency = n_triggers / len(trigger_data)
@@ -429,14 +491,17 @@ if __name__ == "__main__":
 
         if trigger_rate > max_rate:
             logger.warning(f"Trigger rate for {trigger_name} is higher than max trigger rate ({max_rate / units.Hz:.2f}): "
-                            f"{trigger_rate / units.Hz:.2f} Hz")
+                f"{trigger_rate / units.Hz:.2f} Hz")
 
         e_trigger_rate = np.sqrt(n_triggers) / total_time
         data[trigger_name] = {"n_triggers": n_triggers, "threshold_sigma": threshold}
 
-        logger.info(f"Trigger efficiency for {trigger_name.replace('deep_high_low_', '')}: "
+        info_str[trigger_name2] += (f"{threshold:.4f} : "
                     f"{efficiency:.3e} ({n_triggers}) "
-                    f"({trigger_rate / units.Hz:.2f} +- {e_trigger_rate / units.Hz:.2f} Hz)")
+                    f"({trigger_rate / units.Hz:.2f} +- {e_trigger_rate / units.Hz:.2f} Hz)\n\t")
+
+    for ele in info_str:
+        logger.info(f"{ele}:\n\t{info_str[ele]}")
 
     vrms_label = 'running_vrms' if args.running_vrms else 'fixed_vrms'
     with open(f"trigger_rates_st{args.station_id}_{adc_output}_{vrms_label}_{noise_kwargs['n_samples']}_"
