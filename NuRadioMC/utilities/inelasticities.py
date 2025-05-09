@@ -281,3 +281,110 @@ def rejection_sampling(f, xmin, xmax, ymax, rnd=None):
             break
 
     return x
+
+
+if __name__ == "__main__":
+    from matplotlib import pyplot as plt
+    from NuRadioMC.utilities.cross_sections import get_nu_cross_section
+
+    energy = np.logspace(13, 19) * units.eV
+
+    cc_ctw = get_nu_cross_section(energy, 14, inttype="cc", cross_section_type="ctw") / units.picobarn
+    cc_csms = get_nu_cross_section(energy, 14, inttype="cc", cross_section_type='csms') / units.picobarn
+    cc_hedis_bgr18 = get_nu_cross_section(energy, 14, inttype="cc", cross_section_type='hedis_bgr18') / units.picobarn
+
+    nc_ctw = get_nu_cross_section(energy, 14, inttype="nc", cross_section_type="ctw") / units.picobarn
+    nc_csms = get_nu_cross_section(energy, 14, inttype="nc", cross_section_type='csms') / units.picobarn
+    nc_hedis_bgr18 = get_nu_cross_section(energy, 14, inttype="nc", cross_section_type='hedis_bgr18') / units.picobarn
+
+    fig, ax = plt.subplots(1, 1)
+
+    ax.plot(energy / units.PeV, cc_ctw / (cc_ctw + nc_ctw), color="C0", ls="-", label='CTW')
+    ax.plot(energy / units.PeV, cc_csms / (cc_csms + nc_csms), color="C1", ls="-", label='CSMS')
+    ax.plot(energy / units.PeV, cc_hedis_bgr18 / (cc_hedis_bgr18 + nc_hedis_bgr18), color="C2", ls="-", label='BGR18-HEDIS')
+
+    energy2 = np.repeat(energy, 100000)
+    for model in ["CTW", "CSMS", "hedis_bgr18"]:
+        ccnc = get_ccnc(len(energy2), model=model, energy=energy2)
+        ccnc = ccnc.reshape(len(energy), -1)
+        cc_fraction = np.array([np.sum(ele == "cc") / len(ele) for ele in ccnc])
+        ax.plot(energy / units.PeV, cc_fraction, lw=1, ls="--")
+
+    ax.set_xlabel("Energy [PeV]")
+
+    ax.axhline(0.7064, color="k", lw=1, ls="--", label="get_ccnc energy independent")
+
+    ax.set_xscale("log")
+    ax.set_ylabel("cc fraction")
+    ax.legend()
+
+
+    n_events = 3000000
+    fig, (ax, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[2.5, 1], gridspec_kw={"hspace": 0.05})
+
+    inelasticities = get_neutrino_inelasticity(n_events, model="CTW")
+
+    bins = np.linspace(0, 1, 1001)
+    n_ctw, bins, _ = ax.hist(inelasticities, bins=bins, histtype="step", weights=np.ones_like(inelasticities) / n_events, lw=1, label=f'CTW, mean: {np.mean(inelasticities):.3f}')
+    x = bins[:-1] + np.diff(bins) / 2
+    for idx, nu_energy in enumerate([0.1 * units.EeV, 1 * units.EeV, 10 * units.EeV]):
+        inelasticities_cc_bgr = get_neutrino_inelasticity(n_events, model="BGR18", ncccs="CC", nu_energies=nu_energy)
+        n, _ , _ = ax.hist(inelasticities_cc_bgr, bins=bins, histtype="step", ls="--", color=f"C{idx+1}",
+                weights=np.ones_like(inelasticities_cc_bgr) / n_events, lw=1, label=f'BGR18 CC {nu_energy / units.EeV:.2f}EeV, mean: {np.mean(inelasticities_cc_bgr):.3f}')
+
+        ax2.plot(x, n / n_ctw, color=f"C{idx+1}", lw=1, ls="--")
+
+
+        inelasticities_nc_bgr = get_neutrino_inelasticity(n_events, model="BGR18", ncccs="NC", nu_energies=nu_energy)
+        n, _ , _ = ax.hist(inelasticities_nc_bgr, bins=bins, histtype="step", ls=":", color=f"C{idx+1}",
+                weights=np.ones_like(inelasticities_nc_bgr) / n_events, lw=1, label=f'BGR18 NC {nu_energy / units.EeV:.2f}EeV, mean: {np.mean(inelasticities_nc_bgr):.3f}')
+        ax2.plot(x, n / n_ctw, color=f"C{idx+1}", lw=1, ls=":")
+
+
+    # plotting.draw_residual(ax, ax2)
+    ax.grid()
+    ax2.set_xlabel('Inelasticity')
+    ax2.grid()
+    ax2.set_ylabel("Ratio to CTW")
+    ax.set_ylabel("probability density")
+
+    ax.set_yscale("log")
+    ax.legend()
+    fig.tight_layout()
+    fig.align_ylabels([ax, ax2])
+
+
+    fig2, (ax, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[2.5, 1], gridspec_kw={"hspace": 0.05})
+
+    n_events = 1000000
+    energies = np.logspace(16, 19, 100) * units.eV
+
+    ineal_mean_ctw = np.ones_like(energies) * np.mean(get_neutrino_inelasticity(n_events, model="CTW"))
+    ax.plot(energies / units.PeV, ineal_mean_ctw, color="k", lw=1, label="CTW")
+
+    ineal_mean_cc = []
+    ineal_mean_nc = []
+    for e in energies:
+        ineal_mean_cc.append(np.mean(get_neutrino_inelasticity(n_events, model="BGR18-HEDIS", ncccs="CC", nu_energies=e)))
+        ineal_mean_nc.append(np.mean(get_neutrino_inelasticity(n_events, model="BGR18-HEDIS", ncccs="nc", nu_energies=e)))
+
+    ax.plot(energies / units.PeV, ineal_mean_cc, label="BGR18-HEDIS CC", lw=1)
+    ax.plot(energies / units.PeV, ineal_mean_nc, label="BGR18-HEDIS NC", lw=1)
+
+
+    ax2.plot(energies / units.PeV, np.array(ineal_mean_cc) / ineal_mean_ctw, label="BGR18-HEDIS CC", lw=1)
+    ax2.plot(energies / units.PeV, np.array(ineal_mean_nc) / ineal_mean_ctw, label="BGR18-HEDIS NC", lw=1)
+
+    ax.set_xscale("log")
+    ax.legend()
+    ax.grid()
+
+    ax.set_ylabel(r"$\langle y \rangle$")
+    ax2.set_xlabel(r"$E_\nu$ [PeV]")
+    ax2.set_ylabel(r"$\langle y \rangle$ ratio to CTW")
+    ax2.grid()
+
+    fig.tight_layout()
+    fig.align_ylabels([ax, ax2])
+
+    plt.show()
