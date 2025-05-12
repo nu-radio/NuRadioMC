@@ -13,7 +13,10 @@ from datetime import datetime
 from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
 import warnings
-from erfa import ErfaWarning
+try:
+    from erfa import ErfaWarning
+except ImportError: # users with astropy < 4.2 may not have pyerfa installed
+    from astropy.utils.exceptions import ErfaWarning
 import NuRadioReco.utilities.metaclasses
 
 logger = logging.getLogger('NuRadioReco.detector')

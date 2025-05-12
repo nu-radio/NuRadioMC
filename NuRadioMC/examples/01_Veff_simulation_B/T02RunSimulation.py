@@ -4,6 +4,7 @@ import argparse
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
+
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 
@@ -68,4 +69,3 @@ if __name__ == "__main__":
                                 config_file=args.config,
                                 file_overwrite=True)
     sim.run()
-
