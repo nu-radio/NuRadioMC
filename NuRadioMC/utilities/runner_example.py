@@ -2,7 +2,6 @@ import numpy as np
 from NuRadioReco.utilities import units
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.channelAddCableDelay
 
 from NuRadioMC.EvtGen import generator
 from NuRadioMC.simulation import simulation
@@ -87,12 +86,10 @@ def task(q, iSim, nu_energy, nu_energy_max, detectordescription, config, output_
     simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
     highLowThreshold = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
     channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-    channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
     class mySimulation(simulation.simulation):
 
         def _detector_simulation_filter_amp(self, evt, station, det):
-            channelAddCableDelay.run(evt, station, det, mode='add_by_rolling')
             channelBandPassFilter.run(evt, station, det,
                                   passband=passband_low, filter_type=filter_type, order=order_low, rp=0.1)
             channelBandPassFilter.run(evt, station, det,

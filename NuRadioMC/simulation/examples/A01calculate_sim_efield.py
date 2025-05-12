@@ -26,22 +26,27 @@ propagation module to use (e.g. the analytic ray tracer).
 
 
 time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
+# initialize the detector description (from the json file)
+kwargs = dict(json_filename="surface_station_1GHz.json", antenna_by_depth=False)
+det = detector.Detector(**kwargs)
+det.update(datetime.now())
+
+# get the general config settings
+cfg = sim.get_config("config.yaml")
+
 # set the ice model
 ice = medium.get_ice_model('southpole_simple')
 # set the propagation module
-propagator = propagation.get_propagation_module("analytic")(ice)
+# it is important to pass the detector object to the propagator for an accurate calculation of the attenuation length
+# (if the detector is availble, the sampling rate is used to determine the maximum frequency for an efficient interpolation
+# of the attenuation length, otherwise the internal sampling rate of the simulation is used which is much higher, this would 
+# lead to inaccuracies at low frequencies)
+propagator = propagation.get_propagation_module("analytic")(ice, detector=det, config=cfg)
 
 # set the station id and channel id
 sid = 101
 cid = 1
 
-# get the general config settings
-cfg = sim.get_config("config.yaml")
-
-# initialize the detector description (from the json file)
-kwargs = dict(json_filename="surface_station_1GHz.json", antenna_by_depth=False)
-det = detector.Detector(**kwargs)
-det.update(datetime.now())
 
 # define the showers that should be simulated
 showers = []

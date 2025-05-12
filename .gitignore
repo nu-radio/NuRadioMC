@@ -132,6 +132,7 @@ venv.bak/
 
 #Mac nonsense
 .DS_Store
+
 # pngs, pdfs
 *.png
 *.pdf
@@ -143,3 +144,11 @@ NuRadioReco/examples/*.nur
 
 # Default location for proposal tables with proposal7
 NuRadioMC/EvtGen/proposal_tables/
+
+# zipped DB json files
+*json.xz
+
+# Lock file for shower library
+NuRadioMC/SignalGen/ARZ/shower_library/library_v1.2.pkl.lock
+
+

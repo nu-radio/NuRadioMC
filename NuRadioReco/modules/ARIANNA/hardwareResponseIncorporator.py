@@ -1,7 +1,9 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector.ARIANNA import analog_components
+from NuRadioReco.modules.channelAddCableDelay import add_cable_delay
+from NuRadioReco.utilities import units, fft
+
 import numpy as np
-from NuRadioReco.utilities import units, fft, signal_processing
 import time
 import logging
 
@@ -147,10 +149,11 @@ class hardwareResponseIncorporator:
             # otherwise, noise will be blown up
             channel.set_frequency_spectrum(trace_fft, channel.get_sampling_rate())
 
-        if sim_to_data:
-            signal_processing.add_cable_delay_by_rolling(station, det, logger=self.logger)
-        else:
-            signal_processing.add_cable_delay(station, det, sim_to_data=sim_to_data, logger=self.logger)
+        if not sim_to_data:
+            # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
+            # in the efieldToVoltageConverter or with the channelCableDelayAdder
+            # (if efieldToVoltageConverterPerEfield was used).
+            add_cable_delay(station, det, sim_to_data=False, logger=self.logger)
 
         self.__t += time.time() - t
 

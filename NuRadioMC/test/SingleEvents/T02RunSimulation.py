@@ -7,13 +7,11 @@ import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.channelAddCableDelay
 
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 from NuRadioMC.simulation import simulation
 import logging
-import NuRadioReco.framework.station
 
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -22,21 +20,12 @@ triggerSimulatorHighLow = NuRadioReco.modules.trigger.highLowThreshold.triggerSi
 triggerSimulatorSimple = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
 
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-        channelAddCableDelay.run(evt, station, det, mode='add_by_rolling')
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
-
-        if isinstance(station, NuRadioReco.framework.sim_station.SimStation):
-            for channel in station.iter_channels():
-                idx_max = channel.get_trace().argmax()
-                # print(f"channel {channel.get_id()}: {channel.get_trace_start_time()}, {idx_max}")
-                # break
-
         channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
                                   filter_type='butter', order=2)
         channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],

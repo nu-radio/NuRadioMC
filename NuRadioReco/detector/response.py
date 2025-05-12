@@ -99,8 +99,6 @@ class Response:
         if y[0] is None or y[1] is None:
             raise ValueError("Data for response incomplete, detected \"None\"")
 
-        # print(name, y_unit[1], y[1])
-
         y_ampl, y_phase = np.array(y)
         if y_unit[0] == "dB":
             gain = 10 ** (y_ampl / 20)
@@ -123,6 +121,15 @@ class Response:
             y_phase = y_phase
         else:
             raise KeyError
+
+        if time_delay:
+            if abs(2 * time_delay) > 1 / np.diff(self.__frequency)[0]:
+                self.logger.error(
+                    f"The frequency binning (resolution) of {np.diff(self.__frequency)[0] * 1e3:.2f} MHz "
+                    f"of the response function is too large/coarse to correctly remove the time delay of {time_delay} ns. "
+                    f"This is a sign of potential aliasing. You need to upsample the response function "
+                    "(zero padding in the time domain).")
+                raise ValueError("Time delay too large for frequency resolution. Upsample the response function.")
 
         # Remove the average group delay from response
         if remove_time_delay and time_delay:
@@ -215,6 +222,8 @@ class Response:
             The complex response at the desired frequencies
         """
         response = np.ones_like(freq, dtype=np.complex128)
+
+        freq = np.asarray(freq)
 
         if component_names is not None:
             if isinstance(component_names, str):
@@ -463,7 +472,7 @@ class Response:
         else:
             return fig, ax
 
-    def get_time_delay(self, ):
+    def get_time_delay(self):
         """ Get time delay from DB """
         return np.sum(self.__time_delays)
 
@@ -547,6 +556,11 @@ def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=
 
     if time_delay is None:
         raise ValueError("You have to specify a time delay")
+
+    if np.any(np.abs(2 * time_delay * np.diff(frequencies)) > 1):
+        raise ValueError("The frequency binning (resolution) of the response function "
+                         f"is to large/corse to correctly remove the time delay of {time_delay} ns. "
+                         "You need to upsample the response function.")
 
     resp = gain * np.exp(1j * (phase + 2 * np.pi * time_delay * frequencies))
 

@@ -1,5 +1,7 @@
+import NuRadioReco.modules.channelAddCableDelay
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, fft, signal_processing
+from NuRadioReco.utilities import units, fft
+import NuRadioReco.framework.station
 
 from NuRadioReco.detector.RNO_G import analog_components
 from NuRadioReco.detector import detector
@@ -13,7 +15,7 @@ import logging
 class hardwareResponseIncorporator:
     """
     Incorporates the compex response of the RNO-G hardware. The response is obtained from the detector description.
-    The response is applied in the frequency domain. This module also adds the cable delay to the channels.
+    The response is applied in the frequency domain.
     """
 
     def __init__(self):
@@ -22,6 +24,8 @@ class hardwareResponseIncorporator:
         self.__time_delays = {}
         self.__t = 0
         self.__mingainlin = None
+        self.trigger_channels = None
+        self.channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
     def begin(self, trigger_channels=None):
         """
@@ -83,7 +87,7 @@ class hardwareResponseIncorporator:
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
             ``analog_components.get_amplifier_response()``
 
-        is_trigger_channel: bool
+        is_trigger: bool
             Use trigger channel response instead. Only relevant for RNO-G. (Default: False)
 
         Returns
@@ -117,7 +121,7 @@ class hardwareResponseIncorporator:
             pass
         elif mode == 'phase_only':
             cable_response = np.ones_like(cable_response) * np.exp(1j * np.angle(cable_response))
-            amp_response = np.ones_like(amp_response) * np.angle(amp_response)
+            amp_response = np.ones_like(amp_response) * np.exp(1j * np.angle(amp_response))
         elif mode == 'relative':
             ampmax = np.max(np.abs(amp_response))
             amp_response /= ampmax
@@ -195,7 +199,19 @@ class hardwareResponseIncorporator:
             filter = self.get_filter(
                 frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin)
 
-            if self.trigger_channels is not None and channel.get_id() in self.trigger_channels:
+            if (self.trigger_channels is not None and
+                channel.get_id() in self.trigger_channels and
+                isinstance(station, NuRadioReco.framework.station.Station)):
+                """
+                Create a copy of the channel and apply the readout and trigger channel response respectively.
+                We do this here under the assumption that up to this point no difference between the two channels
+                had to be made. This is acutally not strictly true. The cable delay is already added in the
+                efieldToVoltageConverter module. I.e., the assumption is made that the cable delay is no different
+                between the two. While this might be true/a good approximation for the moment it is not given that
+                this holds for the future. You have been warned!
+
+                See Also: https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/event_structure.html#channel for a bit more context.
+                """
                 trig_filter = self.get_filter(
                     frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data,
                     phase_only, mode, mingainlin, is_trigger=True)
@@ -221,10 +237,21 @@ class hardwareResponseIncorporator:
             channel.set_frequency_spectrum(
                 trace_fft, channel.get_sampling_rate())
 
-        signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
-        if has_trigger_channels:
-            signal_processing.add_cable_delay(
-                    station, det, sim_to_data, trigger=True, logger=self.logger)
+        if not sim_to_data:
+            if not evt.has_been_processed_by_module('channelAddCableDelay', station.get_id()):
+                self.logger.warning(
+                    "The hardwareResponseIncorporator module should _not_ be used to remove the cable delay "
+                    "from data anymore. Please use channelAddCableDelay module for this (before running "
+                    "the hardwareResponseIncorporator module). The channelAddCableDelay was not applied "
+                    "to this event, hence, you are receiving this warning. The cable delay is now "
+                    "removed. Please add the channelAddCableDelay module to your processing chain "
+                    "to avoid this warning in the future (in that case the cable delay will not be "
+                    "removed by this module).")
+
+                # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
+                # in the efieldToVoltageConverter or with the channelCableDelayAdder
+                # (if efieldToVoltageConverterPerEfield was used).
+                self.channelAddCableDelay.run(evt, station, det, mode='subtract')
 
         self.__t += time.time() - t
 

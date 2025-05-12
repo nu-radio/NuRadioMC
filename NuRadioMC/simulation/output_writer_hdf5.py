@@ -108,11 +108,11 @@ class outputWriterHDF5:
 
                 # save event attributes
                 for enum_entry in genattrs:
-                    if evt.has_generator_info(enum_entry):
+                    if evt.has_parameter(enum_entry):
                         if enum_entry.name not in self._mout_attributes:
-                            self._mout_attributes[enum_entry.name] = evt.get_generator_info(enum_entry)
+                            self._mout_attributes[enum_entry.name] = evt.get_parameter(enum_entry)
                         else:  # if the attribute is already present, we need to check if it is the same for all events
-                            assert all(np.atleast_1d(self._mout_attributes[enum_entry.name] == evt.get_generator_info(enum_entry)))
+                            assert all(np.atleast_1d(self._mout_attributes[enum_entry.name] == evt.get_parameter(enum_entry)))
 
                 # save station attributes
                 for stn in evt.get_stations():
@@ -121,7 +121,7 @@ class outputWriterHDF5:
 
 
                     for (key_cp, key_hdf5) in station_key_pairs:
-                        channel_values = [channel[key_cp] for channel in stn.iter_channels(sorted=True)]
+                        channel_values = [channel[key_cp] for channel in stn.iter_channels(sorted=True) if channel.has_parameter(key_cp)]
 
                         if key_hdf5 not in self._mout_groups_attributes[sid]:
                             self._mout_groups_attributes[sid][key_hdf5] = np.array(channel_values)
