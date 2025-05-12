@@ -5,6 +5,7 @@ import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 import NuRadioReco.detector.antennapattern
 
+
 import warnings
 import functools
 import numpy as np
@@ -80,7 +81,8 @@ class channelGalacticNoiseAdder:
             freq_range=None,
             interpolation_frequencies=None,
             seed=None,
-            caching=True
+            caching=True,
+            scaling=1.0
     ):
         """
         Set up important parameters for the module
@@ -112,6 +114,11 @@ class channelGalacticNoiseAdder:
         caching: bool, default: True
             If True, the antenna response is cached for each channel. This can speed up this module
             by a lot. If the frequencies of the channels change, the cache is cleared.
+        scaling: float, default: 1.0
+            Scaling factor for the noise. This is useful when doing interferometry with extremely large arrays
+            such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas. 
+            Instead, one can use every nth antenna and scale the noise by a factor of 1/\sqrt{n} (since the SNR 
+            is expected to scale with the square root of the number of antennas when using interferomtery/beamforming).
         """
         if debug:
             warnings.warn("This argument is deprecated and will be removed in future versions.", DeprecationWarning)
@@ -121,6 +128,7 @@ class channelGalacticNoiseAdder:
         self.solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
 
         self.__caching = caching
+        self.scaling = scaling
         self.__freqs = None
         if self.__caching and 12 * n_side ** 2 * 2 > maxsize:
             logger.warning(
@@ -375,7 +383,6 @@ class channelGalacticNoiseAdder:
                 channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
                     1j * delta_phases) * np.sin(polarizations) * curr_t_phi
 
-
                 # fold electric field with antenna response
                 if self.__caching:
                     antenna_response = self._get_cached_antenna_response(
@@ -388,6 +395,9 @@ class channelGalacticNoiseAdder:
                     antenna_response['theta'] * channel_noise_spec[1][passband_filter]
                     + antenna_response['phi'] * channel_noise_spec[2][passband_filter]
                 )
+
+                # scale noise spectrum:
+                channel_noise_spectrum *= self.scaling
 
                 # add noise spectrum from pixel in the sky to channel spectrum
                 channel_spectra[channel.get_id()][passband_filter] += channel_noise_spectrum
@@ -482,16 +492,21 @@ def get_local_coordinates(coordinates, obs_time, n_side):
 
     local_cs = astropy.coordinates.AltAz(location=site_location, obstime=obs_time)
 
+    # because `lonlat=True` function returns angles in degrees
     pixel_longitudes, pixel_latitudes = healpy.pixelfunc.pix2ang(
         n_side, range(healpy.pixelfunc.nside2npix(n_side)), lonlat=True)
 
-    # convert from deg to rad (NuRadio units)
-    pixel_longitudes *= units.deg
-    pixel_latitudes *= units.deg
+    # First convert deg to rad using the NuRadio unit system
+    # Than convert them to astropy.Quantities to be used with the
+    # astropy class.
+    pixel_longitudes = pixel_longitudes * units.deg * astropy.units.rad
+    pixel_latitudes = pixel_latitudes * units.deg * astropy.units.rad
 
-    # pass as astropy quantities
     galactic_coordinates = astropy.coordinates.Galactic(
-        l=pixel_longitudes * astropy.units.rad, b=pixel_latitudes * astropy.units.rad)
+        l=pixel_longitudes,
+        b=pixel_latitudes
+    )
 
     local_coordinates = galactic_coordinates.transform_to(local_cs)
+
     return local_coordinates
