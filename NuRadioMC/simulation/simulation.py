@@ -1617,7 +1617,7 @@ class simulation:
                 if len(non_trigger_channels) and self._simulate_trigger_channels:
                     logger.status(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
 
-                   for iCh, channel_id in enumerate(non_trigger_channels):
+                    for iCh, channel_id in enumerate(non_trigger_channels):
                         if particle_mode:
                             sim_station = calculate_sim_efield(
                                 showers=event_group.get_sim_showers(),
