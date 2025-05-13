@@ -6,14 +6,13 @@ from scipy.signal import hilbert
 from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 
-from matplotlib import pyplot as plt
-
 logger = logging.getLogger('NuRadioReco.PhasedArrayTriggerBase')
 cspeed = constants.c * units.m / units.s
 
 main_low_angle = np.deg2rad(-55.0)
 main_high_angle = -1.0 * main_low_angle
 default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
+
 
 class PhasedArrayBase():
     """
@@ -82,7 +81,9 @@ class PhasedArrayBase():
 
         Returns
         -------
-        beam_rolls: array of dicts of keys=antenna and content=delay
+        beam_rolls: 2d-array of ints
+            First dimension is the number of beams, second dimension is the number of antennas
+            The value is the number of samples to roll the signal to get the correct phasing.
         """
 
         if station.get_id() in self.buffered_delays:
@@ -458,7 +459,6 @@ class PhasedArrayBase():
         triggered_beams: list
             list of bools for which beams triggered
         """
-
         adc_output = adc_kwargs.get('adc_output')
 
         traces, adc_sampling_frequency = self.get_traces(
@@ -469,6 +469,7 @@ class PhasedArrayBase():
             upsampling_kwargs=upsampling_kwargs
         )
         triggered_channels = np.array(list(traces.keys()))
+        traces = np.array(list(traces.values()))  # convert to 2D array
 
         time_step = 1.0 / adc_sampling_frequency
         beam_rolls = self.calculate_time_delays(
@@ -476,7 +477,9 @@ class PhasedArrayBase():
             phasing_angles, ref_index=ref_index,
             sampling_frequency=adc_sampling_frequency)
 
-        phased_traces = self.phase_signals(traces, beam_rolls, adc_output=adc_output, saturation_bits=saturation_bits)
+        phased_traces = phase_signals(
+            traces, beam_rolls, adc_output=adc_output,
+            saturation_bits=saturation_bits)
 
         if adc_output == "counts":
             threshold = np.trunc(threshold)
@@ -489,24 +492,19 @@ class PhasedArrayBase():
         triggered_beams = []
         trigger_time = None
         trigger_times = {}
-
         for iTrace, phased_trace in enumerate(phased_traces):
             is_triggered = False
 
             if mode == "power_sum":
                 # Create a sliding window
-                sig_trace, _ = self.power_sum(
+                sig_trace, _ = power_sum(
                     coh_sum=phased_trace, window=window, step=step, averaging_divisor=averaging_divisor, adc_output=adc_output)
             elif mode == "hilbert_env":
                 coeff_gain = upsampling_kwargs.get("coeff_gain")
                 sig_trace = self.hilbert_envelope(
                     coh_sum=phased_trace, adc_output=adc_output, coeff_gain=coeff_gain, ideal_transformer=ideal_transformer)
-                # plt.plot(sig_trace)
-                # plt.axhline(threshold, color='r', linestyle='--')
-                # plt.show()
             else:
                 raise ValueError("mode must be either 'power_sum' or 'hilbert_env'")
-
 
             maximum_amps[iTrace] = np.max(sig_trace)
 
@@ -514,8 +512,8 @@ class PhasedArrayBase():
                 is_triggered = True
 
                 n_trigs += np.sum(sig_trace > threshold)
-                trigger_delays[iTrace] = {channel_id: beam_rolls[iTrace][channel_id] * time_step
-                    for channel_id in beam_rolls[iTrace]}
+                trigger_delays[iTrace] = {channel_id: beam_rolls[iTrace][idx] * time_step
+                    for idx, channel_id in enumerate(trigger_channels)}
 
                 triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(sig_trace > threshold)))
                 trigger_times[iTrace] = np.abs(np.min(list(trigger_delays[iTrace]))) + triggered_bins * step * time_step + channel_trace_start_time
@@ -537,3 +535,111 @@ class PhasedArrayBase():
                 "Minimum trigger time is {:.0f}ns".format(trigger_time))
 
         return is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps, n_trigs, triggered_beams
+
+
+    def end(self):
+        pass
+
+def power_sum(coh_sum, window, step, adc_output='voltage', averaging_divisor=None):
+    """
+    Calculate power summed over a length defined by 'window', overlapping at intervals defined by 'step'
+
+    Parameters
+    ----------
+    coh_sum: array of floats
+        Phased signal to be integrated over
+    window: int
+        Power integral window
+        Units of ADC time ticks
+    step: int
+        Time step in power integral. If equal to window, there is no time overlap
+        in between neighboring integration windows
+        Units of ADC time ticks.
+    adc_output: string
+        Options:
+
+            - 'voltage' to store the ADC output as discretised voltage trace
+            - 'counts' to store the ADC output in ADC counts
+
+    averaging_divisor: int (default None)
+        Power integral divisor for averaging. If not specified,
+        the divisor is the same as the summation window.
+
+    Returns
+    -------
+    power:
+        Integrated power in each integration window
+    num_frames
+        Number of integration windows calculated
+    """
+
+    # If not specified, the divisor is the same as the summation window.
+    if averaging_divisor is None:
+        averaging_divisor = window
+
+    if adc_output not in ['voltage', 'counts']:
+        raise ValueError(f'ADC output type must be "counts" or "voltage". Currently set to: {adc_output}')
+
+    num_frames = int(np.floor((len(coh_sum) - window) / step))
+
+    coh_sum_squared = (coh_sum * coh_sum)
+
+    # if(adc_output == 'voltage'):
+    #     coh_sum_squared = (coh_sum * coh_sum).astype(float)
+    # elif(adc_output == 'counts'):
+    #     coh_sum_squared = (coh_sum * coh_sum).astype(int)
+
+    coh_sum_windowed = np.lib.stride_tricks.as_strided(
+        coh_sum_squared, (num_frames, window),
+        (coh_sum_squared.strides[0] * step, coh_sum_squared.strides[0]))
+
+    power = np.sum(coh_sum_windowed, axis=1)
+    return_power = power / averaging_divisor
+
+    if adc_output == 'counts':
+        return_power = np.round(return_power)
+
+    return return_power, num_frames
+
+
+def phase_signals(traces, beam_rolls, adc_output="voltage", saturation_bits=None):
+    """
+    Phase signals together given the rolls
+
+    Parameters
+    ----------
+    traces: 2D array of floats
+        Signals from the antennas to be phased together.
+    beam_rolls: 2D array of floats
+        The amount to shift each signal before phasing the
+        traces together
+
+    Returns
+    -------
+    phased_traces: array of arrays
+    """
+    # Numba has trouble with np.zeros https://github.com/numba/numba/issues/7259
+    phased_traces = []  #np.empty((len(beam_rolls), len(traces[0])), dtype=traces.dtype)
+
+    for beam_idx, subbeam_rolls in enumerate(beam_rolls):
+        phased_trace = np.roll(traces[0], subbeam_rolls[0])
+
+        for trace, rolls in zip(traces[1:], subbeam_rolls[1:]):
+            phased_trace += np.roll(trace, rolls)
+
+        if adc_output == 'counts' and saturation_bits is not None:
+            phased_trace[phased_trace>2**(saturation_bits-1)-1] = 2**(saturation_bits-1) - 1
+            phased_trace[phased_trace<-2**(saturation_bits-1)] = -2**(saturation_bits-1)
+
+        phased_traces.append(phased_trace)
+
+    return np.array(phased_traces)
+
+try:
+    from numba import jit
+
+    # FS: currently numba is slower than the pure python version ...
+    # power_sum = njit(power_sum)
+    # phase_signals = jit(nopython=True, cache=True, parallel=False)(phase_signals)
+except ImportError:
+    pass
