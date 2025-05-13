@@ -5,7 +5,7 @@ from NuRadioReco.framework.station import Station
 from NuRadioReco.framework.channel import Channel
 
 from NuRadioReco.utilities import units, fft, signal_processing
-from NuRadioReco.detector.RNO_G import rnog_detector
+from NuRadioReco.detector.RNO_G import rnog_detector, rnog_detector_mod
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
 from NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger import BeamformedPowerIntegrationTrigger
@@ -142,7 +142,7 @@ def get_vrms_per_channel(args, noise_kwargs, det, filters):
     return vrms_per_channel
 
 
-def get_noise_event(noiseAdder, det, channel_ids, noise_kwargs):
+def get_noise_event(noiseAdder, det, channel_ids, noise_kwargs, correlated_noise_amplitude=None):
     """ Create a noise event with the given noise parameters.
 
     Parameters
@@ -187,6 +187,22 @@ def get_noise_event(noiseAdder, det, channel_ids, noise_kwargs):
 
         channel.set_frequency_spectrum(noise_spec, sampling_rate)
         station.add_channel(channel)
+
+
+    if correlated_noise_amplitude is not None:
+        noise_kwargs_corr = copy.copy(noise_kwargs)
+        noise_kwargs_corr["amplitude"] = correlated_noise_amplitude
+
+        # NOTE: Assuming that sampling rate is the same for all channels!
+        corr_noise_spec = noiseAdder.bandlimited_noise(
+            sampling_rate=sampling_rate, time_domain=False,
+            # station_id=station_id, channel_id=channel_id,
+            **noise_kwargs_corr)
+
+        # Add the same noise to all channels
+        for channel in station.iter_channels():
+            channel.set_frequency_spectrum(
+                channel.get_frequency_spectrum() + corr_noise_spec, sampling_rate)
 
     event.set_station(station)
 
@@ -315,10 +331,12 @@ def process(det, filters, n_events, noise_kwargs, noiseAdder=None):
     # take out the argument again which is not meant to be used for the
     # noise adder module.
     vrms_per_channel = noise_kwargs.pop("vrms_per_channel", None)
+    correlated_noise_amplitude = noise_kwargs.pop("correlated_noise_amplitude", None)
 
     for _ in range(n_events):
         event, station = get_noise_event(
-            noiseAdder, det, deep_trigger_channels, noise_kwargs)
+            noiseAdder, det, deep_trigger_channels, noise_kwargs,
+            correlated_noise_amplitude=correlated_noise_amplitude)
 
         detector_simulation(event, station, filters, det)
         vrms = trigger_simulation(event, station, det, vrms=vrms_per_channel)
@@ -351,6 +369,10 @@ if __name__ == "__main__":
     parser.add_argument("--label", type=str, default="")
     parser.add_argument("--noise_type", type=str, default="rayleigh")
     parser.add_argument("--running_vrms", action="store_true")
+    parser.add_argument("--noise_temperature", type=float, default=300,
+        help="Temperature of the noise in Kelvin. Default is 300 K. This is used to calculate the vrms.")
+    parser.add_argument("--correlated_noise_temperature", type=float, default=None,
+        help="Temperature of the correlated noise in Kelvin. Default is None. This is used to calculate the vrms.")
 
     args = parser.parse_args()
 
@@ -363,25 +385,34 @@ if __name__ == "__main__":
     logger.info(f"Simulate the noise trigger rate for station {args.station_id} "
                 f"(using channels {deep_trigger_channels})")
 
-    det = rnog_detector.Detector(
+    det = rnog_detector_mod.Detector(
         detector_file=args.detectordescription, log_level=logging.INFO,
         always_query_entire_description=True, select_stations=args.station_id)
 
     det.update(dt.datetime(2024, 1, 3))
+    # det.modify_station_description(11, ['trigger_digitizer_config', 'noise_count'], 15)
 
     max_freq = det.get_sampling_frequency(args.station_id, None, trigger=True) / 2
     bandwidth = np.array([50, max_freq / units.MHz]) * units.MHz
 
     # Calculate the vrms for the given temperature and bandwidth. It is _CORRECT_
     # to not account for the response of the channel here.
-    vrms = signal_processing.calculate_vrms_from_temperature(300 * units.kelvin, bandwidth)
+    vrms = signal_processing.calculate_vrms_from_temperature(args.noise_temperature * units.kelvin, bandwidth)
     logger.info(f"VRMS [for bandwidth {bandwidth / units.MHz} MHz]: {vrms / units.microvolt:.2f} muV")
+
+    correlated_noise_vrms = None
+    if args.correlated_noise_temperature is not None:
+        correlated_noise_vrms = signal_processing.calculate_vrms_from_temperature(
+            args.correlated_noise_temperature * units.kelvin, bandwidth)
+        logger.info(f"Correlated noise vrms: {correlated_noise_vrms / units.microvolt:.2f} muV")
+
     noise_kwargs = {
         "amplitude": vrms,
         "min_freq": bandwidth[0],
         "max_freq": bandwidth[1],
         "n_samples": args.n_samples,
         "type": args.noise_type,
+        "correlated_noise_amplitude": correlated_noise_vrms,
     }
 
     freqs = fft.freqs(noise_kwargs['n_samples'], det.get_sampling_frequency(args.station_id, None, trigger=True))
@@ -394,7 +425,7 @@ if __name__ == "__main__":
         # because of the frequency resolution with which the spectra are sampled.
         vrms_per_channel = np.array(
             [signal_processing.calculate_vrms_from_temperature(
-                300 * units.kelvin,
+                args.noise_temperature * units.kelvin,
                 response=det.get_signal_chain_response(args.station_id, channel_id, trigger=True))
             for channel_id in deep_trigger_channels]
         )
@@ -420,8 +451,6 @@ if __name__ == "__main__":
             raise ImportError("You passed the option '--ray' but ray is not installed. "
                               "Either install ray with 'pip install ray' or remove the commandline flag.")
 
-        if args.nruns // args.ncpus > 2:
-            print("Warning: You are using more than 2 runs per CPU. This might be inefficient.")
         ray.init(num_cpus=args.ncpus)
         @ray.remote
         def process_ray(*args, **kwargs):
@@ -505,7 +534,10 @@ if __name__ == "__main__":
 
     beamformedPowerIntegrationTrigger.end()
     vrms_label = 'running_vrms' if args.running_vrms else 'fixed_vrms'
+
+    noise_str = f"noise_{args.noise_type}_{args.noise_temperature:.0f}K"
+
     with open(f"trigger_rates_st{args.station_id}_{adc_output}_{vrms_label}_{noise_kwargs['n_samples']}_"
-              f"{args.noise_type}_{sigma_thresholds[0]:.2f}-{sigma_thresholds[-1]:.2f}_"
+              f"{noise_str}_{sigma_thresholds[0]:.2f}-{sigma_thresholds[-1]:.2f}_"
               f"{total_time / units.s:.1f}s{args.label}.json", "w") as f:
         json.dump(data, f)
