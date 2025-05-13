@@ -159,7 +159,12 @@ if args.hdf5_files is not None:
         with h5py.File(hdf5_path, "r") as f:
             event_group_ids = f["event_group_ids"]
             _, index = np.unique(event_group_ids, return_index=True)
-            initial_points.append(np.array([f["xx"], f["yy"], f["zz"]]).T[index] * units.m)
+
+            station_key = [key for key in f.keys() if key.startswith("station")][0]
+            antenna_position = f[station_key].attrs["antenna_positions"][0]
+
+            initial_points.append(np.array(
+                [f["xx"] - antenna_position[0], f["yy"] - antenna_position[1], f["zz"]]).T[index] * units.m)
 
     initial_points = np.vstack(initial_points)
     if args.n_points == 0:
@@ -212,6 +217,7 @@ for attenuation_model in attenuation_models:
 
         times, attenuations_ray = calculate_attenuation_python_cpp(ray)
         if not ray.get_number_of_solutions():
+            print(f"No solution found for point {initial_point}")
             continue
 
         positions_with_solutions.append(initial_point)
@@ -269,8 +275,11 @@ for position, attenuation in zip(positions_with_solutions, attenuations):
 lim = np.max(np.abs([np.min(mean_ratios), np.max(mean_ratios)]))
 
 for position, attenuation in zip(positions_with_solutions, attenuations):
-
+    # attenuation shape : 3 x 2 x 100 (num_freq)
+    # 3 = number of solutions (direct, refracted, reflected) at least one should be all 0
+    # 2 = methods to compare
     mask = np.squeeze(np.all([attenuation != np.zeros_like(frequencies)], axis=-1))[:, 0]
+    # -> shape : 2 x 2 x 100 (num_freq)
     attenuation = attenuation[mask]
     mean_ratio = np.mean(attenuation[:, 0] / attenuation[:, 1], axis=1) - 1
 
