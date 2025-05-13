@@ -631,7 +631,6 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_station</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.antennapattern</span>
 
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -1143,12 +1142,9 @@
     <span class="n">pixel_latitudes</span> <span class="o">=</span> <span class="n">pixel_latitudes</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span>
 
     <span class="n">galactic_coordinates</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">Galactic</span><span class="p">(</span>
-        <span class="n">l</span><span class="o">=</span><span class="n">pixel_longitudes</span><span class="p">,</span>
-        <span class="n">b</span><span class="o">=</span><span class="n">pixel_latitudes</span>
-    <span class="p">)</span>
+        <span class="n">l</span><span class="o">=</span><span class="n">pixel_longitudes</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="n">pixel_latitudes</span><span class="p">)</span>
 
     <span class="n">local_coordinates</span> <span class="o">=</span> <span class="n">galactic_coordinates</span><span class="o">.</span><span class="n">transform_to</span><span class="p">(</span><span class="n">local_cs</span><span class="p">)</span>
-
     <span class="k">return</span> <span class="n">local_coordinates</span></div>
 
 </pre></div>
