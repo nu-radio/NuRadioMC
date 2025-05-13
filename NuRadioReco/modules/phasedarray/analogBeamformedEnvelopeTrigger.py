@@ -1,7 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.trigger import AnalogEnvelopePhasedTrigger
-from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase, default_angles
+from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase, default_angles, phase_signals
 from NuRadioReco.utilities.diodeSimulator import diodeSimulator
 
 import numpy as np
@@ -108,16 +108,17 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
                 trace = diode.tunnel_diode(channel)  # get the enveloped trace
                 times = np.copy(channel.get_times())  # get the corresponding time bins
 
-            traces[channel_id] = trace[:]
+            traces[channel_id] = trace
 
-        beam_rolls = self.calculate_time_delays(station, det,
-                                                triggered_channels,
-                                                phasing_angles,
-                                                ref_index=ref_index,
-                                                sampling_frequency=adc_sampling_frequency)
+        trigger_channels = list(traces.keys())
+        traces = np.array(list(traces.values()))
 
-        phased_traces = self.phase_signals(traces, beam_rolls)
+        beam_rolls = self.calculate_time_delays(
+            station, det, triggered_channels,
+            phasing_angles, ref_index=ref_index,
+            sampling_frequency=adc_sampling_frequency)
 
+        phased_traces = phase_signals(traces, beam_rolls)
 
         trigger_time = None
         trigger_times = {}
@@ -140,8 +141,9 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
 
             if threshold_passed:
                 is_triggered = True
-                for channel_id in beam_rolls:
-                    trigger_delays[channel_id] = beam_rolls[channel_id] * time_step
+                for idx, channel_id in enumerate(trigger_channels):
+                    trigger_delays[channel_id] = beam_rolls[idx] * time_step
+
                 logger.debug("Station has triggered")
 
             triggered_beams.append(is_triggered)
