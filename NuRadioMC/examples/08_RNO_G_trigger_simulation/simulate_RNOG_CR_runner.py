@@ -1,8 +1,11 @@
 #!/bin/env python3
 
+# This file is an adaptation of simulate.py, found in NuRadioMC/examples/08_RNO_G_trigger_simulation.
+# This example has been adapted to the simulate a secondary in-ice cascade originated from a CR-induced EAS.
+# This file also has been extended to work within a NuRadio's runner object, so that it can be run in a cluster.
+
 import argparse
 import copy
-import logging
 import numpy as np
 import os
 import secrets
@@ -12,87 +15,35 @@ from scipy import constants
 
 from NuRadioMC.EvtGen import generator
 from NuRadioMC.simulation import simulation
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 
 from NuRadioReco.detector.RNO_G import rnog_detector
 
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
 
+import logging
+logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
+logger.setLevel(logging.INFO)
+
 from NuRadioMC.utilities import runner
-
-root_seed = secrets.randbits(128)
-deep_trigger_channels = np.array([0, 1, 2, 3])
-flavor_ids = {"e": [12, -12], "mu": [14, -14], "tau": [16, -16], "all": [12, 14, 16, -12, -14, -16]}
-
 
 def get_vrms_from_temperature_for_trigger_channels(det, station_id, trigger_channels, temperature):
 
     vrms_per_channel = []
     for channel_id in trigger_channels:
         resp = det.get_signal_chain_response(station_id, channel_id, trigger=True)
-
-        freqs = np.linspace(10, 1200, 1000) * units.MHz
-        filt = resp(freqs)
-
-        # Calculation of Vrms. For details see from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
-        # (last two Eqs. in "noise voltage and power" section) or our wiki https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
-
-        # Bandwidth, i.e., \Delta f in equation
-        # Deprecation warning! trapz is now trapezoid in numpy 2
-        #integrated_channel_response = np.trapz(np.abs(filt) ** 2, freqs)
-        integrated_channel_response = np.trapezoid(np.abs(filt) ** 2, freqs)
-
         vrms_per_channel.append(
-            (temperature * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
+            signal_processing.calculate_vrms_from_temperature(temperature=temperature, response=resp)
         )
 
     return vrms_per_channel
 
-
-# def get_fiducial_volume(energy):
-#     # Fiducial volume for a Greenland station. From Martin: https://radio.uchicago.edu/wiki/images/2/26/TriggerSimulation_May2023.pdf
-
-#     # key: log10(E), value: radius in km
-#     max_radius_shallow = {
-#         16.25: 1.5, 16.5: 2.1, 16.75: 2.7, 17.0: 3.1, 17.25: 3.7, 17.5: 3.9, 17.75: 4.4,
-#         18.00: 4.8, 18.25: 5.1, 18.50: 5.25, 18.75: 5.3, 19.0: 5.6, 100: 6.1,
-#     }
-
-#     # key: log10(E), value: depth in km
-#     min_z_shallow = {
-#         16.25: -0.65, 16.50: -0.8, 16.75: -1.2, 17.00: -1.5, 17.25: -1.7, 17.50: -2.0,
-#         17.75: -2.1, 18.00: -2.3, 18.25: -2.4, 18.50: -2.55, 100: -2.7,
-#     }
-
-#     def get_limits(dic, E):
-#         # find all energy bins which are higher than E
-#         idx = np.arange(len(dic))[E - 10 ** np.array(list(dic.keys())) * units.eV <= 0]
-#         assert len(idx), f"Energy {E} is too high. Max energy is {10 ** np.amax(dic.keys()):.1e}."
-
-#         # take the lowest energy bin which is higher than E
-#         return np.array(list(dic.values()))[np.amin(idx)] * units.km
-
-#     r_max = get_limits(max_radius_shallow, energy)
-#     print(f"Maximum radius {r_max}")
-#     z_min = get_limits(min_z_shallow, energy)
-#     print(f"Depth {z_min}")
-
-#     volume = {
-#         "fiducial_rmax": r_max,
-#         "fiducial_rmin": 0 * units.km,
-#         "fiducial_zmin": z_min,
-#         "fiducial_zmax": 0
-#     }
-
-#     return volume
-
-
+# The fiducial volume has been adapted for Cosmic Rays for a Greenland station. 
+# A reasonable volume is 175 x 100 m per station, regardless of energy (for now).
+# The structure of this module is kept similar to its original source, 
+#in case of energy-dependant fiducial volume for CR.
 def get_fiducial_volume_CR(energy):
-    # Approximated fiducial volume for Cosmic Rays for a Greenland station. 
-    # The structure of this module is kept similar to that of the previous function.
-    # But for CR purposes, a reasonable volume is 175 x 100 m per station
-
     # key: log10(E), value: radius in km
     max_radius_shallow = {
         100: 0.0175,
@@ -125,8 +76,8 @@ def get_fiducial_volume_CR(energy):
 
     return volume
 
-# To-DO: Update threshold formula with new fit from Felix
-# Waiting for Felix. 
+# So-far, RNO-G has used/aimed for a trigger rate of 1 Hz = 3.731 SNR according to the formula below
+# TO-DO maybe add exact values per station @ 1 Hz (ll are between 3.7 and 3.8)
 def RNO_G_HighLow_Thresh(lgRate_per_hz):
     # Thresholds calculated using the RNO-G hardware (iglu + flower_lp)
     # This applies for the VPol antennas
@@ -136,19 +87,28 @@ def RNO_G_HighLow_Thresh(lgRate_per_hz):
 
 class mySimulation(simulation.simulation):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, trigger_channel_noise_vrms=None, **kwargs):
+
+        # Check that we have the vrms
+        assert trigger_channel_noise_vrms is not None, "Please provide the trigger channel noise vrms"
+        self.trigger_channel_noise_vrms = trigger_channel_noise_vrms
+
         # this module is needed in super().__init__ to calculate the vrms
         self.rnogHarwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
-        self.rnogHarwareResponse.begin(trigger_channels=deep_trigger_channels)
+#        self.rnogHarwareResponse.begin(trigger_channels=deep_trigger_channels)
+        # Should be identical to
+        self.rnogHardwareResponse.begin(trigger_channels=kwargs['trigger_channels'])
 
         super().__init__(*args, **kwargs)
-        self.logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
-        self.deep_trigger_channels = deep_trigger_channels
-
+        self.logger = logger
+        self.deep_trigger_channels = kwargs['trigger_channels']
 
         self.highLowThreshold = highLowThreshold.triggerSimulator()
         self.rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
-        self.rnogADCResponse.begin(adc_input_range=2 * units.volt, clock_offset=0.0, adc_output="voltage")
+#        self.rnogADCResponse.begin(adc_input_range=2 * units.volt, clock_offset=0.0, adc_output="voltage")
+#       Using now counts instead of voltage to determine the ADC Response
+        self.rnogADCResponse.begin(
+            clock_offset=0.0, adc_output="counts")
 
         # future TODO: Add noise
         # self.channel_generic_noise_adder = channelGenericNoiseAdder.channelGenericNoiseAdder()
@@ -176,34 +136,47 @@ class mySimulation(simulation.simulation):
         vrms_input_to_adc = get_vrms_from_temperature_for_trigger_channels(
             det, station.get_id(), self.deep_trigger_channels, 300)
 
-        sampling_rate = det.get_sampling_frequency(station.get_id())
-        self.logger.info(f'Radiant sampling rate is {sampling_rate / units.MHz:.1f} MHz')
+#        sampling_rate = det.get_sampling_frequency(station.get_id())
+#        self.logger.info(f'Radiant sampling rate is {sampling_rate / units.MHz:.1f} MHz')
 
         # Runs the FLOWER board response
         vrms_after_gain = self.rnogADCResponse.run(
             evt, station, det, trigger_channels=self.deep_trigger_channels,
-            vrms=copy.copy(vrms_input_to_adc), digitize_trace=True,
+            vrms=self.trigger_channel_noise_vrms, digitize_trace=True,
         )
-
+        
         for idx, trigger_channel in enumerate(self.deep_trigger_channels):
-            self.logger.info(
-                f'Vrms = {vrms_input_to_adc[idx] / units.mV:.2f} mV / {vrms_after_gain[idx] / units.mV:.2f} mV (after gain).')
+            self.logger.debug(
+                'Vrms = {:.2f} mV / {:.2f} mV (after gain).'.format(
+                    self.trigger_channel_noise_vrms[idx] / units.mV, vrms_after_gain[idx] / units.mV
+                ))
             self._Vrms_per_trigger_channel[station.get_id()][trigger_channel] = vrms_after_gain[idx]
-
 
         # this is only returning the correct value if digitize_trace=True for self.rnogADCResponse.run(..)
         flower_sampling_rate = station.get_trigger_channel(self.deep_trigger_channels[0]).get_sampling_rate()
-        self.logger.info(f'Flower sampling rate is {flower_sampling_rate / units.MHz:.1f} MHz')
+#        self.logger.debug(f'Flower sampling rate is {flower_sampling_rate / units.MHz:.1f} MHz')
+        self.logger.debug('Flower sampling rate is {:.1f} MHz'.format(
+            flower_sampling_rate / units.MHz
+        ))
 
         for thresh_key, threshold in self.high_low_trigger_thresholds.items():
 
-            threshold_high = {channel_id: threshold * vrms for channel_id, vrms in zip(self.deep_trigger_channels, vrms_after_gain)}
-            threshold_low = {channel_id: -1 * threshold * vrms for channel_id, vrms in zip(self.deep_trigger_channels, vrms_after_gain)}
+            if self.rnogACDResponse.acd_output == "voltage":
+                threshold_high = {channel_id: threshold * vrms 
+                        for channel_id, vrms in zip(self.deep_trigger_channels, vrms_after_gain)}
+                threshold_low = {channel_id: -1 * threshold * vrms 
+                        for channel_id, vrms in zip(self.deep_trigger_channels, vrms_after_gain)}
+#Inherited from simulate.py, Not sure that this accurately represents the trigger threshold in adc counts
+#This was switched to from previous version. 
+            else:
+                # We round here. This is not how an ADC works but I think this is not needed here.
+                threshold_high = {channel_id: int(round(threshold * vrms)) 
+                        for channel_id, vrms in zip(self.deep_trigger_channels, vrms_after_gain)}
+                threshold_high = {channel_id: int(round(-1*threshold * vrms)) 
+                        for channel_id, vrms in zip(self.deep_trigger_channels, vrms_after_gain)}
 
             self.highLowThreshold.run(
-                evt,
-                station,
-                det,
+                evt, station, det,
                 threshold_high=threshold_high,
                 threshold_low=threshold_low,
                 use_digitization=False, #the trace has already been digitized with the rnogADCResponse
@@ -222,6 +195,7 @@ if __name__ == "__main__":
     default_config_path = os.path.join(ABS_PATH_HERE, "../07_RNO_G_simulation/RNO_config.yaml")
 
     parser = argparse.ArgumentParser(description="Run NuRadioMC simulation")
+    
     # Sim steering arguments
     parser.add_argument("--config", type=str, default=default_config_path, help="NuRadioMC yaml config file")
     parser.add_argument("--detectordescription", '--det', type=str, default=None, help="Path to RNO-G detector description file. If None, query from DB")
@@ -229,28 +203,30 @@ if __name__ == "__main__":
 
     # Neutrino arguments
     parser.add_argument("--energy", '-e', default=1e18, type=float, help="Neutrino energy [eV]")
-    parser.add_argument("--flavor", '-f', default="all", type=str, help="the flavor")
-    parser.add_argument("--interaction_type", '-it', default="ccnc", type=str, help="interaction type cc, nc or ccnc")
-
+#    parser.add_argument("--flavor", '-f', default="all", type=str, help="the flavor")
+#    parser.add_argument("--interaction_type", '-it', default="ccnc", type=str, help="interaction type cc, nc or ccnc")
     parser.add_argument("--cos_min", default=0.0, type=float, help="minimum cos zenith angle")
-    # maximum distances only tested up to 60 deg -> TODO is this still true?
     parser.add_argument("--cos_max", default=0.5, type=float, help="maximum cos zenith angle")
+    # maximum distances only tested up to 60 deg -> TODO is this still true?
 
     # File meta-variables
     parser.add_argument("--index", '-i', default=0, type=int, help="counter to create a unique data-set identifier")
-    parser.add_argument("--n_events_per_file", '-n', type=int, default=1e3, help="Number of nu-interactions per file")
+#    parser.add_argument("--n_events_per_file", '-n', type=int, default=1e3, help="Number of nu-interactions per file")
     parser.add_argument("--data_dir", type=str, default=def_data_dir, help="directory name where the library will be created")
-    parser.add_argument("--proposal", action="store_true", help="Use PROPOSAL for simulation")
+#    parser.add_argument("--proposal", action="store_true", help="Use PROPOSAL for simulation")
     parser.add_argument("--nur_output", action="store_true", help="Write nur files.")
-    
+
+    # Runner meta-variables
     # n_triggers = 1000 - 10000 (per Alan)
     parser.add_argument("--n_triggers", type=int, default=3000, help="Number of total events to generate")
     parser.add_argument("--n_events_per_file", type=int, default=1000, help="Number of nu-interactions per file")
-    parser.add_argument("--seed", default=root_seed, type=int, help="Random number gen seed")
+    parser.add_argument("--seed", default=None, type=int, help="Random number gen seed, None for truly random")
     parser.add_argument("--n_cores", type=int, default=1, help="Number of cores for parallel running")
     parser.add_argument("--max_runtime_hours", type=int, default=24, help="Max amount of hours that the node should be occupied."  )
 
     args = parser.parse_args()
+    config = simulation.get_config(args.config)
+    
     kwargs = args.__dict__
     assert args.station_id is not None, "Please specify a station id with `--station_id`"
     
@@ -258,13 +234,34 @@ if __name__ == "__main__":
     zen_max = max(np.arccos(args.cos_min), np.arccos(args.cos_max))
     assert zen_max < np.deg2rad(61) is not None, "Max zenith tested is 60 degrees"
 
-    # Defaults for the trigger simulation which are not yet in the hardware DB
-    defaults = {
-        "trigger_adc_sampling_frequency": 0.472,
-        "trigger_adc_nbits": 8,
-        "trigger_adc_noise_nbits": 3.321,
-    }
+    deep_trigger_channels = np.array([0, 1, 2, 3])
 
+    seed = args.seed
+    if seed is not None:
+        seed += args.index
+#    else:
+#        seed = secrets.randbits(128) + args.index
+
+# Create your detector
+    det = rnog_detector.Detector(
+        detector_file=args.detectordescription, log_level=logging.INFO,
+        always_query_entire_description=False, select_stations=args.station_id)
+
+#TODO add time as input
+    evt_time = dt.datetime(2023, 8, 3)
+    det.update(evt_time)
+
+#   In order to not have to consider inelasticity, we will force all interactions to be e-cc.
+#   e-cc interaction is the least likely to have missing energy escaping in the secondary fermion.
+    flavor_ids = {"e": [12, -12], "mu": [14, -14], "tau": [16, -16], "all": [12, 14, 16, -12, -14, -16]}
+    #flavor = args.flavor
+    flavor = "e"
+#   Therefore, we do not need to use proposal at all
+    run_proposal = False
+#       run_proposal = args.proposal and ("cc" in args.interaction_type) and (args.flavor in ["mu", "tau", "all"])
+#       if run_proposal:
+#           print(f"Using PROPOSAL for simulation of {args.flavor} {args.interaction_type}")
+ 
 #################################
 ## Define simulation task
 #################################
@@ -273,26 +270,19 @@ if __name__ == "__main__":
     # In order to create a task, we have to pass a the output filename as a kwarg
     def task(q, iSim, **kwargs):
         output_filename = kwargs["output_filename"]
+        
+        # Get the trigger channel noise vrms
+        trigger_channel_noise_vrms = get_vrms_from_temperature_for_trigger_channels(
+            det, args.station_id, deep_trigger_channels, config['trigger']['noise_temperature'])
 
-        # The detector and interaction definition might not be needed in the task, i think?
-        det = rnog_detector.Detector(
-            detector_file=args.detectordescription, log_level=logging.INFO,
-            always_query_entire_description=False, select_stations=args.station_id,
-            over_write_handset_values=defaults)
-
-        det.update(dt.datetime(2023, 8, 3))
-
+        # The volume might be energy-dependent, therefore is kept in the task.
         volume = get_fiducial_volume_CR(args.energy)
 
         # Simulate fiducial volume around station
         pos = det.get_absolute_position(args.station_id)
         print(f"Simulating around center x0={pos[0]:.2f}m, y0={pos[1]:.2f}m")
         volume.update({"x0": pos[0], "y0": pos[1]})
-
-        run_proposal = args.proposal and ("cc" in args.interaction_type) and (args.flavor in ["mu", "tau", "all"])
-        if run_proposal:
-            print(f"Using PROPOSAL for simulation of {args.flavor} {args.interaction_type}")
-    
+   
         input_data = generator.generate_eventlist_cylinder(
             "on-the-fly",
             kwargs["n_events_per_file"],
@@ -300,7 +290,7 @@ if __name__ == "__main__":
             volume,
             thetamin=zen_min, thetamax=zen_max,
             start_event_id=args.index * args.n_events_per_file + 1,
-            flavor=flavor_ids[args.flavor],
+            flavor=flavor_ids[flavor],
             n_events_per_file=None,
             deposited=False,
             proposal=run_proposal,
@@ -310,7 +300,7 @@ if __name__ == "__main__":
             proposal_kwargs={},
             max_n_events_batch=args.n_events_per_file,
             write_events=False,
-            seed=args.seed + args.index,
+            seed=seed,
             interaction_type=args.interaction_type,
         )
 
@@ -326,13 +316,15 @@ if __name__ == "__main__":
             inputfilename=input_data,
             outputfilename=output_filename,
             det=det,
-            evt_time=dt.datetime(2023, 8, 3),
+            evt_time=evt_time,
             outputfilenameNuRadioReco=nur_output_filename,
             config_file=args.config,
             trigger_channels=deep_trigger_channels,
-            log_level=logging.WARNING,
-            # log_level=logging.INFO,
+            trigger_channel_noise_vrms=trigger_channel_noise_vrms
+#            log_level=logging.WARNING,
+#            log_level=logging.INFO,
         )
+
         n_trig = sim.run()
 
         print(f"simulation pass {iSim} with {n_trig} events", flush=True)
