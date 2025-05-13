@@ -102,7 +102,7 @@ envelope_trigger_kwargs = {
 }
 
 # Define the thresholds for the trigger simulation
-sigma_thresholds = np.linspace(3.2, 4, 20)
+sigma_thresholds = np.linspace(2, 4, 20)
 high_low_trigger_thresholds = {s: s for s in sigma_thresholds}
 
 
@@ -282,7 +282,7 @@ def trigger_simulation(evt, station, det, vrms=None):
             trigger_name=f"deep_high_low_{thresh_key:.4f}_sigma",
         )
 
-        pa_power_threshold = np.round(25 * np.sqrt(np.sum(np.array(list(threshold_high.values()))**2)))
+        pa_power_threshold = np.round(np.sum(np.array(list(threshold_high.values()))**2))
         beamformedPowerIntegrationTrigger.run(
             evt, station, det,
             trigger_name=f"pa_power_{thresh_key:.4f}_sigma",
@@ -290,13 +290,13 @@ def trigger_simulation(evt, station, det, vrms=None):
             **power_trigger_kwargs
         )
 
-        pa_envelope_threshold = np.round(7 * np.sqrt(np.sum(np.array(list(threshold_high.values())))))
-        digitalBeamformedEnvelopeTrigger.run(
-            evt, station, det,
-            trigger_name=f"pa_envelope_{thresh_key:.4f}_sigma",
-            threshold=pa_envelope_threshold,
-            **envelope_trigger_kwargs
-        )
+        # pa_envelope_threshold = np.round(8 * np.sqrt(np.sum(np.array(list(threshold_high.values())))))
+        # digitalBeamformedEnvelopeTrigger.run(
+        #     evt, station, det,
+        #     trigger_name=f"pa_envelope_{thresh_key:.4f}_sigma",
+        #     threshold=pa_envelope_threshold,
+        #     **envelope_trigger_kwargs
+        # )
 
     return vrms_after_gain
 
@@ -503,6 +503,7 @@ if __name__ == "__main__":
     for ele in info_str:
         logger.info(f"{ele}:\n\t{info_str[ele]}")
 
+    beamformedPowerIntegrationTrigger.end()
     vrms_label = 'running_vrms' if args.running_vrms else 'fixed_vrms'
     with open(f"trigger_rates_st{args.station_id}_{adc_output}_{vrms_label}_{noise_kwargs['n_samples']}_"
               f"{args.noise_type}_{sigma_thresholds[0]:.2f}-{sigma_thresholds[-1]:.2f}_"
