@@ -68,7 +68,7 @@ except:
     print("Using default file for detector")
     detector_file = 'example_data/arianna_station_32.json'
 
-det = detector.Detector(json_filename=detector_file)  # detector file
+det = detector.Detector(json_filename=detector_file, antenna_by_depth=True)  # detector file
 det.update(datetime.datetime(2018, 10, 1))
 
 dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of this file
