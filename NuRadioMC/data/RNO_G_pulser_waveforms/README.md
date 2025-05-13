@@ -1,0 +1,1 @@
+Waveform templates for RNO-G's calibration pulser. Using chicago measurements from 2025 of cal_pulser waveforms with DAQbox at 5C and attenuation settings 0,5,10,15,20dB. Measurement available at /mnt/labdata/nalden/chicago-calpulser-amplitudes on chicago server.
