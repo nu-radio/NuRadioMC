@@ -1,17 +1,7 @@
 import numpy as np
-from NuRadioReco.utilities import units
-from scipy import constants
 
-e_mass = constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
-mu_mass = constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV
-# Mass energy equivalent of the tau lepton
-tau_mass = constants.physical_constants['tau mass energy equivalent in MeV'][0] * units.MeV
-pi_mass = 139.57061 * units.MeV
-rho770_mass = 775.49 * units.MeV
-rho1450_mass = 1465 * units.MeV
-a1_mass = 1230 * units.MeV
-cspeed = constants.c * units.m / units.s
-G_F = constants.physical_constants['Fermi coupling constant'][0] * units.GeV ** (-2)
+from NuRadioReco.utilities.constants import (
+    e_mass, mu_mass, pi_mass, rho770_mass, a1_mass, rho1450_mass, tau_mass, G_F)
 
 
 def get_neutrino_inelasticity(n_events, rnd=None):
@@ -50,7 +40,7 @@ def get_ccnc(n_events, rnd=None):
         Number of events to be returned
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
-        
+
     Returns
     -------
     ccnc: array
@@ -74,7 +64,7 @@ def random_tau_branch(rnd=None):
     """
     Calculates a random tau branch decay
     See http://dx.doi.org/10.1016/j.cpc.2013.04.001
-    
+
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
 
