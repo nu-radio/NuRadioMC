@@ -881,7 +881,7 @@
 
         <span class="k">if</span> <span class="n">comment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="p">,</span> <span class="n">comment</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            
+
         <span class="n">export_dict</span><span class="p">[</span><span class="s2">&quot;comment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.xz&quot;</span><span class="p">):</span>
@@ -1957,7 +1957,7 @@
 <span class="sd">        time_delay: float</span>
 <span class="sd">            Sum of the time delays of all components in the signal chain for one channel.</span>
 
-<span class="sd">        Also see</span>
+<span class="sd">        See Also</span>
 <span class="sd">        --------</span>
 <span class="sd">        get_time_delay</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2032,7 +2032,7 @@
 <span class="sd">        IMPORTANT: The value returned by this function does *not* directly correspond to the overall time</span>
 <span class="sd">        delay / cable delay of the requested channel! A residual group delay may be present and is accounted for</span>
 <span class="sd">        by the response provided by `get_amplifier_response`.</span>
-<span class="sd">        </span>
+
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
 <span class="sd">        get_cable_delay, get_amplifier_response</span>
@@ -2071,7 +2071,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_site">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the site &quot;summit&quot;</span>
-<span class="sd">        </span>
+
 <span class="sd">        This detector class is exclusive for the RNO-G detector located</span>
 <span class="sd">        at Summit Station on the Greenland ice sheet.</span>
 
@@ -2095,7 +2095,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.</span>
 
-<span class="sd">        The returned location corresponds to the position of the DISC borehole which is </span>
+<span class="sd">        The returned location corresponds to the position of the DISC borehole which is</span>
 <span class="sd">        used as the origin of the RNO-G coordinate system, i.e., this locations acts as</span>
 <span class="sd">        a reference point to define the station positions.</span>
 

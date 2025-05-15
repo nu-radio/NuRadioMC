@@ -633,13 +633,15 @@
 <span id="nuradiomc-utilities-inelasticities-module"></span><h1>NuRadioMC.utilities.inelasticities module<a class="headerlink" href="#module-NuRadioMC.utilities.inelasticities" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></span><span class="sig-name descname"><span class="pre">get_neutrino_inelasticity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/inelasticities.html#get_neutrino_inelasticity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></span><span class="sig-name descname"><span class="pre">get_neutrino_inelasticity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hedis_bgr18'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu_energies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e+18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncccs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CC'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/inelasticities.html#get_neutrino_inelasticity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity" title="Link to this definition"></a></dt>
 <dd><p>Standard inelasticity for deep inelastic scattering used so far.
 Ported from ShelfMC</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>n_events: int</strong></dt><dd><p>Number of events to be returned</p>
+</dd>
+<dt><strong>model: string</strong></dt><dd><p>the inelasticity model to use</p>
 </dd>
 <dt><strong>rnd: random generator object</strong></dt><dd><p>if None is provided, a new default random generator object is initialized</p>
 </dd>
@@ -654,15 +656,21 @@ Ported from ShelfMC</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.inelasticities.get_ccnc">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></span><span class="sig-name descname"><span class="pre">get_ccnc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/inelasticities.html#get_ccnc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.get_ccnc" title="Link to this definition"></a></dt>
-<dd><p>Get the nature of the interaction current: cc or nc
-Ported from Shelf MC</p>
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></span><span class="sig-name descname"><span class="pre">get_ccnc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hedis_bgr18'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/inelasticities.html#get_ccnc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.get_ccnc" title="Link to this definition"></a></dt>
+<dd><p>Get the nature of the interaction current: cc or nc</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>n_events: int</strong></dt><dd><p>Number of events to be returned</p>
 </dd>
-<dt><strong>rnd: random generator object</strong></dt><dd><p>if None is provided, a new default random generator object is initialized</p>
+<dt><strong>rnd: random generator object (default: None)</strong></dt><dd><p>If None is provided, a new default random generator object is initialized</p>
+</dd>
+<dt><strong>model: string (default: “hedis_bgr18”)</strong></dt><dd><p>The cross section model to determine cc fraction. For options see cross_sections.py</p>
+</dd>
+<dt><strong>energy: float or array (default: None)</strong></dt><dd><p>Energy of the neutrino. If None is provided a constant value is used (only for CTW model).</p>
+</dd>
+<dt><strong>flavors: int (default: 12)</strong></dt><dd><p>The flavor of the neutrino. Only relevant for the BGR18 model. 12 = nu_e, 14 = nu_mu, 16 = nu_tau.
+Negative values are used for antineutrinos. For the CTW model, this parameter is ignored.</p>
 </dd>
 </dl>
 </dd>
@@ -673,6 +681,12 @@ Ported from Shelf MC</p>
 </dl>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.get_nu_cross_section" title="NuRadioMC.utilities.cross_sections.get_nu_cross_section"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioMC.utilities.cross_sections.get_nu_cross_section</span></code></a></dt><dd></dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py function">

@@ -637,7 +637,7 @@
 
 <div class="viewcode-block" id="get_weight">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.get_weight">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">,</span>
                <span class="n">vertex_position</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phi_nu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    calculates neutrino weight due to Earth absorption for different models</span>
@@ -654,7 +654,7 @@
 <span class="sd">        * &#39;core_mantle_crust&#39;: approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered</span>
 <span class="sd">        * &#39;PREM&#39;: density of Earth is parameterized as a fuction of radius, path through Earth to interaction vertex is considered</span>
 <span class="sd">    cross_section_type: string</span>
-<span class="sd">        &#39;ghandi&#39;, &#39;ctw&#39; or &#39;csms&#39; (see description in `cross_sections.py`)</span>
+<span class="sd">        See description in `cross_sections.py`</span>
 <span class="sd">    vertex_position: 3-dim array or None (default)</span>
 <span class="sd">        the position of the neutrino interaction</span>
 <span class="sd">    phi_nu: float</span>
@@ -690,7 +690,7 @@
 
 <div class="viewcode-block" id="get_simple_weight">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.get_simple_weight">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_simple_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_simple_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    calculates neutrino weight due to Earth absorption, i.e. probability of the</span>
 <span class="sd">    neutrino to reach the detector</span>
@@ -718,7 +718,7 @@
 
 <div class="viewcode-block" id="get_core_mantle_crust_weight">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.get_core_mantle_crust_weight">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_core_mantle_crust_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_core_mantle_crust_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    calculates neutrino weight due to Earth absorption with a three layers earth model, i.e. probability of the</span>
 <span class="sd">    neutrino to reach the detector</span>
@@ -933,7 +933,6 @@
     <span class="n">radii</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.2e13</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">earth_radius</span> <span class="o">-</span> <span class="mf">4e4</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">)</span>
 
     <span class="n">densities</span> <span class="o">=</span> <span class="p">(</span><span class="mi">14</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">g</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">3.4</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">g</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">2.9</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">g</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span></div>
-
 
 </pre></div>
 

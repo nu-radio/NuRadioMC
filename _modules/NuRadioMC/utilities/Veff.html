@@ -671,14 +671,14 @@
     <span class="n">gids_shifted</span> <span class="o">=</span> <span class="n">gids</span> <span class="o">+</span> <span class="mf">0.5</span>
 
     <span class="c1"># triggered gids, 0 where not triggered</span>
-    <span class="n">triggered_gids</span> <span class="o">=</span> <span class="n">triggered</span><span class="o">*</span><span class="n">gids_shifted</span>
+    <span class="n">triggered_gids</span> <span class="o">=</span> <span class="n">triggered</span> <span class="o">*</span> <span class="n">gids_shifted</span>
 
     <span class="n">unique_values</span><span class="p">,</span> <span class="n">unique_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">triggered_gids</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="c1"># create output boolean array and set True for first triggered indices</span>
     <span class="n">first_occurences</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">triggered</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="n">np</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">first_occurences</span><span class="p">,</span> <span class="n">unique_indices</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
     <span class="c1"># the line above will also put the first untriggered, hence need to require &quot;&amp; triggered&quot;</span>
-    <span class="k">return</span> <span class="n">first_occurences</span><span class="o">&amp;</span><span class="n">triggered</span></div>
+    <span class="k">return</span> <span class="n">first_occurences</span> <span class="o">&amp;</span> <span class="n">triggered</span></div>
 
 
 

@@ -658,7 +658,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_limit_flux">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_limit_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_limit_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_flux" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_limit_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hedis_bgr18'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_limit_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_flux" title="Link to this definition"></a></dt>
 <dd><p>Limit from effective volume</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -676,16 +676,30 @@
 <dt><strong>upperLimOnEvents: float</strong></dt><dd><p>2.3 for Neyman UL w/ 0 background,
 2.44 for F-C UL w/ 0 background, etc</p>
 </dd>
-<dt><strong>nuCrsScn: str</strong></dt><dd><p>type of neutrino cross-section</p>
+<dt><strong>nuCrsScn: str</strong></dt><dd><p>Type of neutrino cross-section.</p>
+</dd>
+<dt><strong>inttype: str, array of str</strong></dt><dd><p>Interaction type.</p>
 </dd>
 </dl>
 </dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array of floats: flux limit</dt><dd></dd>
 </dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.get_nu_cross_section" title="NuRadioMC.utilities.cross_sections.get_nu_cross_section"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioMC.utilities.cross_sections.get_nu_cross_section</span></code></a></dt><dd><p>For options for argument <em class="xref py py-obj">nuCrsScn</em> and <em class="xref py py-obj">inttype</em></p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_limit_e1_flux">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_limit_e1_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_limit_e1_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_e1_flux" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_limit_e1_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hedis_bgr18'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_limit_e1_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_e1_flux" title="Link to this definition"></a></dt>
 <dd><p>Limit from effective volume on E^1 flux plot</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -703,16 +717,30 @@
 <dt><strong>upperLimOnEvents: float</strong></dt><dd><p>2.3 for Neyman UL w/ 0 background,
 2.44 for F-C UL w/ 0 background, etc</p>
 </dd>
-<dt><strong>nuCrsScn: str</strong></dt><dd><p>type of neutrino cross-section</p>
+<dt><strong>nuCrsScn: str</strong></dt><dd><p>Type of neutrino cross-section.</p>
+</dd>
+<dt><strong>inttype: str, array of str</strong></dt><dd><p>Interaction type.</p>
 </dd>
 </dl>
 </dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array of floats: limit on E^1 flux</dt><dd></dd>
 </dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.get_nu_cross_section" title="NuRadioMC.utilities.cross_sections.get_nu_cross_section"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioMC.utilities.cross_sections.get_nu_cross_section</span></code></a></dt><dd><p>For options for argument <em class="xref py py-obj">nuCrsScn</em> and <em class="xref py py-obj">inttype</em></p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_limit_e2_flux">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_limit_e2_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_limit_e2_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_e2_flux" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_limit_e2_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hedis_bgr18'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_limit_e2_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_e2_flux" title="Link to this definition"></a></dt>
 <dd><p>Limit from effective volume on E^2 flux plot</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -730,16 +758,30 @@
 <dt><strong>upperLimOnEvents: float</strong></dt><dd><p>2.3 for Neyman UL w/ 0 background,
 2.44 for F-C UL w/ 0 background, etc</p>
 </dd>
-<dt><strong>nuCrsScn: str</strong></dt><dd><p>type of neutrino cross-section</p>
+<dt><strong>nuCrsScn: str</strong></dt><dd><p>Type of neutrino cross-section.</p>
+</dd>
+<dt><strong>inttype: str, array of str</strong></dt><dd><p>Interaction type.</p>
 </dd>
 </dl>
 </dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array of floats: limit on E^2 flux</dt><dd></dd>
 </dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.get_nu_cross_section" title="NuRadioMC.utilities.cross_sections.get_nu_cross_section"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioMC.utilities.cross_sections.get_nu_cross_section</span></code></a></dt><dd><p>For options for argument <em class="xref py py-obj">nuCrsScn</em> and <em class="xref py py-obj">inttype</em></p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_number_of_events_for_flux">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_number_of_events_for_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Veff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_number_of_events_for_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_number_of_events_for_flux" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_number_of_events_for_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Veff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hedis_bgr18'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_number_of_events_for_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_number_of_events_for_flux" title="Link to this definition"></a></dt>
 <dd><p>calculates the number of expected neutrinos for a certain flux assumption</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -752,6 +794,10 @@
 </dd>
 <dt><strong>livetime: float</strong></dt><dd><p>the livetime of the detector (including signal efficiency)</p>
 </dd>
+<dt><strong>cross_section_type: str (default: ‘hedis_bgr18’)</strong></dt><dd><p>Defines model of cross-section.</p>
+</dd>
+<dt><strong>inttype: str, array of str</strong></dt><dd><p>Interaction type.</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -760,6 +806,13 @@
 </dl>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.get_nu_cross_section" title="NuRadioMC.utilities.cross_sections.get_nu_cross_section"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioMC.utilities.cross_sections.get_nu_cross_section</span></code></a></dt><dd><p>For options for argument <em class="xref py py-obj">nuCrsScn</em> and <em class="xref py py-obj">inttype</em></p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py function">

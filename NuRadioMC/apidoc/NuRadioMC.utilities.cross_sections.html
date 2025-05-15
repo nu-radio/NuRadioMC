@@ -634,9 +634,8 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.cross_sections.param">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.cross_sections.</span></span><span class="sig-name descname"><span class="pre">param</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameterization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/cross_sections.html#param"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.cross_sections.param" title="Link to this definition"></a></dt>
-<dd><p>Parameterization and constants as used in
-get_nu_cross_section()
-See documentation there for details</p>
+<dd><p>Parameterization and constants as used in get_nu_cross_section()
+See documentation there for details.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -649,12 +648,12 @@ JHEP 08 (2011) 042</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.cross_sections.get_nu_cross_section">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.cross_sections.</span></span><span class="sig-name descname"><span class="pre">get_nu_cross_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/cross_sections.html#get_nu_cross_section"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.cross_sections.get_nu_cross_section" title="Link to this definition"></a></dt>
-<dd><p>return neutrino cross-section</p>
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.cross_sections.</span></span><span class="sig-name descname"><span class="pre">get_nu_cross_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hedis_bgr18'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/cross_sections.html#get_nu_cross_section"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.cross_sections.get_nu_cross_section" title="Link to this definition"></a></dt>
+<dd><p>Returns neutrino cross-section</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>energy: float/ array of floats</strong></dt><dd><p>neutrino energies/momenta in standard units</p>
+<dt><strong>energy: float / array of floats</strong></dt><dd><p>neutrino energies/momenta in standard units</p>
 </dd>
 <dt><strong>flavors: float / array of floats</strong></dt><dd><p>neutrino flavor (integer) encoded as using PDG numbering scheme,
 particles have positive sign, anti-particles have negative sign, relevant are:</p>
@@ -669,16 +668,25 @@ particles have positive sign, anti-particles have negative sign, relevant are:</
 <li><p>nc : neutral current</p></li>
 <li><p>cc : charged current</p></li>
 <li><p>total: total (for non-array type)</p></li>
+<li><p>total_up : (only for ctw) total cross-section up uncertainty</p></li>
+<li><p>total_down : (only for ctw) total cross-section down uncertainty</p></li>
 </ul>
 </dd>
-<dt><strong>cross_section_type: {‘ctw’, ‘ghandi’, ‘csms’}, default ‘ctw’</strong></dt><dd><p>defines model of cross-section. Options:</p>
+<dt><strong>cross_section_type: {‘ctw’, ‘ghandi’, ‘csms’, ‘hedis_bgr18’}, default ‘hedis_bgr18’</strong></dt><dd><p>defines model of cross-section. Options:</p>
 <ul class="simple">
 <li><p>ctw : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
 cross-sections for all interaction types and flavors</p></li>
 <li><p>ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998
 only one cross-section for all interactions and flavors</p></li>
 <li><p>csms : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042</p></li>
+<li><p>hedis_bgr18 : Parameterization from arXiv:2004.04756v2 (prepared for JCAP)</p></li>
 </ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>crscn: float / array of floats</dt><dd><p>Cross-section in m^2</p>
 </dd>
 </dl>
 </dd>
@@ -687,7 +695,7 @@ only one cross-section for all interactions and flavors</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.cross_sections.get_interaction_length">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.cross_sections.</span></span><span class="sig-name descname"><span class="pre">get_interaction_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Enu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.723464435717068e+39</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/cross_sections.html#get_interaction_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.cross_sections.get_interaction_length" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.cross_sections.</span></span><span class="sig-name descname"><span class="pre">get_interaction_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Enu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.723464435717068e+39</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hedis_bgr18'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/cross_sections.html#get_interaction_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.cross_sections.get_interaction_length" title="Link to this definition"></a></dt>
 <dd><p>calculates interaction length from cross section</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -696,29 +704,12 @@ only one cross-section for all interactions and flavors</p></li>
 </dd>
 <dt><strong>density: float (optional)</strong></dt><dd><p>density of the medium, default density of ice = 0.917 g/cm**3</p>
 </dd>
-<dt><strong>flavors: float / array of floats</strong></dt><dd><p>neutrino flavor (integer) encoded as using PDG numbering scheme,
-particles have positive sign, anti-particles have negative sign, relevant are:</p>
-<ul class="simple">
-<li><p>12: electron neutrino</p></li>
-<li><p>14: muon neutrino</p></li>
-<li><p>16: tau neutrino</p></li>
-</ul>
+<dt><strong>flavors: float / array of floats</strong></dt><dd><p>Neutrino flavor (integer) encoded as using PDG numbering scheme.
+For more information see get_nu_cross_section()</p>
 </dd>
-<dt><strong>inttype: str, array of str</strong></dt><dd><p>interaction type. Options:</p>
-<ul class="simple">
-<li><p>nc : neutral current</p></li>
-<li><p>cc : charged current</p></li>
-<li><p>total: total (for non-array type)</p></li>
-</ul>
+<dt><strong>inttype: str, array of str</strong></dt><dd><p>interaction type.  For options see get_nu_cross_section()</p>
 </dd>
-<dt><strong>cross_section_type: {‘ctw’, ‘ghandi’, ‘csms’}, default ‘ctw’</strong></dt><dd><p>defines model of cross-section. Options:</p>
-<ul class="simple">
-<li><p>ctw: A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
-cross-sections for all interaction types and flavors</p></li>
-<li><p>ghandi: according to Ghandi et al. Phys.Rev.D58:093009,1998
-only one cross-section for all interactions and flavors</p></li>
-<li><p>csms: A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042</p></li>
-</ul>
+<dt><strong>cross_section_type: str (default: ‘hedis_bgr18’)</strong></dt><dd><p>Defines model of cross-section. For options see get_nu_cross_section()</p>
 </dd>
 </dl>
 </dd>

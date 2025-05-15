@@ -625,8 +625,15 @@
              
   <h1>Source code for NuRadioMC.utilities.inelasticities</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate</span> <span class="k">as</span> <span class="n">intp</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_sections</span>
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.inelasticities&#39;</span><span class="p">)</span>
 
 <span class="n">e_mass</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">physical_constants</span><span class="p">[</span><span class="s1">&#39;electron mass energy equivalent in MeV&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
 <span class="n">mu_mass</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">physical_constants</span><span class="p">[</span><span class="s1">&#39;muon mass energy equivalent in MeV&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
@@ -642,7 +649,8 @@
 
 <div class="viewcode-block" id="get_neutrino_inelasticity">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_neutrino_inelasticity</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_neutrino_inelasticity</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;hedis_bgr18&quot;</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">nu_energies</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span><span class="p">,</span> <span class="n">flavors</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">ncccs</span><span class="o">=</span><span class="s2">&quot;CC&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Standard inelasticity for deep inelastic scattering used so far.</span>
 <span class="sd">    Ported from ShelfMC</span>
@@ -651,6 +659,8 @@
 <span class="sd">    ----------</span>
 <span class="sd">    n_events: int</span>
 <span class="sd">        Number of events to be returned</span>
+<span class="sd">    model: string</span>
+<span class="sd">        the inelasticity model to use</span>
 <span class="sd">    rnd: random generator object</span>
 <span class="sd">        if None is provided, a new default random generator object is initialized</span>
 <span class="sd">    Returns</span>
@@ -658,47 +668,105 @@
 <span class="sd">    inelasticies: array</span>
 <span class="sd">        Array with the inelasticities</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">rnd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">rnd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
-    <span class="n">R1</span> <span class="o">=</span> <span class="mf">0.36787944</span>
-    <span class="n">R2</span> <span class="o">=</span> <span class="mf">0.63212056</span>
-    <span class="n">inelasticities</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">R1</span> <span class="o">+</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span> <span class="o">*</span> <span class="n">R2</span><span class="p">))</span> <span class="o">**</span> <span class="mf">2.5</span>
+    <span class="n">rnd</span> <span class="o">=</span> <span class="n">rnd</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="n">inelasticities</span></div>
+    <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;ctw&quot;</span><span class="p">:</span>
+        <span class="c1"># based on shelfmc</span>
+        <span class="n">r1</span> <span class="o">=</span> <span class="mf">0.36787944</span>
+        <span class="n">r2</span> <span class="o">=</span> <span class="mf">0.63212056</span>
+        <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">r1</span> <span class="o">+</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span> <span class="o">*</span> <span class="n">r2</span><span class="p">))</span> <span class="o">**</span> <span class="mf">2.5</span>
+
+    <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;bgr18&quot;</span> <span class="ow">or</span> <span class="n">model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;hedis_bgr18&quot;</span><span class="p">:</span>
+        <span class="n">nu_energies_ref</span><span class="p">,</span> <span class="n">yy_ref</span><span class="p">,</span> <span class="n">flavors_ref</span><span class="p">,</span> <span class="n">ncccs_ref</span><span class="p">,</span> <span class="n">dsigma_dy_ref</span> <span class="o">=</span> <span class="n">cross_sections</span><span class="o">.</span><span class="n">_read_differential_cross_section_BGR18</span><span class="p">()</span>
+
+        <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
+        <span class="n">uEE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nu_energies</span><span class="p">)</span>
+        <span class="n">uFlavor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">flavors</span><span class="p">)</span>
+        <span class="n">uNCCC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ncccs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">energy</span> <span class="ow">in</span> <span class="n">uEE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">energy</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;You are requesting inelasticities for energies outside of the validity of the BGR18 model. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;You requested </span><span class="si">{</span><span class="n">energy</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">eV</span><span class="si">:</span><span class="s2">.2g</span><span class="si">}</span><span class="s2">eV. Largest available energy is 10EeV, returning result for 10EeV.&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">flavor</span> <span class="ow">in</span> <span class="n">uFlavor</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">nccc</span> <span class="ow">in</span> <span class="n">uNCCC</span><span class="p">:</span>
+                    <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">nu_energies</span> <span class="o">==</span> <span class="n">energy</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">flavor</span> <span class="o">==</span> <span class="n">flavors</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">nccc</span> <span class="o">==</span> <span class="n">ncccs</span><span class="p">)</span>
+                    <span class="n">size</span> <span class="o">=</span> <span class="n">n_events</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                        <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+
+                    <span class="n">nccc</span> <span class="o">=</span> <span class="n">nccc</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                    <span class="n">iF</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">flavors_ref</span> <span class="o">==</span> <span class="n">flavor</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">inccc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">ncccs_ref</span> <span class="o">==</span> <span class="n">nccc</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">iE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">energy</span> <span class="o">-</span> <span class="n">nu_energies_ref</span><span class="p">))</span>
+                    <span class="n">get_y</span> <span class="o">=</span> <span class="n">intp</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">yy_ref</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">dsigma_dy_ref</span><span class="p">[</span><span class="n">iF</span><span class="p">,</span> <span class="n">inccc</span><span class="p">,</span> <span class="n">iE</span><span class="p">]),</span>
+                                          <span class="n">fill_value</span><span class="o">=</span><span class="s2">&quot;extrapolate&quot;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;cubic&quot;</span><span class="p">)</span>
+
+                    <span class="n">yyy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+                    <span class="n">yyy</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">yyy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">yyy</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                    <span class="n">dsigma_dyy</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">get_y</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">yyy</span><span class="p">))</span>
+
+                    <span class="n">yy</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">yyy</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">dsigma_dyy</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dsigma_dyy</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">yy</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;inelasticity model </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2"> is not implemented.&quot;</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="get_ccnc">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html#NuRadioMC.utilities.inelasticities.get_ccnc">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_ccnc</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ccnc</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;hedis_bgr18&quot;</span><span class="p">,</span> <span class="n">energy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flavors</span><span class="o">=</span><span class="mi">12</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the nature of the interaction current: cc or nc</span>
-<span class="sd">    Ported from Shelf MC</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    n_events: int</span>
 <span class="sd">        Number of events to be returned</span>
-<span class="sd">    rnd: random generator object</span>
-<span class="sd">        if None is provided, a new default random generator object is initialized</span>
-<span class="sd">        </span>
+<span class="sd">    rnd: random generator object (default: None)</span>
+<span class="sd">        If None is provided, a new default random generator object is initialized</span>
+<span class="sd">    model: string (default: &quot;hedis_bgr18&quot;)</span>
+<span class="sd">        The cross section model to determine cc fraction. For options see cross_sections.py</span>
+<span class="sd">    energy: float or array (default: None)</span>
+<span class="sd">        Energy of the neutrino. If None is provided a constant value is used (only for CTW model).</span>
+<span class="sd">    flavors: int (default: 12)</span>
+<span class="sd">        The flavor of the neutrino. Only relevant for the BGR18 model. 12 = nu_e, 14 = nu_mu, 16 = nu_tau.</span>
+<span class="sd">        Negative values are used for antineutrinos. For the CTW model, this parameter is ignored.</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    ccnc: array</span>
 <span class="sd">        Array with &#39;cc&#39; or &#39;nc&#39;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">rnd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">rnd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
-    <span class="n">random_sequence</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span>
-    <span class="n">ccnc</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">random_sequence</span><span class="p">):</span>
-        <span class="c1">#    if (r &lt;= 0.6865254):#from AraSim</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">r</span> <span class="o">&lt;=</span> <span class="mf">0.7064</span><span class="p">):</span>
-            <span class="n">ccnc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;cc&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">ccnc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;nc&#39;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ccnc</span><span class="p">)</span></div>
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    NuRadioMC.utilities.cross_sections.get_nu_cross_section</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rnd</span> <span class="o">=</span> <span class="n">rnd</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
+
+    <span class="n">random_sequence</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">energy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;ctw&quot;</span><span class="p">,</span> <span class="s2">&quot;Only CTW supports energy-independent cc/nc fraction Energy is required for BGR18 model&quot;</span>
+        <span class="c1"># Ported from Shelf MC</span>
+        <span class="c1"># https://github.com/persic/ShelfMC/blob/daf56916d85de019e848f415c2e9f4643a744674/functions.cc#L1055-L1064</span>
+        <span class="c1"># based on CTW cross sections https://link.aps.org/doi/10.1103/PhysRevD.83.113009</span>
+        <span class="n">cc_fraction</span> <span class="o">=</span> <span class="mf">0.7064</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_events</span><span class="p">,</span> <span class="s2">&quot;Energy must be a scalar or an array of the same length as n_events&quot;</span>
+
+        <span class="c1"># Flavor only relevant to determine if its a neutrino or antineutrino. For cross section ratio it</span>
+        <span class="c1"># hopefully doesn&#39;t matter</span>
+        <span class="n">cc</span> <span class="o">=</span> <span class="n">cross_sections</span><span class="o">.</span><span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">flavors</span><span class="o">=</span><span class="n">flavors</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;cc&quot;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="n">nc</span> <span class="o">=</span> <span class="n">cross_sections</span><span class="o">.</span><span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">flavors</span><span class="o">=</span><span class="n">flavors</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;nc&quot;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="n">cc_fraction</span> <span class="o">=</span> <span class="n">cc</span> <span class="o">/</span> <span class="p">(</span><span class="n">cc</span> <span class="o">+</span> <span class="n">nc</span><span class="p">)</span>
+
+    <span class="n">ccnc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">random_sequence</span> <span class="o">&lt;=</span> <span class="n">cc_fraction</span><span class="p">,</span> <span class="s1">&#39;cc&#39;</span><span class="p">,</span> <span class="s1">&#39;nc&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ccnc</span></div>
 
 
 
@@ -708,7 +776,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates a random tau branch decay</span>
 <span class="sd">    See http://dx.doi.org/10.1016/j.cpc.2013.04.001</span>
-<span class="sd">    </span>
+
 <span class="sd">    rnd: random generator object</span>
 <span class="sd">        if None is provided, a new default random generator object is initialized</span>
 
@@ -717,8 +785,7 @@
 <span class="sd">    branch: string</span>
 <span class="sd">        The corresponding decay branch</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">rnd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">rnd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
+    <span class="n">rnd</span> <span class="o">=</span> <span class="n">rnd</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
 
     <span class="n">branching_ratios</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.18</span><span class="p">,</span> <span class="mf">0.18</span><span class="p">])</span>
     <span class="n">branching</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -758,8 +825,8 @@
 <span class="sd">    inelasticity: float</span>
 <span class="sd">        The fraction of energy carried by the leptonic or hadronic products</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">rnd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">rnd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
+    <span class="n">rnd</span> <span class="o">=</span> <span class="n">rnd</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
+
     <span class="k">if</span> <span class="p">(</span><span class="n">branch</span> <span class="o">==</span> <span class="s1">&#39;tau_had&#39;</span><span class="p">):</span>
 
         <span class="n">branching</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.12</span><span class="p">,</span> <span class="mf">0.26</span><span class="p">,</span> <span class="mf">0.13</span><span class="p">,</span> <span class="mf">0.13</span><span class="p">])</span>
@@ -801,7 +868,6 @@
         <span class="k">elif</span> <span class="p">(</span><span class="n">branch</span> <span class="o">==</span> <span class="s1">&#39;tau_mu&#39;</span><span class="p">):</span>
             <span class="n">m_l</span> <span class="o">=</span> <span class="n">mu_mass</span>
 
-        <span class="n">nu_min</span> <span class="o">=</span> <span class="n">m_l</span>
         <span class="n">nu_max</span> <span class="o">=</span> <span class="p">(</span><span class="n">mu</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">m_l</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">mu</span>
 
         <span class="c1"># Fraction energy distibution in the decaying particle rest frame</span>
@@ -849,17 +915,123 @@
 <span class="sd">    x: float</span>
 <span class="sd">        Random value from the distribution</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">rnd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">rnd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
-    <span class="n">reject</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">rnd</span> <span class="o">=</span> <span class="n">rnd</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
 
-    <span class="k">while</span><span class="p">(</span><span class="n">reject</span><span class="p">):</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">)</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span>
-        <span class="n">reject</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">y</span>
+        <span class="k">if</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">y</span><span class="p">:</span>
+            <span class="k">break</span>
 
     <span class="k">return</span> <span class="n">x</span></div>
 
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities.cross_sections</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_nu_cross_section</span>
+
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">19</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
+
+    <span class="n">cc_ctw</span> <span class="o">=</span> <span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;cc&quot;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s2">&quot;ctw&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">picobarn</span>
+    <span class="n">cc_csms</span> <span class="o">=</span> <span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;cc&quot;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;csms&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">picobarn</span>
+    <span class="n">cc_hedis_bgr18</span> <span class="o">=</span> <span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;cc&quot;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">picobarn</span>
+
+    <span class="n">nc_ctw</span> <span class="o">=</span> <span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;nc&quot;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s2">&quot;ctw&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">picobarn</span>
+    <span class="n">nc_csms</span> <span class="o">=</span> <span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;nc&quot;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;csms&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">picobarn</span>
+    <span class="n">nc_hedis_bgr18</span> <span class="o">=</span> <span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;nc&quot;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">picobarn</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span> <span class="n">cc_ctw</span> <span class="o">/</span> <span class="p">(</span><span class="n">cc_ctw</span> <span class="o">+</span> <span class="n">nc_ctw</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C0&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CTW&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span> <span class="n">cc_csms</span> <span class="o">/</span> <span class="p">(</span><span class="n">cc_csms</span> <span class="o">+</span> <span class="n">nc_csms</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C1&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CSMS&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span> <span class="n">cc_hedis_bgr18</span> <span class="o">/</span> <span class="p">(</span><span class="n">cc_hedis_bgr18</span> <span class="o">+</span> <span class="n">nc_hedis_bgr18</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C2&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;BGR18-HEDIS&#39;</span><span class="p">)</span>
+
+    <span class="n">energy2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="mi">100000</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;CTW&quot;</span><span class="p">,</span> <span class="s2">&quot;CSMS&quot;</span><span class="p">,</span> <span class="s2">&quot;hedis_bgr18&quot;</span><span class="p">]:</span>
+        <span class="n">ccnc</span> <span class="o">=</span> <span class="n">get_ccnc</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">energy2</span><span class="p">),</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">energy</span><span class="o">=</span><span class="n">energy2</span><span class="p">)</span>
+        <span class="n">ccnc</span> <span class="o">=</span> <span class="n">ccnc</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">energy</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">cc_fraction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ele</span> <span class="o">==</span> <span class="s2">&quot;cc&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">ccnc</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span> <span class="n">cc_fraction</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [PeV]&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mf">0.7064</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;get_ccnc energy independent&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;cc fraction&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+
+    <span class="n">n_events</span> <span class="o">=</span> <span class="mi">3000000</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">height_ratios</span><span class="o">=</span><span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;hspace&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">})</span>
+
+    <span class="n">inelasticities</span> <span class="o">=</span> <span class="n">get_neutrino_inelasticity</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;CTW&quot;</span><span class="p">)</span>
+
+    <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1001</span><span class="p">)</span>
+    <span class="n">n_ctw</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">inelasticities</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">inelasticities</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;CTW, mean: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">inelasticities</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">nu_energy</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span><span class="p">,</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span><span class="p">,</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span><span class="p">]):</span>
+        <span class="n">inelasticities_cc_bgr</span> <span class="o">=</span> <span class="n">get_neutrino_inelasticity</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;BGR18&quot;</span><span class="p">,</span> <span class="n">ncccs</span><span class="o">=</span><span class="s2">&quot;CC&quot;</span><span class="p">,</span> <span class="n">nu_energies</span><span class="o">=</span><span class="n">nu_energy</span><span class="p">)</span>
+        <span class="n">n</span><span class="p">,</span> <span class="n">_</span> <span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">inelasticities_cc_bgr</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">inelasticities_cc_bgr</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;BGR18 CC </span><span class="si">{</span><span class="n">nu_energy</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">EeV</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">EeV, mean: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">inelasticities_cc_bgr</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n</span> <span class="o">/</span> <span class="n">n_ctw</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+
+
+        <span class="n">inelasticities_nc_bgr</span> <span class="o">=</span> <span class="n">get_neutrino_inelasticity</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;BGR18&quot;</span><span class="p">,</span> <span class="n">ncccs</span><span class="o">=</span><span class="s2">&quot;NC&quot;</span><span class="p">,</span> <span class="n">nu_energies</span><span class="o">=</span><span class="n">nu_energy</span><span class="p">)</span>
+        <span class="n">n</span><span class="p">,</span> <span class="n">_</span> <span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">inelasticities_nc_bgr</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">inelasticities_nc_bgr</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;BGR18 NC </span><span class="si">{</span><span class="n">nu_energy</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">EeV</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">EeV, mean: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">inelasticities_nc_bgr</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n</span> <span class="o">/</span> <span class="n">n_ctw</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+
+
+    <span class="c1"># plotting.draw_residual(ax, ax2)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Inelasticity&#39;</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Ratio to CTW&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;probability density&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">align_ylabels</span><span class="p">([</span><span class="n">ax</span><span class="p">,</span> <span class="n">ax2</span><span class="p">])</span>
+
+
+    <span class="n">fig2</span><span class="p">,</span> <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">height_ratios</span><span class="o">=</span><span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;hspace&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">})</span>
+
+    <span class="n">n_events</span> <span class="o">=</span> <span class="mi">1000000</span>
+    <span class="n">energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
+
+    <span class="n">ineal_mean_ctw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">get_neutrino_inelasticity</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;CTW&quot;</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">energies</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span> <span class="n">ineal_mean_ctw</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;CTW&quot;</span><span class="p">)</span>
+
+    <span class="n">ineal_mean_cc</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ineal_mean_nc</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">energies</span><span class="p">:</span>
+        <span class="n">ineal_mean_cc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">get_neutrino_inelasticity</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;BGR18-HEDIS&quot;</span><span class="p">,</span> <span class="n">ncccs</span><span class="o">=</span><span class="s2">&quot;CC&quot;</span><span class="p">,</span> <span class="n">nu_energies</span><span class="o">=</span><span class="n">e</span><span class="p">)))</span>
+        <span class="n">ineal_mean_nc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">get_neutrino_inelasticity</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;BGR18-HEDIS&quot;</span><span class="p">,</span> <span class="n">ncccs</span><span class="o">=</span><span class="s2">&quot;nc&quot;</span><span class="p">,</span> <span class="n">nu_energies</span><span class="o">=</span><span class="n">e</span><span class="p">)))</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">energies</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span> <span class="n">ineal_mean_cc</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;BGR18-HEDIS CC&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">energies</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span> <span class="n">ineal_mean_nc</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;BGR18-HEDIS NC&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+    <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">energies</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ineal_mean_cc</span><span class="p">)</span> <span class="o">/</span> <span class="n">ineal_mean_ctw</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;BGR18-HEDIS CC&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">energies</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ineal_mean_nc</span><span class="p">)</span> <span class="o">/</span> <span class="n">ineal_mean_ctw</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;BGR18-HEDIS NC&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\langle y \rangle$&quot;</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$E_\nu$ [PeV]&quot;</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\langle y \rangle$ ratio to CTW&quot;</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">align_ylabels</span><span class="p">([</span><span class="n">ax</span><span class="p">,</span> <span class="n">ax2</span><span class="p">])</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 
            </div>
