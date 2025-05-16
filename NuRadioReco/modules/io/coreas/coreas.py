@@ -183,7 +183,7 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     return efield_on_sky, efield_times
 
 
-def convert_obs_positions_to_nuradio_on_ground(observer_pos, zenith, azimuth, magnetic_field_vector):
+def convert_obs_positions_to_nuradio_on_ground(observer_pos, declination=0):
     """
     Convert observer positions from the CORSIKA CS to the NRR ground CS.
 
@@ -197,24 +197,14 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, zenith, azimuth, ma
     ----------
     observer_pos : np.ndarray
         The observer's position as extracted from the HDF5 file, e.g. corsika['CoREAS']['my_observer'].attrs['position']
-    zenith : float
-        zenith angle (in internal units)
-    azimuth : float
-        azimuth angle (in internal units)
-    magnetic_field_vector : np.ndarray
-        magnetic field vector
+    declination : float (default: 0)
+        Declination of the magnetic field.
 
     Returns
     -------
     obs_positions_geo: np.ndarray
         observer positions in geographic coordinates, shaped as (n_observers, 3).
-
     """
-    cs = coordinatesystems.cstrafo(
-        zenith / units.rad, azimuth / units.rad,
-        magnetic_field_vector
-    )
-
     # If single position is given, make sure it has the right shape (3,) -> (1, 3)
     if observer_pos.ndim == 1:
         observer_pos = observer_pos[np.newaxis, :]
@@ -225,10 +215,9 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, zenith, azimuth, ma
         observer_pos[:, 2]
     ]) * units.cm
 
-    # second to last dimension has to be 3 for the transformation
-    obs_positions_geo = cs.transform_from_magnetic_to_geographic(obs_positions)
+    obs_positions = hp.rotate_vector_in_2d(obs_positions, -declination).T
 
-    return obs_positions_geo.T
+    return np.squeeze(obs_positions)
 
 # READER FUNCTIONS
 def read_CORSIKA7(input_file, declination=None, site=None):
@@ -295,8 +284,9 @@ def read_CORSIKA7(input_file, declination=None, site=None):
 
     for j_obs, observer in enumerate(corsika['CoREAS']['observers'].values()):
         obs_positions_geo = convert_obs_positions_to_nuradio_on_ground(
-            observer.attrs['position'], zenith, azimuth, magnetic_field_vector
+            observer.attrs['position'], declination
         )
+
         efield, efield_time = convert_obs_to_nuradio_efield(
             observer, zenith, azimuth, magnetic_field_vector
         )

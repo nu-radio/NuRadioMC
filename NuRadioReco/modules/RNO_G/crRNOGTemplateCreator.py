@@ -246,9 +246,6 @@ def _create_Efield(detector:detector.generic_detector.GenericDetector, run_id:in
 
     station.set_station_time(astropy.time.Time(station_time))
 
-    channel = Channel(channel_id)
-    station.add_channel(channel)
-
     sim_station = SimStation(station_id)
     station.set_sim_station(sim_station)
 
