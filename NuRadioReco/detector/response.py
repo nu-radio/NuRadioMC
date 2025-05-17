@@ -299,8 +299,8 @@ class Response:
 
         idx = self.__names.index(name)
         single_response = copy.deepcopy(self)
-        single_response.__gains = [self.__names[idx]]
-        single_response.__names = [self.__gains[idx]]
+        single_response.__gains = [self.__gains[idx]]
+        single_response.__names = [self.__names[idx]]
         single_response.__phases = [self.__phases[idx]]
         single_response.__weights = [self.__weights[idx]]
         single_response.__time_delays = [self.__time_delays[idx]]
