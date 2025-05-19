@@ -5,8 +5,11 @@ import NuRadioReco.framework.emitter
 import NuRadioReco.framework.sim_emitter
 import NuRadioReco.framework.hybrid_information
 import NuRadioReco.framework.particle
-import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_storage
+
+from NuRadioReco.framework.parameters import (
+    eventParameters as evp, channelParameters as chp, showerParameters as shp,
+    particleParameters as pap, generatorAttributes as gta)
 
 from NuRadioReco.utilities import io_utilities, version
 
@@ -24,7 +27,7 @@ logger = logging.getLogger('NuRadioReco.Event')
 class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, run_number, event_id):
-        super().__init__([parameters.eventParameters, parameters.generatorAttributes])
+        super().__init__([evp, gta])
 
         self.__run_number = run_number
         self._id = event_id
@@ -36,7 +39,8 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         self.__particles = collections.OrderedDict() # stores a dictionary of simulated MC particles in an event
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
-        self.__modules_station = {}  # saves which modules were executed with what parameters on station level
+        # saves which modules were executed with what parameters on station level
+        self.__modules_station = collections.defaultdict(list)
 
     def register_module_event(self, instance, name, kwargs):
         """
@@ -69,9 +73,6 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         kwargs:
             the key word arguments of the run method
         """
-        if station_id not in self.__modules_station:
-            self.__modules_station[station_id] = []
-
         iE = len(self.__modules_event)
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
 
@@ -85,14 +86,37 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         iE = 0
         iS = 0
         while True:
-            if(station_id in self.__modules_station and (len(self.__modules_station[station_id]) > iS) and self.__modules_station[station_id][iS][0] == iE):
+            if (station_id in self.__modules_station and (len(self.__modules_station[station_id]) > iS)
+                    and self.__modules_station[station_id][iS][0] == iE):
                 iS += 1
                 yield self.__modules_station[station_id][iS - 1][1:]
             else:
-                if(len(self.__modules_event) == iE):
+                if len(self.__modules_event) == iE:
                     break
+
                 iE += 1
                 yield self.__modules_event[iE - 1]
+
+    def has_been_processed_by_module(self, module_name, station_id):
+        """
+        Checks if the event has been processed by a module with a specific name.
+
+        Parameters
+        ----------
+        module_name: str
+            The name of the module to check for.
+        station_id: int
+            The station id for which the module is run.
+
+        Returns
+        -------
+        bool
+        """
+        for module in self.iter_modules(station_id):
+            if module[0] == module_name:
+                return True
+
+        return False
 
     def get_generator_info(self, key):
         logger.warning("`get_generator_info` is deprecated. Use `get_parameter` instead.")
@@ -311,9 +335,9 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         returns the parent of a particle or a shower
         """
         if isinstance(particle_or_shower, NuRadioReco.framework.base_shower.BaseShower):
-            par_id = particle_or_shower[parameters.showerParameters.parent_id]
+            par_id = particle_or_shower[shp.parent_id]
         elif isinstance(particle_or_shower, NuRadioReco.framework.particle.Particle):
-            par_id = particle_or_shower[parameters.particleParameters.parent_id]
+            par_id = particle_or_shower[pap.parent_id]
         else:
             raise ValueError("particle_or_shower needs to be an instance of NuRadioReco.framework.base_shower.BaseShower or NuRadioReco.framework.particle.Particle")
         if par_id is None:
@@ -348,12 +372,12 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         # iterate over sim_showers to look for parent id
         if showers is True:
             for shower in self.get_showers():
-                if shower[parameters.showerParameters.parent_id] == parent_id:
+                if shower[shp.parent_id] == parent_id:
                     yield shower
         # iterate over secondary particles to look for parent id
         if particles is True:
             for particle in self.get_particles():
-                if particle[parameters.particleParameters.parent_id] == parent_id:
+                if particle[pap.parent_id] == parent_id:
                     yield particle
 
     def add_shower(self, shower):
@@ -566,10 +590,10 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         stations_pkl = []
         try:
             commit_hash = version.get_NuRadioMC_commit_hash()
-            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, commit_hash)
+            self.set_parameter(evp.hash_NuRadioMC, commit_hash)
         except:
             logger.warning("Event is serialized without commit hash!")
-            self.set_parameter(parameters.eventParameters.hash_NuRadioMC, None)
+            self.set_parameter(evp.hash_NuRadioMC, None)
 
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
@@ -664,4 +688,5 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         if "__modules_event" in data:
             self.__modules_event = data['__modules_event']
         if "__modules_station" in data:
-            self.__modules_station = data['__modules_station']
+            for key, value in data['__modules_station'].items():
+                self.__modules_station[key] = value

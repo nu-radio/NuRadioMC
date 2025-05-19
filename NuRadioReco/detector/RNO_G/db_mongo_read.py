@@ -28,7 +28,6 @@ import astropy.time
 
 import logging
 logger = logging.getLogger("NuRadioReco.MongoDBRead")
-logger.setLevel(logging.INFO)
 
 
 def _convert_astro_time_to_datetime(time_astro):
