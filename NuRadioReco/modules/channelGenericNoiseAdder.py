@@ -5,6 +5,7 @@ import numpy as np
 from numpy.random import Generator, Philox
 import os
 from scipy.interpolate import interp1d
+from scipy.stats import rv_continuous
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.modules.base.module import register_run
 
@@ -27,11 +28,30 @@ def load_scale_parameters(scale_parameter_path):
     with open(scale_parameter_path, "r") as scale_parameter_file:
         scale_parameters_dictionary = json.load(scale_parameter_file)
         frequencies = scale_parameters_dictionary["freq"]
-        scale_parameters = scale_parameters_dictionary["scale_parameters"]
-        scale_parameters = [interp1d(frequencies, scale_parameter,
+        scale_parameters = np.array(scale_parameters_dictionary["scale_parameters"])
+        scale_params = [interp1d(frequencies, scale_parameter[:, 0],
                                      bounds_error=False, fill_value=0.)
                                      for scale_parameter in scale_parameters]
-    return scale_parameters
+        s_parameters = [interp1d(frequencies, scale_parameter[:, 1],
+                                     bounds_error=False, fill_value=0.)
+                                     for scale_parameter in scale_parameters]
+        trunc_edges = scale_parameters_dictionary["trunc_edges"]
+        trunc_edges = [interp1d(frequencies, trunc_edge,
+                                     bounds_error=False, fill_value=0.)
+                                     for trunc_edge in trunc_edges]
+    return scale_params, s_parameters, trunc_edges
+
+
+
+def rayleigh(spec_amplitude, sigma):
+    return (spec_amplitude / sigma**2) * np.exp(-spec_amplitude**2 / (2 * sigma**2))
+
+def sigmoid(spec_amplitude, s, x0):
+    return 1. / (1. + np.exp(s * (spec_amplitude - x0)))
+
+class truncatedRayleigh(rv_continuous):
+    def _pdf(self, x, sigma, s, x0):
+        return rayleigh(x, sigma) * sigmoid(x, s, x0)
 
 
 
@@ -130,8 +150,12 @@ class channelGenericNoiseAdder:
             raise NotImplementedError("Other station parameters are being generated")
         
         nbinsactive = np.sum(selection)
-        scale_parameters = load_scale_parameters(scale_parameter_full_path)
+        scale_parameters, s_parameters, trunc_edges = load_scale_parameters(scale_parameter_full_path)
+        trunc_edge = trunc_edges[channel_id](frequencies[selection])
         fsigma = scale_parameters[channel_id](frequencies[selection])
+        # s = s_parameters[channel_id](frequencies[selection])
+        # truncated_rayleigh = truncatedRayleigh()
+        # ampl[selection] = truncated_rayleigh.rvs(sigma=fsigma, s=s, x0=trunc_edge, size=nbinsactive)
         ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
         return ampl
 
