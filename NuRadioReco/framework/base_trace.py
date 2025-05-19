@@ -1,16 +1,12 @@
 from __future__ import absolute_import, division, print_function
 
-from NuRadioReco.utilities import fft, bandpass_filter
+from NuRadioReco.utilities import fft, signal_processing
 import NuRadioReco.detector.response
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 
 import numpy as np
 import logging
-import fractions
-import decimal
 import numbers
-import functools
-import scipy.signal
 import copy
 import pickle
 logger = logging.getLogger("NuRadioReco.BaseTrace")
@@ -73,7 +69,7 @@ class BaseTrace:
         """
         spec = copy.copy(self.get_frequency_spectrum())
         freq = self.get_frequencies()
-        filter_response = bandpass_filter.get_filter_response(freq, passband, filter_type, order, rp)
+        filter_response = signal_processing.get_filter_response(freq, passband, filter_type, order, rp)
         spec *= filter_response
         return fft.freq2time(spec, self.get_sampling_rate())
 
@@ -279,22 +275,17 @@ class BaseTrace:
             self.set_frequency_spectrum(spec, self.get_sampling_rate())
 
     def resample(self, sampling_rate):
+        """ Resamples the trace to a new sampling rate.
+
+        Parameters
+        ----------
+        sampling_rate: float
+            The new sampling rate.
+        """
         if sampling_rate == self.get_sampling_rate():
             return
-        resampling_factor = fractions.Fraction(decimal.Decimal(sampling_rate / self.get_sampling_rate())).limit_denominator(5000)
 
-        resampled_trace = self.get_trace()
-        if resampling_factor.numerator != 1:
-            # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
-            resampled_trace = scipy.signal.resample(resampled_trace, resampling_factor.numerator * self.get_number_of_samples(), axis=-1)
-
-        if resampling_factor.denominator != 1:
-            # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
-            resampled_trace = scipy.signal.resample(resampled_trace, np.shape(resampled_trace)[-1] // resampling_factor.denominator, axis=-1)
-
-        if resampled_trace.shape[-1] % 2 != 0:
-            resampled_trace = resampled_trace.T[:-1].T
-
+        resampled_trace = signal_processing.resample(self.get_trace(), sampling_rate / self.get_sampling_rate())
         self.set_trace(resampled_trace, sampling_rate)
 
     def serialize(self):
@@ -317,10 +308,10 @@ class BaseTrace:
         """
         Adds the trace of another channel to the trace of this channel.
 
-        The trace of the incoming channel is only added within the time window of the current 
-        channel. If the current channel has an empty trace (i.e., a trace containing zeros) with 
-        a defined trace_start_time, this function can be seen as recording the incoming channel 
-        in the specified readout window. Hence, the current channel is referred to as the "readout" 
+        The trace of the incoming channel is only added within the time window of the current
+        channel. If the current channel has an empty trace (i.e., a trace containing zeros) with
+        a defined trace_start_time, this function can be seen as recording the incoming channel
+        in the specified readout window. Hence, the current channel is referred to as the "readout"
         in the comments of this function.
 
         Parameters
@@ -393,15 +384,15 @@ class BaseTrace:
 
             i_end_readout = floor((t1_channel - t0_readout) * sampling_rate_readout) + 1 # The bin of readout right before channel ends
             i_end_channel = n_samples_channel
-
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
         residual_time_offset = t_start_channel - t_start_readout
         if np.abs(residual_time_offset) >= min_residual_time_offset:
             tmp_channel = copy.deepcopy(channel)
             tmp_channel.apply_time_shift(residual_time_offset)
-            trace_to_add = tmp_channel.get_trace()[i_start_channel:i_end_channel]
+
+            trace_to_add = tmp_channel.get_trace()
         else:
-            trace_to_add = channel.get_trace()[i_start_channel:i_end_channel]
+            trace_to_add = channel.get_trace()
 
         if i_end_readout - i_start_readout != i_end_channel - i_start_channel:
             logger.error("The traces do not have the same length. This should not happen.")
@@ -409,7 +400,9 @@ class BaseTrace:
 
         # Add the trace to the original trace:
         original_trace = self.get_trace()
-        original_trace[i_start_readout:i_end_readout] += trace_to_add
+        # arr[..., start:stop] works for any dimension: 1, 2, 3, ...
+        original_trace[..., i_start_readout:i_end_readout] += trace_to_add[..., i_start_channel:i_end_channel]
+
         self.set_trace(original_trace, sampling_rate_readout)
 
 

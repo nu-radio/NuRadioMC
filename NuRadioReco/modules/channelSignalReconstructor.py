@@ -33,11 +33,12 @@ class channelSignalReconstructor:
 
     def begin(
         self,
-        debug=False,
-        signal_window_start=None,
-        signal_window_length=120 * units.ns,
-        noise_window_start=None,
-        noise_window_length=None
+        debug = False,
+        signal_window_start = None,
+        signal_window_length = 120 * units.ns,
+        noise_window_start = None,
+        noise_window_length = None,
+        coincidence_window_size = 6 * units.ns
     ):
         """
         Parameters
@@ -55,14 +56,17 @@ class channelSignalReconstructor:
         noise_window_length: float or None
             Length of the noise window, with time units
             If noise_window_start or noise_window_length are None, the noise window is the part of the trace outside the signal window
+        coincidence_window_size : float (default: 6ns)
+            Window size used for calculating the maximum peak to peak amplitude used for the max_a_norm variable
         """
         self.__signal_window_start = signal_window_start
         self.__signal_window_length = signal_window_length
         self.__noise_window_start = noise_window_start
         self.__noise_window_length = noise_window_length
+        self.__coincidence_window_size = coincidence_window_size
         self.__debug = debug
 
-    def get_SNR(self, station_id, channel, det, stored_noise=False, rms_stage=None):
+    def get_SNR(self, station_id, channel, det, stored_noise = False, rms_stage = None):
         """
         Parameters
         ----------
@@ -79,6 +83,8 @@ class channelSignalReconstructor:
         -------
         SNR: dict
             dictionary of various SNR parameters
+        RMS: float
+            noise root mean square of a channel
         """
 
         trace = channel.get_trace()
@@ -114,37 +120,45 @@ class channelSignalReconstructor:
             import matplotlib.pyplot as plt
             plt.figure()
             plt.plot(times[signal_window_mask], np.square(trace[signal_window_mask]))
-            plt.plot(times[noise_window_mask], np.square(trace[noise_window_mask]), c='k', label='noise')
+            plt.plot(times[noise_window_mask], np.square(trace[noise_window_mask]), c = 'k', label = 'noise')
             plt.xlabel("Times [ns]")
             plt.ylabel("Power")
             plt.legend()
 
-        # Calculating SNR
-        SNR = {}
-        if (noise_rms == 0) or (noise_int == 0):
-            logger.info("RMS of noise is zero, calculating an SNR is not useful. All SNRs are set to infinity.")
-            SNR['peak_2_peak_amplitude'] = np.inf
-            SNR['peak_amplitude'] = np.inf
-            SNR['integrated_power'] = np.inf
+        # Calculating SNR - signal to noise ratio
+        snr = {}
+        if noise_rms == 0 or noise_int == 0:
+            logger.info("RMS of noise is zero, calculating an snr is not useful. All snrs are set to infinity.")
+            snr['peak_2_peak_amplitude'] = np.inf
+            snr['peak_amplitude'] = np.inf
+            snr['integrated_power'] = np.inf
         else:
 
-            SNR['integrated_power'] = np.sum(np.square(trace[signal_window_mask])) - noise_int
-            if SNR['integrated_power'] <= 0:
-                logger.debug("Integrated signal {0} smaller than noise {1}, power SNR 0".format(SNR['integrated_power'], noise_int))
-                SNR['integrated_power'] = 0.
+            snr['integrated_power'] = np.sum(np.square(trace[signal_window_mask])) - noise_int
+            if snr['integrated_power'] <= 0:
+                logger.debug("Integrated signal {0} smaller than noise {1}, power snr 0".format(snr['integrated_power'], noise_int))
+                snr['integrated_power'] = 0.
             else:
-                SNR['integrated_power'] /= (noise_int)
-                SNR['integrated_power'] = np.sqrt(SNR['integrated_power'])
+                snr['integrated_power'] /= (noise_int)
+                snr['integrated_power'] = np.sqrt(snr['integrated_power'])
 
             # calculate amplitude values
-            SNR['peak_2_peak_amplitude'] = np.max(trace[signal_window_mask]) - np.min(trace[signal_window_mask])
-            SNR['peak_2_peak_amplitude'] /= noise_rms
-            SNR['peak_2_peak_amplitude'] /= 2
+            snr['peak_2_peak_amplitude'] = np.max(trace[signal_window_mask]) - np.min(trace[signal_window_mask])
+            snr['peak_2_peak_amplitude'] /= noise_rms
+            snr['peak_2_peak_amplitude'] /= 2
 
-            SNR['peak_amplitude'] = np.max(np.abs(trace[signal_window_mask])) / noise_rms
+            snr['peak_amplitude'] = np.max(np.abs(trace[signal_window_mask])) / noise_rms
 
-        # SCNR
-        SNR['Seckel_2_noise'] = 5
+        # Calculate peak to peak voltage SNR using the RMS of the split waveform
+        coincidence_window_size_bins = int(round(self.__coincidence_window_size * channel.get_sampling_rate()))
+        if coincidence_window_size_bins < 2:
+            logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
+
+        noise_rms = trace_utilities.get_split_trace_noise_RMS(channel.get_trace(), segments=4, lowest=2)
+        # only calculate when noise_rms is not zero (can happen in noiseless simulations)
+        if noise_rms != 0:
+            snr['peak_2_peak_amplitude_split_noise_rms'] = (
+                np.amax(trace_utilities.peak_to_peak_amplitudes(channel.get_trace(), coincidence_window_size_bins)) / (2 * noise_rms))
 
         if self.__debug:
             plt.figure()
@@ -154,10 +168,41 @@ class channelSignalReconstructor:
             plt.legend()
             plt.show()
 
-        return SNR, noise_rms
+        return snr, noise_rms
+
+
+    def get_max_a_norm(self, station):
+        """
+        Calculate the maximum peak to peak amplitude of the signal normalized by the noise level over all channels in a station.
+
+        Parameters
+        ----------
+        station : Station
+            The station object containing the channels.
+
+        Returns
+        -------
+        maxaval : float
+            The maximum peak to peak amplitude of the signal normalized by the noise level over all channels in the station.
+        """
+        maxaval = 0
+        for channel in station.iter_channels():
+            normalized_wf = channel.get_trace() / np.std(channel.get_trace())
+            coincidence_window_size_bins = int(round(self.__coincidence_window_size * channel.get_sampling_rate()))
+            if coincidence_window_size_bins < 2:
+                logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
+
+            thismax = np.amax(
+                trace_utilities.peak_to_peak_amplitudes(normalized_wf, coincidence_window_size_bins))
+
+            if thismax > maxaval:
+                maxaval = thismax
+
+        return maxaval
+
 
     @register_run()
-    def run(self, evt, station, det, stored_noise=False, rms_stage='amp'):
+    def run(self, evt, station, det, stored_noise = False, rms_stage = 'amp'):
         """
         Parameters
         ----------
@@ -174,31 +219,42 @@ class channelSignalReconstructor:
         for channel in station.iter_channels():
             times = channel.get_times()
             trace = channel.get_trace()
-            h = np.abs(signal.hilbert(trace))
+            h = trace_utilities.get_hilbert_envelope(trace)
             max_amplitude = np.max(np.abs(trace))
-            logger.info(f"event {evt.get_run_number()}.{evt.get_id()} station {station.get_id()} channel {channel.get_id()} max amp = {max_amplitude:.6g} max amp env {h.max():.6g}")
-            if(logger.level >= logging.DEBUG):
-                tmp = ""
-                for amp in trace:
-                    tmp += f"{amp:.6g}, "
-                logger.debug(tmp)
+
+            logger.info(f"Event {evt.get_run_number()}.{evt.get_id()}, station.channel "
+                        f"{station.get_id()}. {channel.get_id()}: max amp = "
+                        f"{max_amplitude:.6g} max amp env {h.max():.6g}")
+
+            if logger.level >= logging.DEBUG:
+                logger.debug(", ".join([f"{x:.6g}" for x in trace]))
+
             channel[chp.signal_time] = times[np.argmax(h)]
             max_amplitude_station = max(max_amplitude_station, max_amplitude)
             channel[chp.maximum_amplitude] = max_amplitude
             channel[chp.maximum_amplitude_envelope] = h.max()
             channel[chp.P2P_amplitude] = np.max(trace) - np.min(trace)
 
+            # Calculate impulsivity of the signal
+            channel[chp.impulsivity] = trace_utilities.get_impulsivity(trace)
+
+
             # Use noise precalculated from forced triggers
-            signal_to_noise, noise_rms = self.get_SNR(station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
+            signal_to_noise, noise_rms = self.get_SNR(
+                station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
+
             channel[chp.SNR] = signal_to_noise
             channel[chp.noise_rms] = noise_rms
+            channel[chp.root_power_ratio] = trace_utilities.get_root_power_ratio(trace, times, noise_rms)
+            channel[chp.entropy] = trace_utilities.get_entropy(trace)
+            channel[chp.kurtosis] = trace_utilities.get_kurtosis(trace)
 
         station[stnp.channels_max_amplitude] = max_amplitude_station
-
+        station[stnp.channels_max_amplitude_norm] = self.get_max_a_norm(station)
         self.__t = time.time() - t
 
     def end(self):
         from datetime import timedelta
-        dt = timedelta(seconds=self.__t)
+        dt = timedelta(seconds = self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt
