@@ -952,6 +952,11 @@ void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[
 }
 
 
+double get_attenuation_length_wrapper(double z, double frequency, int model) {
+	return get_attenuation_length(z, frequency, model);
+}
+
+
 double get_attenuation_integral_GL3(
     double pos[2], double pos2[2], double C0,
     double frequency, double n_ice, double delta_n, double z_0, int model)
