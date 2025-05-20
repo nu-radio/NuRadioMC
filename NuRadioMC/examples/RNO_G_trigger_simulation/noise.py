@@ -7,10 +7,13 @@ from NuRadioReco.framework.channel import Channel
 from NuRadioReco.utilities import units, fft, signal_processing
 from NuRadioReco.detector.RNO_G import rnog_detector, rnog_detector_mod
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
+
 from NuRadioReco.modules.trigger import highLowThreshold
 from NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger import BeamformedPowerIntegrationTrigger
 from NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger import DigitalBeamformedEnvelopeTrigger
 import NuRadioReco.modules.channelGenericNoiseAdder
+
+from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import phasing_angles, power_trigger_kwargs, envelope_trigger_kwargs
 
 from matplotlib import pyplot as plt
 from collections import defaultdict
@@ -65,41 +68,11 @@ hardwareResponse.begin(trigger_channels=deep_trigger_channels)
 beamformedPowerIntegrationTrigger = BeamformedPowerIntegrationTrigger()
 beamformedPowerIntegrationTrigger.begin()
 
-main_low_angle = np.deg2rad(-60)
-main_high_angle = np.deg2rad(60)
-phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 12))
-power_trigger_kwargs = {
-    "phasing_angles": phasing_angles,
-    "ref_index": 1.75,
-    "apply_digitization": False,
-    "adc_output": "counts",
-    "upsampling_factor": 4,
-    "upsampling_method": "fir",
-    "window": 24,
-    "averaging_divisor": 32,
-    "step": 8,
-    "saturation_bits": 8,
-    "filter_taps":45,
-    "coeff_gain": 256
-}
 
-digitalBeamformedEnvelopeTrigger = DigitalBeamformedEnvelopeTrigger()
-digitalBeamformedEnvelopeTrigger.begin()
 
-envelope_trigger_kwargs = {
-    "phasing_angles": phasing_angles,
-    "ref_index": 1.75,
-    "trigger_adc": True,
-    "trigger_filter": None,
-    "apply_digitization": False,
-    "adc_output": "counts",
-    "upsampling_factor": 1,
-    "upsampling_method": "fir",
-    "saturation_bits": 8,
-    "filter_taps":45,
-    "coeff_gain": 256,
-    "ideal_transformer": False
-}
+# digitalBeamformedEnvelopeTrigger = DigitalBeamformedEnvelopeTrigger()
+# digitalBeamformedEnvelopeTrigger.begin()
+
 
 # Define the thresholds for the trigger simulation
 sigma_thresholds = np.linspace(2, 4, 20)
