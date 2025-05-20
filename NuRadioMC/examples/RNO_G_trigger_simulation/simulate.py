@@ -19,6 +19,8 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
+from NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger import BeamformedPowerIntegrationTrigger
+
 
 import logging
 logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
@@ -37,8 +39,44 @@ rnogHardwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator
 rnogHardwareResponse.begin(trigger_channels=deep_trigger_channels)
 
 highLowThreshold = highLowThreshold.triggerSimulator()
-rnogADCResponse = triggerBoardResponse.triggerBoardResponse()
+rnogADCResponse = triggerBoardResponse.triggerBoardResponse(log_level=logging.INFO)
 rnogADCResponse.begin(clock_offset=0, adc_output="counts")
+
+beamformedPowerIntegrationTrigger = BeamformedPowerIntegrationTrigger()
+beamformedPowerIntegrationTrigger.begin()
+
+main_low_angle = np.deg2rad(-60)
+main_high_angle = np.deg2rad(60)
+phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 12))
+power_trigger_kwargs = {
+    "phasing_angles": phasing_angles,
+    "ref_index": 1.75,
+    "apply_digitization": False,
+    "adc_output": "counts",
+    "upsampling_factor": 4,
+    "upsampling_method": "fir",
+    "window": 24,
+    "averaging_divisor": 32,
+    "step": 8,
+    "saturation_bits": 8,
+    "filter_taps":45,
+    "coeff_gain": 256
+}
+
+envelope_trigger_kwargs = {
+    "phasing_angles": phasing_angles,
+    "ref_index": 1.75,
+    "trigger_adc": True,
+    "trigger_filter": None,
+    "apply_digitization": False,
+    "adc_output": "counts",
+    "upsampling_factor": 1,
+    "upsampling_method": "fir",
+    "saturation_bits": 8,
+    "filter_taps":45,
+    "coeff_gain": 256,
+    "ideal_transformer": False
+}
 
 
 def detector_simulation(evt, station, det, noise_vrms, max_freq, add_noise=True):
@@ -72,7 +110,9 @@ def detector_simulation(evt, station, det, noise_vrms, max_freq, add_noise=True)
     rnogHardwareResponse.run(evt, station, det, sim_to_data=True)
 
 
-def rnog_flower_board_high_low_trigger_simulations(evt, station, det, trigger_channels, trigger_channel_noise_vrms, high_low_trigger_thresholds):
+def rnog_flower_board_high_low_trigger_simulations(
+        evt, station, det, trigger_channels, trigger_channel_noise_vrms, high_low_trigger_thresholds=None,
+        pa_power_trigger_threshold=None):
     """ Run the RNO-G FLOWER board high-low trigger simulations.
 
     This function runs the RNO-G FLOWER board high-low trigger simulations. It performs the following steps:
@@ -106,10 +146,16 @@ def rnog_flower_board_high_low_trigger_simulations(evt, station, det, trigger_ch
     )
 
     for idx, trigger_channel in enumerate(trigger_channels):
-        logger.debug(
-            'Vrms = {:.2f} mV / {:.2f} mV (after gain).'.format(
-                trigger_channel_noise_vrms[idx] / units.mV, vrms_after_gain[idx] / units.mV
+        if rnogADCResponse.adc_output == "counts":
+            logger.debug(
+                'Vrms = {:.2f} mV (before flower gain) / {:.2f} ADC (after flower gain).'.format(
+                    trigger_channel_noise_vrms[idx] / units.mV, vrms_after_gain[idx]
             ))
+        else:
+            logger.debug(
+                'Vrms = {:.2f} mV (before flower gain) / {:.2f} mV (after flower gain).'.format(
+                    trigger_channel_noise_vrms[idx] / units.mV, vrms_after_gain[idx] / units.mV
+                ))
 
     # this is only returning the correct value if digitize_trace=True for self.rnogADCResponse.run(..)
     flower_sampling_rate = station.get_trigger_channel(trigger_channels[0]).get_sampling_rate()
@@ -117,32 +163,52 @@ def rnog_flower_board_high_low_trigger_simulations(evt, station, det, trigger_ch
         flower_sampling_rate / units.MHz
     ))
 
-    for thresh_key, threshold in high_low_trigger_thresholds.items():
+    if high_low_trigger_thresholds is not None:
+        for thresh_key, threshold in high_low_trigger_thresholds.items():
 
-        if rnogADCResponse.adc_output == "voltage":
-            threshold_high = {channel_id: threshold * vrms for channel_id, vrms
-                in zip(trigger_channels, vrms_after_gain)}
-            threshold_low = {channel_id: -1 * threshold * vrms for channel_id, vrms
-                in zip(trigger_channels, vrms_after_gain)}
-        else:
-            # We round here. This is not how an ADC works but I think this is not needed here.
-            threshold_high = {channel_id: int(round(threshold * vrms)) for channel_id, vrms
-                in zip(trigger_channels, vrms_after_gain)}
-            threshold_low = {channel_id: int(round(-1 * threshold * vrms)) for channel_id, vrms
-                in zip(trigger_channels, vrms_after_gain)}
+            if rnogADCResponse.adc_output == "voltage":
+                threshold_high = {channel_id: threshold * vrms for channel_id, vrms
+                    in zip(trigger_channels, vrms_after_gain)}
+                threshold_low = {channel_id: -1 * threshold * vrms for channel_id, vrms
+                    in zip(trigger_channels, vrms_after_gain)}
+            else:
+                # We round here. This is not how an ADC works but I think this is not needed here.
+                threshold_high = {channel_id: int(round(threshold * vrms)) for channel_id, vrms
+                    in zip(trigger_channels, vrms_after_gain)}
+                threshold_low = {channel_id: int(round(-1 * threshold * vrms)) for channel_id, vrms
+                    in zip(trigger_channels, vrms_after_gain)}
 
-        highLowThreshold.run(
-            evt, station, det,
-            threshold_high=threshold_high,
-            threshold_low=threshold_low,
-            use_digitization=False, #the trace has already been digitized with the rnogADCResponse
-            high_low_window=6 / flower_sampling_rate,
-            coinc_window=20 / flower_sampling_rate,
-            number_concidences=2,
-            triggered_channels=trigger_channels,
-            trigger_name=f"deep_high_low_{thresh_key}",
-            pre_trigger_time=250 * units.ns,
-        )
+            highLowThreshold.run(
+                evt, station, det,
+                threshold_high=threshold_high,
+                threshold_low=threshold_low,
+                use_digitization=False, #the trace has already been digitized with the rnogADCResponse
+                high_low_window=6 / flower_sampling_rate,
+                coinc_window=20 / flower_sampling_rate,
+                number_concidences=2,
+                triggered_channels=trigger_channels,
+                trigger_name=f"deep_high_low_{thresh_key}",
+                pre_trigger_time=250 * units.ns,
+            )
+
+    if pa_power_trigger_threshold is not None:
+        for thresh_key, threshold_vrms in pa_power_trigger_threshold.items():
+
+            if rnogADCResponse.adc_output == "voltage":
+                threshold = {channel_id: threshold_vrms * vrms for channel_id, vrms
+                    in zip(trigger_channels, vrms_after_gain)}
+            else:
+                # We round here. This is not how an ADC works but I think this is not needed here.
+                threshold = {channel_id: int(round(threshold_vrms * vrms)) for channel_id, vrms
+                    in zip(trigger_channels, vrms_after_gain)}
+
+            pa_power_threshold = np.round(np.sum(np.array(list(threshold.values()))**2))
+            beamformedPowerIntegrationTrigger.run(
+                evt, station, det,
+                trigger_name=f"pa_power_{thresh_key}",
+                threshold=pa_power_threshold,
+                **power_trigger_kwargs
+            )
 
     return vrms_after_gain
 
