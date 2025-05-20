@@ -289,13 +289,6 @@ def get_fiducial_volume(energy):
     return volume
 
 
-def RNO_G_HighLow_Thresh(lgRate_per_hz):
-    # Thresholds calculated using the RNO-G hardware (iglu + flower_lp)
-    # This applies for the VPol antennas
-    # parameterization comes from Alan: https://radio.uchicago.edu/wiki/images/e/e6/2023.10.11_Simulating_RNO-G_Trigger.pdf
-    return (-859 + np.sqrt(39392706 - 3602500 * lgRate_per_hz)) / 1441.0
-
-
 if __name__ == "__main__":
 
     class mySimulation(simulation.simulation):
@@ -319,11 +312,10 @@ if __name__ == "__main__":
             super().__init__(*args, **kwargs)
 
             self.high_low_trigger_thresholds = {
-                "10mHz": RNO_G_HighLow_Thresh(-2),
-                "100mHz": RNO_G_HighLow_Thresh(-1),
-                "1Hz": RNO_G_HighLow_Thresh(0),
-                "3Hz": RNO_G_HighLow_Thresh(np.log10(3)),
+                "sigma3.7": 3.7,
             }
+
+            self.pa_power_trigger_threshold = {"sigma3.0": 3.0}
 
             assert trigger_channel_noise_vrms is not None, "Please provide the trigger channel noise vrms"
             self.trigger_channel_noise_vrms = trigger_channel_noise_vrms
@@ -334,7 +326,8 @@ if __name__ == "__main__":
 
         def _detector_simulation_trigger(self, evt, station, det):
             vrms_after_gain = rnog_flower_board_high_low_trigger_simulations(
-                evt, station, det, deep_trigger_channels, self.trigger_channel_noise_vrms, self.high_low_trigger_thresholds
+                evt, station, det, deep_trigger_channels, self.trigger_channel_noise_vrms, self.high_low_trigger_thresholds,
+                self.pa_power_trigger_threshold
             )
             for idx, trigger_channel in enumerate(deep_trigger_channels):
                 self._Vrms_per_trigger_channel[station.get_id()][trigger_channel] = vrms_after_gain[idx]
