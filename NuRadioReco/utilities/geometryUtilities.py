@@ -1,17 +1,19 @@
 """
 This module contains utility functions for geometry calculations.
 
-Inparticular to calculate time delays between positions for a given arrival
+In particular to calculate time delays between positions for a given arrival
 direction and to simulate reflection and refraction at boundaries between different media.
 """
 
 from NuRadioReco.utilities import units, ice
 from numpy.lib import scimath as SM
 from scipy import constants
+from scipy.spatial.transform import Rotation
+import radiotools.helper as hp
 import numpy as np
 import logging
 logger = logging.getLogger('NuRadioReco.geometryUtilities')
-
+SPEED_OF_LIGHT = constants.c * units.m / units.s
 
 def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
     """
@@ -343,3 +345,73 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
         return None, None, None
 
     return zenith_antenna, t_theta, t_phi
+
+
+def analytic_plane_wave_fit(dt, pos, n_index=1.000293):
+    """Analytic plane wave fit
+
+    Given three time delays ``dt`` and three positions
+    ``pos``, returns the analytic solution(s) to the
+    plane wave fit.
+
+    .. Note::
+      An analytic solution exists only for three time delays / positions;
+      if more than three are given, only the first three are used.
+
+    Parameters
+    ----------
+    dt : (3)-shaped np.array of floats
+        The (relative) times of the signal arrival
+    pos : (3, 3)-shaped np.array
+        The 3D positions of the three observers.
+        The first axis corresponds to the three observers,
+        the second axis to their x, y and z coordinates.
+    n_index : float, default 1.
+        The index of refraction
+
+    Returns
+    -------
+    (theta, phi) : tuple of floats
+        Zenith and azimuth of the analytic solution
+
+    Notes
+    -----
+    Note that the solution returned is not unique; mirroring the direction
+    in the plane formed by the three observer positions also gives
+    a valid solution. If this plane is the x-y plane (all observers have the same
+    z coordinate), the solution coming from above (zenith < pi/2) is returned.
+    """
+    if len(dt) > 3:
+        logger.warning("System overdetermined, using only first three time delays & observers")
+
+    dpos = pos - pos[0:1]
+    rot = None
+
+    # If the observers don't all have the same z coord,
+    # we perform a rotation such that they do
+    if not all(np.abs(dpos[:,2]) <= 1e-8):
+        rot_angle, phi_dpos = hp.cartesian_to_spherical(*np.cross(dpos[1], dpos[2]))
+        rot = Rotation.from_rotvec(
+            np.sign(rot_angle - np.pi/2) * rot_angle
+            * hp.spherical_to_cartesian(np.pi/2, phi_dpos + np.pi/2))
+        pos_xy = rot.apply(dpos)[1:3, 0:2]
+    else:
+        pos_xy = dpos[1:3, 0:2]
+
+    ds = SPEED_OF_LIGHT * np.array(dt) / n_index
+    ds = ds[1:3] - ds[0]
+
+    sol_vector = -np.linalg.inv(pos_xy) @ ds # - sign because we want the source direction
+    sin_theta = np.linalg.norm(sol_vector)
+
+    if sin_theta > 1:
+        logger.warning("No valid solution!")
+        return np.nan, np.nan
+
+    if rot is None:
+        return np.arcsin(sin_theta), np.arctan2(sol_vector[1], sol_vector[0])
+    else: # we have rotated our coordinate system, so we should rotate back
+        theta_rot, phi_rot = np.arcsin(sin_theta), np.arctan2(sol_vector[1], sol_vector[0])
+        v_rot = hp.spherical_to_cartesian(theta_rot, phi_rot)
+        zenith, azimuth = hp.cartesian_to_spherical(*rot.apply(v_rot, inverse=True))
+        return zenith, azimuth
