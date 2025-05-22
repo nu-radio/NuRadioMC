@@ -627,17 +627,19 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module contains utility functions for geometry calculations.</span>
 
-<span class="sd">Inparticular to calculate time delays between positions for a given arrival</span>
+<span class="sd">In particular to calculate time delays between positions for a given arrival</span>
 <span class="sd">direction and to simulate reflection and refraction at boundaries between different media.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">ice</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">scimath</span> <span class="k">as</span> <span class="n">SM</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rotation</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">radiotools.helper</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.geometryUtilities&#39;</span><span class="p">)</span>
-
+<span class="n">SPEED_OF_LIGHT</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span>
 
 <div class="viewcode-block" id="get_time_delay_from_direction">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html#NuRadioReco.utilities.geometryUtilities.get_time_delay_from_direction">[docs]</a>
@@ -1001,6 +1003,79 @@
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
     <span class="k">return</span> <span class="n">zenith_antenna</span><span class="p">,</span> <span class="n">t_theta</span><span class="p">,</span> <span class="n">t_phi</span></div>
+
+
+
+<div class="viewcode-block" id="analytic_plane_wave_fit">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html#NuRadioReco.utilities.geometryUtilities.analytic_plane_wave_fit">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">analytic_plane_wave_fit</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">n_index</span><span class="o">=</span><span class="mf">1.000293</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analytic plane wave fit</span>
+
+<span class="sd">    Given three time delays ``dt`` and three positions</span>
+<span class="sd">    ``pos``, returns the analytic solution(s) to the</span>
+<span class="sd">    plane wave fit.</span>
+
+<span class="sd">    .. Note::</span>
+<span class="sd">      An analytic solution exists only for three time delays / positions;</span>
+<span class="sd">      if more than three are given, only the first three are used.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dt : (3)-shaped np.array of floats</span>
+<span class="sd">        The (relative) times of the signal arrival</span>
+<span class="sd">    pos : (3, 3)-shaped np.array</span>
+<span class="sd">        The 3D positions of the three observers.</span>
+<span class="sd">        The first axis corresponds to the three observers,</span>
+<span class="sd">        the second axis to their x, y and z coordinates.</span>
+<span class="sd">    n_index : float, default 1.</span>
+<span class="sd">        The index of refraction</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (theta, phi) : tuple of floats</span>
+<span class="sd">        Zenith and azimuth of the analytic solution</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Note that the solution returned is not unique; mirroring the direction</span>
+<span class="sd">    in the plane formed by the three observer positions also gives</span>
+<span class="sd">    a valid solution. If this plane is the x-y plane (all observers have the same</span>
+<span class="sd">    z coordinate), the solution coming from above (zenith &lt; pi/2) is returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;System overdetermined, using only first three time delays &amp; observers&quot;</span><span class="p">)</span>
+
+    <span class="n">dpos</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">-</span> <span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">rot</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># If the observers don&#39;t all have the same z coord,</span>
+    <span class="c1"># we perform a rotation such that they do</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dpos</span><span class="p">[:,</span><span class="mi">2</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mf">1e-8</span><span class="p">):</span>
+        <span class="n">rot_angle</span><span class="p">,</span> <span class="n">phi_dpos</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">cartesian_to_spherical</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">dpos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dpos</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="n">rot</span> <span class="o">=</span> <span class="n">Rotation</span><span class="o">.</span><span class="n">from_rotvec</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">rot_angle</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">rot_angle</span>
+            <span class="o">*</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">phi_dpos</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">pos_xy</span> <span class="o">=</span> <span class="n">rot</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">dpos</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pos_xy</span> <span class="o">=</span> <span class="n">dpos</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">SPEED_OF_LIGHT</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_index</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">ds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">sol_vector</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">pos_xy</span><span class="p">)</span> <span class="o">@</span> <span class="n">ds</span> <span class="c1"># - sign because we want the source direction</span>
+    <span class="n">sin_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">sol_vector</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sin_theta</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No valid solution!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">if</span> <span class="n">rot</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">sin_theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">sol_vector</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sol_vector</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># we have rotated our coordinate system, so we should rotate back</span>
+        <span class="n">theta_rot</span><span class="p">,</span> <span class="n">phi_rot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">sin_theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">sol_vector</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sol_vector</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">v_rot</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="n">theta_rot</span><span class="p">,</span> <span class="n">phi_rot</span><span class="p">)</span>
+        <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">cartesian_to_spherical</span><span class="p">(</span><span class="o">*</span><span class="n">rot</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">v_rot</span><span class="p">,</span> <span class="n">inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span></div>
 
 </pre></div>
 

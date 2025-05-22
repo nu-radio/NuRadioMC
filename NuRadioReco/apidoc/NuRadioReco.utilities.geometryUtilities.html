@@ -632,7 +632,7 @@
   <section id="module-NuRadioReco.utilities.geometryUtilities">
 <span id="nuradioreco-utilities-geometryutilities-module"></span><h1>NuRadioReco.utilities.geometryUtilities module<a class="headerlink" href="#module-NuRadioReco.utilities.geometryUtilities" title="Link to this heading"></a></h1>
 <p>This module contains utility functions for geometry calculations.</p>
-<p>Inparticular to calculate time delays between positions for a given arrival
+<p>In particular to calculate time delays between positions for a given arrival
 direction and to simulate reflection and refraction at boundaries between different media.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.get_time_delay_from_direction">
@@ -896,6 +896,45 @@ of the incoming radiation”.</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.analytic_plane_wave_fit">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">analytic_plane_wave_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.000293</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#analytic_plane_wave_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.analytic_plane_wave_fit" title="Link to this definition"></a></dt>
+<dd><p>Analytic plane wave fit</p>
+<p>Given three time delays <code class="docutils literal notranslate"><span class="pre">dt</span></code> and three positions
+<code class="docutils literal notranslate"><span class="pre">pos</span></code>, returns the analytic solution(s) to the
+plane wave fit.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An analytic solution exists only for three time delays / positions;
+if more than three are given, only the first three are used.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dt</strong><span class="classifier">(3)-shaped np.array of floats</span></dt><dd><p>The (relative) times of the signal arrival</p>
+</dd>
+<dt><strong>pos</strong><span class="classifier">(3, 3)-shaped np.array</span></dt><dd><p>The 3D positions of the three observers.
+The first axis corresponds to the three observers,
+the second axis to their x, y and z coordinates.</p>
+</dd>
+<dt><strong>n_index</strong><span class="classifier">float, default 1.</span></dt><dd><p>The index of refraction</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>(theta, phi)</strong><span class="classifier">tuple of floats</span></dt><dd><p>Zenith and azimuth of the analytic solution</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Note that the solution returned is not unique; mirroring the direction
+in the plane formed by the three observer positions also gives
+a valid solution. If this plane is the x-y plane (all observers have the same
+z coordinate), the solution coming from above (zenith &lt; pi/2) is returned.</p>
 </dd></dl>
 
 </section>
