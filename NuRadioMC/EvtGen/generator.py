@@ -9,9 +9,9 @@ import h5py
 import time
 
 import NuRadioMC
-from NuRadioReco.utilities import units, version, particle_names
 from NuRadioMC.utilities import inelasticities
-from NuRadioMC.simulation.simulation import pretty_time_delta
+from NuRadioMC.simulation.time_logger import pretty_time_delta
+from NuRadioReco.utilities import units, version, particle_names
 
 
 logger = logging.getLogger("NuRadioMC.EvtGen")
@@ -1233,7 +1233,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         # generate charged/neutral current randomly
         logger.debug("interaction type")
         if interaction_type == "ccnc":
-            data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch, rnd=rnd)
+            data_sets["interaction_type"] = inelasticities.get_ccnc(
+                n_events_batch, rnd=rnd, model="hedis_bgr18",
+                energy=data_sets["energies"], flavors=data_sets["flavors"])
         elif interaction_type == "cc" or interaction_type == "nc":
             data_sets["interaction_type"] = np.full(n_events_batch, interaction_type, dtype='U2')
         else:
@@ -1242,7 +1244,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
         # generate inelasticity
         logger.debug("generating inelasticities")
-        data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events_batch, rnd=rnd)
+        data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(
+            n_events_batch, rnd=rnd, model="hedis_bgr18",  nu_energies=data_sets["energies"],
+            flavors=data_sets["flavors"], ncccs=data_sets["interaction_type"])
 
         if deposited:
             data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \

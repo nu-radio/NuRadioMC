@@ -4,6 +4,7 @@ import argparse
 # import detector simulation modules
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelBandPassFilter
+
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import os
@@ -56,6 +57,6 @@ sim = mySimulation(inputfilename=os.path.join(path, args.inputfilename),
                             outputfilename=os.path.join(path, args.outputfilename),
                             detectorfile=os.path.join(path, args.detectordescription),
                             outputfilenameNuRadioReco=outputfilenameNuRadioReco,
-                            config_file=os.path.join(path, args.config))
+                            config_file=os.path.join(path, args.config),
+                            file_overwrite=True)
 sim.run()
-

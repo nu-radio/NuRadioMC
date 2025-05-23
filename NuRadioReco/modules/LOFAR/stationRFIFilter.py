@@ -4,7 +4,7 @@ import numpy as np
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities.signal_processing import half_hann_window
-from NuRadioReco.modules.io.LOFAR.rawTBBio import MultiFile_Dal1
+from NuRadioReco.modules.io.LOFAR._rawTBBio import MultiFile_Dal1
 from NuRadioReco.modules.io.LOFAR.readLOFARData import tbbID_to_nrrID, nrrID_to_tbbID
 
 from NuRadioReco.framework.parameters import stationParameters
@@ -416,6 +416,7 @@ class stationRFIFilter:
         self.__station_list = None
         self.__metadata_dir = None
         self.__median_spectrum = None
+        self.__do_polarizations_apart = None
 
     @property
     def station_list(self):
@@ -445,6 +446,8 @@ class stationRFIFilter:
             The number of samples to use per block to construct the frequency spectrum.
         reader : readLOFARData object, default=None
             If provided, the reader will be used to set the metadata directory and find the TBB files paths.
+        do_polarizations_apart : bool, default=False
+            If True, the X and Y polarisations will be processed separately.
         logger_level : int, default=logging.NOTSET
             Use this parameter to override the logging level for this module.
 
@@ -454,7 +457,7 @@ class stationRFIFilter:
         manually before attempting to execute the `stationRFIFilter.run()` function.
         """
         self.__rfi_trace_length = rfi_cleaning_trace_length
-        self.do_polarizations_apart = do_polarizations_apart
+        self.__do_polarizations_apart = do_polarizations_apart
         if reader is not None:
             self.station_list = reader.get_stations()
             self.metadata_dir = reader.meta_dir
@@ -479,7 +482,7 @@ class stationRFIFilter:
             station_name = f'CS{station.get_id():03}'
             station_files = stations_dict[station_name]['files']
             antenna_set = stations_dict[station_name]['metadata'][1]
-            flagged_channel_ids = station.get_parameter(stationParameters.flagged_channels)  # this is a set
+            flagged_channel_ids: dict[int, list[str]] = station.get_parameter(stationParameters.flagged_channels)  # this is a defaultdict
 
             # Find the length of a trace in the station (assume all channels have been loaded with same length)
             station_trace_length = station.get_channel(station.get_channel_ids()[0]).get_number_of_samples()
@@ -497,7 +500,8 @@ class stationRFIFilter:
             flagged_tbb_channel_ids = set()
             for ind in flagged_channel_ids:
                 flagged_tbb_channel_ids.add(nrrID_to_tbbID(ind))  # in rawTBBio, antenna IDs are str
-            if not self.do_polarizations_apart:
+
+            if not self.__do_polarizations_apart:
                 packet = FindRFI_LOFAR(station_files,
                                     self.metadata_dir,
                                     station_trace_length,
@@ -568,9 +572,9 @@ class stationRFIFilter:
             for nrr_id in channel_ids_to_remove:
                 station.remove_channel(nrr_id)
 
-            flagged_channel_ids.update(
-                channel_ids_to_remove
-            )  # is set, not list
+            for channel_ind in channel_ids_to_remove:
+                flagged_channel_ids[channel_ind].append('rfi_outliers_cleaned_power')
+
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
 
             # Set spectral amplitude to zero for channels with RFI
@@ -593,13 +597,15 @@ class stationRFIFilter:
     def end(self, event=None):
         if event is not None:
             for station in event.get_stations():
-                self.plot_median_freq_spectrum(station, rfi_cleaned=False, flagging=True)
-                self.plot_median_freq_spectrum(station, rfi_cleaned=True, flagging=False)
+                self.plot_median_freq_spectrum(event, station, rfi_cleaned=False, flagging=True)
+                self.plot_median_freq_spectrum(event, station, rfi_cleaned=True, flagging=False)
 
-    def plot_median_freq_spectrum(self, station, rfi_cleaned: bool = False, flagging: bool = False):
+    def plot_median_freq_spectrum(self, event, station, rfi_cleaned: bool = False, flagging: bool = False):
         import matplotlib.pyplot as plt
         if flagging and rfi_cleaned:
             logger.warning("plot_median_freq_spectrum flagging the rfi_cleaned channels in a clean trace is weird, but ok")
+
+        station_name = f'CS{station.get_id():03d}'
 
         if rfi_cleaned:
             # median spectrum from channels in the station. Since this function is expected to run in the .end() after .run(), the traces there are cleaned
@@ -608,9 +614,11 @@ class stationRFIFilter:
                 spectrum = channel.get_frequency_spectrum()
                 spectra.append(np.abs(spectrum))
             median_spectrum = np.median(np.array(spectra), axis=0)
+            plot_filename = f"{event.get_id()}-{station_name}-rfi_cleaning_flags.pdf"
         else:
             # pre rfi cleaned spectrum stored
             median_spectrum = self.__median_spectrum[station.get_id()]
+            plot_filename = f"{event.get_id()}-{station_name}-median_spectrum_after_rfi_cleaning.pdf"
 
         fig = plt.figure()
         ax = fig.add_subplot()
@@ -623,6 +631,7 @@ class stationRFIFilter:
             ax.scatter(freq_MHz[dirty_channels], log_median_spectrum[dirty_channels], marker="x", color="red", zorder=2)
         ax.set_xlabel("Frequency [MHz]")
         ax.set_ylabel("Log-Spectral Power [ADU]")
-        station_name = f'CS{station.get_id():03}'
         ax.set_title(f"{station_name} Median frequency spectrum")
-        plt.show()
+        import os 
+        os.makedirs(str(event.get_id()), exist_ok=True)
+        plt.savefig(f"{event.get_id()}/" + plot_filename)

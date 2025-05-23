@@ -1,17 +1,18 @@
-import numpy as np
-import json
-import os
 from NuRadioReco.utilities import units, io_utilities
-from radiotools import helper as hp
-from radiotools import coordinatesystems as cs
+from radiotools import helper as hp, coordinatesystems as cs
+
 from scipy import constants
+from time import time
+import numpy as np
 import logging
 import pickle
-import csv
 import cmath
+import scipy
+import json
+import csv
+import os
 
 logger = logging.getLogger('NuRadioReco.antennapattern')
-
 path_to_antennamodels = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'AntennaModels')
 
 
@@ -535,17 +536,19 @@ def save_preprocessed_WIPLD_forARA(path):
                                                                                 np.angle(H_theta[mask][i]) / units.deg,
                                                                                 np.angle(H_phi[mask][i]) / units.deg))
 
-def get_pickle_antenna_response(path):
+def get_pickle_antenna_response(path, return_verified=False):
     """
-    opens and return the pickle file containing the preprocessed e.g. WIPL-D antenna simulation in NuRadioReco conventions.
+    Opens and return the pickle file containing the preprocessed e.g. WIPL-D antenna simulation in NuRadioReco conventions.
 
     If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
-    the file will be downloaded from a central data server
+    the file will be downloaded from a central data server.
 
     Parameters
     ----------
     path: string
         the path to the pickle file
+    return_verified: bool (default: False)
+        if True, the function will return a boolean indicating whether the file was verified/downloaded or not.
 
     Returns
     -------
@@ -571,13 +574,16 @@ def get_pickle_antenna_response(path):
         * H_theta: array of floats
             the complex realized vector effective length of the eTheta polarization component
 
+    verified: bool
+        boolean indicating whether the file was verified/downloaded or not (only returned if ``return_verified == True``)
     """
 
     download_file = False
+    verified = False
 
     # check if gziped pickle file already exists
     if not os.path.exists(path):
-        logger.warning("antenna pattern {} does not exist, file will be downloaded".format(path))
+        logger.status("antenna pattern {} does not exist, file will be downloaded".format(path))
         download_file = True
 
     if os.path.exists(path):
@@ -595,9 +601,11 @@ def get_pickle_antenna_response(path):
         antenna_directory = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(antenna_directory, 'antenna_models_hash.json'), 'r') as fin:
             antenna_hashs = json.load(fin)
+            logger.info('search for {}'.format(os.path.basename(path)))
             if os.path.basename(path) in antenna_hashs.keys():
+                verified = True  # either hash is correct or the file is downloaded
                 if sha1.hexdigest() != antenna_hashs[os.path.basename(path)]:
-                    logger.warning("antenna model {} has changed on the server. downloading newest version...".format(
+                    logger.status("antenna model {} has changed on the server. downloading newest version...".format(
                         os.path.basename(path)))
                     os.remove(path) # remove outdated file
                     download_file = True
@@ -613,10 +621,14 @@ def get_pickle_antenna_response(path):
 
         download_from_dataserver(remote_path, path)
 
-    #         # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
-    #         preprocess_WIPLD(path)
+    # # does not exist yet -> precalculating WIPLD simulations from raw WIPLD output
+    # preprocess_WIPLD(path)
     res = io_utilities.read_pickle(path, encoding='bytes')
-    return res
+
+    if return_verified:
+        return res, verified
+    else:
+        return res
 
 
 def parse_AERA_XML_file(path):
@@ -626,7 +638,7 @@ def parse_AERA_XML_file(path):
         logger.error("AERA antenna file {} not found".format(path))
         raise OSError
 
-    antenna_file = open(path, "rb")
+    antenna_file = open(path, "r")
 
     antenna_data = "<antenna>" + antenna_file.read() + "</antenna>"  # add pseudo root element
 
@@ -713,7 +725,7 @@ def preprocess_AERA(path):
     orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
 
     fname = os.path.split(os.path.basename(path))[1].replace('.xml', '')
-    output_filename = '{}_InfAir.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
+    output_filename = '{}.pkl'.format(os.path.join(path_to_antennamodels, fname, fname))
 
     directory = os.path.dirname(output_filename)
     if not os.path.exists(directory):
@@ -1070,6 +1082,104 @@ def preprocess_LOFAR_txt(directory, ant='LBA', orientation=None):
                      frequencies, theta, phi, H_phi, H_theta],
                     fout, protocol=4)
 
+def preprocess_FEKO_mat(path, polarization='X', downscale_freq=1, downscale_zenith=4, downscale_azimuth=4):
+    """
+    used to convert FEKO_AAVS2_single_elem_50ohm_50_350MHz_{polarization}pol.mat for the SKALA4 antenna to a pickle file
+
+    The file contains the embedded element simulation of the SKALA4 antenna in the frequency range of 50-350 MHz.
+    The values correspond to the far-field emission of this antenna; it is converted
+    to the realized vector effective length for a receiving antenna using Eq. 6 in [1]_.
+
+    Parameters
+    ----------
+    directory : str
+        The path to the directory where the files are stored
+
+    polarization : str, default='X'
+        X polarization is the antenna in east-west orientation, Y polarization is the antenna in north-south orientation.
+
+    downscale_freq : int, default: 1
+        The downscaling factor for the frequency spacing.
+        The native frequency spacing is 1 MHz, and the default
+        downscaling factor is 1 (no downscaling).
+
+    downscale_zenith : int, default: 4
+        The downscaling factor for the zenith spacing.
+        The native zenith spacing is 0.5 degrees, and the default
+        downscaling factor is 4, resulting in a spacing of 2 degrees.
+
+    downscale_azimuth : int, default: 4
+        The downscaling factor for the azimuth spacing.
+        The native azimuth spacing is 0.5 degrees, and the default
+        downscaling factor is 4, resulting in a spacing of 2 degrees.
+
+
+    References
+    ----------
+    .. [1] https://arxiv.org/abs/2412.01699
+    """
+
+    input_file = os.path.join(path, f'FEKO_AAVS2_single_elem_50ohm_50_350MHz_{polarization}pol.mat')
+    data = scipy.io.loadmat(input_file)
+    # the data format is 721 x 181 x 301 (Phi, theta, freq)
+    # NuRadio (for antenna models) expects the order (freq, phi, theta), so we have to move some axes
+    Ephi = data['Ephi'].transpose(2, 0, 1)
+    Etheta = data['Etheta'].transpose(2, 0, 1)
+
+    # the data is stored in 1 MHz and 0.5 degree spacing
+    freqs_unique = np.linspace(50, 350, 301) * units.MHz
+    phis_unique = np.linspace(0, 360, 721) * units.deg
+    thetas_unique = np.linspace(0, 90, 181) * units.deg
+
+    freq, phi, theta = np.meshgrid(
+        freqs_unique, phis_unique, thetas_unique, indexing='ij')
+
+    # downscale from native spacing if required
+    if not np.all(np.array([downscale_freq, downscale_zenith, downscale_azimuth]) == 1):
+        mask = np.zeros_like(phi).astype(int)
+        mask[np.arange(0, len(freqs_unique), downscale_freq), :, :] += 1
+        mask[:, np.arange(0, len(phis_unique), downscale_azimuth), :] += 1
+        mask[:, :, np.arange(0, len(thetas_unique), downscale_zenith)] += 1
+        mask = mask > 2 # equivalent to applying the three masks successively
+
+        Ephi = Ephi[mask]
+        Etheta = Etheta[mask]
+        phi = phi[mask]
+        theta = theta[mask]
+        freq = freq[mask]
+
+        logger.status(f'Rescaling SKALA4 antenna from shape ({mask.shape}) to {Ephi.shape}...')
+
+    lambda_0 = (constants.speed_of_light * units.m / units.s) / freq # wavelength
+    eta_0 = np.sqrt(constants.mu_0 / constants.epsilon_0) * units.ohm # free space impedance
+    Z_L = 50 * units.ohm # we assume a 50 Ohm amplifier
+    vel_theta = -2.j * lambda_0 * Z_L / eta_0 * Etheta
+    del Etheta # free up some memory?
+    vel_phi = -2.j * lambda_0 * Z_L / eta_0  * Ephi
+    del Ephi # free up some memory?
+
+    orientation_theta = 0
+    orientation_phi = 0
+    rotation_theta = 90 * units.deg
+
+    if polarization == 'X':
+        # use this angles and name SKALA_v4_Xpol to have your channel in east-west orientation
+        rotation_phi = 90 * units.deg
+    if polarization == 'Y':
+        # use this angles and name SKALA_v4_Ypol to have your channel in north-south orientation
+        rotation_phi = 180 * units.deg
+
+    fname = f'SKALA_v4_{polarization}pol'
+    output_filename = "{}.pkl".format(os.path.join(path_to_antennamodels, fname, fname))
+
+    directory = os.path.dirname(output_filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    with open(output_filename, 'wb') as fout:
+        logger.warning('saving antenna output to {}'.format(output_filename))
+        pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi,
+                     freq, theta, phi, vel_phi, vel_theta],
+                    fout, protocol=4)
 
 class AntennaPatternBase:
     """
@@ -1170,8 +1280,10 @@ class AntennaPatternBase:
 
         if isinstance(freq, (float, int)):
             freq = np.array([freq])
-        theta, phi = self._get_theta_and_phi(zenith, azimuth, orientation_theta, orientation_phi, rotation_theta,
-                                             rotation_phi)
+
+        theta, phi = self._get_theta_and_phi(
+            zenith, azimuth, orientation_theta, orientation_phi,
+            rotation_theta, rotation_phi)
 
         Vtheta_raw, Vphi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
 
@@ -1181,14 +1293,16 @@ class AntennaPatternBase:
         cstrans = cs.cstrafo(zenith=theta, azimuth=phi)
         V_xyz_raw = cstrans.transform_from_onsky_to_ground(
             np.array([np.zeros(Vtheta_raw.shape[0]), Vtheta_raw, Vphi_raw]))
-        rot = self._get_antenna_rotation(orientation_theta, orientation_phi, rotation_theta, rotation_phi)
-        from numpy.linalg import inv
-        V_xyz = np.dot(inv(rot), V_xyz_raw)
+
+        rot = self._get_antenna_rotation(
+            orientation_theta, orientation_phi, rotation_theta, rotation_phi)
+        V_xyz = np.dot(np.linalg.inv(rot), V_xyz_raw)
 
         cstrans2 = cs.cstrafo(zenith=zenith, azimuth=azimuth)
         V_onsky = cstrans2.transform_from_ground_to_onsky(V_xyz)
         VEL = {'theta': V_onsky[1],
                'phi': V_onsky[2]}
+
         return VEL
 
 
@@ -1221,7 +1335,7 @@ class AntennaPattern(AntennaPatternBase):
     """
 
     def __init__(self, antenna_model, path=path_to_antennamodels,
-                 interpolation_method='complex'):
+                 interpolation_method='complex', do_consistency_check=True):
         """
 
         Parameters
@@ -1235,17 +1349,21 @@ class AntennaPattern(AntennaPatternBase):
 
             * 'complex' (default) interpolate real and imaginary part of vector effective length
             * 'magphase' interpolate magnitude and phase of vector effective length
+
+        consistency_check: bool (default: True)
+            If True, the consistency of the antenna response is checked but only if the antenna could not be
+            verifed from its hash sum. 
         """
 
         self._name = antenna_model
         self._interpolation_method = interpolation_method
-        from time import time
-        t = time()
+
+        t0 = time()
         filename = os.path.join(path, antenna_model, "{}.pkl".format(antenna_model))
         self._notfound = False
         try:
-            self._orientation_theta, self._orientation_phi, self._rotation_theta, self._rotation_phi, \
-                ff, thetas, phis, H_phi, H_theta = get_pickle_antenna_response(filename)
+            (self._orientation_theta, self._orientation_phi, self._rotation_theta, self._rotation_phi, \
+                ff, thetas, phis, H_phi, H_theta), verified = get_pickle_antenna_response(filename, return_verified=True)
 
         except IOError:
             self._notfound = True
@@ -1274,28 +1392,30 @@ class AntennaPattern(AntennaPatternBase):
         self.VEL_phi = H_phi
         self.VEL_theta = H_theta
 
-        # additional consistency check
-        for iFreq, freq in enumerate(self.frequencies):
-            for iPhi, phi in enumerate(self.phi_angles):
-                for iTheta, theta in enumerate(self.theta_angles):
-                    index = self._get_index(iFreq, iTheta, iPhi)
+        if do_consistency_check and not verified:
+            logger.debug("Performing consistency check on antenna response ...")
+            # additional consistency check
+            for iFreq, freq in enumerate(self.frequencies):
+                for iPhi, phi in enumerate(self.phi_angles):
+                    for iTheta, theta in enumerate(self.theta_angles):
+                        index = self._get_index(iFreq, iTheta, iPhi)
 
-                    if phi != phis[index]:
-                        logger.error("phi angle has changed during theta loop {0}, {1}".format(
-                            phi / units.deg, phis[index] / units.deg))
-                        raise Exception("phi angle has changed during theta loop")
+                        if phi != phis[index]:
+                            logger.error("phi angle has changed during theta loop {0}, {1}".format(
+                                phi / units.deg, phis[index] / units.deg))
+                            raise Exception("phi angle has changed during theta loop")
 
-                    if theta != thetas[index]:
-                        logger.error("theta angle has changed during theta loop {0}, {1}".format(
-                            theta / units.deg, thetas[index] / units.deg))
-                        raise Exception("theta angle has changed during theta loop")
+                        if theta != thetas[index]:
+                            logger.error("theta angle has changed during theta loop {0}, {1}".format(
+                                theta / units.deg, thetas[index] / units.deg))
+                            raise Exception("theta angle has changed during theta loop")
 
-                    if freq != ff[index]:
-                        logger.error("frequency has changed {0}, {1}".format(
-                            freq, ff[index]))
-                        raise Exception("frequency has changed")
+                        if freq != ff[index]:
+                            logger.error("frequency has changed {0}, {1}".format(
+                                freq, ff[index]))
+                            raise Exception("frequency has changed")
 
-        logger.warning('loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t))
+        logger.status('Loading antenna file {} took {:.0f} seconds'.format(antenna_model, time() - t0))
 
     def _get_index(self, iFreq, iTheta, iPhi):
         """
@@ -1322,7 +1442,7 @@ class AntennaPattern(AntennaPatternBase):
             logger.debug("phi bounds {0} ,{1}, {2}".format(self.phi_lower_bound, phi, self.phi_upper_bound))
             logger.warning("theta, phi or frequency out of range, returning (0,0j)")
             logger.debug("{0},{1},{2}".format(freq, self.frequency_lower_bound, self.frequency_upper_bound))
-            return 0, 0
+            return np.zeros(shape=(2,1), dtype=complex)
 
         if self.theta_upper_bound == self.theta_lower_bound:
             iTheta_lower = 0
@@ -1582,16 +1702,18 @@ class AntennaPatternProvider(object):
             key word arguments that are passed to the init function of the `AntennaPattern` class (see
             documentation of this class for further information)
         """
-        if name in self._antenna_model_replacements.keys():
-            if self._antenna_model_replacements[name] not in self._open_antenna_patterns.keys():
-                logger.warning("local replacement of antenna model requsted: replacing {} with {}".format(name,
-                                                                                                          self._antenna_model_replacements[
-                                                                                                              name]))
+        if name in self._antenna_model_replacements:
+            if self._antenna_model_replacements[name] not in self._open_antenna_patterns:
+                logger.status("local replacement of antenna model requsted: replacing {} with {}".format(
+                    name, self._antenna_model_replacements[name]))
+
             name = self._antenna_model_replacements[name]
-        if name not in self._open_antenna_patterns.keys():
+
+        if name not in self._open_antenna_patterns:
             if name.startswith("analytic"):
                 self._open_antenna_patterns[name] = AntennaPatternAnalytic(name, **kwargs)
                 logger.info("loading analytic antenna model {}".format(name))
             else:
                 self._open_antenna_patterns[name] = AntennaPattern(name, **kwargs)
+
         return self._open_antenna_patterns[name]

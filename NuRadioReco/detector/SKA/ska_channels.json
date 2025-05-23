@@ -1,0 +1,30 @@
+{
+    "channels": {
+        "0": {
+            "ant_comment": "dipolarized antenna channel east",
+            "ant_type": "SKALA_v4_Xpol",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_rotation_phi": 90,
+            "ant_rotation_theta": 90,
+            "cab_time_delay": 0,
+            "channel_id": 0
+        },
+        "1": {
+            "ant_comment": "dipolarized antenna channel north",
+            "ant_type": "SKALA_v4_Ypol",
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_rotation_phi": 0,
+            "ant_rotation_theta": 90,
+            "cab_time_delay": 0,
+            "channel_id": 1
+        }
+    },
+    "positions": {},
+    "stations": {
+        "0": {
+            "additional_station_infomation": "If necessary"
+        }
+    }
+}

@@ -61,7 +61,6 @@ class stationGalacticCalibrator:
 
         self.__experiment = experiment
 
-        self.__experiment_parameters = None
         self.__abs_calibration_curve = None
         self.__rel_calibration_coefficients = None
 
@@ -80,19 +79,11 @@ class stationGalacticCalibrator:
         # The files are stored in the data folder of the utilities module, which sits 3 folders up
         data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'utilities', 'data')
 
-        # Get the experiment parameters such as latitude and longitude
-        with open(os.path.join(data_dir, "experiment_parameters.txt"), "r") as f:
-            all_experiment_parameters = f.readlines()
-
-        for line in all_experiment_parameters:
-            if line.startswith(self.__experiment):
-                self.__experiment_parameters = line.split(", ")
-
         # Get absolute calibration curve
         self.__abs_calibration_curve = np.genfromtxt(
             os.path.join(
                 data_dir, "galactic_calibration",
-                f"{self.__experiment}_galactic_{self.__experiment_parameters[6]}_{self.__experiment_parameters[7]}.txt"
+                f"{self.__experiment}_abs_calibration_curve.txt"
             ),
         )
 
@@ -190,7 +181,7 @@ class stationGalacticCalibrator:
             scale = 0.0  # A channel without a signal will have 0 channel power, and result in np.inf
         return np.sqrt(scale)  # Correction is applied in time domain
 
-    def _calibrate_channel(self, channel, polarisation, timestamp):
+    def _calibrate_channel(self, channel, polarisation, timestamp, observing_location):
         """
         Convenience function to apply the absolute and relative calibration to a single channel.
 
@@ -202,10 +193,10 @@ class stationGalacticCalibrator:
             The polarisation of the channel, as used in the Fourier coefficients file.
         timestamp : int
             The UNIX timestamp corresponding to the observation.
+        observing_location : EarthLocation
+            The location of the observation, used to calculate the local sidereal time.
         """
         # Find the sidereal time for the experiment
-        observing_location = EarthLocation(lat=float(self.__experiment_parameters[4]) * u.deg,
-                                           lon=float(self.__experiment_parameters[5]) * u.deg)
         observing_time = Time(timestamp, format="unix", location=observing_location)
         local_time = observing_time.sidereal_time("apparent").hour
 
@@ -265,9 +256,11 @@ class stationGalacticCalibrator:
         """
         timestamp = LOFAR_event_id_to_unix(event.get_id())
         for station in event.get_stations():
+            site_latitude, site_longitude = det.get_site_coordinates(station.get_id())
+            site_location = EarthLocation(lat=site_latitude * u.deg, lon=site_longitude * u.deg)
             for channel in station.iter_channels():
                 channel_pol = self.__get_channel_polarisation(det, station, channel)
-                self._calibrate_channel(channel, channel_pol, timestamp)
+                self._calibrate_channel(channel, channel_pol, timestamp, site_location)
 
     def end(self):
         pass

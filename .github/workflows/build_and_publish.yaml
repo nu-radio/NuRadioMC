@@ -1,6 +1,6 @@
 name: Build and publish
 
-on: 
+on:
   pull_request:
   workflow_dispatch:
   push:
@@ -19,10 +19,10 @@ jobs:
         ref: 'refs/heads/master'
     - uses: actions/checkout@v4
 
-    - name: Set up Python 3.7
+    - name: Set up Python 3.10
       uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: "3.10"
     - name: Cache pip
       uses: actions/cache@v4
       with:
@@ -57,22 +57,27 @@ jobs:
 
     - name: Publish distribution 📦 to Test PyPI
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        repository_url: https://test.pypi.org/legacy/
+        repository-url: https://test.pypi.org/legacy/
+        verbose: true
 
     - name: Publish distribution 📦 to PyPI
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
+        verbose: true
 
     - name: Make tag and release
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
       env:
         GH_TOKEN: ${{ github.token}}
       run: |
+        git config --global user.email "sjoerd.bouma@fau.de"
+        git config --global user.name "Sjoerd Bouma"
+
         export VERSION_NEW="$(poetry version -s)"
         export NEW_TAG=v$VERSION_NEW
         git tag $NEW_TAG -m "$NEW_TAG release"
