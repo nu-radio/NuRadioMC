@@ -1,5 +1,6 @@
 import NuRadioReco.framework.base_shower
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 
 
 class HybridShower(NuRadioReco.framework.base_shower.BaseShower):
@@ -33,7 +34,7 @@ class HybridShower(NuRadioReco.framework.base_shower.BaseShower):
             'name': self.__name,
             'detector': detector_info
         }
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

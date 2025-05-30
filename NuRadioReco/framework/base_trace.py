@@ -9,6 +9,7 @@ import logging
 import numbers
 import copy
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 logger = logging.getLogger("NuRadioReco.BaseTrace")
 
 
@@ -296,7 +297,7 @@ class BaseTrace:
         data = {'sampling_rate': self.get_sampling_rate(),
                 'time_trace': time_trace,
                 'trace_start_time': self.get_trace_start_time()}
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
