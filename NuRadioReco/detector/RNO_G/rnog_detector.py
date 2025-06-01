@@ -251,7 +251,7 @@ class Detector():
 
         if comment is not None:
             self.comment = "\n".join([self.comment, comment]).strip()
-            
+
         export_dict["comment"] = self.comment
 
         if not filename.endswith(".xz"):
@@ -1248,7 +1248,7 @@ class Detector():
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel.
 
-        Also see
+        See Also
         --------
         get_time_delay
         """
@@ -1321,7 +1321,7 @@ class Detector():
         IMPORTANT: The value returned by this function does *not* directly correspond to the overall time
         delay / cable delay of the requested channel! A residual group delay may be present and is accounted for
         by the response provided by `get_amplifier_response`.
-        
+
         See Also
         --------
         get_cable_delay, get_amplifier_response
@@ -1357,7 +1357,7 @@ class Detector():
 
     def get_site(self, station_id):
         """ Returns the site "summit"
-        
+
         This detector class is exclusive for the RNO-G detector located
         at Summit Station on the Greenland ice sheet.
 
@@ -1378,7 +1378,7 @@ class Detector():
         """
         Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.
 
-        The returned location corresponds to the position of the DISC borehole which is 
+        The returned location corresponds to the position of the DISC borehole which is
         used as the origin of the RNO-G coordinate system, i.e., this locations acts as
         a reference point to define the station positions.
 
