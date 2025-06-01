@@ -18,7 +18,17 @@ import NuRadioReco.framework.trigger
 from NuRadioReco.framework.parameters import channelParameters
 
 from NuRadioReco.utilities import units
-import mattak.Dataset
+
+logger = logging.getLogger('NuRadioReco.RNOG.readRNOGData')
+
+try:
+    import mattak.Dataset
+except ImportError as e:
+    logger.error(
+        "To use the readRNOGDataMattak module, 'mattak' needs to be installed:\n\n"
+        "\t pip install git+https://github.com/RNO-G/mattak"
+        )
+    raise(e)
 
 
 def get_time_offset(trigger_type):

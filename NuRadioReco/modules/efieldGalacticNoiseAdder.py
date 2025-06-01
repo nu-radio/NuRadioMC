@@ -66,15 +66,13 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
         # check that if all channels field.get_frequencies() are identical
         last_freqs = None
         for field in station.get_electric_fields():
-            if (not last_freqs is None) and (
+            if (last_freqs is not None) and (
                     not np.allclose(last_freqs, field.get_frequencies(), rtol=0, atol=0.1 * units.MHz)):
                 logger.error("The frequencies of each field must be the same, but they are not!")
                 return
             last_freqs = field.get_frequencies()
 
         freqs = last_freqs
-        d_f = freqs[2] - freqs[1]
-
         if passband is None:
             passband = [10 * units.MHz, 1000 * units.MHz]
 

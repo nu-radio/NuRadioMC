@@ -1,0 +1,15 @@
+### Some optional dependencies are available only via GitHub
+### These dependencies cannot be included in the PyPI release
+### of NuRadioMC, and are therefore specified here, instead.
+
+# needed for galactic noise simulations
+pygdsm @ git+https://github.com/telegraphic/pygdsm
+
+# needed to read in RNO-G data
+mattak @ git+https://github.com/RNO-G/mattak
+# optional module, helps with data/run selection of RNO-G data
+rnog-runtable @ git+ssh://git@github.com/RNO-G/rnog-runtable.git
+
+# needed for IFT energy reconstruction
+nifty5 @ git+https://gitlab.mpcdf.mpg.de/ift/nifty.git@NIFTy_5
+pypocketfft @ git+https://gitlab.mpcdf.mpg.de/mtr/pypocketfft

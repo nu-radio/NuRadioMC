@@ -167,7 +167,7 @@ jobs:
     - name: "Test channelGalacticNoiseAdder"
       if: always()
       run: |
-        pip install -e .[galacticnoise]
+        pip install git+https://github.com/telegraphic/pygdsm pylfmap
         python NuRadioReco/examples/StandAloneScripts/B01galacticnoiseadder.py
     - name: "Test all examples"
       if: always()

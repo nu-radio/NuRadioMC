@@ -1075,14 +1075,15 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         mask = frequency > 0
         freqs = self.get_frequencies_for_attenuation(frequency, self._max_detector_frequency)
-        integral = np.zeros(len(freqs))
 
-        def dt(depth, freqs):
-            ds = np.sqrt((path[:, 0][depth] - path[:, 0][depth+1])**2 + (path[:, 1][depth] - path[:, 1][depth+1])**2 + (path[:, 2][depth] - path[:, 2][depth+1])**2) # get step size
-            return ds / attenuation_util.get_attenuation_length(path[:, 2][depth], freqs, self._attenuation_model)
+        ds_path_segments = np.linalg.norm(path[:-1] - path[1:], axis=1)
+        central_depths = path[:-1, 2] + np.diff(path[:, 2]) / 2
+        attenuation_lengths = np.array(
+            [attenuation_util.get_attenuation_length(depth, freqs, self._attenuation_model)
+            for depth in central_depths])
 
-        for z_position in range(len(path[:, 2]) - 1):
-            integral += dt(z_position, freqs)
+        # Approximating integral by discret sum
+        integral = np.sum(ds_path_segments[:, None] / attenuation_lengths, axis=0)
 
         att_func = interpolate.interp1d(freqs, integral)
         tmp = att_func(frequency[mask])
