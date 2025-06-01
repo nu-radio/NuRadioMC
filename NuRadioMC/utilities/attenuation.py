@@ -311,18 +311,9 @@ except ImportError:
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
 
     z = np.linspace(-10 * units.m, -3 * units.km, 1000)
-    # frequencies = [0.5*units.GHz] #np.linspace(0,1*units.GHz,10)
-    # for frequency in frequencies:
-    #     for model in ["SP1", "GL1", "GL2", "MB1"]:
-    #         plt.plot(-z/units.m, np.nan_to_num(get_attenuation_length(z, frequency, model)/units.m, posinf=3333), label=f"{model}")
-    # plt.xlabel("depth [m]")
-    # plt.ylabel("attenuation length [m]")
-    # plt.ylim(0,None)
-    # plt.title("attenuation length (inf masked to +3333m)")
-    # plt.legend()
-    # plt.savefig("attenuation_length_models.png")
 
     fig, ax = plt.subplots()
     for idx, freq in enumerate([0.55, 0.6, 0.7, 0.8, 0.9, 1]):
@@ -336,7 +327,6 @@ if __name__ == "__main__":
 
     ax.plot(np.nan, np.nan, "k-", lw=1, label="GL1")
     ax.plot(np.nan, np.nan, "k--", lw=1, label="GL3")
-
 
     ax.set_xlabel("attenuation length [m]")
     ax.set_ylabel("depth [m]")
