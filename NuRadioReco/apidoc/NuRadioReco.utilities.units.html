@@ -47,7 +47,13 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../Introduction/pages/welcome_page.html">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/quickstart.html">How to get started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#simulating-a-neutrino-detector-with-nuradiomc">Simulating a neutrino detector with NuRadioMC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#reading-a-nur-file">Reading a <code class="docutils literal notranslate"><span class="pre">.nur</span></code> file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#running-a-simple-analysis-with-nuradioreco">Running a simple analysis with NuRadioReco</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#requirements">Requirements</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
@@ -64,6 +70,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/conventions.html">Some notes on conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#coordinates">Coordinates</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#default-coordinate-system">Default coordinate system</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#points">Points</a></li>
@@ -72,9 +80,8 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#electic-fields">Electic Fields</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#times">Times</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/contributing.html">Contributing to NuRadioMC</a><ul>
@@ -632,10 +639,12 @@
   <section id="module-NuRadioReco.utilities.units">
 <span id="nuradioreco-utilities-units-module"></span><h1>NuRadioReco.utilities.units module<a class="headerlink" href="#module-NuRadioReco.utilities.units" title="Link to this heading"></a></h1>
 <section id="standard-system-of-units">
-<h2>standard system of units<a class="headerlink" href="#standard-system-of-units" title="Link to this heading"></a></h2>
-<p>You should use the units defined in this file whenever you
-have a dimensional quantity in your code.  For example,
-write:</p>
+<h2>Standard system of units<a class="headerlink" href="#standard-system-of-units" title="Link to this heading"></a></h2>
+<p>You should use the units defined here whenever you
+have a dimensional quantity in your code.
+The usage is simple: For every input, the number
+is multiplied by its units, for every output divide by it.</p>
+<p>For example, write:</p>
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">1.5</span> <span class="pre">*</span> <span class="pre">units.km</span></code></p>
 </div></blockquote>
@@ -643,19 +652,20 @@ write:</p>
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">1.5</span>&#160;&#160; <span class="pre">#</span> <span class="pre">don't</span> <span class="pre">forget</span> <span class="pre">this</span> <span class="pre">is</span> <span class="pre">in</span> <span class="pre">km!</span></code></p>
 </div></blockquote>
-<p>The conversion factors defined in this file
-convert your data into Auger base units, so that
-all dimensional quantities in the code are in a
-single system of units!  You can also
-use the conversions defined here to, for example,
-display data with the unit of your choice.  For example:</p>
+<p>To then output data in an arbitrary unit, divide:</p>
 <blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">print</span> <span class="pre">&quot;s</span> <span class="pre">=</span> <span class="pre">&quot;</span> <span class="pre">,</span> <span class="pre">s</span> <span class="pre">/</span> <span class="pre">units.mm,</span> <span class="pre">&quot;</span> <span class="pre">mm&quot;</span></code></p>
+<div><p><code class="docutils literal notranslate"><span class="pre">print(&quot;s</span> <span class="pre">=</span> <span class="pre">&quot;</span> <span class="pre">,</span> <span class="pre">s</span> <span class="pre">/</span> <span class="pre">units.mm,</span> <span class="pre">&quot;</span> <span class="pre">mm&quot;)</span></code></p>
 </div></blockquote>
-<section id="the-base-units-are">
-<h3>The base units are:<a class="headerlink" href="#the-base-units-are" title="Link to this heading"></a></h3>
-<blockquote>
-<div><ul class="simple">
+<p>Internally, this ensures that
+all dimensional quantities in the code are in a
+single system of units. The user does not need to worry about
+(or even know) what the internal unit system is: as long as all inputs
+and outputs are multiplied and divided by the correct units, things will stay
+consistent.</p>
+<section id="base-units">
+<h3>Base units<a class="headerlink" href="#base-units" title="Link to this heading"></a></h3>
+<p>The base units are:</p>
+<ul class="simple">
 <li><p>meter                   (meter)</p></li>
 <li><p>nanosecond              (nanosecond)</p></li>
 <li><p>electron Volt           (eV)</p></li>
@@ -666,7 +676,6 @@ display data with the unit of your choice.  For example:</p>
 <li><p>radian                  (radian)</p></li>
 <li><p>steradian               (steradian)</p></li>
 </ul>
-</div></blockquote>
 <p>The SI numerical value of the positron charge is defined here,
 as it is needed for conversion factor : positron charge = eSI (coulomb)</p>
 <p>Adapted from Offline, the reconstruction Framework of the Pierre Auger Collaboration.

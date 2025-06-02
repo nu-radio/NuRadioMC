@@ -48,7 +48,13 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../Introduction/pages/welcome_page.html">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/quickstart.html">How to get started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#simulating-a-neutrino-detector-with-nuradiomc">Simulating a neutrino detector with NuRadioMC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#reading-a-nur-file">Reading a <code class="docutils literal notranslate"><span class="pre">.nur</span></code> file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#running-a-simple-analysis-with-nuradioreco">Running a simple analysis with NuRadioReco</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#requirements">Requirements</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
@@ -65,6 +71,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/conventions.html">Some notes on conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#coordinates">Coordinates</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#default-coordinate-system">Default coordinate system</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#points">Points</a></li>
@@ -73,9 +81,8 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#electic-fields">Electic Fields</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#times">Times</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/contributing.html">Contributing to NuRadioMC</a><ul>
@@ -630,9 +637,18 @@
              
   <section id="hdf5-output-structure">
 <h1>HDF5 output structure<a class="headerlink" href="#hdf5-output-structure" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
 <p>The output of a NuRadioMC simulation is saved in the HDF5 file format, as well as (optionally) in <code class="docutils literal notranslate"><span class="pre">.nur</span></code> files.
-The data structure of <code class="docutils literal notranslate"><span class="pre">.nur</span></code> files is explained <a class="reference internal" href="../../NuRadioReco/pages/event_structure.html"><span class="doc">here</span></a>.
-This page outlines the structure of the HDF5 files v3.0. Find the structure of <a class="reference internal" href="HDF5_structures_history/HDF5_v2.2.html"><span class="doc">v2.2 here</span></a>.</p>
+The HDF5 files contain mostly high-level output parameters in a standard, table-like structure.
+It does not include the simulated voltage traces. For more advanced analyses (e.g. reconstruction),
+you probably need to use the <code class="docutils literal notranslate"><span class="pre">.nur</span></code> files.
+The data structure of <code class="docutils literal notranslate"><span class="pre">.nur</span></code> files is explained <a class="reference internal" href="../../NuRadioReco/pages/event_structure.html"><span class="doc">here</span></a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This page outlines the structure of the HDF5 files v3.0. Find the structure of <a class="reference internal" href="HDF5_structures_history/HDF5_v2.2.html"><span class="doc">v2.2 here</span></a>.</p>
+</div>
 <section id="opening-the-hdf5-file">
 <h2>Opening the HDF5 file<a class="headerlink" href="#opening-the-hdf5-file" title="Link to this heading"></a></h2>
 <p>The HDF5 file can be opened using the <code class="docutils literal notranslate"><span class="pre">h5py</span></code> module:</p>

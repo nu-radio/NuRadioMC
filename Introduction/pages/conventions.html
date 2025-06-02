@@ -48,7 +48,13 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="welcome_page.html">Introduction</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">How to get started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#simulating-a-neutrino-detector-with-nuradiomc">Simulating a neutrino detector with NuRadioMC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#reading-a-nur-file">Reading a <code class="docutils literal notranslate"><span class="pre">.nur</span></code> file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#running-a-simple-analysis-with-nuradioreco">Running a simple analysis with NuRadioReco</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
 <li class="toctree-l3"><a class="reference internal" href="installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
@@ -65,6 +71,8 @@
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Some notes on conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fourier-transformations">Fourier transformations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coordinates">Coordinates</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#default-coordinate-system">Default coordinate system</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#points">Points</a></li>
@@ -73,9 +81,8 @@
 <li class="toctree-l4"><a class="reference internal" href="#electic-fields">Electic Fields</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#times">Times</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#particle-types">Particle types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="contributing.html">Contributing to NuRadioMC</a><ul>
@@ -630,6 +637,16 @@
              
   <section id="some-notes-on-conventions">
 <h1>Some notes on conventions<a class="headerlink" href="#some-notes-on-conventions" title="Link to this heading"></a></h1>
+<section id="units">
+<h2>Units<a class="headerlink" href="#units" title="Link to this heading"></a></h2>
+<p>Physical quantities in <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> use Auger base units. To print, plot and convert dimensional quantities,
+a convenient module is included in <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html#module-NuRadioReco.utilities.units" title="NuRadioReco.utilities.units"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.utilities.units</span></code></a>. Details are given <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html#module-NuRadioReco.utilities.units" title="NuRadioReco.utilities.units"><code class="xref py py-mod docutils literal notranslate"><span class="pre">here</span></code></a>.</p>
+</section>
+<section id="fourier-transformations">
+<h2>Fourier transformations<a class="headerlink" href="#fourier-transformations" title="Link to this heading"></a></h2>
+<p>To ensure Fourier transforms have the correct units, please use the convenience functions provided
+in <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html#module-NuRadioReco.utilities.fft" title="NuRadioReco.utilities.fft"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.utilities.fft</span></code></a>.</p>
+</section>
 <section id="coordinates">
 <h2>Coordinates<a class="headerlink" href="#coordinates" title="Link to this heading"></a></h2>
 <section id="default-coordinate-system">
@@ -669,13 +686,20 @@ is defined into the direction of propagation.</p>
 </a>
 <a class="reference internal image-reference" href="../../_images/cos_earth.png"><img alt="../../_images/cos_earth.png" src="../../_images/cos_earth.png" style="width: 45%;" />
 </a>
-<p>Left: Comparison of the coordinate systems important for the polarization of the electic fiel. The orange arrow indicates the shower axis, the purple circle indicates the shower plane. The natural coordinate system for the air shower electric field is given by <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v} \times \vec{B}}\)</span> and <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v} \times \vec{v} \times \vec{B}}\)</span>. On ground, a coordinate system with respect to arrival direction is useful, given by <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\theta\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\phi\)</span>. Therefore the electric field has the components <span class="math notranslate nohighlight">\(E_\theta\)</span>, <span class="math notranslate nohighlight">\(E_\phi\)</span>. Both coordinate systems share <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>. Right: ‘On-sky’ coordinate system as seen from ground. The x-axis is pointing east, the y-axis to the north. The incoming signal corresponds to the air shower axis. <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\theta\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\phi\)</span> are the same as left.</p>
+<p>Left: Comparison of the coordinate systems important for the polarization of the electic fiel.
+The orange arrow indicates the shower axis, the purple circle indicates the shower plane.
+The natural coordinate system for the air shower electric field is given by <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v} \times \vec{B}}\)</span> and <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v} \times \vec{v} \times \vec{B}}\)</span>.
+On ground, a coordinate system with respect to arrival direction is useful, given by <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\theta\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\phi\)</span>.
+Therefore the electric field has the components <span class="math notranslate nohighlight">\(E_\theta\)</span>, <span class="math notranslate nohighlight">\(E_\phi\)</span>.
+Both coordinate systems share <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>.
+Right: ‘On-sky’ coordinate system as seen from ground.
+The x-axis is pointing east, the y-axis to the north.
+The incoming signal corresponds to the air shower axis. <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\theta\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\phi\)</span> are the same as left.</p>
 </section>
 </section>
-<section id="units">
-<h2>Units<a class="headerlink" href="#units" title="Link to this heading"></a></h2>
-<p>Physical quantities in <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> use Auger base units. To print, plot and convert dimensional quantities,
-a convenient module is included in <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code>. Details are given <a class="reference internal" href="../../NuRadioReco/pages/utilities.html#unit-system"><span class="std std-ref">here</span></a>.</p>
+<section id="times">
+<h2>Times<a class="headerlink" href="#times" title="Link to this heading"></a></h2>
+<p>See <a class="reference internal" href="../../NuRadioReco/pages/times.html"><span class="doc">Overview of times</span></a>.</p>
 </section>
 <section id="particle-types">
 <h2>Particle types<a class="headerlink" href="#particle-types" title="Link to this heading"></a></h2>
@@ -683,11 +707,6 @@ a convenient module is included in <code class="docutils literal notranslate"><s
 The most relevant particle ids for us are [12,14,16] for the electron, muon and tau neutrino, respectively,
 with an overall minus sign indicating their corresponding anti-particles. A more extensive overview is included
 as a table in the <a class="reference internal" href="../../NuRadioMC/pages/Manuals/event_generation.html#particle-code-table"><span class="std std-ref">event generation manual</span></a>.</p>
-</section>
-<section id="fourier-transformations">
-<h2>Fourier transformations<a class="headerlink" href="#fourier-transformations" title="Link to this heading"></a></h2>
-<p>To ensure Fourier transforms have the correct units, please use the convenience functions provided
-in NuRadioReco detailed <a class="reference internal" href="../../NuRadioReco/pages/utilities.html#fourier-transformation"><span class="std std-ref">here</span></a>.</p>
 </section>
 </section>
 

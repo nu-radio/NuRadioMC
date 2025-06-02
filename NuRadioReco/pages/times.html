@@ -47,7 +47,13 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../Introduction/pages/welcome_page.html">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/quickstart.html">How to get started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#simulating-a-neutrino-detector-with-nuradiomc">Simulating a neutrino detector with NuRadioMC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#reading-a-nur-file">Reading a <code class="docutils literal notranslate"><span class="pre">.nur</span></code> file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/quickstart.html#running-a-simple-analysis-with-nuradioreco">Running a simple analysis with NuRadioReco</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#requirements">Requirements</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/installation.html#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
@@ -64,6 +70,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/conventions.html">Some notes on conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#coordinates">Coordinates</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#default-coordinate-system">Default coordinate system</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#points">Points</a></li>
@@ -72,9 +80,8 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#electic-fields">Electic Fields</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#times">Times</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/contributing.html">Contributing to NuRadioMC</a><ul>
@@ -736,14 +743,15 @@ It additionally applies a tukey window to taper off the start and end (by defaul
 </dd>
 </dl>
 </li>
-<li><dl class="simple">
-<dt>NuRadioReco.modules._deprecated.triggerTimeAdjuster (deprecated):</dt><dd><ul class="simple">
-<li><p>This module is now deprecated. It was replaced by the <a class="reference internal" href="../apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#module-NuRadioReco.modules.channelReadoutWindowCutter" title="NuRadioReco.modules.channelReadoutWindowCutter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.channelReadoutWindowCutter</span></code></a> module for simulation (doing essential what the mode <code class="docutils literal notranslate"><span class="pre">sim_to_data</span></code> did with the notable difference that it sets the trace start time to <em class="xref py py-obj">trigger_time - pre_trigger_time</em>. The mode <code class="docutils literal notranslate"><span class="pre">data_to_sim</span></code> is not needed anymore, i.e., the experiment specific IO modules have to make sure that the trace start time is set correctly.</p></li>
+<li><p>NuRadioReco.modules.triggerTimeAdjuster (deprecated):</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This module is now deprecated. It was replaced by the <a class="reference internal" href="../apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#module-NuRadioReco.modules.channelReadoutWindowCutter" title="NuRadioReco.modules.channelReadoutWindowCutter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.channelReadoutWindowCutter</span></code></a> module for simulation (doing essential what the mode <code class="docutils literal notranslate"><span class="pre">sim_to_data</span></code> did with the notable difference that it sets the trace start time to <code class="docutils literal notranslate"><span class="pre">trigger_time</span> <span class="pre">-</span> <span class="pre">pre_trigger_time</span></code>). The mode <code class="docutils literal notranslate"><span class="pre">data_to_sim</span></code> is not needed anymore, i.e., the experiment specific IO modules have to make sure that the trace start time is set correctly.</p>
+</div>
+<ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">sim_to_data</span></code> mode: This modules cuts the trace to the correct length (as specified in the detector description) around the trigger time with a pre-trigger time as defined by the respective trigger module. In the case of multiple triggers it used the primary trigger. If no primary trigger is defined, it uses the trigger with the earliest trigger time. In the end, the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> is set to the trigger time. This is done because this reflects what raw experimental data looks like.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">data_to_sim</span></code> mode: The module determines the trigger that was used to cut the trace to its current length (the ‘sim_to_data’ step above in case of simulations) and adjusts the <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_start_time</span></code></a> according to the different readout delays. The “primary trigger” defines the readout delays. <strong>After</strong> applying this module in the “data_to_sim” direction, the position in the trace that caused the trigger can be found via the <a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trigger_time</span></code></a>.</p></li>
 </ul>
-</dd>
-</dl>
 </li>
 </ul>
 </section>
