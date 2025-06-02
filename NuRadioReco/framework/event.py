@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import NuRadioReco.framework.hybrid_station
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.emitter
@@ -12,6 +13,7 @@ from NuRadioReco.framework.parameters import (
     particleParameters as pap, generatorAttributes as gta)
 
 from NuRadioReco.utilities import io_utilities, version
+from NuRadioReco.utilities.io_utilities import _dumps
 
 import astropy.time
 import datetime
@@ -19,7 +21,6 @@ from six import itervalues
 import numpy as np
 import collections
 import pickle
-from NuRadioReco.utilities.io_utilities import _dumps
 
 import logging
 logger = logging.getLogger('NuRadioReco.Event')
@@ -39,6 +40,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         self.__event_time = None
         self.__particles = collections.OrderedDict() # stores a dictionary of simulated MC particles in an event
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
+        self.__hybrid_stations = collections.OrderedDict()
         self.__modules_event = []  # saves which modules were executed with what parameters on event level
         # saves which modules were executed with what parameters on station level
         self.__modules_station = collections.defaultdict(list)
@@ -263,6 +265,19 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         return list(self.__stations.keys())
 
     def set_station(self, station):
+        """
+        Add/overwrite a station to the event.
+
+        Parameters
+        ----------
+        station : NuRadioReco.framework.station.Station
+            The station to add to the event. If
+        """
+        # If the user accidentally provides a HybridStation instead of a radio station,
+        # we try to be helpful and still add the station
+        if isinstance(station, NuRadioReco.framework.hybrid_station.HybridStation):
+            logger.warning(f'Provided station is a HybridStation, please use `set_particle_station` instead of `set_station` in the future.')
+            self.set_particle_station(station)
         self.__stations[station.get_id()] = station
 
     def has_triggered(self, trigger_name=None):
@@ -587,6 +602,47 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         """
         return self.__hybrid_information
 
+    def get_particle_station(self, station_id=None):
+        """
+        Returns the particle station for a given station id.
+
+        To get a radio detector station, use `get_station` instead.
+
+        Parameters
+        ----------
+        station_id: int
+            Id of the station you want to get. If None and event has only one station
+            return it, otherwise raise error. (Default: None)
+
+        Returns
+        -------
+        station: NuRadioReco.framework.hybrid_station.HybridStation
+
+        See Also
+        --------
+        get_station
+        """
+        if station_id is None:
+            if len(self.get_particle_station_ids()) == 1:
+                return self.__hybrid_stations[self.get_particle_station_ids()[0]]
+            else:
+                err = "Event has more than one station, you have to specify \"station_id\""
+                logger.error(err)
+                raise ValueError(err)
+
+        return self.__hybrid_stations[station_id]
+
+    def get_particle_stations(self):
+        for station in itervalues(self.__hybrid_stations):
+            yield station
+
+    def get_particle_station_ids(self):
+        return list(self.__hybrid_stations.keys())
+
+    def set_particle_station(self, station):
+        assert isinstance(station, NuRadioReco.framework.hybrid_station.HybridStation)
+        self.__hybrid_stations[station.get_id()] = station
+
     def serialize(self, mode):
         stations_pkl = []
         try:
@@ -605,6 +661,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         particles_pkl = [particle.serialize() for particle in self.get_particles()]
 
         hybrid_info = self.__hybrid_information.serialize()
+        hybrid_stations_pkl = [station.serialize(mode) for station in self.get_particle_stations()]
 
         modules_out_event = []
         for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
@@ -637,6 +694,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
             'sim_emitters': sim_emitters_pkl,
             'particles': particles_pkl,
             'hybrid_info': hybrid_info,
+            'hybrid_stations' : hybrid_stations_pkl,
             '__modules_event': modules_out_event,
             '__modules_station': modules_out_station
         })
@@ -671,9 +729,15 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
                 particle.deserialize(particle_pkl)
                 self.add_particle(particle)
 
+        # Deserialize hybrid information / particle stations
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         if 'hybrid_info' in data.keys():
             self.__hybrid_information.deserialize(data['hybrid_info'])
+        if 'hybrid_stations' in data.keys():
+            for hybrid_station_pkl in data['hybrid_stations']:
+                hybrid_station = NuRadioReco.framework.hybrid_station.HybridStation(None)
+                hybrid_station.deserialize(hybrid_station_pkl)
+                self.set_particle_station(hybrid_station)
 
         NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
 

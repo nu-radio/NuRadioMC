@@ -7,55 +7,41 @@ It is however intended to be used for non-radio channels, e.g. particle detector
 
 import NuRadioReco.framework.channel
 from NuRadioReco.framework import parameters
-import NuRadioReco.framework.parameter_serialization
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import NuRadioReco.framework.parameter_storage
+from NuRadioReco.utilities.io_utilities import _dumps
 
+import pickle
 import logging
 logger = logging.getLogger('NuRadioReco.hybrid_channel')
 
 
-
-class Channel:
+class Channel(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, channel_id, channel_group_id=None):
-        self._parameters = {}
+        """
+        Represent a single particle detector channel
+
+        Parameters
+        ----------
+        channel_id : int
+            The ID of this channel
+        channel_group_id : int, optional
+            Optional identifier that allows to associate groups
+            of channels (e.g. because there are multiple readout channels
+            associated to detectors at the same position).
+
+        See Also
+        --------
+        NuRadioReco.framework.channel.Channel :
+            The class used to represent a radio detector channel
+
+        """
+        super().__init__(parameters.hybridChannelParameters)
         self.__channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id)
-
-    def get_parameter(self, key):
-        if not isinstance(key, parameters.hybridChannelParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.hybridChannelParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.hybridChannelParameters")
-        return self._parameters[key]
-
-    def get_parameters(self):
-        return self._parameters
-
-    def set_parameter(self, key, value):
-        if not isinstance(key, parameters.hybridChannelParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.hybridChannelParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.hybridChannelParameters")
-        self._parameters[key] = value
-
-    def has_parameter(self, key):
-        if not isinstance(key, parameters.hybridChannelParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.hybridChannelParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.hybridChannelParameters")
-        return key in self._parameters
-
-
-    def __setitem__(self, key, value):
-        self.set_parameter(key, value)
-
-    def __getitem__(self, key):
-        return self.get_parameter(key)
 
     ## We 'partially inherit' from the NuRadioReco.framework.channel.Channel class
     ## That is, internally a particle channel is the same as a radio channel,
     ## but we expose only a limited subset of the methods (e.g. frequency spectra don't make sense)
-
     def get_id(self):
         return self.__channel.get_id()
 
@@ -135,14 +121,15 @@ class Channel:
 
 
     def serialize(self, save_trace=False):
-        data = {
-            'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
-            'channel': self.__channel.serialize(save_trace=save_trace),
-        }
+        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
 
-        return pickle.dumps(data, protocol=4)
+        data.update({
+            'channel': self.__channel.serialize(save_trace=save_trace),
+        })
+
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
-        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.channelParameters)
+        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
         self.__channel.deserialize(data['channel'])
