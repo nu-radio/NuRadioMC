@@ -255,7 +255,7 @@ Some commonly used text formatting:
 
 * ``*italicized*`` results in *italicized* text;
 * ``**bold**`` results in **bold** text;
-* ````single-spaced```` results in ``single-spaced`` text.
+* ````single-spaced```` results in ``single-spaced`` text. (Note the **double** backticks ``````!)
 
 Lists
 ^^^^^
@@ -290,8 +290,8 @@ For internal links (e.g. to other parts of the documentation), we prefer
 `cross-references <https://docs.readthedocs.io/en/stable/guides/cross-referencing-with-sphinx.html>`_
 instead. These depend on what is being linked to:
 
-* For another page in the documentation, use ``:doc:``. E.g. ``:doc:`introduction </Introduction/pages/introduction>``` renders as
-  :doc:`introduction </Introduction/pages/introduction>`. Use a leading ``/`` to use paths starting from
+* For another page in the documentation, use ``:doc:``. E.g. ``:doc:`installation </Introduction/pages/installation>``` renders as
+  :doc:`installation </Introduction/pages/installation>`. Use a leading ``/`` to use paths starting from
   the root ``documentation/source`` directory.
 * One can reference a specific subsection instead by using ``:ref:`` and appending ``:Section title``. E.g.
   ``:ref:`this paragraph <Introduction/pages/contributing:Links and cross-references>``` links to
