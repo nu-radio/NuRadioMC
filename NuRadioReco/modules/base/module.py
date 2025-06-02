@@ -82,6 +82,7 @@ def register_run(level=None):
                         store_kwargs[key] = value
                     except (TypeError, AttributeError):  # object couldn't be pickled - we store the error instead
                         store_kwargs[key] = TypeError(f"Argument of type {type(value)} could not be serialized")
+
             if station is not None:
                 module_level = "station"
             elif evt is not None:

@@ -108,6 +108,8 @@ function on its children. Thanks to this implementation, it is easy to extend
 the framework, since all that has to be done is to define ``serialize`` and
 ``deserialize`` functions and adjust the ones of the parent object.
 
+.. _label_parameter_storage:
+
 Parameter Storage
 ----------------------
 NuRadioReco offers a flexible way to store properties in the data structure via
