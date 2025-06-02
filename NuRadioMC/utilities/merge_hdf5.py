@@ -10,6 +10,8 @@ import logging
 import math
 logger = logging.getLogger("NuRadioMC.HDF5-merger")
 
+str_type_attrs = ['trigger_names', 'NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen_version_hash', 'NuRadioMC_version', 'NuRadioMC_version_hash', 'config']
+
 
 def merge2(filenames, output_filename):
     logger.warning(f"merging {len(filenames)} files into {os.path.basename(output_filename)}")
@@ -54,8 +56,11 @@ def merge2(filenames, output_filename):
                         group_attrs[key][key2] = fin[key].attrs[key2]
                 else:
                     for key2 in fin[key].attrs:
-                        if(not np.all(group_attrs[key][key2] == fin[key].attrs[key2])):
-                            logger.warning(f"attribute {key2} of group {key} of file {filenames[0]} and {f} are different ({group_attrs[key][key2]} vs. {fin[key].attrs[key2]}. Using attribute value of first file, but you have been warned!")
+                        if(not np.allclose(group_attrs[key][key2], fin[key].attrs[key2])):
+                            logger.warning(
+                                f"attribute {key2} of group {key} of file {filenames[0]} and {f} are different "
+                                f"({group_attrs[key][key2]} vs. {fin[key].attrs[key2]}. Using attribute value of "
+                                "first file, but you have been warned!")
             else:
                 data[f][key] = fin[key][...]
                 if(key not in n_data):
@@ -66,20 +71,25 @@ def merge2(filenames, output_filename):
             if(key not in attrs):
                 attrs[key] = fin.attrs[key]
             else:
-                if(key != 'trigger_names'):
-                    if(not np.all(np.nan_to_num(attrs[key]) == np.nan_to_num(fin.attrs[key]))):
+                if(key not in str_type_attrs):
+                    if(not np.allclose(np.nan_to_num(attrs[key]), np.nan_to_num(fin.attrs[key]))):
                         if(key == "n_events"):
-                            logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
+                            logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. "
+                            f"{fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was "
+                            "performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
                         elif(key == "start_event_id"):
                             continue
                         else:
-                            logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
+                            logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. "
+                            f"{fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
                 else:
                     if(len(attrs[key]) != len(fin.attrs[key]) or np.all(attrs[key] != fin.attrs[key])):
                         logger.error(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
                         raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
+
             if((('trigger_names' not in attrs) or (len(attrs['trigger_names']) == 0)) and 'trigger_names' in fin.attrs):
                 attrs['trigger_names'] = fin.attrs['trigger_names']
+
         fin.close()
 
     # create data sets
@@ -243,7 +253,7 @@ if __name__ == "__main__":
         root_directory = args.files[0]
         if not os.path.isdir(root_directory):
             sys.exit(f"{root_directory} is not a directory.")
-        
+
         filenames = np.unique(glob.glob(f"{root_directory}/*/*.hdf5.part*"))
         input_args = []
         for filename in sorted(filenames):
@@ -259,7 +269,7 @@ if __name__ == "__main__":
                     if(np.sum(~mask)):
                         logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
                     input_args.append({'filenames': input_files[mask], 'output_filename': output_filename})
-        
+
         if(args.cores == 1):
             for i in range(len(input_args)):
                 merge2(input_args[i]['filenames'], input_args[i]['output_filename'])

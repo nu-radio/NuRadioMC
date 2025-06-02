@@ -73,7 +73,7 @@ To install all (optional and non-optional) dependencies available in pip at once
 
 .. code-block:: bash
 
-  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-connector-python pymongo dash plotly toml peakutils future radiotools filelock mattak git+https://github.com/telegraphic/pygdsm pylfmap MCEq crflux
+  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-connector-python pymongo dash plotly toml peakutils future radiotools filelock mattak git+https://github.com/telegraphic/pygdsm pylfmap MCEq crflux git+https://github.com/nu-radio/cr-pulse-interpolator
 
 Only for developers, we also recommend
 
@@ -167,24 +167,7 @@ Optional Dependencies
 
 These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's features.
 They can be installed by including adding ``[option]`` when installing NuRadioMC. Alternatively,
-use ``pip install nuradiomc[all]`` to install all optional dependencies.
-
-- ``[RNO-G]``
-
-  `mattak <https://github.com/RNO-G/mattak>`__ is required to open RNO-G root files:
-
-  .. code-block:: bash
-
-    pip install mattak
-
-- ``[rno-g-extras]``
-
-  Optionally, to filter RNO-G data (during read in) the `RNO-G run table database <https://github.com/RNO-G/rnog-runtable>`__
-  can be used. Note that this requires membership of the RNO-G Github organisation (not public):
-
-  .. code-block:: bash
-
-    pip install git+ssh://git@github.com/RNO-G/rnog-runtable.git
+use ``pip install nuradiomc[all]`` to install all optional dependencies (or ``[all,dev]`` to also install development dependencies).
 
 - ``[proposal]``
 
@@ -217,6 +200,15 @@ use ``pip install nuradiomc[all]`` to install all optional dependencies.
 
     pip install MCEq crflux
 
+- ``[cr-interpolator]``
+
+  Installs the cosmic-ray interpolator from https://github.com/nu-radio/cr-pulse-interpolator,
+  used to interpolate cosmic-ray air-shower emission from CoREAS star-shaped patterns:
+
+  .. code-block:: bash
+
+    pip install cr-pulse-interpolator
+
 - ``[dev]``
 
   For developers, we use `pre-commit <https://pre-commit.com>`__ to prevent the accidental addition of large files that would clutter the repository, as well as run some simple
@@ -234,6 +226,21 @@ use ``pip install nuradiomc[all]`` to install all optional dependencies.
   .. code-block:: Bash
 
     pip install sphinx sphinx_rtd_theme numpydoc
+
+- RNO-G-specific dependencies
+
+  `mattak <https://github.com/RNO-G/mattak>`__ is required to open RNO-G root files:
+
+  .. code-block:: bash
+
+    pip install git+https://github.com/RNO-G/mattak
+
+  Optionally, to filter RNO-G data (during read in) the `RNO-G run table database <https://github.com/RNO-G/rnog-runtable>`__
+  can be used. Note that this requires membership of the RNO-G Github organisation (not public):
+
+  .. code-block:: bash
+
+    pip install git+ssh://git@github.com/RNO-G/rnog-runtable.git
 
 - Some debug plots need peakutils:
 
