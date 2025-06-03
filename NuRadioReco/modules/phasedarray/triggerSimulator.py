@@ -34,8 +34,7 @@ class triggerSimulator:
         logger.setLevel(log_level)
         self.begin()
 
-    def begin(self, debug=False, pre_trigger_time=100 * units.ns):
-        self.__pre_trigger_time = pre_trigger_time
+    def begin(self, debug=False):
         self.__debug = debug
 
     def get_antenna_positions(self, station, det, triggered_channels=None, component=2):
@@ -468,6 +467,7 @@ class triggerSimulator:
             window=32,
             step=16,
             apply_digitization=True,
+            pre_trigger_time=None
             ):
 
         """
@@ -530,6 +530,10 @@ class triggerSimulator:
         apply_digitization: bool (default True)
             Perform the quantization of the ADC. If set to true, should also set options
             `trigger_adc`, `adc_output`, `clock_offset`
+        pre_trigger_time: float
+            Defines the amount of trace recorded before the trigger time. This module does not cut the traces,
+            but this trigger property is later used to trim traces accordingly.
+            If none, the default value of the HighLowTrigger class is used, which is currently 55ns.
 
         Returns
         -------
@@ -571,6 +575,9 @@ class triggerSimulator:
                 apply_digitization=apply_digitization,
             )
 
+        kwargs = {}
+        if pre_trigger_time is not None:
+            kwargs['pre_trigger_times'] = pre_trigger_time
         # Create a trigger object to be returned to the station
         trigger = SimplePhasedTrigger(
             trigger_name,
@@ -581,6 +588,7 @@ class triggerSimulator:
             window_size=window,
             step_size=step,
             maximum_amps=maximum_amps,
+            **kwargs
         )
 
         trigger.set_triggered(is_triggered)
