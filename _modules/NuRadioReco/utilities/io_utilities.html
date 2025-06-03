@@ -641,7 +641,9 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copyreg</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._fastnumpyio</span><span class="w"> </span><span class="kn">import</span> <span class="n">pack</span><span class="p">,</span> <span class="n">unpack</span> <span class="c1"># these are essentially faster alternatives for np.load/save</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
@@ -650,7 +652,7 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.utilities.io_utilities&#39;</span><span class="p">)</span>
 
 <span class="c1"># we overwrite the default pickling mechanism for numpy arrays</span>
-<span class="c1"># and scalars. We store arrays using np.save / np.load,</span>
+<span class="c1"># and scalars. We store arrays using custom, faster versions of np.save/np.load,</span>
 <span class="c1"># and scalars by explicit casting to built-in Python types</span>
 <span class="c1"># (note that this upcasts some types, e.g. np.float32 to float)</span>
 <span class="c1"># This allows to maintain compatibility across numpy 2.0</span>
@@ -677,6 +679,43 @@
         <span class="k">return</span> <span class="nb">bytes</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">i</span><span class="p">),)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported type of numpy scalar </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> (type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_NurPickler</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">Pickler</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Custom pickler class that overwrites the pickling of numpy objects</span>
+
+<span class="sd">    This class is used to overwrite the pickling mechanism</span>
+<span class="sd">    of numpy arrays and scalars for better IO compatibility,</span>
+<span class="sd">    as directly pickled numpy arrays are not read-compatible</span>
+<span class="sd">    between numpy versions ``&lt;2`` ``&gt;=2``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dispatch_table</span> <span class="o">=</span> <span class="n">copyreg</span><span class="o">.</span><span class="n">dispatch_table</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c1"># the __reduce__ methods are overwritten by pickle.dispatch_table</span>
+    <span class="c1"># see https://docs.python.org/3/library/pickle.html#pickle.Pickler.dispatch_table</span>
+    <span class="n">dispatch_table</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span>  <span class="n">_pickle_numpy_array</span>
+
+    <span class="c1"># there are multiple numpy scalar types (float64, float32 etc.)</span>
+    <span class="c1"># we overwrite the pickling __reduce__ for all of them</span>
+    <span class="c1"># note that this might upcast in some cases</span>
+    <span class="k">for</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ScalarType</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dtype</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="s1">&#39;numpy&#39;</span><span class="p">:</span>
+            <span class="n">dispatch_table</span><span class="p">[</span><span class="n">dtype</span><span class="p">]</span> <span class="o">=</span> <span class="n">_pickle_numpy_scalar</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_dumps</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">buffer_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the pickled representation of the object as a bytes object.</span>
+
+<span class="sd">    This is a copy of the standard `pickle.dumps` implementation,</span>
+<span class="sd">    but uses the custom `_NurPickler` class for pickling instead of the</span>
+<span class="sd">    global pickling mechanism. Currently, this affects only the pickling</span>
+<span class="sd">    of numpy objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">_NurPickler</span><span class="p">(</span>
+        <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="n">fix_imports</span><span class="p">,</span>
+        <span class="n">buffer_callback</span><span class="o">=</span><span class="n">buffer_callback</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">res</span>
 
 
 <div class="viewcode-block" id="read_pickle">

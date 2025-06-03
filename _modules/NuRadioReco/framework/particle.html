@@ -635,6 +635,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">particleParameters</span> <span class="k">as</span> <span class="n">partp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_storage</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dumps</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
@@ -695,7 +696,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
-        <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Particle.deserialize">

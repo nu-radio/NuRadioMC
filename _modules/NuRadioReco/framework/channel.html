@@ -637,6 +637,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_storage</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dumps</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.Channel&#39;</span><span class="p">)</span>
 
@@ -743,7 +744,7 @@
             <span class="s1">&#39;trigger_channel_pkl&#39;</span><span class="p">:</span> <span class="n">trigger_channel_pkl</span><span class="p">,</span>
         <span class="p">})</span>
 
-        <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Channel.deserialize">

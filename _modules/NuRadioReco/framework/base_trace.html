@@ -642,6 +642,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numbers</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dumps</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.BaseTrace&quot;</span><span class="p">)</span>
 
 
@@ -981,7 +982,7 @@
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">(),</span>
                 <span class="s1">&#39;time_trace&#39;</span><span class="p">:</span> <span class="n">time_trace</span><span class="p">,</span>
                 <span class="s1">&#39;trace_start_time&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()}</span>
-        <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseTrace.deserialize">
