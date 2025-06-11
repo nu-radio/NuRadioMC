@@ -41,7 +41,7 @@ def rolled_sum_roll(traces, rolling):
 def rolling_indices(traces, rolling):
     """
     pre calculates rolling index array for rolled sum via take
-  
+
     Parameters
     ----------
     traces: list
@@ -127,10 +127,12 @@ class thermalNoiseGenerator():
             the number of samples of the trace
         sampling_rate: float
             the sampling rate
-        Vrms: float
+        Vrms: float or list of floats
             the RMS noise
-        threshold: float
+            if only one value is supplied, it is assumed to be the same for all channels
+        threshold: float or list of floats
             the trigger threshold (assuming a symmetric high and low threshold)
+            if only one value is supplied, it is assumed to be the same for all channels
         time_coincidence: float
             the high/low coincidence time
         n_majority: int
@@ -141,8 +143,9 @@ class thermalNoiseGenerator():
             number of channels to generate
         trigger_time: float
             the trigger time (time when the trigger completes)
-        filt: array of floats
+        filt: array of floats or list of array of floats
             the filter that should be applied after noise generation (needs to match frequency binning)
+            if only one array is supplied, it is assumed to be the same for all channels
         noise_type: string
             the type of the noise, can be
             * "rayleigh" (default)
@@ -154,8 +157,6 @@ class thermalNoiseGenerator():
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
 
-        self.Vrms = Vrms
-        self.threshold = threshold
         self.time_coincidence = time_coincidence
         self.n_majority = n_majority
         self.time_coincidence_majority = time_coincidence_majority
@@ -167,13 +168,53 @@ class thermalNoiseGenerator():
         self.max_freq = 0.5 * self.sampling_rate
         self.dt = 1. / self.sampling_rate
         self.ff = np.fft.rfftfreq(self.n_samples, 1. / self.sampling_rate)
-        self.filt = filt
+        self.Vrms = {}
+        if isinstance(Vrms, float):
+            for i in range(n_channels):
+                self.Vrms[i] = Vrms
+        else:
+            if len(Vrms) != n_channels:
+                raise ValueError(f"Vrms has {len(Vrms)} values, but {n_channels} channels are requested")
+            for i in range(n_channels):
+                self.Vrms[i] = Vrms[i]
+        self.threshold = {}
+        if isinstance(threshold, float):
+            for i in range(n_channels):
+                self.threshold[i] = threshold
+        else:
+            if len(threshold) != n_channels:
+                raise ValueError(f"threshold has {len(threshold)} values, but {n_channels} channels are requested")
+            for i in range(n_channels):
+                self.threshold[i] = threshold[i]
+        self.filt = {}
+        if isinstance(filt, np.ndarray):
+            if filt.ndim == 1:
+                for i in range(n_channels):
+                    self.filt[i] = filt
+            elif filt.ndim == 2:
+                if filt.shape[0] != n_channels:
+                    raise ValueError(f"filt has {filt.shape[0]} values, but {n_channels} channels are requested")
+                for i in range(n_channels):
+                    self.filt[i] = filt[i]
+            else:
+                raise ValueError("filt must be a 1D or 2D numpy array")
+        elif isinstance(filt, list):
+            if len(filt) != n_channels:
+                raise ValueError(f"filt has {len(filt)} values, but {n_channels} channels are requested")
+            for i in range(n_channels):
+                self.filt[i] = np.array(filt[i])
+        else:
+            raise ValueError("filt must be a numpy array or a list of numpy arrays")
+
 
         self.trigger_bin = int(self.trigger_time / self.dt)
         self.trigger_bin_low = int((self.trigger_time - self.time_coincidence_majority) / self.dt)
 
-        self.norm = np.trapz(np.abs(self.filt) ** 2, self.ff)
-        self.amplitude = (self.max_freq - self.min_freq) ** 0.5 / self.norm ** 0.5 * self.Vrms
+        self.norm = {}
+        self.amplitude = {}
+        for i in range(n_channels):
+            self.norm[i] = np.trapz(np.abs(self.filt[i]) ** 2, self.ff)
+            self.amplitude[i] = (self.max_freq - self.min_freq) ** 0.5 / self.norm[i] ** 0.5 * self.Vrms[i]
 
         self.noise = channelGenericNoiseAdder.channelGenericNoiseAdder()
 
@@ -185,42 +226,49 @@ class thermalNoiseGenerator():
 
         Returns np.array of shape (n_channels, n_samples)
         """
-        n_traces = [None] * self.n_majority
-        t_bins = [None] * self.n_majority
-        for iCh in range(self.n_majority):
-            while n_traces[iCh] is None:
-                spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples, self.sampling_rate,
-                                                    self.amplitude, self.noise_type, time_domain=False)
+        n_traces = [None] * self.n_channels
+        t_bins = [None] * self.n_channels
+        number_of_triggers = 0
+        while number_of_triggers < self.n_majority:
+            for iCh in range(self.n_channels):
+                if n_traces[iCh] is None:
+                    spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples, self.sampling_rate,
+                                                        self.amplitude[iCh], self.noise_type, time_domain=False)
 
-                if self.keep_full_band:
-                    trace_copy = fft.freq2time(spec, self.sampling_rate)
+                    if self.keep_full_band:
+                        trace_copy = fft.freq2time(spec, self.sampling_rate)
 
-                spec *= self.filt
-                trace = fft.freq2time(spec, self.sampling_rate)
-                if(np.any(trace > self.threshold) and np.any(trace < -self.threshold)):
-                    triggered_bins = get_high_low_triggers(trace, self.threshold, -self.threshold, self.time_coincidence, self.dt)
-                    if(True in triggered_bins):
-                        t_bins[iCh] = triggered_bins
-                        trace_to_keep = trace if not self.keep_full_band else trace_copy
-                        if(iCh == 0):
-                            n_traces[iCh] = np.roll(trace_to_keep, self.trigger_bin - np.argwhere(triggered_bins == True)[0])
-                        else:
-                            tmp = np.random.randint(self.trigger_bin_low, self.trigger_bin)
-                            n_traces[iCh] = np.roll(trace_to_keep, tmp - np.argwhere(triggered_bins == True)[0])
+                    spec *= self.filt[iCh]
+                    trace = fft.freq2time(spec, self.sampling_rate)
+
+                    if np.any(trace > self.threshold[iCh]) and np.any(trace < -self.threshold[iCh]):
+                        triggered_bins = get_high_low_triggers(trace, self.threshold[iCh], -self.threshold[iCh], self.time_coincidence, self.dt)
+                        if np.any(triggered_bins):
+                            number_of_triggers += 1
+                            t_bins[iCh] = triggered_bins
+                            trace_to_keep = trace if not self.keep_full_band else trace_copy
+                            if number_of_triggers == 1:
+                                n_traces[iCh] = np.roll(trace_to_keep, self.trigger_bin - np.argwhere(triggered_bins == True)[0])
+                            else:
+                                tmp = np.random.randint(self.trigger_bin_low, self.trigger_bin)
+                                n_traces[iCh] = np.roll(trace_to_keep, tmp - np.argwhere(triggered_bins == True)[0])
+                if number_of_triggers == self.n_majority:
+                    # this additional break is needed because another channel might trigger
+                    # within the channel loop before the while statement is checked
+                    break
+
         traces = np.zeros((self.n_channels, self.n_samples))
-        rnd_iterator = list(range(self.n_channels))
-        np.random.shuffle(rnd_iterator)
-        for i, iCh in enumerate(rnd_iterator):
-            if(i < self.n_majority):
-                traces[iCh] = n_traces[i]
+        for iCh in range(self.n_channels):
+            if(n_traces[iCh] is not None):
+                traces[iCh] = n_traces[iCh]
             else:
                 spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples, self.sampling_rate,
-                                                    self.amplitude, type=self.noise_type, time_domain=False)
+                                                    self.amplitude[iCh], type=self.noise_type, time_domain=False)
 
                 if self.keep_full_band:
                     traces[iCh] = fft.freq2time(spec, self.sampling_rate)
                 else:
-                    traces[iCh] = fft.freq2time(spec * self.filt, self.sampling_rate)
+                    traces[iCh] = fft.freq2time(spec * self.filt[iCh], self.sampling_rate)
         return traces
 
 
@@ -231,10 +279,10 @@ class thermalNoiseGeneratorPhasedArray():
 
     def __init__(self, detector_filename, station_id, triggered_channels,
                  Vrms, threshold, ref_index,
-                 noise_type="rayleigh", log_level=logging.WARNING,
+                 noise_type="rayleigh", log_level=logging.NOTSET,
                  pre_trigger_time=100 * units.ns, trace_length=512 * units.ns, filt=None,
                  upsampling=2, window_length=16 * units.ns, step_size=8 * units.ns,
-                 main_low_angle=np.deg2rad(-59.54968597864437), 
+                 main_low_angle=np.deg2rad(-59.54968597864437),
                  main_high_angle=np.deg2rad(59.54968597864437),
                  n_beams=11, quantize=True):
         """
@@ -261,7 +309,7 @@ class thermalNoiseGeneratorPhasedArray():
             the type of the noise, can be
             * "rayleigh" (default)
             * "noise"
-        log_level: logging enum, default warn 
+        log_level: logging enum, default warn
             the print level for this module
         pre_trigger_time: float, default 100 ns
             the time in the trace before the trigger happens
@@ -306,7 +354,7 @@ class thermalNoiseGeneratorPhasedArray():
         if self.quantize:
             det_channel = self.det.get_channel(station_id, triggered_channels[0])
             self.adc_n_bits = det_channel["trigger_adc_nbits"]
-            self.adc_noise_n_bits = det_channel["trigger_adc_noise_nbits"]
+            self.adc_noise_count = det_channel["trigger_adc_noise_count"]
 
         self.n_channels = len(triggered_channels)
         self.triggered_channels = triggered_channels
@@ -363,7 +411,7 @@ class thermalNoiseGeneratorPhasedArray():
         logger.info(f"frequency range {self.min_freq / units.MHz}MHz - {self.max_freq / units.MHz}MHz")
 
         if self.quantize:
-            self.adc_ref_voltage = self.Vrms * (2 ** (self.adc_n_bits - 1) - 1) / (2 ** (self.adc_noise_n_bits - 1) - 1)
+            self.adc_ref_voltage = self.Vrms * (2 ** self.adc_n_bits - 1) / self.adc_noise_count
 
         self.window = int(window_length * self.sampling_rate * self.upsampling)
         self.step = int(step_size * self.sampling_rate * self.upsampling)
@@ -557,7 +605,7 @@ class thermalNoiseGeneratorPhasedArray():
             dt_triggering += time.process_time() - tstart
 
             if is_triggered:
-                triggered_bin = triggered_bin // self.upsampling  # the trace is cut in the downsampled version. Therefore, triggered bin is factor of two smaller. 
+                triggered_bin = triggered_bin // self.upsampling  # the trace is cut in the downsampled version. Therefore, triggered bin is factor of two smaller.
                 i_low = triggered_bin - self.pre_trigger_bins
                 i_high = i_low + self.n_samples_trigger
 

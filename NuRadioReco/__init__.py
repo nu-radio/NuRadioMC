@@ -1,9 +1,17 @@
 import os
+import logging
+
+from NuRadioReco.utilities.logging import NuRadioLogger, _setup_logger
+
+logging.setLoggerClass(NuRadioLogger)
+_setup_logger(name="NuRadioReco")
+
 try:
     import importlib.metadata as importlib_metadata
 except ModuleNotFoundError:
     import importlib_metadata
 
+# Set version number
 __version__ = None
 # First, try to obtain version number from pyproject.toml (developer version)
 parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

@@ -9,8 +9,21 @@ If you intend to contribute significantly to NuRadioMC, please contact
 `@anelles <https://github.com/anelles>`_ and `@cg-laser <https://github.com/cg-laser>`_ on GitHub so that we are informed about ongoing
 activities. Both will also be able to provide commit access to the repository.
 
+Installing NuRadioMC for developers
+-----------------------------------
+Please follow the instructions :ref:`here <Introduction/pages/installation:Development version>` to install NuRadioMC as a developer.
+In particular, we strongly recommend that you install the `pre-commit hook <https://pre-commit.com>`__ provided using
+
+.. code-block:: bash
+
+  pre-commit install
+
+This will run a small set of checks every time you try to add a commit to the repository, which prevents you from
+accidentally adding large files, makes sure you don't commit to a protected branch,
+as well as another couple of small checks.
+
 Workflow
---------------
+--------
 If you find an issue or bug in NuRadioMC, please `create an issue on GitHub <https://github.com/nu-radio/NuRadioMC/issues>`_.
 If you want to contribute to NuRadioMC, please provide your code addition in a new branch and `make a pull request <https://github.com/nu-radio/NuRadioMC/pulls>`_.
 
@@ -37,7 +50,7 @@ To start developing a new feature or hotfix, first create a new branch:
 .. Note::
 
   If you are writing a **hotfix**, which should also be merged into ``master``,
-  replace the first line by ``git checkout master``
+  replace the first line by ``git checkout master``.
 
 Now code can be written, fixed, committed and pushed to git as normally (**exception**: for your first
 push to the git repository, you need to include ``--set-upstream``, as the branch initially only exists
@@ -47,17 +60,17 @@ on your local machine).
 
   git push --set-upstream origin feature/my_new_feature
 
-
 Once you are ready for your code to be merged into ``develop`` (for features and hotfixes) and/or
 ``master`` (for hotfixes only), you should `create a pull request <https://github.com/nu-radio/NuRadioMC/pulls>`_.
 
-Before you make a pull request, make that your code:
+Before you make a pull request, make sure that your code:
 
 * is correct - it should fix bugs, not introduce more of them!
 * is clearly documented - functions should have
   :ref:`correctly written docstrings <Introduction/pages/contributing:Writing docstrings>`
   , and comments where appropriate.
-* is reflected both in the **changelog** and by an appropriate update of the
+* is reflected in the **changelog**
+* (**Only for a new release to** ``master``) appropriately updates the
   :ref:`version number <Introduction/pages/contributing:Update the version number / dependencies>`.
 
 You will only be able to merge your pull request once:
@@ -157,6 +170,9 @@ open the ``pyproject.toml`` file in the NuRadioMC root directory, and update ``v
   version = "2.1.0"
 
 We use `semantic versioning <https://semver.org/>`_, i.e. MAJOR.MINOR.PATCH.
+The ``develop`` version additionally has the suffix ``-dev``, which gets dropped for full releases on ``master``.
+The version number should be updated before and after making a release to ``master``.
+
 Dependencies are also maintained in ``pyproject.toml``. To update the dependencies:
 
 * If you are adding a **core** dependency, first ensure that the core developers agree!
@@ -170,17 +186,17 @@ Dependencies are also maintained in ``pyproject.toml``. To update the dependenci
   under ``[tool.poetry.dependencies]``. Acceptable version specifications are ``"4.1.1"`` (4.1.1 only),
   ``">=4.1.1"`` (4.1.1 or greater), or ``"*"`` (any version). Please do not use poetry-specific version
   specifiers like ``^`` or ``~``.
-* If you are adding an **optional** dependency, add your dependency under ``[tool.poetry.dev-dependencies]``.
+* If you are adding an **optional** dependency, you can specify this by adding ``optional=true``.
   Additionally, please name the feature that requires this dependency, and add it under ``[tool.poetry.extras]``.
   E.g. in order to generate the documentation, we require ``Sphinx``, ``sphinx-rtd-theme`` and ``numpydoc`` to be installed.
   This is specified in ``pyproject.toml`` as follows:
 
   .. code-block::
 
-    [tool.poetry.dev-dependencies]
-    Sphinx = "*"
-    sphinx-rtd-theme = "*"
-    numpydoc = "*"
+    [tool.poetry.dependencies]
+    Sphinx = {version = "*", optional = true}
+    sphinx-rtd-theme = {version = "*", optional = true}
+    numpydoc = {version = "*", optional = true}
 
     [tool.poetry.extras]
     documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
@@ -239,7 +255,7 @@ Some commonly used text formatting:
 
 * ``*italicized*`` results in *italicized* text;
 * ``**bold**`` results in **bold** text;
-* ````single-spaced```` results in ``single-spaced`` text.
+* ````single-spaced```` results in ``single-spaced`` text. (Note the **double** backticks ``````!)
 
 Lists
 ^^^^^
@@ -274,8 +290,8 @@ For internal links (e.g. to other parts of the documentation), we prefer
 `cross-references <https://docs.readthedocs.io/en/stable/guides/cross-referencing-with-sphinx.html>`_
 instead. These depend on what is being linked to:
 
-* For another page in the documentation, use ``:doc:``. E.g. ``:doc:`introduction </Introduction/pages/introduction>``` renders as
-  :doc:`introduction </Introduction/pages/introduction>`. Use a leading ``/`` to use paths starting from
+* For another page in the documentation, use ``:doc:``. E.g. ``:doc:`installation </Introduction/pages/installation>``` renders as
+  :doc:`installation </Introduction/pages/installation>`. Use a leading ``/`` to use paths starting from
   the root ``documentation/source`` directory.
 * One can reference a specific subsection instead by using ``:ref:`` and appending ``:Section title``. E.g.
   ``:ref:`this paragraph <Introduction/pages/contributing:Links and cross-references>``` links to

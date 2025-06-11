@@ -4,7 +4,7 @@ import os
 from NuRadioReco.utilities import units, bandpass_filter
 from radiotools import helper as hp
 import logging
-logger = logging.getLogger('analog_components')
+logger = logging.getLogger('NuRadioReco.analog_components')
 
 
 def load_amp_response(amp_type='rno_surface', temp=293.15,
@@ -60,7 +60,7 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=1)
         amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=2)
         correction_function = iglu_correction_func
-    elif amp_type == 'phased_array':
+    elif amp_type == 'phased_array' or amp_type == 'ULP_216':
         ph = os.path.join(path, 'HardwareResponses/ULP-216+_Plus25DegC.s2p')
         ff, S11gain, S11deg, S21gain, S21deg, S12gain, S12deg, S22gain, S22deg = np.loadtxt(ph, comments=['#', '!'], unpack=True)
         ff *= units.MHz
@@ -100,8 +100,9 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         amp_response['phase'] = get_amp_phase
         return amp_response
     else:
-        logger.error("Amp type not recognized")
-        return amp_response
+        msg = f"Amp type `{amp_type}` not recognized. possible values are {get_available_amplifiers()}"
+        logger.error(msg)
+        raise ValueError(msg)
 
     amp_gain_f = interp1d(ff, amp_gain_discrete, bounds_error=False, fill_value=0)
     # all requests outside of measurement range are set to 1
@@ -129,4 +130,4 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
 
 
 def get_available_amplifiers():
-    return ['iglu', 'rno_surface', 'phased_array', 'dummy_amp', 'gen2_sim_2021']
+    return ['iglu', 'rno_surface', 'phased_array', 'ULP_216']

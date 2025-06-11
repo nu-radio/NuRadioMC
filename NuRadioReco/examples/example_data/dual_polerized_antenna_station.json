@@ -1,0 +1,48 @@
+{
+    "_default": {},
+    "channels": {
+        "0": {
+            "ant_comment": "dipolarized antenna channel east",
+            "ant_type": "createLPDA_100MHz_InfAir",
+            "ant_position_x": 0.0,
+            "ant_position_y": -0.0,
+            "ant_position_z": 1,
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_rotation_phi": 90,
+            "ant_rotation_theta": 90,
+            "adc_n_samples": 2048,
+            "adc_sampling_frequency": 0.5,
+            "channel_id": 0,
+            "station_id": 0
+        },
+        "1": {
+            "ant_comment": "dipolarized antenna channel north",
+            "ant_type": "createLPDA_100MHz_InfAir",
+            "ant_position_x": 0.0,
+            "ant_position_y": -0.0,
+            "ant_position_z": 1,
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_rotation_phi": 0,
+            "ant_rotation_theta": 90,
+            "adc_n_samples": 2048,
+            "adc_sampling_frequency": 0.5,
+            "channel_id": 1,
+            "station_id": 0
+        }
+    },
+    "positions": {},
+    "stations": {
+        "0": {
+            "commission_time": "{TinyDate}:2010-11-04T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "pos_altitude": null,
+            "pos_easting": null,
+            "pos_northing": null,
+            "pos_site": "simulation",
+            "station_id": 0,
+            "reference_station": 0
+        }
+    }
+}

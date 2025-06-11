@@ -1,11 +1,15 @@
+"""
+Module providing the ice models in NuRadioMC.
+
+For more details on the implementation, and the available modules,
+see the documentation :doc:`here </NuRadioMC/pages/Manuals/icemodels>`.
+
+"""
+
 from NuRadioMC.utilities import medium_base
-import itertools
 import numpy as np
 import os
 from NuRadioReco.utilities import units
-from scipy import interpolate
-import logging
-logging.basicConfig()
 
 logger = medium_base.logger
 
@@ -17,13 +21,13 @@ except ImportError:
 
 """
 1) When implementing a new model it should at least inherit from
-'IceModel' from the module 'medium_base'. Overwrite all the function. 
-Inheritance from daughter classes like 'IceModelSimple' is also 
+'IceModel' from the module 'medium_base'. Overwrite all the function.
+Inheritance from daughter classes like 'IceModelSimple' is also
 possible and overwriting functions may not be needed in this case.
 
 2) When implementing a new model and using the radiopropa numerical
 tracer, do not forget to implement scalar field of the refractive index
-also in the c++ code of radiopropa for a fast simulation. Implement the 
+also in the c++ code of radiopropa for a fast simulation. Implement the
 model in IceModel.cpp and IceModel.h. Then edit the function to get the
 radiopropa ice model, so it can be used in NuRadioMC. For example
 
@@ -37,8 +41,8 @@ radiopropa is always necessary and make the new model in this script access
 the c++ implemented model (e.g. green_firn model)
 
 
-4) If you want to adjust (add, replace, remove) predefined modules 
-in the a RadioPropaIceWrapper object, you can do this by redefining the 
+4) If you want to adjust (add, replace, remove) predefined modules
+in the a RadioPropaIceWrapper object, you can do this by redefining the
 'get_ice_model_radiopropa()' in your IceModel object. For exemple
 
         def get_ice_model_radiopropa(self):
@@ -55,9 +59,9 @@ class southpole_simple(medium_base.IceModelSimple):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 RICE2014/SP model
         # define model parameters (RICE 2014/southpole)
         super().__init__(
-            z_bottom = -2820*units.meter, 
-            n_ice = 1.78, 
-            z_0 = 71.*units.meter, 
+            z_bottom = -2820*units.meter,
+            n_ice = 1.78,
+            z_0 = 71.*units.meter,
             delta_n = 0.426,
             )
 
@@ -66,9 +70,9 @@ class southpole_2015(medium_base.IceModelSimple):
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 SPICE2015/SP model
         super().__init__(
-            z_bottom = -2820*units.meter, 
-            n_ice = 1.78, 
-            z_0 = 77.*units.meter, 
+            z_bottom = -2820*units.meter,
+            n_ice = 1.78,
+            z_0 = 77.*units.meter,
             delta_n = 0.423,
             )
 
@@ -77,9 +81,9 @@ class ARAsim_southpole(medium_base.IceModelSimple):
     def __init__(self):
         # define model parameters (SPICE 2015/southpole)
         super().__init__(
-            z_bottom = -2820*units.meter, 
-            n_ice = 1.78, 
-            z_0 = 75.75757575757576*units.meter, 
+            z_bottom = -2820*units.meter,
+            n_ice = 1.78,
+            z_0 = 75.75757575757576*units.meter,
             delta_n = 0.43,
             )
 
@@ -89,9 +93,9 @@ class ARA_2022(medium_base.IceModelSimple):
     def __init__(self):
         # define model parameters (ARA/southpole) -> https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006
         super().__init__(
-            z_bottom = -2820*units.meter, 
-            n_ice = 1.78, 
-            z_0 = 49.5049505*units.meter, 
+            z_bottom = -2820*units.meter,
+            n_ice = 1.78,
+            z_0 = 49.5049505*units.meter,
             delta_n = 0.454,
             )
 
@@ -108,15 +112,15 @@ class mooresbay_simple(medium_base.IceModelSimple):
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 MB1 model
         super().__init__(
-            n_ice = 1.78, 
-            z_0 = 34.5*units.meter, 
+            n_ice = 1.78,
+            z_0 = 34.5*units.meter,
             delta_n = 0.46,
             )
 
         # from https://doi.org/10.3189/2015JoG14J214
-        self.add_reflective_bottom( 
-            refl_z = -576*units.m, 
-            refl_coef = 0.82, 
+        self.add_reflective_bottom(
+            refl_z = -576*units.m,
+            refl_coef = 0.82,
             refl_phase_shift = 180*units.deg,
             )
 
@@ -125,15 +129,15 @@ class mooresbay_simple_2(medium_base.IceModelSimple):
     def __init__(self):\
         # from https://doi.org/10.1088/1475-7516/2018/07/055 MB2 model
         super().__init__(
-            n_ice = 1.78, 
-            z_0 = 37*units.meter, 
+            n_ice = 1.78,
+            z_0 = 37*units.meter,
             delta_n = 0.481,
             )
 
         # from https://doi.org/10.3189/2015JoG14J214
-        self.add_reflective_bottom( 
-            refl_z = -576*units.m, 
-            refl_coef = 0.82, 
+        self.add_reflective_bottom(
+            refl_z = -576*units.m,
+            refl_coef = 0.82,
             refl_phase_shift = 180*units.deg,
             )
 
@@ -143,9 +147,9 @@ class greenland_simple(medium_base.IceModelSimple):
         # from C. Deaconu, fit to data from Hawley '08, Alley '88
         # rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0
         super().__init__(
-            z_bottom = -3000*units.meter, 
-            n_ice = 1.78, 
-            z_0 = 37.25*units.meter, 
+            z_bottom = -3000*units.meter,
+            n_ice = 1.78,
+            z_0 = 37.25*units.meter,
             delta_n = 0.51,
             )
 
@@ -169,26 +173,26 @@ class greenland_firn(medium_base.IceModel):
 
         Parameters
         ----------
-        z_air_boundary:  float, NuRadio length units
-                         z coordinate of the surface of the glacier
-        z_bottom:  float, NuRadio length units
-                   z coordinate of the bedrock/bottom of the glacier.
-        z_firn:  float, NuRadio length units
-                 z coordinate of the transition from the upper 
-                 exponential profile to the lower one
+        z_air_boundary: float, NuRadio length units
+            z coordinate of the surface of the glacier
+        z_bottom: float, NuRadio length units
+            z coordinate of the bedrock/bottom of the glacier.
+        z_firn: float, NuRadio length units
+            z coordinate of the transition from the upper
+            exponential profile to the lower one
 
         The following parameters can be found without (lower)
         and with (upper) the suffix of `_firn`
 
-        n_ice:  float, dimensionless
-                refractive index of the deep bulk ice
-        delta_n:  float, NuRadio length units
-                  difference between n_ice and the refractive index
-                  of the snow at the surface
-        z_0:  float, NuRadio length units
-              scale depth of the exponential
-        z_shift:  float, NuRadio length units
-                  up or down shift od the exponential profile
+        n_ice: float, dimensionless
+            refractive index of the deep bulk ice
+        delta_n: float, NuRadio length units
+            difference between n_ice and the refractive index
+            of the snow at the surface
+        z_0: float, NuRadio length units
+            scale depth of the exponential
+        z_shift: float, NuRadio length units
+            up or down shift od the exponential profile
         """
 
         if not medium_base.radiopropa_is_imported:
@@ -201,13 +205,13 @@ class greenland_firn(medium_base.IceModel):
 
         self._scalarfield = RP.IceModel_Firn(
             z_surface = self.z_air_boundary*RP.meter/units.meter,
-            z_firn = self.z_firn*RP.meter/units.meter, 
-            n_ice = 1.78,  
-            delta_n = 0.310,  
+            z_firn = self.z_firn*RP.meter/units.meter,
+            n_ice = 1.78,
+            delta_n = 0.310,
             z_0 = 40.9*RP.meter,
             z_shift = -14.9*RP.meter,
             n_ice_firn = 1.78,
-            delta_n_firn = 0.502, 
+            delta_n_firn = 0.502,
             z_0_firn = 30.8*RP.meter,
             z_shift_firn = 0.*RP.meter,
             )
@@ -219,12 +223,12 @@ class greenland_firn(medium_base.IceModel):
 
         Parameters
         ----------
-        position:  3dim np.array
-                    point
+        position: 3dim np.array
+            point
 
         Returns
         -------
-        n:  float
+        n: float
             index of refraction
         """
         position = RP.Vector3d(*(position * RP.meter/units.meter))
@@ -238,14 +242,14 @@ class greenland_firn(medium_base.IceModel):
         Parameters
         ----------
         position1: 3dim np.array
-                    point
+            point
         position2: 3dim np.array
-                    point
+            point
 
         Returns
         -------
-        n_average:  float
-                    averaged index of refraction between the two points
+        n_average: float
+            averaged index of refraction between the two points
         """
         position1 = RP.Vector3d(*(position1 * RP.meter/units.meter))
         position2 = RP.Vector3d(*(position2 * RP.meter/units.meter))
@@ -260,56 +264,77 @@ class greenland_firn(medium_base.IceModel):
         Parameters
         ----------
         position: 3dim np.array
-                    point
+            point
 
         Returns
         -------
-        n_nabla:    (3,) np.array
-                    gradient of index of refraction at the point
+        n_nabla: np.array(3,)
+            gradient of index of refraction at the point
         """
         pos = RP.Vector3d(*(position * RP.meter/units.meter))
         return self._scalarfield.getGradient(pos) * (1 / (units.meter/RP.meter))
 
-    
+
     def _compute_default_ice_model_radiopropa(self):
         """
-        Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
-        moduldes that define the medium in radiopropa. It uses the parameters of the medium 
-        object to contruct the scalar field (using the firn ice model implementation 
-        in radiopropa) and some modules (like a discontinuity object for the air boundary). 
-        
+        Computes a default object holding the radiopropa scalarfield and necessary radiopropa
+        moduldes that define the medium in radiopropa. It uses the parameters of the medium
+        object to contruct the scalar field (using the firn ice model implementation
+        in radiopropa) and some modules (like a discontinuity object for the air boundary).
+
         Overwrites function of the mother class
 
         Returns
         -------
-        ice_model_radiopropa:   RadioPropaIceWrapper
-                                object holding the radiopropa scalarfield and modules
+        ice_model_radiopropa: RadioPropaIceWrapper
+            object holding the radiopropa scalarfield and modules
         """
         return medium_base.RadioPropaIceWrapper(self, self._scalarfield)
 
 class greenland_perturbation(greenland_firn):
     def __init__(self):
         greenland_firn.__init__(self)
-        
+
     def _compute_default_ice_model_radiopropa(self,discontinuity=False):
         """
-        Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
-        moduldes that define the medium in radiopropa. It uses the parameters of the medium 
+        Computes a default object holding the radiopropa scalarfield and necessary radiopropa
+        moduldes that define the medium in radiopropa. It uses the parameters of the medium
         object to contruct some modules using the default computation of the firn model.
         An additional module for the perturbation layer is then added to the object.
-        
+
         Overwrites function of the mother class
 
         Returns
         -------
-        ice_model_radiopropa:   RadioPropaIceWrapper
-                                object holding the radiopropa scalarfield and modules
+        ice_model_radiopropa: RadioPropaIceWrapper
+            object holding the radiopropa scalarfield and modules
         """
         ice = greenland_firn._compute_default_ice_model_radiopropa(self)
         #fraction from ArXiv 1805.12576 table IV last row
         perturbation_horz = RP.PerturbationHorizontal(-100*RP.meter,2*RP.meter, fraction=1)
         ice.add_module('horizontal perturbation',perturbation_horz)
         return ice
+
+class greenland_poly5(medium_base.IceModelExponentialPolynomial):
+    """
+    Fifth-degree exponential polynomial model for Summit Station, Greenland by Oeyen B.
+    https://doi.org/10.5281/zenodo.15067984
+    """
+    def __init__(self, density_factor=0.851 * (units.cm**3 / units.gram)):
+        """
+        initiation of the model based on the fitted coefficient
+
+        The bottom defined here is a boundary condition used in simulations and
+        should always be defined. Note: it is not the same as reflective bottom.
+        The latter can be added using the `add_reflective_layer` function.
+        """
+
+        super().__init__(
+            a=np.array([917, -62.2, 1177, -9051, 14360, -7024]) * (units.kg / units.m**3),
+            z_0=74.6 * units.meter,
+            density_factor=density_factor,
+            z_bottom=-3000 * units.meter
+        )
 
 
 class uniform_ice(medium_base.IceModelSimple):
@@ -318,9 +343,9 @@ class uniform_ice(medium_base.IceModelSimple):
     """
     def __init__(self, z_bottom=None):
         super().__init__(
-            z_bottom = z_bottom, 
-            n_ice = 1.78, 
-            z_0 = 1*units.meter, 
+            z_bottom = z_bottom,
+            n_ice = 1.78,
+            z_0 = 1*units.meter,
             delta_n = 0,
             )
 
@@ -332,12 +357,12 @@ def get_ice_model(name):
     Parameters
     ----------
     name: string
-          name of the class of the requested ice model
+        name of the class of the requested ice model
 
     Returns
     -------
     ice_model: IceModel object
-               object of the class with the name of the requested model
+        object of the class with the name of the requested model
     """
     if globals()[name]() == None:
         logger.error('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')

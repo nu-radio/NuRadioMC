@@ -7,7 +7,7 @@ import datetime
 import json
 import logging
 
-logger = logging.getLogger('sql detector')
+logger = logging.getLogger('NuRadioReco.sql_detector')
 
 
 class Detector(object):

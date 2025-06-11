@@ -89,7 +89,7 @@ Radar[:, 2] *= energyBinsPerDecade
 # log (E^2 * Phi [GeV cm^02 s^-1 sr^-1]) : log (E [Gev])
 # Phys Rev D 98 062003 (2018)
 # Numbers private correspondence Shigeru Yoshida
-ice_cube_limit = np.array(([
+ice_cube_limit_18 = np.array(([
     (6.199999125, -7.698484687),
     (6.299999496, -8.162876678),
     (6.400000617, -8.11395291),
@@ -110,9 +110,9 @@ ice_cube_limit = np.array(([
     (10.89999987, -6.576523031)
 ]))
 
-ice_cube_limit[:, 0] = 10 ** ice_cube_limit[:, 0] * units.GeV
-ice_cube_limit[:, 1] = 10 ** ice_cube_limit[:, 1] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-ice_cube_limit[:, 1] *= energyBinsPerDecade
+ice_cube_limit_18[:, 0] = 10 ** ice_cube_limit_18[:, 0] * units.GeV
+ice_cube_limit_18[:, 1] = 10 ** ice_cube_limit_18[:, 1] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+ice_cube_limit_18[:, 1] *= energyBinsPerDecade
 
 # Fig. 2 from PoS ICRC2017 (2018) 981
 # IceCube preliminary
@@ -182,6 +182,27 @@ nu_mu_data[:, 3] = np.abs(nu_mu_data[:, 1] - nu_mu_data[:, 3])
 nu_mu_data[-1, 3] = 0
 nu_mu_data[-1, 2] = 2e-9 * 3 * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 nu_mu_data[:, 0] = 10 ** nu_mu_data[:, 0] * units.GeV
+
+
+# IceCube
+# 2025 EHE paper. Data available at  https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/JHK49D
+ice_cube_limit_25 = np.array(([
+(3162000,0.000000007011),
+(10000000,0.000000009136),
+(31620000,0.000000005377),
+(100000000,0.000000005743),
+(316200000,0.000000007535),
+(1000000000,0.00000001147),
+(3162000000,0.00000001978),
+(10000000000,0.00000003713),
+(31620000000,0.00000007529),
+(100000000000,0.0000002201)
+]))
+
+ice_cube_limit_25[:, 0] = ice_cube_limit_25[:, 0] * units.GeV
+ice_cube_limit_25[:, 1] = ice_cube_limit_25[:, 1] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+ice_cube_limit_25[:, 1] *= energyBinsPerDecade
+
 
 # ApJ slope=-2.13, offset=0.9 (https://arxiv.org/pdf/1607.08006.pdf)
 # ICR2017 slope=-2.19, offset=1.01 (https://pos.sissa.it/301/1005/)
@@ -528,40 +549,11 @@ ara_4year_E *= units.eV
 ara_4year_limit *= units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
 ara_4year_limit *= energyBinsPerDecade
 
-# ARA 2023 projection
-'''
-This estimate is built by using the actual recorded livetime for the ARA stations 
-through June 2021. Specifically:
-1747 days of A1
-5627 days of A2 + A3 + A4
-826 days of A5
-
-And then adding projected livetime
-A1: 7/12 of a year for 2021, then 1 year of 2022, and 1 year of 2023
-A2: no more data for 2021, no data for 2022, 1 year of 2023
-A3: 7/12 of a year for 2021, then 1 year of 2022, and 1 year of 2023
-A4: no more data for 2021, no data for 2022, 1 year of 2023
-A5: 7/12 of a year for 2021, then 1 year of 2022, and 1 year of 2023
-
-We do include different effective areas for A1, A2/3/4, and A5,
-since A1 is smaller (only being at 100m), while A5 is larger (having the phased array).
-
-We also included the trigger level and analysis level estimate.
-The analysis level option assumes the A2 analysis efficiency for stations A1-4,
-and a (preliminary) analysis efficiency estimate from the phased-array analysis.
-
-'''
-ara_2023_E_TL, ara_2023_limit_TL, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_ara_2023_projected_trigger.txt"), unpack=True)
-ara_2023_E_TL *= units.GeV
-ara_2023_limit_TL *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
-ara_2023_limit_TL *= energyBinsPerDecade
-ara_2023_limit_TL *= 2.44  # convert to 90%CL limit to be comparable with information from other experiments
-
-ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_ara_2023_projected_analysis.txt"), unpack=True)
-ara_2023_E *= units.GeV
-ara_2023_limit *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
-ara_2023_limit *= energyBinsPerDecade
-ara_2023_limit *= 2.44  # convert to 90%CL limit to be comparable with information from other experiments
+# ARA phased array 6-month limit
+ara_PA_6month_E, ara_PA_6month_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_ARA_PA_6months.txt"), unpack=True)
+ara_PA_6month_E *= units.eV
+ara_PA_6month_limit *= units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
+ara_PA_6month_limit *= energyBinsPerDecade
 
 ARIANNA_HRA = np.array([[1.00000003e+07, 3.16228005e+07, 9.99999984e+07, 3.16227997e+08,
                          9.99999984e+08, 3.16228010e+09, 9.99999998e+09, 3.16228010e+10,
@@ -631,8 +623,7 @@ def get_E2_limit_figure(diffuse=True,
                         show_anita_I_IV_limit=True,
                         show_auger_limit=True,
                         show_ara=True,
-                        show_ara_2023=False,
-                        show_ara_2023_TL=False,
+                        show_ara_PA=False,
                         show_arianna=True,
                         show_neutrino_best_fit=True,
                         show_neutrino_best_case=True,
@@ -651,7 +642,9 @@ def get_E2_limit_figure(diffuse=True,
                         show_ara_1year=False,
                         show_prediction_arianna_200=False,
                         show_PUEO_100=False,
-                        show_beacon=False):
+                        show_beacon=False,
+                        show_ice_cube_EHE_limit_18=False  # old IC limit
+                        ):
 
     # Limit E2 Plot
     # ---------------------------------------------------------------------------
@@ -773,8 +766,8 @@ def get_E2_limit_figure(diffuse=True,
                             horizontalalignment='left', color='saddlebrown', rotation=50, fontsize=legendfontsize)
         else:
             ax.annotate('GRAND 10k',
-                xy=(1.2e19 * units.eV / plotUnitsEnergy, 5e-8), xycoords='data',
-                horizontalalignment='left', va="top", color='saddlebrown', rotation=47, fontsize=legendfontsize)
+                xy=(1.5e19 * units.eV / plotUnitsEnergy, 3.4e-8), xycoords='data',
+                horizontalalignment='left', va="bottom", color='saddlebrown', rotation=40, fontsize=legendfontsize)
 
     if show_grand_200k:
         ax.plot(GRAND_energy / plotUnitsEnergy, GRAND_200k / plotUnitsFlux, linestyle=":", color='saddlebrown',
@@ -790,16 +783,28 @@ def get_E2_limit_figure(diffuse=True,
                     xy=(1e9 * units.GeV / plotUnitsEnergy, 4.5e-8), xycoords='data',
                     horizontalalignment='left', color='0.7', rotation=45, fontsize=legendfontsize)
 
-    if show_ice_cube_EHE_limit:
-        ax.plot(ice_cube_limit[2:, 0] / plotUnitsEnergy, ice_cube_limit[2:, 1] / plotUnitsFlux, color='dodgerblue')
+    if show_ice_cube_EHE_limit_18:
+        ax.plot(ice_cube_limit_18[2:, 0] / plotUnitsEnergy, ice_cube_limit_18[2:, 1] / plotUnitsFlux, color='dodgerblue')
         if energyBinsPerDecade == 2:
-            ax.annotate('IceCube',
+            ax.annotate('IceCube18',
                     xy=(0.6e7 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
         else:
-            ax.annotate('IceCube',
+            ax.annotate('IceCube18',
                     xy=(3e6 * units.GeV / plotUnitsEnergy, 3e-8), xycoords='data',
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
+    if show_ice_cube_EHE_limit:
+        ax.plot(ice_cube_limit_25[2:, 0] / plotUnitsEnergy, ice_cube_limit_25[2:, 1] / plotUnitsFlux, color='dodgerblue')
+        if energyBinsPerDecade == 2:
+            ax.annotate('IceCube25',
+                    xy=(0.6e8 * units.GeV / plotUnitsEnergy, 1.5e-8), xycoords='data',
+                    horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
+        else:
+            ax.annotate('IceCube25',
+                    xy=(8e7 * units.GeV / plotUnitsEnergy, 7e-9), xycoords='data',
+                    horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
+
+
 
     if show_ice_cube_HESE_data:
         # data points
@@ -830,10 +835,10 @@ def get_E2_limit_figure(diffuse=True,
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
 
         # Extrapolation
-        energy_placeholder = np.array(([1e14, 1e19])) * units.eV
-        plt.plot(energy_placeholder / plotUnitsEnergy,
-                 ice_cube_nu_fit(energy_placeholder) * energy_placeholder ** 2 / plotUnitsFlux,
-                 color='dodgerblue', linestyle=':')
+        # energy_placeholder = np.array(([1e14, 1e19])) * units.eV
+        # plt.plot(energy_placeholder / plotUnitsEnergy,
+        #          ice_cube_nu_fit(energy_placeholder) * energy_placeholder ** 2 / plotUnitsFlux,
+        #          color='dodgerblue', linestyle=':')
 
         uplimit = np.copy(nu_mu_data[:, 3])
         uplimit[np.where(nu_mu_data[:, 3] == 0)] = 1
@@ -913,27 +918,16 @@ def get_E2_limit_figure(diffuse=True,
             ax.annotate('ARA',
                     xy=(1e18* units.eV / plotUnitsEnergy, 0.7e-6), xycoords='data',
                     horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
-    if show_ara_2023:
-        ax.plot(ara_2023_E / plotUnitsEnergy, ara_2023_limit / plotUnitsFlux, color='grey', linestyle='--')
+    if show_ara_PA:
+        ax.plot(ara_PA_6month_E / plotUnitsEnergy, ara_PA_6month_limit / plotUnitsFlux, color='blue', linestyle='-')
         if energyBinsPerDecade == 2:
-            ax.annotate('ARA 2023',
-                        xy=(2E16 * units.eV / plotUnitsEnergy, 6e-7), xycoords='data',
+            ax.annotate('ARA PA',
+                        xy=(2.95E1 * units.eV / plotUnitsEnergy, 6e-7), xycoords='data',
                         horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
         else:
-            ax.annotate('ARA 2023',
-                    xy=(4E17 * units.eV / plotUnitsEnergy, 6e-8), xycoords='data',
-                    horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
-
-    if show_ara_2023_TL:
-        ax.plot(ara_2023_E_TL / plotUnitsEnergy, ara_2023_limit_TL / plotUnitsFlux, color='grey', linestyle='--')
-        if energyBinsPerDecade == 2:
-            ax.annotate('ARA 2023 \n(TL)',
-                        xy=(1E16 * units.eV / plotUnitsEnergy, 6e-7), xycoords='data',
-                        horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
-        else:
-            ax.annotate('ARA 2023 \n(TL)',
-                    xy=(1E16 * units.eV / plotUnitsEnergy, 6e-8), xycoords='data',
-                    horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
+            ax.annotate('ARA PA',
+                    xy=(2.9E17 * units.eV / plotUnitsEnergy, 5.2e-6), xycoords='data',
+                    horizontalalignment='left', color='blue', rotation=0, fontsize=legendfontsize)
 
     if show_arianna:
         ax.plot(ARIANNA_HRA[:, 0] / plotUnitsEnergy, ARIANNA_HRA[:, 1] / plotUnitsFlux, color='red')
@@ -1010,7 +1004,7 @@ def get_E2_limit_figure(diffuse=True,
 #         labels.append(_plt4)
     if show_PUEO_100:
         ax.annotate('PUEO (3 flights)', xy=(3e18 * units.eV / plotUnitsEnergy, 2.1e-8),
-                    xycoords='data', horizontalalignment='left', color='goldenrod', rotation=0, fontsize=legendfontsize)
+                    xycoords='data', horizontalalignment='left', color='#EA5A06', rotation=0, fontsize=legendfontsize)
         ax.plot(PUEO100_energy / plotUnitsEnergy, PUEO100 / plotUnitsFlux, linestyle=(0, (3, 1, 1, 1, 1, 1)), color='#EA5A06', label='PUEO (3 flights, 100 days)',
                 lw=2)
 
@@ -1019,7 +1013,7 @@ def get_E2_limit_figure(diffuse=True,
                              linestyle="-.", color='#F97807', label='BEACON 1k',
                              lw=2)
         ax.annotate('BEACON-1k',
-                    xy=(7e18 * units.eV / plotUnitsEnergy, 9e-10), xycoords='data', 
+                    xy=(7e18 * units.eV / plotUnitsEnergy, 9e-10), xycoords='data',
                     horizontalalignment='left', verticalalignment="bottom", color='#F97807', rotation=35, fontsize=legendfontsize)
         # second_legend.append(beaconleg)
 
@@ -1055,14 +1049,14 @@ def add_limit(ax, limit_labels, E, Veffsr, n_stations, label, livetime=3 * units
                                          signalEff=n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
+                                         nuCrsScn='hedis_bgr18')
         limit_upper = fluxes.get_limit_e2_flux(energy=E,
                                          veff_sr=Veffsr[1],
                                          livetime=livetime,
                                          signalEff=n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
+                                         nuCrsScn='hedis_bgr18')
 
         plt1 = ax.fill_between(E / plotUnitsEnergy, limit_upper / plotUnitsFlux,
         limit_lower / plotUnitsFlux, color=color, alpha=0.2)
@@ -1075,7 +1069,7 @@ def add_limit(ax, limit_labels, E, Veffsr, n_stations, label, livetime=3 * units
                                          signalEff=n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
+                                         nuCrsScn='hedis_bgr18')
 
     #         _plt, = ax.plot(E/plotUnitsEnergy,limit/ plotUnitsFlux, linestyle=linestyle, color=color,
     #                         label="{2}: {0} stations, {1} years".format(n_stations,int(livetime/units.year),label),

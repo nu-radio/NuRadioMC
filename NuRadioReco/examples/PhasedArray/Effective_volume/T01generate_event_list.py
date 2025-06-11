@@ -13,14 +13,11 @@
 from __future__ import absolute_import, division, print_function
 
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities.logging import setup_logger
+
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 import numpy as np
 import os
 import sys
-
-
-logger = setup_logger(name="")
 
 
 if (len(sys.argv) < 2):
@@ -53,9 +50,9 @@ phimin = 0. * units.deg
 phimax = 360. * units.deg
 
 if (mode == 'full'):
-    logEs = np.array([14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5])
+    logEs = np.array([14.5, 15.5, 16.5, 17.5, 18.5])
 else:
-    logEs = np.linspace(16., 20., 10)
+    logEs = np.linspace(16., 19., 10)
 
 Es = 10 ** logEs * units.eV
 Emins = Es[0:-1]

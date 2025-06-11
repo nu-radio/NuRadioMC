@@ -8,7 +8,7 @@ from NuRadioReco.framework.trigger import EnvelopeTrigger
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 
-logger = logging.getLogger('envelopeTrigger')
+logger = logging.getLogger('NuRadioReco.envelopeTrigger')
 
 
 def get_envelope_triggers(trace, threshold):  # define trigger constraint for each channel
@@ -75,20 +75,20 @@ class triggerSimulator:
         """
         t = time.time()  # absolute time of system
 
-        sampling_rate = station.get_channel(det.get_channel_ids(station.get_id())[0]).get_sampling_rate()
+        if triggered_channels is None:
+            tmp_channel = station.get_trigger_channel(station.get_channel_ids()[0])
+        else:
+            tmp_channel = station.get_trigger_channel(triggered_channels[0])
+
+        channel_trace_start_time = tmp_channel.get_trace_start_time()
+        sampling_rate = tmp_channel.get_sampling_rate()
+
         dt = 1. / sampling_rate
 
         triggered_bins_channels = []
         channels_that_passed_trigger = []
 
-        if triggered_channels is None:  # caveat: all channels start at the same time
-            for channel in station.iter_channels():
-                channel_trace_start_time = channel.get_trace_start_time()
-                break
-        else:
-            channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
-
-        for channel in station.iter_channels():
+        for channel in station.iter_trigger_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
@@ -137,7 +137,6 @@ class triggerSimulator:
 
     def end(self):
         from datetime import timedelta
-        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
         return dt

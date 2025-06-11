@@ -2,6 +2,7 @@ import numpy as np
 import scipy.signal
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units, fft
+from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.utilities.io_utilities
 import NuRadioReco.framework.electric_field
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -116,6 +117,7 @@ class neutrino2DVertexReconstructor:
         self.__template = template
         self.__output_path = output_path
 
+    @register_run()
     def run(self, event, station, max_distance, z_width, grid_spacing, direction_guess=None, debug=False, use_dnr=False):
         """
         Execute the 2D vertex reconstruction

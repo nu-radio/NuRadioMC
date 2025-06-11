@@ -9,6 +9,7 @@ from NuRadioReco.utilities import units
 import scipy.signal
 from scipy import constants
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from NuRadioReco.modules.base.module import register_run
 
 
 class sphericalWaveFitter:
@@ -22,7 +23,7 @@ class sphericalWaveFitter:
         self.__channel_ids = channel_ids
         pass
 
-
+    @register_run()
     def run(
         self, evt, station, det, start_pulser_position, n_index = None, 
         grid_size = 2, step_size = .1, mode='add', debug = True, debugplots_path=''):
