@@ -1,12 +1,35 @@
 # NuRadioMC and NuRadioReco
-NuRadioMC: A Monte Carlo simulation package for radio neutrino detectors.
+### [Quickstart](https://nu-radio.github.io/NuRadioMC/Introduction/pages/quickstart.html)
+### [Documentation](https://nu-radio.github.io/NuRadioMC/main.html)
+### [Contributing](https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html)
 
-NuRadioReco: A reconstruction and detector simulation framework for radio detectors of high-energy neutrinos and cosmic-rays. (NuRadioReco is independent of NuRadioMC
-and used by NuRadioMC for the detector and trigger simulation. To simplify the development and continuous integration testing, both codes are developed 
+**NuRadioMC**: A Monte Carlo simulation package for radio neutrino detectors.
+
+**NuRadioReco**: A reconstruction and detector simulation framework for radio detectors of high-energy neutrinos and cosmic-rays. (NuRadioReco is independent of NuRadioMC
+and used by NuRadioMC for the detector and trigger simulation. To simplify the development and continuous integration testing, both codes are developed
 in the same github repository.)
 
-The documentation can be found at https://nu-radio.github.io/NuRadioMC/main.html
+## Documentation and Installation
 
+The documentation including detailed installation instructions can be found at https://nu-radio.github.io/NuRadioMC/main.html
+
+**TL;DR:**
+
+The stable pip release can be installed directly from pypi:
+```
+pip install NuRadioMC
+```
+
+Developers should clone the git repository and run:
+```
+pip install -e .[dev]  # zsh user might have to wrap the argument in quotes: -e '.[dev]'
+pre-commit install
+```
+
+Additional optional dependencies are `[rno-g,proposal,galacticnoise,cr_interpolator]`, and can be installed by adding the desired option inside the
+square brackets, i.e. `pip install -e .[dev,proposal]`. To install all optional dependencies, use `[all]`.
+
+## Cite
 
 If you're using NuRadioMC for your research, please cite
 
@@ -15,6 +38,8 @@ If you're using NuRadioMC for your research, please cite
 and for the detector simulation and event reconstruction part
 
 * C. Glaser, A. Nelles, I. Plaisier, C. Welling et al., "NuRadioReco: A reconstruction framework for radio neutrino detectors", [Eur. Phys. J. C (2019) 79: 464](https://dx.doi.org/10.1140/epjc/s10052-019-6971-5), [arXiv:1903.07023](https://arxiv.org/abs/1903.07023)
+
+## References
 
 
 NuRadioMC is continuously improved and new features are being added. The following papers document new features (in reverse chronological order):
@@ -25,14 +50,14 @@ NuRadioMC is continuously improved and new features are being added. The followi
 
 * C. Glaser D. García-Fernández and A. Nelles, "Prospects for neutrino-flavor physics with in-ice radio detectors", [PoS(ICRC2021)1231](https://doi.org/10.22323/1.395.1231) (generalizes NuRadioMC to simulate the radio emission from any number of in-ice showers including their interference)
 
-* D. García-Fernández, C. Glaser and A. Nelles, “The signatures of secondary leptons in radio-neutrino detectors in ice”, [Phys. Rev. D 102, 083011](https://dx.doi.org/10.1103/PhysRevD.102.083011), [arXiv:2003.13442](https://arxiv.org/abs/2003.13442) (addition of secondary interactions of muons and taus) 
+* D. García-Fernández, C. Glaser and A. Nelles, “The signatures of secondary leptons in radio-neutrino detectors in ice”, [Phys. Rev. D 102, 083011](https://dx.doi.org/10.1103/PhysRevD.102.083011), [arXiv:2003.13442](https://arxiv.org/abs/2003.13442) (addition of secondary interactions of muons and taus)
 
 
 If you would like to contribute, please contact @cg-laser or @anelles for permission to work on NuRadioMC. We work with pull requests only that can be merged after review.
 Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html for details on our workflow and coding conventions.
 
 
-## Publications builing up on NuRadioMC/Reco
+## Publications using NuRadioMC/Reco
 NuRadioMC is used in an increasing number of studies. To get an overview of what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
 
 * A. Nozdrina and D. Besson, "Implications of in-ice volume scattering for radio-frequency neutrino experiments", Journal of Cosmology and Astroparticle Physics 10(2024)086, [doi:10.1088/1475-7516/2024/10/086](https://doi.org/10.1088/1475-7516/2024/10/086)
@@ -49,7 +74,7 @@ NuRadioMC is used in an increasing number of studies. To get an overview of what
 * I. Plaisier, S. Bouma, A. Nelles, "Reconstructing the arrival direction of neutrinos in deep in-ice radio detectors", [Eur. Phys. J. C 83, 443 (2023)](https://doi.org/10.1140/epjc/s10052-023-11604-w) [arXiv:2302.00054](https://arxiv.org/abs/2302.00054)
 * S. Bouma, A. Nelles for the IceCube-Gen2 collaboration, "Direction reconstruction performance for IceCube-Gen2 Radio", [PoS(ICRC2023)1045](https://pos.sissa.it/444/1045/pdf)
 * F. Schlüter and S. Toscano for the IceCube-Gen2 collaboration, "Estimating the coincidence rate between the optical and radio array of IceCube-Gen2", [PoS(ICRC2023)1022](https://pos.sissa.it/444/1022/pdf)
-* C. Glaser, A. Coleman and T. Glusenkamp, "NuRadioOpt: Optimization of Radio Detectors of Ultra-High Energy Neutrinos through Deep Learning and Differential Programming", [PoS(ICRC2023)1114](https://pos.sissa.it/444/1114/pdf) 
+* C. Glaser, A. Coleman and T. Glusenkamp, "NuRadioOpt: Optimization of Radio Detectors of Ultra-High Energy Neutrinos through Deep Learning and Differential Programming", [PoS(ICRC2023)1114](https://pos.sissa.it/444/1114/pdf)
 * A. Coleman and C. Glaser for the RNO-G collaboration, "Enhancing the Sensitivity of RNO-G Using a Machine-learning Based Trigger", [PoS(ICRC2023)1100](https://pos.sissa.it/444/1100/pdf)
 * N. Heyer, C. Glaser and T. Glusenkamp for the IceCube-Gen2 collaboration, "Deep Learning Based Event Reconstruction for the IceCube-Gen2 Radio Detector" [PoS(ICRC2023)1102](https://pos.sissa.it/444/1102/pdf)
 * N. Heyer and C. Glaser, "Impact of Birefringence on In-Ice Radio Detectors of ultra-high-energy Neutrinos", [PoS(ICRC2023)1101](https://pos.sissa.it/444/1101/pdf)

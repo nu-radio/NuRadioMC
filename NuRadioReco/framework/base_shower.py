@@ -3,6 +3,7 @@ from NuRadioReco.framework.parameters import showerParameters
 import NuRadioReco.framework.parameter_storage
 from radiotools import helper as hp, coordinatesystems
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 
 import logging
 logger = logging.getLogger('NuRadioReco.Shower')
@@ -70,7 +71,7 @@ class BaseShower(NuRadioReco.framework.parameter_storage.ParameterStorage):
     def serialize(self):
         data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
         data['_id'] = self._id
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

@@ -1639,7 +1639,7 @@ class simulation:
                                         f"{len(sim_station.get_electric_fields())} efields, skipping to next channel")
                             continue
 
-                            
+
                         # applies the detector response to the electric fields (the antennas are defined
                         # in the json detector description file)
                         apply_det_response_sim(
@@ -1873,8 +1873,8 @@ def _calculate_amp_per_ray_solution(station):
     """ Calculate the max amplitude and time of the ray solutions
 
     Instead of using the channelSignalReconstructor module which calculates
-    these parameters (and may more) too, we use this function to save time 
-    (the other parameters calculated by the channelSignalReconstructor 
+    these parameters (and may more) too, we use this function to save time
+    (the other parameters calculated by the channelSignalReconstructor
     are not used/saved by the simulation.py).
 
     Parameters
