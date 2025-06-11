@@ -101,9 +101,15 @@ class planeWaveFitterRNOG:
             Path to existing directory to save debug plots. Default: './'
 
         """
+        if channel_ids is None:
+            logger.warning('Using all channel ids... this may be slow and lead to unexpected results!')
+            channel_ids = station.get_channel_ids()
+        else:
+            logger.info("channels used for this reconstruction:", channel_ids)
+
         if station.has_sim_station():
             for channel in station.iter_channels():
-                if channel.get_id() == 0:
+                if channel.get_id() in channel_ids:
                     signal_zenith = channel[chp.signal_receiving_zeniths]
                     signal_azimuth = channel[chp.signal_receiving_azimuths]
         else:
@@ -112,26 +118,25 @@ class planeWaveFitterRNOG:
             logger.debug('No simulation available')
 
 
-        logger.info("channels used for this reconstruction:", self.__channel_ids)
 
 
         self.__channel_pairs = []
         self.__relative_positions = []
         self.__relative_delays = []
         station_id = station.get_id()
-        for i in range(len(self.__channel_ids) - 1):
-            for j in range(i + 1, len(self.__channel_ids)):
-                id1, id2 = self.__channel_ids[i], self.__channel_ids[j]
+        for i in range(len(channel_ids) - 1):
+            for j in range(i + 1, len(channel_ids)):
+                id1, id2 = channel_ids[i], channel_ids[j]
                 relative_positions = det.get_relative_position(station_id, id1) - det.get_relative_position(station_id, id2)
                 self.__relative_positions.append(relative_positions)
                 self.__relative_delays.append(
                     station.get_channel(id1).get_trace_start_time()
                     - station.get_channel(id2).get_trace_start_time()
                 )
-                self.__channel_pairs.append([self.__channel_ids[i], self.__channel_ids[j]])
+                self.__channel_pairs.append([channel_ids[i], channel_ids[j]])
 
 
-        self.__sampling_rate = station.get_channel(0).get_sampling_rate()
+        self.__sampling_rate = station.get_channel(channel_ids[0]).get_sampling_rate()
         self.__template = template
 
         if debug:
