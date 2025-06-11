@@ -15,7 +15,7 @@ class planeWaveFitterRNOG:
     " Fits the direction using plane wave fit to channels "
 
     def __init__(self):
-        self.__debugplots_path = './'
+        self.__debugplots_path = None
         pass
 
 
@@ -27,7 +27,8 @@ class planeWaveFitterRNOG:
         ----------
         debugplots_path : str, optional
             Set the path to save (optional) debug plots.
-            If not given, defaults to './'
+            Otherwise, if ``debug`` is set to ``True`` in the `run`
+            method, plots will be shown instead of saved.
         """
         if debugplots_path is not None:
             self.__debugplots_path = debugplots_path
