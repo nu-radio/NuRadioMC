@@ -3,36 +3,43 @@ import scipy.optimize as opt
 import numpy as np
 from radiotools import helper as hp
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioMC.utilities import medium
-from NuRadioMC.SignalProp import propagation
-from NuRadioReco.framework.parameters import showerParameters as shp
 import matplotlib.pyplot as plt
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units
 import scipy.signal
 from NuRadioReco.framework.parameters import channelParameters as chp
+import logging
+
+logger = logging.getLogger('NuRadioReco.planeWaveFitterRNOG')
 
 class planeWaveFitterRNOG:
     " Fits the direction using plane wave fit to channels "
 
     def __init__(self):
-
+        self.__debugplots_path = './'
         pass
 
 
-    def begin(self, det, channel_ids = [0, 3, 9, 10], template = None):
+    def begin(self, debugplots_path = None):
         """
-        Set the channel ids to be used in the plane wave fit.
+        Initialize the class
+
+        Parameters
+        ----------
+        debugplots_path : str, optional
+            Set the path to save (optional) debug plots.
+            If not given, defaults to './'
         """
-        self.__channel_ids = channel_ids
+        if debugplots_path is not None:
+            self.__debugplots_path = debugplots_path
         pass
 
 
     def run(
-        self, evt, station, det, n_index = 1.,
+        self, evt, station, det, n_index = 1., channel_ids=None,
         template = None, mode = 'add', full_output=False,
         zenith_min=0, zenith_max=180*units.deg, zenith_step=0.01,
         azimuth_min=0, azimuth_max=360*units.deg, azimuth_step=0.01,
-        debug = True, debugplots_path = './'):
+        debug = False):
         """
         Run the plane wave fitter
 
@@ -45,9 +52,26 @@ class planeWaveFitterRNOG:
             The detector that specifies the channel positions and cable delays
         n_index: float (default: 1.)
             The average index of refraction
+        channel_ids : list, optional
+            If given, use only the given channel ids in the fit. Otherwise,
+            attempts to use all channels (generally slow!).
         template: np.array or None
             If given, the timing difference is determined by correlation with
             the template instead of pair-wise channel correlation.
+
+        Returns
+        -------
+        (zenith_fit, azimuth_fit): tuple of floats
+            The fit result
+        xgrid: np.ndarray
+            (Only if full_output=True)
+            the brute-force meshgrid
+        fgrid: np.ndarray
+            (Only if full_output=True)
+            the function values at each point of xgrid
+
+        Other Parameters
+        ----------------
         mode: string
             How to maximize the channel-channel or channel-template
             correlations. Options:
@@ -63,28 +87,14 @@ class planeWaveFitterRNOG:
             If True, also return the brute-force meshgrid and the function
             values at all points. Useful for debugging or fitting multiple events
 
-        Returns
-        -------
-        (zenith_fit, azimuth_fit): tuple of floats
-            The fit result
-        xgrid: np.ndarray
-            (Only if full_output=True)
-            the brute-force meshgrid
-        fgrid: np.ndarray
-            (Only if full_output=True)
-            the function values at each point of xgrid
-
-
-        Other Parameters
-        ----------------
         zenith_min: float (default: 0)
         zenith_max: float (default: 180*units.deg)
         zenith_step: float (default: 0.01)
         azimuth_min: float (default: 0)
         azimuth_max: float (default: 360*units.deg)
         azimuth_step: float (default: 0.01)
-        debug: bool, default True
-            If True, produce some debug plots and save them under
+        debug: bool, default False
+            If False, produce some debug plots and save them under
             debugplots_path
         debugplots_path: string
             Path to existing directory to save debug plots. Default: './'
@@ -98,10 +108,10 @@ class planeWaveFitterRNOG:
         else:
             signal_zenith = np.nan
             signal_azimuth = np.nan
-            print('No simulation available')
+            logger.debug('No simulation available')
 
 
-        print("channels used for this reconstruction:", self.__channel_ids)
+        logger.info("channels used for this reconstruction:", self.__channel_ids)
 
 
         self.__channel_pairs = []
@@ -152,16 +162,11 @@ class planeWaveFitterRNOG:
                 if sim:
                     ax[ ich, 0].plot(self.__correlation[ich], color = 'blue')
                     ax[ich, 0].axvline(pos, alpha = .5, color = 'orange', lw = 1, label = 'sim')#self.__correlation[ich, pos])
-                    #print("correlation[ich]", self.__correlation[ich, pos])
-                    #ax[ich, 0].set_xlim((5000, 10000))
-                    #ax[ich,0].legend()
-                    #ax[ich, 0].set_title("channel pair {}- {}".format( ch_pair[0], ch_pair[1]))
                 if rec:
                     ax[ ich, 0].plot(self.__correlation[ich])
                     ax[ich, 0].set_ylim((0, max(self.__correlation[ich])))
                     ax[ich, 0].axvline(pos, alpha = .5, color = 'red', lw = 1, label= 'rec')
                     ax[ich, 1].plot(station.get_channel(ch_pair[0]).get_times(), station.get_channel(ch_pair[0]).get_trace(), color = 'green', label = 'ch {}'.format(ch_pair[0]))
-                  #  print("plot cannels", ch_pair)
                     ax[ich, 1].plot(station.get_channel(ch_pair[1]).get_times(), station.get_channel(ch_pair[1]).get_trace(), color = 'red', label = 'ch {}'.format(ch_pair[1]))
 
                     ax[ich, 1].legend()
@@ -171,24 +176,18 @@ class planeWaveFitterRNOG:
                         ax[ich,1].plot(channel.get_times(), channel.get_trace(), color = 'orange', zorder = 100)
                     for channel in station.get_sim_station().get_channels_by_channel_id(ch_pair[1]):
                         ax[ich,1].plot(channel.get_times(), channel.get_trace(), color = 'orange', zorder = 100)
-                    # ax[ich,1].plot(station.get_sim_station().get_channel(ch_pair[0]).get_times(), station.get_sim_station().get_channel(ch_pair[0]).get_trace(), color = 'orange')
-    #                fig.tight_layout()
-                    #ax[ich, 1].set_title("channel pair {}- {}".format( ch_pair[0], ch_pair[1]))
+
             if rec:
                 ax[-1, 1].set_xlabel("timing [ns]")
                 fig.tight_layout(h_pad=0)
-                if debugplots_path is not None:
-                    fig.savefig("{}/planewave_corr.pdf".format(debugplots_path))
+                if self.__debugplots_path is not None:
+                    fig.savefig("{}/planewave_corr.pdf".format(self.__debugplots_path))
                     plt.close()
                 else:
                     plt.show()
-           # print(stop)
-            ### calculate timing shift due to plane wave
-            ### get value in correlation due to timing
 
             if mode == 'log':
                 corr = np.log(corr)
-           # print("likelihood", likelihood)
             return -1*corr
 
 
@@ -200,32 +199,21 @@ class planeWaveFitterRNOG:
         else:
 
             self.__correlation = np.zeros((len(self.__channel_pairs), len(hp.get_normalized_xcorr(trace, self.__template))) )
-        #if not self.__template: self.__correlation = np.zeros((len(self.__channel_pairs), len(np.abs(scipy.signal.correlate(trace, trace))) ))
         for ich, ch_pair in enumerate(self.__channel_pairs):
-           # print("self.__channel_pairs[0]", self.__channel_pairs[ich][0])
+
             trace1 = np.copy(station.get_channel(self.__channel_pairs[ich][0]).get_trace())
-            #print("channel", station.get_channel(4).get_trace())
             trace2 =np.copy(station.get_channel(self.__channel_pairs[ich][1]).get_trace())
 
             if self.__template is not None:
-        #        self.__correlation = np.zeros((len(self.__channel_pairs), len(hp.get_normalized_xcorr(trace, self.__template))) )
 
                 corr_1 = hp.get_normalized_xcorr(trace1, self.__template)
-                #print("corr 1", corr_1)
                 corr_2 = hp.get_normalized_xcorr(trace2, self.__template)
-                #print("len corr1", len(corr_1))
-               # print("corr 2", corr_2)
-                #print(stop)
-                #print("len channel pairs", len(self.__channel_pairs))
-               # self.__correlation = np.zeros((len(self.__channel_pairs), len(corr_1)))
                 sample_shifts = np.arange(-len(corr_1) // 2, len(corr_1) // 2, dtype=int)
                 for i_shift, shift_sample in enumerate(sample_shifts):
-                  #  print("corr 2", corr_2)
-                    if (np.isnan(corr_2).any()):# or (not corr_2): ### with noise this should not be needed
-                        self.__correlation[ich, i_shift] = 0#np.zeros(len(corr_2))
-                    #    print("self correlation",np.zeros(len(corr_2)))
+                    if (np.isnan(corr_2).any()): ### with noise this should not be needed
+                        self.__correlation[ich, i_shift] = 0
                     elif (np.isnan(corr_1).any()):
-                        self.__correlation[ich, i_shift] = 0#np.zeros(len(corr_2))
+                        self.__correlation[ich, i_shift] = 0
 
                     else:
                         self.__correlation[ich, i_shift] = np.max(corr_1 * np.roll(corr_2, shift_sample))
@@ -269,17 +257,10 @@ class planeWaveFitterRNOG:
                 xgrid[1,0,0] / units.deg,
                 xgrid[1,0,-1] / units.deg,
             )
-            # zens = np.arange(np.rad2deg(signal_zenith) - 10, np.rad2deg(signal_zenith) + 10, .5)
-            # azs = np.arange(np.rad2deg(signal_azimuth) - 10, np.rad2deg(signal_azimuth) + 10, .5)
-            # xx, yy = np.meshgrid(zens, azs)
-            # zz = np.zeros((len(zens), len(azs)))
-            # for iz, z in enumerate(zens):
-            #     for ia, a in enumerate(azs):
-            #         c = likelihood([np.deg2rad(z), np.deg2rad(a)], mode=mode)
-            #         zz[iz, ia] = c
+
 
             fig1 = plt.figure()
-            # plt.pcolor(zens, azs,  zz.T)
+
             plt.imshow(fgrid.T, extent=extent, aspect='auto', origin='lower')
             plt.xlabel(r"zenith $[^{\circ}]$")
             plt.ylabel(r"azimuth $[^{\circ}]$")
@@ -292,15 +273,17 @@ class planeWaveFitterRNOG:
 
             plt.legend()
             fig1.tight_layout()
-            if debugplots_path != None:
-                fig1.savefig("{}/planewave_map.pdf".format(debugplots_path))
+            if self.__debugplots_path is not None:
+                fig1.savefig("{}/planewave_map.pdf".format(self.__debugplots_path))
                 plt.close()
             else:
                 plt.show()
         ##### run with reconstructed values
-        if debug: print("likelihood reconstruction", likelihood(ll, rec = True))
-        print("simulated zenith {} and reconstructed zenith {}".format(np.rad2deg(signal_zenith), np.rad2deg(rec_zenith)))
-        print("simulated azimuth {} and reconstructed azimuth {}".format(np.rad2deg(signal_azimuth), np.rad2deg(rec_azimuth)))
+        if debug:
+            logger.status("likelihood reconstruction", likelihood(ll, rec = True))
+
+        logger.info("simulated zenith {} and reconstructed zenith {}".format(np.rad2deg(signal_zenith), np.rad2deg(rec_zenith)))
+        logger.info("simulated azimuth {} and reconstructed azimuth {}".format(np.rad2deg(signal_azimuth), np.rad2deg(rec_azimuth)))
 
         station[stnp.planewave_zenith] = rec_zenith
         station[stnp.planewave_azimuth] = rec_azimuth
