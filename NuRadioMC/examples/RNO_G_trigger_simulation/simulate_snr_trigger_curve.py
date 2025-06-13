@@ -1,183 +1,186 @@
 import argparse
 import numpy as np
 import datetime as dt
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import matplotlib.colors as mcolors
-from collections import defaultdict
 
-import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.station
 import NuRadioReco.framework.sim_station
+import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.event
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.framework.parameters import showerParameters as shp
 
 from radiotools import helper
 
 from NuRadioMC.utilities import medium
-from NuRadioReco.utilities import units, fft, signal_processing, trace_utilities
-from NuRadioMC.SignalGen import askaryan
+from NuRadioReco.utilities import units, signal_processing, geometryUtilities as geo_utl
+from NuRadioMC.utilities.earth_attenuation import get_weight
+
 from NuRadioMC.SignalProp import analyticraytracing
 from NuRadioReco.detector.RNO_G import rnog_detector
-from NuRadioMC.simulation.simulation import calculate_polarization_vector
+from NuRadioMC.simulation.simulation import calculate_sim_efield
 
 from simulate import detector_simulation, rnog_flower_board_high_low_trigger_simulations
+
+from plot_snr_trigger_curve import plot_trigger_effiency_snr_curve
 
 import logging
 logger = logging.getLogger("NuRadioMC.RNOG_snr_trigger_curve")
 logger.setLevel(logging.INFO)
 
 
-def binomial_proportion(nsel, ntot, coverage=0.68):
-    """
-    Copied from pyik.mumpyext (original author HD)
-
-    Calculate a binomial proportion (e.g. efficiency of a selection) and its confidence interval.
-
-    Parameters
-    ----------
-    nsel: array-like
-        Number of selected events.
-    ntot: array-like
-        Total number of events.
-    coverage: float (optional)
-        Requested fractional coverage of interval (default: 0.68).
-
-    Returns
-    -------
-    p: array of dtype float
-        Binomial fraction.
-    dpl: array of dtype float
-        Lower uncertainty delta (p - pLow).
-    dpu: array of dtype float
-        Upper uncertainty delta (pUp - p).
-
-    Examples
-    --------
-    >>> p, dpl, dpu = binomial_proportion(50, 100, 0.68)
-    >>> print(f"{p:.4f} {dpl:.4f} {dpu:.4f}"
-    0.5000 0.0495 0.0495
-    >>> abs(np.sqrt(0.5*(1.0-0.5)/100.0)-0.5*(dpl+dpu)) < 1e-3
-    True
-
-    Notes
-    -----
-    The confidence interval is approximate and uses the score method
-    of Wilson. It is based on the log-likelihood profile and can
-    undercover the true interval, but the coverage is on average
-    closer to the nominal coverage than the exact Clopper-Pearson
-    interval. It is impossible to achieve perfect nominal coverage
-    as a consequence of the discreteness of the data.
-    """
-
-    from scipy.stats import norm
-
-    z = norm().ppf(0.5 + 0.5 * coverage)
-    z2 = z * z
-    p = np.asarray(nsel, dtype=float) / ntot
-    div = 1.0 + z2 / ntot
-    pm = (p + z2 / (2 * ntot))
-    dp = z * np.sqrt(p * (1.0 - p) / ntot + z2 / (4 * ntot * ntot))
-    pl = (pm - dp) / div
-    pu = (pm + dp) / div
-
-    return p, p - pl, pu - p
-
-
 deep_trigger_channels = [0, 1, 2, 3]
 
 
-def get_propagation_result(det, vertex_position):
+def get_shower_direction_for_viewing_angle(vertex, receiver, viewing_angle, propagator):
+    """
+    Returns a random shower direction for a given vertex and receiver position and
+    a viewing angle. Only returns directions that have a non-negligible weight to survive the earth.
+
+    Only using direct ray for now.
+    """
+
+    propagator.set_start_and_end_point(vertex, receiver)
+    propagator.find_solutions()
+
+    if not propagator.has_solution():
+        return None
+
+    launch_zenith = helper.get_angle(propagator.get_launch_vector(0), np.array([0, 0, 1]))
+
+    shower_phi0 = np.arctan2(receiver[1] - vertex[1], receiver[0] - vertex[0])
+
+    idx = 0
+    while True:
+        ang = np.random.random() * 2 * np.pi
+        unit_circle_direction = np.array([np.cos(ang), np.sin(ang), 1 / np.tan(viewing_angle)])
+        unit_circle_direction = unit_circle_direction / np.linalg.norm(unit_circle_direction)
+
+        shower_dir = np.dot(geo_utl.rot_y(launch_zenith), unit_circle_direction)
+        shower_dir = np.dot(geo_utl.rot_z(shower_phi0), shower_dir)
+        shower_dir /= np.linalg.norm(shower_dir)
+
+        zenith = helper.get_zenith(-shower_dir)
+        weight = get_weight(zenith, 1 * units.EeV, flavors=12, mode="core_mantle_crust_simple")
+
+        if weight > 0.01:
+            # Valid shower direction found, return it.
+            break
+
+        idx += 1
+        if idx > 10:
+            # Too many attempts to find a valid shower direction, return None -> try again with
+            # different vertex position.
+            return None
+
+    # sanity check
+    assert np.abs(viewing_angle - helper.get_angle(shower_dir, propagator.get_launch_vector(0))) < 0.01 * units.deg, \
+        "Viewing angle does not match! "
+
+    return shower_dir
+
+
+def simulate_events(det, args):
+
     ice = medium.get_ice_model("greenland_simple")
+    sampling_rate = 5 * units.GHz
+
+    noise_vrms = signal_processing.calculate_vrms_from_temperature(
+        args.noise_temperature * units.kelvin, bandwidth=[0, sampling_rate / 2])
+
+    channel_vrms = np.zeros_like(deep_trigger_channels, dtype=float)
+    for idx, channel_id in enumerate(deep_trigger_channels):
+        resp = det.get_signal_chain_response(
+            station_id=args.station_id, channel_id=channel_id, trigger=True)
+        channel_vrms[idx] = signal_processing.calculate_vrms_from_temperature(
+            args.noise_temperature * units.kelvin, response=resp)
 
     propagator = analyticraytracing.ray_tracing(
         ice, attenuation_model="GL3",
         detector=det,
         use_cpp=True,
+        store_attenuation=False,
     )
 
-    results = defaultdict(dict)
+    config = dict(
+        sampling_rate = sampling_rate,
+        speedup = {"redo_raytracing": False, "delta_C_cut": 0.698},
+        signal = {"model": "Alvarez2009", "polarization": "auto"},
+        # signal = {"model": "ARZ2020", "shift_for_xmax": True, "polarization": "auto"},
+        seed = None,
+    )
 
-    for channel_id in deep_trigger_channels:
-
-        antenna_position = det.get_relative_position(station_id=args.station_id, channel_id=channel_id)
-        propagator.set_start_and_end_point(vertex_position, antenna_position)
-        propagator.find_solutions()
-
-        results["distance"][channel_id] = propagator.get_path_length(0)
-        results["travel_time"][channel_id] = propagator.get_travel_time(0)
-
-        results["launch_vector"][channel_id] = propagator.get_launch_vector(0)
-        results["receive_vector"][channel_id] = propagator.get_receive_vector(0)
-
-        results["launch_zenith"][channel_id] = helper.get_angle(results["launch_vector"][channel_id], np.array([1, 0, 0]))
-
-    return results
-
-
-def simulate_events(det, viewing_angle_c, vertex_position, e_min=15.5, e_max=16.3, n_events=1000):
-
-    shower_type = "HAD"
-    n_index = 1.78
-    cherenkov_angle = np.arccos(1. / n_index)
-    n_samples = 1024
-    sampling_rate = 5 * units.GHz
-    config = {"signal": {"polarization": "auto"}}
-
-    noise_vrms = signal_processing.calculate_vrms_from_temperature(300 * units.kelvin, bandwidth=[0, sampling_rate / 2])
-
-    channel_vrms = []
-    for channel_id in deep_trigger_channels:
-        resp = det.get_signal_chain_response(station_id=args.station_id, channel_id=channel_id, trigger=True)
-        channel_vrms.append(signal_processing.calculate_vrms_from_temperature(300 * units.kelvin, response=resp))
-    channel_vrms = np.array(channel_vrms)
-
-    propagation_results = get_propagation_result(det, vertex_position)
+    ref_antenna_position = np.mean([
+        det.get_relative_position(station_id=args.station_id, channel_id=channel_id)
+            for channel_id in deep_trigger_channels], axis=0)
+    print(f"Ref. antenna position: {ref_antenna_position}")
 
     events = []
-    snr_events = []
-    for _ in range(n_events):
-        energy = 10 ** np.random.choice(np.linspace(e_min, e_max, 1000))
+    for edx in range(args.n_events):
+        energy = 10 ** np.random.choice(np.linspace(*args.energy_range, 1000))
 
-        event = NuRadioReco.framework.event.Event(0, 0)
-        station = NuRadioReco.framework.station.Station(args.station_id)
-        sim_station = NuRadioReco.framework.sim_station.SimStation(args.station_id)
-
-        for channel_id in deep_trigger_channels:
-
-            viewing_angle = cherenkov_angle + viewing_angle_c * units.deg
-            shower_zenith = np.pi / 2 + viewing_angle + propagation_results["launch_zenith"][channel_id]
-            shower_direction = helper.spherical_to_cartesian(zenith=shower_zenith, azimuth=0)
-
-            spectrum = askaryan.get_frequency_spectrum(
-                energy, viewing_angle,
-                n_samples, 1 / sampling_rate, shower_type, n_index, propagation_results["distance"][channel_id],
-                "ARZ2020", seed=None, full_output=False, shift_for_xmax=True,
-                same_shower=channel_id != deep_trigger_channels[0])
-
-            polarization_direction_onsky = calculate_polarization_vector(
-                shower_direction, propagation_results["launch_vector"][channel_id], config)
-
-            # eR, eTheta, ePhi
-            spectra = np.outer(polarization_direction_onsky, spectrum)
-
-            # this is common stuff which is the same between emitters and showers
-            electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
-                                    position=det.get_relative_position(args.station_id, channel_id),
-                                    shower_id=0, ray_tracing_id=0)
-            electric_field.set_frequency_spectrum(spectra, sampling_rate)
-            electric_field.set_trace_start_time(propagation_results["travel_time"][channel_id])
-
-            electric_field[efp.azimuth] = 0
-            electric_field[efp.zenith] = helper.get_zenith(propagation_results["launch_vector"][channel_id])
-            electric_field[efp.ray_path_type] = 0
-
-            sim_station.add_electric_field(electric_field)
+        while True:
+            event = NuRadioReco.framework.event.Event(0, edx)
+            station = NuRadioReco.framework.station.Station(args.station_id)
+            sim_station = NuRadioReco.framework.sim_station.SimStation(args.station_id)
             sim_station.set_is_neutrino()  # better save than sorry
-            station.set_sim_station(sim_station)
 
-        event.set_station(station)
-        detector_simulation(event, station, det, noise_vrms=noise_vrms, max_freq=sampling_rate / 2)
+            if not args.fix_vertex_position:
+                radius = np.random.uniform(10, 2000 ** 2) ** 0.5
+                phi = np.random.uniform(0, 2 * np.pi)
+                vertex_position = np.array([
+                    radius * np.cos(phi),
+                    radius * np.sin(phi),
+                    np.random.uniform(-10, -2500)
+                ])
+            else:
+                if args.vertex_position is not None:
+                    vertex_position = np.array(args.vertex_position)
+                else:
+                    vertex_position = ref_antenna_position + np.array([-100, 0, 0])
+
+            vertex_position += det.get_absolute_position(args.station_id)
+            n_index = ice.get_index_of_refraction(vertex_position)
+            cherenkov_angle = np.arccos(1. / n_index)
+
+            shower_dir = get_shower_direction_for_viewing_angle(
+                vertex_position, ref_antenna_position + det.get_absolute_position(args.station_id),
+                cherenkov_angle + np.random.choice([-1, 1]) * args.view_angle * units.deg,
+                propagator)
+
+            if shower_dir is None:
+                continue
+
+            sim_shower = NuRadioReco.framework.radio_shower.RadioShower(0)
+            zenith, azimuth = helper.cartesian_to_spherical(*(-shower_dir))
+            sim_shower[shp.zenith] = zenith
+            sim_shower[shp.azimuth] = azimuth
+            sim_shower[shp.energy] = energy
+            sim_shower[shp.flavor] = 12
+            sim_shower[shp.interaction_type] = "nc"
+            sim_shower[shp.type] = args.shower_type
+            sim_shower[shp.vertex] = vertex_position
+
+            for channel_id in deep_trigger_channels:
+                sim_station_tmp = calculate_sim_efield(
+                    [sim_shower], args.station_id, channel_id, det, propagator, medium=ice, config=config)
+
+                station.add_sim_station(sim_station_tmp)
+
+            event.set_station(station)
+            event.add_sim_shower(sim_shower)
+            if len(sim_station_tmp.get_electric_fields()):
+                break
+
+        detector_simulation(event, station, det, noise_vrms=noise_vrms, max_freq=sampling_rate / 2,
+                            add_noise=args.noise)
+
+        # fig, axs = plt.subplots(2, 2, sharex=True, sharey=True)
+        # fig2, axs2 = plt.subplots(2, 2, sharex=True, sharey=True)
+        # for idx, channel in enumerate(station.iter_channels()):
+        #     axs.flatten()[idx].plot(channel.get_times(), channel.get_trace(), lw=1)
+        #     axs2.flatten()[idx].plot(channel.get_frequencies(), np.abs(channel.get_frequency_spectrum()), lw=1)
+
+        # axs2[0, 0].set_xlim(0.02, 0.8)
+        # plt.show()
 
         rnog_flower_board_high_low_trigger_simulations(
             event, station, det, deep_trigger_channels, channel_vrms, {"sigma_3.7": 3.7}, {"sigma_3.0": 3.0})
@@ -185,7 +188,6 @@ def simulate_events(det, viewing_angle_c, vertex_position, e_min=15.5, e_max=16.
         events.append(event)
 
     return events
-
 
 
 if __name__ == "__main__":
@@ -196,24 +198,34 @@ if __name__ == "__main__":
         help="Path to RNO-G detector description file. If None, query from DB")
     parser.add_argument("--station_id", type=int, default=None,
         help="Set station to be used for simulation", required=True)
-    parser.add_argument("--nevents", type=int, default=200, help="")
+
+    parser.add_argument("--n_events", "--nevents", type=int, default=100, help="")
     parser.add_argument("--nruns", type=int, default=1, help="")
     parser.add_argument("--ncpus", type=int, default=12, help="")
-    parser.add_argument("--n_samples", type=int, default=1024, help="")
-    parser.add_argument("--index", type=int, default=0, help="")
     parser.add_argument("--ray", action="store_true")
-    parser.add_argument("--label", type=str, default="")
-    parser.add_argument("--noise_type", type=str, default="rayleigh")
-    parser.add_argument("--running_vrms", action="store_true")
+
+    parser.add_argument("--shower_type", type=str, default="HAD", choices=["HAD", "EM"],
+                        help="Type of shower to simulate (HAD for hadronic, EM for electromagnetic). Default is HAD.")
+    parser.add_argument("--view_angle", type=float, default=1,
+        help="Viewing angle in degrees relative to cherenkov angle.")
+    parser.add_argument("--energy_range", type=float, nargs=2, default=(16, 19),
+        help="Energy range in log10(E/eV) to sample the energy from. Default is (16, 19).")
     parser.add_argument("--noise_temperature", type=float, default=300,
         help="Temperature of the noise in Kelvin. Default is 300 K. This is used to calculate the vrms.")
-    parser.add_argument("--correlated_noise_temperature", type=float, default=None,
-        help="Temperature of the correlated noise in Kelvin. Default is None. This is used to calculate the vrms.")
+    parser.add_argument("--fix_vertex_position", action="store_true",
+                        help="Use a fixed vertex position instead of random sampling. If set either use value in `--vertex_position` or "
+                        "a default position 100 m behind the reference antenna position (in x direction).")
+    parser.add_argument("--vertex_position", type=float, nargs=3, default=None,
+                        help="Vertex position in x,y,z coordinates (in m). Only relevant if `--fix_vertex_position` is used. ")
 
+    parser.add_argument("--label", type=str, default="")
+    parser.add_argument("--store", action="store_true",
+                        help="Store the simulated events to a file.")
+
+
+    parser.add_argument("--no_noise", action="store_false", dest="noise", default=True)
     args = parser.parse_args()
-
-    if args.noise_type != "rayleigh":
-        raise NotImplementedError("Only \"rayleigh\" noise is currently implemented.")
+    print("Using noise:", args.noise)
 
     if args.label != "":
         args.label = f"_{args.label}"
@@ -227,15 +239,6 @@ if __name__ == "__main__":
 
     det.update(dt.datetime(2024, 1, 3))
 
-    antenna_position = np.mean([
-        det.get_relative_position(station_id=args.station_id, channel_id=channel_id)
-        for channel_id in deep_trigger_channels], axis=0)
-
-    # antenna_position = det.get_relative_position(station_id=args.station_id, channel_id=2)
-    print(f"Antenna position: {antenna_position}")
-
-    vertex_position = antenna_position + np.array([-100, 0, 0])
-
     if args.ray:
         """
         Ray is a powerful library for parallel computing. It allows to easily parallelize the simulation
@@ -248,71 +251,40 @@ if __name__ == "__main__":
             raise ImportError("You passed the option '--ray' but ray is not installed. "
                               "Either install ray with 'pip install ray' or remove the commandline flag.")
 
-        # antenna_pattern_provider is a singleton - load antenna patterns upfront
-        import NuRadioReco.detector.antennapattern
-        antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
-        for channel_id in deep_trigger_channels:
-            antenna_pattern_provider.load_antenna_pattern(
-                det.get_antenna_model(args.station_id, channel_id), do_consistency_check=False)
-
         ray.init(num_cpus=args.ncpus)
         @ray.remote
         def simulate_events_ray(*args, **kwargs):
             return simulate_events(*args, **kwargs)
 
         det_ref = ray.put(det)
-        vertex_position_ref = ray.put(vertex_position)
-        n_events_ref = ray.put(args.nevents)
+        args_ref = ray.put(args)
 
-        remotes = [simulate_events_ray.remote(det_ref, 1, vertex_position, n_events=n_events_ref)
-            for _ in range(args.nruns)]
+        remotes = [simulate_events_ray.remote(det_ref, args_ref) for _ in range(args.nruns)]
         events = np.hstack(ray.get(remotes))
-        print(f"Simulated {len(events)} events in total.")
 
     else:
-        events = simulate_events(det, 4, vertex_position, n_events=args.nevents)
+        events = simulate_events(det, args)
+        events = np.array(events)
 
+    print(f"Simulated {len(events)} events in total.")
 
-    snr_events = []
-    for event in events:
-        station = event.get_station()
-        snrs_event = []
-        for channel in station.iter_trigger_channels():
-            trace = channel.get_trace()
-            snr = trace_utilities.get_signal_to_noise_ratio(
-                trace, trace_utilities.get_split_trace_noise_RMS(trace))
-            snrs_event.append(snr)
+    if args.label != "":
+        args.label = f"_{args.label}"
 
-        snr_events.append(np.sort(snrs_event)[-2])
+    if args.store:
+        from NuRadioReco.modules.io.eventWriter import eventWriter as EventWriter
+        writer = EventWriter()
+        writer.begin(f"rnog_snr_trigger_curve_events_viewing_angle-{args.view_angle}deg"
+                     f"_{10 ** args.energy_range[0]:.2e}-{10 ** args.energy_range[1]:.2e}eV_station-{args.station_id}"
+                     f"_{args.shower_type}{'_random_vertices' if not args.fix_vertex_position else ''}{args.label}")
 
-    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-    n, bins = np.histogram(snr_events, bins=np.linspace(2, 6, 40))
+        for event in events:
+            writer.run(event, mode={
+                'Channels': True,
+                'ElectricFields': False,
+                'SimChannels': False,
+                'SimElectricFields': False
+            })
+        writer.end()
 
-    trigger_fractions = []
-    for idx in range(len(n)):
-        bin_mask = (snr_events >= bins[idx]) & (snr_events < bins[idx + 1])
-        sel_events = events[bin_mask]
-        coinc_p, coinc_p_low, coinc_p_up = binomial_proportion(
-            np.sum([event.has_triggered("deep_high_low_sigma_3.7") for event in sel_events]), len(sel_events))
-        pa_p, pa_p_low, pa_p_up = binomial_proportion(
-            np.sum([event.has_triggered("pa_power_sigma_3.0") for event in sel_events]), len(sel_events))
-
-        trigger_fractions.append(
-            np.around([coinc_p, coinc_p_low, coinc_p_up,
-            pa_p, pa_p_low, pa_p_up], 5))
-
-    trigger_fractions = np.array(trigger_fractions)
-    ax.errorbar(bins[:-1] + np.diff(bins) / 2, trigger_fractions[:, 0],
-        yerr=[trigger_fractions[:, 1], trigger_fractions[:, 2]], color="C0", ls=":", lw=1, marker="o")
-    ax.errorbar(bins[:-1] + np.diff(bins) / 2, trigger_fractions[:, 3],
-        yerr=[trigger_fractions[:, 4], trigger_fractions[:, 5]], color="C1", ls=":", lw=1, marker="s")
-
-    ax.plot(np.nan, np.nan, color="C0", marker="o", label="high-low trigger")
-    ax.plot(np.nan, np.nan, color="C1", marker="s", label="phased-array trigger")
-    ax.set_xlim(None, 6)
-    ax.set_xlabel("SNR")
-    ax.set_ylabel("Trigger fraction")
-    ax.grid()
-    ax.legend()
-    fig.tight_layout()
-    plt.show()
+    # plot_trigger_effiency_snr_curve(events, None)
