@@ -296,7 +296,6 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='h
         for flav, it in itertools.product(np.unique(flavors), np.unique(inttype)):
             # If flavors and inttype are not arrays, you want mask to be all True
             mask = np.ones_like(energy, dtype=bool)
-
             if isinstance(flavors, np.ndarray):
                 mask = np.logical_and(mask, flavors == flav)
 
@@ -306,9 +305,14 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='h
             idx_flav = int(np.squeeze(np.argwhere(flavors_ref == flav)))
             idx_inttype = int(np.squeeze(np.argwhere(ncccs_ref == it.lower())))
 
-            crscn[mask] = 10 ** interp1d(
-                nu_energies_ref, np.log10(cross_section_ref[idx_flav, idx_inttype]),
-                bounds_error=True)(energy[mask])
+            if isinstance(energy, np.ndarray):
+                crscn[mask] = 10 ** interp1d(
+                    nu_energies_ref, np.log10(cross_section_ref[idx_flav, idx_inttype]),
+                    bounds_error=True)(energy[mask])
+            else:
+                crscn[mask] = 10 ** interp1d(
+                    nu_energies_ref, np.log10(cross_section_ref[idx_flav, idx_inttype]),
+                    bounds_error=True)(energy)
 
     elif cross_section_type == 'ctw':
         crscn = np.zeros_like(energy)
