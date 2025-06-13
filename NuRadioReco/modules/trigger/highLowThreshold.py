@@ -33,7 +33,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     align_strides_to_start: bool (default: False)
         If true, the trace represents real detector data and will force the striding
         to start at the beginning of the trace without padding. If false, the traces
-        will be zero-padded at the beginning of the trace. This allows a trigger at 
+        will be zero-padded at the beginning of the trace. This allows a trigger at
         beginning of the trace to be associated with the correct trigger time.
 
     Returns
@@ -99,7 +99,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     align_strides_to_start: bool (default: False)
         If true, the trace represents real detector data and will force the striding
         to start at the beginning of the trace without padding. If false, the traces
-        will be zero-padded at the beginning of the trace. This allows a trigger at 
+        will be zero-padded at the beginning of the trace. This allows a trigger at
         beginning of the trace to be associated with the correct trigger time.
 
     Returns
@@ -171,7 +171,7 @@ class triggerSimulator:
             trigger_adc=True,
             clock_offset=0,
             adc_output='voltage',
-            pre_trigger_time=55 * units.ns):
+            pre_trigger_time=55 * units.ns,
             step=1,
             align_strides_to_start=False):
         """
@@ -223,7 +223,7 @@ class triggerSimulator:
         align_strides_to_start: bool (default: False)
             If true, the trace represents real detector data and will force the striding
             to start at the beginning of the trace without padding. If false, the traces
-            will be zero-padded at the beginning of the trace. This allows a trigger at 
+            will be zero-padded at the beginning of the trace. This allows a trigger at
             beginning of the trace to be associated with the correct trigger time.
         """
         t = time.time()
