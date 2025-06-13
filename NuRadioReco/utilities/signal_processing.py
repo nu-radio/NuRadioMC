@@ -29,7 +29,7 @@ from NuRadioReco.detector import filterresponse
 import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
-from scipy import signal, constants
+from scipy import signal, constants, interpolate
 import numpy as np
 import fractions
 import decimal
@@ -733,6 +733,6 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
     time_response = np.roll(time_response, -roll)
 
     response_freq = fft.time2freq(time_response, sampling_rate=sampling_rate)
-    resp_f = scipy.interpolate.interp1d(freqs, response_freq, kind='linear', bounds_error=False, fill_value=0 + 0j)
+    resp_f = interpolate.interp1d(freqs, response_freq, kind='linear', bounds_error=False, fill_value=0 + 0j)
 
     return resp_f
