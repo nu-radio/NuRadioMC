@@ -4,8 +4,19 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.1.0-dev
 new features:
+- energy-dependent inelasticity distribution (only BGR18 model) and cc / nc fraction (all models)
 
 bugfixes:
+
+version 3.0.2
+bugfixes:
+- Restricted custom pickling of numpy objects to NuRadioReco.framework.
+  Previously, importing NuRadioReco would affect the pickling of all numpy
+  objects, also those independent of NuRadio.
+
+version 3.0.1
+bugfixes:
+- fixed an issue where applying modules to older .nur files might raise a KeyError due to an internal change in the event module registry
 
 version 3.0.0
 NuRadioMC 3.0 is a complete refactor of the NuRadioMC core (simulation.py), enabling long-awaited features such as:

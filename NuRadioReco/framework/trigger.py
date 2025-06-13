@@ -1,4 +1,5 @@
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 import numpy as np
 from six import iteritems
 
@@ -223,7 +224,7 @@ class Trigger:
         return self._pre_trigger_times
 
     def serialize(self):
-        return pickle.dumps(self.__dict__, protocol=4)
+        return _dumps(self.__dict__, protocol=4)
 
     def deserialize(self, data_pkl):
         for key, value in iteritems(pickle.loads(data_pkl)):
