@@ -8,7 +8,7 @@ from NuRadioReco.utilities import units
 
 c = scipy_constants.c * units.m / units.s  #: Vacuum speed of light
 
-k_B = scipy_constants.k * units.joule / units.K  #: Boltzman constant
+k_B = scipy_constants.k * units.joule / units.kelvin  #: Boltzman constant
 
 e_mass = scipy_constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
 mu_mass = scipy_constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV
