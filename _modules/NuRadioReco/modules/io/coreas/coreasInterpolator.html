@@ -944,7 +944,7 @@
             <span class="s2">&quot;ignore_cutoff_freq_in_timing&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
             <span class="s2">&quot;verbose&quot;</span> <span class="p">:</span> <span class="kc">False</span>
         <span class="p">}</span>
-        <span class="n">interp_options</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="o">**</span><span class="n">interp_options_default</span><span class="p">}</span>  <span class="c1"># merge the dicts, making sure kwargs overwrite defaults</span>
+        <span class="n">interp_options</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">interp_options_default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span>  <span class="c1"># merge the dicts, making sure kwargs overwrite defaults</span>
 
         <span class="n">geomagnetic_angle</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">get_geomagnetic_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zenith</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">azimuth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">)</span>
 
@@ -1021,7 +1021,7 @@
             <span class="s2">&quot;fill_value&quot;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s2">&quot;recover_concentric_rings&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="n">interp_options</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="o">**</span><span class="n">interp_options_default</span><span class="p">}</span>
+        <span class="n">interp_options</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">interp_options_default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span>  <span class="c1"># merge the dicts, making sure kwargs overwrite defaults</span>
 
         <span class="n">fluence_per_position</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">efield</span><span class="p">[</span><span class="n">quantity</span><span class="p">])</span> <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">()</span>
