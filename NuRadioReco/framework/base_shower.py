@@ -68,6 +68,17 @@ class BaseShower(NuRadioReco.framework.parameter_storage.ParameterStorage):
                                          self.get_parameter(showerParameters.azimuth),
                                          self.get_parameter(showerParameters.magnetic_field_vector))
 
+    def __str__(self):
+        def print_key(key, add=""):
+            if self.has_parameter(key):
+                return f"{str(self.get_parameter(key))}{add}"
+            else:
+                return None
+
+        return f"Shower {self._id}: E = {print_key(showerParameters.energy, ' eV')}" + \
+            f", (zen, azi) = ({print_key(showerParameters.zenith, ' deg')}, {print_key(showerParameters.azimuth, ' deg')})" + \
+            f", (x, y, z) = ({print_key(showerParameters.vertex, 'm')}"
+
     def serialize(self):
         data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
         data['_id'] = self._id
