@@ -163,7 +163,7 @@ def get_ray_depth_profile(zenith, z_antenna):
     power_interp = interp1d(distance_raytracing, reflected_power, fill_value="extrapolate")
     radius_interp = interp1d(distance_raytracing, radius_raytracing, fill_value="extrapolate")
 
-    distance = np.linspace(0, 30000, 10000) * units.m
+    distance = np.linspace(0, 30000, 100000) * units.m
 
     depth = depth_interp(distance)
     reflection_coef = power_interp(distance)
@@ -347,6 +347,9 @@ if __name__ == "__main__":
     parser.add_argument('--fname', type=str, default=None, help='Filename to save the data to')
 
     args = parser.parse_args()
+
+    if args.z_antenna > 0:
+        raise ValueError("The antenna is at or above the surface (z=0), the depth should be negative.")
 
     fname = args.fname or f"eff_temperature_{args.z_antenna}m_ntheta{args.n_theta}_{args.attenuation_model}.json"
 

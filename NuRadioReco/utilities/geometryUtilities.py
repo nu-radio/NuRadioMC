@@ -318,7 +318,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
 
     position = detector.get_relative_position(station.get_id(), channel_id)
     # first check case if signal comes from above
-    if zenith <= 0.5 * np.pi and station.is_cosmic_ray() and (position[2] <= 0):
+    if zenith <= 0.5 * np.pi and station.is_cosmic_ray() and position[2] <= 0:
         if position[2] < -3 * units.m:
             logger.warning(
                 "This function might return inaccurate results for deep in-ice antennas. "
