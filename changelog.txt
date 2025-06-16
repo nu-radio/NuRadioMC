@@ -2,6 +2,13 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 3.0.3
+bugfixes:
+- Fixed a bug which caused interpolator options explicitly passed to the coreasInterpolator to be overwritten
+- Removed one unused optional argument introduced in 3.0.2 which broke Event storage on python version <3.8
+- Fixed a bug where untriggered stations in a multiple-station event would attempt to access primary particle
+  information from an empty buffer.
+
 version 3.0.2
 bugfixes:
 - Restricted custom pickling of numpy objects to NuRadioReco.framework.
