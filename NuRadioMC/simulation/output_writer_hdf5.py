@@ -384,7 +384,8 @@ class outputWriterHDF5:
             # we also want to save the first interaction even if it didn't contribute to any trigger
             # this is important to know the initial neutrino properties (only relevant for the simulation of
             # secondary interactions)
-            stn_buffer = event_buffer[self._station_ids[0]]
+            # We will get this from the first non-empty station in event_buffer
+            stn_buffer = [b for b in event_buffer.values() if b][0] # `if b` ensures we don't get a non-triggered station (with no buffer)
             evt = stn_buffer[list(stn_buffer.keys())[0]]
             particle = evt.get_primary()
             if(particle[pap.shower_id] not in shower_ids):
