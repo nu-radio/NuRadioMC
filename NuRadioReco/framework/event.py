@@ -278,7 +278,8 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         if isinstance(station, NuRadioReco.framework.hybrid_station.HybridStation):
             logger.warning(f'Provided station is a HybridStation, please use `set_particle_station` instead of `set_station` in the future.')
             self.set_particle_station(station)
-        self.__stations[station.get_id()] = station
+        else:
+            self.__stations[station.get_id()] = station
 
     def has_triggered(self, trigger_name=None):
         """
