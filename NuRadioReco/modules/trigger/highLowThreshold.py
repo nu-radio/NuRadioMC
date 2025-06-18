@@ -223,9 +223,12 @@ class triggerSimulator:
             to start at the beginning of the trace without padding. If false, the traces
             will be zero-padded at the beginning of the trace. This allows a trigger at 
             beginning of the trace to be associated with the correct trigger time.
-        pre_trigger_time: float
+        pre_trigger_time: float or dict of floats
             Defines the amount of trace recorded before the trigger time. This module does not cut the traces,
             but this trigger property is later used to trim traces accordingly.
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
             If none, the default value of the HighLowTrigger class is used, which is currently 55ns.
         """
         t = time.time()
