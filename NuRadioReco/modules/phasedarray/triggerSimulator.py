@@ -530,10 +530,13 @@ class triggerSimulator:
         apply_digitization: bool (default True)
             Perform the quantization of the ADC. If set to true, should also set options
             `trigger_adc`, `adc_output`, `clock_offset`
-        pre_trigger_time: float
+        pre_trigger_time: float or dict of floats
             Defines the amount of trace recorded before the trigger time. This module does not cut the traces,
             but this trigger property is later used to trim traces accordingly.
-            If none, the default value of the HighLowTrigger class is used, which is currently 55ns.
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+            If none, the default value of the Trigger class is used, which is currently 55ns.
 
         Returns
         -------
