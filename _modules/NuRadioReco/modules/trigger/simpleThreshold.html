@@ -693,7 +693,8 @@
             <span class="n">number_concidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">coinc_window</span><span class="o">=</span><span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
-            <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;default_simple_threshold&#39;</span><span class="p">):</span>
+            <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;default_simple_threshold&#39;</span><span class="p">,</span>
+            <span class="n">pre_trigger_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Simulate simple trigger logic, no time window, just threshold in all channels</span>
 
@@ -716,6 +717,13 @@
 <span class="sd">            time window in which number_concidences channels need to trigger</span>
 <span class="sd">        trigger_name: string</span>
 <span class="sd">            a unique name of this particular trigger</span>
+<span class="sd">        pre_trigger_time: float or dict of floats</span>
+<span class="sd">            Defines the amount of trace recorded before the trigger time. This module does not cut the traces,</span>
+<span class="sd">            but this trigger property is later used to trim traces accordingly.</span>
+<span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
+<span class="sd">            start of the trace and the trigger time.</span>
+<span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
+<span class="sd">            If none, the default value of the Trigger class is used, which is currently 55ns.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
@@ -763,7 +771,11 @@
                 <span class="n">max_signal</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_signal</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()[</span><span class="n">triggered_bins</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
             <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">channels_max_amplitude</span><span class="p">,</span> <span class="n">max_signal</span><span class="p">)</span>
 
-        <span class="n">trigger</span> <span class="o">=</span> <span class="n">SimpleThresholdTrigger</span><span class="p">(</span><span class="n">trigger_name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">,</span> <span class="n">number_concidences</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">pre_trigger_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pre_trigger_times&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pre_trigger_time</span>
+        <span class="n">trigger</span> <span class="o">=</span> <span class="n">SimpleThresholdTrigger</span><span class="p">(</span><span class="n">trigger_name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">,</span> <span class="n">number_concidences</span><span class="p">,</span>
+                                         <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered_channels</span><span class="p">(</span><span class="n">channels_that_passed_trigger</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">has_triggered</span><span class="p">:</span>

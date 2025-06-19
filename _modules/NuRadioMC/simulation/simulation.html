@@ -2121,6 +2121,8 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Starting NuRadioMC simulation&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="o">.</span><span class="n">reset_times</span><span class="p">()</span>
 
+        <span class="n">i_triggered_events</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># counter for triggered events</span>
+
         <span class="n">particle_mode</span> <span class="o">=</span> <span class="s2">&quot;simulation_mode&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">[</span><span class="s1">&#39;simulation_mode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;emitter&quot;</span>
         <span class="n">event_group_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fin</span><span class="p">[</span><span class="s1">&#39;event_group_ids&#39;</span><span class="p">])</span>
         <span class="n">unique_event_group_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">event_group_ids</span><span class="p">)</span>
@@ -2366,6 +2368,8 @@
                     <span class="n">channelSignalReconstructor</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_set_event_station_parameters</span><span class="p">(</span><span class="n">evt</span><span class="p">)</span>
 
+                    <span class="n">i_triggered_events</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c1"># count the number of triggered events</span>
+
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputfilenameNuRadioReco</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="c1"># downsample traces to detector sampling rate to save file size</span>
                         <span class="n">sampling_rate_detector</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span>
@@ -2408,7 +2412,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_output_writer_hdf5</span><span class="o">.</span><span class="n">calculate_Veff</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_writer_hdf5</span><span class="o">.</span><span class="n">write_output_file</span><span class="p">():</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No events were triggered. Writing empty HDF5 output file.&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_output_writer_hdf5</span><span class="o">.</span><span class="n">write_empty_output_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output_writer_hdf5</span><span class="o">.</span><span class="n">write_empty_output_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">i_triggered_events</span></div>
 
 
 <div class="viewcode-block" id="simulation.add_filtered_noise_to_channels">

@@ -818,7 +818,8 @@
             <span class="n">clock_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">adc_output</span><span class="o">=</span><span class="s1">&#39;voltage&#39;</span><span class="p">,</span>
             <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">align_strides_to_start</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="n">align_strides_to_start</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">pre_trigger_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        simulate ARIANNA trigger logic</span>
 
@@ -868,6 +869,13 @@
 <span class="sd">            to start at the beginning of the trace without padding. If false, the traces</span>
 <span class="sd">            will be zero-padded at the beginning of the trace. This allows a trigger at </span>
 <span class="sd">            beginning of the trace to be associated with the correct trigger time.</span>
+<span class="sd">        pre_trigger_time: float or dict of floats</span>
+<span class="sd">            Defines the amount of trace recorded before the trigger time. This module does not cut the traces,</span>
+<span class="sd">            but this trigger property is later used to trim traces accordingly.</span>
+<span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
+<span class="sd">            start of the trace and the trigger time.</span>
+<span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
+<span class="sd">            If none, the default value of the HighLowTrigger class is used, which is currently 55ns.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
@@ -941,8 +949,12 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;set_not_triggered flag True, setting triggered to False.&quot;</span><span class="p">)</span>
             <span class="n">has_triggered</span> <span class="o">=</span> <span class="kc">False</span>
 
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">pre_trigger_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pre_trigger_times&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pre_trigger_time</span>
         <span class="n">trigger</span> <span class="o">=</span> <span class="n">HighLowTrigger</span><span class="p">(</span><span class="n">trigger_name</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">,</span> <span class="n">threshold_low</span><span class="p">,</span> <span class="n">high_low_window</span><span class="p">,</span>
-                                 <span class="n">coinc_window</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="n">triggered_channels</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="n">number_concidences</span><span class="p">)</span>
+                                 <span class="n">coinc_window</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="n">triggered_channels</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="n">number_concidences</span><span class="p">,</span>
+                                 <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered_channels</span><span class="p">(</span><span class="n">channels_that_passed_trigger</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">has_triggered</span><span class="p">:</span>

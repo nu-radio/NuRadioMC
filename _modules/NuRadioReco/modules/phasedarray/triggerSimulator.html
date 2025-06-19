@@ -671,8 +671,7 @@
 
 <div class="viewcode-block" id="triggerSimulator.begin">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.begin">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pre_trigger_time</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span> <span class="o">=</span> <span class="n">pre_trigger_time</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="n">debug</span></div>
 
 
@@ -1129,6 +1128,7 @@
             <span class="n">window</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
             <span class="n">step</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
             <span class="n">apply_digitization</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">pre_trigger_time</span><span class="o">=</span><span class="kc">None</span>
             <span class="p">):</span>
 
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1191,6 +1191,13 @@
 <span class="sd">        apply_digitization: bool (default True)</span>
 <span class="sd">            Perform the quantization of the ADC. If set to true, should also set options</span>
 <span class="sd">            `trigger_adc`, `adc_output`, `clock_offset`</span>
+<span class="sd">        pre_trigger_time: float or dict of floats</span>
+<span class="sd">            Defines the amount of trace recorded before the trigger time. This module does not cut the traces,</span>
+<span class="sd">            but this trigger property is later used to trim traces accordingly.</span>
+<span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
+<span class="sd">            start of the trace and the trigger time.</span>
+<span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
+<span class="sd">            If none, the default value of the Trigger class is used, which is currently 55ns.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1232,6 +1239,9 @@
                 <span class="n">apply_digitization</span><span class="o">=</span><span class="n">apply_digitization</span><span class="p">,</span>
             <span class="p">)</span>
 
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">pre_trigger_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pre_trigger_times&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pre_trigger_time</span>
         <span class="c1"># Create a trigger object to be returned to the station</span>
         <span class="n">trigger</span> <span class="o">=</span> <span class="n">SimplePhasedTrigger</span><span class="p">(</span>
             <span class="n">trigger_name</span><span class="p">,</span>
@@ -1242,6 +1252,7 @@
             <span class="n">window_size</span><span class="o">=</span><span class="n">window</span><span class="p">,</span>
             <span class="n">step_size</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
             <span class="n">maximum_amps</span><span class="o">=</span><span class="n">maximum_amps</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
         <span class="p">)</span>
 
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="n">is_triggered</span><span class="p">)</span>
