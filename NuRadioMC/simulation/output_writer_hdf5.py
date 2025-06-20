@@ -532,17 +532,21 @@ class outputWriterHDF5:
         Returns:
             float: The calculated effective volume (Veff)
         """
-        # calculate effective
-        try: # sometimes not all relevant attributes are set, e.g. for emitter simulations.
-            triggered = remove_duplicate_triggers(self._mout['triggered'], self._mout['event_group_ids'])
-            n_triggered = np.sum(triggered)
+        # calculate effective volume
+        triggered = remove_duplicate_triggers(self._mout['triggered'], self._mout['event_group_ids'])
+        n_triggered = np.sum(triggered)
+        try:
             n_triggered_weighted = np.sum(np.array(self._mout['weights'])[triggered])
-            n_events = self._mout_attributes['n_events']
-            logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} (sum of weights = {n_triggered_weighted:.2f})')
+        except KeyError:
+            logger.debug("No 'weights' present in HDF5 output, assuming all weights are unity.")
+            n_triggered_weighted = n_triggered
+        n_events = self._mout_attributes['n_events']
+        logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} (sum of weights = {n_triggered_weighted:.2f})')
 
+        if 'volume' in self._mout_attributes: # this key is not present for e.g. emitter simulations
             V = self._mout_attributes['volume']
             Veff = V * n_triggered_weighted / n_events
             logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
             return Veff
-        except:
+        else:
             return None
