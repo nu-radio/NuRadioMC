@@ -195,6 +195,7 @@ TeV = teraelectronvolt
 PeV = petaelectronvolt
 EeV = exaelectronvolt
 ZeV = zettaelectronvolt
+J = joule
 
 # Mass [E][T^2][L^-2]
 kilogram = joule * second * second / (meter * meter)
@@ -263,6 +264,7 @@ henry = weber / ampere  # henry = 1.60217e-7*MeV*(ns/eplus)**2
 
 # Temperature
 kelvin = 1
+K = kelvin  # symbol
 
 # Amount of substance
 mole = 1
