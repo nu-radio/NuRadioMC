@@ -978,6 +978,46 @@ at the air/ice boundary are already being taken into account.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.signal_processing.window_response_in_time_domain">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">window_response_in_time_domain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_t_diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_island_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#window_response_in_time_domain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.window_response_in_time_domain" title="Link to this definition"></a></dt>
+<dd><p>Windows a response in the time domain (i.e., sets the response to 0 outside a window).</p>
+<p>This function takes the reponse in the time domain, identifies the relevant region of the response,
+and sets the response to 0 outside that region. The relevant region is found as the region where the
+hilbert envelope is above a certain threshold relative to the maximum in the envelope.</p>
+<p>This function first searchs for “islands” (or sequences of samples) of significant change
+in the hilbert envelope. It then connects these islands if they are close enough
+to each other and long enough. Finally, it applies a window to the response in the time domain
+and returns the windowed response in the frequency domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>resp: NuRadioReco.detector.response.Response or callable(freqs) -&gt; complex response</strong></dt><dd><p>The response function to be windowed.</p>
+</dd>
+<dt><strong>sampling_rate: float (default: 5 * units.GHz)</strong></dt><dd><p>For conversion in time domain, i.e., the sampling rate to evaluate the response in the time domain.</p>
+</dd>
+<dt><strong>t0: float (default: 2 * units.microsecond)</strong></dt><dd><p>For conversion in time domain, i.e., the trace length of the response in time domain.</p>
+</dd>
+<dt><strong>min_diff: float (default: 0.005)</strong></dt><dd><p>The minimum difference in the integral of hilbert envelope (from one sample to the other) to be considered significant.
+For this the maximum difference is normalized to 1.</p>
+</dd>
+<dt><strong>max_t_diff: float (default: 5 * units.ns)</strong></dt><dd><p>The maximum time difference between two islands to be considered connected.</p>
+</dd>
+<dt><strong>min_island_length: float (default: 1 * units.ns)</strong></dt><dd><p>The minimum length of an island to be considered significant.</p>
+</dd>
+<dt><strong>show_debug: bool (default: False)</strong></dt><dd><p>If True, show the debug plots.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>resp_f: callable(freqs) -&gt; complex response</dt><dd><p>The windowed response function.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
