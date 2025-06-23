@@ -33,7 +33,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     align_strides_to_start: bool (default: False)
         If true, the trace represents real detector data and will force the striding
         to start at the beginning of the trace without padding. If false, the traces
-        will be zero-padded at the beginning of the trace. This allows a trigger at 
+        will be zero-padded at the beginning of the trace. This allows a trigger at
         beginning of the trace to be associated with the correct trigger time.
 
     Returns
@@ -99,7 +99,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     align_strides_to_start: bool (default: False)
         If true, the trace represents real detector data and will force the striding
         to start at the beginning of the trace without padding. If false, the traces
-        will be zero-padded at the beginning of the trace. This allows a trigger at 
+        will be zero-padded at the beginning of the trace. This allows a trigger at
         beginning of the trace to be associated with the correct trigger time.
 
     Returns
@@ -221,7 +221,7 @@ class triggerSimulator:
         align_strides_to_start: bool (default: False)
             If true, the trace represents real detector data and will force the striding
             to start at the beginning of the trace without padding. If false, the traces
-            will be zero-padded at the beginning of the trace. This allows a trigger at 
+            will be zero-padded at the beginning of the trace. This allows a trigger at
             beginning of the trace to be associated with the correct trigger time.
         pre_trigger_time: float or dict of floats
             Defines the amount of trace recorded before the trigger time. This module does not cut the traces,
@@ -309,6 +309,7 @@ class triggerSimulator:
         trigger = HighLowTrigger(trigger_name, threshold_high, threshold_low, high_low_window,
                                  coinc_window, channels=triggered_channels, number_of_coincidences=number_concidences,
                                  **kwargs)
+
         trigger.set_triggered_channels(channels_that_passed_trigger)
 
         if not has_triggered:
