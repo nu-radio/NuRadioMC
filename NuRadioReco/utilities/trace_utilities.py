@@ -15,7 +15,7 @@ See Also
     Module for functions that modify traces, e.g., by filtering, delaying, etc.
 """
 
-from NuRadioReco.utilities import units, signal_processing
+from NuRadioReco.utilities import units, signal_processing, fft
 
 import numpy as np
 import scipy.stats
