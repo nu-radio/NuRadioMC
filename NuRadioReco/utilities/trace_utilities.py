@@ -185,9 +185,9 @@ def _get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_nois
 
     Returns
     -------
-    np.ndarray
+    estimators : np.ndarray
         Estimators for the noise fluence.
-    np.ndarray
+    frequencies_window : np.ndarray
         Frequencies corresponding to the estimators.
     """
 
@@ -276,9 +276,9 @@ def _get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estim
 
     Returns
     -------
-    np.ndarray
+    signal_estimators : np.ndarray
         Estimators for the signal fluence.
-    np.ndarray
+    variances : np.ndarray
         Variance of the signal fluence estimators.
     """
 
