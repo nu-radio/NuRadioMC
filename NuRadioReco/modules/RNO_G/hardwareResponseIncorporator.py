@@ -1,5 +1,6 @@
+import NuRadioReco.modules.channelAddCableDelay
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, fft, signal_processing
+from NuRadioReco.utilities import units, fft
 import NuRadioReco.framework.station
 
 from NuRadioReco.detector.RNO_G import analog_components
@@ -24,6 +25,7 @@ class hardwareResponseIncorporator:
         self.__t = 0
         self.__mingainlin = None
         self.trigger_channels = None
+        self.channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
     def begin(self, trigger_channels=None):
         """
@@ -236,13 +238,20 @@ class hardwareResponseIncorporator:
                 trace_fft, channel.get_sampling_rate())
 
         if not sim_to_data:
-            # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
-            # in the efieldToVoltageConverter or with the channelCableDelayAdder
-            # (if efieldToVoltageConverterPerEfield was used).
-            signal_processing.add_cable_delay(station, det, sim_to_data, trigger=False, logger=self.logger)
-            if has_trigger_channels:
-                signal_processing.add_cable_delay(
-                        station, det, sim_to_data, trigger=True, logger=self.logger)
+            if not evt.has_been_processed_by_module('channelAddCableDelay', station.get_id()):
+                self.logger.warning(
+                    "The hardwareResponseIncorporator module should _not_ be used to remove the cable delay "
+                    "from data anymore. Please use channelAddCableDelay module for this (before running "
+                    "the hardwareResponseIncorporator module). The channelAddCableDelay was not applied "
+                    "to this event, hence, you are receiving this warning. The cable delay is now "
+                    "removed. Please add the channelAddCableDelay module to your processing chain "
+                    "to avoid this warning in the future (in that case the cable delay will not be "
+                    "removed by this module).")
+
+                # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
+                # in the efieldToVoltageConverter or with the channelCableDelayAdder
+                # (if efieldToVoltageConverterPerEfield was used).
+                self.channelAddCableDelay.run(evt, station, det, mode='subtract')
 
         self.__t += time.time() - t
 
