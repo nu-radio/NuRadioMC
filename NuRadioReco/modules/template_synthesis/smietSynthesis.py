@@ -197,7 +197,7 @@ class smietSynthesis:
 
 # Interpolated synthesis class
 class smietInterpolated:
-    def __init__(self) -> None:
+    def __init__(self, freq=[30, 500]) -> None:
         self.synthesis: list[TemplateSynthesis] = []
         self.origin_xmax = []
 
@@ -205,6 +205,15 @@ class smietInterpolated:
         self.gps_secs = 0
 
         self._time_resolution = None
+
+        if freq[0] == 30 and freq[1] == 500:
+            self.freq_ar = [*freq, 100]
+        elif freq[0] == 30 and freq[1] == 80:
+            self.freq_ar = [*freq, 50]
+        else:
+            raise ValueError(
+                "Currently only the values [30, 500] and [30, 80] are supported for the `freq` argument"
+            )
 
     @property
     def zenith(self):
@@ -227,7 +236,7 @@ class smietInterpolated:
     def begin(self, showers: list[str], templates: list[str] | None = None):
         my_synthesis = []
         for shower_ind, shower_path in enumerate(showers):
-            synthesis = TemplateSynthesis()
+            synthesis = TemplateSynthesis(freq_ar=self.freq_ar)
 
             if templates is not None:
                 synthesis.load_template(templates[shower_ind])
