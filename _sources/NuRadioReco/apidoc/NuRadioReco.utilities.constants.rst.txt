@@ -1,0 +1,7 @@
+NuRadioReco.utilities.constants module
+======================================
+
+.. automodule:: NuRadioReco.utilities.constants
+   :members:
+   :undoc-members:
+   :show-inheritance:

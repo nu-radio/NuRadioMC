@@ -13,6 +13,7 @@ Submodules
    :maxdepth: 1
 
    NuRadioReco.utilities.analytic_pulse
+   NuRadioReco.utilities.constants
    NuRadioReco.utilities.cr_flux
    NuRadioReco.utilities.dataservers
    NuRadioReco.utilities.diodeSimulator
