@@ -198,70 +198,71 @@ class smietSynthesis:
 # Interpolated synthesis class
 class smietInterpolated:
     def __init__(self) -> None:
-        self.synthesis: list[smietSynthesis] = []
-        self.origin_xmax: list[float] = []
+        self.synthesis: list[TemplateSynthesis] = []
+        self.origin_xmax = []
 
         self.evt_nr = 999999
         self.gps_secs = 0
 
+        self._time_resolution = None
+
     @property
     def zenith(self):
-        return self.synthesis[0].origin_sim_shower.get_parameter(shp.zenith)
+        return self.synthesis[0].template_information["geometry"][0]
 
     @property
     def azimuth(self):
-        return self.synthesis[0].origin_sim_shower.get_parameter(shp.azimuth)
+        return self.synthesis[0].template_information["geometry"][1]
 
     @property
     def time_resolution(self):
-        return self.synthesis[0].time_resolution
+        if self._time_resolution is None:
+            self._time_resolution = (
+                1
+                / self.synthesis[0].antenna_information["time_axis"].shape[1]
+                / self.synthesis[0].frequencies[1]
+            )
+        return self._time_resolution
 
     def begin(self, showers: list[str], templates: list[str] | None = None):
-        if templates is None:
-            my_templates = [None] * len(showers)
-        else:
-            my_templates = templates
-
         my_synthesis = []
-        for shower_path, template_path in zip(showers, my_templates):
-            synthesis = smietSynthesis()
-            synthesis.begin(shower_path, template_path)
+        for shower_ind, shower_path in enumerate(showers):
+            synthesis = TemplateSynthesis()
+
+            if templates is not None:
+                synthesis.load_template(templates[shower_ind])
+            else:
+                origin_shower: SlicedShower = SlicedShower(shower_path)
+                synthesis.make_template(origin_shower)
 
             my_synthesis.append(synthesis)
 
         self.synthesis = sorted(
             my_synthesis,
-            key=lambda x: x.origin_sim_shower.get_parameter(shp.shower_maximum),
+            key=lambda x: x.template_information["xmax"],
         )
 
-        self.origin_xmax = [
-            synth.origin_sim_shower.get_parameter(shp.shower_maximum)
-            for synth in self.synthesis
-        ]
+        self.origin_xmax = (
+            np.array([synth.template_information["xmax"] for synth in self.synthesis])
+            * units.g
+            / units.cm2
+        )
 
     def synthesise_single_shower(self, synth_ind, target):
-        synth_geo, synth_ce = self.synthesis[synth_ind].template_synthesis.map_template(
-            target
-        )
+        synth_geo, synth_ce = self.synthesis[synth_ind].map_template(target)
 
-        x, y = (
-            self.synthesis[synth_ind]
-            .template_synthesis.antenna_information["position_showerplane"]
-            .T
-        )
+        x, y = self.synthesis[synth_ind].antenna_information["position_showerplane"].T
 
         synth_shower_plane = geo_ce_to_e(np.stack((synth_geo, synth_ce), axis=2), x, y)
 
         return synth_shower_plane
 
-    def calculate_interpolation_t(self, target_xmax):
+    def calculate_interpolation_t(self, target_xmax, index_upper):
         """
         This is the `t` value that needs to be multiplied by the upper synthesis
         """
-        index = bisect.bisect(self.origin_xmax, target_xmax)
-
-        lower_xmax = self.origin_xmax[index - 1]
-        upper_xmax = self.origin_xmax[index]
+        lower_xmax = self.origin_xmax[index_upper - 1]
+        upper_xmax = self.origin_xmax[index_upper]
 
         return (target_xmax - lower_xmax) / (upper_xmax - lower_xmax)
 
@@ -283,7 +284,9 @@ class smietInterpolated:
             synth_upper = self.synthesise_single_shower(upper_shower, shower)
             synth_lower = self.synthesise_single_shower(lower_shower, shower)
 
-            t = self.calculate_interpolation_t(shower.xmax)
+            t = self.calculate_interpolation_t(
+                shower.xmax * units.g / units.cm2, upper_shower
+            )
             synth_shower_plane = t * synth_upper + (1 - t) * synth_lower
 
             # Transform synth_shower into Event
@@ -297,10 +300,8 @@ class smietInterpolated:
             for efield_ind, (efield, efield_position, efield_time_axis) in enumerate(
                 zip(
                     synth_shower_plane,
-                    self.synthesis[lower_shower].template_synthesis.antenna_information[
-                        "position"
-                    ],
-                    self.synthesis[lower_shower].template_synthesis.get_time_axis(),
+                    self.synthesis[lower_shower].antenna_information["position"],
+                    self.synthesis[lower_shower].get_time_axis(),
                 )
             ):
                 add_electric_field_to_sim_station(
