@@ -866,18 +866,53 @@ class ray_tracing_2D(ray_tracing_base):
 
         return np.sqrt(1/f_inverse_squared)
 
-    def __get_frequencies_for_attenuation(self, frequency, max_detector_freq):
-            mask = frequency > 0
-            nfreqs = min(self.__n_frequencies_integration, np.sum(mask))
-            freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), nfreqs)
-            if(nfreqs < np.sum(mask) and max_detector_freq is not None):
-                mask2 = frequency <= max_detector_freq
-                nfreqs2 = min(self.__n_frequencies_integration, np.sum(mask2 & mask))
-                freqs = np.linspace(frequency[mask2 & mask].min(), frequency[mask2 & mask].max(), nfreqs2)
-                if(np.sum(~mask2) > 1):
-                    freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs // 2))
-            self.__logger.debug(f"calculating attenuation for frequencies {freqs}")
-            return freqs
+    def __get_frequencies_for_attenuation(self, frequency, max_detector_freq=None):
+        """ Returns a frequency vector for the attenuation calculation.
+
+        It takes the frequency vector of a simulated electric field and makes it sparser.
+        This function is used to reduce the number of frequencies for which the attenuation
+        is calculated (which is time consuming). Afterwards the attenuation factors for the
+        missing frequencies can be interpolated.
+
+        If max_detector_freq is None, the function will return a frequency vector (0, f_max] with
+        self.__n_frequencies_integration frequencies (unless the original frequency vector is already sparser).
+        If max_detector_freq is not None, the function will return a frequency vector (0, max_detector_freq] + (max_detector_freq, f_max]
+        with the first part having self.__n_frequencies_integration frequencies and the second part having
+        self.__n_frequencies_integration // 2 frequencies.
+
+        Parameters
+        ----------
+        frequency: array
+            Frequency vector of the simulated electric field
+        max_detector_freq: float
+            Maximum frequency of the detector (the nyquist frequency)
+
+        Returns
+        -------
+        freqs: array
+            Sparse frequency vector for the attenuation calculation
+        """
+
+        non_null_freqs = frequency > 0
+        n_freqs = min(self.__n_frequencies_integration, np.sum(non_null_freqs))
+
+        freqs = np.linspace(frequency[non_null_freqs].min(), frequency[non_null_freqs].max(), n_freqs)
+
+        if (n_freqs < np.sum(non_null_freqs)  # original frequency vector is already sparse
+            and max_detector_freq is not None):
+
+            det_mask = frequency <= max_detector_freq
+            total_mask = det_mask & non_null_freqs
+
+            n_freqs = min(self.__n_frequencies_integration, np.sum(total_mask))
+            freqs = np.linspace(frequency[total_mask].min(), frequency[total_mask].max(), n_freqs)
+            # Append n_freqs // 2 frequencies between detector nyquist frequency and simulated nyquist frequency
+            if np.sum(~det_mask) > 1:
+                freqs = np.append(freqs, np.linspace(frequency[~det_mask].min(), frequency[~det_mask].max(), n_freqs // 2))
+
+
+        self.__logger.debug("Frequency vector for attenuation calculation: {}".format(freqs))
+        return freqs
 
     def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq,
                                    reflection=0, reflection_case=1):
