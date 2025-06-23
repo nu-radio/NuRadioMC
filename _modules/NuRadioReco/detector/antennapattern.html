@@ -2059,8 +2059,8 @@
 <span class="sd">            * &#39;magphase&#39; interpolate magnitude and phase of vector effective length</span>
 
 <span class="sd">        consistency_check: bool (default: True)</span>
-<span class="sd">            If True, the consistency of the antenna response is checked but only if the antenna could not be</span>
-<span class="sd">            verifed from its hash sum. </span>
+<span class="sd">            If True, the consistency of the antenna response is checked but only if antenna</span>
+<span class="sd">            file could not be verified (via hash sum).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">antenna_model</span>
@@ -2101,7 +2101,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">VEL_theta</span> <span class="o">=</span> <span class="n">H_theta</span>
 
         <span class="k">if</span> <span class="n">do_consistency_check</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">verified</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Performing consistency check on antenna response ...&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Performing consistency check on antenna response ...&quot;</span><span class="p">)</span>
             <span class="c1"># additional consistency check</span>
             <span class="k">for</span> <span class="n">iFreq</span><span class="p">,</span> <span class="n">freq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">iPhi</span><span class="p">,</span> <span class="n">phi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_angles</span><span class="p">):</span>
@@ -2123,7 +2123,7 @@
                                 <span class="n">freq</span><span class="p">,</span> <span class="n">ff</span><span class="p">[</span><span class="n">index</span><span class="p">]))</span>
                             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;frequency has changed&quot;</span><span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s1">&#39;Loading antenna file </span><span class="si">{}</span><span class="s1"> took </span><span class="si">{:.0f}</span><span class="s1"> seconds&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">antenna_model</span><span class="p">,</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s1">&#39;Loading antenna file </span><span class="si">{}</span><span class="s1"> took </span><span class="si">{:.1f}</span><span class="s1"> seconds&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">antenna_model</span><span class="p">,</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">))</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iFreq</span><span class="p">,</span> <span class="n">iTheta</span><span class="p">,</span> <span class="n">iPhi</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

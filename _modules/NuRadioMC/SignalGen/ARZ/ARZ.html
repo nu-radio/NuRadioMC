@@ -965,29 +965,33 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1234</span><span class="p">,</span> <span class="n">interp_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">interp_factor2</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">library</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">arz_version</span><span class="o">=</span><span class="s1">&#39;ARZ2020&#39;</span><span class="p">,</span> <span class="n">use_numba</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;setting seed to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">interp_factor</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_random_generator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_interp_factor</span> <span class="o">=</span> <span class="n">interp_factor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_interp_factor2</span> <span class="o">=</span> <span class="n">interp_factor2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_random_numbers</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="c1"># # load shower library into memory</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">library</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">library</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">library</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;shower_library/library_v</span><span class="si">{:d}</span><span class="s2">.</span><span class="si">{:d}</span><span class="s2">.pkl&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_version</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">library</span><span class="p">)):</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;user specified shower library </span><span class="si">{}</span><span class="s2"> not found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">library</span><span class="p">))</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;user specified shower library </span><span class="si">{}</span><span class="s2"> not found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">library</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__check_and_get_library</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__check_and_get_library</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">library</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;user specified shower library </span><span class="si">{}</span><span class="s2"> not found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">library</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;user specified shower library </span><span class="si">{}</span><span class="s2"> not found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">library</span><span class="p">))</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__set_model_parameters</span><span class="p">(</span><span class="n">arz_version</span><span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;loading shower library (</span><span class="si">{}</span><span class="s2">) into memory&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">library</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_library</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">read_pickle</span><span class="p">(</span><span class="n">library</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_use_numba</span> <span class="o">=</span> <span class="n">use_numba</span>
         <span class="k">if</span> <span class="n">use_numba</span> <span class="o">&amp;</span> <span class="p">(</span><span class="ow">not</span> <span class="n">numba_available</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Numba implementation was requested, but Numba is unavailable. Using Python implementation instead.&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_use_numba</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using </span><span class="si">{}</span><span class="s2"> implementation to calculate ARZ vector potentials&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">([</span><span class="s2">&quot;Python&quot;</span><span class="p">,</span> <span class="s2">&quot;Numba&quot;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_use_numba</span><span class="p">]))</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Setting seed to </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Loading shower library from: </span><span class="si">{</span><span class="n">library</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Using </span><span class="si">{</span><span class="p">[</span><span class="s1">&#39;Python&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Numba&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_use_numba</span><span class="p">]</span><span class="si">}</span><span class="s2"> implementation to calculate ARZ vector potentials&quot;</span>
+            <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__check_and_get_library</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1023,6 +1027,7 @@
                         <span class="n">download_file</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;no hash sum of </span><span class="si">{}</span><span class="s2"> available, skipping up-to-date check&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)))</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">download_file</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1211,7 +1216,7 @@
 <span class="sd">        efield_trace: array of floats</span>
 <span class="sd">            array of electric-field time trace in &#39;on-sky&#39; coordinate system eR, eTheta, ePhi</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">shower_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">shower_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;shower type </span><span class="si">{}</span><span class="s2"> not present in library. Available shower types are </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shower_type</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 
         <span class="c1"># determine closes available energy in shower library</span>
@@ -1219,9 +1224,11 @@
             <span class="n">energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="p">[</span><span class="n">shower_type</span><span class="p">]])</span>
             <span class="n">iE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">energies</span> <span class="o">-</span> <span class="n">shower_energy</span><span class="p">))</span>
             <span class="n">rescaling_factor</span> <span class="o">=</span> <span class="n">shower_energy</span> <span class="o">/</span> <span class="n">energies</span><span class="p">[</span><span class="n">iE</span><span class="p">]</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;shower energy of </span><span class="si">{:.3g}</span><span class="s2">eV requested, closest available energy is </span><span class="si">{:.3g}</span><span class="s2">eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shower_energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span><span class="p">,</span> <span class="n">energies</span><span class="p">[</span><span class="n">iE</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span><span class="p">,</span> <span class="n">rescaling_factor</span><span class="p">))</span>
-            <span class="n">profiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="p">[</span><span class="n">shower_type</span><span class="p">][</span><span class="n">energies</span><span class="p">[</span><span class="n">iE</span><span class="p">]]</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">((</span><span class="s2">&quot;shower energy of </span><span class="si">{:.3g}</span><span class="s2">eV requested, closest available energy is </span><span class="si">{:.3g}</span><span class="s2">eV. &quot;</span>
+                        <span class="s2">&quot;The amplitude of the charge-excess profile will be rescaled accordingly by a factor of </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">shower_energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span><span class="p">,</span> <span class="n">energies</span><span class="p">[</span><span class="n">iE</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span><span class="p">,</span> <span class="n">rescaling_factor</span><span class="p">))</span>
 
+            <span class="n">profiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="p">[</span><span class="n">shower_type</span><span class="p">][</span><span class="n">energies</span><span class="p">[</span><span class="n">iE</span><span class="p">]]</span>
             <span class="n">N_profiles</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">profiles</span><span class="p">[</span><span class="s1">&#39;charge_excess&#39;</span><span class="p">])</span>
 
             <span class="k">if</span><span class="p">(</span><span class="n">iN</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">iN</span><span class="p">)):</span>
@@ -1627,14 +1634,7 @@
 
         <span class="n">tt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
         <span class="n">tt</span> <span class="o">=</span> <span class="n">tt</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">-</span> <span class="n">tt</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-    <span class="c1">#     tmin = tt.min()</span>
-    <span class="c1">#     tmax = tt.max()</span>
 
-    <span class="c1">#     tmin = -100 * units.ns</span>
-    <span class="c1">#     tmax = 100 * units.ns</span>
-
-    <span class="c1">#     tt = np.arange(tmin, tmax, dt)</span>
-    <span class="c1">#     tt += 0.5 * dt</span>
         <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tt</span><span class="p">)</span>
 
         <span class="n">xn</span> <span class="o">=</span> <span class="n">n_index</span>

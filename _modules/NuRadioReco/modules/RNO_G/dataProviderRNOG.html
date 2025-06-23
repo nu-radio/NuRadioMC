@@ -652,10 +652,10 @@
 <span class="sd">    It does so by running a set of &quot;processing&quot; modules on the data.</span>
 <span class="sd">    This module is a wrapper around the following modules (in this order):</span>
 
-<span class="sd">    #. `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`</span>
-<span class="sd">    #. `NuRadioReco.modules.RNO_G.channelGlitchDetector`</span>
-<span class="sd">    #. `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`</span>
-<span class="sd">    #. `NuRadioReco.modules.channelAddCableDelay`</span>
+<span class="sd">    - `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`</span>
+<span class="sd">    - `NuRadioReco.modules.RNO_G.channelGlitchDetector`</span>
+<span class="sd">    - `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`</span>
+<span class="sd">    - `NuRadioReco.modules.channelAddCableDelay`</span>
 
 <span class="sd">    The module reads RNO-G data, applies a glitch detection algorithm (does not remove/fix them!),</span>
 <span class="sd">    fits block offsets (and removes them!) and subtracts cable delays. The voltage calibration is applied</span>
@@ -701,7 +701,7 @@
 <span class="sd">        det: Detector</span>
 <span class="sd">            Detector object.</span>
 <span class="sd">        reader_kwargs: dict (default: {})</span>
-<span class="sd">            Keyword arguments passed to the reader module readRNOGDataMattak.</span>
+<span class="sd">            Keyword arguments passed to the reader module `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">files</span> <span class="o">=</span> <span class="n">files</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">detector</span> <span class="o">=</span> <span class="n">det</span>

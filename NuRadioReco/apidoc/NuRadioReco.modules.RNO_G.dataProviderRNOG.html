@@ -647,12 +647,12 @@
 <p>This module provides an easy access to “processed” RNO-G data.</p>
 <p>It does so by running a set of “processing” modules on the data.
 This module is a wrapper around the following modules (in this order):</p>
-<ol class="arabic simple">
+<ul class="simple">
 <li><p><a class="reference internal" href="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#module-NuRadioReco.modules.io.RNO_G.readRNOGDataMattak" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak</span></code></a></p></li>
 <li><p><a class="reference internal" href="NuRadioReco.modules.RNO_G.channelGlitchDetector.html#module-NuRadioReco.modules.RNO_G.channelGlitchDetector" title="NuRadioReco.modules.RNO_G.channelGlitchDetector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.RNO_G.channelGlitchDetector</span></code></a></p></li>
 <li><p><a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#module-NuRadioReco.modules.RNO_G.channelBlockOffsetFitter" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter</span></code></a></p></li>
 <li><p><a class="reference internal" href="NuRadioReco.modules.channelAddCableDelay.html#module-NuRadioReco.modules.channelAddCableDelay" title="NuRadioReco.modules.channelAddCableDelay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.channelAddCableDelay</span></code></a></p></li>
-</ol>
+</ul>
 <p>The module reads RNO-G data, applies a glitch detection algorithm (does not remove/fix them!),
 fits block offsets (and removes them!) and subtracts cable delays. The voltage calibration is applied
 in the readRNOGDataMattak module. The module also updates the detector object with the station time.</p>
@@ -701,7 +701,7 @@ based on the mattak package (<a class="reference external" href="https://github.
 </dd>
 <dt><strong>det: Detector</strong></dt><dd><p>Detector object.</p>
 </dd>
-<dt><strong>reader_kwargs: dict (default: {})</strong></dt><dd><p>Keyword arguments passed to the reader module readRNOGDataMattak.</p>
+<dt><strong>reader_kwargs: dict (default: {})</strong></dt><dd><p>Keyword arguments passed to the reader module <a class="reference internal" href="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#module-NuRadioReco.modules.io.RNO_G.readRNOGDataMattak" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak</span></code></a>.</p>
 </dd>
 </dl>
 </dd>

@@ -669,7 +669,7 @@
 <span class="sd">    align_strides_to_start: bool (default: False)</span>
 <span class="sd">        If true, the trace represents real detector data and will force the striding</span>
 <span class="sd">        to start at the beginning of the trace without padding. If false, the traces</span>
-<span class="sd">        will be zero-padded at the beginning of the trace. This allows a trigger at </span>
+<span class="sd">        will be zero-padded at the beginning of the trace. This allows a trigger at</span>
 <span class="sd">        beginning of the trace to be associated with the correct trigger time.</span>
 
 <span class="sd">    Returns</span>
@@ -738,7 +738,7 @@
 <span class="sd">    align_strides_to_start: bool (default: False)</span>
 <span class="sd">        If true, the trace represents real detector data and will force the striding</span>
 <span class="sd">        to start at the beginning of the trace without padding. If false, the traces</span>
-<span class="sd">        will be zero-padded at the beginning of the trace. This allows a trigger at </span>
+<span class="sd">        will be zero-padded at the beginning of the trace. This allows a trigger at</span>
 <span class="sd">        beginning of the trace to be associated with the correct trigger time.</span>
 
 <span class="sd">    Returns</span>
@@ -868,7 +868,7 @@
 <span class="sd">        align_strides_to_start: bool (default: False)</span>
 <span class="sd">            If true, the trace represents real detector data and will force the striding</span>
 <span class="sd">            to start at the beginning of the trace without padding. If false, the traces</span>
-<span class="sd">            will be zero-padded at the beginning of the trace. This allows a trigger at </span>
+<span class="sd">            will be zero-padded at the beginning of the trace. This allows a trigger at</span>
 <span class="sd">            beginning of the trace to be associated with the correct trigger time.</span>
 <span class="sd">        pre_trigger_time: float or dict of floats</span>
 <span class="sd">            Defines the amount of trace recorded before the trigger time. This module does not cut the traces,</span>
@@ -956,6 +956,7 @@
         <span class="n">trigger</span> <span class="o">=</span> <span class="n">HighLowTrigger</span><span class="p">(</span><span class="n">trigger_name</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">,</span> <span class="n">threshold_low</span><span class="p">,</span> <span class="n">high_low_window</span><span class="p">,</span>
                                  <span class="n">coinc_window</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="n">triggered_channels</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="n">number_concidences</span><span class="p">,</span>
                                  <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered_channels</span><span class="p">(</span><span class="n">channels_that_passed_trigger</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">has_triggered</span><span class="p">:</span>

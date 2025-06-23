@@ -677,7 +677,7 @@
 <span class="n">particle_ids</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">particle_ids</span><span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
-    
+
 <span class="n">em_primary_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Gamma (photon)&#39;</span><span class="p">,</span> <span class="s1">&#39;Electron&#39;</span><span class="p">,</span> <span class="s1">&#39;Positron&#39;</span><span class="p">,</span> <span class="s1">&#39;Bremsstrahlung photon&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;Ionised electron&#39;</span><span class="p">,</span> <span class="s1">&#39;Electron-positron pair&#39;</span><span class="p">,</span> <span class="s1">&#39;Weak interaction&#39;</span><span class="p">,</span> <span class="s1">&#39;Compton&#39;</span><span class="p">]</span>
 
@@ -693,11 +693,11 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">)):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This function only takes integers.&quot;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;This function only takes integers.&quot;</span><span class="p">)</span>
-    
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+    <span class="k">if</span> <span class="nb">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Particle id: </span><span class="si">{:d}</span><span class="s2"> unknown&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">))</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Particle id: </span><span class="si">{:d}</span><span class="s2"> unknown&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">))</span>
-            
+
     <span class="k">return</span> <span class="n">particle_names</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span></div>
 
 
@@ -709,7 +709,7 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This function only takes strings.&quot;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;This function only takes strings.&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">particle_ids</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">particle_ids</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Particle name: </span><span class="si">{}</span><span class="s2"> unknown&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The following names are implemented: &quot;</span><span class="p">,</span>
               <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">particle_ids</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
