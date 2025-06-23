@@ -1573,18 +1573,53 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">f_inverse_squared</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">__get_frequencies_for_attenuation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">max_detector_freq</span><span class="p">):</span>
-            <span class="n">mask</span> <span class="o">=</span> <span class="n">frequency</span> <span class="o">&gt;</span> <span class="mi">0</span>
-            <span class="n">nfreqs</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_frequencies_integration</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">))</span>
-            <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">frequency</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">frequency</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">nfreqs</span><span class="p">)</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">nfreqs</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="ow">and</span> <span class="n">max_detector_freq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="n">mask2</span> <span class="o">=</span> <span class="n">frequency</span> <span class="o">&lt;=</span> <span class="n">max_detector_freq</span>
-                <span class="n">nfreqs2</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_frequencies_integration</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask2</span> <span class="o">&amp;</span> <span class="n">mask</span><span class="p">))</span>
-                <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">frequency</span><span class="p">[</span><span class="n">mask2</span> <span class="o">&amp;</span> <span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">frequency</span><span class="p">[</span><span class="n">mask2</span> <span class="o">&amp;</span> <span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">nfreqs2</span><span class="p">)</span>
-                <span class="k">if</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">~</span><span class="n">mask2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
-                    <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">frequency</span><span class="p">[</span><span class="o">~</span><span class="n">mask2</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">frequency</span><span class="p">[</span><span class="o">~</span><span class="n">mask2</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">nfreqs</span> <span class="o">//</span> <span class="mi">2</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;calculating attenuation for frequencies </span><span class="si">{</span><span class="n">freqs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">freqs</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_frequencies_for_attenuation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">max_detector_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns a frequency vector for the attenuation calculation.</span>
+
+<span class="sd">        It takes the frequency vector of a simulated electric field and makes it sparser.</span>
+<span class="sd">        This function is used to reduce the number of frequencies for which the attenuation</span>
+<span class="sd">        is calculated (which is time consuming). Afterwards the attenuation factors for the</span>
+<span class="sd">        missing frequencies can be interpolated.</span>
+
+<span class="sd">        If max_detector_freq is None, the function will return a frequency vector (0, f_max] with</span>
+<span class="sd">        self.__n_frequencies_integration frequencies (unless the original frequency vector is already sparser).</span>
+<span class="sd">        If max_detector_freq is not None, the function will return a frequency vector (0, max_detector_freq] + (max_detector_freq, f_max]</span>
+<span class="sd">        with the first part having self.__n_frequencies_integration frequencies and the second part having</span>
+<span class="sd">        self.__n_frequencies_integration // 2 frequencies.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        frequency: array</span>
+<span class="sd">            Frequency vector of the simulated electric field</span>
+<span class="sd">        max_detector_freq: float</span>
+<span class="sd">            Maximum frequency of the detector (the nyquist frequency)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        freqs: array</span>
+<span class="sd">            Sparse frequency vector for the attenuation calculation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">non_null_freqs</span> <span class="o">=</span> <span class="n">frequency</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">n_freqs</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_frequencies_integration</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">non_null_freqs</span><span class="p">))</span>
+
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">frequency</span><span class="p">[</span><span class="n">non_null_freqs</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">frequency</span><span class="p">[</span><span class="n">non_null_freqs</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">n_freqs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">n_freqs</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">non_null_freqs</span><span class="p">)</span>  <span class="c1"># original frequency vector is already sparse</span>
+            <span class="ow">and</span> <span class="n">max_detector_freq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+
+            <span class="n">det_mask</span> <span class="o">=</span> <span class="n">frequency</span> <span class="o">&lt;=</span> <span class="n">max_detector_freq</span>
+            <span class="n">total_mask</span> <span class="o">=</span> <span class="n">det_mask</span> <span class="o">&amp;</span> <span class="n">non_null_freqs</span>
+
+            <span class="n">n_freqs</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_frequencies_integration</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">total_mask</span><span class="p">))</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">frequency</span><span class="p">[</span><span class="n">total_mask</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">frequency</span><span class="p">[</span><span class="n">total_mask</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">n_freqs</span><span class="p">)</span>
+            <span class="c1"># Append n_freqs // 2 frequencies between detector nyquist frequency and simulated nyquist frequency</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">~</span><span class="n">det_mask</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">frequency</span><span class="p">[</span><span class="o">~</span><span class="n">det_mask</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">frequency</span><span class="p">[</span><span class="o">~</span><span class="n">det_mask</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">n_freqs</span> <span class="o">//</span> <span class="mi">2</span><span class="p">))</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Frequency vector for attenuation calculation: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">freqs</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">freqs</span>
 
 <div class="viewcode-block" id="ray_tracing_2D.get_attenuation_along_path">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_attenuation_along_path">[docs]</a>
