@@ -1443,6 +1443,8 @@ class simulation:
         logger.status("Starting NuRadioMC simulation")
         self.__time_logger.reset_times()
 
+        i_triggered_events = 0 # counter for triggered events
+
         particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
         event_group_ids = np.array(self._fin['event_group_ids'])
         unique_event_group_ids = np.unique(event_group_ids)
@@ -1690,6 +1692,8 @@ class simulation:
                     channelSignalReconstructor.run(evt, station, self._det)
                     self._set_event_station_parameters(evt)
 
+                    i_triggered_events += 1 # count the number of triggered events
+
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size
                         sampling_rate_detector = self._det.get_sampling_frequency(
@@ -1733,6 +1737,8 @@ class simulation:
         if not self._output_writer_hdf5.write_output_file():
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
+
+        return i_triggered_events
 
     def add_filtered_noise_to_channels(self, evt, station, channel_ids):
         """

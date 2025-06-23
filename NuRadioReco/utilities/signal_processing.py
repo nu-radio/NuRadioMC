@@ -23,20 +23,20 @@ See Also
     Contains functions to calculate observables from traces.
 """
 
-from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft
+from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft, trace_utilities
 
 from NuRadioReco.detector import filterresponse
 import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
-from scipy import signal, constants
+from scipy import signal, constants, interpolate
 import numpy as np
 import fractions
 import decimal
 import copy
+from matplotlib import pyplot as plt  # for debugging plots
 
 import logging
-
 logger = logging.getLogger("NuRadioReco.utilities.signal_processing")
 
 
@@ -604,3 +604,135 @@ def get_channel_voltage_from_efield(
     else:
         voltage_trace = fft.freq2time(voltage_spectrum, electric_field.get_sampling_rate())
         return np.real(voltage_trace)
+
+
+
+def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * units.microsecond, min_diff=0.005, max_t_diff=5 * units.ns, min_island_length=1 * units.ns, show_debug=False):
+    """ Windows a response in the time domain (i.e., sets the response to 0 outside a window).
+
+    This function takes the reponse in the time domain, identifies the relevant region of the response,
+    and sets the response to 0 outside that region. The relevant region is found as the region where the
+    hilbert envelope is above a certain threshold relative to the maximum in the envelope.
+
+    This function first searchs for "islands" (or sequences of samples) of significant change
+    in the hilbert envelope. It then connects these islands if they are close enough
+    to each other and long enough. Finally, it applies a window to the response in the time domain
+    and returns the windowed response in the frequency domain.
+
+    Parameters
+    ----------
+    resp: NuRadioReco.detector.response.Response or callable(freqs) -> complex response
+        The response function to be windowed.
+    sampling_rate: float (default: 5 * units.GHz)
+        For conversion in time domain, i.e., the sampling rate to evaluate the response in the time domain.
+    t0: float (default: 2 * units.microsecond)
+        For conversion in time domain, i.e., the trace length of the response in time domain.
+    min_diff: float (default: 0.005)
+        The minimum difference in the integral of hilbert envelope (from one sample to the other) to be considered significant.
+        For this the maximum difference is normalized to 1.
+    max_t_diff: float (default: 5 * units.ns)
+        The maximum time difference between two islands to be considered connected.
+    min_island_length: float (default: 1 * units.ns)
+        The minimum length of an island to be considered significant.
+    show_debug: bool (default: False)
+        If True, show the debug plots.
+
+    Returns
+    -------
+    resp_f: callable(freqs) -> complex response
+        The windowed response function.
+    """
+
+    num_samples = int(t0 * sampling_rate)
+
+    freqs = fft.freqs(num_samples=num_samples, sampling_rate=sampling_rate)
+    times = np.arange(num_samples) / sampling_rate
+    spec = resp(freqs)
+
+    time_response = fft.freq2time(spec, sampling_rate=sampling_rate)
+
+    # Roll the maximum of the time response to the center
+    roll = 0
+    max_idx = np.argmax(np.abs(time_response))
+    if max_idx < num_samples * 0.1 or max_idx > num_samples * 0.9:
+        roll = num_samples // 2
+        time_response = np.roll(time_response, roll)
+
+    hilbert = np.abs(trace_utilities.get_hilbert_envelope(time_response))
+
+    if show_debug:
+        fig, ax = plt.subplots()
+        ax.plot(times, time_response / np.amax(time_response), label='time response', lw=1)
+        ax.plot(times, hilbert / np.amax(hilbert), label='hilbert', lw=1)
+
+    significant_diff = hilbert / np.amax(hilbert) > min_diff
+    significant_diff = np.append(significant_diff, [False])
+
+    def islandinfo(y, trigger_val, stopind_inclusive=True):
+        """ https://stackoverflow.com/questions/50151417/numpy-find-indices-of-groups-with-same-value  """
+        # Setup "sentients" on either sides to make sure we have setup
+        # "ramps" to catch the start and stop for the edge islands
+        # (left-most and right-most islands) respectively
+        y_ext = np.r_[False,y==trigger_val, False]
+
+        # Get indices of shifts, which represent the start and stop indices
+        idx = np.flatnonzero(y_ext[:-1] != y_ext[1:])
+
+        # Lengths of islands if needed
+        lens = idx[1::2] - idx[:-1:2]
+
+        # Using a stepsize of 2 would get us start and stop indices for each island
+        return np.array(list(zip(idx[:-1:2], idx[1::2] - int(stopind_inclusive)))), lens
+
+    # Islands is a list of tuples which contain the start and stop indices of the islands of True values
+    islands, lens = islandinfo(significant_diff, True)
+    biggest_island = np.argmax(lens)
+
+    # Calculate the distance between the islands, and create a mask for the islands that are close enough to each other
+    # to be considered connected. Make sure that the biggest island is always included.
+    distances_from_islands = islands[1:, 0] - islands[:-1, 1]  # has size len(islands) - 1
+    distance_mask = distances_from_islands < max_t_diff * sampling_rate
+    distance_mask = np.r_[distance_mask[:biggest_island], [True], distance_mask[biggest_island:]]
+
+    # Additional condition: islands must be long enough
+    size_mask = lens > int(round(min_island_length * sampling_rate))
+    selected_islands = islands[np.logical_and(distance_mask, size_mask)]
+
+    if not np.any(selected_islands):
+        raise ValueError("No islands found that satisfy the conditions")
+
+    # Connect selected islands
+    sample_padding = 3  # padding because we apply a window
+    selected_range = [selected_islands[0, 0] - sample_padding, selected_islands[-1, 1] + sample_padding]
+    window = half_hann_window(selected_range[1] - selected_range[0], 0.01)
+
+    # Windowing: Outside of the selected range, set the response to 0, inside the selected range, apply a hann window
+    time_response[:selected_range[0]] = 0
+    time_response[selected_range[1]:] = 0
+    time_response[selected_range[0]:selected_range[1]] *= window
+
+    if show_debug:
+        print(roll)
+        print(f"All islands: {islands}")
+        print(f"Selected islands: {selected_islands}")
+        # ax.plot(times, cumsum, label='cumsum', lw=1)
+        # ax.plot(times[1:], norm_diff, label='np.diff(cumsum)', lw=1)
+
+        ax.axvspan(0, selected_range[0] / sampling_rate, color='black', alpha=0.5)
+        ax.axvspan(selected_range[1] / sampling_rate, times[-1], color='black', alpha=0.5)
+        ax.plot(times, time_response / np.amax(time_response), label='masked', lw=1, ls=":")
+
+        ax.set_xlim(selected_range[0] / sampling_rate - 100 * units.ns, selected_range[1] / sampling_rate + 100 * units.ns)
+        ax.legend()
+        ax.set_xlabel('Time [ns]')
+        ax.set_ylabel('norm. amplitude')
+        fig.tight_layout()
+        plt.show()
+
+    # Roll response back
+    time_response = np.roll(time_response, -roll)
+
+    response_freq = fft.time2freq(time_response, sampling_rate=sampling_rate)
+    resp_f = interpolate.interp1d(freqs, response_freq, kind='linear', bounds_error=False, fill_value=0 + 0j)
+
+    return resp_f
