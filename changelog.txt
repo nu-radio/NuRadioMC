@@ -8,6 +8,7 @@ bugfixes:
 - Removed one unused optional argument introduced in 3.0.2 which broke Event storage on python version <3.8
 - Fixed a bug where untriggered stations in a multiple-station event would attempt to access primary particle
   information from an empty buffer.
+- Fixed a bug where loading a GenericDetector from a .nur file raised an error in some cases.
 
 version 3.0.2
 bugfixes:
