@@ -5,6 +5,7 @@ import NuRadioReco.framework.channel
 import NuRadioReco.framework.parameters
 from six import iteritems
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 import logging
 import collections
 logger = logging.getLogger('NuRadioReco.Station')
@@ -282,7 +283,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
                 'base_station': base_station_pkl,
                 'sim_station': sim_station_pkl}
 
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
