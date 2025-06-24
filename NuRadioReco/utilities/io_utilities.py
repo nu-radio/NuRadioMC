@@ -71,7 +71,7 @@ class _NurPickler(pickle.Pickler):
         if dtype.__module__ == 'numpy':
             dispatch_table[dtype] = _pickle_numpy_scalar
 
-def _dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
+def _dumps(obj, protocol=None, *, fix_imports=True, **kwargs):
     """
     Return the pickled representation of the object as a bytes object.
 
@@ -81,9 +81,7 @@ def _dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
     of numpy objects.
     """
     f = io.BytesIO()
-    _NurPickler(
-        f, protocol, fix_imports=fix_imports,
-        buffer_callback=buffer_callback).dump(obj)
+    _NurPickler(f, protocol, fix_imports=fix_imports, **kwargs).dump(obj)
     res = f.getvalue()
     return res
 
