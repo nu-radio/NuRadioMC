@@ -5,6 +5,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 version 3.1.0-dev
 new features:
 - energy-dependent inelasticity distribution (only BGR18 model) and cc / nc fraction (all models)
+- rice distribution method for estimating electric field energy fluences as proposed in S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
 
 bugfixes:
 - Fixed a bug which caused interpolator options explicitly passed to the coreasInterpolator to be overwritten 
