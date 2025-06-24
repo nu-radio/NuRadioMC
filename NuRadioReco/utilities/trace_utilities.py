@@ -80,7 +80,7 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
         If True, the uncertainty of the energy fluence is returned
     method : str (optional)
         The method to use for the energy fluence calculation. Can be either "noise_subtraction" or "rice_distribution".
-        The Rice distribution is method implementation is based on the code published alongside S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
+        The Rice distribution method implementation is based on the code published alongside S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
     estimator_kwargs : dict (optional)
         Additional keyword arguments for the _get_noise_fluence_estimators and _get_signal_fluence_estimators functions.
         Only used if method is "rice_distribution".
@@ -175,11 +175,13 @@ def _get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_nois
     signal_window_mask : np.ndarray
         Boolean mask for the signal window.
     spacing_noise_signal : float (optional)
-        Spacing between noise windows and signal window. Makes sure no signal leaks into the noise windows.
+        Spacing between noise windows and signal window. Makes sure no signal leaks into the noise windows. (default: 20 ns,
+        which should be enough for most applications, otherwise the signal_window_mask is too small)
     relative_taper_width : float (optional)
-        Width of the taper region for the Tukey window relative to the full window length.
+        Width of the taper region for the Tukey window relative to the full window length. (default: 0.142857143,
+        which corresponds to 1/7 of the window length at each end)
     use_median_value : bool (optional)
-        If True, the median of the squared spectra of the noise windows is used as estimator. Otherwise, the mean is used.
+        If True, the median of the squared spectra of the noise windows is used as estimator. Otherwise, the mean is used. (default: False)
     truncate_negative_estimators : str (optional)
         Not used in this function. Introduced for compatibility with _get_signal_fluence_estimators.
 
@@ -266,13 +268,15 @@ def _get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estim
     spacing_noise_signal : float (optional)
         Not used in this function. Indroduced for compatibility with _get_noise_fluence_estimators.
     relative_taper_width : float (optional)
-        Width of the taper region for the Tukey window relative to the full window length.
+        Width of the taper region for the Tukey window relative to the full window length. (default: 0.142857143,
+        which corresponds to 1/7 of the window length at each end)
     use_median_value : bool (optional)
         Not used in this function. Indroduced for compatibility with _get_noise_fluence_estimators.
     truncate_negative_estimators : str (optional)
-        If "before_sum", negative estimators are set to zero before summing over frequencies.
-        If "after_sum", negative estimators are set to zero after summing over frequencies. note
-        that this is done in get_electric_field_energy_fluence.
+        If "before_sum", negative estimators are set to zero before summing over frequencies,
+        which is consistent with S. Martinelli et al.: https://arxiv.org/pdf/2407.18654.
+        If "after_sum", negative estimators are set to zero after summing over frequencies. Note
+        that this is done in get_electric_field_energy_fluence. (default: "before_sum")
 
     Returns
     -------
