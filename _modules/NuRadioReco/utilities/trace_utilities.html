@@ -649,7 +649,7 @@
 <span class="sd">    Module for functions that modify traces, e.g., by filtering, delaying, etc.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">signal_processing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">signal_processing</span><span class="p">,</span> <span class="n">fft</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.stats</span>
@@ -665,6 +665,7 @@
 
 <span class="c1"># see Phys. Rev. D DOI: 10.1103/PhysRevD.93.122005</span>
 <span class="c1"># to convert V**2/m**2 * s -&gt; J/m**2 -&gt; eV/m**2</span>
+
 
 <div class="viewcode-block" id="get_efield_antenna_factor">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor">[docs]</a>
@@ -713,41 +714,258 @@
 
 
 
-
 <div class="viewcode-block" id="get_electric_field_energy_fluence">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_electric_field_energy_fluence</span><span class="p">(</span><span class="n">electric_field_trace</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">signal_window_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise_window_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute the energy fluence of an electric field trace.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_electric_field_energy_fluence</span><span class="p">(</span><span class="n">electric_field_trace</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">signal_window_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise_window_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_uncertainty</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;noise_subtraction&quot;</span><span class="p">,</span> <span class="n">estimator_kwargs</span><span class="o">=</span><span class="p">{}):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the energy fluence of each component of a 3-dimensional electric field trace.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    electric_field_trace : 2d array</span>
-<span class="sd">        The electric field trace. The first dimension corresponds to the number of traces/polarizations,</span>
-<span class="sd">        the second dimension to the number of samples.</span>
-<span class="sd">    times : 1d array</span>
-<span class="sd">        The times corresponding to the electric field trace.</span>
-<span class="sd">    signal_window_mask : 1d array, default=None</span>
-<span class="sd">        A boolean mask to select the signal window.</span>
-<span class="sd">    noise_window_mask : 1d array, default=None</span>
-<span class="sd">        A boolean mask to select the noise window.</span>
+<span class="sd">    electric_field_trace : numpy.ndarray</span>
+<span class="sd">        The electric field trace to calculate the energy fluence for</span>
+<span class="sd">    times : numpy.ndarray</span>
+<span class="sd">        The time grid for the electric field trace</span>
+<span class="sd">    signal_window_mask : numpy.ndarray (optional)</span>
+<span class="sd">        A boolean mask that selects the signal window in which the energy fluence is calculated</span>
+<span class="sd">    noise_window_mask : numpy.ndarray (optional)</span>
+<span class="sd">        A boolean mask that selects the noise window. Only used if method is &quot;noise_subtraction&quot;</span>
+<span class="sd">    return_uncertainty : bool (optional)</span>
+<span class="sd">        If True, the uncertainty of the energy fluence is returned</span>
+<span class="sd">    method : str (optional)</span>
+<span class="sd">        The method to use for the energy fluence calculation. Can be either &quot;noise_subtraction&quot; or &quot;rice_distribution&quot;.</span>
+<span class="sd">        The Rice distribution method implementation is based on the code published alongside S. Martinelli et al.: https://arxiv.org/pdf/2407.18654</span>
+<span class="sd">    estimator_kwargs : dict (optional)</span>
+<span class="sd">        Additional keyword arguments for the _get_noise_fluence_estimators and _get_signal_fluence_estimators functions.</span>
+<span class="sd">        Only used if method is &quot;rice_distribution&quot;.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    energy_fluence : 1d array</span>
-<span class="sd">        The energy fluence of the electric field per polarization.</span>
+<span class="sd">    signal_energy_fluence : numpy.ndarray</span>
+<span class="sd">        The energy fluence of each component of the electric field trace</span>
+<span class="sd">    signal_energy_fluence_error : numpy.ndarray</span>
+<span class="sd">        The uncertainty of the energy fluences. Only returned if return_uncertainty is True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">signal_window_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">f_signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">electric_field_trace</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">f_signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">electric_field_trace</span><span class="p">[:,</span> <span class="n">signal_window_mask</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">noise_window_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">noise_window_mask</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">f_noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">electric_field_trace</span><span class="p">[:,</span> <span class="n">noise_window_mask</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">f_signal</span> <span class="o">-=</span> <span class="n">f_noise</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">signal_window_mask</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">noise_window_mask</span><span class="p">)</span>
 
     <span class="n">dt</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">f_signal</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">conversion_factor_integrated_signal</span></div>
 
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;noise_subtraction&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">signal_window_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">f_signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">electric_field_trace</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f_signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">electric_field_trace</span><span class="p">[:,</span> <span class="n">signal_window_mask</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">noise_window_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">noise_window_mask</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">f_noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">electric_field_trace</span><span class="p">[:,</span> <span class="n">noise_window_mask</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">f_signal</span> <span class="o">-=</span> <span class="n">f_noise</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">signal_window_mask</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">noise_window_mask</span><span class="p">)</span>
+            <span class="n">f_signal</span><span class="p">[</span><span class="n">f_signal</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># calculate RMS noise for error estimation</span>
+            <span class="n">RMSNoise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">electric_field_trace</span><span class="p">[:,</span> <span class="n">noise_window_mask</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">RMSNoise</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">signal_energy_fluence</span> <span class="o">=</span> <span class="n">f_signal</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">conversion_factor_integrated_signal</span>
+
+        <span class="c1"># calculate error if RMSNoise is known:</span>
+        <span class="k">if</span> <span class="n">RMSNoise</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">return_uncertainty</span><span class="p">:</span>
+            <span class="n">signal_window_duration</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">signal_window_mask</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span> <span class="k">if</span> <span class="n">signal_window_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span>
+            <span class="n">signal_energy_fluence_error</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">signal_energy_fluence</span> <span class="o">/</span> <span class="n">conversion_factor_integrated_signal</span><span class="p">)</span> <span class="o">*</span> <span class="n">RMSNoise</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">signal_window_duration</span> <span class="o">*</span> <span class="n">RMSNoise</span> <span class="o">**</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">dt</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>  <span class="o">*</span> <span class="n">conversion_factor_integrated_signal</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">signal_energy_fluence_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;rice_disttribution&quot;</span><span class="p">:</span>
+        <span class="n">signal_energy_fluence</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">electric_field_trace</span><span class="p">))</span>
+        <span class="n">signal_energy_fluence_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">electric_field_trace</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i_pol</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">electric_field_trace</span><span class="p">)):</span>
+            <span class="n">noise_estimators</span><span class="p">,</span> <span class="n">frequencies_window</span> <span class="o">=</span> <span class="n">_get_noise_fluence_estimators</span><span class="p">(</span>
+                <span class="n">trace</span> <span class="o">=</span> <span class="n">electric_field_trace</span><span class="p">[</span><span class="n">i_pol</span><span class="p">,</span> <span class="p">:],</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="n">times</span><span class="p">,</span>
+                <span class="n">signal_window_mask</span> <span class="o">=</span> <span class="n">signal_window_mask</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">estimator_kwargs</span>
+                <span class="p">)</span>
+            <span class="n">estimators</span><span class="p">,</span> <span class="n">variances</span> <span class="o">=</span> <span class="n">_get_signal_fluence_estimators</span><span class="p">(</span>
+                <span class="n">trace</span> <span class="o">=</span> <span class="n">electric_field_trace</span><span class="p">[</span><span class="n">i_pol</span><span class="p">,</span> <span class="p">:],</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="n">times</span><span class="p">,</span>
+                <span class="n">signal_window_mask</span> <span class="o">=</span> <span class="n">signal_window_mask</span><span class="p">,</span>
+                <span class="n">noise_estimators</span> <span class="o">=</span> <span class="n">noise_estimators</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">estimator_kwargs</span>
+                <span class="p">)</span>
+
+            <span class="c1">#sample frequency (after the windowing) in MHz</span>
+            <span class="n">delta_f</span> <span class="o">=</span> <span class="n">frequencies_window</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">frequencies_window</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1">#get the fluence of the trace summing up the frequency estimators and converting in eV/m^2</span>
+            <span class="n">fluence_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">estimators</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta_f</span> <span class="o">*</span> <span class="n">conversion_factor_integrated_signal</span>
+
+            <span class="k">if</span> <span class="n">estimator_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;truncate_negative_estimators&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;after_sum&quot;</span><span class="p">:</span>
+                <span class="n">fluence_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">fluence_freq</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="c1">#get the variance of the trace fluence summing up the frequency variances and converting in (eV/m^2)^2</span>
+            <span class="n">fluence_freq_variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">variances</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">delta_f</span> <span class="o">*</span> <span class="n">conversion_factor_integrated_signal</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+            <span class="c1">#get the fluence uncertainty as the root square of the variance</span>
+            <span class="n">fluence_freq_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">fluence_freq_variance</span><span class="p">)</span>
+
+            <span class="n">signal_energy_fluence</span><span class="p">[</span><span class="n">i_pol</span><span class="p">]</span> <span class="o">=</span> <span class="n">fluence_freq</span>
+            <span class="n">signal_energy_fluence_error</span><span class="p">[</span><span class="n">i_pol</span><span class="p">]</span> <span class="o">=</span> <span class="n">fluence_freq_error</span>
+
+    <span class="k">if</span> <span class="n">return_uncertainty</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">signal_energy_fluence</span><span class="p">,</span> <span class="n">signal_energy_fluence_error</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">signal_energy_fluence</span></div>
+
+
+      
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_noise_fluence_estimators</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">signal_window_mask</span><span class="p">,</span> <span class="n">spacing_noise_signal</span><span class="o">=</span><span class="mi">20</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">relative_taper_width</span><span class="o">=</span><span class="mf">0.142857143</span><span class="p">,</span> <span class="n">use_median_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">truncate_negative_estimators</span><span class="o">=</span><span class="s2">&quot;before_sum&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimate the noise fluence from the trace.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace : np.ndarray</span>
+<span class="sd">        Trace to estimate the noise fluence from.</span>
+<span class="sd">    times : np.ndarray</span>
+<span class="sd">        Time grid for the trace.</span>
+<span class="sd">    signal_window_mask : np.ndarray</span>
+<span class="sd">        Boolean mask for the signal window.</span>
+<span class="sd">    spacing_noise_signal : float (optional)</span>
+<span class="sd">        Spacing between noise windows and signal window. Makes sure no signal leaks into the noise windows. (default: 20 ns,</span>
+<span class="sd">        which should be enough for most applications, otherwise the signal_window_mask is too small)</span>
+<span class="sd">    relative_taper_width : float (optional)</span>
+<span class="sd">        Width of the taper region for the Tukey window relative to the full window length. (default: 0.142857143,</span>
+<span class="sd">        which corresponds to 1/7 of the window length at each end)</span>
+<span class="sd">    use_median_value : bool (optional)</span>
+<span class="sd">        If True, the median of the squared spectra of the noise windows is used as estimator. Otherwise, the mean is used. (default: False)</span>
+<span class="sd">    truncate_negative_estimators : str (optional)</span>
+<span class="sd">        Not used in this function. Introduced for compatibility with _get_signal_fluence_estimators.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    estimators : np.ndarray</span>
+<span class="sd">        Estimators for the noise fluence.</span>
+<span class="sd">    frequencies_window : np.ndarray</span>
+<span class="sd">        Frequencies corresponding to the estimators.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">n_samples_window</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">signal_window_mask</span><span class="p">)</span>
+    <span class="n">signal_start</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">spacing_noise_signal</span>
+    <span class="n">signal_stop</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">spacing_noise_signal</span>
+    <span class="n">list_ffts_squared</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">signal_start</span> <span class="o">&lt;</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">signal_start</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The signal window overlaps with the start of the trace. The efield pulse may be partialy outside the trace.&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">signal_stop</span> <span class="o">&gt;</span> <span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The signal window overlaps with the end of the trace. The efield pulse may be partialy outside the trace.&quot;</span><span class="p">)</span>
+
+    <span class="c1">#generate Tukey window</span>
+    <span class="n">window</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">tukey</span><span class="p">(</span><span class="n">n_samples_window</span><span class="p">,</span> <span class="n">relative_taper_width</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1">#loop over the trace defining noise windows (excluding the signal window)</span>
+    <span class="n">noise_start</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">while</span> <span class="n">noise_start</span> <span class="o">&lt;</span> <span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+
+        <span class="n">noise_stop</span> <span class="o">=</span> <span class="n">noise_start</span> <span class="o">+</span> <span class="n">n_samples_window</span> <span class="o">*</span> <span class="n">dt</span>
+        <span class="k">if</span> <span class="n">noise_stop</span> <span class="o">&gt;</span> <span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">break</span>
+
+        <span class="k">elif</span> <span class="p">(</span><span class="n">noise_stop</span> <span class="o">&lt;=</span> <span class="n">signal_start</span> <span class="ow">and</span> <span class="n">noise_start</span> <span class="o">&lt;</span> <span class="n">signal_start</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">noise_stop</span> <span class="o">&gt;</span> <span class="n">signal_stop</span> <span class="ow">and</span> <span class="n">noise_start</span> <span class="o">&gt;=</span> <span class="n">signal_stop</span><span class="p">):</span>
+
+            <span class="c1">#clipping the noise window (rounding is needed because noise_stop = noise_start + n_samples_window * dt has numerical uncertainties)</span>
+            <span class="n">mask_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">noise_start</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">noise_stop</span><span class="p">,</span> <span class="mi">5</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">time_trace_clipped</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">mask_time</span><span class="p">]</span>
+
+            <span class="c1">#applying the Tukey window</span>
+            <span class="n">windowed_trace</span> <span class="o">=</span> <span class="n">time_trace_clipped</span> <span class="o">*</span> <span class="n">window</span>
+
+            <span class="c1">#calculating the spectrum and frequencies</span>
+            <span class="n">frequencies_window</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">n_samples_window</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">dt</span><span class="p">)</span>
+            <span class="n">spectrum_window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">windowed_trace</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">dt</span><span class="p">))</span>
+
+            <span class="n">list_ffts_squared</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spectrum_window</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">noise_start</span> <span class="o">=</span> <span class="n">noise_stop</span>
+
+        <span class="k">elif</span> <span class="n">noise_stop</span> <span class="o">&gt;</span> <span class="n">signal_start</span> <span class="ow">and</span> <span class="n">noise_start</span> <span class="o">&lt;=</span> <span class="n">signal_start</span><span class="p">:</span>
+            <span class="n">noise_start</span> <span class="o">=</span> <span class="n">signal_stop</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The noise window does not fulfill any of the conditions. This should not happen.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The noise window does not fulfill any of the conditions. This should not happen.&quot;</span><span class="p">)</span>
+
+    <span class="n">list_ffts_squared</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">list_ffts_squared</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">use_median_value</span><span class="p">:</span>
+        <span class="c1">#robust estimator in presence of outliers from the noise windows</span>
+        <span class="n">estimators</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">list_ffts_squared</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1.405</span> <span class="c1">#from chi2 distribution</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1">#it works well in presence of small number of outliers</span>
+        <span class="n">estimators</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">list_ffts_squared</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">estimators</span><span class="p">,</span> <span class="n">frequencies_window</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_signal_fluence_estimators</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">signal_window_mask</span><span class="p">,</span> <span class="n">noise_estimators</span><span class="p">,</span> <span class="n">spacing_noise_signal</span><span class="o">=</span><span class="mi">20</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">relative_taper_width</span><span class="o">=</span><span class="mf">0.142857143</span><span class="p">,</span> <span class="n">use_median_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">truncate_negative_estimators</span><span class="o">=</span><span class="s2">&quot;before_sum&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimate the signal fluence from the trace.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace : np.ndarray</span>
+<span class="sd">        Trace to estimate the signal fluence from.</span>
+<span class="sd">    times : np.ndarray</span>
+<span class="sd">        Time grid for the trace.</span>
+<span class="sd">    signal_window_mask : np.ndarray</span>
+<span class="sd">        Boolean mask for the signal window.</span>
+<span class="sd">    noise_estimators : np.ndarray</span>
+<span class="sd">        Estimators for the noise fluence.</span>
+<span class="sd">    spacing_noise_signal : float (optional)</span>
+<span class="sd">        Not used in this function. Indroduced for compatibility with _get_noise_fluence_estimators.</span>
+<span class="sd">    relative_taper_width : float (optional)</span>
+<span class="sd">        Width of the taper region for the Tukey window relative to the full window length. (default: 0.142857143,</span>
+<span class="sd">        which corresponds to 1/7 of the window length at each end)</span>
+<span class="sd">    use_median_value : bool (optional)</span>
+<span class="sd">        Not used in this function. Indroduced for compatibility with _get_noise_fluence_estimators.</span>
+<span class="sd">    truncate_negative_estimators : str (optional)</span>
+<span class="sd">        If &quot;before_sum&quot;, negative estimators are set to zero before summing over frequencies,</span>
+<span class="sd">        which is consistent with S. Martinelli et al.: https://arxiv.org/pdf/2407.18654.</span>
+<span class="sd">        If &quot;after_sum&quot;, negative estimators are set to zero after summing over frequencies. Note</span>
+<span class="sd">        that this is done in get_electric_field_energy_fluence. (default: &quot;before_sum&quot;)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    signal_estimators : np.ndarray</span>
+<span class="sd">        Estimators for the signal fluence.</span>
+<span class="sd">    variances : np.ndarray</span>
+<span class="sd">        Variance of the signal fluence estimators.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">n_samples_window</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">signal_window_mask</span><span class="p">)</span>
+    <span class="n">signal_start</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">signal_stop</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="n">signal_window_mask</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dt</span>
+
+    <span class="c1">#generate Tukey window</span>
+    <span class="n">window</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">tukey</span><span class="p">(</span><span class="n">n_samples_window</span><span class="p">,</span> <span class="n">relative_taper_width</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1">#clipping the signal window around the pulse position</span>
+    <span class="n">mask_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">times</span> <span class="o">&gt;=</span> <span class="n">signal_start</span><span class="p">,</span> <span class="n">times</span> <span class="o">&lt;</span> <span class="n">signal_stop</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">trace_clipped</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">mask_time</span><span class="p">]</span>
+
+    <span class="c1">#applying the Tukey window</span>
+    <span class="n">windowed_trace</span> <span class="o">=</span> <span class="n">trace_clipped</span> <span class="o">*</span> <span class="n">window</span>
+
+    <span class="c1">#calculating the spectrum and frequencies</span>
+    <span class="n">spectrum_window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">windowed_trace</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">dt</span><span class="p">))</span>
+
+    <span class="c1">#signal estimator and variance for each frequency bin</span>
+    <span class="n">signal_estimators</span> <span class="o">=</span> <span class="n">spectrum_window</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">noise_estimators</span>
+    <span class="k">if</span> <span class="n">truncate_negative_estimators</span> <span class="o">==</span> <span class="s2">&quot;before_sum&quot;</span><span class="p">:</span>
+        <span class="n">signal_estimators</span><span class="p">[</span><span class="n">signal_estimators</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">variances</span> <span class="o">=</span> <span class="n">noise_estimators</span> <span class="o">*</span> <span class="p">(</span><span class="n">noise_estimators</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">signal_estimators</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">signal_estimators</span><span class="p">,</span> <span class="n">variances</span>
 
 
 <div class="viewcode-block" id="get_stokes">
