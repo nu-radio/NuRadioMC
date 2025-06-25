@@ -1,6 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
-from NuRadioReco.framework.trigger import PowerIntegrationPhasedTrigger
+from NuRadioReco.framework.trigger import SimplePhasedTrigger
 from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase, default_angles
 
 import numpy as np
@@ -160,7 +160,7 @@ class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
             )
 
         # Create a trigger object to be returned to the station
-        trigger = PowerIntegrationPhasedTrigger(
+        trigger = SimplePhasedTrigger(
             trigger_name,
             threshold,
             trigger_channels=trigger_channels,

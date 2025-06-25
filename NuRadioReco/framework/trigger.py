@@ -16,8 +16,8 @@ def deserialize(triggers_pkl):
             trigger = SimpleThresholdTrigger(None, None)
         elif trigger_type == 'high_low':
             trigger = HighLowTrigger(None, None, None, None, None)
-        elif trigger_type == 'power_integration_phased':
-            trigger = PowerIntegrationPhasedTrigger(None, None)
+        elif trigger_type == 'simple_phased':
+            trigger = SimplePhasedTrigger(None, None)
         elif trigger_type == 'envelope_trigger':
             trigger = EnvelopeTrigger(None, None, None, None)
         elif trigger_type == 'int_power':
@@ -364,9 +364,9 @@ class DigitalEnvelopePhasedTrigger(Trigger):
         self._maximum_amps = maximum_amps
 
 
-class PowerIntegrationPhasedTrigger(Trigger):
+class SimplePhasedTrigger(Trigger):
 
-    def __init__(self, name, threshold, trigger_channels=None, secondary_channels=None,
+    def __init__(self, name, threshold, channels=None, secondary_channels=None,
                  primary_angles=None, secondary_angles=None,
                  trigger_delays=None, sec_trigger_delays=None,
                  window_size=None, step_size=None,
@@ -409,8 +409,8 @@ class PowerIntegrationPhasedTrigger(Trigger):
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
-        Trigger.__init__(self, name, trigger_channels, 'power_integration_phased', pre_trigger_times=pre_trigger_times)
-        self._primary_channels = trigger_channels
+        Trigger.__init__(self, name, channels, 'simple_phased', pre_trigger_times=pre_trigger_times)
+        self._primary_channels = channels
         self._primary_angles = primary_angles
         self._secondary_channels = secondary_channels
         self._secondary_angles = secondary_angles
