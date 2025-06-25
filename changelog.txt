@@ -7,8 +7,13 @@ new features:
 - energy-dependent inelasticity distribution (only BGR18 model) and cc / nc fraction (all models)
 - rice distribution method for estimating electric field energy fluences as proposed in S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
 
+version 3.0.3
 bugfixes:
-- Fixed a bug which caused interpolator options explicitly passed to the coreasInterpolator to be overwritten 
+- Fixed a bug which caused interpolator options explicitly passed to the coreasInterpolator to be overwritten
+- Removed one unused optional argument introduced in 3.0.2 which broke Event storage on python version <3.8
+- Fixed a bug where untriggered stations in a multiple-station event would attempt to access primary particle
+  information from an empty buffer.
+- Fixed a bug where loading a GenericDetector from a .nur file raised an error in some cases.
 
 version 3.0.2
 bugfixes:
