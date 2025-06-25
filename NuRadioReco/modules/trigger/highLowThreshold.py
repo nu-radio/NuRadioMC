@@ -33,7 +33,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     align_strides_to_start: bool (default: False)
         If true, the trace represents real detector data and will force the striding
         to start at the beginning of the trace without padding. If false, the traces
-        will be zero-padded at the beginning of the trace. This allows a trigger at 
+        will be zero-padded at the beginning of the trace. This allows a trigger at
         beginning of the trace to be associated with the correct trigger time.
 
     Returns
@@ -99,7 +99,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     align_strides_to_start: bool (default: False)
         If true, the trace represents real detector data and will force the striding
         to start at the beginning of the trace without padding. If false, the traces
-        will be zero-padded at the beginning of the trace. This allows a trigger at 
+        will be zero-padded at the beginning of the trace. This allows a trigger at
         beginning of the trace to be associated with the correct trigger time.
 
     Returns
@@ -172,7 +172,8 @@ class triggerSimulator:
             clock_offset=0,
             adc_output='voltage',
             step=1,
-            align_strides_to_start=False):
+            align_strides_to_start=False,
+            pre_trigger_time=None):
         """
 
         Parameters
@@ -220,14 +221,20 @@ class triggerSimulator:
         align_strides_to_start: bool (default: False)
             If true, the trace represents real detector data and will force the striding
             to start at the beginning of the trace without padding. If false, the traces
-            will be zero-padded at the beginning of the trace. This allows a trigger at 
+            will be zero-padded at the beginning of the trace. This allows a trigger at
             beginning of the trace to be associated with the correct trigger time.
-
+        pre_trigger_time: float or dict of floats
+            Defines the amount of trace recorded before the trigger time. This module does not cut the traces,
+            but this trigger property is later used to trim traces accordingly.
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+            If none, the default value of the HighLowTrigger class is used, which is currently 55ns.
         Returns
         -------
         has_triggered: bool
             True if the trigger condition was met
-  """
+        """
         t = time.time()
 
         if use_digitization:
@@ -300,8 +307,13 @@ class triggerSimulator:
             logger.info("set_not_triggered flag True, setting triggered to False.")
             has_triggered = False
 
+        kwargs = {}
+        if pre_trigger_time is not None:
+            kwargs['pre_trigger_times'] = pre_trigger_time
         trigger = HighLowTrigger(trigger_name, threshold_high, threshold_low, high_low_window,
-                                 coinc_window, channels=triggered_channels, number_of_coincidences=number_concidences)
+                                 coinc_window, channels=triggered_channels, number_of_coincidences=number_concidences,
+                                 **kwargs)
+
         trigger.set_triggered_channels(channels_that_passed_trigger)
 
         if not has_triggered:

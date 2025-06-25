@@ -263,12 +263,36 @@ if __name__ == "__main__":
 
     det = Detector(position_path=sys.argv[1])
     print(det.get_station_ids())
-    fig, ax = plt.subplots()
+    
+    ska_positions = []
     for stid in det.get_station_ids():
+        pos_stid = det.get_absolute_position(stid)
+        ska_positions.append(pos_stid)
         for chid in det.get_channel_ids(stid):
-
-            pos = det.get_relative_position(stid, chid)
-            ax.plot(pos[0], pos[1], 'k.', alpha=0.1)
-
+            pos_ant = pos_stid + det.get_relative_position(stid, chid)
+            ska_positions.append(pos_ant)
+    ska_positions = np.array(ska_positions)
+    
+    fig, ax = plt.subplots(figsize=(10, 10))
+    
+    ax.scatter(ska_positions[:, 0], ska_positions[:, 1], marker='.')
+    ax.set_xlabel('East [m]')
+    ax.set_ylabel('North [m]')
     ax.set_aspect(1)
+    
+    #The part of the full layout you want to zoom in on
+    x1, x2,  y1, y2 = 0, 100, 0, -100
+    
+    #Location of the zoom, the Lower-left corner of inset axes, and its width and height.[x0, y0, width, height]
+    axins = ax.inset_axes([0.5, 0.5, 0.47, 0.47])
+    
+    axins.scatter(ska_positions[:, 0], ska_positions[:, 1], marker='.')
+    axins.set_xlim(x1, x2)
+    axins.set_ylim(y1, y2)
+    axins.set_xticks([])
+    axins.set_yticks([])
+    axins.set_aspect(1)
+    
+    ax.indicate_inset_zoom(axins, edgecolor="black")
+    
     plt.show()
