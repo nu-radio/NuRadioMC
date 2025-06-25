@@ -702,7 +702,7 @@
         <span class="k">if</span> <span class="n">dtype</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="s1">&#39;numpy&#39;</span><span class="p">:</span>
             <span class="n">dispatch_table</span><span class="p">[</span><span class="n">dtype</span><span class="p">]</span> <span class="o">=</span> <span class="n">_pickle_numpy_scalar</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_dumps</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">buffer_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_dumps</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return the pickled representation of the object as a bytes object.</span>
 
@@ -712,9 +712,7 @@
 <span class="sd">    of numpy objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
-    <span class="n">_NurPickler</span><span class="p">(</span>
-        <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="n">fix_imports</span><span class="p">,</span>
-        <span class="n">buffer_callback</span><span class="o">=</span><span class="n">buffer_callback</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="n">_NurPickler</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="n">fix_imports</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">res</span>
 
