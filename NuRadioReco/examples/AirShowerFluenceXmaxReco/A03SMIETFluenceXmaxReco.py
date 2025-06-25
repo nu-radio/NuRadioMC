@@ -234,10 +234,20 @@ energy_factors = np.zeros(N_showers)
 #     )
 
 # SMIET fitting
-input_files = glob.glob(
-    "/home/mitjadesmet/Data/Showers_for_Xmax_reco/vertical_geometry/*.hdf5"
-)
-template_files = [file[:-4] + "npz" for file in input_files]
+input_files = [
+    "/home/mitjadesmet/Data/Showers_for_Xmax_reco/vertical_geometry/SIM900200.hdf5",
+    "/home/mitjadesmet/Data/Showers_for_Xmax_reco/vertical_geometry/SIM900100.hdf5",
+    "/home/mitjadesmet/Data/Showers_for_Xmax_reco/vertical_geometry/SIM900103.hdf5",
+]
+
+synth_freq = [30, 500]
+
+template_files = [
+    f"/home/mitjadesmet/Data/Showers_for_Xmax_reco/vertical_geometry/templates_{synth_freq[0]}_{synth_freq[1]}/"
+    + os.path.basename(file)[:-4]
+    + "npz"
+    for file in input_files
+]
 
 N_showers = len(input_files)
 Xmax_smiet = np.zeros(N_showers)
@@ -289,31 +299,33 @@ energy_factors_smiet_vvB = np.zeros(N_showers)
 
 
 # Interpolated version
-interpolated_synthesis = smietInterpolated()
+interpolated_synthesis = smietInterpolated(freq=synth_freq)
 interpolated_synthesis.begin(input_files, template_files)
 
-grams = (
-    np.arange(
-        interpolated_synthesis.synthesis[2]._origin_shower.nr_of_slices, dtype=float
+for synthesis in interpolated_synthesis.synthesis:
+    synthesis.save_template(
+        save_dir=f"/home/mitjadesmet/Data/Showers_for_Xmax_reco/vertical_geometry/templates_{synth_freq[0]}_{synth_freq[1]}/"
     )
-    + 1
-)
-grams *= interpolated_synthesis.synthesis[2]._origin_shower.slice_grammage
+
+grams = np.asarray(interpolated_synthesis.synthesis[2].slices_grammage)
 
 target_showers = []
 target_xmax = np.array(
-    list(range(650, 700, 25)) + list(range(700, 750, 5)) + list(range(750, 800, 25))
+    list(range(650, 700, 25)) + list(range(700, 750, 10)) + list(range(750, 800, 25))
 )
+target_xmax = [720, 750]
+target_L = [210]
 for xmax in target_xmax:
-    target = Shower()
-    target.copy_settings(interpolated_synthesis.synthesis[2]._origin_shower)
-    target.long = gaisser_hillas(grams, 1e8, xmax, 210, 0.33)
+    for l_par in target_L:
+        target = Shower()
+        target.copy_settings(interpolated_synthesis.synthesis[2].get_origin_shower())
+        target.long = gaisser_hillas(grams, 6e8, xmax, l_par, 0.21)
 
-    target_showers.append(target)
+        target_showers.append(target)
 
-fmin_smiet_interpolated = np.zeros(len(target_xmax))
-success_smiet_interpolated = np.zeros(len(target_xmax), dtype=bool)
-energy_factors_smiet_interpolated = np.zeros(len(target_xmax))
+fmin_smiet_interpolated = np.zeros(len(target_showers))
+success_smiet_interpolated = np.zeros(len(target_showers), dtype=bool)
+energy_factors_smiet_interpolated = np.zeros(len(target_showers))
 
 for i, synthesised_event in enumerate(interpolated_synthesis.run(target_showers)):
     # filter the simulation with the same settings as before
@@ -350,11 +362,17 @@ fig, ax = plt.subplots(1, 1, figsize=(6, 8))
 #     c=energy_factors_smiet_vvB[success_smiet_vvB],
 #     marker="x",
 # )
-artist = ax.scatter(
-    target_xmax[success_smiet_interpolated],
-    fmin_smiet_interpolated[success_smiet_interpolated],
-    c=energy_factors_smiet_interpolated[success_smiet_interpolated],
-)
+marker = [".", "x", "o"]
+for i in range(len(target_showers) // len(target_xmax)):
+    artist = ax.scatter(
+        target_xmax,
+        fmin_smiet_interpolated[i * len(target_xmax) : (i + 1) * len(target_xmax)],
+        c=energy_factors_smiet_interpolated[
+            i * len(target_xmax) : (i + 1) * len(target_xmax)
+        ],
+        marker=marker[i],
+        label=f"Set with L = {target_L[i]} g/c",
+    )
 ax.vlines(mc_dreamland_xmax / units.g * units.cm2, *ax.get_ylim(), label="True Xmax")
 ax.vlines(
     np.array(interpolated_synthesis.origin_xmax) / units.g * units.cm2,
