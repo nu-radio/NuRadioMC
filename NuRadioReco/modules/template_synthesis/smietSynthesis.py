@@ -170,10 +170,17 @@ class smietSynthesis:
                     self.template_synthesis.get_time_axis(),
                 )
             ):
+                efield_on_ground = shower.get_transformer().transform_from_vxB_vxvxB(
+                    efield.T
+                )
+                efield_on_sky = shower.get_transformer().transform_from_ground_to_onsky(
+                    efield_on_ground
+                )
+
                 add_electric_field_to_sim_station(
                     sim_station,
                     efield_ind,
-                    efield.T,
+                    efield_on_sky,
                     efield_time_axis[0],
                     self._origin_shower.zenith,
                     self._origin_shower.azimuth,
@@ -313,10 +320,17 @@ class smietInterpolated:
                     self.synthesis[lower_shower].get_time_axis(),
                 )
             ):
+                efield_on_ground = shower.get_transformer().transform_from_vxB_vxvxB(
+                    efield.T
+                )
+                efield_on_sky = shower.get_transformer().transform_from_ground_to_onsky(
+                    efield_on_ground
+                )
+
                 add_electric_field_to_sim_station(
                     sim_station,
                     efield_ind,
-                    efield.T,
+                    efield_on_sky,
                     efield_time_axis[0],
                     self.zenith,
                     self.azimuth,
