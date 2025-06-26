@@ -532,7 +532,9 @@ class outputWriterHDF5:
         Returns:
             float: The calculated effective volume (Veff)
         """
-        # calculate effective volume
+        if not self._mout: # if no events triggered, this is an empty dict
+            return None
+
         triggered = remove_duplicate_triggers(self._mout['triggered'], self._mout['event_group_ids'])
         n_triggered = np.sum(triggered)
         try:
