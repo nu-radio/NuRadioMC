@@ -24,7 +24,7 @@ class PhasedArrayTrigger(PhasedArrayBase):
     def run(self, evt, station, det,
             Vrms=None,
             threshold=60 * units.mV,
-            triggered_channels=None,
+            trigger_channels=None,
             trigger_name='simple_phased_threshold',
             phasing_angles=default_angles,
             set_not_triggered=False,
@@ -45,7 +45,7 @@ class PhasedArrayTrigger(PhasedArrayBase):
 
         Several channels are phased by delaying their signals by an amount given
         by a pointing angle. Several pointing angles are possible in order to cover
-        the sky. The array triggered_channels controls the channels that are phased,
+        the sky. The array trigger_channels controls the channels that are phased,
         according to the angles phasing_angles.
 
         Parameters
@@ -62,7 +62,7 @@ class PhasedArrayTrigger(PhasedArrayBase):
             int the detector description file.
         threshold: float
             threshold above (or below) a trigger is issued, absolute amplitude
-        triggered_channels: array of ints
+        trigger_channels: array of ints
             channels ids of the channels that form the primary phasing array
             if None, all channels are taken
         trigger_name: string
@@ -115,7 +115,7 @@ class PhasedArrayTrigger(PhasedArrayBase):
                 maximum_amps, n_triggers, triggered_beams = self.phased_trigger(
                 station=station, det=det,
                 threshold=threshold,
-                triggered_channels=triggered_channels,
+                trigger_channels=trigger_channels,
                 phasing_angles=phasing_angles,
                 ref_index=ref_index,
                 apply_digitization=apply_digitization,
@@ -140,7 +140,7 @@ class PhasedArrayTrigger(PhasedArrayBase):
         trigger = SimplePhasedTrigger(
             trigger_name,
             threshold,
-            channels=triggered_channels,
+            channels=trigger_channels,
             primary_angles=phasing_angles,
             trigger_delays=trigger_delays,
             window_size=window,
