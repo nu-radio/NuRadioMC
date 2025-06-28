@@ -336,7 +336,7 @@ class Response:
             other = copy.copy(other)
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
-                time_delay = self._calculate_time_delay()
+                time_delay = self.calculate_time_delay()
                 if time_delay > trace_length / 2:
                     self.logger.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
                                         f"{time_delay:.2f} vs {trace_length:.2f}")
@@ -392,7 +392,7 @@ class Response:
             other = copy.copy(other)
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
-                time_delay = self._calculate_time_delay()
+                time_delay = self.calculate_time_delay()
                 if time_delay > trace_length / 2:
                     self.logger.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
                                         f"{time_delay:.2f} vs {trace_length:.2f}")
@@ -480,31 +480,35 @@ class Response:
         """ Get time delay from DB """
         return self.__time_delays
 
-    def _calculate_time_delay(self):
+    def calculate_time_delay(self, fmin=150*units.MHz, fmax=200*units.MHz):
         """
         Calculate time delay from phase of the stored complex response function.
         This is not the time delay which is stored in the DB and which is used in
         the `__init__()` to normalize the response function. Rather, its the remaining
         group delay.
 
-        The time delay is calculated as the mean between 195 and 205 MHz.
+        The time delay is calculated as the mean between fmin to fmax.
+
+        Parameters
+        ----------
+        fmin: float
+            lower frequency limit to use in the averaging of the group delay
+        fmax: float
+            upper frequency limit to use in the averaging of the group delay
 
         Returns
         -------
 
-        time_delay1 : float
-            The time delay at ~ 200 MHz
+        avg_delay : float
+            The avg group delay over the band fmin to fmax
         """
 
-        freqs = np.arange(50, 1200, 0.5) * units.MHz
-
-        response = self(freqs)
-        delta_freq = np.diff(freqs)
-        phase = np.angle(response)
-
-        time_delay = -np.diff(np.unwrap(phase)) / delta_freq / 2 / np.pi
-        mask = np.all([195 * units.MHz < freqs, freqs < 250 * units.MHz], axis=0)[:-1]
-        time_delay1 = np.mean(time_delay[mask])
+        freqs = np.linspace(fmin, fmax, 1000)
+        response = self(freqs) #make sure trigger = true does happen too
+        phase_angle = np.angle(response)
+        unwrapped = np.unwrap(phase_angle)
+        group_delays = -np.gradient(unwrapped) / (2 * np.pi * np.gradient(freqs))
+        avg_delay = np.mean( group_delays[np.logical_and(freqs>fmin, freqs<fmax)] )
 
         # This alternative calculation is only meaningful if group delay is ~ constant over the whole frequency range (which is the case for most cables)
         # # fit the unwrapped phase with a linear function
@@ -515,7 +519,7 @@ class Response:
         #     self.logger.warning("Calculation of time delay. The two methods yield different results: "
         #                         f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
 
-        return time_delay1
+        return avg_delay
 
 
 def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=None):

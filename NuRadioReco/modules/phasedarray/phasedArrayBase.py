@@ -94,7 +94,14 @@ class PhasedArrayBase():
         self.check_vertical_string(station, det, triggered_channels)
         ref_z = np.max(ant_z)
         cable_delays = np.array([det.get_cable_delay(station.get_id(), channel_id, trigger=True) for channel_id in triggered_channels])
-        group_delays = self.get_response_group_delays(station, det, triggered_channels, fmin=0.15, fmax=0.2)
+        group_delays = np.zeros(len(triggered_channels))
+
+        for i, channel in enumerate(triggered_channels):
+            try:
+                resp = det.get_signal_chain_response(station.get_id(), channel, trigger=True)
+                group_delays[i] = resp.calculate_time_delay()
+            except:
+                pass
 
         beam_rolls = []
 
@@ -108,46 +115,6 @@ class PhasedArrayBase():
         self.buffered_delays[station.get_id()] = beam_rolls
 
         return beam_rolls
-
-    def get_response_group_delays(self, station, det, triggered_channels, fmin=0.150, fmax=0.200):
-        """
-        Calculates the group delays intrinsic to the channels response over some defined band.
-
-        Parameters
-        ----------
-        station: Station object
-            Description of the current station
-        det: Detector object
-            Description of the current detector
-        triggered_channels: array of ints
-            channels ids of the channels that form the primary phasing array
-            if None, all channels are taken
-        fmin: float
-            lower frequency limit to use in the averaging of the group delay
-        fmax: float
-            upper frequency limit to use in the averaging of the group delay
-
-        ----------
-        Returns
-        group_delays: numpy array with the group delays in ns for each triggered channel
-
-        """
-        ch_group_delays = []
-        for channel in triggered_channels:
-            fs = np.linspace(fmin, fmax, 1000)
-            try:
-                response = det.get_signal_chain_response(station.get_id(), channel, trigger=True)(fs)
-            except:
-                logging.warning(f"Get signal chain failed, setting {station.get_id()} channel {channel} to 0 ns")
-                ch_group_delays.append(0)
-                continue
-            phase_angle = np.angle(response)
-            unwrapped = np.unwrap(phase_angle)
-            group_delays = -np.gradient(unwrapped) / (2 * np.pi * np.gradient(fs))
-            avg_delay = np.mean( group_delays[np.logical_and(fs>fmin, fs<fmax)] )
-            ch_group_delays.append(avg_delay)
-
-        return np.array(ch_group_delays)
 
     def get_channel_trace_start_time(self, station, triggered_channels):
         """

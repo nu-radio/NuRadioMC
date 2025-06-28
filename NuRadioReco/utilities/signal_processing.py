@@ -223,8 +223,8 @@ def upsampling_fir(trace, original_sampling_frequency, upsampling_factor=2, ntap
 
     if coeff_gain != 1:
         up_filt = np.round(up_filt * coeff_gain) / coeff_gain
+        up_filt = np.trim_zeros(up_filt)
 
-    up_filt = np.trim_zeros(up_filt)
     zero_padded_sig = np.zeros(len(trace) * upsampling_factor)
     zero_padded_sig[::upsampling_factor] = trace
     upsampled_trace = np.convolve(zero_padded_sig, up_filt, mode='full')[
