@@ -22,7 +22,7 @@ class PhasedEnvelopeTriggerSimulator(PhasedArrayBase):
     def run(self, evt, station, det,
             Vrms=None,
             threshold=60 * units.mV,
-            trigger_channels=None,
+            triggered_channels=None,
             trigger_name='digital_envelope_phased_threshold',
             phasing_angles=default_angles,
             set_not_triggered=False,
@@ -63,7 +63,7 @@ class PhasedEnvelopeTriggerSimulator(PhasedArrayBase):
             int the detector description file.
         threshold: float
             threshold above (or below) a trigger is issued, absolute amplitude
-        trigger_channels: array of ints
+        triggered_channels: array of ints
             channels ids of the channels that form the primary phasing array
             if None, all channels are taken
         trigger_name: string
@@ -134,7 +134,7 @@ class PhasedEnvelopeTriggerSimulator(PhasedArrayBase):
                 maximum_amps, n_triggers, triggered_beams = self.phased_trigger(
                     station=station, det=det,
                     threshold=threshold,
-                    trigger_channels=trigger_channels,
+                    triggered_channels=triggered_channels,
                     phasing_angles=phasing_angles,
                     ref_index=ref_index,
                     apply_digitization=apply_digitization,
@@ -161,7 +161,7 @@ class PhasedEnvelopeTriggerSimulator(PhasedArrayBase):
         trigger = DigitalEnvelopePhasedTrigger(
             trigger_name,
             threshold,
-            trigger_channels=trigger_channels,
+            triggered_channels=triggered_channels,
             phasing_angles=phasing_angles,
             trigger_delays=trigger_delays,
             maximum_amps=maximum_amps

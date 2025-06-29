@@ -31,7 +31,7 @@ class PhasedArrayBase():
         self.__pre_trigger_time = pre_trigger_time
         self.__debug = debug
 
-    def _get_antenna_positions(self, station, det, trigger_channels, component=2):
+    def _get_antenna_positions(self, station, det, triggered_channels, component=2):
         """
         Calculates the vertical coordinates of the antennas of the detector
 
@@ -41,7 +41,7 @@ class PhasedArrayBase():
             Description of the current station
         det: Detector object
             Description of the current detector
-        trigger_channels: array of ints
+        triggered_channels: array of ints
             Channels ids of the channels that form the primary phasing array.
         component: int (default: 2)
             Which cartesian coordinate to return
@@ -52,7 +52,7 @@ class PhasedArrayBase():
             Dictionary of keys=antenna and content=position
         """
         return np.array([det.get_relative_position(station.get_id(), channel_id)[component]
-            for channel_id in trigger_channels])
+            for channel_id in triggered_channels])
 
     def calculate_time_delays(
             self, station, det,
@@ -88,7 +88,7 @@ class PhasedArrayBase():
             return self.buffered_delays[station.get_id()]
 
         if triggered_channels is None:
-            triggered_channels = [channel.get_id() for channel in station.iter_trigger_channels()]
+            triggered_channels = [channel.get_id() for channel in station.iter_triggered_channels()]
 
         ant_z = self._get_antenna_positions(station, det, triggered_channels, 2)
         self.check_vertical_string(station, det, triggered_channels)
@@ -136,7 +136,7 @@ class PhasedArrayBase():
         """
 
         channel_trace_start_time = None
-        for channel in station.iter_trigger_channels(use_channels=triggered_channels):
+        for channel in station.iter_triggered_channels(use_channels=triggered_channels):
 
             if channel_trace_start_time is None:
                 channel_trace_start_time = channel.get_trace_start_time()
@@ -268,7 +268,7 @@ class PhasedArrayBase():
 
         return return_power, num_frames
 
-    def get_traces(self, station, det, trigger_channels=None,
+    def get_traces(self, station, det, triggered_channels=None,
             apply_digitization=False, adc_kwargs={},
             upsampling_kwargs={}):
         """
@@ -280,7 +280,7 @@ class PhasedArrayBase():
             Description of the current station
         det: Detector object
             Description of the current detector
-        trigger_channels: array of ints (default: None)
+        triggered_channels: array of ints (default: None)
             channels ids of the channels that form the primary phasing array
             if None, all channels are taken
         apply_digitization: bool
@@ -305,7 +305,7 @@ class PhasedArrayBase():
 
         traces = {}
         final_sampling_frequency = None
-        for channel in station.iter_trigger_channels(use_channels=trigger_channels):
+        for channel in station.iter_triggered_channels(use_channels=triggered_channels):
             if apply_digitization:
                 trace, adc_sampling_frequency = self._adc_to_digital_converter.get_digital_trace(
                     station, det, channel, **adc_kwargs)
@@ -371,7 +371,7 @@ class PhasedArrayBase():
     def phased_trigger(
             self, station, det,
             threshold=60 * units.mV,
-            trigger_channels=None,
+            triggered_channels=None,
             phasing_angles=default_angles,
             ref_index=1.75,
             apply_digitization=False,
@@ -394,7 +394,7 @@ class PhasedArrayBase():
 
         Several channels are phased by delaying their signals by an amount given
         by a pointing angle. Several pointing angles are possible in order to cover
-        the sky. The array trigger_channels controls the channels that are phased,
+        the sky. The array triggered_channels controls the channels that are phased,
         according to the angles phasing_angles.
 
         Parameters
@@ -405,7 +405,7 @@ class PhasedArrayBase():
             Description of the current detector
         threshold: float
             threshold above (or below) a trigger is issued, absolute amplitude
-        trigger_channels: array of ints
+        triggered_channels: array of ints
             channels ids of the channels that form the primary phasing array
             if None, all channels are taken
         phasing_angles: array of float
@@ -462,16 +462,16 @@ class PhasedArrayBase():
 
         traces, adc_sampling_frequency = self.get_traces(
             station, det,
-            trigger_channels=trigger_channels,
+            triggered_channels=triggered_channels,
             apply_digitization=apply_digitization,
             adc_kwargs=adc_kwargs,
             upsampling_kwargs=upsampling_kwargs
         )
-        trigger_channels = np.array(list(traces.keys()))
+        triggered_channels = np.array(list(traces.keys()))
 
         time_step = 1.0 / adc_sampling_frequency
         beam_rolls = self.calculate_time_delays(
-            station, det, trigger_channels,
+            station, det, triggered_channels,
             phasing_angles, ref_index=ref_index,
             sampling_frequency=adc_sampling_frequency)
 
@@ -480,7 +480,7 @@ class PhasedArrayBase():
         if adc_output == "counts":
             threshold = np.trunc(threshold)
 
-        channel_trace_start_time = self.get_channel_trace_start_time(station, trigger_channels)
+        channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
         maximum_amps = np.zeros(len(phased_traces))
 
         trigger_delays = {}
@@ -517,7 +517,7 @@ class PhasedArrayBase():
 
                 logger.debug(
                     "Station has triggered, at bins {}\n".format(triggered_bins) +
-                    "Trigger delays: {}\n".format(trigger_delays[iTrace][trigger_channels[0]]) +
+                    "Trigger delays: {}\n".format(trigger_delays[iTrace][triggered_channels[0]]) +
                     "Trigger time is {}ns\n".format(trigger_times[iTrace])
                 )
 

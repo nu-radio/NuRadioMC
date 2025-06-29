@@ -21,7 +21,7 @@ class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
     def run(self, evt, station, det,
             Vrms=None,
             threshold=60 * units.mV,
-            trigger_channels=None,
+            triggered_channels=None,
             trigger_name='simple_phased_threshold',
             phasing_angles=default_angles,
             set_not_triggered=False,
@@ -48,7 +48,7 @@ class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
 
         Several channels are phased by delaying their signals by an amount given
         by a pointing angle. Several pointing angles are possible in order to cover
-        the sky. The array trigger_channels controls the channels that are phased,
+        the sky. The array triggered_channels controls the channels that are phased,
         according to the angles phasing_angles.
 
         Parameters
@@ -65,7 +65,7 @@ class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
             int the detector description file.
         threshold: float
             threshold above (or below) a trigger is issued, absolute amplitude
-        trigger_channels: array of ints
+        triggered_channels: array of ints
             channels ids of the channels that form the primary phasing array
             if None, all channels are taken
         trigger_name: string
@@ -136,7 +136,7 @@ class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
                 maximum_amps, n_triggers, triggered_beams = self.phased_trigger(
                     station=station, det=det,
                     threshold=threshold,
-                    trigger_channels=trigger_channels,
+                    triggered_channels=triggered_channels,
                     phasing_angles=phasing_angles,
                     ref_index=ref_index,
                     apply_digitization=apply_digitization,
@@ -163,7 +163,7 @@ class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
         trigger = SimplePhasedTrigger(
             trigger_name,
             threshold,
-            trigger_channels=trigger_channels,
+            triggered_channels=triggered_channels,
             primary_angles=phasing_angles,
             trigger_delays=trigger_delays,
             window_size=window,
