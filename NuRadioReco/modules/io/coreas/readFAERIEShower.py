@@ -198,6 +198,13 @@ class readFAERIEShower:
                                     sim_station, f_coreas["observers_geant"][observer_name], antenna_position_in_ice,
                                     zenith, azimuth, sim_shower.get_parameter(shp.magnetic_field_vector),
                                     channel_id=idx, ray_tracing_id=ray_tracing_id, shower_id=1)
+                            else:
+                                zenith = sim_shower.get_parameter(shp.zenith)
+                                azimuth = sim_shower.get_parameter(shp.azimuth)
+                                add_efield_to_sim_station(
+                                    sim_station, f_coreas["observers_geant"][observer_name], antenna_position_in_ice,
+                                    zenith, azimuth, sim_shower.get_parameter(shp.magnetic_field_vector),
+                                    channel_id=idx, ray_tracing_id=0, shower_id=1,scale=0)
                         else:
                             zenith = sim_shower.get_parameter(shp.zenith)
                             azimuth = sim_shower.get_parameter(shp.azimuth)
@@ -284,14 +291,14 @@ def get_signal_direction(rays):
 
     return zenith, azimuth, 0
 
-def add_efield_to_sim_station(sim_station, observer, position, zenith, azimuth, magnetic_field_vector, channel_id, ray_tracing_id, shower_id):
+def add_efield_to_sim_station(sim_station, observer, position, zenith, azimuth, magnetic_field_vector, channel_id, ray_tracing_id, shower_id, scale=1):
     efields_traces, efield_times = coreas.convert_obs_to_nuradio_efield(
         observer, zenith=zenith, azimuth=azimuth, magnetic_field_vector=magnetic_field_vector)
 
     sampling_rate = 1 / (efield_times[1] - efield_times[0])
     coreas.add_electric_field_to_sim_station(
         sim_station, [channel_id],
-        efields_traces, efield_times[0],
+        scale*efields_traces, efield_times[0],
         zenith, azimuth,
         sampling_rate,
         efield_position=position,
