@@ -88,7 +88,7 @@ class PhasedArrayBase():
             return self.buffered_delays[station.get_id()]
 
         if triggered_channels is None:
-            triggered_channels = [channel.get_id() for channel in station.iter_triggered_channels()]
+            triggered_channels = [channel.get_id() for channel in station.iter_trigger_channels()]
 
         ant_z = self._get_antenna_positions(station, det, triggered_channels, 2)
         self.check_vertical_string(station, det, triggered_channels)
@@ -136,7 +136,7 @@ class PhasedArrayBase():
         """
 
         channel_trace_start_time = None
-        for channel in station.iter_triggered_channels(use_channels=triggered_channels):
+        for channel in station.iter_trigger_channels(use_channels=triggered_channels):
 
             if channel_trace_start_time is None:
                 channel_trace_start_time = channel.get_trace_start_time()
@@ -305,7 +305,7 @@ class PhasedArrayBase():
 
         traces = {}
         final_sampling_frequency = None
-        for channel in station.iter_triggered_channels(use_channels=triggered_channels):
+        for channel in station.iter_trigger_channels(use_channels=triggered_channels):
             if apply_digitization:
                 trace, adc_sampling_frequency = self._adc_to_digital_converter.get_digital_trace(
                     station, det, channel, **adc_kwargs)
