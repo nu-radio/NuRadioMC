@@ -269,6 +269,13 @@ class smietInterpolated:
 
         x, y = self.synthesis[synth_ind].antenna_information["position_showerplane"].T
 
+        # Make the vxB axis the sum of GEO + CE
+        vB = abs(y) < 1e-3
+        vvB = abs(x) < 1e-3
+
+        synth_geo[vB] = synth_geo[vvB]
+        synth_ce[vB] = synth_ce[vvB]
+
         synth_shower_plane = geo_ce_to_e(np.stack((synth_geo, synth_ce), axis=2), x, y)
 
         return synth_shower_plane
