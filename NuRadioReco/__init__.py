@@ -11,6 +11,7 @@ try:
 except ModuleNotFoundError:
     import importlib_metadata
 
+# Set version number
 __version__ = None
 # First, try to obtain version number from pyproject.toml (developer version)
 parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

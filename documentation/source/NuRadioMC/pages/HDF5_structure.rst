@@ -1,9 +1,15 @@
 HDF5 output structure
 =====================
 
-The output of a NuRadioMC simulation is saved in the HDF5 file format, as well as (optionally) in ``.nur`` files.
-The data structure of ``.nur`` files is explained :doc:`here </NuRadioReco/pages/event_structure>`.
-This page outlines the structure of the HDF5 files v3.0. Find the structure of :doc:`v2.2 here </NuRadioMC/pages/HDF5_structures_history/HDF5_v2.2>`.
+.. Note::
+    The output of a NuRadioMC simulation is saved in the HDF5 file format, as well as (optionally) in ``.nur`` files.
+    The HDF5 files contain mostly high-level output parameters in a standard, table-like structure.
+    It does not include the simulated voltage traces. For more advanced analyses (e.g. reconstruction),
+    you probably need to use the ``.nur`` files.
+    The data structure of ``.nur`` files is explained :doc:`here </NuRadioReco/pages/event_structure>`.
+
+.. Note::
+    This page outlines the structure of the HDF5 files v3.0. Find the structure of :doc:`v2.2 here </NuRadioMC/pages/HDF5_structures_history/HDF5_v2.2>`.
 
 
 Opening the HDF5 file
@@ -88,9 +94,9 @@ The station-level attributes can be accessed using ``f[station_<station_id>].att
         :header-rows: 1
         :widths: auto
         :delim: |
-        
+
         Key | Description
-        ``Vrms`` | RMS of the voltage used as thermal noise floor :math:`v_{n} = (k_{B} \, R \, T \, \Delta f) ^ {0.5}`. See the relevant section "Noise voltage and power" in this `wiki article <https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise>`_ (last two equations). Determine from ``Tnoise`` and ``bandwidth`` (see below).
+        ``Vrms`` | RMS of the voltage used as thermal noise floor :math:`v_{n} = (k_{B} \, R \, T \, \Delta f) ^ {0.5}`. See the relevant section "Maximum transfer of noise power" in this `wiki article <https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise>`_ . Determine from ``Tnoise`` and ``bandwidth`` (see below).
         ``Vrms_trigger`` | (Optional) Same as ``Vrms`` but for the trigger channels if they were simulated with a different response.
         ``bandwidth`` | Bandwidth is above equation. Calculated as the integral over the simulated filter response (`filt`) squared: :math:`\Delta f = np.trapz(np.abs(filt) ** 2, ff)`.
         ``antenna_positions`` | Relative position of all simulated antennas (channels)

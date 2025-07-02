@@ -1,4 +1,6 @@
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.constants import tau_rest_lifetime, c as cspeed, tau_mass
+
 import matplotlib.pyplot as plt
 import numpy as np
 import json
@@ -55,12 +57,7 @@ plt.savefig('tau_decay_energy_PROPOSAL_diff.png', format='png')
 plt.show()
 
 # PLOTTING LENGTHS
-
-from scipy import constants
-tau_rest_lifetime = 290.3 * units.fs
-cspeed = constants.c * units.m / units.s
-tau_mass = constants.physical_constants['tau mass energy equivalent in MeV'][0] * units.MeV
-length_no_losses = input_cont['energies']*tau_rest_lifetime*cspeed / tau_mass
+length_no_losses = input_cont['energies'] * tau_rest_lifetime * cspeed / tau_mass
 
 plt.tight_layout()
 

@@ -9,11 +9,51 @@ import os
 
 class Detector:
 
-    def __init__(self, position_path=None, channel_file=None, detector_altitude=460 * units.m, maximum_radius=600 * units.m):
+    def __init__(
+            self, position_path=None, channel_file=None,
+            detector_altitude=460 * units.m, maximum_radius=600 * units.m,
+            n_samples=1024, sampling_frequency=0.8*units.GHz):
+        """
+        Simple class to describe an ideal SKA detector.
+
+        All individual channels (= single antenna) within a receiver unit (= dual polarised antenna)
+        are described with a JSON file. The channels within one receiver, i.e., those with the same
+        unique position have the same `channel_group_id`. In the context of this class the
+        `channel_group_id` is also referred to as `antenna_id`. Each channel has a unique ID.
+        The channels' IDs are constructed as follows: `channel_group_id * 10 + pol`
+        `pol` is (currently) either 0 or 1 for the first or second polarization respectively.
+
+        As of February 2025, the SKA positions are specified in a set of files following a specific
+        directory structure. In the directory there should be a layout.txt file which contains the
+        positions of the stations. For each station there should be a subdirectory which also contains
+        a layout.txt file with the positions of the antennas. The `position_path` should point to the
+        root directory of this structure.
+
+        Parameters
+        ----------
+        position_path: str (Default: None)
+            Path to the directory which contains the layout.txt files with the station positions and
+            subdirectories for each station, as explained above. If None, the detector is left empty
+            and the positions will have to be added manually.
+        channel_file: str (Default: None)
+            Path to the JSON file which contains the channel information. If None,
+            the default file "ska_channels.json" in the same directory as this file
+            is used.
+        detector_altitude: float (Default: 460 * units.m)
+            Altitude of the detector in meters.
+        maximum_radius: float (Default: 600 * units.m)
+            Maximum radius of stations to be included when reading from file.
+        n_samples: int (Default: 1024)
+            Number of ADC samples per channel.
+        sampling_frequency: float (Default: 0.8 * units.GHz)
+            Sampling frequency of the channels.
+        """
 
         self.logger = logging.getLogger("NuRadioReco.detector.SKA.detector")
         self.detector_altitude = detector_altitude
         self.maximum_radius = maximum_radius
+        self.__n_samples = n_samples
+        self.__sampling_frequency = sampling_frequency # TODO: move to .json file once these values are confirmed
 
         if channel_file is None:
             channel_file = os.path.join(
@@ -34,7 +74,49 @@ class Detector:
         if position_path is not None:
             self.read_antenna_positions(position_path, maximum_radius=maximum_radius)
 
+    def get_number_of_samples(self, station_id=None, channel_id=None):
+        """
+        returns the number of samples of a channel.
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns int
+        """
+
+        return self.__n_samples
+
+    def get_sampling_frequency(self, station_id=None, channel_id=None):
+        """
+        returns the sampling frequency
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns float
+        """
+        return self.__sampling_frequency
+
     def read_antenna_positions(self, base_path, maximum_radius=600 * units.m):
+        """ Reads the antenna positions from the given path.
+        This function expects a path to the root directory containing all information is a certain
+        format.
+
+        Parameters
+        ----------
+        base_path: str
+            Path to the root directory containing the layout.txt.
+        maximum_radius: float (Default: 600 * units.m)
+            Maximum radius of stations to be included when reading from file.
+        """
         assert self._antenna_positions is None, "Antenna positions already read. Cannot read again."
         self._antenna_positions = defaultdict(dict)
         self._station_positions = {}
@@ -68,16 +150,34 @@ class Detector:
                 self._antenna_positions[station_id][antenna_id] = antenna_position
 
     def add_antenna_position(self, station_id, antenna_id, position):
+        """ Adds an antenna position to the detector. """
         if self._antenna_positions is None:
             self._antenna_positions = defaultdict(dict)
         self._antenna_positions[station_id][antenna_id] = position
 
     def add_station_position(self, station_id, position):
+        """ Adds a station position to the detector. """
         if self._station_positions is None:
             self._station_positions = {}
         self._station_positions[station_id] = position
 
     def _get_reference_channel_id(self, station_id, channel_id):
+        """ Returns the reference channel ID for the given station and channel ID.
+
+        The reference channel ID is the last digit of the channel ID.
+
+        Parameters
+        ----------
+        station_id: int
+            Station ID.
+        channel_id: int
+            Channel ID.
+
+        Returns
+        -------
+        ref_id: int
+            Reference channel ID.
+        """
         ref_channel_id = int(str(channel_id)[-1])  # take the last digit
         if ref_channel_id not in self.ref_channel_ids:
             self.logger.error(f"Reference channel ID {ref_channel_id} (inferred from {channel_id}) "
@@ -87,6 +187,7 @@ class Detector:
         return ref_channel_id
 
     def get_channel_ids(self, station_id):
+        """ Returns all channel ids of one station (sorted) """
         assert self._antenna_positions is not None, "No antennas added yet. Cannot get channel IDs."
         antenna_ids = np.array(list(self._antenna_positions[station_id].keys()), dtype=int)
         channel_ids = np.hstack(
@@ -95,6 +196,7 @@ class Detector:
         return np.array(channel_ids)
 
     def get_station_ids(self):
+        """ Returns all station ids """
         assert self._antenna_positions is not None, "No antennas added yet. Cannot get station IDs."
         return np.array(list(self._antenna_positions.keys()), dtype=int)
 
@@ -106,9 +208,11 @@ class Detector:
         return "ska"
 
     def get_absolute_position(self, station_id):
+        """ Return the station position """
         return self._station_positions[station_id]
 
     def get_relative_position(self, station_id, channel_id):
+        """ Return the relative position of the antenna in the station (relative to station position) """
         antenna_id = self.get_channel_group_id(station_id, channel_id)
         return self._antenna_positions[station_id][antenna_id]
 
@@ -129,6 +233,23 @@ class Detector:
         return -26.825, 116.764
 
     def get_channel_group_id(self, station_id, channel_id):
+        """ Return the channel_group_id for a given channel_id.
+
+        The channel_group_id associates channels which are at the same position (i.e., on the same antenna).
+        Hence, the channel_group_id is the antenna_id.
+
+        Parameters
+        ----------
+        station_id: int
+            Station ID.
+        channel_id: int
+            Channel ID.
+
+        Returns
+        -------
+        channel_group_id: int
+            The channel_group_id or antenna_id.
+        """
         if channel_id > 1:
             antenna_id = int(str(channel_id)[:-1]) # take all but the last digit
         else:
@@ -142,12 +263,36 @@ if __name__ == "__main__":
 
     det = Detector(position_path=sys.argv[1])
     print(det.get_station_ids())
-    fig, ax = plt.subplots()
+
+    ska_positions = []
     for stid in det.get_station_ids():
+        pos_stid = det.get_absolute_position(stid)
+        ska_positions.append(pos_stid)
         for chid in det.get_channel_ids(stid):
+            pos_ant = pos_stid + det.get_relative_position(stid, chid)
+            ska_positions.append(pos_ant)
+    ska_positions = np.array(ska_positions)
 
-            pos = det.get_relative_position(stid, chid)
-            ax.plot(pos[0], pos[1], 'k.', alpha=0.1)
+    fig, ax = plt.subplots(figsize=(10, 10))
 
+    ax.scatter(ska_positions[:, 0], ska_positions[:, 1], marker='.')
+    ax.set_xlabel('East [m]')
+    ax.set_ylabel('North [m]')
     ax.set_aspect(1)
+
+    #The part of the full layout you want to zoom in on
+    x1, x2,  y1, y2 = 0, 100, 0, -100
+
+    #Location of the zoom, the Lower-left corner of inset axes, and its width and height.[x0, y0, width, height]
+    axins = ax.inset_axes([0.5, 0.5, 0.47, 0.47])
+
+    axins.scatter(ska_positions[:, 0], ska_positions[:, 1], marker='.')
+    axins.set_xlim(x1, x2)
+    axins.set_ylim(y1, y2)
+    axins.set_xticks([])
+    axins.set_yticks([])
+    axins.set_aspect(1)
+
+    ax.indicate_inset_zoom(axins, edgecolor="black")
+
     plt.show()

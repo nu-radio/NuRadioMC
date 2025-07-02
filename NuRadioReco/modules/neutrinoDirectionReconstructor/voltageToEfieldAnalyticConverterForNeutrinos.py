@@ -6,6 +6,7 @@ from scipy import signal
 from scipy import optimize as opt
 import matplotlib.pyplot as plt
 
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import units, fft, geometryUtilities as geo_utl
 from NuRadioMC.SignalGen import askaryan as ask
@@ -46,6 +47,7 @@ class voltageToAnalyticEfieldConverterNeutrinos:
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         pass
 
+    @register_run()
     def run(self, evt, station, det, icemodel, shower_type='HAD', use_channels=[0,1,2,3], attenuation_model='SP1',
             parametrization='Alvarez2000', hilbert=False, use_bandpass_filter=False, passband_low={}, passband_high={},
             include_focusing=False, use_MC=True, n_samples_multiplication_factor=1, plot_traces_with_true_input=False, debug=False):

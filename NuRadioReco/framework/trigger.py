@@ -1,8 +1,6 @@
 from six import iteritems
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 import numpy as np
 from NuRadioReco.utilities import units
 
@@ -221,7 +219,7 @@ class Trigger:
         return self._pre_trigger_times
 
     def serialize(self):
-        return pickle.dumps(self.__dict__, protocol=4)
+        return _dumps(self.__dict__, protocol=4)
 
     def deserialize(self, data_pkl):
         for key, value in iteritems(pickle.loads(data_pkl)):
@@ -497,7 +495,7 @@ class EnvelopeTrigger(Trigger):
         self._coinc_window = channel_coincidence_window
 
 class RNOGSurfaceTrigger(Trigger):
-    from NuRadioReco.utilities import units
+
     def __init__(self, name, threshold, number_of_coincidences=1,
                  channel_coincidence_window=60*units.ns, channels=[13, 16, 19],
                  temperature=250*units.kelvin, Vbias=2*units.volt, pre_trigger_times=55 * units.ns):

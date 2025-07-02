@@ -126,9 +126,14 @@ class readCoREASDetector:
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
     def begin(self, input_file, interp_lowfreq=30 * units.MHz, interp_highfreq=1000 * units.MHz,
-              log_level=logging.NOTSET):
+              site=None, declination=None, log_level=logging.NOTSET):
         """
-        begin method, initialize readCoREASDetector module
+        Begin method to initialize readCoREASDetector module.
+
+        This function creates an Event using the provided CoREAS HDF5 file, using the `coreas.read_CORSIKA7()` function.
+        The latter takes in the `declination` and `site` parameters in order to specify the declination of the magnetic
+        field. Then, it creates a `coreasInterpolator.coreasInterpolator()` object with the event and initializes the
+        electric field interpolator.
 
         Parameters
         ----------
@@ -140,6 +145,12 @@ class readCoREASDetector:
         interp_highfreq: float, default=1000 * units.MHz
             higher frequency for the bandpass filter in interpolation,
             should be broader than the sensitivity band of the detector
+        declination: float, default=None
+            The declination to use for the magnetic field, in internal units. Takes precedence over site.
+            This parameter is passed on to the `coreas.read_CORSIKA7()` function.
+        site: str, default=None
+            Instead of declination, a site name can be given to retrieve the declination.
+            This parameter is passed on to the `coreas.read_CORSIKA7()` function.
         log_level: default=logging.NOTSET
             log level for the logger
         """
@@ -149,7 +160,7 @@ class readCoREASDetector:
         if filesize < 18456 * 2:  # based on the observation that a file with such a small filesize is corrupt
             self.logger.warning("file {} seems to be corrupt".format(input_file))
 
-        self.__corsika_evt = coreas.read_CORSIKA7(input_file)
+        self.__corsika_evt = coreas.read_CORSIKA7(input_file, site=site, declination=declination)
         self.logger.info(
             f"Using coreas simulation {input_file} with "
             f"E={self.__corsika_evt.get_first_sim_shower().get_parameter(shp.energy):.2g}eV, "
@@ -173,7 +184,10 @@ class readCoREASDetector:
         detector: `NuRadioReco.detector.detector_base.DetectorBase`
             Detector description of the detector that shall be simulated
         core_position_list: list of (list of float)
-            list of core positions in the format [[x1, y1, z1], [x2, y2, z2], ...]
+            List of 2D or 3D core positions in the format [[x1, y1, (z1)], [x2, y2, (z2)], ...]
+            The z coordinate is optional. It is actually encouraged to **not** use it, as it can mess with
+            the observation level of the event. If not provided, all oberser positions are put at the
+            observation by the interpolator (this is the behaviour of `coreasInterpolator.get_interp_efield_value`).
         selected_station_channel_ids: dict, default=None
             A dictionary containing the list of channels IDs to simulate per station.
             If None, all channels of all stations in the detector are simulated.
@@ -184,6 +198,38 @@ class readCoREASDetector:
         evt : `NuRadioReco.framework.event.Event`
             An Event containing a Station object for every selected station, which holds a SimStation containing
             the interpolated ElectricField traces for the selected channels.
+
+        Examples
+        --------
+        When running the module, you will probably want to run it with 2-dimensional core positions. This
+        ensures that the observation level is not altered. It is possible to run with 3-dimensional core positions,
+        but be careful to have the correct altitude, otherwise unexpected results might occur.
+
+        >>> reader = readCoREASDetector()
+        >>> reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)
+        >>> for evt in reader.run(detector, [[0, 0], [10 * units.m, 10 * units.m]]):
+        >>>     print(evt.get_id())
+
+        If we only want to simulate a subset of the stations of our detector, we can select them by passing a dictionary
+        for the selected_station_channel_ids parameter. The keys should be the station IDs and the value should be
+        `None` to indicate we want to simulate all channels. So to simulate all channels of stations 2 and 7,
+        we would do the following.
+
+        >>> my_selection = {2: None, 7: None}
+        >>> reader = readCoREASDetector()
+        >>> reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)
+        >>> for evt in reader.run(detector, [[0, 0], [10 * units.m, 10 * units.m]], selected_station_channel_ids):
+        >>>     print(evt.get_id())
+
+        Setting the value to a list of channel IDs will only simulate these selected channels of the station
+        they are associated to. Here we simulate the first 4 channels of station 2 and the first 2 channels
+        of station 7, for the case of the LOFAR detector description.
+
+        >>> my_selection = {2: [2000000, 2000001, 2000002, 2000003], 7: [7000000, 7000001]}
+        >>> reader = readCoREASDetector()
+        >>> reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)
+        >>> for evt in reader.run(detector, [[0, 0], [10 * units.m, 10 * units.m]], selected_station_channel_ids):
+        >>>     print(evt.get_id())
         """
 
         if selected_station_channel_ids is None:
@@ -247,7 +293,7 @@ class readCoREASDetector:
                     coreas.add_electric_field_to_sim_station(
                         sim_station, channel_ids_for_group_id, smooth_res_efield.T, res_trace_start_time,
                         sim_shower[shp.zenith], sim_shower[shp.azimuth], self.coreas_interpolator.sampling_rate,
-                        efield_position=antenna_position)
+                        efield_position=antenna_position_rel)
 
                 sim_station.set_parameter(stnp.zenith, sim_shower[shp.zenith])
                 sim_station.set_parameter(stnp.azimuth, sim_shower[shp.azimuth])

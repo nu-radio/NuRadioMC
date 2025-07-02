@@ -175,11 +175,10 @@ class DetectorBase(object):
             self._db.truncate()
             stations_table = self._db.table('stations', cache_size=1000)
             for station in dictionary['stations'].values():
-                stations_table.insert(station)
+                stations_table.insert({**station})
             channels_table = self._db.table('channels', cache_size=1000)
             for channel in dictionary['channels'].values():
-                ch = dict(**channel)
-                channels_table.insert(ch)
+                channels_table.insert({**channel})
         else:
             self._db = TinyDB(
                 json_filename,

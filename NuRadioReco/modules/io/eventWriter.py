@@ -20,7 +20,6 @@ def get_header(evt):
         if station.has_sim_station():
             header['stations'][station.get_id()]['sim_station'] = {}
             header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters().copy()
-
     header['event_id'] = (evt.get_run_number(), evt.get_id())
     return header
 
@@ -213,7 +212,7 @@ class eventWriter:
                     self.__stored_stations.append({
                         'station_id': station.get_id()
                     })
-                det_dict['stations'][str(i_station)] = station_description
+                det_dict['stations'][str(i_station)] = {**station_description}
                 i_station += 1
             for channel in station.iter_channels():
                 if not self.__is_channel_already_in_file(
@@ -235,7 +234,7 @@ class eventWriter:
                           'station_id': station.get_id(),
                           'channel_id': channel.get_id()
                         })
-                    det_dict['channels'][str(i_channel)] = channel_description
+                    det_dict['channels'][str(i_channel)] = {**channel_description}
                     i_channel += 1
             # If we have a genericDetector, the default station may not be in the event.
             # In that case, we have to add it manually to make sure it ends up in the file
@@ -246,12 +245,12 @@ class eventWriter:
                         self.__stored_stations.append({
                             'station_id': reference_station_id
                         })
-                        det_dict['stations'][str(i_station)] = station_description
+                        det_dict['stations'][str(i_station)] = {**station_description}
                         i_station += 1
                         for channel_id in det.get_channel_ids(reference_station_id):
                             if not self.__is_channel_already_in_file(reference_station_id, channel_id, None):
                                 channel_description = det.get_raw_channel(reference_station_id, channel_id)
-                                det_dict['channels'][str(i_channel)] = channel_description
+                                det_dict['channels'][str(i_channel)] = {**channel_description}
                                 self.__stored_channels.append({
                                     'station_id': reference_station_id,
                                     'channel_id': channel_id
