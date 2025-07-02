@@ -17,7 +17,7 @@ logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
-                          antenna_pattern_provider, time_domain=False):
+                          antenna_pattern_provider, efield_position, time_domain=False):
     time_shifts = np.zeros(len(use_channels))
     t_cables = np.zeros(len(use_channels))
     t_geos = np.zeros(len(use_channels))
@@ -35,7 +35,10 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
                 refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
         if station.is_neutrino():
             refractive_index = ice.get_refractive_index(antenna_position[2], site)
-        time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
+
+        time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
+        # time_shift = 0
+        print(time_shift)
         t_geos[iCh] = time_shift
         t_cables[iCh] = channel.get_trace_start_time()
         logger.debug("time shift channel {}: {:.2f}ns (signal prop), {:.2f}ns (trace start time)".format(channel.get_id(), time_shift, channel.get_trace_start_time()))
@@ -174,7 +177,11 @@ class voltageToEfieldConverter:
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
 
-        efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider)
+        efield_position = np.mean([
+            det.get_relative_position(station.get_id(), channel_id)
+            for channel_id in use_channels], axis=0)
+
+        efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position)
         n_frequencies = len(V[0])
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[-1][0])
         mask = np.abs(denom) != 0
@@ -187,10 +194,6 @@ class voltageToEfieldConverter:
             efield3_f[2:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 1, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
         else:
             efield3_f[1:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
-
-        efield_position = np.mean([
-            det.get_relative_position(station.get_id(), channel_id)
-            for channel_id in use_channels], axis=0)
 
         electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, efield_position)
         electric_field.set_frequency_spectrum(efield3_f, station.get_channel(use_channels[0]).get_sampling_rate())
