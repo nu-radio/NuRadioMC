@@ -270,7 +270,7 @@ def get_digital_trace(
         if (upsampling_factor >= 2):
             upsampling_factor = int(upsampling_factor)
             upsampled_trace = upsampling_fir(digital_trace, adc_sampling_frequency,
-                                             int_factor=upsampling_factor, ntaps=2**4)
+                                             upsampling_factor=upsampling_factor, ntaps=2**4)
             adc_sampling_frequency *= upsampling_factor
 
             digital_trace = upsampled_trace[:]
