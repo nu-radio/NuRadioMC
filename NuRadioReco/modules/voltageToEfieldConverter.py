@@ -60,8 +60,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     traces = []
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
         tmp_channel = copy.copy(channel)  # copy to not modify data structure
-        if t_shifts[iCh]:
-            tmp_channel.apply_time_shift(t_shifts[iCh])  # apply time shift to channel
+        tmp_channel.add_trace_start_time(t_mins[iCh])
 
         tmp_window = copy.copy(window)
         tmp_window.add_to_trace(channel)
