@@ -37,8 +37,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
             refractive_index = ice.get_refractive_index(antenna_position[2], site)
 
         time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
-        # time_shift = 0
-        print(time_shift)
+
         t_geos[iCh] = time_shift
         t_cables[iCh] = channel.get_trace_start_time()
         logger.debug("time shift channel {}: {:.2f}ns (signal prop), {:.2f}ns (trace start time)".format(channel.get_id(), time_shift, channel.get_trace_start_time()))
