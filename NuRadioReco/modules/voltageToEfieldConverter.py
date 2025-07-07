@@ -17,7 +17,46 @@ logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
-                          antenna_pattern_provider, efield_position, time_domain=False):
+                          antenna_pattern_provider, efield_position=None, time_domain=False):
+    """ Get the voltage traces and antenna factors for the electric field reconstruction.
+
+    Parameters
+    ----------
+    station : `NuRadioReco.framework.station.Station`
+        The station object containing the channels and their parameters.
+    use_channels : list of int
+        The channel ids to use for the electric field reconstruction.
+    det : `NuRadioReco.detector.Detector`
+        The detector object containing the site and antenna information.
+    zenith : float
+        The zenith angle of the incoming signal in radians.
+    azimuth : float
+        The azimuth angle of the incoming signal in radians.
+    antenna_pattern_provider : `NuRadioReco.detector.antennapattern.AntennaPatternProvider`
+        The antenna pattern provider to get the antenna response functions.
+    efield_position : numpy array, optional
+        The position where the electric field is calculated - determines time shift of the voltage traces.
+        If None, it raises an error.
+    time_domain : bool, optional
+        If True, returns the time domain traces as well. Default is False.
+
+    Returns
+    -------
+    times : numpy array
+        The time array of the traces.
+    efield_antenna_factor : numpy array
+        The antenna factor for the electric field at the given position.
+    V : numpy array
+        The frequency spectrum of the voltage traces for the selected channels.
+    V_timedomain : numpy array, optional
+        The time domain traces for the selected channels, if `time_domain` is True.
+    """
+
+
+    if efield_position is None:
+        raise ValueError("Function signiture changed. Please provide `efield_position`. "
+                         "To retain old behavior, use `efield_position=np.array([0, 0, 0])`. "
+                         "The return signature has also changed, see documentation!")
 
     t_mins = []
     t_maxs = []
