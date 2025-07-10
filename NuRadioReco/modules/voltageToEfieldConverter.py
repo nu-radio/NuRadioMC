@@ -102,7 +102,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         tmp_channel.add_trace_start_time(t_shifts[iCh])
 
         tmp_window = copy.copy(window)
-        tmp_window.add_to_trace(channel)
+        tmp_window.add_to_trace(tmp_channel)
         traces.append(tmp_window)
 
 
