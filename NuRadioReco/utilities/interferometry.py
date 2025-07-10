@@ -99,7 +99,50 @@ def interfere_traces_rit(target_pos, positions, traces, times, tab):
     """
     tshifts = get_time_shifts_rit(target_pos, positions, tab)
     times_new = times - tshifts[:, None]
+    times_new = times_new - np.mean(times_new[:, 0])
+
     return interfere_traces_interpolation(traces, times_new)
+
+
+def interfere_traces_rit_fft(target_pos, positions, spectra, times, tab, frequencies=None):
+    """
+    Shifts the waveforms of observers to the source location and sums them up.
+
+    Parameters
+    ----------
+    target_pos : np.array(3,)
+        source/traget location
+
+    positions : np.array(n, 3)
+        observer positions
+
+    spectra : np.array(n, s)
+        spectra of n observers with s samples
+
+    times : np.array(n, m)
+        time stampes of the waveforms of each observer
+
+    tab : radiotools.atmosphere.refractivity.RefractivityTable
+        Tabulated table of the avg. refractive index between two points
+
+    Returns
+    -------
+    sum_trace : np.array(n, m)
+        Summed trace
+    """
+
+    tshifts = times[:, 0] - get_time_shifts_rit(target_pos, positions, tab)
+    tshifts = tshifts - np.mean(tshifts)
+
+    if frequencies is None:
+        frequencies = np.fft.rfftfreq(times.shape[1], times[0, 1] - times[0, 0])
+
+    spectra_shifted = spectra * np.exp(-1j * 2 * np.pi * frequencies * tshifts[:, None])
+
+    spec_sum = np.sum(spectra_shifted, axis=0)
+    sum_trace_fft = np.fft.irfft(spec_sum)
+
+    return sum_trace_fft
 
 
 def interfere_traces_plane(positions, traces, times, zenith, azimuth, n0=1.000292):
