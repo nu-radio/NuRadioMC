@@ -790,7 +790,7 @@ def get_config(config_file):
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
 
     if config_file is not None:
-        logger.status('Reading local config overrides from %s', config_file)
+        logger.status('Reading local config overrides from %s' % config_file)
         with open(config_file, 'r', encoding="utf-8") as ymlfile:
             local_config = yaml.load(ymlfile, Loader=yaml.FullLoader)
             new_cfg = merge_config(local_config, cfg)
