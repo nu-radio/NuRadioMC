@@ -13,7 +13,8 @@ Implemetation of Antenna Models
 
 For the antenna orientation and rotation, the conventions are described in :ref:`Properties of Detector Description <NuRadioReco/pages/detector/detector_database_fields:Properties of Detector Description>`
 
-The antenna models are accessed in the `AntennaPattern` class in the `nuradioreco.detector.antennapattern.py` module.
+The antenna models are accessed in the `AntennaPattern <NuRadioReco.detector.antennapattern.AntennaPattern>`
+class in the `NuRadioReco.detector.antennapattern <NuRadioReco.detector.antennapattern>` module.
 Different software packages are used to simulate the antennas, internally, NuRadioReco converts the data to a common pickle format in which they are
 stored.
 
@@ -95,20 +96,55 @@ Last updated: 2018
 
 createLPDA_100MHz_InfFirn
 --------------------------
+.. warning::
+    This model has the wrong sign for the eTheta component;
+    this has been corrected in the :ref:`createLPDA_100MHz_v2_InfFirn <NuRadioReco/pages/detector/antennamodels:createLPDA_100MHz_v2_InfFirn>` model,
+    which therefore supersedes this version.
+
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA.
 The antenna is embedded in an infinite medium with an index of refraction of n = 1.3.
 The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+
 Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz assumed
 
 Last updated: 2018
 
-createLPDA_InfFirn_n1.4
-------------------------
+createLPDA_100MHz_v2_InfFirn
+----------------------------
+WIPL-D simulation of 100 MHz LPDA from create. The ``v2`` version differs
+only by a relative minus sign in the ``eTheta`` component; in the older version
+the wrong sign was used.
+This antenna is used by ARIANNA.
+The antenna is embedded in an infinite medium with an index of refraction of n = 1.3.
+The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+
+Theta range [-90,90] Phi range [0,360] Freq range [5,1000] MHz assumed
+
+Last updated: 2025
+
+createLPDA_100MHz_InfFirn_n1.4
+------------------------------
+.. warning::
+    This model has the wrong sign for the eTheta component;
+    this has been corrected in the :ref:`createLPDA_100MHz_v2_InfFirn_n1.4 <NuRadioReco/pages/detector/antennamodels:createLPDA_100MHz_v2_InfFirn_n1.4>` model,
+    which therefore supersedes this version.
+
 Same as createLPDA_100MHz_InfFirn but antenna embedded in infinite firn with index of n = 1.4.
+
 Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
+
+createLPDA_100MHz_v2_InfFirn_n1.4
+---------------------------------
+Same as createLPDA_100MHz_v2_InfFirn but antenna embedded in infinite firn with index of n = 1.4.
+The ``v2`` version differs only by a relative minus sign in the ``eTheta`` component;
+in the older version the wrong sign was used.
+
+Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz
+
+Last updated: 2025
 
 createLPDA_100MHz_z1cm_InFirn_RG
 ---------------------------------
