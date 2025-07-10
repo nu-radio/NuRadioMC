@@ -194,6 +194,18 @@ class channelGalacticNoiseAdder:
             for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side))
         ])
 
+    def set_random_seed(self, seed):
+        """
+        Set the random seed for the random number generator used in this module.
+        This is useful for reproducibility of the results.
+
+        Parameters
+        ----------
+        seed: int or array_like[ints]
+            The seed to use for the random number generator.
+        """
+        self.__random_generator = Generator(Philox(seed))
+
     @functools.lru_cache(maxsize=maxsize)
     def _get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
         """
@@ -395,8 +407,9 @@ class channelGalacticNoiseAdder:
                     + antenna_response['phi'] * channel_noise_spec[2][passband_filter]
                 )
 
-                # scale noise spectrum:
-                channel_noise_spectrum *= self.scaling
+                if self.scaling is not None:
+                    # scale noise spectrum:
+                    channel_noise_spectrum *= self.scaling
 
                 # add noise spectrum from pixel in the sky to channel spectrum
                 channel_spectra[channel.get_id()][passband_filter] += channel_noise_spectrum
