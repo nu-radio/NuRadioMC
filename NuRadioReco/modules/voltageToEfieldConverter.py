@@ -93,17 +93,17 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     if n_samples % 2:
         n_samples -= 1
 
-    window = NuRadioReco.framework.base_trace.BaseTrace()  # create base trace class to do the fft with correct normalization etc.
-    window.set_trace(np.zeros(n_samples), channel.get_sampling_rate(), t_min)
+    electric_field_window = NuRadioReco.framework.base_trace.BaseTrace()  # create base trace class to do the fft with correct normalization etc.
+    electric_field_window.set_trace(np.zeros(n_samples), channel.get_sampling_rate(), t_min)
 
     traces = []
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
-        tmp_channel = copy.copy(channel)  # copy to not modify data structure
-        tmp_channel.add_trace_start_time(t_shifts[iCh])
+        channel_copy = copy.copy(channel)  # copy to not modify data structure
+        channel_copy.add_trace_start_time(t_shifts[iCh])
 
-        tmp_window = copy.copy(window)
-        tmp_window.add_to_trace(tmp_channel)
-        traces.append(tmp_window)
+        channel_in_window = copy.copy(electric_field_window)
+        channel_in_window.add_to_trace(channel_copy)
+        traces.append(channel_in_window)
 
 
     times = traces[0].get_times()  # assumes that all channels have the same sampling rate
