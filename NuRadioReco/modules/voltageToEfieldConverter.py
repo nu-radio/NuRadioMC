@@ -86,7 +86,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         t_maxs.append(t_max)
 
     # take the intersection of all channels
-    t_min = np.max(t_min)
+    t_min = np.max(t_mins)
     t_max = np.min(t_maxs)
 
     n_samples = int((t_max - t_min) * channel.get_sampling_rate())
