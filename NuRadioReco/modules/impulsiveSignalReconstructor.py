@@ -40,7 +40,7 @@ logger = logging.getLogger('NuRadioReco.impulsiveSignalReconstructor')
 
 SPEED_OF_LIGHT = scipy.constants.c * units.m / units.s # convert to NuRadio units
 
-def find_threshold_crossing(channels, threshold, offset=5 * units.ns, min_amp=0, debug=False):
+def find_threshold_crossing(channels, threshold, offset=5*units.ns, min_amp=0, debug=False):
     """Find the time where the hilbert envelope of a trace first crosses some threshold
 
     Parameters
@@ -141,6 +141,8 @@ def find_threshold_crossing_from_stft(
         the channels to use in the reconstruction
     max_delta_t : float, default: 50 * units.ns
         The coincidence window between all channels.
+        Only threshold crossings that fall within a maximum time span of ``max_delta_t``
+        will be selected.
     passband : tuple of 2 floats, optional
         The low- and high-pass frequencies of the passband
         to apply before correlating. If not provided,
@@ -180,12 +182,13 @@ def find_threshold_crossing_from_stft(
         passband = [60*units.MHz, 750*units.MHz]
     if debug:
         fig, axs = plt.subplots(
-            3, len(channels), figsize=(5.9, 3.5),
+            3, len(channels), figsize=(2*len(channels), 3.5),
             layout='constrained', sharex=True, sharey='row')
         fig.get_layout_engine().set(hspace=0, h_pad=0)
 
     crossings = []
     stft_plots = []
+    trace_start_times = []
 
     for i, channel in enumerate(channels):
         f, t, stft_abs = scipy.signal.spectrogram(
@@ -194,11 +197,18 @@ def find_threshold_crossing_from_stft(
             mode=mode, window=window)
 
         t_mid = len(t) // 2
+        trace_start_times.append(channel.get_trace_start_time())
         stft_median = np.median(stft_abs[:,:t_mid], axis=1)
         stft_max = np.max(stft_abs[:,t_mid:], axis=1)
         fmask = (f > passband[0]) & (f < passband[1])
         max_over_med = stft_max / stft_median
-        inclusion_threshold = 4 if mode == 'magnitude' else 10
+        # we select only frequencies with a significant excess over the median,
+        # defined here as SNR of 4 for magnitude or SNR of 10 for power
+        # TODO: this is probably not optimal for all detectors / trace lengths
+        if mode == 'magnitude':
+            inclusion_threshold = 4
+        else:
+            inclusion_threshold = 10
 
         if np.sum(max_over_med[fmask] > inclusion_threshold) > 1: # at least 2 bins
             fmask &= max_over_med > inclusion_threshold
@@ -238,19 +248,28 @@ def find_threshold_crossing_from_stft(
             axs[0,i].set_title(f'Channel {channel.get_id()}')
             axs[2,i].set_xlabel('Time [ns]')
 
-    crossings = np.vstack(crossings)
+    ## We need to account for potentially different trace start times
+    ## we will do this by prepending/appending an appropriate number of zeros
+    trace_start_times = np.asarray(trace_start_times)
+    prepend_zeros = ((trace_start_times - min(trace_start_times)) * channel.get_sampling_rate()).astype(int)
+    append_zeros = max(prepend_zeros) - prepend_zeros # also append zeros to ensure equal-length arrays
+
+    crossings_sync = np.vstack([
+        np.concatenate([np.zeros(prepend_zeros[i]), crossings[i], np.zeros(append_zeros[i])])
+        for i in range(len(crossings))])
+
     # we check for coincidences within max_delta_t by applying a sliding window
     window_length = int(max_delta_t * channel.get_sampling_rate() + 1)
-    sliding_view = np.lib.stride_tricks.sliding_window_view(crossings, window_shape=(len(crossings), window_length))
+    sliding_view = np.lib.stride_tricks.sliding_window_view(crossings_sync, window_shape=(len(crossings_sync), window_length))
     window_index = np.argmax(np.sum(np.any(sliding_view, axis=-1), axis=-1)) # first window with maximum number of threshold crossings
     crossing_samples = window_index + t_mid + np.arange(window_length)
-    crossings = np.where(sliding_view[0,window_index], crossing_samples[None], np.nan)
+    crossings_indices = np.where(sliding_view[0, window_index], crossing_samples[None], np.nan)
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', 'All-NaN slice encountered')
-        crossings = np.nanmin(crossings, axis=-1) # will raise a non-blocking RuntimeWarning if one or more channels did not cross the threshold
-    logger.debug(f'Threshold crossing (samples): {crossings}')
-    crossings = (crossings) / channel.get_sampling_rate() + channel.get_trace_start_time() + t[0] # convert to time
-    logger.debug(f'Threshold crossing (time): {crossings}')
+        first_crossings = np.nanmin(crossings_indices, axis=-1) # will raise a non-blocking RuntimeWarning if one or more channels did not cross the threshold
+    logger.debug(f'Threshold crossing (samples): {first_crossings}')
+    crossing_times = (first_crossings) / channel.get_sampling_rate() + min(trace_start_times) + t[0] # convert to time
+    logger.debug(f'Threshold crossing (time): {crossing_times}')
 
     if debug:
         vmin = np.quantile(stft_plots, .75)
@@ -264,9 +283,11 @@ def find_threshold_crossing_from_stft(
             axs[1,i].set_ylim(passband[0]/units.MHz, passband[1]/units.MHz)
 
         axs[1,0].set_ylabel('Frequency [MHz]')
-        for i in range(len(crossings)):
+        axs[0,0].set_ylabel('Voltage [V]')
+        axs[2,0].set_ylabel('Spectral excess')
+        for i in range(len(crossing_times)):
             for j in range(3):
-                axs[j,i].axvline(crossings[i], color=['k','w','k'][j], ls=':')
+                axs[j,i].axvline(crossing_times[i], color=['k','w','k'][j], ls=':')
 
         plt.colorbar(mappable=cax, ax=axs[:], label='Energy Spectral Density [$\mathrm{mV}^2/\mathrm{GHz}$]')
 
@@ -276,7 +297,7 @@ def find_threshold_crossing_from_stft(
         else:
             plt.show()
 
-    return crossings
+    return crossing_times
 
 
 def get_dt_correlation(channels, pos, passband=None, n_index=1., templates=None, full_output=False):
