@@ -21,6 +21,10 @@ Overview
     using cross-correlation. Alternatively, the channels can be cross-correlated with
     a given template, instead.
 
+`ImpulsiveSignalReconstructor`
+    A class that implements a full plane-wave direction reconstruction
+    using the above methods, with the usual ``run`` method.
+
 """
 
 
@@ -30,8 +34,11 @@ import matplotlib.colors
 import scipy.constants
 import scipy.signal
 import scipy.ndimage
+import scipy.stats
 from math import ceil
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, ice, geometryUtilities
+from NuRadioReco.framework.parameters import stationParameters
+from NuRadioReco.modules.base.module import register_run
 import radiotools.helper as hp
 import logging
 import warnings
@@ -40,16 +47,21 @@ logger = logging.getLogger('NuRadioReco.impulsiveSignalReconstructor')
 
 SPEED_OF_LIGHT = scipy.constants.c * units.m / units.s # convert to NuRadio units
 
-def find_threshold_crossing(channels, threshold, offset=5*units.ns, min_amp=0, debug=False):
-    """Find the time where the hilbert envelope of a trace first crosses some threshold
+def find_threshold_crossing(channels, threshold=None, offset=5*units.ns, min_amp=0, debug=False):
+    """
+    Find the time where the hilbert envelope of a trace first crosses some threshold
 
     Parameters
     ----------
     channels : list of `NuRadioReco.framework.channel.Channel` objects
         the channels to use in the reconstruction
-    threshold : float | str
-        If a float, the threshold value. Otherwise, the string "max" can be given,
-        in which case the times of the hilbert envelope maxima are returned.
+    threshold : float | str | None, optional
+
+        * If a float, the threshold value.
+        * If the string "max", the times of the hilbert envelope maxima are returned.
+        * Otherwise, if not specified (default), attempts to estimate the noise
+          distribution and sets the threshold to the 90th percentile.
+
     offset : float or list of floats, optional
         Time at the start and end of each trace to exclude.
         If a list, the entries are the offsets for the start and end of the trace,
@@ -92,16 +104,29 @@ def find_threshold_crossing(channels, threshold, offset=5*units.ns, min_amp=0, d
         elif isinstance(threshold, str):
             raise ValueError(f'Argument `threshold` has value"{threshold}" but only a float or the string `max` are accepted.')
         else:
+            current_threshold = threshold
+            if threshold is None: # approximate the noise with a normal distribution
+                # we take the 33% quantile to (hopefully) ignore the signal part of the trace
+                # and then rescale this to obtain the corresponding 1-sigma of a normal distribution
+                scale = np.sqrt(np.quantile(trace**2, 1/3)) / scipy.stats.norm.ppf(2/3, scale=1)
+                # We take the 90th percentile of the distribution as follows:
+                # we use the inverse CDF to determine the largest (positive) expected value in a trace with
+                # 20x the actual trace length, meaning the expected number of threshold crossings within the
+                # trace length is 1/20 (positive) + 1/20 (negative) = 1/10
+                current_threshold = scipy.stats.norm.isf(0.05 / channel.get_number_of_samples(), scale=scale)
+                logger.debug(f'Auto-threshold for channel {channel.get_id()} is {current_threshold/units.mV:.2f} mV')
+
             threshold_xing = np.where(
-                hilbert_envelope[offset_samples[0]:-offset_samples[1]] > threshold
+                hilbert_envelope[offset_samples[0]:-offset_samples[1]] > current_threshold
             )[0]
+
         if np.max(hilbert_envelope) < min_amp:
             logger.debug("Reject - max amp {:.2f} < {:.2f}".format(np.max(hilbert_envelope), min_amp))
             continue
         if len(threshold_xing) == 0:
             logger.debug(
                 "Reject - no threshold crossing (max amp {:.2f} < {:.2f})".format(
-                    np.max(hilbert_envelope[offset_samples[0]:-offset_samples[1]]), threshold))
+                    np.max(hilbert_envelope[offset_samples[0]:-offset_samples[1]]), current_threshold))
             continue
 
         threshold_t_sample = threshold_xing[0] + offset_samples[0]
@@ -444,3 +469,97 @@ def get_dt_correlation(channels, pos, passband=None, n_index=1., templates=None,
             return dt, np.array([corrs[i, j] for i,j in enumerate(sample_delays[:, max_index])])
 
         return dt
+
+class ImpulsiveSignalReconstructor():
+
+    def __init__(self):
+        """
+        Class to reconstruct the direction of impulsive signals
+        """
+        pass
+
+    def begin(self):
+        """Unused"""
+
+    @register_run()
+    def run(self, evt, station, det, use_channels, method='stft', **kwargs):
+        """
+        Run the direction reconstruction
+
+        Parameters
+        ----------
+        event : Event
+            Event to reconstruct (unused)
+        station : Station
+            Station that contains the channels to use in the reconstruction
+        det : Detector
+            Detector description
+        use_channels : list
+            List of channel ids to use for the reconstruction
+        method : str, default='stft'
+            Which method to use to estimate the pulse arrival times:
+
+            * ``'simple_threshold'``: use simple threshold crossings,
+              using the `find_threshold_crossing` function;
+            * ``'xcorr'``: use pairwise cross-correlation or
+              correlation with a template, using
+              `get_dt_correlation`;
+            * ``'stft'`` (default): uses an short-time Fourier transform (STFT)
+              approach to identify the start of the pulse
+
+        **kwargs
+            Additional keyword arguments passed to the function that
+            determines the pulse arrival times (see ``method``)
+
+        Returns
+        -------
+        zenith : float
+            The reconstructed zenith
+        azimuth : float
+            The reconstructed azimuth
+
+        Notes
+        -----
+        The reconstructed parameters are stored in the ``station`` passed to the run function.
+        Note also that an analytic plane wave fit is used: this means
+
+        1. if <= 3 channels are used, always the solution coming from above is returned,
+           rather than the one coming from below;
+        2. If no analytic solution exists for the inferred pulse arrival times,
+           the reconstruction will fail
+        """
+
+        channels = [station.get_channel(channel_id) for channel_id in use_channels]
+        pos = np.array([
+            det.get_relative_position(station.get_id(), channel_id)
+            for channel_id in use_channels
+        ])
+
+        if method == 'stft':
+            if not 'max_delta_t' in kwargs: # use a simple estimate
+                max_delta_t = np.max([
+                    np.linalg.norm(pi-pj) * ice.get_refractive_index(min(pi[2], pj[2]), det.get_site())
+                    for pi in pos for pj in pos]) / SPEED_OF_LIGHT
+                dt = find_threshold_crossing_from_stft(
+                    channels, max_delta_t=max_delta_t, **kwargs
+                )
+            else:
+                dt = find_threshold_crossing_from_stft(channels, **kwargs)
+        elif method == 'xcorr':
+            dt = get_dt_correlation(channels, pos, **kwargs)
+        elif method == 'simple_threshold':
+            dt = find_threshold_crossing(channels, **kwargs)
+
+        zenith, azimuth = geometryUtilities.analytic_plane_wave_fit(dt, pos)
+
+        if np.isnan(zenith):
+            logger.error(f'No valid analytic solution, direction reconstruction failed')
+            return
+
+        station[stationParameters.zenith] = zenith
+        station[stationParameters.azimuth] = azimuth
+
+        return zenith, azimuth
+
+    def end(self):
+        """Unused"""
