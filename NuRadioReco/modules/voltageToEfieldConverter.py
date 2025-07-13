@@ -17,7 +17,7 @@ logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
-                          antenna_pattern_provider, efield_position=None, time_domain=False):
+                          antenna_pattern_provider, time_domain=False, efield_position=None):
     """ Get the voltage traces and antenna factors for the electric field reconstruction.
 
     Parameters
@@ -54,9 +54,12 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
 
 
     if efield_position is None:
-        raise ValueError("Function signiture changed. Please provide `efield_position`. "
-                         "To retain old behavior, use `efield_position=np.array([0, 0, 0])`. "
-                         "The return signature has also changed, see documentation!")
+        raise ValueError(
+            "Function signiture changed. Please provide `efield_position`. "
+            "To retain old behavior, use `efield_position=np.array([0, 0, 0])`. "
+            "The return signature has also changed. Additionally the time vector "
+            "of the deconvolved electric field traces is returned as first "
+            "argument (see documentation)!")
 
     t_mins = []
     t_maxs = []
@@ -198,7 +201,6 @@ class voltageToEfieldConverter:
         """
         if use_channels is None:
             use_channels = [0, 1, 2, 3]
-        station_id = station.get_id()
 
         if use_MC_direction:
             zenith = station.get_sim_station()[stnp.zenith]
@@ -212,9 +214,12 @@ class voltageToEfieldConverter:
             det.get_relative_position(station.get_id(), channel_id)
             for channel_id in use_channels], axis=0)
 
-        times, efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position)
+        times, efield_antenna_factor, V = get_array_of_channels(
+            station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position=efield_position)
+
         n_frequencies = len(V[0])
-        denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[-1][0])
+        denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] -
+                 efield_antenna_factor[0][1] * efield_antenna_factor[-1][0])
         mask = np.abs(denom) != 0
 
         # solve it in a vectorized way

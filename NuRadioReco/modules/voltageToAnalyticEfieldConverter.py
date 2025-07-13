@@ -317,7 +317,7 @@ class voltageToAnalyticEfieldConverter:
 
         times, efield_antenna_factor, V, V_timedomain = get_array_of_channels(
             station, use_channels, det, zenith, azimuth, self.antenna_provider,
-            efield_position, time_domain=True)
+            time_domain=True, efield_position=efield_position)
 
         sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate()
         n_samples_time = V_timedomain.shape[1]
