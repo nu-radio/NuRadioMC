@@ -1049,13 +1049,13 @@
             <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mf">0.01</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ps</span><span class="p">))))))</span>
 
         <span class="c1"># 2. Channel starts before readout window:</span>
-        <span class="k">if</span> <span class="n">t0_channel</span> <span class="o">&lt;</span> <span class="n">t0_readout</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">t0_channel</span> <span class="o">&lt;=</span> <span class="n">t0_readout</span><span class="p">:</span>
             <span class="n">i_start_readout</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">t_start_readout</span> <span class="o">=</span> <span class="n">t0_readout</span>
             <span class="n">i_start_channel</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">((</span><span class="n">t0_readout</span> <span class="o">-</span> <span class="n">t0_channel</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_channel</span><span class="p">)</span> <span class="c1"># The first bin of channel inside readout</span>
             <span class="n">t_start_channel</span> <span class="o">=</span> <span class="n">tt_channel</span><span class="p">[</span><span class="n">i_start_channel</span><span class="p">]</span>
         <span class="c1"># 3. Channel starts after readout window:</span>
-        <span class="k">elif</span> <span class="n">t0_channel</span> <span class="o">&gt;=</span> <span class="n">t0_readout</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">t0_channel</span> <span class="o">&gt;</span> <span class="n">t0_readout</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">raise_error</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The readout window starts before the incoming channel&quot;</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The readout window starts before the incoming channel&#39;</span><span class="p">)</span>
@@ -1077,6 +1077,7 @@
 
             <span class="n">i_end_readout</span> <span class="o">=</span> <span class="n">floor</span><span class="p">((</span><span class="n">t1_channel</span> <span class="o">-</span> <span class="n">t0_readout</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_readout</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1"># The bin of readout right before channel ends</span>
             <span class="n">i_end_channel</span> <span class="o">=</span> <span class="n">n_samples_channel</span>
+
         <span class="c1"># Determine the remaining time between the binning of the two traces and use time shift as interpolation:</span>
         <span class="n">residual_time_offset</span> <span class="o">=</span> <span class="n">t_start_channel</span> <span class="o">-</span> <span class="n">t_start_readout</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">residual_time_offset</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_residual_time_offset</span><span class="p">:</span>

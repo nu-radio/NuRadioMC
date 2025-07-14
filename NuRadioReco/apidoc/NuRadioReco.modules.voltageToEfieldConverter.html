@@ -641,8 +641,44 @@
 <span id="nuradioreco-modules-voltagetoefieldconverter-module"></span><h1>NuRadioReco.modules.voltageToEfieldConverter module<a class="headerlink" href="#module-NuRadioReco.modules.voltageToEfieldConverter" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.voltageToEfieldConverter.get_array_of_channels">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.voltageToEfieldConverter.</span></span><span class="sig-name descname"><span class="pre">get_array_of_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_pattern_provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/voltageToEfieldConverter.html#get_array_of_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.voltageToEfieldConverter.get_array_of_channels" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.voltageToEfieldConverter.</span></span><span class="sig-name descname"><span class="pre">get_array_of_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_pattern_provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">efield_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/voltageToEfieldConverter.html#get_array_of_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.voltageToEfieldConverter.get_array_of_channels" title="Link to this definition"></a></dt>
+<dd><p>Get the voltage traces and antenna factors for the electric field reconstruction.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>station</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station" title="NuRadioReco.framework.station.Station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.station.Station</span></code></a></span></dt><dd><p>The station object containing the channels and their parameters.</p>
+</dd>
+<dt><strong>use_channels</strong><span class="classifier">list of int</span></dt><dd><p>The channel ids to use for the electric field reconstruction.</p>
+</dd>
+<dt><strong>det</strong><span class="classifier"><em class="xref py py-obj">NuRadioReco.detector.Detector</em></span></dt><dd><p>The detector object containing the site and antenna information.</p>
+</dd>
+<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>The zenith angle of the incoming signal in radians.</p>
+</dd>
+<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>The azimuth angle of the incoming signal in radians.</p>
+</dd>
+<dt><strong>antenna_pattern_provider</strong><span class="classifier"><a class="reference internal" href="NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.AntennaPatternProvider" title="NuRadioReco.detector.antennapattern.AntennaPatternProvider"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.detector.antennapattern.AntennaPatternProvider</span></code></a></span></dt><dd><p>The antenna pattern provider to get the antenna response functions.</p>
+</dd>
+<dt><strong>efield_position</strong><span class="classifier">numpy array, optional</span></dt><dd><p>The position where the electric field is calculated - determines time shift of the voltage traces.
+If None, it raises an error.</p>
+</dd>
+<dt><strong>time_domain</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, returns the time domain traces as well. Default is False.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>times</strong><span class="classifier">numpy array</span></dt><dd><p>The time array of the traces.</p>
+</dd>
+<dt><strong>efield_antenna_factor</strong><span class="classifier">numpy array</span></dt><dd><p>The antenna factor for the electric field at the given position.</p>
+</dd>
+<dt><strong>V</strong><span class="classifier">numpy array</span></dt><dd><p>The frequency spectrum of the voltage traces for the selected channels.</p>
+</dd>
+<dt><strong>V_timedomain</strong><span class="classifier">numpy array, optional</span></dt><dd><p>The time domain traces for the selected channels, if <em class="xref py py-obj">time_domain</em> is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.voltageToEfieldConverter.stacked_lstsq">

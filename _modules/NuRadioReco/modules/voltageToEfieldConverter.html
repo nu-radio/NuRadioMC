@@ -653,10 +653,53 @@
 <div class="viewcode-block" id="get_array_of_channels">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#NuRadioReco.modules.voltageToEfieldConverter.get_array_of_channels">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_array_of_channels</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">use_channels</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span>
-                          <span class="n">antenna_pattern_provider</span><span class="p">,</span> <span class="n">time_domain</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="n">time_shifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">use_channels</span><span class="p">))</span>
-    <span class="n">t_cables</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">use_channels</span><span class="p">))</span>
-    <span class="n">t_geos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">use_channels</span><span class="p">))</span>
+                          <span class="n">antenna_pattern_provider</span><span class="p">,</span> <span class="n">time_domain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">efield_position</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Get the voltage traces and antenna factors for the electric field reconstruction.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    station : `NuRadioReco.framework.station.Station`</span>
+<span class="sd">        The station object containing the channels and their parameters.</span>
+<span class="sd">    use_channels : list of int</span>
+<span class="sd">        The channel ids to use for the electric field reconstruction.</span>
+<span class="sd">    det : `NuRadioReco.detector.Detector`</span>
+<span class="sd">        The detector object containing the site and antenna information.</span>
+<span class="sd">    zenith : float</span>
+<span class="sd">        The zenith angle of the incoming signal in radians.</span>
+<span class="sd">    azimuth : float</span>
+<span class="sd">        The azimuth angle of the incoming signal in radians.</span>
+<span class="sd">    antenna_pattern_provider : `NuRadioReco.detector.antennapattern.AntennaPatternProvider`</span>
+<span class="sd">        The antenna pattern provider to get the antenna response functions.</span>
+<span class="sd">    efield_position : numpy array, optional</span>
+<span class="sd">        The position where the electric field is calculated - determines time shift of the voltage traces.</span>
+<span class="sd">        If None, it raises an error.</span>
+<span class="sd">    time_domain : bool, optional</span>
+<span class="sd">        If True, returns the time domain traces as well. Default is False.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    times : numpy array</span>
+<span class="sd">        The time array of the traces.</span>
+<span class="sd">    efield_antenna_factor : numpy array</span>
+<span class="sd">        The antenna factor for the electric field at the given position.</span>
+<span class="sd">    V : numpy array</span>
+<span class="sd">        The frequency spectrum of the voltage traces for the selected channels.</span>
+<span class="sd">    V_timedomain : numpy array, optional</span>
+<span class="sd">        The time domain traces for the selected channels, if `time_domain` is True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">if</span> <span class="n">efield_position</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Function signiture changed. Please provide `efield_position`. &quot;</span>
+            <span class="s2">&quot;To retain old behavior, use `efield_position=np.array([0, 0, 0])`. &quot;</span>
+            <span class="s2">&quot;The return signature has also changed. Additionally the time vector &quot;</span>
+            <span class="s2">&quot;of the deconvolved electric field traces is returned as first &quot;</span>
+            <span class="s2">&quot;argument (see documentation)!&quot;</span><span class="p">)</span>
+
+    <span class="n">t_mins</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">t_maxs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">t_shifts</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="n">station_id</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
     <span class="n">site</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
@@ -667,65 +710,59 @@
         <span class="c1"># determine refractive index of signal propagation speed between antennas</span>
         <span class="n">refractive_index</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">site</span><span class="p">)</span>  <span class="c1"># if signal comes from above, in-air propagation speed</span>
         <span class="k">if</span> <span class="n">station</span><span class="o">.</span><span class="n">is_cosmic_ray</span><span class="p">():</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">zenith</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">zenith</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">:</span>
                 <span class="n">refractive_index</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="n">antenna_position</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">site</span><span class="p">)</span>  <span class="c1"># if signal comes from below, use refractivity at antenna position</span>
+
         <span class="k">if</span> <span class="n">station</span><span class="o">.</span><span class="n">is_neutrino</span><span class="p">():</span>
             <span class="n">refractive_index</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="n">antenna_position</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">site</span><span class="p">)</span>
-        <span class="n">time_shift</span> <span class="o">=</span> <span class="o">-</span><span class="n">geo_utl</span><span class="o">.</span><span class="n">get_time_delay_from_direction</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">antenna_position</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">refractive_index</span><span class="p">)</span>
-        <span class="n">t_geos</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_shift</span>
-        <span class="n">t_cables</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;time shift channel </span><span class="si">{}</span><span class="s2">: </span><span class="si">{:.2f}</span><span class="s2">ns (signal prop), </span><span class="si">{:.2f}</span><span class="s2">ns (trace start time)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">time_shift</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()))</span>
-        <span class="n">time_shift</span> <span class="o">+=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
-        <span class="n">time_shifts</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_shift</span>
 
-    <span class="n">delta_t</span> <span class="o">=</span> <span class="n">time_shifts</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">time_shifts</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
-    <span class="n">tmin</span> <span class="o">=</span> <span class="n">time_shifts</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
-    <span class="n">tmax</span> <span class="o">=</span> <span class="n">time_shifts</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;adding relative station time = </span><span class="si">{:.0f}</span><span class="s2">ns&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="n">t_cables</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">t_geos</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;delta t is </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">delta_t</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
-    <span class="n">trace_length</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">use_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_times</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">use_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_times</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">debug_cut</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">debug_cut</span><span class="p">):</span>
-        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">use_channels</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">time_shift</span> <span class="o">=</span> <span class="o">-</span><span class="n">geo_utl</span><span class="o">.</span><span class="n">get_time_delay_from_direction</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">antenna_position</span> <span class="o">-</span> <span class="n">efield_position</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">refractive_index</span><span class="p">)</span>
+
+        <span class="n">t_shifts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time_shift</span><span class="p">)</span>
+        <span class="n">t_min</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">time_shift</span>
+        <span class="n">t_mins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t_min</span><span class="p">)</span>
+        <span class="n">t_max</span> <span class="o">=</span> <span class="n">t_min</span> <span class="o">+</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+        <span class="n">t_maxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t_max</span><span class="p">)</span>
+
+    <span class="c1"># take the intersection of all channels</span>
+    <span class="n">t_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">t_mins</span><span class="p">)</span>
+    <span class="n">t_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">t_maxs</span><span class="p">)</span>
+
+    <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">t_max</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">)</span> <span class="o">*</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">n_samples</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">n_samples</span> <span class="o">-=</span> <span class="mi">1</span>
+
+    <span class="n">electric_field_window</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="p">()</span>  <span class="c1"># create base trace class to do the fft with correct normalization etc.</span>
+    <span class="n">electric_field_window</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_samples</span><span class="p">),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">(),</span> <span class="n">t_min</span><span class="p">)</span>
 
     <span class="n">traces</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">n_samples</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">for</span> <span class="n">iCh</span><span class="p">,</span> <span class="n">channel</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="n">use_channels</span><span class="p">)):</span>
-        <span class="n">tstart</span> <span class="o">=</span> <span class="n">delta_t</span> <span class="o">-</span> <span class="p">(</span><span class="n">time_shifts</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">-</span> <span class="n">tmin</span><span class="p">)</span>
-        <span class="n">tstop</span> <span class="o">=</span> <span class="n">tmax</span> <span class="o">-</span> <span class="n">time_shifts</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">-</span> <span class="n">delta_t</span> <span class="o">+</span> <span class="n">trace_length</span>
-        <span class="n">iStart</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">tstart</span> <span class="o">*</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()))</span>
-        <span class="n">iStop</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">tstop</span> <span class="o">*</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()))</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">n_samples</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="n">n_samples</span> <span class="o">=</span> <span class="n">iStop</span> <span class="o">-</span> <span class="n">iStart</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">n_samples</span> <span class="o">%</span> <span class="mi">2</span><span class="p">):</span>
-                <span class="n">n_samples</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="n">channel_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>  <span class="c1"># copy to not modify data structure</span>
+        <span class="n">channel_copy</span><span class="o">.</span><span class="n">add_trace_start_time</span><span class="p">(</span><span class="n">t_shifts</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
 
-        <span class="n">trace</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">())</span>  <span class="c1"># copy to not modify data structure</span>
-        <span class="n">trace</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">iStart</span><span class="p">:(</span><span class="n">iStart</span> <span class="o">+</span> <span class="n">n_samples</span><span class="p">)]</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">debug_cut</span><span class="p">):</span>
-            <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
-        <span class="n">base_trace</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="p">()</span>  <span class="c1"># create base trace class to do the fft with correct normalization etc.</span>
-        <span class="n">base_trace</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
-        <span class="n">traces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">base_trace</span><span class="p">)</span>
+        <span class="n">channel_in_window</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">electric_field_window</span><span class="p">)</span>
+        <span class="n">channel_in_window</span><span class="o">.</span><span class="n">add_to_trace</span><span class="p">(</span><span class="n">channel_copy</span><span class="p">)</span>
+        <span class="n">traces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel_in_window</span><span class="p">)</span>
+
+
     <span class="n">times</span> <span class="o">=</span> <span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>  <span class="c1"># assumes that all channels have the same sampling rate</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">time_domain</span><span class="p">):</span>  <span class="c1"># save time domain traces first to avoid extra fft</span>
+    <span class="k">if</span> <span class="n">time_domain</span><span class="p">:</span>  <span class="c1"># save time domain traces first to avoid extra fft</span>
         <span class="n">V_timedomain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">use_channels</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)))</span>
         <span class="k">for</span> <span class="n">iCh</span><span class="p">,</span> <span class="n">trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">traces</span><span class="p">):</span>
             <span class="n">V_timedomain</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
+
     <span class="n">frequencies</span> <span class="o">=</span> <span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>  <span class="c1"># assumes that all channels have the same sampling rate</span>
     <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">use_channels</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">iCh</span><span class="p">,</span> <span class="n">trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">traces</span><span class="p">):</span>
         <span class="n">V</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
 
-    <span class="n">efield_antenna_factor</span> <span class="o">=</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">get_efield_antenna_factor</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">use_channels</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">antenna_pattern_provider</span><span class="p">)</span>
+    <span class="n">efield_antenna_factor</span> <span class="o">=</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">get_efield_antenna_factor</span><span class="p">(</span>
+        <span class="n">station</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">use_channels</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">antenna_pattern_provider</span><span class="p">)</span>
 
-    <span class="k">if</span><span class="p">(</span><span class="n">debug_cut</span><span class="p">):</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">time_domain</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">times</span><span class="p">,</span> <span class="n">efield_antenna_factor</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">V_timedomain</span>
 
-    <span class="k">if</span><span class="p">(</span><span class="n">time_domain</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">efield_antenna_factor</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">V_timedomain</span>
-
-    <span class="k">return</span> <span class="n">efield_antenna_factor</span><span class="p">,</span> <span class="n">V</span></div>
+    <span class="k">return</span> <span class="n">times</span><span class="p">,</span> <span class="n">efield_antenna_factor</span><span class="p">,</span> <span class="n">V</span></div>
 
 
 
@@ -811,7 +848,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">use_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">use_channels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-        <span class="n">station_id</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">use_MC_direction</span><span class="p">:</span>
             <span class="n">zenith</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()[</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span>
@@ -821,9 +857,16 @@
             <span class="n">zenith</span> <span class="o">=</span> <span class="n">station</span><span class="p">[</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span>
             <span class="n">azimuth</span> <span class="o">=</span> <span class="n">station</span><span class="p">[</span><span class="n">stnp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">]</span>
 
-        <span class="n">efield_antenna_factor</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">get_array_of_channels</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">use_channels</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span><span class="p">)</span>
+        <span class="n">efield_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span>
+            <span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">use_channels</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">times</span><span class="p">,</span> <span class="n">efield_antenna_factor</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">get_array_of_channels</span><span class="p">(</span>
+            <span class="n">station</span><span class="p">,</span> <span class="n">use_channels</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span><span class="p">,</span> <span class="n">efield_position</span><span class="o">=</span><span class="n">efield_position</span><span class="p">)</span>
+
         <span class="n">n_frequencies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">V</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">denom</span> <span class="o">=</span> <span class="p">(</span><span class="n">efield_antenna_factor</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">efield_antenna_factor</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">efield_antenna_factor</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">efield_antenna_factor</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="p">(</span><span class="n">efield_antenna_factor</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">efield_antenna_factor</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span>
+                 <span class="n">efield_antenna_factor</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">efield_antenna_factor</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">denom</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
 
         <span class="c1"># solve it in a vectorized way</span>
@@ -835,27 +878,11 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">efield3_f</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">stacked_lstsq</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">efield_antenna_factor</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">mask</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">V</span><span class="p">[:,</span> <span class="n">mask</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-        <span class="n">efield_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span>
-            <span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">use_channels</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
         <span class="n">electric_field</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">electric_field</span><span class="o">.</span><span class="n">ElectricField</span><span class="p">(</span><span class="n">use_channels</span><span class="p">,</span> <span class="n">efield_position</span><span class="p">)</span>
         <span class="n">electric_field</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">efield3_f</span><span class="p">,</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">use_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
         <span class="n">electric_field</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">efp</span><span class="o">.</span><span class="n">zenith</span><span class="p">,</span> <span class="n">zenith</span><span class="p">)</span>
         <span class="n">electric_field</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">efp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">)</span>
-        <span class="c1"># figure out the timing of the E-field</span>
-        <span class="n">t_shifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">site</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">zenith</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Module has not been optimized for neutrino reconstruction yet. Results may be nonsense.&quot;</span><span class="p">)</span>
-            <span class="n">refractive_index</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">site</span><span class="p">)</span>  <span class="c1"># if signal comes from below, use refractivity at antenna position</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">refractive_index</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">site</span><span class="p">)</span>  <span class="c1"># if signal comes from above, in-air propagation speed</span>
-        <span class="k">for</span> <span class="n">i_ch</span><span class="p">,</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">use_channels</span><span class="p">):</span>
-            <span class="n">antenna_position</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">)</span>
-            <span class="n">t_shifts</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">geo_utl</span><span class="o">.</span><span class="n">get_time_delay_from_direction</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">antenna_position</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">refractive_index</span><span class="p">)</span>
-
-        <span class="n">electric_field</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">t_shifts</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="n">electric_field</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">station</span><span class="o">.</span><span class="n">add_electric_field</span><span class="p">(</span><span class="n">electric_field</span><span class="p">)</span></div>
 
 
