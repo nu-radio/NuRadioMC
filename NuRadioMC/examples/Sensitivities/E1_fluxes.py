@@ -404,7 +404,7 @@ if show_strawman_pa:
                                             signalEff = N,
                                             energyBinsPerDecade=energyBinsPerDecade,
                                             upperLimOnEvents=2.300,
-                                            nuCrsScn='ctw')
+                                            nuCrsScn='hedis_bgr18')
 
         str_plt_pa, = ax.plot(strawman_veff_pa[:,0]/plotUnitsEnergy,strawman_limit_pa/ plotUnitsFlux,label="{2}: {0} stations, {1} years".format(N,int(livetime/units.year),strawman_pa_label),color='red',linewidth=3)
         limit_labels.append(str_plt_pa)
@@ -417,7 +417,7 @@ if show_strawman:
                                             signalEff = N,
                                             energyBinsPerDecade=energyBinsPerDecade,
                                             upperLimOnEvents=2.300,
-                                            nuCrsScn='ctw')
+                                            nuCrsScn='hedis_bgr18')
 
         str_plt, = ax.plot(strawman_veff[:,0]/plotUnitsEnergy,strawman_limit/ plotUnitsFlux,label="{2}: {0} stations, {1} years".format(N,int(livetime/units.year),strawman_label),color='darkmagenta',linewidth=3)
         limit_labels.append(str_plt)
@@ -431,7 +431,7 @@ if show_punch:
                                             signalEff = N,
                                             energyBinsPerDecade=energyBinsPerDecade,
                                             upperLimOnEvents=2.300,
-                                            nuCrsScn='ctw')
+                                            nuCrsScn='hedis_bgr18')
 
         punch_plt, = ax.plot(punch_veff[:,0]/plotUnitsEnergy,punch_limit/ plotUnitsFlux,label="{2}: {0} stations, {1} years".format(N,int(livetime/units.year),punch_label),color='firebrick',linewidth=3)
         limit_labels.append(punch_plt)
@@ -445,7 +445,7 @@ if show_50_punch:
                                             signalEff = N,
                                             energyBinsPerDecade=energyBinsPerDecade,
                                             upperLimOnEvents=2.300,
-                                            nuCrsScn='ctw')
+                                            nuCrsScn='hedis_bgr18')
 
         punch_50_plt, = ax.plot(punch_50_veff[:,0]/plotUnitsEnergy,punch_50_limit/ plotUnitsFlux,label="{2}: {0} stations, {1} years".format(N,int(livetime/units.year),punch_50_label),color='deeppink',linewidth=3)
         limit_labels.append(punch_50_plt)
@@ -465,4 +465,3 @@ ax.set_xlim(1e5,1e11)
 plt.tight_layout()
 plt.savefig(save_figure_as)
 plt.show()
-

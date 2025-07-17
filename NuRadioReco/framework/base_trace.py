@@ -9,6 +9,7 @@ import logging
 import numbers
 import copy
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 logger = logging.getLogger("NuRadioReco.BaseTrace")
 
 
@@ -296,7 +297,7 @@ class BaseTrace:
         data = {'sampling_rate': self.get_sampling_rate(),
                 'time_trace': time_trace,
                 'trace_start_time': self.get_trace_start_time()}
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
@@ -356,13 +357,13 @@ class BaseTrace:
             return int(np.ceil(round(x, int(np.log10(1/(0.01*units.ps))))))
 
         # 2. Channel starts before readout window:
-        if t0_channel < t0_readout:
+        if t0_channel <= t0_readout:
             i_start_readout = 0
             t_start_readout = t0_readout
             i_start_channel = ceil((t0_readout - t0_channel) * sampling_rate_channel) # The first bin of channel inside readout
             t_start_channel = tt_channel[i_start_channel]
         # 3. Channel starts after readout window:
-        elif t0_channel >= t0_readout:
+        elif t0_channel > t0_readout:
             if raise_error:
                 logger.error("The readout window starts before the incoming channel")
                 raise ValueError('The readout window starts before the incoming channel')
@@ -384,6 +385,7 @@ class BaseTrace:
 
             i_end_readout = floor((t1_channel - t0_readout) * sampling_rate_readout) + 1 # The bin of readout right before channel ends
             i_end_channel = n_samples_channel
+
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
         residual_time_offset = t_start_channel - t_start_readout
         if np.abs(residual_time_offset) >= min_residual_time_offset:
