@@ -4,7 +4,9 @@ Utilities
 important of which shall be introduced here.
 
 Unit System
----------------------
+-----------
+:mod:`NuRadioReco.utilities.units`
+
 To keep track of the units of the calculated event properties, *NuRadioReco*
 offers its own units system. The usage is simple: For every input, the number
 is multiplied by its units, for every output it is divided by it.
@@ -24,7 +26,9 @@ and outputs are multiplied and divided by the correct units, things will stay
 consistent.
 
 Fourier Transformation
---------------------------
+----------------------
+:mod:`NuRadioReco.utilities.fft`
+
 Helper functions to perform fast Fourier Transform between time and frequency
 domain. They can be found :mod:`here <NuRadioReco.utilities.fft>`. 
 The functions are wrappers around the the numpy real Fourier transform
@@ -39,7 +43,7 @@ Metaclasses
 ------------------------
 
 Singleton
-^^^^^^^^^^^^
+^^^^^^^^^
 For some classes (for example, the Detector class), it is usually a good idea to only have
 one instance of it active at a time. This can be accomplished by assigning the Singleton
 metaclass to it. The metaclass supercedes the __call__ method
@@ -47,4 +51,4 @@ metaclass to it. The metaclass supercedes the __call__ method
 already exists and return that instance instead of creating a new one.
 
 If you want to enforce the creation of a new class instance, you can overwrite this behavior
-by passing create_new=True as a parameter to the __call__ method.
+by passing ``create_new=True`` as a parameter to the __call__ method.
