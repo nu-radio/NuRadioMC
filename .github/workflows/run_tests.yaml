@@ -167,8 +167,12 @@ jobs:
     - name: "Test channelGalacticNoiseAdder"
       if: always()
       run: |
-        pip install -e .[galacticnoise]
+        pip install git+https://github.com/telegraphic/pygdsm pylfmap
         python NuRadioReco/examples/StandAloneScripts/B01galacticnoiseadder.py
+    - name: "Test unfolding with voltageToEfieldConverter"
+      if: always()
+      run: |
+        python NuRadioReco/test/voltageToEfieldConverter/test-unfolding.py
     - name: "Test all examples"
       if: always()
       run: |
@@ -180,3 +184,10 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         python NuRadioReco/test/check_modules.py -r
+    - name: "Test interactive examples"
+      run: |
+        export GSLDIR=$(gsl-config --prefix)
+        pip install jupyter
+        jupyter execute NuRadioMC/examples/Interactive/W01-simulate-neutrino-detector.ipynb
+        jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
+

@@ -19,6 +19,7 @@ from six import itervalues
 import numpy as np
 import collections
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 
 import logging
 logger = logging.getLogger('NuRadioReco.Event')
@@ -640,7 +641,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
             '__modules_station': modules_out_station
         })
 
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
@@ -688,4 +689,5 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         if "__modules_event" in data:
             self.__modules_event = data['__modules_event']
         if "__modules_station" in data:
-            self.__modules_station = data['__modules_station']
+            for key, value in data['__modules_station'].items():
+                self.__modules_station[key] = value
