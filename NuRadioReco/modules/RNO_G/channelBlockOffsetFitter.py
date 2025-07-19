@@ -17,6 +17,7 @@ from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import scipy.optimize
 import logging
+import time
 
 logger = logging.getLogger('NuRadioReco.RNO_G.channelBlockOffsetFitter')
 
@@ -94,6 +95,10 @@ class channelBlockOffsets:
                 channel.set_parameter(channelParameters.block_offsets, block_offsets_old + add_offsets)
             else:
                 channel.set_parameter(channelParameters.block_offsets, add_offsets)
+
+            vrms = np.std(channel.get_trace())
+            if np.max(np.abs(add_offsets)) > 0.5 * vrms:
+                logger.info(f"Applying offsets > 50% of vrms={vrms:.2f}) to channel {channel_id}") 
 
             channel.set_trace(
                 channel.get_trace() + np.repeat(add_offsets, self.block_size),
@@ -217,7 +222,10 @@ class channelBlockOffsets:
         --------
         remove_offsets : alias of this method without the (unused) `det` parameter
         """
+        start_time = time.perf_counter()
         self.remove_offsets(event, station, mode=mode, channel_ids=channel_ids, **kwargs)
+        end_time = time.perf_counter()
+        logger.info(f"Removed block offsets from {len(channel_ids)} channels in {(end_time - start_time)*1e3} ms")
 
 
     def end(self):
