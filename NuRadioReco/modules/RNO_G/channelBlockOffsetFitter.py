@@ -148,8 +148,6 @@ class channelBlockOffsets:
         if channel_ids  is None:
             channel_ids = station.get_channel_ids()
 
-        start_time = time.perf_counter()
-
         offsets = {}
         if mode == 'stored': # remove offsets stored in channelParameters.block_offsets
             offsets = {
@@ -174,9 +172,6 @@ class channelBlockOffsets:
                 offsets[channel_id] = -block_offsets
 
         self.add_offsets(event, station, offsets, channel_ids)
-
-        end_time = time.perf_counter()
-        logger.info(f"Removed block offsets from {len(channel_ids)} channels in {(end_time - start_time)*1e3} ms")
 
     def begin(self):
         """(Unused)"""
@@ -227,7 +222,10 @@ class channelBlockOffsets:
         --------
         remove_offsets : alias of this method without the (unused) `det` parameter
         """
+        start_time = time.perf_counter()
         self.remove_offsets(event, station, mode=mode, channel_ids=channel_ids, **kwargs)
+        end_time = time.perf_counter()
+        logger.info(f"Removed block offsets from {len(channel_ids)} channels in {(end_time - start_time)*1e3} ms")
 
 
     def end(self):
