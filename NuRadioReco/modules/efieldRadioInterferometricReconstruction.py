@@ -135,8 +135,7 @@ class efieldInterferometricDepthReco:
 
         # set mc axis if no axis is given
         if axis is None:
-            axis = hp.spherical_to_cartesian(
-                shower[shp.zenith], shower[shp.azimuth])
+            axis = shower.get_axis()
 
         # smearing
         if smear_core_meter:
