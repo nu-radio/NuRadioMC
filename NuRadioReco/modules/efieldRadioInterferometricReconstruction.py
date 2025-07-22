@@ -1676,15 +1676,6 @@ class vonmises_fisher(scipy.stats._multivariate.multi_rv_generic):
         return samples
 
 
-def angle_between(v1: np.ndarray, v2: np.ndarray):
-    """
-    Returns the angle in radians between vectors 'v1' and 'v2': https://stackoverflow.com/a/13849249
-    """
-    v1_u = v1 / np.linalg.norm(v1, axis=0)
-    v2_u = v2 / np.linalg.norm(v2, axis=0)
-    return np.arccos(v1_u @ v2_u)
-
-
 def opening_angle_spherical(theta1, phi1, theta2, phi2, theta1_var, phi1_var):
     """Give the the opening angle and variance on the opening angle between two vectors with spherical coordinates (1, theta, phi), asuming the second vector is known, such that theta2_var, phi2_var are not asked"""
     c1 = np.cos(theta1)
