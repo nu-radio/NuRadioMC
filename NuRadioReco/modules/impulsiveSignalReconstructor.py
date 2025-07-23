@@ -506,6 +506,7 @@ class ImpulsiveSignalReconstructor():
               `get_dt_correlation`;
             * ``'stft'`` (default): uses an short-time Fourier transform (STFT)
               approach to identify the start of the pulse
+              (see `get_threshold_crossing_from_stft`)
 
         **kwargs
             Additional keyword arguments passed to the function that
@@ -549,6 +550,8 @@ class ImpulsiveSignalReconstructor():
             dt = get_dt_correlation(channels, pos, **kwargs)
         elif method == 'simple_threshold':
             dt = find_threshold_crossing(channels, **kwargs)
+        else:
+            raise ValueError(f"Invalid value for method ({method}). Options are 'stft', 'xcorr' or 'simple_threshold'.")
 
         zenith, azimuth = geometryUtilities.analytic_plane_wave_fit(dt, pos)
 
