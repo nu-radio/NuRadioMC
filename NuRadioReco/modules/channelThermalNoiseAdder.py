@@ -1,6 +1,6 @@
+import astropy.coordinates
 import functools
 import json
-import logging
 import numpy as np
 import os
 import scipy.constants
@@ -9,16 +9,13 @@ from scipy.interpolate import interp1d
 from urllib.request import urlretrieve
 import warnings
 
-from NuRadioReco.utilities import units, ice, geometryUtilities
-from NuRadioReco.modules.base.module import register_run
+import NuRadioReco.detector.antennapattern
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
-import NuRadioReco.detector.antennapattern
+from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.utilities import units, ice, geometryUtilities
 
-import astropy.coordinates
-
-from NuRadioReco.utilities import units
-
+import logging
 logger = logging.getLogger('NuRadioReco.channelThermalNoiseAdder')
 
 
@@ -268,7 +265,7 @@ if __name__ == "__main__":
         station.add_channel(channel)
     event.set_station(station)
 
-    sim_library_dir="sim/library"
+    sim_library_dir="/user/rcamphyn/noise_study/sim/library"
 
     thermal_noise_adder = channelThermalNoiseAdder()
     thermal_noise_adder.begin(sim_library_dir=sim_library_dir)
@@ -278,6 +275,7 @@ if __name__ == "__main__":
     channel = station.get_channel(0)
     plt.plot(channel.get_times(), channel.get_trace())
     plt.show()
+    plt.clear()
 
     plt.plot(channel.get_frequencies(), np.abs(channel.get_frequency_spectrum()))
     plt.show()
