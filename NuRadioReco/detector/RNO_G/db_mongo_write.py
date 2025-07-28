@@ -634,7 +634,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             logger.error(f'No active station {station_id} in the database')
         else:
             # filter to get all active stations with the correct id
-            time = self.__current_time
+            time = decomm_time
             time_filter = [{"$match": {
                 'commission_time': {"$lte": time},
                 'decommission_time': {"$gte": time},
@@ -702,7 +702,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             logger.error(f'No active station {station_id} in the database')
         else:
             # filter to get all active stations with the correct id
-            time = self.__current_time
+            time = decomm_time
             time_filter = [{"$match": {
                 'commission_time': {"$lte": time},
                 'decommission_time': {"$gte": time},
