@@ -644,7 +644,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         # checks if the arguments are valid
         if not re.fullmatch(r"(station|channel|device)", object_name):
             raise RuntimeError("The given object name is not valid. Please only use 'station' or 'channel' or 'device'.")
-        if not re.fullmatch(r"(channel|device)", object_name) and object_id is None:
+        if re.fullmatch(r"(channel|device)", object_name) and object_id is None:
             raise RuntimeError("Object id is missing. You try to decommission a channel or device without specifying the id.")
         
         # get the entry of the aktive station
