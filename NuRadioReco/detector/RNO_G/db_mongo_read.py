@@ -957,51 +957,20 @@ class Database(object):
             if chain_key not in channel_sig_info:
                 continue
 
-            # extract the information about the used components
-            component_dict = channel_sig_info.pop(chain_key)
-
-            # Certain keys in the response chain only carry additional information of other components
-            # and do not describe own components on their own ("channel", "breakout", "weight")
-            # extract the information about the components, the additional information and the weights from the response chain dict
-            filtered_component_dict = {}
-            additional_information = {}
-            weight_dict = {}
-
-            for key, ele in component_dict.items():
-                if re.search("(channel|breakout|weight)", key) is None:
-                    filtered_component_dict[key] = ele
-                elif re.search("weight", key) is not None:
-                    weight_dict[key.replace("_weight", "")] = ele
-                else:
-                    additional_information[key] = ele
-
-            # go through all components and load the s parameter measurements for each used component
-            components_data = {}
-            for component, component_id in filtered_component_dict.items():
-                # Add the additional informatio which were filtered out above to the correct components
-                supp_info = {k.replace(component + "_", ""): additional_information[k] for k in additional_information
-                            if re.search(component, k)}
-
-                if re.search("_[0-9]+", component, re.IGNORECASE):
-                    collection_suffix = re.findall("(_[0-9]+)", component, re.IGNORECASE)[0]
-                    collection_component = component.replace(collection_suffix, "")
-                else:
-                    collection_component = component
-
-                # load the s21 parameter measurement
-                component_data = self.get_component_data(
-                    collection_component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
-
-                # add the component name, the weight of the s21 measurement and the actual s21 measurement (component_data) to a combined dictionary
-                components_data[component] = {'name': component_id}
-                if component in weight_dict:
-                    components_data[component].update({'weight': weight_dict[component]})
-
-                components_data[component].update(component_data)
-
-            # add/update the signal chain to the channel data
-            channel_sig_info[chain_key] = components_data
-
+            # go through the component list query the corresponing measurements from the database (s parameters)
+            for ice, component_entry in enumerate(channel_sig_info[chain_key]):
+                # create a search dict with addtional informations
+                supp_info = {key: component_entry[key] for key in component_entry.keys() if re.search("(channel|breakout)", key)}
+                component_data = self.get_component_data(component_type=component_entry["collection"],
+                                                         component_id=component_entry["name"],
+                                                         supplementary_info=supp_info, 
+                                                         primary_time=self.__database_time, 
+                                                         verbose=verbose,
+                                                         sparameter='S21')
+                
+                # add the component data to the channel_sig_info dict
+                channel_sig_info[chain_key][ice].update(component_data)
+                
         return channel_sig_info
 
 
