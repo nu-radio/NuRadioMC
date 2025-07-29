@@ -140,6 +140,8 @@ class Database(object):
 
         self.__digitizer_collection = "digitizer_configuration"
 
+        self.__gain_calibration_collection = "gain_calibration"
+
 
     def set_database_time(self, time):
         ''' Set time for database. This affects which primary measurement is used.
@@ -845,6 +847,85 @@ class Database(object):
             return measurement
         else:
             return {k:measurement[k] for k in ('name', 'channel_id', 'frequencies', 'mag', 'phase') if k in measurement.keys()}
+        
+
+    def get_calibration_gain_factor(self, search_id, measurement_name=None, use_primary_time_with_measurement=False):
+        """
+        Get the calibration factor for a given station and channel id for the current detector time.
+
+        Parameters
+        ----------
+        search_id: int
+            Combination of channel and station id. Used toegther with the detector time to select the correct absolute gain factor.
+
+        measurement_name: string
+            Use the measurement name to select the requested data (not database time / primary time).
+            If "use_primary_time_with_measurement" is True, use measurement_name and primary time to
+            find matching objects. (Default: None -> return measurement based on primary time)
+
+        use_primary_time_with_measurement: bool
+            If True (and measurement_name is not None), use measurement name and primary time to select objects.
+            (Default: False)
+
+        Returns
+        -------
+
+        gain_factor_dict: dict
+        """
+
+        # define the id that is used to search the collection
+        id_dict = {'id': search_id,
+                   'commission_time': {'$lte': self.__detector_time},
+                   'decommission_time': {'$gte': self.__detector_time}}
+
+        # if the collection is empty, return an empty dict
+        if self.db[self.__gain_calibration_collection].count_documents(id_dict) == 0:
+            return {}
+
+        # define the search filter
+        search_filter = [{'$match': id_dict},
+                         {'$unwind': '$measurements'}]
+
+        search_filter.append({'$match': {}})
+
+        if measurement_name is not None:
+            # add {'measurements.measurement_name': measurement_name} to dict in '$match'
+            search_filter[-1]['$match'].update(
+                {'measurements.measurement_name': measurement_name})
+
+
+        if measurement_name is None or use_primary_time_with_measurement:
+            search_filter += [
+                {'$unwind': '$measurements.primary_measurement'},
+                {'$match': {'measurements.primary_measurement.start': {'$lte': self.__database_time},
+                            'measurements.primary_measurement.end': {'$gte': self.__database_time}}}]
+        else:
+            # measurement/object identified by soley by "measurement_name"
+            pass
+
+        search_result = list(self.db[self.__gain_calibration_collection].aggregate(search_filter))
+
+        if search_result == []:
+            return search_result
+
+        # The following code block is necessary if the "primary_measurement" has several entries. Right now we always do that.
+        # Extract the information using the object and measurements id
+        id_filter = [{'$match': {'_id': {'$in': [dic['_id'] for dic in search_result]}}},
+                     {'$unwind': '$measurements'},
+                     {'$match': {'measurements.id_measurement':
+                         {'$in': [dic['measurements']['id_measurement'] for dic in search_result]}}}]
+
+        info = list(self.db[self.__gain_calibration_collection].aggregate(id_filter))[0]
+
+        # remove the measurements dict, and move the content to the main dict
+        info.update(info.pop('measurements'))
+
+        # remove 'id_measurement' and '_id' object
+        info.pop('_id', None)
+        info.pop('id_measurement', None)
+
+
+        return info
 
 
     def get_complete_station_information(
@@ -927,8 +1008,8 @@ class Database(object):
             general_info[station_id]['devices'][device].update(device_info[device])
 
         return general_info
-
-
+    
+        
     def get_channel_signal_chain(self, channel_signal_id, measurement_name=None, verbose=True):
         """
         Returns the response data for a given signal chain.
@@ -956,18 +1037,22 @@ class Database(object):
             # Not every channel has a trigger response chain
             if chain_key not in channel_sig_info:
                 continue
-
+            
             # go through the component list query the corresponing measurements from the database (s parameters)
             for ice, component_entry in enumerate(channel_sig_info[chain_key]):
-                # create a search dict with addtional informations
-                supp_info = {key: component_entry[key] for key in component_entry.keys() if re.search("(channel|breakout)", key)}
-                component_data = self.get_component_data(component_type=component_entry["collection"],
-                                                         component_id=component_entry["name"],
-                                                         supplementary_info=supp_info, 
-                                                         primary_time=self.__database_time, 
-                                                         verbose=verbose,
-                                                         sparameter='S21')
-                
+                if component_entry["collection"] == "gain_calibration":
+                    # only load a single calibration value
+                    component_data = self.get_calibration_gain_factor(search_id=component_entry["id"])
+                else:
+                    # create a search dict with addtional informations
+                    supp_info = {key: component_entry[key] for key in component_entry.keys() if re.search("(channel|breakout)", key)}
+                    component_data = self.get_component_data(component_type=component_entry["collection"],
+                                                            component_id=component_entry["name"],
+                                                            supplementary_info=supp_info,
+                                                            primary_time=self.__database_time,
+                                                            verbose=verbose,
+                                                            sparameter='S21')
+
                 # add the component data to the channel_sig_info dict
                 channel_sig_info[chain_key][ice].update(component_data)
                 
