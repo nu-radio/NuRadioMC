@@ -29,7 +29,6 @@ class channelThermalNoiseAdder:
     """
 
     def __init__(self):
-        self.__n_side = None
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
 
 
