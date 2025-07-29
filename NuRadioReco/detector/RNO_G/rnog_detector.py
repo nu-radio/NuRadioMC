@@ -893,14 +893,9 @@ class Detector():
             components = [entry["collection"] for entry in measurement_components_list]
             is_equal = False
             if "drab_board" in components and "iglu_board" in components:
-                iglu_drab_mag = [entry['mag'] for entry in measurement_components_list if re.search(r'(drab_board|iglu_board)', entry['collection'])]
-                
-                if len(iglu_drab_mag) != 2:
-                    raise ValueError("More than a IGLU-DRAB pair found in the signal chain.") 
-                
                 is_equal = np.allclose(
-                    iglu_drab_mag[0],
-                    iglu_drab_mag[1])
+                    measurement_components_list[components.index("drab_board")]["mag"],
+                    measurement_components_list[components.index("iglu_board")]["mag"])
 
                 if is_equal:
                     self.logger.warn(
