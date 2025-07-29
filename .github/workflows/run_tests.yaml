@@ -186,6 +186,10 @@ jobs:
       if: always()
       run: |
         python NuRadioReco/detector/test/test_response.py
+    - name: "Test unfolding with voltageToEfieldConverter"
+      if: always()
+      run: |
+        python NuRadioReco/test/voltageToEfieldConverter/test-unfolding.py
     - name: "Test module structure of all modules in NuRadioReco.modules"
       if: always()
       run: |
