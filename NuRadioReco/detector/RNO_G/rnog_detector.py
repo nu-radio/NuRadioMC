@@ -1286,21 +1286,25 @@ class Detector():
         else:
             response_chain_key = "response_chain"
 
-        measurement_components_dic = signal_chain_dict[response_chain_key]
+        measurement_components_list = signal_chain_dict[response_chain_key]
 
         total_time_delay = 0
-        for key, value in measurement_components_dic.items():
+        for component_dic in measurement_components_list:
+            key = component_dic["collection"]
 
-            if "weight" in value:
-                weight = value["weight"]
+            if key == "gain_calibration":
+                continue  # skip gain calibration, it has no time delay
+
+            if "weight" in component_dic:
+                weight = component_dic["weight"]
             else:
-                self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
+                self.logger.warning(f"Component {key} does not have a weight. Assume a weight of 1 ...")
                 weight = 1
 
             assert abs(weight) == 1, f"Weight is {weight}, only values of `-1` and `1` are currently supported."
 
-            if "time_delay" in value:
-                time_delay = value["time_delay"]
+            if "time_delay" in component_dic:
+                time_delay = component_dic["time_delay"]
             else:
                 self.logger.warning(
                     f"The signal chain component \"{key}\" of station.channel "
@@ -1361,15 +1365,19 @@ class Detector():
                 raise KeyError(f"No trigger response for station.channel {station_id}.{channel_id}")
 
             prefix = "trigger_" if trigger else ""
-            for key, value in signal_chain_dict[f"{prefix}response_chain"].items():
-                ydata = [value["mag"], value["phase"]]
+            for component_dic in signal_chain_dict[f"{prefix}response_chain"]:
+                key = component_dic["collection"]
+                if key == "gain_calibration":
+                    continue  # skip gain calibration, it has no time delay
+
+                ydata = [component_dic["mag"], component_dic["phase"]]
                 # This is different from within `get_signal_chain_response` because we do set the time delay here
                 # and thus we do not remove it from the response.
-                response = Response(value["frequencies"], ydata, value["y-axis_units"],
+                response = Response(component_dic["frequencies"], ydata, component_dic["y-axis_units"],
                                     name=key, station_id=station_id, channel_id=channel_id,
                                     log_level=self.__log_level)
 
-                weight = value.get("weight", 1)
+                weight = component_dic.get("weight", 1)
                 time_delay += weight * response._calculate_time_delay()
 
         return time_delay
