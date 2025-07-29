@@ -898,7 +898,7 @@ class Detector():
                     measurement_components_list[components.index("iglu_board")]["mag"])
 
                 if is_equal:
-                    self.logger.warn(
+                    self.logger.warning(
                         f"Station.channel {station_id}.{channel_id}: Currently both, "
                         "iglu and drab board are configured in the signal chain but their "
                         "responses are the same (because we measure them together in the lab). "
@@ -912,9 +912,11 @@ class Detector():
                     continue
 
                 if "weight" not in component_entry.keys():
-                    self.logger.warn(f"Component {component_entry['collection']} with the name {component_entry['name']} does not have a weight. Assume a weight of 1 ...")
-                weight = component_entry.get("weight", 1) # returns 1 as the default if weight is not included
+                    self.logger.warning(
+                        f"Component {component_entry['collection']} with the name {component_entry['name']} "
+                        "does not have a weight. Assume a weight of 1 ...")
 
+                weight = component_entry.get("weight", 1) # returns 1 as the default if weight is not included
                 attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
 
                 if "time_delay" in component_entry:
@@ -926,12 +928,31 @@ class Detector():
                         "Set component time delay to 0")
                     time_delay = 0
 
-                ydata = [component_entry["mag"], component_entry["phase"]]
-                response = Response(component_entry["frequencies"], ydata, component_entry["y-axis_units"],
-                                    time_delay=time_delay, weight=weight, name=f'{component_entry["collection"]}:{component_entry["name"]}',
-                                    station_id=station_id, channel_id=channel_id,
-                                    log_level=self.__log_level,
-                                    attenuator_in_dB=attenuator)
+                if component_entry['collection'] == "gain_calibration":
+                    ydata = component_entry["gain_factor"]
+                    y_units = component_entry["gain_factor_unit"]
+                    frequencies = None
+
+                else:
+                    ydata = [component_entry["mag"], component_entry["phase"]]
+                    y_units = component_entry["y-axis_units"]
+                    frequencies = component_entry["frequencies"]
+
+                    # Apply the addtional attenuator (stored in dB) to the response if present in measurement
+                    if attenuator:
+                        if y_units[0] == "dB":
+                            ydata[0] = np.asarray(ydata[0]) + attenuator
+                        elif y_units[0].lower() == "mag":
+                            ydata[0] = np.asarray(ydata[0]) * 10 ** (attenuator / 20)
+                        else:
+                            raise KeyError
+
+                response = Response(
+                    frequencies, ydata, y_units,
+                    time_delay=time_delay, weight=weight,
+                    name=f'{component_entry["collection"]}:{component_entry["name"]}',
+                    station_id=station_id, channel_id=channel_id,
+                    log_level=self.__log_level)
 
                 responses.append(response)
 
@@ -1252,7 +1273,7 @@ class Detector():
         get_time_delay
         """
         signal_chain_dict = self.get_channel_signal_chain(
-        station_id, channel_id)
+            station_id, channel_id)
 
         if trigger:
             response_chain_key = "trigger_response_chain"
