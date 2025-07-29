@@ -36,29 +36,19 @@ class channelThermalNoiseAdder:
     def get_cached_antenna_response(self, antenna_pattern, zen, azi, *ant_orient):
         return antenna_pattern.get_antenna_response_vectorized(self.freqs, zen, azi, *ant_orient)
 
-
-    def get_temperature_at_depth(self, depth):
-        grip_dir = f"{os.path.dirname(os.path.abspath(__file__))}/../../NuRadioMC/data"
-        grip_file = "griptemp.txt"
-        grip_path = grip_dir + "/" + grip_file
-
-        if not os.path.exists(grip_path):
-            grip_url = "https://doi.pangaea.de/10.1594/PANGAEA.89007?format=textfile"
-            urlretrieve(grip_url, grip_path)
-
-        grip_temp = np.loadtxt(grip_path, skiprows=39)
-        depth_values = -grip_temp[:,0]
-        temperature_values = grip_temp[:,1]
-        profile = interp1d(depth_values,
-                           temperature_values,
-                           bounds_error=False,
-                           fill_value=(temperature_values[-1],temperature_values[0]))
-        return profile(depth)
-
     def solid_angle(self, theta, d_theta, d_phi):
         return np.abs(np.sin(theta) * np.sin(d_theta / 2) * 2 * d_phi)
 
     def get_temperature_from_json(self, temperature_file):
+        """
+        Function to open the effective temperature files created by
+        NuRadioMC/examples/simulate_effective_ice_temperature
+        The effective temperatures are generated at an antenna depth in function of incident angle
+        by integrating ice temperature (weighted by attenuation effects) along a ray path starting from an incident angle.
+        For more info see the example.
+        This module was made for RNO-G but given you have an ice temperature / attenuation profile one can re-generate these files
+        for arbitrary experiments
+        """
         with open(temperature_file, "r") as file_open:
             temperature_file_dict = json.load(file_open)
         z_antenna = temperature_file_dict["z_antenna"]
@@ -68,7 +58,7 @@ class channelThermalNoiseAdder:
 
 
 
-    def begin(self, sim_library_dir, nr_phi_bins=64, debug=False):
+    def begin(self, sim_library_dir, nr_phi_bins=64, channel_depth_profile=None, debug=False):
         """
         Set up important parameters for the module
 
@@ -79,6 +69,9 @@ class channelThermalNoiseAdder:
         nr_phi_bins : int
             Binning of the azimuth, this can be reduced for azimuthally symmetric antennas,
             such as vertically polarized antennas
+        channel_depth_profile : dict
+            Depth of detector antennas formatted as {antenna_nr : depth}.
+            If None, uses the antenna depths of RNO-G.
         debug : bool
             If True removes randomization of electric field phases and polarizations to speed up testing
         """
@@ -95,18 +88,19 @@ class channelThermalNoiseAdder:
             self.eff_temperature[z_antenna] = eff_temperature
 
         self.nr_theta_bins = len(self.thetas)
-#        self.channel_depths = {0 : -100,
-#                               4 : -100,
-#                               7 : -40, 12: -1.0, 13: -1.0}
-        self.channel_depths = {i : -100 for i in [0, 1, 2, 3, 4, 8, 9, 10, 11, 21, 22, 23]}
-        for i in [5, 6, 7]:
-            self.channel_depths[i] = -40
-        for i in [12, 13, 14, 15, 16, 17, 18, 19, 20]:
-            self.channel_depths[i] = -1.0
+
+        if channel_depth_profile is None:
+            self.channel_depths = {i : -100 for i in [0, 1, 2, 3, 4, 8, 9, 10, 11, 21, 22, 23]}
+            for i in [5, 6, 7]:
+                self.channel_depths[i] = -40
+            for i in [12, 13, 14, 15, 16, 17, 18, 19, 20]:
+                self.channel_depths[i] = -1.0
+        else:
+            self.channel_depths = channel_depth_profile
 
         self.debug = debug
         if self.debug:
-            nr_phi_bins = 16
+            nr_phi_bins = 32
         self.phis = np.linspace(0 * units.degree, 360 * units.degree, nr_phi_bins)
         return
 
@@ -152,15 +146,8 @@ class channelThermalNoiseAdder:
 
         if passband is None:
             passband = [10 * units.MHz, 1600 * units.MHz]
-
         passband_filter = (freqs > passband[0]) & (freqs < passband[1])
 
-        site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
-        station_time = station.get_station_time()
-
-
-        n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
-        n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
         c_vac = scipy.constants.c * units.m / units.s
 
         channel_spectra = {}
@@ -169,7 +156,6 @@ class channelThermalNoiseAdder:
 
         d_thetas = np.diff(self.thetas)
         d_phis = np.diff(self.phis)
-#        d_phi = 2 * np.pi
         for phi, d_phi in zip(self.phis, d_phis):
             for theta_i, (theta, d_theta) in enumerate(zip(self.thetas, d_thetas)):
                 solid_angle = self.solid_angle(theta, d_theta, d_phi)
@@ -204,7 +190,6 @@ class channelThermalNoiseAdder:
 
                     antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(
                         detector.get_antenna_model(station.get_id(), channel.get_id()),
-#                        interpolation_method="magphase"
                         )
                     antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel.get_id())
 
@@ -218,9 +203,6 @@ class channelThermalNoiseAdder:
                     channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.sin(polarizations)
 
                     # fold electric field with antenna response
-    #                antenna_response = antenna_pattern.get_antenna_response_vectorized(freqs, zenith, azimuth,
-    #                                                                                   *antenna_orientation)
-
                     antenna_response = self.get_cached_antenna_response(antenna_pattern, theta, phi,
                                                                         *antenna_orientation)
                     channel_noise_spectrum = (
@@ -274,8 +256,7 @@ if __name__ == "__main__":
     channel = station.get_channel(0)
     plt.plot(channel.get_times(), channel.get_trace())
     plt.show()
-    plt.clear()
+    plt.clf()
 
     plt.plot(channel.get_frequencies(), np.abs(channel.get_frequency_spectrum()))
-    plt.show()
     plt.savefig("test_thermal_noise")
