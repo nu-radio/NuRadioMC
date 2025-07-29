@@ -140,7 +140,6 @@ class Database(object):
 
         self.__digitizer_collection = "digitizer_configuration"
 
-        self.__gain_calibration_collection = "gain_calibration"
 
 
     def set_database_time(self, time):
@@ -269,7 +268,7 @@ class Database(object):
                 break
 
         return infos
-    
+
 
     def get_digitizer_configuration(self, config_id):
         """ Get digitizer configuration from the database. Access information in the digitizer collection.
@@ -300,7 +299,7 @@ class Database(object):
             err = f"Found no digitizer configuration for: config_id = {config_id}"
             logger.error(err)
             raise ValueError(err)
-        
+
         return config[0]
 
 
@@ -372,7 +371,7 @@ class Database(object):
         for digitizer_type in ["signal", "trigger"]:
             # get the correct key for the dict
             digitizer_key = digitizer_type + "_digitizer_config"
-            
+
             # get the id and load the information from the digitizer collection
             digitizer_id = station_info[station_id][digitizer_key]
             station_info[station_id][digitizer_key] = self.get_digitizer_configuration(config_id=digitizer_id)
@@ -604,13 +603,14 @@ class Database(object):
             search_filter.append({'$unwind': '$measurements'})
             help_dic1 = {}
             help_dic2 = {}
+
             for key in input_dic.keys():
                 if input_dic[key] is not None:
                     help_dic2[f'measurements.{key}'] = input_dic[key]
             if help_dic2 != {}:
                 help_dic1['$match'] = help_dic2
                 search_filter.append(help_dic1)
-            # print(search_filter)
+
             search_result = list(self.db[collection].aggregate(search_filter))
 
             for key in input_dic.keys():
@@ -726,7 +726,6 @@ class Database(object):
 
             position_id = self.get_identifier(
                 station_id, channel_device_id, component=component, what='position')
-            print(position_id)
 
         # if measurement name is None, the primary measurement is returned
         collection_info = self.get_collection_information(
@@ -847,14 +846,17 @@ class Database(object):
             return measurement
         else:
             return {k:measurement[k] for k in ('name', 'channel_id', 'frequencies', 'mag', 'phase') if k in measurement.keys()}
-        
 
-    def get_calibration_gain_factor(self, search_id, measurement_name=None, use_primary_time_with_measurement=False):
+
+    def get_calibration_gain_factor(self, collection, search_id, measurement_name=None, use_primary_time_with_measurement=False):
         """
         Get the calibration factor for a given station and channel id for the current detector time.
 
         Parameters
         ----------
+        collection: string
+            Name of the collection in which the gain calibration is stored.
+
         search_id: int
             Combination of channel and station id. Used toegther with the detector time to select the correct absolute gain factor.
 
@@ -879,8 +881,9 @@ class Database(object):
                    'decommission_time': {'$gte': self.__detector_time}}
 
         # if the collection is empty, return an empty dict
-        if self.db[self.__gain_calibration_collection].count_documents(id_dict) == 0:
-            return {}
+        if self.db[collection].count_documents(id_dict) == 0:
+            logger.error(f'No gain calibration found for id {search_id} at time {self.__detector_time}.')
+            raise ValueError(f'No gain calibration found for id {search_id} at time {self.__detector_time}.')
 
         # define the search filter
         search_filter = [{'$match': id_dict},
@@ -903,19 +906,21 @@ class Database(object):
             # measurement/object identified by soley by "measurement_name"
             pass
 
-        search_result = list(self.db[self.__gain_calibration_collection].aggregate(search_filter))
+        search_result = list(self.db[collection].aggregate(search_filter))
 
         if search_result == []:
-            return search_result
+            logger.error(f'No gain calibration found for id {search_filter} at time {self.__detector_time}.')
+            raise ValueError(f'No gain calibration found for id {search_filter} at time {self.__detector_time}.')
 
         # The following code block is necessary if the "primary_measurement" has several entries. Right now we always do that.
         # Extract the information using the object and measurements id
-        id_filter = [{'$match': {'_id': {'$in': [dic['_id'] for dic in search_result]}}},
-                     {'$unwind': '$measurements'},
-                     {'$match': {'measurements.id_measurement':
-                         {'$in': [dic['measurements']['id_measurement'] for dic in search_result]}}}]
+        id_filter = [
+            {'$match': {'_id': {'$in': [dic['_id'] for dic in search_result]}}},
+            {'$unwind': '$measurements'},
+            {'$match': {'measurements.id_measurement':
+                {'$in': [dic['measurements']['id_measurement'] for dic in search_result]}}}]
 
-        info = list(self.db[self.__gain_calibration_collection].aggregate(id_filter))[0]
+        info = list(self.db[collection].aggregate(id_filter))[0]
 
         # remove the measurements dict, and move the content to the main dict
         info.update(info.pop('measurements'))
@@ -923,7 +928,7 @@ class Database(object):
         # remove 'id_measurement' and '_id' object
         info.pop('_id', None)
         info.pop('id_measurement', None)
-
+        info["name"] = info.pop('id', None)
 
         return info
 
@@ -1008,8 +1013,8 @@ class Database(object):
             general_info[station_id]['devices'][device].update(device_info[device])
 
         return general_info
-    
-        
+
+
     def get_channel_signal_chain(self, channel_signal_id, measurement_name=None, verbose=True):
         """
         Returns the response data for a given signal chain.
@@ -1037,25 +1042,27 @@ class Database(object):
             # Not every channel has a trigger response chain
             if chain_key not in channel_sig_info:
                 continue
-            
+
             # go through the component list query the corresponing measurements from the database (s parameters)
             for ice, component_entry in enumerate(channel_sig_info[chain_key]):
                 if component_entry["collection"] == "gain_calibration":
                     # only load a single calibration value
-                    component_data = self.get_calibration_gain_factor(search_id=component_entry["id"])
+                    component_data = self.get_calibration_gain_factor(
+                        collection=component_entry["collection"], search_id=component_entry["id"])
                 else:
                     # create a search dict with addtional informations
                     supp_info = {key: component_entry[key] for key in component_entry.keys() if re.search("(channel|breakout)", key)}
-                    component_data = self.get_component_data(component_type=component_entry["collection"],
-                                                            component_id=component_entry["name"],
-                                                            supplementary_info=supp_info,
-                                                            primary_time=self.__database_time,
-                                                            verbose=verbose,
-                                                            sparameter='S21')
+                    component_data = self.get_component_data(
+                        component_type=component_entry["collection"],
+                        component_id=component_entry["name"],
+                        supplementary_info=supp_info,
+                        primary_time=self.__database_time,
+                        verbose=verbose,
+                        sparameter='S21')
 
                 # add the component data to the channel_sig_info dict
                 channel_sig_info[chain_key][ice].update(component_data)
-                
+
         return channel_sig_info
 
 
