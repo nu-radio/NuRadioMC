@@ -4,13 +4,9 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.1.0-dev
 new features:
-<<<<<<< HEAD
 - added rno-g cal_pulser waveform model at different temperatures in NuRadioMC/data 
-
-=======
 - energy-dependent inelasticity distribution (only BGR18 model) and cc / nc fraction (all models)
 - rice distribution method for estimating electric field energy fluences as proposed in S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
->>>>>>> develop
 
 bugfixes:
 - Fixed the core parameter in Events created by the readCoREASDetector module not being 3-dimensional
