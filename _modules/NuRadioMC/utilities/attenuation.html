@@ -652,14 +652,14 @@
     <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span>
 <span class="p">)</span>
 
-<span class="n">gl3_slope_interpolation</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
+<span class="n">_gl3_slope_interpolation</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
     <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
     <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
     <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">fill_value</span><span class="o">=</span><span class="p">(</span><span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
 <span class="p">)</span>
 
-<span class="n">gl3_offset_interpolation</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
+<span class="n">_gl3_offset_interpolation</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
     <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
     <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span>
     <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -855,8 +855,14 @@
         <span class="n">att_length_f</span> <span class="o">=</span> <span class="n">bulk_att_length_f</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">fit_values_GL2</span><span class="p">))(</span><span class="n">z</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;GL3&#39;</span><span class="p">:</span>
-        <span class="n">slopes</span> <span class="o">=</span> <span class="n">gl3_slope_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
-        <span class="n">offsets</span> <span class="o">=</span> <span class="n">gl3_offset_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
+            <span class="c1"># If z is an array, make sure not not use the numba-compiled functions</span>
+            <span class="n">slopes</span> <span class="o">=</span> <span class="n">_gl3_slope_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
+            <span class="n">offsets</span> <span class="o">=</span> <span class="n">_gl3_offset_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">slopes</span> <span class="o">=</span> <span class="n">gl3_slope_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
+            <span class="n">offsets</span> <span class="o">=</span> <span class="n">gl3_offset_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
+
         <span class="c1"># # restric frequency to prevent negative attenuation lengths</span>
         <span class="c1"># if hasattr(frequency, &#39;__len__&#39;):</span>
         <span class="c1">#     frequency[frequency &gt; 0.6 * units.GHz] = 0.6 * units.GHz</span>
@@ -927,10 +933,10 @@
 <span class="sd">        array-like</span>
 <span class="sd">            Slope of the attenuation length as a function of depth.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]):</span>
-            <span class="k">return</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]):</span>
-            <span class="k">return</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span></div>
 
@@ -952,12 +958,13 @@
 <span class="sd">        array-like</span>
 <span class="sd">            Offset of the attenuation length as a function of depth.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]):</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span></div>
 
+        <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span></div>
 
 
     <span class="n">gl3_slope_interpolation</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">gl3_slope_interpolation_f</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -965,7 +972,9 @@
     <span class="n">get_temperature</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">get_temperature</span><span class="p">,</span> <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="k">pass</span>
+    <span class="n">gl3_slope_interpolation</span> <span class="o">=</span> <span class="n">_gl3_slope_interpolation</span>
+    <span class="n">gl3_offset_interpolation</span> <span class="o">=</span> <span class="n">_gl3_offset_interpolation</span>
+
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
