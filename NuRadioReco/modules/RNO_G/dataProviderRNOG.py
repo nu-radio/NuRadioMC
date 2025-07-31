@@ -78,6 +78,7 @@ class dataProviderRNOG:
         """ Call the end method of the modules """
         self.reader.end()
         self.channelGlitchDetector.end()
+        self.channelBlockOffsetFitter.end()
 
     @register_run()
     def run(self):
