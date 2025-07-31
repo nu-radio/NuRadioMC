@@ -10,10 +10,10 @@ in the `NuRadioReco.framework.parameters.channelParameters.block_offsets` parame
 """
 
 from NuRadioReco.utilities import units, fft
-from NuRadioReco.framework.base_trace import BaseTrace
 from NuRadioReco.framework.parameters import channelParameters
 from NuRadioReco.modules.base.module import register_run
 
+from collections import defaultdict
 import numpy as np
 import scipy.optimize
 import logging
@@ -44,6 +44,8 @@ class channelBlockOffsets:
         self._offset_fit = dict()
         self._offset_inject = dict()
         self._max_frequency = max_frequency
+        self._counter = defaultdict(int)
+        self._time = 0
 
     def add_offsets(self, event, station, offsets=1*units.mV, channel_ids=None):
         """
@@ -78,12 +80,18 @@ class channelBlockOffsets:
 
         if channel_ids is None:
             channel_ids = station.get_channel_ids()
+
+        self._counter["n_events"] += 1
+
         for channel_id in channel_ids:
             channel = station.get_channel(channel_id)
             if isinstance(offsets, dict):
                 add_offsets = offsets[channel_id]
             else:
                 add_offsets = offsets
+
+            # if entry is a single float (or array with length 1),
+            # generate a random offset for each block
             if len(np.atleast_1d(add_offsets)) == 1:
                 add_offsets = np.random.normal(
                     0, add_offsets, (channel.get_number_of_samples() // self.block_size)
@@ -96,9 +104,15 @@ class channelBlockOffsets:
             else:
                 channel.set_parameter(channelParameters.block_offsets, add_offsets)
 
-            vrms = np.std(channel.get_trace())
+
+            # Calculate vrms as the mean of the standard deviation in each block
+            vrms = np.mean(np.std(np.split(
+                channel.get_trace(), channel.get_number_of_samples() // self.block_size),
+                axis=-1))
+
             if np.max(np.abs(add_offsets)) > 0.5 * vrms:
-                logger.info(f"Applying offsets > 50% of vrms={vrms:.2f}) to channel {channel_id}") 
+                logger.info(f"Applying offsets > 50% of vrms={vrms:.2f}) to channel {channel_id}")
+                self._counter[channel_id] += 1
 
             channel.set_trace(
                 channel.get_trace() + np.repeat(add_offsets, self.block_size),
@@ -225,12 +239,21 @@ class channelBlockOffsets:
         start_time = time.perf_counter()
         self.remove_offsets(event, station, mode=mode, channel_ids=channel_ids, **kwargs)
         end_time = time.perf_counter()
-        logger.info(f"Removed block offsets from {len(channel_ids)} channels in {(end_time - start_time)*1e3} ms")
+        self._time += (end_time - start_time)
 
 
     def end(self):
-        """(Unused)"""
-        pass
+        n_events = self._counter.pop("n_events", 0)
+        if n_events > 0:
+            msg = (f"Processed {n_events} events with channelBlockOffsetFitter. "
+                f"This took {self._time:.2f} seconds ({(self._time / n_events) * 1e3:.2f} ms/event)."
+                f"Removed {np.sum(list(self._counter.values()))} large block offsets "
+                f"(>50% of Vrms) from {len(self._counter)} channels:")
+            msg += "\n\t Channel ID: number of events in which large block offsets were removed"
+            for key, value in self._counter.items():
+                msg += f"\n\t Channel {key}: {value} "
+
+            logger.info(msg)
 
 
 def fit_block_offsets(
