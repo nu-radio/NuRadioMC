@@ -28,9 +28,11 @@ from NuRadioReco.framework.base_shower import BaseShower
 from NuRadioReco.detector.detector_base import DetectorBase
 
 import numpy as np
-import scipy
 import matplotlib.pyplot as plt
 from matplotlib import gridspec, colorbar
+
+import scipy
+import scipy.stats
 from scipy.optimize import curve_fit
 
 from typing import Optional
@@ -127,12 +129,6 @@ class efieldInterferometricDepthReco:
         if core is None:
             core = np.array(shower[shp.core])
 
-        # ensure core is of shape (3,) with 0 as last coordinate
-        if len(core) == 3:
-            core[2] = 0
-        elif len(core) == 2:
-            core = np.hstack([core, 0])
-
         # set mc axis if no axis is given
         if axis is None:
             axis = shower.get_axis()
@@ -147,8 +143,7 @@ class efieldInterferometricDepthReco:
 
         if smear_angle_radians:
             concentration_parameter = 1 / smear_angle_radians**2
-            dist = vonmises_fisher()
-            axis = dist.rvs(axis, int(concentration_parameter)).flatten()
+            axis = scipy.stats.vonmises_fisher.rvs(axis, int(concentration_parameter)).flatten()
 
         self._core = core
         self._axis = axis
@@ -1568,113 +1563,6 @@ def gaussian_2d(xy, A, mux, muy, sigmax, sigmay):
     sigma = np.array([sigmax, sigmay])
     return A * np.exp(np.sum(-np.square(xy -
                       mu[:, np.newaxis] / (sigma[:, np.newaxis])) / 2, axis=0))
-
-
-class vonmises_fisher(scipy.stats._multivariate.multi_rv_generic):
-    """copy of scipy.stats.vonmises_fisher"""
-
-    def __init__(self, seed=None):
-        super().__init__(seed)
-
-    def _process_parameters(self, mu, kappa):
-        """
-        Infer dimensionality from mu and ensure that mu is a one-dimensional
-        unit vector and kappa positive.
-        """
-        mu = np.asarray(mu)
-        if mu.ndim > 1:
-            raise ValueError("'mu' must have one-dimensional shape.")
-        if not np.allclose(np.linalg.norm(mu), 1.):
-            raise ValueError("'mu' must be a unit vector of norm 1.")
-        if not mu.size > 1:
-            raise ValueError("'mu' must have at least two entries.")
-        kappa_error_msg = "'kappa' must be a positive scalar."
-        if not np.isscalar(kappa) or kappa < 0:
-            raise ValueError(kappa_error_msg)
-        if float(kappa) == 0.:
-            raise ValueError("For 'kappa=0' the von Mises-Fisher distribution "
-                             "becomes the uniform distribution on the sphere "
-                             "surface. Consider using "
-                             "'scipy.stats.uniform_direction' instead.")
-        dim = mu.size
-
-        return dim, mu, kappa
-
-    def _rvs_3d(self, kappa, size, random_state):
-        """
-        Generate samples from a von Mises-Fisher distribution
-        with mu = [1, 0, 0] and kappa. Samples then have to be
-        rotated towards the desired mean direction mu.
-        This method is much faster than the general rejection
-        sampling based algorithm.
-        Reference: https://www.mitsuba-renderer.org/~wenzel/files/vmf.pdf
-
-        """
-        if size is None:
-            sample_size = 1
-        else:
-            sample_size = size
-
-        # compute x coordinate acc. to equation from section 3.1
-        x = random_state.random(sample_size)
-        x = 1. + np.log(x + (1. - x) * np.exp(-2 * kappa)) / kappa
-
-        # (y, z) are random 2D vectors that only have to be
-        # normalized accordingly. Then (x, y z) follow a VMF distribution
-        temp = np.sqrt(1. - np.square(x))
-        dist = scipy.stats.uniform_direction(2)
-        uniformcircle = dist.rvs(sample_size, random_state)
-        samples = np.stack([x, temp * uniformcircle[..., 0],
-                           temp * uniformcircle[..., 1]], axis=-1)
-        if size is None:
-            samples = np.squeeze(samples)
-        return samples
-
-    def _rotate_samples(self, samples, mu, dim):
-        """A QR decomposition is used to find the rotation that maps the
-        north pole (1, 0,...,0) to the vector mu. This rotation is then
-        applied to all samples.
-
-        Parameters
-        ----------
-        samples: array_like, shape = [..., n]
-        mu : array-like, shape=[n, ]
-            Point to parametrise the rotation.
-
-        Returns
-        -------
-        samples : rotated samples
-
-        """
-        base_point = np.zeros((dim, ))
-        base_point[0] = 1.
-        embedded = np.concatenate([mu[None, :], np.zeros((dim - 1, dim))])
-        rotmatrix, _ = np.linalg.qr(np.transpose(embedded))
-        if np.allclose(np.matmul(rotmatrix, base_point[:, None])[:, 0], mu):
-            rotsign = 1
-        else:
-            rotsign = -1
-
-        # apply rotation
-        samples = np.einsum('ij,...j->...i', rotmatrix, samples) * rotsign
-        return samples
-
-    def _rvs(self, dim, mu, kappa, size, random_state):
-        if dim == 3:
-            samples = self._rvs_3d(kappa, size, random_state)
-        else:
-            print("not implemented! update python to >= 3.9 and scipy to >= 1.11 and use scipy.stats.vonmises_fisher")
-
-        if dim != 2:
-            samples = self._rotate_samples(samples, mu, dim)
-        return samples
-
-    def rvs(self, mu=None, kappa=1, size=1, random_state=None):
-        dim, mu, kappa = self._process_parameters(mu, kappa)
-        random_state = self._get_random_state(random_state)
-        samples = self._rvs(dim, mu, kappa, size, random_state)
-        return samples
-
 
 def opening_angle_spherical(theta1, phi1, theta2, phi2, theta1_var, phi1_var):
     """Give the the opening angle and variance on the opening angle between two vectors with spherical coordinates (1, theta, phi), asuming the second vector is known, such that theta2_var, phi2_var are not asked"""
