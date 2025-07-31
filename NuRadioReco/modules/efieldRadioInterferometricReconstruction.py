@@ -364,13 +364,15 @@ class efieldInterferometricDepthReco:
             depths_final, signals_tmp, signals_final, rit_parameters = \
                 self.reconstruct_interferometric_depth(return_profile=True)
             xrit = rit_parameters[1]
-            ax = plt.figure().add_subplot()
+            fig, ax = plt.subplots()
+
             ax.scatter(self._depths, signals_tmp, color="blue",
-                       label="Coarse sampling", s=2, zorder=1.1)
+                label="Coarse sampling", s=2, zorder=1.1)
             ax.scatter(depths_final, signals_final, color="red",
-                       label="Fine sampling", s=2, zorder=1)
+                label="Fine sampling", s=2, zorder=1)
             ax.plot(depths_final, normal(depths_final, *rit_parameters),
-                    label="Gaussian fit", color="black", ls="--")
+                label="Gaussian fit", color="black", ls="--")
+
             ax.axvline(rit_parameters[1])
             ax.set_xlabel(r"$X [\mathrm{g}/\mathrm{cm}^2]$")
             ax.set_ylabel(self._signal_kind)
@@ -397,10 +399,7 @@ class efieldInterferometricDepthReco:
         Updates model of the atmosphere and tabulated, integrated refractive index according to shower properties.
         Default atmospheric model is 17, if it is not found in `self._shower`.
         """
-
-        logger.warning(
-            "flat earth geometry assumed. default was curved. If issue has been fixed, consider moving back to curved")
-        curved = False
+        curved = self._zenith > np.deg2rad(70)  # curved atmosphere for zenith > 70 degrees
 
         try:
             atmospheric_model = self._shower[shp.atmospheric_model]
@@ -408,21 +407,17 @@ class efieldInterferometricDepthReco:
             logger.warning(
                 "Shower doesn't contain showerParameters.atmospheric_model (likely not a sim shower). Setting model 17 (US standard, Keilhauer)")
             atmospheric_model = 17
-        if self._at is None:
+
+        if self._at is None or self._at.model != atmospheric_model:
             self._at = models.Atmosphere(
                 atmospheric_model, curved=curved)
             self._tab = refractivity.RefractivityTable(
                 self._at.model, refractivity_at_sea_level=self._shower[shp.refractive_index_at_ground] - 1, curved=curved)
 
-        elif self._at.model != atmospheric_model:
-            self._at = models.Atmosphere(
-                atmospheric_model, curved=curved)
+        if self._tab._refractivity_at_sea_level != self._shower[shp.refractive_index_at_ground] - 1:
             self._tab = refractivity.RefractivityTable(
                 self._at.model, refractivity_at_sea_level=self._shower[shp.refractive_index_at_ground] - 1, curved=curved)
 
-        elif self._tab._refractivity_at_sea_level != self._shower[shp.refractive_index_at_ground] - 1:
-            self._tab = refractivity.RefractivityTable(
-                self._at.model, refractivity_at_sea_level=self._shower[shp.refractive_index_at_ground] - 1, curved=curved)
 
     def set_station_data(self, evt: Event, det: Optional[DetectorBase], station_ids: Optional[list] = None):
         """
@@ -440,12 +435,14 @@ class efieldInterferometricDepthReco:
         traces = []
         times = []
         pos = []
+
         if station_ids is None:
             station_ids = evt.get_station_ids()
 
         if self._use_channels:
             dominant_polarisations = [evt.get_station(
                 sid)[stp.cr_dominant_polarisation] for sid in station_ids if self._use_channels]
+
             unique, counts = np.unique(
                 dominant_polarisations, axis=0, return_counts=True)
             strongest_pol_overall = unique[np.argmax(counts)]
@@ -454,16 +451,11 @@ class efieldInterferometricDepthReco:
             for sid in station_ids:
                 station: Station = evt.get_station(sid)
                 station_position = det.get_absolute_position(sid)
-                positions_and_times_and_traces += [((station_position
-                                                     + det.get_relative_position(sid, cid)),
-                                                    station.get_channel(
-                                                        cid).get_times(),
-                                                    station.get_channel(
-                                                        cid).get_trace(),
-                                                    sid,
-                                                    )
-                                                   for cid in station.get_channel_ids()
-                                                   if np.all(np.abs(det.get_antenna_orientation(sid, cid) - strongest_pol_overall) < 1e-6)]
+                positions_and_times_and_traces += [
+                    ((station_position + det.get_relative_position(sid, cid)),
+                    station.get_channel(cid).get_times(), station.get_channel(cid).get_trace(), sid)
+                    for cid in station.get_channel_ids() if np.all(
+                        np.abs(det.get_antenna_orientation(sid, cid) - strongest_pol_overall) < 1e-6)]
         else:
             positions_and_times_and_traces = []
             for sid in station_ids:
@@ -472,20 +464,17 @@ class efieldInterferometricDepthReco:
                 if self._use_sim_pulses:
                     station = station.get_sim_station()
 
-                # if det is not None:
-                #     station_position = det.get_absolute_position(sid)
+                position = det.get_absolute_position(sid)
 
-                #     positions_and_times_and_traces += [(station_position + np.mean([det.get_relative_position(sid, cid) for cid in electric_field.get_channel_ids()], axis=0),
-                #                                         electric_field.get_times(),
-                #                                         self._cs.transform_to_vxB_vxvxB(electric_field.get_trace())[0])
-                #                                        for electric_field in station.get_electric_fields()]
-                positions_and_times_and_traces += [(electric_field.get_position(),
-                                                    electric_field.get_times(),
-                                                    self._cs.transform_to_vxB_vxvxB(
-                                                        electric_field.get_trace())[0],
-                                                    sid,
-                                                    )
-                                                   for electric_field in station.get_electric_fields()]
+                # select vxB traces
+                positions_and_times_and_traces += [
+                    (position + electric_field.get_position(),
+                    electric_field.get_times(),
+                    self._cs.transform_to_vxB_vxvxB(
+                        self._cs.transform_from_onsky_to_ground(
+                            electric_field.get_trace()))[0],
+                    sid) for electric_field in station.get_electric_fields()
+                ]
 
         warned_early = False
         warned_late = False
