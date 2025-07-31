@@ -440,22 +440,8 @@ class efieldInterferometricDepthReco:
             station_ids = evt.get_station_ids()
 
         if self._use_channels:
-            dominant_polarisations = [evt.get_station(
-                sid)[stp.cr_dominant_polarisation] for sid in station_ids if self._use_channels]
-
-            unique, counts = np.unique(
-                dominant_polarisations, axis=0, return_counts=True)
-            strongest_pol_overall = unique[np.argmax(counts)]
-
-            positions_and_times_and_traces = []
-            for sid in station_ids:
-                station: Station = evt.get_station(sid)
-                station_position = det.get_absolute_position(sid)
-                positions_and_times_and_traces += [
-                    ((station_position + det.get_relative_position(sid, cid)),
-                    station.get_channel(cid).get_times(), station.get_channel(cid).get_trace(), sid)
-                    for cid in station.get_channel_ids() if np.all(
-                        np.abs(det.get_antenna_orientation(sid, cid) - strongest_pol_overall) < 1e-6)]
+            raise NotImplementedError(
+                "Using channels is not implemented for efieldRITReconstruction. Use electric fields instead.")
         else:
             positions_and_times_and_traces = []
             for sid in station_ids:
