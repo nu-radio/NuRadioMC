@@ -887,52 +887,72 @@ class Detector():
 
         # total_response can be None if imported from file
         if response_key not in signal_chain_dict or signal_chain_dict[response_key] is None:
-            measurement_components_dic = signal_chain_dict[response_chain_key]
+            measurement_components_list = signal_chain_dict[response_chain_key]
 
             # Here comes a HACK
-            components = list(measurement_components_dic.keys())
+            components = [entry["collection"] for entry in measurement_components_list]
             is_equal = False
             if "drab_board" in components and "iglu_board" in components:
-
                 is_equal = np.allclose(
-                    measurement_components_dic["drab_board"]["mag"],
-                    measurement_components_dic["iglu_board"]["mag"])
+                    measurement_components_list[components.index("drab_board")]["mag"],
+                    measurement_components_list[components.index("iglu_board")]["mag"])
 
                 if is_equal:
-                    self.logger.warn(
+                    self.logger.warning(
                         f"Station.channel {station_id}.{channel_id}: Currently both, "
                         "iglu and drab board are configured in the signal chain but their "
                         "responses are the same (because we measure them together in the lab). "
                         "Skip the drab board response.")
 
             responses = []
-            for key, value in measurement_components_dic.items():
+            for component_entry in measurement_components_list:
 
                 # Skip drab_board if its equal with iglu (see warning above)
-                if is_equal and key == "drab_board":
+                if is_equal and component_entry["collection"] == "drab_board":
                     continue
 
-                if "weight" not in value:
-                    self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
-                weight = value.get("weight", 1)
+                if "weight" not in component_entry.keys():
+                    self.logger.warning(
+                        f"Component {component_entry['collection']} with the name {component_entry['name']} "
+                        "does not have a weight. Assume a weight of 1 ...")
 
-                attenuator = value.get("attenuator", 0)
+                weight = component_entry.get("weight", 1) # returns 1 as the default if weight is not included
+                attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
 
-                if "time_delay" in value:
-                    time_delay = value["time_delay"]
+                if "time_delay" in component_entry:
+                    time_delay = component_entry["time_delay"]
                 else:
                     self.logger.warning(
-                        f"The signal chain component \"{key}\" of station.channel "
+                        f"The signal chain component \"{component_entry['collection']}\" with the name \"{component_entry['name']}\" of station.channel "
                         f"{station_id}.{channel_id} has no time delay stored... "
                         "Set component time delay to 0")
                     time_delay = 0
 
-                ydata = [value["mag"], value["phase"]]
-                response = Response(value["frequencies"], ydata, value["y-axis_units"],
-                                    time_delay=time_delay, weight=weight, name=key,
-                                    station_id=station_id, channel_id=channel_id,
-                                    log_level=self.__log_level,
-                                    attenuator_in_dB=attenuator)
+                if component_entry['collection'] == "gain_calibration":
+                    ydata = component_entry["gain_factor"]
+                    y_units = component_entry["gain_factor_unit"]
+                    frequencies = None
+
+                else:
+                    ydata = [component_entry["mag"], component_entry["phase"]]
+                    y_units = component_entry["y-axis_units"]
+                    frequencies = component_entry["frequencies"]
+
+                    # Apply the addtional attenuator (stored in dB) to the response if present in measurement
+                    if attenuator:
+                        if y_units[0] == "dB":
+                            ydata[0] = np.asarray(ydata[0]) + attenuator
+                        elif y_units[0].lower() == "mag":
+                            ydata[0] = np.asarray(ydata[0]) * 10 ** (attenuator / 20)
+                        else:
+                            raise KeyError
+
+                response = Response(
+                    frequencies, ydata, y_units,
+                    time_delay=time_delay, weight=weight,
+                    name=f'{component_entry["collection"]}:{component_entry["name"]}',
+                    station_id=station_id, channel_id=channel_id,
+                    log_level=self.__log_level)
 
                 responses.append(response)
 
@@ -1253,7 +1273,7 @@ class Detector():
         get_time_delay
         """
         signal_chain_dict = self.get_channel_signal_chain(
-        station_id, channel_id)
+            station_id, channel_id)
 
         if trigger:
             response_chain_key = "trigger_response_chain"
@@ -1266,21 +1286,25 @@ class Detector():
         else:
             response_chain_key = "response_chain"
 
-        measurement_components_dic = signal_chain_dict[response_chain_key]
+        measurement_components_list = signal_chain_dict[response_chain_key]
 
         total_time_delay = 0
-        for key, value in measurement_components_dic.items():
+        for component_dic in measurement_components_list:
+            key = component_dic["collection"]
 
-            if "weight" in value:
-                weight = value["weight"]
+            if key == "gain_calibration":
+                continue  # skip gain calibration, it has no time delay
+
+            if "weight" in component_dic:
+                weight = component_dic["weight"]
             else:
-                self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
+                self.logger.warning(f"Component {key} does not have a weight. Assume a weight of 1 ...")
                 weight = 1
 
             assert abs(weight) == 1, f"Weight is {weight}, only values of `-1` and `1` are currently supported."
 
-            if "time_delay" in value:
-                time_delay = value["time_delay"]
+            if "time_delay" in component_dic:
+                time_delay = component_dic["time_delay"]
             else:
                 self.logger.warning(
                     f"The signal chain component \"{key}\" of station.channel "
@@ -1341,15 +1365,19 @@ class Detector():
                 raise KeyError(f"No trigger response for station.channel {station_id}.{channel_id}")
 
             prefix = "trigger_" if trigger else ""
-            for key, value in signal_chain_dict[f"{prefix}response_chain"].items():
-                ydata = [value["mag"], value["phase"]]
+            for component_dic in signal_chain_dict[f"{prefix}response_chain"]:
+                key = component_dic["collection"]
+                if key == "gain_calibration":
+                    continue  # skip gain calibration, it has no time delay
+
+                ydata = [component_dic["mag"], component_dic["phase"]]
                 # This is different from within `get_signal_chain_response` because we do set the time delay here
                 # and thus we do not remove it from the response.
-                response = Response(value["frequencies"], ydata, value["y-axis_units"],
+                response = Response(component_dic["frequencies"], ydata, component_dic["y-axis_units"],
                                     name=key, station_id=station_id, channel_id=channel_id,
                                     log_level=self.__log_level)
 
-                weight = value.get("weight", 1)
+                weight = component_dic.get("weight", 1)
                 time_delay += weight * response._calculate_time_delay()
 
         return time_delay
