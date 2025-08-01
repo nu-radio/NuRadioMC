@@ -30,7 +30,7 @@ import numpy as np
 from NuRadioMC.simulation import simulation
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
-import NuRadioReco.modules.phasedarray.triggerSimulator
+import NuRadioReco.modules.phasedarray.phasedArrayTrigger
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -39,7 +39,7 @@ from NuRadioReco.utilities import units
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin(debug=False)
-triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
+triggerSimulator = NuRadioReco.modules.phasedarray.phasedArrayTrigger.PhasedArrayTrigger()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
