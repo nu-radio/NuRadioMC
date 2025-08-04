@@ -351,7 +351,9 @@ def preprocess_WIPLD_old(path, gen_num=1, s_parameters=None):
     get_Z = interp1d(ff, Z, kind='nearest')
     wavelength = c / ff2
     H_phi = (2 * wavelength * get_Z(ff2) * Iphi) / Z_0 / 1j
-    H_theta = (2 * wavelength * get_Z(ff2) * Itheta) / Z_0 / 1j
+    # need a minus sign in H_theta because eTheta points in the opposite direction
+    # in NuRadio compared to WIPL-D
+    H_theta = -(2 * wavelength * get_Z(ff2) * Itheta) / Z_0 / 1j
 
     return orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff2, theta, phi, H_phi, H_theta
 
@@ -448,16 +450,12 @@ def preprocess_WIPLD(path, gen_num=1, s_parameters=None):
     V = 1 * units.V
     Z_L = 50 * units.ohm
     H_phi = wavelength * (1 + get_S(ff2)) * Iphi * Z_L / Z_0 / 1j / V
-    H_theta = wavelength * (1 + get_S(ff2)) * Itheta * Z_L / Z_0 / 1j / V
+    # need a minus sign in H_theta because eTheta points in the opposite direction
+    # in NuRadio compared to WIPL-D
+    H_theta = -wavelength * (1 + get_S(ff2)) * Itheta * Z_L / Z_0 / 1j / V
 
     #     H = wavelength * (np.real(get_Z(ff2)) / (np.pi * Z_0)) ** 0.5 * gains ** 0.5
     return orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff2, theta, phi, H_phi, H_theta
-
-
-#     output_filename = '{}.pkl'.format(os.path.join(path, name, name))
-#     with open(output_filename, 'wb') as fout:
-#         logger.info('saving output to {}'.format(output_filename))
-#         pickle.dump([orientation_theta, orientation_phi, rotation_theta, rotation_phi, ff2, theta, phi, H_phi, H_theta], fout, protocol=4)
 
 
 def save_preprocessed_WIPLD(path):
@@ -519,7 +517,9 @@ def save_preprocessed_WIPLD_forARA(path):
     get_S = interp1d(ff, S, kind='nearest')
     Gr = gains * (1 - np.abs(get_S(ff2)) ** 2)
     H_phi = wavelength * (1 + get_S(ff2)) * Iphi * Z_L / Z_0 / 1j / V
-    H_theta = wavelength * (1 + get_S(ff2)) * Itheta * Z_L / Z_0 / 1j / V
+    # need a minus sign in H_theta because eTheta points in the opposite direction
+    # in NuRadio compared to WIPL-D
+    H_theta = -wavelength * (1 + get_S(ff2)) * Itheta * Z_L / Z_0 / 1j / V
 
     output_filename = '{}.ara'.format(os.path.join(path, name, name))
     with open(output_filename, 'w') as fout:
