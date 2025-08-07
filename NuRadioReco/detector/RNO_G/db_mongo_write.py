@@ -96,7 +96,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
                                          'primary_measurement': primary_measurement_times
                                      }}}, upsert=True)
 
-    def add_entry_to_database(self, collection, identification_key, identification_value, primary_measurement, data_dict, primary_measurement_start=None, add_main_dict_info=None):
+    def add_entry_to_database(self, collection, identification_key, identification_value, primary_measurement, data_dict, primary_measurement_start=None):
         """
         inserts a entry into the database.
         If the measurement dosn't exist yet, it will be created.
@@ -116,8 +116,6 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             dictionary with all the information that should be saved for this entry
         primary_measurement_start: datetime.datetime
             If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time
-        add_main_dict_info: dict
-            Allows to give more information to the general part of the document (Be careful, these informations are not backed up by a primary time).
         """
 
         self.set_database_time(datetime.datetime.now(tz=datetime.timezone.utc))
@@ -141,12 +139,65 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         ), 'primary_measurement': primary_measurement_times, 'last_updated': datetime.datetime.now(tz=datetime.timezone.utc)})
 
         main_dict = {identification_key: identification_value}
-
-        if add_main_dict_info is not None:
-            main_dict.update(add_main_dict_info)
             
         self.db[collection].update_one(main_dict,
                                        {'$push': {'measurements': data_dict}}, upsert=True)
+
+    
+    def add_time_dependent_entry_to_database(self, collection, identification_key, identification_value, primary_measurement, data_dict, commission_time, decommission_time, primary_measurement_start=None):
+        """
+        inserts a time dependent entry into the database.
+        If the measurement dosn't exist yet, it will be created.
+        Only works for the following collections: gain_calibration
+
+        Parameters
+        ----------
+        collection: string
+            specify the collection in which the entry will be added
+        identification_key: string
+            specify the key used for identification (must be 'name' or 'id')
+        identification_value: string
+            specify the name of the entry (e.g. the name of the measurement or the channel position identifier)
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
+        data_dict: dict
+            dictionary with all the information that should be saved for this entry
+        commission_time: datetime.datetime
+            The commission time of the measurement.
+        decommission_time: datetime.datetime
+            The decommission time of the measurement.
+        primary_measurement_start: datetime.datetime
+            If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time
+        """
+
+        self.set_database_time(datetime.datetime.now(tz=datetime.timezone.utc))
+
+        search_dict = {identification_key: identification_value,
+                       "commission_time": commission_time,
+                       "decommission_time": decommission_time}
+
+        # close the time period of the old primary measurement (if it exists)
+        search_result = list(self.db[collection].aggregate([{"$match": search_dict}]))
+        if primary_measurement and len(search_result) == 1: # an entry already exists and needs to be updated
+                primary_time_end = primary_measurement_start
+                self.update_current_primary(
+                    collection, search_result[0]["_id"], identification_label="_id", data_dict=data_dict, primary_end_time=primary_time_end)
+
+        # define the new primary measurement times
+        if primary_measurement:
+            if primary_measurement_start is None:
+                primary_measurement_start = datetime.datetime.now(tz=datetime.timezone.utc)
+            primary_measurement_times = [{'start': primary_measurement_start, 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
+        else:
+            primary_measurement_times = []
+
+        # update the entry with the measurement (if the entry doesn't exist it will be created)
+        data_dict.update({'id_measurement': ObjectId(
+        ), 'primary_measurement': primary_measurement_times, 'last_updated': datetime.datetime.now(tz=datetime.timezone.utc)})
+            
+        self.db[collection].update_one(search_dict,
+                                       {'$push': {'measurements': data_dict}}, upsert=True)
+        
 
     def add_general_station_info(self, station_id, station_name, station_comment, signal_digitizer_config_id, trigger_digitizer_config_id, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
         # check if an active station exist; if true, the active station will be decommissioned
