@@ -120,24 +120,25 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             Allows to give more information to the general part of the document (Be careful, these informations are not backed up by a primary time).
         """
 
-        self.set_database_time(datetime.datetime.utcnow())
+        self.set_database_time(datetime.datetime.now(tz=datetime.timezone.utc))
 
         # close the time period of the old primary measurement
         if primary_measurement and identification_value in self.db[collection].distinct(identification_key):
+            primary_time_end = primary_measurement_start
             self.update_current_primary(
-                collection, identification_value, identification_label=identification_key, data_dict=data_dict)
+                collection, identification_value, identification_label=identification_key, data_dict=data_dict, primary_end_time=primary_time_end)
 
         # define the new primary measurement times
         if primary_measurement:
             if primary_measurement_start is None:
-                primary_measurement_start = datetime.datetime.utcnow()
+                primary_measurement_start = datetime.datetime.now(tz=datetime.timezone.utc)
             primary_measurement_times = [{'start': primary_measurement_start, 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
         else:
             primary_measurement_times = []
 
         # update the entry with the measurement (if the entry doesn't exist it will be created)
         data_dict.update({'id_measurement': ObjectId(
-        ), 'primary_measurement': primary_measurement_times, 'last_updated': datetime.datetime.utcnow()})
+        ), 'primary_measurement': primary_measurement_times, 'last_updated': datetime.datetime.now(tz=datetime.timezone.utc)})
 
         main_dict = {identification_key: identification_value}
 
@@ -282,9 +283,9 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
     # operation that change the primary status of a measurement
 
-    def update_current_primary(self, collection_name, name, identification_label, data_dict):
+    def update_current_primary(self, collection_name, name, identification_label, data_dict, primary_end_time=None):
         """
-        updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow()
+        updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow() or primary_end_time
 
         Parameters
         ----------
@@ -296,9 +297,11 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             specify what kind of label is used for the identification ("name" or "id")
         data_dict: dict
             dictionary containing additional information that are used to search the database (e.g., channel_id, S_parameter)
+        primary_end_time: datetime.datetime or None
+            If this argument is given, the end of the current primary measurement is set to this timestamp (instead of now).
         """
 
-        present_time = self.__database_time
+        present_time = datetime.datetime.now(tz=datetime.timezone.utc)
 
         # find the current primary measurement
         obj_id, measurement_id = self.find_primary_measurement(
@@ -322,10 +325,14 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
                 primary_times = info[0]['measurements']['primary_measurement']
 
                 # update the 'end' time to the present time
-                primary_times[-1]['end'] = present_time
+                if primary_end_time is not None:
+                    primary_times[-1]['end'] = primary_end_time
+                else:
+                    primary_times[-1]['end'] = present_time
 
                 self.db[collection_name].update_one({'_id': obj_id}, {"$set": {
                                          "measurements.$[updateIndex].primary_measurement": primary_times}}, array_filters=[{"updateIndex.id_measurement": m_id}])
+
 
     def __change_primary_object_measurement(self, object_type, object_name, search_filter, channel_id=None, breakout_id=None, breakout_channel_id=None):
         """
