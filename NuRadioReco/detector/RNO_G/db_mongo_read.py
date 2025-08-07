@@ -911,6 +911,9 @@ class Database(object):
         if search_result == []:
             logger.error(f'No gain calibration found for id {search_filter} at time {self.__detector_time}.')
             raise ValueError(f'No gain calibration found for id {search_filter} at time {self.__detector_time}.')
+        elif len(search_result) > 1:
+            logger.error(f'More than one gain calibration found for id {search_filter} at time {self.__detector_time}.')
+            raise ValueError(f'More than one gain calibration found for id {search_filter} at time {self.__detector_time}.')
 
         # The following code block is necessary if the "primary_measurement" has several entries. Right now we always do that.
         # Extract the information using the object and measurements id
