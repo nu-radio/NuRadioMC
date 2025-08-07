@@ -129,7 +129,7 @@ class Database(object):
         logger.info(f"... connection to {self.db.name} established")
 
         # Set timestamp of database. This is used to determine which primary measurement is used
-        self.__database_time = datetime.datetime.utcnow()
+        self.__database_time = datetime.datetime.now(tz=datetime.timezone.utc)
 
         # This is used to get commissioned stations/channels
         self.__detector_time = None

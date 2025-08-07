@@ -72,7 +72,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             self.db[collection_name].update_one({'name': name},
                                      {'$push': {'measurements': {
                                          'id_measurement': ObjectId(),
-                                         'last_updated': datetime.datetime.utcnow(),
+                                         'last_updated': datetime.datetime.now(tz=datetime.timezone.utc),
                                          'function_test': False,
                                          'primary_measurement': primary_measurement_times,
                                          'channel_id': channel_id
@@ -81,7 +81,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             self.db[collection_name].update_one({'name': name},
                                      {'$push': {'measurements': {
                                          'id_measurement': ObjectId(),
-                                         'last_updated': datetime.datetime.utcnow(),
+                                         'last_updated': datetime.datetime.now(tz=datetime.timezone.utc),
                                          'function_test': False,
                                          'primary_measurement': primary_measurement_times,
                                          'breakout': breakout_id,
@@ -91,7 +91,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             self.db[collection_name].update_one({'name': name},
                                      {'$push': {'measurements': {
                                          'id_measurement': ObjectId(),
-                                         'last_updated': datetime.datetime.utcnow(),
+                                         'last_updated': datetime.datetime.now(tz=datetime.timezone.utc),
                                          'function_test': False,
                                          'primary_measurement': primary_measurement_times
                                      }}}, upsert=True)
@@ -330,7 +330,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
     def add_measurement_protocol(self, protocol_name):
         # insert the new measurement protocol
         self.db['measurement_protocol'].insert_one({'protocol': protocol_name,
-                                                   'inserted': datetime.datetime.utcnow()})
+                                                   'inserted': datetime.datetime.now(tz=datetime.timezone.utc)})
 
     # operation that change the primary status of a measurement
 
@@ -406,7 +406,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             If a brakout channel id is given (for a downhole_chain) the value is used to search for the current primary measurement (default: None).
         """
 
-        present_time = datetime.datetime.utcnow()
+        present_time = datetime.datetime.now(tz=datetime.timezone.utc)
 
         # get the information about the measurement specified in the search filter
         search_results = list(self.db[object_type].aggregate(search_filter))
