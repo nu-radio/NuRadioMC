@@ -65,7 +65,7 @@ def _check_detector_time(method):
 class Detector():
     def __init__(self, database_connection='RNOG_public', log_level=logging.NOTSET, over_write_handset_values=None,
                  database_time=None, always_query_entire_description=False, detector_file=None,
-                 select_stations=None, create_new=False):
+                 select_stations=None, create_new=False, database_name=None):
         """
         The RNO-G detector description.
 
@@ -104,6 +104,10 @@ class Detector():
             If False, and a database already exists, the existing database will be used rather than initializing a
             new connection. Set to True to create a new database connection.
 
+        database_name : str (Default: None)
+            Name of the database to connect to. If None, the default database will be used
+            (see `Database` class in `db_mongo_read.py`).
+
         Notes
         -----
         For more information about ``Detector`` objects in NuRadioMC, see
@@ -133,7 +137,10 @@ class Detector():
         if detector_file is None:
             self._det_imported_from_file = False
 
-            self.__db = Database(database_connection=database_connection, create_new=create_new)
+            self.__db = Database(
+                database_connection=database_connection,
+                create_new=create_new, database_name=database_name)
+
             if database_time is not None:
                 self.__db.set_database_time(database_time)
 
