@@ -106,7 +106,7 @@ class Detector():
 
         database_name : str (Default: None)
             Name of the database to connect to. If None, the default database will be used
-            (see `Database` class in `db_mongo_read.py`).
+            (see Database class in db_mongo_read.py).
 
         Notes
         -----
