@@ -1,18 +1,17 @@
-from __future__ import absolute_import, division, print_function
-import numpy as np
-from radiotools import helper as hp
-from radiotools import plthelpers as php
-from matplotlib import pyplot as plt
-from NuRadioReco.utilities import units
-from NuRadioMC.utilities import medium
-from NuRadioMC.utilities import plotting
-from six import iteritems
+import os
 import h5py
 import argparse
-import json
-import time
-import os
+import numpy as np
+from six import iteritems
+from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+
+from radiotools import helper as hp
+from radiotools import plthelpers as php
+
+from NuRadioReco.utilities import units
+from NuRadioMC.utilities import medium, plotting
+from NuRadioReco.utilities.constants import density_ice, density_water
 
 parser = argparse.ArgumentParser(description='Plot NuRadioMC event list output.')
 parser.add_argument('inputfilename', type=str,
@@ -61,8 +60,6 @@ n_events = fin.attrs['n_events']
 ###########################
 # calculate effective volume
 ###########################
-density_ice = 0.9167 * units.g / units.cm ** 3
-density_water = 997 * units.kg / units.m ** 3
 
 n_triggered = np.sum(weights)
 print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f}'.format(n_triggered, n_events, n_triggered / n_events))

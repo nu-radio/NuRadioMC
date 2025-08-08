@@ -6,7 +6,6 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import electric_field as ef
 from NuRadioReco.modules.io.coreas.readCoREASDetector import select_channels_per_station
-from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 import logging
 
 

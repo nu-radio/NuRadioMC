@@ -1,6 +1,16 @@
 Some notes on conventions
 =========================
 
+Units
+-----
+Physical quantities in ``NuRadioMC`` use Auger base units. To print, plot and convert dimensional quantities,
+a convenient module is included in :mod:`NuRadioReco.utilities.units`. Details are given :mod:`here<NuRadioReco.utilities.units>`.
+
+Fourier transformations
+-----------------------
+To ensure Fourier transforms have the correct units, please use the convenience functions provided
+in :mod:`NuRadioReco.utilities.fft`.
+
 Coordinates
 -----------
 
@@ -46,12 +56,19 @@ The electric field is stored in 'on-sky' polar coordinates with (r, :math:`e_\th
 .. image:: ../figs/cos_earth.png 
   :width: 45%
 
-Left: Comparison of the coordinate systems important for the polarization of the electic fiel. The orange arrow indicates the shower axis, the purple circle indicates the shower plane. The natural coordinate system for the air shower electric field is given by :math:`\hat{e}_{\vec{v}}`, :math:`\hat{e}_{\vec{v} \times \vec{B}}` and :math:`\hat{e}_{\vec{v} \times \vec{v} \times \vec{B}}`. On ground, a coordinate system with respect to arrival direction is useful, given by :math:`\hat{e}_{\vec{v}}`, :math:`\hat{e}_\theta`, :math:`\hat{e}_\phi`. Therefore the electric field has the components :math:`E_\theta`, :math:`E_\phi`. Both coordinate systems share :math:`\hat{e}_{\vec{v}}`. Right: 'On-sky' coordinate system as seen from ground. The x-axis is pointing east, the y-axis to the north. The incoming signal corresponds to the air shower axis. :math:`\hat{e}_{\vec{v}}`, :math:`\hat{e}_\theta`, :math:`\hat{e}_\phi` are the same as left.
+Left: Comparison of the coordinate systems important for the polarization of the electic fiel.
+The orange arrow indicates the shower axis, the purple circle indicates the shower plane.
+The natural coordinate system for the air shower electric field is given by :math:`\hat{e}_{\vec{v}}`, :math:`\hat{e}_{\vec{v} \times \vec{B}}` and :math:`\hat{e}_{\vec{v} \times \vec{v} \times \vec{B}}`.
+On ground, a coordinate system with respect to arrival direction is useful, given by :math:`\hat{e}_{\vec{v}}`, :math:`\hat{e}_\theta`, :math:`\hat{e}_\phi`.
+Therefore the electric field has the components :math:`E_\theta`, :math:`E_\phi`.
+Both coordinate systems share :math:`\hat{e}_{\vec{v}}`.
+Right: 'On-sky' coordinate system as seen from ground.
+The x-axis is pointing east, the y-axis to the north.
+The incoming signal corresponds to the air shower axis. :math:`\hat{e}_{\vec{v}}`, :math:`\hat{e}_\theta`, :math:`\hat{e}_\phi` are the same as left.
 
-Units
+Times
 -----
-Physical quantities in ``NuRadioMC`` use Auger base units. To print, plot and convert dimensional quantities,
-a convenient module is included in ``NuRadioReco``. Details are given :ref:`here <NuRadioReco/pages/utilities:Unit System>`.
+See :doc:`/NuRadioReco/pages/times`.
 
 Particle types
 --------------
@@ -59,8 +76,3 @@ Particle types are encoded using the `PDG convention <https://pdg.lbl.gov/2007/r
 The most relevant particle ids for us are [12,14,16] for the electron, muon and tau neutrino, respectively, 
 with an overall minus sign indicating their corresponding anti-particles. A more extensive overview is included 
 as a table in the :ref:`event generation manual <particle-code-table>`.
-
-Fourier transformations
------------------------
-To ensure Fourier transforms have the correct units, please use the convenience functions provided
-in NuRadioReco detailed :ref:`here <NuRadioReco/pages/utilities:Fourier Transformation>`.

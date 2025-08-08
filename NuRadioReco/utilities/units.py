@@ -1,10 +1,13 @@
 """
-standard system of units
-===================================
+Standard system of units
+========================
 
-You should use the units defined in this file whenever you
-have a dimensional quantity in your code.  For example,
-write:
+You should use the units defined here whenever you
+have a dimensional quantity in your code.
+The usage is simple: For every input, the number
+is multiplied by its units, for every output divide by it.
+
+For example, write:
 
     ``s = 1.5 * units.km``
 
@@ -12,27 +15,30 @@ instead of:
 
     ``s = 1.5   # don't forget this is in km!``
 
-The conversion factors defined in this file
-convert your data into Auger base units, so that
+To then output data in an arbitrary unit, divide:
+
+    ``print("s = " , s / units.mm, " mm")``
+
+Internally, this ensures that
 all dimensional quantities in the code are in a
-single system of units!  You can also
-use the conversions defined here to, for example,
-display data with the unit of your choice.  For example:
+single system of units. The user does not need to worry about
+(or even know) what the internal unit system is: as long as all inputs
+and outputs are multiplied and divided by the correct units, things will stay
+consistent.
 
-    ``print "s = " , s / units.mm, " mm"``
-
-
+Base units
+----------
 The base units are:
--------------------
-   * meter                   (meter)
-   * nanosecond              (nanosecond)
-   * electron Volt           (eV)
-   * positron charge         (eplus)
-   * degree Kelvin           (kelvin)
-   * the amount of substance (mole)
-   * luminous intensity      (candela)
-   * radian                  (radian)
-   * steradian               (steradian)
+
+* meter                   (meter)
+* nanosecond              (nanosecond)
+* electron Volt           (eV)
+* positron charge         (eplus)
+* degree Kelvin           (kelvin)
+* the amount of substance (mole)
+* luminous intensity      (candela)
+* radian                  (radian)
+* steradian               (steradian)
 
 The SI numerical value of the positron charge is defined here,
 as it is needed for conversion factor : positron charge = eSI (coulomb)
@@ -189,6 +195,7 @@ TeV = teraelectronvolt
 PeV = petaelectronvolt
 EeV = exaelectronvolt
 ZeV = zettaelectronvolt
+J = joule
 
 # Mass [E][T^2][L^-2]
 kilogram = joule * second * second / (meter * meter)
@@ -257,6 +264,7 @@ henry = weber / ampere  # henry = 1.60217e-7*MeV*(ns/eplus)**2
 
 # Temperature
 kelvin = 1
+K = kelvin  # symbol
 
 # Amount of substance
 mole = 1
