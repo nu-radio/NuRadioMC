@@ -444,7 +444,7 @@ class Response:
         return "Response of " + ", ".join([f"{name} ({weight})" for name, weight in zip(self.get_names(), self.__weights)]) \
             + f": |R([0.15, 0.5] GHz)| = [{ampl[0]:.2f}, {ampl[1]:.2f}] dB (amplitude) ({np.sum(self.__time_delays):.2f} ns)"
 
-    def plot(self, ax1=None, show=False, in_dB=True, plt_kwargs={}):
+    def plot(self, ax1=None, show=False, in_dB=True, total_only=False, plt_kwargs={}):
         import matplotlib.pyplot as plt
 
         freqs = np.linspace(0, 1.4) * units.GHz
@@ -454,27 +454,34 @@ class Response:
         else:
             ax = ax1
 
-        for gain, weight, name, td in zip(self.__gains, self.__weights, self.__names, self.__time_delays):
-            _gain = gain(freqs)
+        if not total_only:
+            for gain, weight, name, td in zip(self.__gains, self.__weights, self.__names, self.__time_delays):
+                if isinstance(gain, interpolate.interp1d):
+                    _gain = gain(freqs)
+                else:
+                    _gain = gain * np.ones_like(freqs)
 
-            name = name.replace("_", " ")
-            ls = "-" if weight == 1 else "--"
+                name = name.replace("_", " ")
+                ls = "-" if weight == 1 else "--"
 
-            if name.startswith("golden"):
-                name = name.replace("golden downhole components", "ref. comp.")
+                if name.startswith("golden"):
+                    name = name.replace("golden downhole components", "ref. comp.")
 
-            if name.endswith(" "):
-                name = name[:-1]
+                if name.endswith(" "):
+                    name = name[:-1]
 
-            label = f"{name:<25} : {weight:<3} | {td:.1f}ns"
-            if in_dB:
-                mask = _gain > 0  # to avoid RunTime warning
-                ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), lw=1, ls=ls, label=label, **plt_kwargs)
-            else:
-                ax.plot(freqs / units.MHz, _gain, label=label, lw=1, ls=ls, **plt_kwargs)
+                label = f"{name:<25} : {weight:<3} | {td:.1f}ns"
+                if in_dB:
+                    mask = _gain > 0  # to avoid RunTime warning
+                    ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), lw=1, ls=ls, label=label, **plt_kwargs)
+                else:
+                    ax.plot(freqs / units.MHz, _gain, label=label, lw=1, ls=ls, **plt_kwargs)
 
         _gain = np.abs(self(freqs))
-        label = f"total: {np.sum(self.__time_delays):.1f}ns"
+        if "label" in plt_kwargs:
+            label = plt_kwargs.pop("label")
+        else:
+            label = f"total: {np.sum(self.__time_delays):.1f}ns"
         if in_dB:
             mask = _gain > 0  # to avoid RunTime warning
             ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), color="k", label=label, **plt_kwargs)
