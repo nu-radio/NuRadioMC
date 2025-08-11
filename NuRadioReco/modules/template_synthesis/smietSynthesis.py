@@ -152,7 +152,7 @@ class smietSynthesis:
             synth_geo, synth_ce = self.template_synthesis.map_template(shower)
             x, y = self.template_synthesis.antenna_information["position_showerplane"].T
             synth_shower_plane = geo_ce_to_e(
-                np.stack((synth_geo, synth_ce), axis=2), x, y
+                synth_geo, synth_ce, x, y
             )  # shape = (ANT, SAMPLES, 3)
 
             # Transform synth_shower into Event
@@ -264,6 +264,13 @@ class smietInterpolated:
             / units.cm2
         )
 
+        # Some parameters are not read out by the SMIET software, so we get them out manually
+        corsika = h5py.File(showers[0], "r")
+
+        self.origin_sim_shower = create_sim_shower_from_hdf5(corsika)
+
+        corsika.close()
+
     def synthesise_single_shower(self, synth_ind, target):
         synth_geo, synth_ce = self.synthesis[synth_ind].map_template(target)
 
@@ -276,7 +283,7 @@ class smietInterpolated:
         synth_geo[vB] = synth_geo[vvB]
         synth_ce[vB] = synth_ce[vvB]
 
-        synth_shower_plane = geo_ce_to_e(np.stack((synth_geo, synth_ce), axis=2), x, y)
+        synth_shower_plane = geo_ce_to_e(synth_geo, synth_ce, x, y)
 
         return synth_shower_plane
 
@@ -351,6 +358,6 @@ class smietInterpolated:
             evt.set_station(stn)
 
             # Add RadioShower to Event such that it works nicely with the interpolator
-            # evt.add_sim_shower(copy.deepcopy(self.origin_sim_shower))
+            evt.add_sim_shower(copy.deepcopy(self.origin_sim_shower))
 
             yield evt
