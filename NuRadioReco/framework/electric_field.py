@@ -51,7 +51,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace,
         """
         returns a unique identifier consisting of the tuple channel_ids, shower_id and ray_tracing_id
         """
-        return (self._channel_ids, self._shower_id, self._ray_tracing_id)
+        return (tuple(self._channel_ids), self._shower_id, self._ray_tracing_id)
 
     def set_channel_ids(self, channel_ids):
         self._channel_ids = channel_ids
