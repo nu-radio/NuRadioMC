@@ -462,6 +462,9 @@ class efieldInterferometricDepthReco:
                     sid) for electric_field in station.get_electric_fields()
                 ]
 
+        # Retrieve the time step from the times of first efield, assuming all have same sampling rate
+        self._tstep = positions_and_times_and_traces[0][1][1] - positions_and_times_and_traces[0][1][0]
+
         warned_early = False
         warned_late = False
         sids_rit = []
