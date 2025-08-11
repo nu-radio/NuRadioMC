@@ -122,9 +122,6 @@ class efieldInterferometricDepthReco:
             It is used as the standard deviation of a Gaussian centred on zero, holds for both east and north error.
         """
 
-        assert not (core is not None and smear_core_meter != 0)
-        assert not (axis is not None and smear_angle_radians != 0)
-
         # set mc core if no core is given
         if core is None:
             core = np.array(shower[shp.core])
@@ -679,7 +676,6 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         self._initial_grid_spacing = initial_grid_spacing / units.m
         self._cross_section_width = cross_section_width / units.m
 
-        self._axis_spread = axis_spread / units.radian
         self.set_geometry(shower, core=core, axis=axis,
                           smear_angle_radians=0, smear_core_meter=0)
         self._core0 = np.copy(self._core)
@@ -933,7 +929,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
                     new_depth, self._core, self._axis, self._cross_section_width, self._initial_grid_spacing)
 
                 self._depths = np.hstack(([new_depth], self._depths))
-                found_points = [found_point] + p
+                p = [found_point] + p
                 w = [weight] + w
                 counter += 1
 
@@ -1522,7 +1518,7 @@ def plot_lateral_cross_section(
     if title is not None:
         ax.set_title(title)  # r"slant depth = %d g / cm$^2$" % depth)
 
-    plt.tight_layout()
+    # plt.tight_layout()
     if fname is not None:
         # "rit_xy_%d_%d_%s.png" % (depth, iloop, args.label))
         plt.savefig(fname)
