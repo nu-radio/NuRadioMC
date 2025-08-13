@@ -992,7 +992,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
             if shower_id not in shower_ids_of_sub_event:
                 shower_ids_of_sub_event.append(shower_id)
             sim_station.add_channel(tmp_sim_station.get_channel(ch_uid))
-            efield_uid = ([ch_uid[0]], ch_uid[1], ch_uid[2])  # the efield unique identifier has as first parameter an array of the channels it is valid for
+            efield_uid = (tuple([ch_uid[0]]), ch_uid[1], ch_uid[2])  # the efield unique identifier has as first parameter an array of the channels it is valid for
             for efield in tmp_sim_station.get_electric_fields():
                 if efield.get_unique_identifier() == efield_uid:
                     sim_station.add_electric_field(efield)
