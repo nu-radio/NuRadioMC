@@ -848,9 +848,9 @@ class Database(object):
             return {k:measurement[k] for k in ('name', 'channel_id', 'frequencies', 'mag', 'phase') if k in measurement.keys()}
 
 
-    def get_calibration_gain_factor(self, collection, search_id, measurement_name=None, use_primary_time_with_measurement=False):
+    def get_time_dependent_factor(self, collection, search_id, measurement_name=None, use_primary_time_with_measurement=False):
         """
-        Get the calibration factor for a given station and channel id for the current detector time.
+        Get the time dependent factor for a given station and channel id for the current detector time.
 
         Parameters
         ----------
@@ -872,7 +872,7 @@ class Database(object):
         Returns
         -------
 
-        gain_factor_dict: dict
+        factor_dict: dict
         """
 
         # define the id that is used to search the collection
@@ -882,8 +882,8 @@ class Database(object):
 
         # if the collection is empty, return an empty dict
         if self.db[collection].count_documents(id_dict) == 0:
-            logger.error(f'No gain calibration found for id {search_id} at time {self.__detector_time}.')
-            raise ValueError(f'No gain calibration found for id {search_id} at time {self.__detector_time}.')
+            logger.error(f'No entry found for id {search_id} at time {self.__detector_time}.')
+            raise ValueError(f'No entry found for id {search_id} at time {self.__detector_time}.')
 
         # define the search filter
         search_filter = [{'$match': id_dict},
@@ -909,11 +909,11 @@ class Database(object):
         search_result = list(self.db[collection].aggregate(search_filter))
 
         if search_result == []:
-            logger.error(f'No gain calibration found for id {search_filter} at time {self.__detector_time}.')
-            raise ValueError(f'No gain calibration found for id {search_filter} at time {self.__detector_time}.')
+            logger.error(f'No entry found for id {search_filter} at time {self.__detector_time}.')
+            raise ValueError(f'No entry found for id {search_filter} at time {self.__detector_time}.')
         elif len(search_result) > 1:
-            logger.error(f'More than one gain calibration found for id {search_filter} at time {self.__detector_time}.')
-            raise ValueError(f'More than one gain calibration found for id {search_filter} at time {self.__detector_time}.')
+            logger.error(f'More than one entry found for id {search_filter} at time {self.__detector_time}.')
+            raise ValueError(f'More than one entry found for id {search_filter} at time {self.__detector_time}.')
 
         # The following code block is necessary if the "primary_measurement" has several entries. Right now we always do that.
         # Extract the information using the object and measurements id
@@ -1048,9 +1048,9 @@ class Database(object):
 
             # go through the component list query the corresponing measurements from the database (s parameters)
             for ice, component_entry in enumerate(channel_sig_info[chain_key]):
-                if component_entry["collection"] == "gain_calibration":
+                if component_entry["collection"] == "gain_calibration" or component_entry["collection"] == "time_delays":
                     # only load a single calibration value
-                    component_data = self.get_calibration_gain_factor(
+                    component_data = self.get_time_dependent_factor(
                         collection=component_entry["collection"], search_id=component_entry["id"])
                 else:
                     # create a search dict with addtional informations
