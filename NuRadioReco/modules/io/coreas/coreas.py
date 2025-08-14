@@ -7,6 +7,8 @@ from radiotools import helper as hp
 from radiotools import coordinatesystems
 
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.constants import c
+
 import NuRadioReco.framework.station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.event
@@ -22,10 +24,7 @@ logger = logging.getLogger('NuRadioReco.coreas')
 
 warning_printed_coreas_py = False
 
-from scipy.constants import c
-
-conversion_fieldstrength_cgs_to_SI = c*100*units.centimeter/units.second * units.micro * units.volt / units.meter #2.99792458e10 * units.micro * units.volt / units.meter
-
+conversion_fieldstrength_cgs_to_SI = c/(units.cm / units.s) * units.micro * units.volt / units.meter
 
 # DEPRECATED FUNCTIONS
 def make_sim_shower(*args, **kwargs):
