@@ -913,37 +913,45 @@ class Detector():
 
             responses = []
             for component_entry in measurement_components_list:
-
                 # Skip drab_board if its equal with iglu (see warning above)
                 if is_equal and component_entry["collection"] == "drab_board":
                     continue
-
-                if "weight" not in component_entry.keys():
-                    self.logger.warning(
-                        f"Component {component_entry['collection']} with the name {component_entry['name']} "
-                        "does not have a weight. Assume a weight of 1 ...")
-
-                weight = component_entry.get("weight", 1) # returns 1 as the default if weight is not included
-                attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
-
-                if "time_delay" in component_entry:
-                    time_delay = component_entry["time_delay"]
-                else:
-                    self.logger.warning(
-                        f"The signal chain component \"{component_entry['collection']}\" with the name \"{component_entry['name']}\" of station.channel "
-                        f"{station_id}.{channel_id} has no time delay stored... "
-                        "Set component time delay to 0")
-                    time_delay = 0
 
                 if component_entry['collection'] == "gain_calibration":
                     ydata = component_entry["gain_factor"]
                     y_units = component_entry["gain_factor_unit"]
                     frequencies = None
+                    time_delay = 0
+
+                elif component_entry['collection'] == "time_delays":
+                    ydata = 1  # Fake gain factor of 1 in magitude (does nothing)
+                    y_units = "mag"
+                    frequencies = None
+                    time_delay = component_entry["time_delay"] * getattr(units, component_entry["time_delay_unit"])
+
 
                 else:
+                    # Get the response data
                     ydata = [component_entry["mag"], component_entry["phase"]]
                     y_units = component_entry["y-axis_units"]
                     frequencies = component_entry["frequencies"]
+
+                    if "weight" not in component_entry.keys():
+                        self.logger.warning(
+                            f"Component {component_entry['collection']} with the name {component_entry['name']} "
+                            "does not have a weight. Assume a weight of 1 ...")
+
+                    weight = component_entry.get("weight", 1) # returns 1 as the default if weight is not included
+                    attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
+
+                    if "time_delay" in component_entry:
+                        time_delay = component_entry["time_delay"]
+                    else:
+                        self.logger.warning(
+                            f"The signal chain component \"{component_entry['collection']}\" with the name \"{component_entry['name']}\" of station.channel "
+                            f"{station_id}.{channel_id} has no time delay stored... "
+                            "Set component time delay to 0")
+                        time_delay = 0
 
                     # Apply the addtional attenuator (stored in dB) to the response if present in measurement
                     if attenuator:
