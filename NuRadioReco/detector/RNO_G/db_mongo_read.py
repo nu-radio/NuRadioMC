@@ -157,11 +157,11 @@ class Database(object):
         if not isinstance(time, datetime.datetime):
             logger.error("Set invalid time for database. Time has to be of type datetime.datetime")
             raise TypeError("Set invalid time for database. Time has to be of type datetime.datetime")
-        
+
         if time < datetime.datetime(2024,11,1,0,0,0):
             logger.error("Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.")
             raise ValueError("Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.")
-        
+
         self.__database_time = time
 
 
@@ -1053,7 +1053,7 @@ class Database(object):
 
             # go through the component list query the corresponing measurements from the database (s parameters)
             for ice, component_entry in enumerate(channel_sig_info[chain_key]):
-                if component_entry["collection"] == "gain_calibration" or component_entry["collection"] == "time_delays":
+                if component_entry["collection"] in ["gain_calibration", "time_delays"]:
                     # only load a single calibration value
                     component_data = self.get_time_dependent_factor(
                         collection=component_entry["collection"], search_id=component_entry["id"])

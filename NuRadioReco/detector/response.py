@@ -128,6 +128,8 @@ class Response:
                                 "Please define a new response object with a single valued gain instead.")
 
         if y_phase is not None:
+            # if a full complex response is given
+
             if y_unit[1].lower() == "deg":
                 if np.max(np.abs(y_phase)) < 2 * np.pi:
                     self.logger.warning("Is the phase really in deg? Does not look like it... "
@@ -170,9 +172,16 @@ class Response:
             self.__phases = [interpolate.interp1d(
                 self.__frequency, y_phase, kind="linear", bounds_error=False, fill_value=0)]
         else:
+            # if only a gain or time delay is given
             self.__gains = [gain]
             self.__phases = [y_phase]  # == [None]
-            time_delay = 0
+
+            # sanity check
+            if gain != 1 and time_delay != 0:
+                self.logger.error(f"Single value response {name} has a gain of {gain:.2f} and a time delay of {time_delay:.2f} ns. "
+                                    "This is not a valid response. Please check your input.")
+                raise ValueError(f"Single value response {name} has a gain of {gain:.2f} and a time delay of {time_delay:.2f} ns. "
+                                    "This is not a valid response. Please check your input.")
 
         if weight not in [-1, 1]:
             err = f"Only a response weight of [-1, 1] is allowed (value is {weight})."
