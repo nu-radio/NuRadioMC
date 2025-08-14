@@ -24,7 +24,7 @@ logger = logging.getLogger('NuRadioReco.coreas')
 
 warning_printed_coreas_py = False
 
-conversion_fieldstrength_cgs_to_SI = c/(units.cm / units.s) * units.micro * units.volt / units.meter
+conversion_fieldstrength_cgs_to_SI = c / (units.cm / units.s) * units.micro * units.volt / units.meter
 
 # DEPRECATED FUNCTIONS
 def make_sim_shower(*args, **kwargs):
