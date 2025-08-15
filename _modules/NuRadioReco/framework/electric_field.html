@@ -689,7 +689,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns a unique identifier consisting of the tuple channel_ids, shower_id and ray_tracing_id</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_ids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shower_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ray_tracing_id</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_ids</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shower_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ray_tracing_id</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ElectricField.set_channel_ids">
