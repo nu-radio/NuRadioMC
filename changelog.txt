@@ -10,6 +10,7 @@ new features:
 
 bugfixes:
 - Fixed the core parameter in Events created by the readCoREASDetector module not being 3-dimensional
+- Convert list of channel ids to tuple in efield.get_unique_identifier() to make it hashable
 
 version 3.0.3
 bugfixes:
