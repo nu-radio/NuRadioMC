@@ -116,7 +116,7 @@ def split_events(event, det, trigger_channels):
 
 
 if __name__ == "__main__":
-    # Parse eventfile as argument
+    # Parse eventfile as argument   
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('inputfilename', type=str, nargs='*',
                         help='path to NuRadioMC simulation result')
@@ -151,6 +151,8 @@ if __name__ == "__main__":
     det_rnog.update(dt.datetime(2023, 8, 1))
 
     trigger_channels = np.array([0, 1, 2, 3])
+    # trigger_channels = np.array([0])
+    
     thresholds = {
         "hilo_sigma_3": 3,
         "hilo_sigma_3.8": 3.8,
@@ -198,7 +200,7 @@ if __name__ == "__main__":
     mode = {
         'Channels': True,
         'ElectricFields': False,
-        'SimChannels': False,
+        'SimChannels': True,
         'SimElectricFields': False
     }
 
