@@ -218,11 +218,11 @@ def convert_obs_from_nuradio_efield(efield_on_sky, efield_times, zenith, azimuth
     # convert to CORSIKA axis convention and CGS units
     times_corsika = efield_times / units.second
 
-    Ey = efield_mag[1] / conversion_fieldstrength_cgs_to_SI
-    Ex = -efield_mag[0] / conversion_fieldstrength_cgs_to_SI
+    Ex = efield_mag[1] / conversion_fieldstrength_cgs_to_SI
+    Ey = -efield_mag[0] / conversion_fieldstrength_cgs_to_SI
     Ez = efield_mag[2] / conversion_fieldstrength_cgs_to_SI
 
-    return np.column_stack((times_corsika, Ey, Ex, Ez))
+    return np.column_stack((times_corsika, Ex, Ey, Ez))
 
 
 def convert_obs_positions_to_nuradio_on_ground(observer_pos, declination=0):
@@ -438,12 +438,36 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
         inputs_grp.attrs["OBSLEV"] = sim_shower.get_parameter(shp.observation_level) / units.cm
         energy_GeV = sim_shower.get_parameter(shp.energy) / units.GeV
         inputs_grp.attrs["ERANGE"] = np.array([energy_GeV, energy_GeV])
-        inputs_grp.attrs["MAGNET"] = sim_shower.get_parameter(shp.magnetic_field_vector)
 
-        zenith = sim_shower.get_parameter(shp.zenith)
-        azimuth = sim_shower.get_parameter(shp.azimuth)
+        def get_angles_corsika(zenith_NNR, azimuth_NNR, magnetic_field_vector_NNR, declination):
+            """
+            Converting angles in local coordinates to corsika coordinates.
+            """
+            zenith = np.rad2deg(zenith_NNR)
+            
+            azimuth = np.rad2deg(azimuth_NNR - 3*np.pi / 2. - declination / units.rad)
+
+            # NRR components: (Bx east, By north, Bz up)
+            Bx, By, Bz = magnetic_field_vector_NNR
+            # In CORSIKA convention:
+            #   First component = North  = By
+            #   Second component = Down  = -Bz
+            # Units must be microTesla
+            By_corsika = By / units.micro / units.tesla
+            minBz_corsika = -Bz / units.micro / units.tesla
+            magnetic_field_vector = np.array([By_corsika, minBz_corsika])
+        
+            return zenith, azimuth, magnetic_field_vector
+
+        zenith_NNR = sim_shower.get_parameter(shp.zenith)
+        azimuth_NNR = sim_shower.get_parameter(shp.azimuth)
+        B_vec_NNR = sim_shower.get_parameter(shp.magnetic_field_vector)
+        
+        zenith, azimuth, B_vec = get_angles_corsika(zenith_NNR, azimuth_NNR, B_vec_NNR, declination)
+        
         inputs_grp.attrs["PHIP"] = zenith
         inputs_grp.attrs["THETAP"] = azimuth
+        inputs_grp.attrs["MAGNET"] = B_vec
 
         if sim_shower.has_parameter(shp.atmospheric_model):
             inputs_grp.attrs["ATMOD"] = sim_shower.get_parameter(shp.atmospheric_model)
@@ -458,9 +482,6 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
         coreas_grp.attrs["DepthOfShowerMaximum"] = sim_shower.get_parameter(shp.shower_maximum) / (units.g / units.cm2)
         coreas_grp.attrs["DistanceOfShowerMaximum"] = sim_shower.get_parameter(shp.distance_shower_maximum_geometric) / units.cm
         coreas_grp.attrs["GroundLevelRefractiveIndex"] = sim_shower.get_parameter(shp.refractive_index_at_ground)
-        coreas_grp.attrs["RotationAngleForMagfieldDeclination"] = sim_shower.get_parameter(shp.magnetic_field_rotation) / units.degree
-
-        B_vec = sim_shower.get_parameter(shp.magnetic_field_vector)
         coreas_grp.attrs["MagneticFieldVector"] = B_vec
 
         observers_grp = coreas_grp.create_group("observers")
@@ -468,7 +489,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
         sim_station = station.get_sim_station()
 
         for observer in sim_station.get_electric_fields():
-           
+
             dataset_name = f"station_{observer.get_unique_identifier()[0][0]}"
 
             pos_corsika = convert_obs_positions_from_nuradio_on_ground(
@@ -486,6 +507,8 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
             
             data_set = observers_grp.create_dataset(dataset_name, data=efield_corsika)
             data_set.attrs["position"] = pos_corsika
+            data_set.attrs["name"] = dataset_name
+            
 
 def create_sim_shower_from_hdf5(corsika, declination=0):
     """
