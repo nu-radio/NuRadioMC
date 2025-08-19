@@ -212,7 +212,14 @@ class readFAERIEShower:
                                 sim_station, f_coreas["observers_geant"][observer_name], antenna_position_in_ice,
                                 zenith, azimuth, sim_shower.get_parameter(shp.magnetic_field_vector),
                                 channel_id=idx, ray_tracing_id=0, shower_id=1)
-
+                    ## add else statement if no in-ice signal
+                    else:
+                        zenith = sim_shower.get_parameter(shp.zenith)
+                        azimuth = sim_shower.get_parameter(shp.azimuth)
+                        add_efield_to_sim_station(
+                            sim_station, f_coreas["observers_geant"][observer_name], antenna_position_in_ice,
+                            zenith, azimuth, sim_shower.get_parameter(shp.magnetic_field_vector),
+                            channel_id=idx, ray_tracing_id=0, shower_id=1,scale=0)
                     if has_in_air_emission:
 
                         if antenna_position_in_ice[2] < 0 and not self._skip_raytracing:

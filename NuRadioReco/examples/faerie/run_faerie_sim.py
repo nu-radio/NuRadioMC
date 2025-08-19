@@ -32,12 +32,23 @@ def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns):
     tstarts = []
     tends = []
     for electric_field in sim_station.get_electric_fields():
+        if len(electric_field.get_times()) <= 200:
+            print(f"!!!!!!!!!!!!!! Warning: Electric field with only {len(electric_field.get_times())} samples found. Skipping padding. !!!!!!!!!!!!!!")
+            print("Event ID:", event.get_id(), "Station ID:", sim_station.get_id(),"ch",electric_field.get_channel_ids())
+            print("E-field min/max:", electric_field.get_trace().min(), electric_field.get_trace().max())
+            dtime = np.linalg.norm(electric_field.get_position())/(3e8 * units.m / units.s)  # time it takes for light to travel the distance
+            electric_field.set_trace_start_time(dtime)
+            # continue
         times = electric_field.get_times()
         tstarts.append(times[0])
         tends.append(times[-1])
-
-    tstart = np.min(tstarts) + pad_before
-    tend = np.max(tends) + pad_after
+    # print("starts,ends",tstarts, tends)
+    if len(tstarts) == 0 or len(tends) == 0:
+        tstart = 0 * units.ns
+        tend = 0 * units.ns
+    else:
+        tstart = np.min(tstarts) - pad_before
+        tend = np.max(tends) + pad_after
 
     t_readout_window = det.get_number_of_samples(sim_station.get_id(), 0) / \
         det.get_sampling_frequency(sim_station.get_id(), 0)
@@ -54,7 +65,8 @@ def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns):
         readout = BaseTrace()
         readout.set_trace(np.zeros((3, n_samples)), electric_field.get_sampling_rate(), tstart)
 
-        readout.add_to_trace(electric_field)
+        if len(electric_field.get_trace()) > 100: ## assumes short traces are not useful
+            readout.add_to_trace(electric_field)
         electric_field.set_trace(readout.get_trace(), "same", tstart)
 
 
