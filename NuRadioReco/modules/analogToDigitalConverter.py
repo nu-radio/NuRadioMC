@@ -169,6 +169,7 @@ class analogToDigitalConverter:
             'perfect_ceiling_comparator': perfect_ceiling_comparator}
 
         self._mandatory_fields = ['adc_nbits', 'adc_sampling_frequency']
+        self.__t = 0.0
 
     def _get_adc_parameters(self, det_channel, channel_id, vrms=None, trigger_adc=False):
         """ Get the ADC parameters for a channel from the detector description """
@@ -209,10 +210,10 @@ class analogToDigitalConverter:
                     f"The fields \"{field_prefix}adc_min_voltage\" and \"{field_prefix}adc_max_voltage\" "
                     f"are not present in channel {channel_id}. Please specify them in your detector file.")
 
-                adc_voltage_range = (
-                    det_channel[field_prefix + "adc_min_voltage"] * units.V,
-                    det_channel[field_prefix + "adc_max_voltage"] * units.V
-                )
+            adc_voltage_range = (
+                det_channel[field_prefix + "adc_min_voltage"] * units.V,
+                det_channel[field_prefix + "adc_max_voltage"] * units.V
+            )
         else:
             if field_prefix + "adc_noise_nbits" in det_channel:
                 error_msg = (
