@@ -389,8 +389,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
 
     return evt
 
-<<<<<<< Updated upstream
-=======
+
 def write_CORSIKA7(evt, output_file, declination=None, site=None):
     """
     Writes a NuRadioReco Event object to an HDF5 file in CORSIKA/CoREAS format,
@@ -519,8 +518,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
             data_set = observers_grp.create_dataset(dataset_name, data=efield_corsika)
             data_set.attrs["position"] = pos_corsika
             data_set.attrs["name"] = dataset_name
-            
->>>>>>> Stashed changes
+
 
 def write_CORSIKA7(evt, output_file, detector=None):
     """
