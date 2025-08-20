@@ -387,6 +387,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
 
     return evt
 
+
 def write_CORSIKA7(evt, output_file, declination=None, site=None):
     """
     Writes a NuRadioReco Event object to an HDF5 file in CORSIKA/CoREAS format,
@@ -443,18 +444,25 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
             """
             Converting angles in local coordinates to corsika coordinates.
             """
-            zenith = np.rad2deg(zenith_NNR)
-            
-            azimuth = np.rad2deg(azimuth_NNR - 3*np.pi / 2. - declination / units.rad)
+            zenith = zenith_NNR / units.deg            
+            azimuth = (azimuth_NNR - 3*np.pi / 2. - declination / units.rad) / units.deg
 
-            # NRR components: (Bx east, By north, Bz up)
-            Bx, By, Bz = magnetic_field_vector_NNR
-            # In CORSIKA convention:
-            #   First component = North  = By
-            #   Second component = Down  = -Bz
-            # Units must be microTesla
-            By_corsika = By / units.micro / units.tesla
-            minBz_corsika = -Bz / units.micro / units.tesla
+            # Unit vectors in geographic CS:
+            # magnetic north unit vector in geographic coordinates (rotated from geographic north by declination)
+            y_mag = np.array([np.sin(declination), np.cos(declination), 0.0])  # azimuth = 90° - declination
+            z_hat = np.array([0.0, 0.0, 1.0])
+            By_corsika    = np.dot(magnetic_field_vector_NNR, y_mag) / (units.micro * units.tesla) # along magnetic north
+            minBz_corsika = -np.dot(magnetic_field_vector_NNR, z_hat) / (units.micro * units.tesla) # down component
+            
+            # MAGNET drops the east-of-magnetic component.
+            # If your B_vec has a noticeable component along x_mag, warn about the loss.
+            x_mag = np.array([np.cos(declination), -np.sin(declination), 0.0])  # unit vector 90° left of y_mag in XY plane
+            Bx_corsika = np.dot(magnetic_field_vector_NNR, x_mag) / (units.micro * units.tesla)
+            if abs(Bx_corsika) > 1:
+                logger.warning(
+                    f"Non-zero east-of-magnetic component (Bx_mag ~ {Bx_corsika:.3g} μT). "
+                    "CORSIKA MAGNET stores only (By, -Bz); this component is implicitly assumed zero.")
+
             magnetic_field_vector = np.array([By_corsika, minBz_corsika])
         
             return zenith, azimuth, magnetic_field_vector
