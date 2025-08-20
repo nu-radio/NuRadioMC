@@ -200,9 +200,12 @@ class Detector:
         assert self._antenna_positions is not None, "No antennas added yet. Cannot get station IDs."
         return np.array(list(self._antenna_positions.keys()), dtype=int)
 
+    def get_channel(self, station_id, channel_id):
+        ref_channel_id = self._get_reference_channel_id(station_id, channel_id)
+        return self.channel_data[ref_channel_id]
+
     def get_cable_delay(self, station_id=None, channel_id=None):
-        channel_id = self._get_reference_channel_id(station_id, channel_id)
-        return self.channel_data[channel_id]["cab_time_delay"]
+        return self.get_channel(station_id, channel_id)["cab_time_delay"]
 
     def get_site(self, station_id=None):
         return "ska"

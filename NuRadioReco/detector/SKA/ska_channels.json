@@ -8,6 +8,11 @@
             "ant_rotation_phi": 90,
             "ant_rotation_theta": 90,
             "cab_time_delay": 0,
+            "adc_nbits": 8,
+            "adc_min_voltage": -1,
+            "adc_max_voltage": 1,
+            "adc_noise_count": 25,
+            "adc_sampling_frequency": 0.8,
             "channel_id": 0
         },
         "1": {
@@ -18,6 +23,11 @@
             "ant_rotation_phi": 180,
             "ant_rotation_theta": 90,
             "cab_time_delay": 0,
+            "adc_nbits": 8,
+            "adc_min_voltage": -1,
+            "adc_max_voltage": 1,
+            "adc_noise_count": 25,
+            "adc_sampling_frequency": 0.8,
             "channel_id": 1
         }
     },
