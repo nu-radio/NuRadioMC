@@ -301,6 +301,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length * (radiopropa.meter/units.meter)))
 
             ## define observer for detection (channel)
+            # import the discounity between air-ice and boundary above and below surface exist at medium_base.py -> class RadioPropaIceWrapper ->__init__
             obs = radiopropa.Observer()
             obs.setDeactivateOnDetection(True)
             channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(*X2), sphere_size)) ## when making the radius larger than 2 meters, somethimes three solution times are found
@@ -313,8 +314,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
             w = (u / np.linalg.norm(u)) * 2*sphere_size
             boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(X2 + w)), radiopropa.Vector3d(*w)))
             obs2.add(boundary_behind_channel)
-            boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0, 0, 1*radiopropa.meter), radiopropa.Vector3d(0, 0, 1)))
-            obs2.add(boundary_above_surface)
             sim.add(obs2)
 
             #create total scanning range from the upper and lower thetas of the bundles
