@@ -43,7 +43,7 @@ class channelReadoutWindowCutter:
         detector: `NuRadioReco.detector.detector.Detector`
         """
         counter = 0
-        for i, (name, instance, kwargs) in enumerate(event.iter_modules(station.get_id())):
+        for i, (name, instance, kwargs) in enumerate(event._iter_modules(station.get_id())):
             if name == 'channelReadoutWindowCutter':
                 counter += 1
         if counter > 1:
