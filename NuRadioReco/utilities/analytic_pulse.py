@@ -28,7 +28,7 @@ def amp_from_energy(energy):
 
 
 def get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_rate,
-                            phase_p1=0, bandpass=None, quadratic_term=0, quadratic_term_offset=0):
+                            phase_p1=0, bandpass=None, order=10, quadratic_term=0, quadratic_term_offset=0):
     """
     Analytic pulse as described in PhD thesis Glaser and NuRadioReco paper in the frequency domain
 
@@ -49,6 +49,10 @@ def get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_r
 
     bandpass:
         default None
+
+    order:
+        default 10
+        The order of the butterworth filter. If a list of two numbers is given, the first number is the order of the highpass filter and the second number is the order of the lowpass filter.
 
     quadratic_term:
         default 0
@@ -75,15 +79,26 @@ def get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_r
     xx = amps * np.exp(phases * 1j) / norm ** 0.5 / dt ** 0.5 * df ** 0.5
 
     if(bandpass is not None):
-        b, a = scipy.signal.butter(10, bandpass, 'bandpass', analog=True)
-        w, h = scipy.signal.freqs(b, a, frequencies)
-        xx *= h
+        if isinstance(order, (int, float)):
+            b, a = scipy.signal.butter(order, bandpass, 'bandpass', analog=True)
+            w, h = scipy.signal.freqs(b, a, frequencies)
+            xx *= h
+        elif isinstance(order, list) and len(order) == 2:
+            b, a = scipy.signal.butter(order[0], bandpass[0], 'highpass', analog=True)
+            w, h = scipy.signal.freqs(b, a, frequencies)
+            xx *= h
+            b, a = scipy.signal.butter(order[1], bandpass[1], 'lowpass', analog=True)
+            w, h = scipy.signal.freqs(b, a, frequencies)
+            xx *= h
+        else:
+            raise ValueError("order must be either a number or a list of two numbers")
+        
     return xx
 
 
 def get_analytic_pulse(amp_p0, amp_p1, phase_p0, n_samples_time,
                        sampling_rate,
-                       phase_p1=0, bandpass=None,
+                       phase_p1=0, bandpass=None, order=10,
                        quadratic_term=0, quadratic_term_offset=0):
     """
     Analytic pulse as described in PhD thesis Glaser and NuRadioReco paper in the time domain
@@ -105,6 +120,9 @@ def get_analytic_pulse(amp_p0, amp_p1, phase_p0, n_samples_time,
 
     bandpass:
         default None
+    order:
+        default 10
+        The order of the butterworth filter. If a list of two numbers is given, the first number is the order of the highpass filter and the second number is the order of the lowpass filter.
 
     quadratic_term:
         default 0
@@ -116,6 +134,7 @@ def get_analytic_pulse(amp_p0, amp_p1, phase_p0, n_samples_time,
     xx = get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time,
                                  sampling_rate, phase_p1=phase_p1,
                                  bandpass=bandpass,
+                                 order=order,
                                  quadratic_term=quadratic_term,
                                  quadratic_term_offset=quadratic_term_offset)
     return fft.freq2time(xx, sampling_rate)
