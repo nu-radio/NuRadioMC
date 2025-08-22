@@ -88,15 +88,20 @@ def _all_files_in_directory(mattak_dir):
         True, if all "req_files" are there and waveforms.root or combined.root. Otherwise returns False.
     """
     # one or the other has to be present
-    if not os.path.exists(os.path.join(mattak_dir, "waveforms.root")) and \
-            not os.path.exists(os.path.join(mattak_dir, "combined.root")):
+    full_run = None
+    if os.path.exists(os.path.join(mattak_dir, "waveforms.root")):
+        full_run = True
+    elif os.path.exists(os.path.join(mattak_dir, "combined.root")):
+        full_run = False
+    else:
         return False
 
-    req_files = ["daqstatus.root", "headers.root", "pedestal.root"]
-    for file in req_files:
-        if not os.path.exists(os.path.join(mattak_dir, file)):
-            logging.error(f"File {file} could not be found in {mattak_dir}")
-            return False
+    if full_run:
+        req_files = ["daqstatus.root", "headers.root", "pedestal.root"]
+        for file in req_files:
+            if not os.path.exists(os.path.join(mattak_dir, file)):
+                logging.error(f"File {file} could not be found in {mattak_dir}")
+                return False
 
     return True
 
