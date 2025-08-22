@@ -571,7 +571,18 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         name: module name
             the name of the module
         kwargs:
-            the key word arguments of the run method
+        Registers modules applied to a specific station within this event.
+
+        Parameters
+        ----------
+        station_id: int
+            The station id to which the module is applied.
+        instance: module instance
+            The instance of the module that should be registered.
+        name: module name
+            The name of the module.
+        kwargs:
+            The key word arguments of the run method.
         """
         iE = len(self.__modules_event)
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
