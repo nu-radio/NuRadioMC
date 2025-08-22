@@ -417,8 +417,12 @@ class ray_tracing_2D(ray_tracing_base):
             else:
                 self.__logger.info('Using C++ raytracer')
         else:
-            self.__logger.warning('C++ raytracer is not available. Using Python raytracer.')
-            self.__logger.warning("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
+            if use_cpp:
+                self.__logger.error('C++ raytracer was explicitly requested, but is not available. Abort.... Either fix the compilation or set use_cpp to False')
+                raise RuntimeError('C++ raytracer was explicitly requested, but is not available. Abort.... Either fix the compilation or set use_cpp to False')
+            else:
+                self.__logger.warning('C++ raytracer is not available. Using Python raytracer.')
+                self.__logger.warning("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
 
         self.medium = medium
         if not hasattr(self.medium, "reflection"):
