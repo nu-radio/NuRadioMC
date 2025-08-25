@@ -24,7 +24,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize
-import scipy.constants
 import scipy.signal
 
 import radiotools.helper as hp
@@ -38,12 +37,34 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.impulsiveSignalReconstructor import get_dt_correlation
 
 logger = logging.getLogger('NuRadioReco.CREfieldReconstructor')
-SPEED_OF_LIGHT = scipy.constants.c * units.m / units.s
-
 
 class CREfieldReconstructor:
     """"
     Reconstruction class for cosmic-rays using shallow in-ice antennas
+
+    Uses a forward-folding algorithm to fit the electric field
+    (and therefore direction & polarization) of a cosmic-ray air-shower induced
+    signal in shallow in-ice antennas.
+
+    Notes
+    -----
+    This algorithm is very similar to the one originally described in [1]_,
+    but additionally fits the cosmic-ray direction inside the forward-folding
+    algorithm. For more details, see [2]_ .
+
+    See Also
+    --------
+    NuRadioReco.modules.voltageToAnalyticEfieldConverter :
+        older version of the cosmic-ray reconstruction code.
+
+    References
+    ----------
+    .. [1] C. Glaser et al., NuRadioReco: A reconstruction framework for
+       radio neutrino detectors, Eur. Phys. J. C 79 (2019) 464,
+       http://dx.doi.org/10.1140/epjc/s10052-019-6971-5
+    .. [2] S. Bouma, Direction Reconstruction of Radio Signals
+       in Neutrino Detectors in Ice,
+       https://ecap.nat.fau.de/wp-content/uploads/2025/05/Final_Thesis_Bouma.pdf
 
     """
 
@@ -51,47 +72,26 @@ class CREfieldReconstructor:
         self.__antenna_provider = antennapattern.AntennaPatternProvider()
         self.__amp_response = {}
         self.fixed_parameters = {param:False for param in signature(self.get_cosmic_ray_traces).parameters}
+        self._station = None
+        self._det = None
+        self._channels_sorted = None
+        self._debug = False
+        self._debug_folder = '.'
 
-    def begin(self, evt, station, det, channels, extra_channels=[], bandpass=None, vrms=10*units.mV, debug=False, debug_folder='.'):
+    def begin(self, debug=False, debug_folder='.'):
+        """
+        Set debug parameters
+
+        Parameters
+        ----------
+        debug : bool, default: ``False``
+            If True, produce debug plots
+        debug_folder : str, default '.'
+            Path to save debug plots to. By default, saves plots to current directory.
+        """
         self._debug = debug
         self._debug_folder = debug_folder
-        self._station = station
-        self._det = det
-        self._vrms = vrms
-        channel0 = station.get_channel(channels[0])
-        self._freqs = channel0.get_frequencies()
-        self._n_samples_time = channel0.get_number_of_samples()
-        self._sampling_rate = channel0.get_sampling_rate()
-        if bandpass is not None:
-            if not isinstance(bandpass, dict):
-                bandpass = dict(passband=bandpass)
-            if 'filter_type' not in bandpass.keys():
-                bandpass['filter_type'] = 'butterabs'
-            if 'order' not in bandpass.keys():
-                bandpass['order'] = 10
 
-            self._filt = signal_processing.get_filter_response(self._freqs, **bandpass)
-        else:
-            self._filt = np.ones_like(self._freqs)
-
-        self._filt[self._freqs > 1 * units.GHz] = 0 # the analytic parameterization is not valid for high frequencies, and the quadratic term may blow up
-
-        # we fix the travel time delay at the channel with the largest amplitude to 0
-        channels_sorted = np.array(channels)[np.argsort([np.max(np.abs(station.get_channel(channel).get_trace())) for channel in channels])[::-1]]
-        # max_amp_channel = channels[np.argmax([np.max(np.abs(station.get_channel(channel).get_trace())) for channel in channels])]
-        channels_sorted = np.concatenate([channels_sorted, extra_channels])
-        self._channels_sorted = channels_sorted
-        # store difference in trace start times
-        trace_start_times = np.array([station.get_channel(channel).get_trace_start_time() for channel in channels_sorted])
-        self._trace_start_times = trace_start_times - np.min(trace_start_times)
-
-        self._channel_positions = np.array([det.get_relative_position(station.get_id(), channel) for channel in channels_sorted])
-        self._channel_positions -= det.get_relative_position(station.get_id(), channels_sorted[0]).reshape((1,-1))
-
-        # initialize antennas (initial load into memory takes long)
-        for channel in channels_sorted:
-            self.__amp_response[channel] = det.get_amplifier_response(self._station.get_id(), channel, self._freqs)
-            self.__antenna_provider.load_antenna_pattern(det.get_antenna_model(station.get_id(), channel))
 
     def get_cosmic_ray_spectra(
             self, zenith, azimuth, amplitude, pol_angle, slope,
@@ -147,8 +147,8 @@ class CREfieldReconstructor:
 
         References
         ----------
-        .. [1]
-
+        .. [1] C. Welling et al., Reconstructing the cosmic-ray energy from the radio
+           signal measured in one single station, http://dx.doi.org/10.1088/1475-7516/2019/10/075
 
         """
 
@@ -178,6 +178,62 @@ class CREfieldReconstructor:
     def get_cosmic_ray_traces(
             self, zenith, azimuth, amplitude, pol_angle, slope,
             phase_p0, phase_p1=0, quadratic_term=0, quadratic_term_offset=0.08):
+        """
+        Return the voltage traces
+
+        Convenience function that returns the analytically-parameterized cosmic ray spectra
+        for all channels as an array. For details of the parameterization, see [1]_.
+
+        By default, this function returns the voltage spectra (including antenna and signal chain responses);
+        to return the electric field spectra, set ``return_efield=True``.
+
+        Parameters
+        ----------
+        zenith : float
+            Zenith of the incoming cosmic ray
+        azimuth : float
+            Azimuth of the incoming cosmic ray
+        amplitude : float
+            Amplitude of the radio emission
+        pol_angle : float
+            Polarization angle, defined as arctan(E_phi / E_theta)
+        slope : float
+            Linear slope of the frequency spectrum
+        phase_p0 : float
+            Global phase of the spectra
+        phase_p1 : float, default: 0
+            Linear phase of the spectra (corresponds to an overall time shift of the pulse)
+        quadratic_term : float, default: 0
+            Quadratic term in the slope of the frequency spectra
+        quadratic_term_offset : float, default: 80 * units.MHz
+            Offset of the quadratic term (by default, 80 MHz)
+        return_efield : bool, default: False
+            If False (default), returns the voltage spectra, i.e.
+            the electric field signals convolved with the antenna and detector signal chain
+            responses.
+
+            If True, returns the electric field spectra directly.
+
+        Returns
+        -------
+        spectra : complex np.ndarray
+            If ``return_efield==False``, an array of shape ``(n_channels, n_fft_samples)``
+            containing the voltage spectra of each antenna, in descending order of SNR.
+
+            If ``return_efield==True``, an array of shape ``(3, n_fft_samples)`` with the
+            three polarization components ``(eR, eTheta, ePhi)`` of the electric field
+
+        See Also
+        --------
+        get_cosmic_ray_spectra : returns the cosmic ray signal in the frequency domain
+
+        References
+        ----------
+        .. [1] C. Welling et al., Reconstructing the cosmic-ray energy from the radio
+           signal measured in one single station, http://dx.doi.org/10.1088/1475-7516/2019/10/075
+
+        """
+
         spectra = self.get_cosmic_ray_spectra(
             zenith, azimuth, amplitude, pol_angle, slope,
             phase_p0, phase_p1, quadratic_term, quadratic_term_offset)
@@ -210,7 +266,7 @@ class CREfieldReconstructor:
         Scipy minimizers do not offer an interface to naturally 'fix'
         and 'release' parameters (e.g. to enable a step-wise) fit;
         this interface is inspired by the interface in iminuit,
-        see https://scikit-hep.org/iminuit/notebooks/basic.html#Fixing-and-releasing-parameters
+        see https://scikit-hep.org/iminuit/notebooks/basic.html#Fixing-and-releasing-parameters .
 
         """
         if fix_all is not None:
@@ -224,7 +280,28 @@ class CREfieldReconstructor:
                 self.fixed_parameters[param] = parameters[param]
 
     def _minimize(self, x0, bounds=None, basinhopping=False, **scipy_kwargs):
+        """
+        Run the minimizer to fit the analytic cosmic-ray spectrum
 
+        Parameters
+        ----------
+        x0 : np.ndarray
+            Initial guess
+        bounds : tuple of shape (2, N), optional
+            If provided: lower and upper bounds of the N
+            fit parameters. For unbound parameters, ``-np.inf``
+            and ``+np.inf`` can be used
+        basinhopping : bool, default: False
+            If True, use `scipy.optimize.basinhopping` to try
+            to find a global minimum. Otherwise, uses `scipy.optimize.minimize`
+        **scipy_kwargs
+            Optional additional keyword arguments, passed to the scipy minimizer
+
+        Returns
+        -------
+        res : scipy.optimize.OptimizeResult
+            The result of the optimization
+        """
         fit_param = np.array([not self.fixed_parameters[p] for p in signature(self.get_cosmic_ray_traces).parameters])
         fit_param = fit_param[:len(x0)]
         logger.debug('Starting fit with fixed parameters: {}'.format(self.fixed_parameters))
@@ -273,15 +350,105 @@ class CREfieldReconstructor:
     @register_run()
     def run(
             self, event, station, detector,
+            channel_ids, vrms=10*units.mV, bandpass=None,
             use_MC_direction=False, include_quadratic_term=True,
             quadratic_term_offset = 80*units.MHz, basinhopping=False
         ):
+        """
+        Reconstruct the electric field from the in-air cosmic-ray shower.
 
-        station = self._station
-        channels = self._channels_sorted
+        Parameters
+        ----------
+        event : Event
+            Event to reconstruct (used only to tag the debug plots with event id)
+        station : Station
+            Station that contains the channels to use in the reconstruction
+        detector : Detector
+            Detector description
+        channel_ids : list
+            List of channel ids to use in the reconstruction
+        vrms : float, default: 10*units.mV
+            Vrms to use in the reconstruction (only affects
+            the scale of the chi-squared value)
+        bandpass : list | dict, optional
+            If provided, apply a bandpass filter to the data
+            before fitting. Can either be given as a tuple [highpass, lowpass],
+            or as a dictionary with option accepted by
+            `NuRadioReco.utilities.signal_processing.get_filter_response`.
+
+            .. Note::
+               Specifying the bandpass filter this way ensures that both data
+               and the fitted model are treated consistently. In particular,
+               one should **not** manually bandpass the ``event`` before passing it
+               to this class, as this will not be accounted for in the reconstruction.
+
+        
+        Other Parameters
+        ----------------
+        use_MC_direction : bool, default: False
+            If ``True``, use the simulated (Monte-Carlo) direction of the
+            cosmic-ray signal instead of the reconstructed one. Can be
+            useful for debugging.
+        include_quadratic_term : bool, default: True
+            If True, include a quadratic term in the analytic
+            cosmic-ray electric-field spectrum (see `get_cosmic_ray_spectra`
+            for more details of the parameterization used). Otherwise,
+            only use a linear term. Default: ``True``
+        quadratic_term_offset : float, default: 80*units.MHz
+            The frequency offset to use in the quadratic term
+            (in principle arbitrary - changing this only shifts
+            things between the linear and quadratic parameters)
+        basinhopping : bool, default: False
+            If True, run one final minimization iteration using
+            `scipy.optimize.basinhopping`, which essentially performs
+            several additional minimizations from different initial guess points.
+            This may help to avoid getting stuck in a local minimum, at the cost
+            of significantly increasing the run time. It also may not help at all.
+            Default: False
+
+        """
+        # First, we prepare by obtaining the bandpass filter and signal chain responses
+        # (this avoids having to compute them at every minimization step)
+        self._station = station
+        self._det = detector
+        self._vrms = vrms
+        channel0 = station.get_channel(channel_ids[0])
+        self._freqs = channel0.get_frequencies()
+        self._n_samples_time = channel0.get_number_of_samples()
+        self._sampling_rate = channel0.get_sampling_rate()
+        if bandpass is not None:
+            if not isinstance(bandpass, dict):
+                bandpass = dict(passband=bandpass)
+            if 'filter_type' not in bandpass.keys():
+                bandpass['filter_type'] = 'butterabs'
+            if 'order' not in bandpass.keys():
+                bandpass['order'] = 10
+
+            self._filt = signal_processing.get_filter_response(self._freqs, **bandpass)
+        else:
+            self._filt = np.ones_like(self._freqs)
+
+        self._filt[self._freqs > 1 * units.GHz] = 0 # the analytic parameterization is not valid for high frequencies, and the quadratic term may blow up
+
+        # we fix the travel time delay at the channel with the largest amplitude to 0
+        channels_sorted = np.array(channel_ids)[
+            np.argsort([np.max(np.abs(station.get_channel(channel).get_trace()))
+                 for channel in channel_ids])[::-1]]
+        self._channels_sorted = channels_sorted
+        # store difference in trace start times
+        trace_start_times = np.array([station.get_channel(channel).get_trace_start_time() for channel in channels_sorted])
+        self._trace_start_times = trace_start_times - np.min(trace_start_times)
+
+        self._channel_positions = np.array([detector.get_relative_position(station.get_id(), channel) for channel in channels_sorted])
+        self._channel_positions -= detector.get_relative_position(station.get_id(), channels_sorted[0]).reshape((1,-1))
+
+        # load amplifier response
+        for channel in channels_sorted:
+            self.__amp_response[channel] = detector.get_amplifier_response(self._station.get_id(), channel, self._freqs)
+
         self._traces_data = np.array([
             fft.freq2time(station.get_channel(channel).get_frequency_spectrum() * self._filt, self._sampling_rate)
-            for channel in channels])
+            for channel in channels_sorted])
         self._quadratic_term_offset = quadratic_term_offset
         minimizer_options = {} #dict(options=dict(maxiter=5000))#dict(method = 'Nelder-Mead')
 
@@ -308,17 +475,22 @@ class CREfieldReconstructor:
         logger.debug(f"initial guess: {zenith/units.deg:.0f}, {azimuth/units.deg:.0f} (simulated: {zenith_sim/units.deg:.0f}, {azimuth_sim/units.deg:.0f})")
         traces_guess = self.get_cosmic_ray_traces(zenith, azimuth, 1, np.pi/2, -2, 0, phase_p1=p1_guess)
 
-        iCh = 0 #channels.index(self._channels_sorted[0])
-        amplitude_guess = np.max(self._traces_data[iCh]) / np.max(traces_guess[iCh])
+        iCh = 0 # we use the channel with the largest signal to obtain our first guess
         p1_guess += lags[np.argmax(hp.get_normalized_xcorr(traces_guess[iCh], self._traces_data[iCh]))] * 2*np.pi
-        logger.debug(f"amplitude: {amplitude_guess:.3g}, p1_shift: {p1_guess:.1f}")
-        logger.debug(f"{np.max(traces_guess[iCh]) , np.max(self._traces_data[iCh])}")
-        traces_guess = self.get_cosmic_ray_traces(zenith, azimuth, amplitude_guess, np.pi/2, -2, 0, phase_p1=p1_guess)
+        logger.debug(f"p1_shift: {p1_guess:.1f}")
+        traces_guess = self.get_cosmic_ray_traces(zenith, azimuth, 1, np.pi/2, -2, 0, phase_p1=p1_guess)
+
+        # We fit the electric field in staged - we start by fitting the most
+        # 'significant' parameters, while keeping the rest fixed,
+        # and then releasing more parameters in subsequent fit iterations.
+        # Note that the amplitude is always treated as a fixed parameter,
+        # because it can be optimized analytically, as long as the denominator
+        # in the chi-squared difference (= the Vrms) is a scalar.
 
         ## Iteration 1: fit slope and overall phase
         self.fix_parameters(zenith=True, azimuth=True, quadratic_term=True, amplitude=True, pol_angle=True)
 
-        x0 = [zenith, azimuth, amplitude_guess, np.pi/2, -2, 0, p1_guess, 0]
+        x0 = [zenith, azimuth, 1, np.pi/2, -2, 0, p1_guess, 0]
         bounds = -np.inf*np.ones_like(x0), np.inf*np.ones_like(x0)
         bounds[1][4] = -1e-4
         res = self._minimize(x0=x0, **minimizer_options, bounds=bounds)
@@ -337,7 +509,7 @@ class CREfieldReconstructor:
         res = self._minimize(x0=res.x, **minimizer_options, bounds=bounds)
         logger.debug(f"Third iteration: {res.fun:.3g}, {res.x}")
 
-        ## We may get stuck close to the initial value of A_theta=0
+        ## In some cases, we may get stuck close to the initial value of A_theta=0
         ## If this is the case, we manually explore larger values of A_theta
         if np.abs(res.x[3] - np.pi/2) < 1e-2: # we may not have explored the polarization space properly:
             logger.debug('Additional iterations to explore polarization space more...')
@@ -404,22 +576,18 @@ class CREfieldReconstructor:
 
         station_trace = self.get_cosmic_ray_spectra(*res.x, return_efield=True)
 
-        electric_field = NuRadioReco.framework.electric_field.ElectricField(channels)
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(channels_sorted)
         electric_field.set_frequency_spectrum(station_trace, self._sampling_rate)
         energy_fluence = trace_utilities.get_electric_field_energy_fluence(electric_field.get_trace(), electric_field.get_times())
         electric_field.set_parameter(efp.signal_energy_fluence, energy_fluence)
-        # electric_field.set_parameter_error(efp.signal_energy_fluence, np.array([0, Atheta_error, Aphi_error]))
         electric_field.set_parameter(efp.cr_spectrum_slope, -np.abs(slope))
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)
         station.set_parameter(stnp.zenith, zenith)
         station.set_parameter(stnp.azimuth, azimuth)
 
-        # pol_angle = np.arctan2(A_phi, A_theta)
-        # pol_angle_error = 1. / (x ** 2 + y ** 2) * (y ** 2 * sx ** 2 + x ** 2 + sy ** 2) ** 0.5  # gaussian error propagation
         logger.info("polarization angle = {:.1f}".format(pol_angle / units.deg))
         electric_field.set_parameter(efp.polarization_angle, pol_angle)
-        # electric_field.set_parameter_error(efp.polarization_angle, pol_angle_error)
 
         site = self._det.get_site(station.get_id())
         exp_efield = hp.get_lorentzforce_vector(zenith, azimuth, hp.get_magnetic_field_vector(site))
