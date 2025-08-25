@@ -1013,7 +1013,7 @@ def get_E2_limit_figure(diffuse=True,
                              linestyle="-.", color='#F97807', label='BEACON 1k',
                              lw=2)
         ax.annotate('BEACON-1k',
-                    xy=(7e18 * units.eV / plotUnitsEnergy, 9e-10), xycoords='data', 
+                    xy=(7e18 * units.eV / plotUnitsEnergy, 9e-10), xycoords='data',
                     horizontalalignment='left', verticalalignment="bottom", color='#F97807', rotation=35, fontsize=legendfontsize)
         # second_legend.append(beaconleg)
 
@@ -1049,14 +1049,14 @@ def add_limit(ax, limit_labels, E, Veffsr, n_stations, label, livetime=3 * units
                                          signalEff=n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
+                                         nuCrsScn='hedis_bgr18')
         limit_upper = fluxes.get_limit_e2_flux(energy=E,
                                          veff_sr=Veffsr[1],
                                          livetime=livetime,
                                          signalEff=n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
+                                         nuCrsScn='hedis_bgr18')
 
         plt1 = ax.fill_between(E / plotUnitsEnergy, limit_upper / plotUnitsFlux,
         limit_lower / plotUnitsFlux, color=color, alpha=0.2)
@@ -1069,7 +1069,7 @@ def add_limit(ax, limit_labels, E, Veffsr, n_stations, label, livetime=3 * units
                                          signalEff=n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
+                                         nuCrsScn='hedis_bgr18')
 
     #         _plt, = ax.plot(E/plotUnitsEnergy,limit/ plotUnitsFlux, linestyle=linestyle, color=color,
     #                         label="{2}: {0} stations, {1} years".format(n_stations,int(livetime/units.year),label),

@@ -15,7 +15,7 @@ See Also
     Module for functions that modify traces, e.g., by filtering, delaying, etc.
 """
 
-from NuRadioReco.utilities import units, signal_processing
+from NuRadioReco.utilities import units, signal_processing, fft
 
 import numpy as np
 import scipy.stats
@@ -31,6 +31,7 @@ conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilo
 
 # see Phys. Rev. D DOI: 10.1103/PhysRevD.93.122005
 # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
+
 
 def get_efield_antenna_factor(*args, **kwargs):
     warnings.warn("get_efield_antenna_factor is moved to NuRadioReco.utilities.signal_processing.get_efield_antenna_factor", DeprecationWarning)
@@ -61,38 +62,255 @@ def delay_trace(*args, **kwargs):
     return signal_processing.delay_trace(*args, **kwargs)
 
 
-
-def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask=None, noise_window_mask=None):
-    """ Compute the energy fluence of an electric field trace.
+def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask=None, noise_window_mask=None, return_uncertainty=False, method="noise_subtraction", estimator_kwargs={}):
+    """
+    Returns the energy fluence of each component of a 3-dimensional electric field trace.
 
     Parameters
     ----------
-    electric_field_trace : 2d array
-        The electric field trace. The first dimension corresponds to the number of traces/polarizations,
-        the second dimension to the number of samples.
-    times : 1d array
-        The times corresponding to the electric field trace.
-    signal_window_mask : 1d array, default=None
-        A boolean mask to select the signal window.
-    noise_window_mask : 1d array, default=None
-        A boolean mask to select the noise window.
+    electric_field_trace : numpy.ndarray
+        The electric field trace to calculate the energy fluence for
+    times : numpy.ndarray
+        The time grid for the electric field trace
+    signal_window_mask : numpy.ndarray (optional)
+        A boolean mask that selects the signal window in which the energy fluence is calculated
+    noise_window_mask : numpy.ndarray (optional)
+        A boolean mask that selects the noise window. Only used if method is "noise_subtraction"
+    return_uncertainty : bool (optional)
+        If True, the uncertainty of the energy fluence is returned
+    method : str (optional)
+        The method to use for the energy fluence calculation. Can be either "noise_subtraction" or "rice_distribution".
+        The Rice distribution method implementation is based on the code published alongside S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
+    estimator_kwargs : dict (optional)
+        Additional keyword arguments for the _get_noise_fluence_estimators and _get_signal_fluence_estimators functions.
+        Only used if method is "rice_distribution".
 
     Returns
     -------
-    energy_fluence : 1d array
-        The energy fluence of the electric field per polarization.
+    signal_energy_fluence : numpy.ndarray
+        The energy fluence of each component of the electric field trace
+    signal_energy_fluence_error : numpy.ndarray
+        The uncertainty of the energy fluences. Only returned if return_uncertainty is True
     """
-    if signal_window_mask is None:
-        f_signal = np.sum(electric_field_trace ** 2, axis=1)
-    else:
-        f_signal = np.sum(electric_field_trace[:, signal_window_mask] ** 2, axis=1)
-
-    if noise_window_mask is not None and np.sum(noise_window_mask) > 0:
-        f_noise = np.sum(electric_field_trace[:, noise_window_mask] ** 2, axis=1)
-        f_signal -= f_noise * np.sum(signal_window_mask) / np.sum(noise_window_mask)
 
     dt = times[1] - times[0]
-    return f_signal * dt * conversion_factor_integrated_signal
+
+    if method == "noise_subtraction":
+        if signal_window_mask is None:
+            f_signal = np.sum(electric_field_trace ** 2, axis=1)
+        else:
+            f_signal = np.sum(electric_field_trace[:, signal_window_mask] ** 2, axis=1)
+
+        if noise_window_mask is not None and np.sum(noise_window_mask) > 0:
+            f_noise = np.sum(electric_field_trace[:, noise_window_mask] ** 2, axis=1)
+            f_signal -= f_noise * np.sum(signal_window_mask) / np.sum(noise_window_mask)
+            f_signal[f_signal < 0] = 0
+
+            # calculate RMS noise for error estimation
+            RMSNoise = np.sqrt(np.mean(electric_field_trace[:, noise_window_mask] ** 2, axis=1))
+        else:
+            RMSNoise = None
+
+        signal_energy_fluence = f_signal * dt * conversion_factor_integrated_signal
+
+        # calculate error if RMSNoise is known:
+        if RMSNoise is not None and return_uncertainty:
+            signal_window_duration = sum(signal_window_mask) * dt if signal_window_mask is not None else len(times) * dt
+            signal_energy_fluence_error = (4 * np.abs(signal_energy_fluence / conversion_factor_integrated_signal) * RMSNoise ** 2 * dt + 2 * signal_window_duration * RMSNoise ** 4 * dt) ** 0.5  * conversion_factor_integrated_signal
+        else:
+            signal_energy_fluence_error = np.zeros(3)
+    
+    elif method == "rice_disttribution":
+        signal_energy_fluence = np.zeros(len(electric_field_trace))
+        signal_energy_fluence_error = np.zeros(len(electric_field_trace))
+        for i_pol in range(len(electric_field_trace)):
+            noise_estimators, frequencies_window = _get_noise_fluence_estimators(
+                trace = electric_field_trace[i_pol, :],
+                times = times,
+                signal_window_mask = signal_window_mask,
+                **estimator_kwargs
+                )
+            estimators, variances = _get_signal_fluence_estimators(
+                trace = electric_field_trace[i_pol, :],
+                times = times,
+                signal_window_mask = signal_window_mask,
+                noise_estimators = noise_estimators,
+                **estimator_kwargs
+                )
+
+            #sample frequency (after the windowing) in MHz
+            delta_f = frequencies_window[1] - frequencies_window[0]
+
+            #get the fluence of the trace summing up the frequency estimators and converting in eV/m^2
+            fluence_freq = np.sum(estimators) * delta_f * conversion_factor_integrated_signal
+
+            if estimator_kwargs.get("truncate_negative_estimators") == "after_sum":
+                fluence_freq = np.maximum(fluence_freq, 0)
+
+            #get the variance of the trace fluence summing up the frequency variances and converting in (eV/m^2)^2
+            fluence_freq_variance = np.sum(variances) * (delta_f * conversion_factor_integrated_signal)**2
+
+            #get the fluence uncertainty as the root square of the variance
+            fluence_freq_error = np.sqrt(fluence_freq_variance)
+
+            signal_energy_fluence[i_pol] = fluence_freq
+            signal_energy_fluence_error[i_pol] = fluence_freq_error
+
+    if return_uncertainty:
+        return signal_energy_fluence, signal_energy_fluence_error
+    else:
+        return signal_energy_fluence
+
+      
+def _get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False, truncate_negative_estimators="before_sum"):
+    """
+    Estimate the noise fluence from the trace.
+
+    Parameters
+    ----------
+    trace : np.ndarray
+        Trace to estimate the noise fluence from.
+    times : np.ndarray
+        Time grid for the trace.
+    signal_window_mask : np.ndarray
+        Boolean mask for the signal window.
+    spacing_noise_signal : float (optional)
+        Spacing between noise windows and signal window. Makes sure no signal leaks into the noise windows. (default: 20 ns,
+        which should be enough for most applications, otherwise the signal_window_mask is too small)
+    relative_taper_width : float (optional)
+        Width of the taper region for the Tukey window relative to the full window length. (default: 0.142857143,
+        which corresponds to 1/7 of the window length at each end)
+    use_median_value : bool (optional)
+        If True, the median of the squared spectra of the noise windows is used as estimator. Otherwise, the mean is used. (default: False)
+    truncate_negative_estimators : str (optional)
+        Not used in this function. Introduced for compatibility with _get_signal_fluence_estimators.
+
+    Returns
+    -------
+    estimators : np.ndarray
+        Estimators for the noise fluence.
+    frequencies_window : np.ndarray
+        Frequencies corresponding to the estimators.
+    """
+
+    dt = times[1] - times[0]
+    n_samples_window = sum(signal_window_mask)
+    signal_start = times[signal_window_mask][0] - spacing_noise_signal
+    signal_stop = times[signal_window_mask][-1] + spacing_noise_signal
+    list_ffts_squared = []
+
+    if signal_start < times[0]:
+        signal_start = times[0]
+        logger.warning("The signal window overlaps with the start of the trace. The efield pulse may be partialy outside the trace.")
+    elif signal_stop > times[-1]:
+        logger.warning("The signal window overlaps with the end of the trace. The efield pulse may be partialy outside the trace.")
+
+    #generate Tukey window
+    window = scipy.signal.windows.tukey(n_samples_window, relative_taper_width * 2)
+
+    #loop over the trace defining noise windows (excluding the signal window)
+    noise_start = times[0]
+    while noise_start < times[-1]:
+
+        noise_stop = noise_start + n_samples_window * dt
+        if noise_stop > times[-1]:
+            break
+
+        elif (noise_stop <= signal_start and noise_start < signal_start) or (noise_stop > signal_stop and noise_start >= signal_stop):
+
+            #clipping the noise window (rounding is needed because noise_stop = noise_start + n_samples_window * dt has numerical uncertainties)
+            mask_time = np.all([np.round(times, 5) >= np.round(noise_start, 5), np.round(times, 5) < np.round(noise_stop, 5)], axis=0)
+            time_trace_clipped = trace[mask_time]
+
+            #applying the Tukey window
+            windowed_trace = time_trace_clipped * window
+
+            #calculating the spectrum and frequencies
+            frequencies_window = fft.freqs(n_samples_window, 1/dt)
+            spectrum_window = np.abs(fft.time2freq(windowed_trace, 1/dt))
+
+            list_ffts_squared.append(spectrum_window**2)
+            noise_start = noise_stop
+
+        elif noise_stop > signal_start and noise_start <= signal_start:
+            noise_start = signal_stop
+
+        else:
+            logger.error("The noise window does not fulfill any of the conditions. This should not happen.")
+            raise RuntimeError("The noise window does not fulfill any of the conditions. This should not happen.")
+
+    list_ffts_squared = np.array(list_ffts_squared, dtype=float)
+
+    if use_median_value:
+        #robust estimator in presence of outliers from the noise windows
+        estimators = np.median(list_ffts_squared, axis=0) / 1.405 #from chi2 distribution
+    else:
+        #it works well in presence of small number of outliers
+        estimators=np.mean(list_ffts_squared, axis=0)
+
+    return estimators, frequencies_window
+
+
+def _get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estimators, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False, truncate_negative_estimators="before_sum"):
+    """
+    Estimate the signal fluence from the trace.
+
+    Parameters
+    ----------
+    trace : np.ndarray
+        Trace to estimate the signal fluence from.
+    times : np.ndarray
+        Time grid for the trace.
+    signal_window_mask : np.ndarray
+        Boolean mask for the signal window.
+    noise_estimators : np.ndarray
+        Estimators for the noise fluence.
+    spacing_noise_signal : float (optional)
+        Not used in this function. Indroduced for compatibility with _get_noise_fluence_estimators.
+    relative_taper_width : float (optional)
+        Width of the taper region for the Tukey window relative to the full window length. (default: 0.142857143,
+        which corresponds to 1/7 of the window length at each end)
+    use_median_value : bool (optional)
+        Not used in this function. Indroduced for compatibility with _get_noise_fluence_estimators.
+    truncate_negative_estimators : str (optional)
+        If "before_sum", negative estimators are set to zero before summing over frequencies,
+        which is consistent with S. Martinelli et al.: https://arxiv.org/pdf/2407.18654.
+        If "after_sum", negative estimators are set to zero after summing over frequencies. Note
+        that this is done in get_electric_field_energy_fluence. (default: "before_sum")
+
+    Returns
+    -------
+    signal_estimators : np.ndarray
+        Estimators for the signal fluence.
+    variances : np.ndarray
+        Variance of the signal fluence estimators.
+    """
+
+    dt = times[1] - times[0]
+    n_samples_window = sum(signal_window_mask)
+    signal_start = times[signal_window_mask][0]
+    signal_stop = times[signal_window_mask][-1] + dt
+
+    #generate Tukey window
+    window = scipy.signal.windows.tukey(n_samples_window, relative_taper_width * 2)
+
+    #clipping the signal window around the pulse position
+    mask_time = np.all([times >= signal_start, times < signal_stop], axis=0)
+    trace_clipped = trace[mask_time]
+
+    #applying the Tukey window
+    windowed_trace = trace_clipped * window
+
+    #calculating the spectrum and frequencies
+    spectrum_window = np.abs(fft.time2freq(windowed_trace, 1/dt))
+
+    #signal estimator and variance for each frequency bin
+    signal_estimators = spectrum_window**2 - noise_estimators
+    if truncate_negative_estimators == "before_sum":
+        signal_estimators[signal_estimators < 0] = 0
+    variances = noise_estimators * (noise_estimators + 2*signal_estimators)
+
+    return signal_estimators, variances
 
 
 def get_stokes(trace_u, trace_v, window_samples=128, squeeze=True):
@@ -383,19 +601,27 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
     sum_trace: 1-D array of floats
         CSW of the set of traces
     """
-    sum_trace = ref_trace
-
-    for idx, trace in enumerate(trace_set):
+    # Normalize: subtract mean, divide by std (z-score)
+    def process(trace):
         if use_envelope:
-            sig_ref = get_hilbert_envelope(ref_trace)
-            sig_i = get_hilbert_envelope(trace)
-        else:
-            sig_ref = ref_trace
-            sig_i = trace
-        cor = scipy.signal.correlate(sig_ref, sig_i, mode = "full")
-        lag = int(np.argmax((cor)) - (np.size(cor)/2.))
+            trace = get_hilbert_envelope(trace)
+        return (trace - np.mean(trace, axis=-1, keepdims=True)) / np.std(trace, axis=-1, keepdims=True)
 
-        aligned_trace = np.roll(trace, lag)
+    n_samples = len(ref_trace)
+    ref_processed = process(ref_trace)
+
+    # Process all traces
+    trace_set = np.stack(trace_set)  # Make sure it's 2D
+    traces_processed = process(trace_set)
+
+    sum_trace = np.copy(ref_trace)
+
+    lag_array = scipy.signal.correlation_lags(n_samples, n_samples, mode='full')
+
+    for i, trace in enumerate(trace_set):
+        corr = scipy.signal.correlate(ref_processed, traces_processed[i], mode='full') / n_samples
+        best_lag = lag_array[np.argmax(corr)]
+        aligned_trace = np.roll(trace, best_lag)
         sum_trace += aligned_trace
 
     return sum_trace
@@ -449,6 +675,26 @@ def get_kurtosis(trace):
     """
     kurtosis = scipy.stats.kurtosis(trace)
     return kurtosis
+
+
+def get_teager_kaiser_energy(trace):
+    """
+    Uses the Teager-Kaiser Energy Operator (TKEO) on a trace.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform
+
+    Returns
+    -------
+    np.abs(tkeo): array of floats
+        TKEO of the input trace
+    """
+    tkeo = np.zeros_like(trace)
+    tkeo[1:-1] = trace[1:-1]**2 - trace[0:-2] * trace[2:]
+
+    return np.abs(tkeo)
 
 
 def is_NAN_or_INF(trace):

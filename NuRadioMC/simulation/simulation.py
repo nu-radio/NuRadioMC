@@ -583,7 +583,7 @@ def apply_det_response(
     station = evt.get_station()  # will raise an error if there are more than one station, but this should never happen
     # convert efields to voltages at digitizer
     if detector_simulation_part2 is not None:
-        detector_simulation_part2(evt, station, det)
+        detector_simulation_part2(evt, station, det, add_noise=add_noise)
     else:
         dt = 1. / (config['sampling_rate'])
         # start detector simulation
@@ -1105,7 +1105,7 @@ class simulation:
             file_overwrite=False,
             write_detector=True,
             event_list=None,
-            log_level_propagation=logging.WARNING,
+            log_level_propagation=LOGGING_STATUS,
             ice_model=None,
             trigger_channels = None,
             **kwargs):
@@ -1246,7 +1246,8 @@ class simulation:
             self._ice,
             log_level=self._log_level_ray_propagation,
             config=self._config,
-            detector=self._det
+            detector=self._det,
+            use_cpp=kwargs.get('use_cpp', True),
         )
 
         self._station_ids = self._det.get_station_ids()
@@ -1385,7 +1386,7 @@ class simulation:
                 mean_integrated_response = self._integrated_channel_response_normalization[station_id][channel_id]
 
                 status_message += (
-                    f'\n     {station_id}.{channel_id:02d}      |      {noise_temp_channel}  K     | '
+                    f'\n   {station_id: 4d}.{channel_id:02d}      |      {noise_temp_channel}  K     | '
                     f'  {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz   | '
                     f'     {max_amplification:8.2f}      | '
                     f'    {integrated_channel_response / units.MHz:.2e} MHz    | '
@@ -1442,6 +1443,8 @@ class simulation:
         logger.status("Starting NuRadioMC simulation")
         self.__time_logger.reset_times()
 
+        i_triggered_events = 0 # counter for triggered events
+
         particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
         event_group_ids = np.array(self._fin['event_group_ids'])
         unique_event_group_ids = np.unique(event_group_ids)
@@ -1456,10 +1459,12 @@ class simulation:
 
         # loop over event groups
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
-            logger.debug(f"simulating event group id {event_group_id}")
             if self._event_group_list is not None and event_group_id not in self._event_group_list:
-                logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
+                logger.debug(f"Skipping event group {event_group_id} because it is not in the event "
+                             "group list provided to the __init__ function")
                 continue
+
+            logger.debug(f"Simulating event group id {event_group_id}")
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(event_group_ids == event_group_id)))
 
             self.__time_logger.show_time(len(unique_event_group_ids), i_event_group_id)
@@ -1639,7 +1644,7 @@ class simulation:
                                         f"{len(sim_station.get_electric_fields())} efields, skipping to next channel")
                             continue
 
-                            
+
                         # applies the detector response to the electric fields (the antennas are defined
                         # in the json detector description file)
                         apply_det_response_sim(
@@ -1687,6 +1692,8 @@ class simulation:
                     channelSignalReconstructor.run(evt, station, self._det)
                     self._set_event_station_parameters(evt)
 
+                    i_triggered_events += 1 # count the number of triggered events
+
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size
                         sampling_rate_detector = self._det.get_sampling_frequency(
@@ -1730,6 +1737,8 @@ class simulation:
         if not self._output_writer_hdf5.write_output_file():
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
+
+        return i_triggered_events
 
     def add_filtered_noise_to_channels(self, evt, station, channel_ids):
         """
@@ -1873,8 +1882,8 @@ def _calculate_amp_per_ray_solution(station):
     """ Calculate the max amplitude and time of the ray solutions
 
     Instead of using the channelSignalReconstructor module which calculates
-    these parameters (and may more) too, we use this function to save time 
-    (the other parameters calculated by the channelSignalReconstructor 
+    these parameters (and may more) too, we use this function to save time
+    (the other parameters calculated by the channelSignalReconstructor
     are not used/saved by the simulation.py).
 
     Parameters
