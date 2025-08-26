@@ -45,12 +45,12 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def get_id(self):
         """
-        Returns the event ID.
+        Returns the event ID (Event Number).
 
         Returns
         -------
         int
-            The event ID.
+            The event ID / number.
         """
         return self._id
 
@@ -64,10 +64,6 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
             The event ID to set.
         """
         self._id = evt_id
-
-    def get_event_id(self):
-        """ Wrapper around get_id() """
-        return self.get_id()
 
     def get_run_number(self):
         """
@@ -587,7 +583,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         iE = len(self.__modules_event)
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
 
-    def _iter_modules(self, station_id=None):
+    def iter_modules(self, station_id=None):
         """
         returns an interator that loops over all modules. If a station id is provided it loops
         over all modules that are applied on event or station level (on this particular station). If no
@@ -623,7 +619,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         -------
         bool
         """
-        for module in self._iter_modules(station_id):
+        for module in self.iter_modules(station_id):
             if module[0] == module_name:
                 return True
 

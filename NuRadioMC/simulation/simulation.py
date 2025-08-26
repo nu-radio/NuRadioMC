@@ -1308,7 +1308,7 @@ class simulation:
             for channel_id in self._det.get_channel_ids(station_id):
                 ff = np.linspace(0, 0.5 * self._config['sampling_rate'], 10000)
                 filt = np.ones_like(ff, dtype=complex)
-                for i, (name, instance, kwargs) in enumerate(evt._iter_modules(station_id)):
+                for i, (name, instance, kwargs) in enumerate(evt.iter_modules(station_id)):
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, station_id, channel_id, self._det, **kwargs)
 
@@ -1756,7 +1756,7 @@ class simulation:
 
             ff = channel.get_frequencies()
             filt = np.ones_like(ff, dtype=complex)
-            for i, (name, instance, kwargs) in enumerate(evt._iter_modules(station_id)):
+            for i, (name, instance, kwargs) in enumerate(evt.iter_modules(station_id)):
                 if hasattr(instance, "get_filter"):
                     filt *= instance.get_filter(ff, station_id, channel_id, self._det, **kwargs)
 
