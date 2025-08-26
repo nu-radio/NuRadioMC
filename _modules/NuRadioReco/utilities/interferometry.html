@@ -632,7 +632,16 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.interferometry</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains helper functions for beam-forming. Originally for the module(s) in</span>
+<span class="sd">modules/efieldRadioInterferometricReconstruction.py. The functions with the abbriviation</span>
+<span class="sd">&quot;rit&quot; or &quot;RIT&quot; in their name refer to the &quot;Radio Interferometric Technique&quot; [1, 2].</span>
+
+<span class="sd">[1]: H. Schoorlemmer, W. R. Carvalho Jr., arXiv:2006.10348</span>
+<span class="sd">[2]: F. Schlueter, T. Huege, doi:10.1088/1748-0221/16/07/P07048</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal</span><span class="p">,</span> <span class="n">constants</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
