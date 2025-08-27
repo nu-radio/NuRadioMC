@@ -9,7 +9,7 @@ volume = {
 'fiducial_rmin': 0 * units.km,
 'fiducial_rmax': 4 * units.km}
 
-# generate one event list at 1e19 eV with 1000 neutrinos
+# generate one event list at 1e19 eV with 10000 neutrinos
 generate_eventlist_cylinder('1e19_n1e4.hdf5', 1e4, 1e19 * units.eV, 1e19 * units.eV, volume)
 
 # generate one event list at 1e18 eV with 10000 neutrinos
