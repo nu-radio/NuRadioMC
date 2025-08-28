@@ -184,7 +184,7 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
 
     return efield_on_sky, efield_times
 
-def convert_obs_from_nuradio_efield(efield_on_sky, efield_times, zenith, azimuth, magnetic_field_vector):
+def convert_nuradio_efield_to_obs(efield_on_sky, efield_times, zenith, azimuth, magnetic_field_vector):
     """
     Converts electric field from NuRadioReco on-sky CS back to the CORSIKA observer format.
 
@@ -432,6 +432,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
         
         inputs_grp = f.create_group("inputs")
         inputs_grp.attrs["RUNNR"] = evt.get_run_number()
+        inputs_grp.attrs["EVTNR"] = evt.get_id()
 
         sim_shower = evt.get_first_sim_shower()        
         
@@ -490,7 +491,6 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
         coreas_grp.attrs["DepthOfShowerMaximum"] = sim_shower.get_parameter(shp.shower_maximum) / (units.g / units.cm2)
         coreas_grp.attrs["DistanceOfShowerMaximum"] = sim_shower.get_parameter(shp.distance_shower_maximum_geometric) / units.cm
         coreas_grp.attrs["GroundLevelRefractiveIndex"] = sim_shower.get_parameter(shp.refractive_index_at_ground)
-        coreas_grp.attrs["MagneticFieldVector"] = B_vec
 
         observers_grp = coreas_grp.create_group("observers")
         station = evt.get_station()
@@ -505,7 +505,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
                 declination=declination
             )
             
-            efield_corsika = convert_obs_from_nuradio_efield(
+            efield_corsika = convert_nuradio_efield_to_obs(
                 observer.get_trace(),
                 observer.get_times(),
                 zenith,
