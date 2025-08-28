@@ -16,8 +16,6 @@ def matched_filter(data, template, noise_power_spectral_density, t_array, freque
     frequencies_flattened = np.tile(frequencies, n_antennas)
     n_t = len(t_array)
     output = np.zeros(n_t)
-
-    # if (noise_power_spectral_density < np.max(noise_power_spectral_density)/100**2).any():
     
     #     plt.figure()
     #     plt.plot(np.sqrt(noise_psd / frequencies_flattened[1] / 2))
@@ -37,14 +35,10 @@ def matched_filter(data, template, noise_power_spectral_density, t_array, freque
         plt.ylabel("Matched filter output")
         plt.tight_layout()
         plt.show()
-
-    #def function_to_minimize(normalization_factor):
-    #    return np.sum((data - np.roll(template, np.argmax(output))*normalization_factor)**2)
-    #result = scp.optimize.minimize(function_to_minimize, 5, bounds=[(-10, 10)])
     
-    return t_array[np.argmax(output)], np.max(output), #result.x
+    return t_array[np.argmax(output)], np.max(output)
 
-def matched_filter_to_llh(mathced_filter_output, data, template, noise_power_spectral_density, frequencies, n_antennas):
+def matched_filter_to_llh(matched_filter_output, data, template, noise_power_spectral_density, frequencies, n_antennas):
     #s = np.fft.rfft(trace)
     h = np.fft.rfft(template)
     
@@ -56,7 +50,7 @@ def matched_filter_to_llh(mathced_filter_output, data, template, noise_power_spe
     
     # Calculate rho defined in Equation 4.4 in https://arxiv.org/pdf/gr-qc/0509116 
     # which is the same as q defined in Eqaution 5 in https://arxiv.org/pdf/2106.03718
-    q = mathced_filter_output/np.sqrt(sigma)
+    q = matched_filter_output/np.sqrt(sigma)
 
     if np.isnan(q): q=0
 

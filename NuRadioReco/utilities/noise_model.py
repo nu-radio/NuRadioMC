@@ -9,7 +9,7 @@ import NuRadioReco.framework.sim_station
 class NoiseModel:
     """
     Probabilistic description of thermal noise in radio detectors. The noise is assumed to be a multivariate gaussion of
-    dimension n_samples. The covariance matrix of the distirbution can be calculated from the spectrum of the noise or 
+    dimension n_samples. The covariance matrix of the distirbution can be calculated from the spectrum of the noise or
     directly from datasets containing only noise.
 
     Parameters
@@ -21,22 +21,22 @@ class NoiseModel:
         sampling_rate : float
             The sampling rate of the antennas
         matrix_inversion_method : str, optional
-            If the covariance matrix is not full rank, the inverse, which is used to calculate the multivariate normal, 
+            If the covariance matrix is not full rank, the inverse, which is used to calculate the multivariate normal,
             does not exist. This is the case if any frequency amplitudes in the spectra are zero, which corresponds to
             a distribution in a sub-space whih has lower number of dimensions than n_samples, i.e. some dimensions are
             degenerate.  The correct mathematical way to describe the degenerate case is by using the pseudo-inverse
-            and pseudo-determinant to calculate the multivariate normal PDF. This method is used if this parameters is 
-            set to "pseudo_inv", and is numerically stable but slow. We thus also provide the option to use the regular 
+            and pseudo-determinant to calculate the multivariate normal PDF. This method is used if this parameters is
+            set to "pseudo_inv", and is numerically stable but slow. We thus also provide the option to use the regular
             inverse by setting this parameter to "regular_inv", which works for full rank matrices and sometimes for
             lower rank matrices (see increase_cov_diagonal).
         threshold_amplitude : float, optional
             Fraction of the maximum amplitude in the spectra below which the frequency amplitudes are considered zero.
             Also used as the threshold for the eigenvalues when calculating the pseudo-inverse and pseudo-determinant.
         increase_cov_diagonal : float, optional
-            Only used if matrix_inversion_method is "regular_inv". Calculating the inverse of a (covariance) matrix is 
-            numerically unstable, and it does not exist if the matrix is not full rank. By adding a small component to the 
+            Only used if matrix_inversion_method is "regular_inv". Calculating the inverse of a (covariance) matrix is
+            numerically unstable, and it does not exist if the matrix is not full rank. By adding a small component to the
             diagonal when the inverse increases the rank and can improve stability for lower rank matrices. The parameter is
-            what fraction of the variance should be added to the diagonal of the covariance matrix only when calculating 
+            what fraction of the variance should be added to the diagonal of the covariance matrix only when calculating
             the inverse.
         ignore_llh_normalization : bool, optional
             We are generally only interrested in likelihood ratios or delta log likelihood. In this case the normalization of
@@ -88,10 +88,10 @@ class NoiseModel:
                 spectrum_power = np.sum(spectra[i]**2) * (self.frequencies[1] - self.frequencies[0])
                 time_domain_power = Vrms[i]**2 * self.n_samples * 1/self.sampling_rate
                 spectra[i,:] = spectra[i,:] / np.sqrt(spectrum_power) * np.sqrt(time_domain_power)
-        
+
         covariance_matrices, covariance_matrices_inverse = self._calculate_covariance_matrices_from_spectra(abs(spectra))
         self._set_covariance_matrices(covariance_matrices, spectra, cov_inv=covariance_matrices_inverse)
-    
+
     def initialize_with_data(self, data, method="using_spectra"):
         """
         Initialize the noise model using traces containing noise
@@ -107,7 +107,7 @@ class NoiseModel:
         """
         if self.n_antennas == 1 and len(data.shape) == 2:
             data = data[:,np.newaxis,:]
-        
+
         if method == "using_spectra":
             spectra = self._calculate_spectra_from_data(data)
             covariance_matrices, covariance_matrices_inverse = self._calculate_covariance_matrices_from_spectra(spectra)
@@ -117,13 +117,12 @@ class NoiseModel:
             covariance_matrices = self._calculate_covariance_matrices_from_data(data)
             self._set_covariance_matrices(covariance_matrices, spectra)
         self.Vrms = np.std(data, axis=(0,2))
-    
 
     def _set_covariance_matrices(self, cov, spectra, cov_inv=None):
         """
-        Sets the covariance matrices, their (pseudo-)inverses, and log-determinants. Additionally, the 
+        Sets the covariance matrices, their (pseudo-)inverses, and log-determinants. Additionally, the
         noise power spectral density is saved, for calculations in the frequency domain.
-        
+
         Parameters
         ----------
             cov : numpy.ndarray
@@ -134,7 +133,7 @@ class NoiseModel:
         """
 
         self.cov = cov
-        
+
         # Set inverse or calculate it if not provided:
         if cov_inv is not None:
             self.cov_inv = cov_inv
@@ -148,7 +147,7 @@ class NoiseModel:
                     self.cov_inv[i,:,:] = np.linalg.inv(cov[i,:,:] + np.diag(np.ones(self.n_samples) * cov[i,0,0] * self.increase_cov_diagonal))
                 else:
                     raise Exception("""matrix_inversion_method not recognized. Choose "pseudo_inv" or "regular_inv" """)
-        
+
         # Calculate log-determinant of covariance matrix:
         if not self.ignore_llh_normalization:
             self.cov_log_det = np.zeros(self.n_antennas)
@@ -160,12 +159,12 @@ class NoiseModel:
                     self.cov_log_det[i] = np.linalg.det(cov[i,:,:])
         else:
             self.cov_log_det = np.ones(self.n_antennas)
-            
+
         # Calculate noise power spectral density from the spectra:
         self.noise_psd = np.zeros([self.n_antennas, self.n_frequencies])
         for i in range(self.n_antennas):
             self.noise_psd[i,:] = 2 * spectra[i,:]**2 * (self.frequencies[1] - self.frequencies[0])
-        
+
         # Save spectra:
         self.spectra = spectra
 
@@ -188,7 +187,7 @@ class NoiseModel:
             fourier_transforms = fft.time2freq(data[:,i,:], self.sampling_rate)
             fourier_transforms_mean = np.sqrt(np.mean(fourier_transforms.real**2 + fourier_transforms.imag**2, axis=0))
             spectra[i,:] = fourier_transforms_mean
-        
+
         return spectra
 
     def _calculate_covariance_matrices_from_spectra(self, spectra):
@@ -231,10 +230,10 @@ class NoiseModel:
                 covariance_matrices_inverse[i,:,j] = np.roll(covariance_inverse_one_row, j)
 
         return covariance_matrices, covariance_matrices_inverse
-    
+
     def _calculate_covariance_matrices_from_data(self, data):
         """
-        Calculates the covariance matrix for each antenna using numpy.cov and averages along the diagonals 
+        Calculates the covariance matrix for each antenna using numpy.cov and averages along the diagonals
         assuming the covariance matrix is circulant
 
         Parameters
@@ -275,7 +274,7 @@ class NoiseModel:
 
     def _log_multivariate_normal(self, x, mu, cov_inv, cov_log_det):
         """
-        Calculates the multivariate normal probability (PDF) of vector x, given means mu and covariance matrix 
+        Calculates the multivariate normal probability (PDF) of vector x, given means mu and covariance matrix
         inverse and determinant.
 
         Parameters
@@ -301,7 +300,7 @@ class NoiseModel:
         term_3_temp = np.array(np.matmul(cov_inv, x-mu)).flatten()
         term_3 = -0.5 * np.matmul(x-mu, term_3_temp)
         return term_1 + term_2 + term_3
-    
+
     def _log_multivariate_normal_freq(self, x_minus_mu_fft, noise_psd):
         """
         Calculates the multivariate normal probability (PDF) of vector x, given the fourier transformed trace
@@ -399,7 +398,7 @@ class NoiseModel:
 
 
         return LLH_array - LLH_best
-    
+
     def calculate_minus_two_delta_llh(self, data, signal=None, frequency_domain=False):
         """
         Calculates the minus two delta log likelihood for the datasets relative to the most probable noise
@@ -420,7 +419,7 @@ class NoiseModel:
                 Minus two delta log likelihood for the data given the noise model
         """
         return -2*self.calculate_delta_llh(data, signal=signal, frequency_domain=frequency_domain)
-    
+
     def calculate_minus_two_delta_llh_channels_deprecated(self, channel_list_data, channel_list_sim, time_grid, frequency_domain=False, plot=True, return_traces=False):
         """
         Calculates the minus two delta log likelihood with NuRadioReco channels as input. Each entry in channel_list_sim can have
@@ -442,7 +441,7 @@ class NoiseModel:
                 If True, calculate the delta log likelihood in the frequency domain, which is faster.
             plot : bool, optional
                 If True, plot the data and signal for each time offset in the time_grid.
-        
+
         Returns
         -------
             float
@@ -489,7 +488,7 @@ class NoiseModel:
                 # Set trace start time of the readout window so it keeps track of the relative readout times
                 # of the data windows, but moved to where the signal is located:
                 signal_readout_channel.set_trace_start_time(trace_start_times[i_ant] + referece_time_offset - time_offset) # a positive time_offset moves the signal to the right relative to the data
-                
+
                 # Now add the simulation to the readout window:
                 for i_solution, channel_sim in enumerate(np.atleast_1d(channel_list_sim[i_ant])):
                     signal_readout_channel.add_to_trace(channel_sim)
@@ -515,7 +514,7 @@ class NoiseModel:
             return llh_best, t_best, LLH_array, data_array, signal_arrays[np.argmin(LLH_array),:,:]
         else:
             return llh_best, t_best, LLH_array
-        
+
     def calculate_minus_two_delta_llh_stations_deprecated(self, station, sim_station_list, time_grid=None, use_channels = None, frequency_domain=False, plot=True, return_traces=False):
         """
         Calculates the minus two delta log likelihood with NuRadioReco stations as input. The sim_station_list is a list containing sim stations for ech channel from
@@ -605,7 +604,7 @@ class NoiseModel:
                 # Set trace start time of the readout window so it keeps track of the relative readout times
                 # of the data windows, but moved to where the signal is located:
                 signal_readout_channel.set_trace_start_time(trace_start_times[i_ant] + referece_time_offset - time_offset) # a positive time_offset moves the signal to the right relative to the data
-                
+
                 # Now add the simulation to the readout window:
                 for i_solution, sim_channel in enumerate(sim_station.iter_channels()):
                     signal_readout_channel.add_to_trace(sim_channel)
@@ -812,10 +811,10 @@ class NoiseModel:
             return minus_two_delta_llh_signal
 
         return minus_two_delta_llh_func
-    
+
     def save_covariance_matrix(self, antenna, filename):
         """
-        Save compressed version (one row) of covariance matrix for one antenna along with the sample rate in GHz, 
+        Save compressed version (one row) of covariance matrix for one antenna along with the sample rate in GHz,
         number of samples, and the spectra.
 
         Parameters
@@ -851,7 +850,7 @@ class NoiseModel:
             # Until resampling is implementet, only matching sampling rates and number of samples are allowed:
             assert cov_sample_rate == self.sampling_rate, f"Sampling rate ({self.sampling_rate}) does not match covariance matrix sampling rate ({cov_sample_rate})"
             assert cov_n_samples == self.n_samples, f"Number of samples ({self.n_samples}) does not match covariance matrix number of samples ({cov_n_samples})"
-            
+
             # Construct covariances matrix assuming it is circulant:
             constructed_covariance_matrix = np.zeros([self.n_samples, self.n_samples])
             for j in range(self.n_samples):
@@ -861,7 +860,7 @@ class NoiseModel:
             spectra[i] = spectrum
 
         self._set_covariance_matrices(covariance_matrices, spectra=spectra)
-    
+
     def resample_covariance_matrices(self, new_sampling_rate):
         """
         Resample the covariance matrices to new sampling rate
@@ -879,13 +878,13 @@ class NoiseModel:
         self.frequencies = np.fft.rfftfreq(n_samples_new, 1.0/new_sampling_rate)
         n_frequencies_new = len(self.frequencies)
         self.n_frequencies = n_frequencies_new
-        
+
         covariance_matrices = np.zeros([self.n_antennas, n_samples_new, n_samples_new])
         spectra = np.zeros([self.n_antennas, n_samples_new])
 
         for i in range(self.n_antennas):
             cov_one_row = self.cov[i,0,:]
-            
+
             # Resample covariance matrix and spectra:
             cov_one_row, t_array = scp.signal.resample(cov_one_row, n_samples_new, t=self.t_array)
             spectra[i] = scp.signal.resample(self.spectra[i], n_frequencies_new)
@@ -901,7 +900,7 @@ class NoiseModel:
 
     def calculate_fisher_information_matrix(self, signal_function, paramters_x0, dx, frequency_domain=False, ignore_parameters=[]):
         """
-        Calculate Fisher information matrix for a set of parameter values (paramters_x0) which generates a signal using the covariance matrices of the noise. 
+        Calculate Fisher information matrix for a set of parameter values (paramters_x0) which generates a signal using the covariance matrices of the noise.
 
         Parameters
         ----------
@@ -938,7 +937,7 @@ class NoiseModel:
             derivatives[i,:,:] = (signal_function(paramters_x1) - signal_0) / dx[i+i_skipped]
             if frequency_domain:
                 derivatives_fft[i,:,:] = fft.time2freq(derivatives[i,:,:], self.sampling_rate)
-        
+
         # Calculate Fisher information matrix
         fisher_information_matrix = np.zeros([n_parameters, n_parameters])
         for i in range(n_parameters):
@@ -949,7 +948,7 @@ class NoiseModel:
                     elif frequency_domain:
                         integrand = np.real(derivatives_fft[i,k,:]*derivatives_fft[j,k,:].conj())/self.noise_psd[k,:]
                         fisher_information_matrix[i,j] += 4*np.sum(integrand[self.noise_psd[k,:] > np.max(self.noise_psd[k,:]) * self.threshold_amplitude**2]) * (self.frequencies[1]-self.frequencies[0]) # Maybe wrong by a factor
-        
+
         return fisher_information_matrix
 
     ### Plotting: ###
@@ -965,19 +964,19 @@ class NoiseModel:
             plot_range : float
                 Range along x-axis (self.t_array) to plot in units of nanoseconds
             linestyle_and_color : str, optional
-                String specifying linestyle and color, e.f. "k-" for black solid line, or "b--" for blue 
+                String specifying linestyle and color, e.f. "k-" for black solid line, or "b--" for blue
                 dashed line. If set to "auto", matplotlib will set the color and style.
             make_new_figure : bool
                 If True create a new figure
         """
         if make_new_figure:
             plt.figure(figsize=[4.2,3])
-        
+
         if linestyle_and_color == "auto":
             plt.plot(self.t_array, data)
         else:
             plt.plot(self.t_array, data, linestyle_and_color)
-            
+
         axis = plt.axis()
         if plot_range is None:
             plt.axis([0, max(self.t_array), axis[2], axis[3]])
@@ -1039,20 +1038,20 @@ class NoiseModel:
             plot_range : float
                 Range along x-axis (self.t_array) to plot in units of nanoseconds
             linestyle_and_color : str, optional
-                String specifying linestyle and color, e.f. "k-" for black solid line, or "b--" for blue 
+                String specifying linestyle and color, e.f. "k-" for black solid line, or "b--" for blue
                 dashed line. If set to "auto", matplotlib will set the color and style.
             make_new_figure : bool
                 If True create a new figure
         """
         if make_new_figure:
             plt.figure(figsize=[4.2,3])
-        
-        
+
+
         if linestyle_and_color == "auto":
             plt.plot(self.t_array, cov[0,:])
         else:
             plt.plot(self.t_array, cov[0,:], linestyle_and_color)
-            
+
         axis = plt.axis()
         if plot_range is None:
             plt.axis([0, max(self.t_array), axis[2], axis[3]])
@@ -1064,7 +1063,7 @@ class NoiseModel:
 
     def plot_llh_distribution(self, data, n_dof=None, frequency_domain=False, make_new_figure = True):
         """
-        Calculate the llh values for many datasets and plot the distribution alongside a chi2 
+        Calculate the llh values for many datasets and plot the distribution alongside a chi2
         distribution with dof equal to the number of samples
 
         Parameters
