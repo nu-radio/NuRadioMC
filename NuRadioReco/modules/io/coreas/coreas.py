@@ -261,7 +261,7 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, declination=0):
 
     return np.squeeze(obs_positions)
 
-def convert_obs_positions_from_nuradio_on_ground(geo_pos, declination=0):
+def convert_nuradio_positions_to_ground(geo_pos, declination=0):
     """
     Converts observer positions from NuRadioReco ground coordinates back to the CORSIKA CS.
 
@@ -500,7 +500,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
 
             dataset_name = f"station_{observer.get_unique_identifier()[0][0]}"
 
-            pos_corsika = convert_obs_positions_from_nuradio_on_ground(
+            pos_corsika = convert_nuradio_positions_to_ground(
                 observer.get_position(),
                 declination=declination
             )
