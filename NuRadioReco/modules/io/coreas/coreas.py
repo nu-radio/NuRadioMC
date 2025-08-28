@@ -217,7 +217,7 @@ def convert_nuradio_efield_to_obs(efield_on_sky, efield_times, zenith, azimuth, 
 
     # convert to CORSIKA axis convention and CGS units
     times_corsika = efield_times / units.second
-
+    
     Ex = efield_mag[1] / conversion_fieldstrength_cgs_to_SI
     Ey = -efield_mag[0] / conversion_fieldstrength_cgs_to_SI
     Ez = efield_mag[2] / conversion_fieldstrength_cgs_to_SI
@@ -447,7 +447,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
             """
             zenith = zenith_NNR / units.deg            
             azimuth = (azimuth_NNR - 3*np.pi / 2. - declination / units.rad) / units.deg
-
+            
             # Unit vectors in geographic CS:
             # magnetic north unit vector in geographic coordinates (rotated from geographic north by declination)
             y_mag = np.array([np.sin(declination), np.cos(declination), 0.0])  # azimuth = 90° - declination
@@ -508,9 +508,9 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
             efield_corsika = convert_nuradio_efield_to_obs(
                 observer.get_trace(),
                 observer.get_times(),
-                zenith,
-                azimuth,
-                B_vec
+                zenith_NNR,
+                azimuth_NNR,
+                B_vec_NNR
             )
             
             data_set = observers_grp.create_dataset(dataset_name, data=efield_corsika)
