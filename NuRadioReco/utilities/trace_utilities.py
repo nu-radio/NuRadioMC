@@ -32,6 +32,7 @@ conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilo
 # see Phys. Rev. D DOI: 10.1103/PhysRevD.93.122005
 # to convert V**2/m**2 * s -> J/m**2 -> eV/m**2
 
+
 def get_efield_antenna_factor(*args, **kwargs):
     warnings.warn("get_efield_antenna_factor is moved to NuRadioReco.utilities.signal_processing.get_efield_antenna_factor", DeprecationWarning)
     return signal_processing.get_efield_antenna_factor(*args, **kwargs)
