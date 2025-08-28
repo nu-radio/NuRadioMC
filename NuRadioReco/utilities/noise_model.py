@@ -116,6 +116,7 @@ class NoiseModel:
             spectra = self._calculate_spectra_from_data(data)
             covariance_matrices = self._calculate_covariance_matrices_from_data(data)
             self._set_covariance_matrices(covariance_matrices, spectra)
+        self.Vrms = np.std(data, axis=(0,2))
     
 
     def _set_covariance_matrices(self, cov, spectra, cov_inv=None):
@@ -898,7 +899,7 @@ class NoiseModel:
 
         self._set_covariance_matrices(covariance_matrices, spectra)
 
-    def calculate_fisher_information_matrix(self, signal_function, paramters_x0, dx, frequency_domain=False):
+    def calculate_fisher_information_matrix(self, signal_function, paramters_x0, dx, frequency_domain=False, ignore_parameters=[]):
         """
         Calculate Fisher information matrix for a set of parameter values (paramters_x0) which generates a signal using the covariance matrices of the noise. 
 
@@ -912,6 +913,9 @@ class NoiseModel:
                 Finite differences to use when calculating derivatives of signal_function with respect to the parameters
             frequency_domain : bool, optional
                 If True, calculate the Fisher information matrix in the frequency domain.
+            ignore_parameters : list, optional
+                List of parameters indicies of signal_function to ignore when calculating the Fisher information matrix, e.g. [2, 5]. The method then
+                returns a lower dimensional (len(paramters_x0) - len(ignore_parameters)) Fisher information matrix.
 
         Returns
         -------
@@ -919,21 +923,24 @@ class NoiseModel:
                 Fisher information matrix for the parameters given the noise model
 
         """
-        n_parameters = len(paramters_x0)
+        n_parameters = len(paramters_x0) - len(ignore_parameters)
 
         # Calculate derivatives:
         derivatives = np.zeros([n_parameters, self.n_antennas, self.n_samples])
         derivatives_fft = np.zeros([n_parameters, self.n_antennas, self.n_frequencies])
         signal_0 = signal_function(paramters_x0)
+        i_skipped = 0
         for i in range(n_parameters):
+            if i in ignore_parameters:
+                i_skipped += 1
             paramters_x1 = np.copy(paramters_x0)
-            paramters_x1[i] = paramters_x0[i] + dx[i]
-            derivatives[i,:,:] = (signal_function(paramters_x1) - signal_0)/dx[i]
+            paramters_x1[i+i_skipped] = paramters_x0[i+i_skipped] + dx[i+i_skipped]
+            derivatives[i,:,:] = (signal_function(paramters_x1) - signal_0) / dx[i+i_skipped]
             if frequency_domain:
                 derivatives_fft[i,:,:] = fft.time2freq(derivatives[i,:,:], self.sampling_rate)
         
         # Calculate Fisher information matrix
-        fisher_information_matrix = np.zeros([n_parameters,n_parameters])
+        fisher_information_matrix = np.zeros([n_parameters, n_parameters])
         for i in range(n_parameters):
             for j in range(n_parameters):
                 for k in range(self.n_antennas):
@@ -1081,17 +1088,17 @@ class NoiseModel:
         if make_new_figure:
             plt.figure(figsize=[4.2,3])
 
-        plt.hist(-2*LLH_array, bins=int(n_datasets/20), histtype="step", color="b", label=str(n_datasets) + " datasets", density=True)
+        hist = plt.hist(-2*LLH_array, bins=np.arange(0, max(-2*LLH_array)+1, 15), histtype="step", color="b", label=str(n_datasets) + " datasets", density=False)
 
         axis = plt.axis()
 
         chi2 = scp.stats.chi2
         x = np.linspace(n_dof * 0.1, n_dof * 10, 10000)
-        plt.plot(x, chi2.pdf(x, n_dof), "r-", alpha=0.6, label="chi2, dof = "+str(n_dof))
+        plt.plot(x, chi2.pdf(x, n_dof) * len(LLH_array) * (hist[1][1] - hist[1][0]), "r-", alpha=0.6, label="chi2, dof = "+str(n_dof))
 
         plt.axis([np.min([axis[0], n_dof * 0.9]), np.max([axis[1], n_dof * 1.2]), axis[2], axis[3]])
 
         plt.xlabel(f"$-2\Delta LLH$")
-        plt.ylabel("Density")
+        plt.ylabel("Counts")
         plt.legend(loc=1)
         plt.tight_layout()
