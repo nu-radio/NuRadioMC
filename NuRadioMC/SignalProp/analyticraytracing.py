@@ -418,7 +418,7 @@ class ray_tracing_2D(ray_tracing_base):
                 self.__logger.info('Using C++ raytracer')
         else:
             if use_cpp:
-				msg = ('C++ raytracer was explicitly requested, but is not available (i.e. on-the-fly compilation failed). '
+                msg = ('C++ raytracer was explicitly requested, but is not available (i.e. on-the-fly compilation failed). '
 					   'Abort.... ! Either fix the compilation or set use_cpp to False. '
 					   'For compilation see NuRadioMC/SignalProp/install.sh resp. NuRadioMC/SignalProp/CPPAnalyticRayTracing.')
                 self.__logger.error(msg)
