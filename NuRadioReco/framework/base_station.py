@@ -10,11 +10,8 @@ import datetime
 import astropy.time
 import logging
 import collections
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 
 logger = logging.getLogger('NuRadioReco.BaseStation')
 
@@ -22,7 +19,9 @@ logger = logging.getLogger('NuRadioReco.BaseStation')
 class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
     def __init__(self, station_id):
-        super().__init__(parameters.stationParameters)
+        super().__init__(
+            [parameters.stationParameters, parameters.stationParametersRNOG,
+             parameters.ARIANNAParameters])
         self._station_id = station_id
         self._station_time = None
         self._triggers = collections.OrderedDict()
@@ -290,7 +289,7 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
             'electric_fields': efield_pkls
         })
 
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

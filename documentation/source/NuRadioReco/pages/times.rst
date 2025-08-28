@@ -93,10 +93,6 @@ We list all relevant modules that are used for a MC simulation and reconstructio
     * unfolds amplifier -> also implies a time delay in the channel trace
     * cable delay is subtracted from the trace start time (due to the limited trace length, the trace is not rolled to account for cable delays)
 
-* `NuRadioReco.modules.triggerTimeAdjuster`
-    * ``sim_to_data`` mode: This modules cuts the trace to the correct length (as specified in the detector description) around the trigger time with a pre-trigger time as defined by the respective trigger module. In the case of multiple triggers it used the primary trigger. If no primary trigger is defined, it uses the trigger with the earliest trigger time. In the end, the `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` is set to the trigger time. This is done because this reflects what raw experimental data looks like.
-    * ``data_to_sim`` mode: The module determines the trigger that was used to cut the trace to its current length (the 'sim_to_data' step above in case of simulations) and adjusts the `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` according to the different readout delays. The "primary trigger" defines the readout delays. **After** applying this module in the "data_to_sim" direction, the position in the trace that caused the trigger can be found via the `trigger_time <NuRadioReco.framework.trigger.Trigger.get_trigger_time>`.
-
 * `NuRadioReco.modules.channelStopFilter`: this module prepends and appends all channels with a fixed length (128ns by default).
   The 'prepend' time is subtracted from the trace start time (because all channels get the same time delay).
   It additionally applies a tukey window to taper off the start and end (by default, the first and last 5%) of the trace.
@@ -104,3 +100,14 @@ We list all relevant modules that are used for a MC simulation and reconstructio
 * `NuRadioReco.modules.voltageToEfieldConverter`:
     * the traces from all used channels are cut to the overlapping region (including delays due to geometry and differences in delays due to different group delays in hardware, e.g. different antenna/amplifier responses)
     * the E-field `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` is set accordingly
+
+* `NuRadioReco.modules.channelReadoutWindowCutter`:
+    * Cuts out the readout windows from simulated traces according to the `trigger_time`, `pre_trigger_time`, and `number_of_samples` (i.e., length of trace) parameters.
+
+* NuRadioReco.modules.triggerTimeAdjuster (deprecated):
+
+  .. warning::
+    This module is now deprecated. It was replaced by the `NuRadioReco.modules.channelReadoutWindowCutter` module for simulation (doing essential what the mode ``sim_to_data`` did with the notable difference that it sets the trace start time to ``trigger_time - pre_trigger_time``). The mode ``data_to_sim`` is not needed anymore, i.e., the experiment specific IO modules have to make sure that the trace start time is set correctly.
+
+  * ``sim_to_data`` mode: This modules cuts the trace to the correct length (as specified in the detector description) around the trigger time with a pre-trigger time as defined by the respective trigger module. In the case of multiple triggers it used the primary trigger. If no primary trigger is defined, it uses the trigger with the earliest trigger time. In the end, the `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` is set to the trigger time. This is done because this reflects what raw experimental data looks like.
+  * ``data_to_sim`` mode: The module determines the trigger that was used to cut the trace to its current length (the 'sim_to_data' step above in case of simulations) and adjusts the `trace_start_time <NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time>` according to the different readout delays. The "primary trigger" defines the readout delays. **After** applying this module in the "data_to_sim" direction, the position in the trace that caused the trigger can be found via the `trigger_time <NuRadioReco.framework.trigger.Trigger.get_trigger_time>`.

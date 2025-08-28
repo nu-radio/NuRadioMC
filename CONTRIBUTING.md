@@ -20,7 +20,7 @@ Best, if you provide us with a minimal working example that reproduces the probl
 If you work with NuRadioMC/Reco and you encounter a problem that you CAN solve, 
 please provide your fix in a new branch and make a pull request.
 
-We work with continous integration, so you will immediately see, whether your code causes problems or changes previous results. Still, this is no guarantee for correctnes, so we appreciate thourough checking and the addition of new tests. 
+We work with continous integration, so you will immediately see, whether your code causes problems or changes previous results. Still, this is no guarantee for correctness, so we appreciate thorough checking and the addition of new tests.
 
 The core team of developers will review your pull request as soon as possible and provide feedback. 
 Once approved, you can merge your code into the develop branch and delete the branch. Allow for at least 24h review time between the last change (commit) and the merge even if the pull request was approved quickly to allow for additional comments or concerns.

@@ -18,7 +18,8 @@ from NuRadioMC.SignalGen import askaryan, emitter as emitter_signalgen
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.simulation.output_writer_hdf5 import outputWriterHDF5
-from NuRadioReco.utilities import units
+
+from NuRadioReco.utilities import units, signal_processing, trace_utilities
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 import NuRadioReco.modules.io.eventWriter
@@ -29,7 +30,7 @@ import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.triggerTimeAdjuster
+import NuRadioReco.modules.channelReadoutWindowCutter
 
 from NuRadioReco.detector import detector, antennapattern
 import NuRadioReco.framework.sim_station
@@ -59,7 +60,7 @@ channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.chan
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
+channelReadoutWindowCutter = NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter()
 
 
 def merge_config(user, default):
@@ -517,7 +518,7 @@ def apply_det_response_sim(
         detector_simulation_filter_amp(evt, sim_station, det)
 
     if config['speedup']['amp_per_ray_solution']:
-        channelSignalReconstructor.run(evt, sim_station, det)
+        _calculate_amp_per_ray_solution(sim_station)
 
     if time_logger is not None:
         time_logger.stop_time('detector response (sim)')
@@ -582,7 +583,7 @@ def apply_det_response(
     station = evt.get_station()  # will raise an error if there are more than one station, but this should never happen
     # convert efields to voltages at digitizer
     if detector_simulation_part2 is not None:
-        detector_simulation_part2(evt, station, det)
+        detector_simulation_part2(evt, station, det, add_noise=add_noise)
     else:
         dt = 1. / (config['sampling_rate'])
         # start detector simulation
@@ -590,10 +591,6 @@ def apply_det_response(
         # convolve efield with antenna pattern and add cable delay (this is also done in the efieldToVoltageConverter
         # (unlike the efieldToVoltageConverterPEREFIELD))
         efieldToVoltageConverter.run(evt, station, det, channel_ids=channel_ids)
-
-        # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
-        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
-        channelResampler.run(evt, station, det, sampling_rate=1. / dt)
 
         if add_noise:
             max_freq = 0.5 / dt
@@ -788,12 +785,12 @@ def get_config(config_file):
         the configuration dictionary
     """
     config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
-    logger.status('reading default config from %s', config_file_default)
+    logger.debug('Reading default config from %s', config_file_default)
     with open(config_file_default, 'r', encoding="utf-8") as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
 
     if config_file is not None:
-        logger.status('reading local config overrides from %s', config_file)
+        logger.status('Reading local config overrides from %s', config_file)
         with open(config_file, 'r', encoding="utf-8") as ymlfile:
             local_config = yaml.load(ymlfile, Loader=yaml.FullLoader)
             new_cfg = merge_config(local_config, cfg)
@@ -995,7 +992,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
             if shower_id not in shower_ids_of_sub_event:
                 shower_ids_of_sub_event.append(shower_id)
             sim_station.add_channel(tmp_sim_station.get_channel(ch_uid))
-            efield_uid = ([ch_uid[0]], ch_uid[1], ch_uid[2])  # the efield unique identifier has as first parameter an array of the channels it is valid for
+            efield_uid = (tuple([ch_uid[0]]), ch_uid[1], ch_uid[2])  # the efield unique identifier has as first parameter an array of the channels it is valid for
             for efield in tmp_sim_station.get_electric_fields():
                 if efield.get_unique_identifier() == efield_uid:
                     sim_station.add_electric_field(efield)
@@ -1108,7 +1105,7 @@ class simulation:
             file_overwrite=False,
             write_detector=True,
             event_list=None,
-            log_level_propagation=logging.WARNING,
+            log_level_propagation=LOGGING_STATUS,
             ice_model=None,
             trigger_channels = None,
             **kwargs):
@@ -1168,11 +1165,13 @@ class simulation:
 
         self.__trigger_channel_ids = trigger_channels
         if self.__trigger_channel_ids is None:
-            logger.warning("No trigger channels specified. All channels will be simulated even if they don't contribute to any trigger. "
-                        "This can be inefficient. Processing time can be saved by specifying the trigger channels.")
+            logger.warning(
+                "No trigger channels specified. All channels will be simulated even if they don't contribute to any trigger. "
+                "This can be inefficient. Processing time can be saved by specifying the trigger channels.")
+
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
-        self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
+        self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger, update_interval=60)  # sec
 
         self._config = get_config(config_file)
         if self._config['seed'] is None:
@@ -1194,7 +1193,6 @@ class simulation:
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._evt_time = evt_time
         self.__write_detector = write_detector
-        logger.status("setting event time to {}".format(evt_time))
         self._event_group_list = event_list
 
         # initialize detector simulation modules
@@ -1248,15 +1246,22 @@ class simulation:
             self._ice,
             log_level=self._log_level_ray_propagation,
             config=self._config,
-            detector=self._det
+            detector=self._det,
+            use_cpp=kwargs.get('use_cpp', True),
         )
 
         self._station_ids = self._det.get_station_ids()
         self._event_ids_counter = {station_id: -1 for station_id in self._station_ids} # we initialize with -1 becaue we increment the counter before we use it the first time
 
-        # print noise information
-        logger.status("running with noise {}".format(bool(self._config['noise'])))
-        logger.status("setting signal to zero {}".format(bool(self._config['signal']['zerosignal'])))
+
+        logger.status(
+            f"\n\tSetting event time to {evt_time}"
+            f"\n\tSimulating noise: {bool(self._config['noise'])}"
+            )
+
+        if bool(self._config['signal']['zerosignal']):
+            logger.status("Setting signal to zero!")
+
         if bool(self._config['propagation']['focusing']):
             logger.status("simulating signal amplification due to focusing of ray paths in the firn.")
 
@@ -1266,7 +1271,7 @@ class simulation:
             # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
             self._fin, self._fin_stations, self._fin_attrs = read_input_hdf5(inputfilename)
         else:
-            logger.status("getting input on-the-fly")
+            logger.status("Generating neutrion interactions on-the-fly")
             self._inputfilename = "on-the-fly"
             self._fin = inputfilename[0]
             self._fin_attrs = inputfilename[1]
@@ -1340,67 +1345,62 @@ class simulation:
             else:
                 self._noise_temp = float(noise_temp)
                 logger.status(f"Use a noise temperature of {noise_temp / units.kelvin:.1f} K for each channel to determine noise Vrms.")
-
-            self._noiseless_channels = collections.defaultdict(list)
-            for station_id in self._integrated_channel_response:
-                for channel_id in self._integrated_channel_response[station_id]:
-                    if self._noise_temp is None:
-                        noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
-                    else:
-                        noise_temp_channel = self._noise_temp
-
-                    if self._det.is_channel_noiseless(station_id, channel_id):
-                        self._noiseless_channels[station_id].append(channel_id)
-
-                    # Calculation of Vrms. For details see from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
-                    # (last two Eqs. in "noise voltage and power" section) or our wiki https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
-
-                    # Bandwidth, i.e., \Delta f in equation
-                    integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
-                    max_amplification = self._max_amplification_per_channel[station_id][channel_id]
-
-                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
-                    self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / max_amplification / units.m  # VEL = 1m
-
-                    # for logging
-                    mean_integrated_response = self._integrated_channel_response_normalization[station_id][channel_id]
-
-                    logger.status(f'Station.channel {station_id}.{channel_id:02d}: noise temperature = {noise_temp_channel} K, '
-                                  f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
-                                  f'max. filter amplification = {max_amplification:.2e} '
-                                  f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz -> Vrms = '
-                                  f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.2f} mV -> efield Vrms = '
-                                  f'{self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
-
-            self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
-
         elif Vrms is not None:
             self._Vrms = float(Vrms) * units.V
             self._noise_temp = None
             logger.status(f"Use a fix noise Vrms of {self._Vrms / units.mV:.2f} mV in each channel.")
-
-            for station_id in self._integrated_channel_response:
-                for channel_id in self._integrated_channel_response[station_id]:
-                    max_amplification = self._max_amplification_per_channel[station_id][channel_id]
-                    self._Vrms_per_channel[station_id][channel_id] = self._Vrms  # to be stored in the hdf5 file
-                    self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms / max_amplification / units.m  # VEL = 1m
-
-                    # for logging
-                    integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
-                    mean_integrated_response = self._integrated_channel_response_normalization[station_id][channel_id]
-
-                    logger.status(f'Station.channel {station_id}.{channel_id:02d}: '
-                                  f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
-                                  f'max. filter amplification = {max_amplification:.2e} '
-                                  f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz ->'
-                                  f'efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
-
         else:
             raise AttributeError("noise temperature and Vrms are both set to None")
 
+        status_message = (
+            '\nStation.channel | noise temperature | est. bandwidth | max. amplification | '
+            'integrated response | noise Vrms | efield Vrms (assuming VEL = 1m)')
+
+        self._noiseless_channels = collections.defaultdict(list)
+        for station_id in self._integrated_channel_response:
+            for channel_id in self._integrated_channel_response[station_id]:
+                if self._noise_temp is None and Vrms is None:
+                    noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
+                else:
+                    noise_temp_channel = self._noise_temp
+
+                if self._det.is_channel_noiseless(station_id, channel_id):
+                    self._noiseless_channels[station_id].append(channel_id)
+
+                # Calculation of Vrms. For details see from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
+                # (last two Eqs. in "noise voltage and power" section) or our wiki https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
+
+                # Bandwidth, i.e., \Delta f in equation
+                integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
+                max_amplification = self._max_amplification_per_channel[station_id][channel_id]
+
+                if Vrms is None:
+                    vrms_per_channel = signal_processing.calculate_vrms_from_temperature(noise_temp_channel, bandwidth=integrated_channel_response)
+                else:
+                    vrms_per_channel = self._Vrms
+
+                self._Vrms_per_channel[station_id][channel_id] = vrms_per_channel
+                self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / max_amplification / units.m  # VEL = 1m
+
+                # for logging
+                mean_integrated_response = self._integrated_channel_response_normalization[station_id][channel_id]
+
+                status_message += (
+                    f'\n   {station_id: 4d}.{channel_id:02d}      |      {noise_temp_channel}  K     | '
+                    f'  {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz   | '
+                    f'     {max_amplification:8.2f}      | '
+                    f'    {integrated_channel_response / units.MHz:.2e} MHz    | '
+                    f' {self._Vrms_per_channel[station_id][channel_id] / units.mV:5.2f} mV  | '
+                    f'      {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f} muV/m')
+
+        logger.status(status_message)
+
+        self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
         self._Vrms_efield = next(iter(next(iter(self._Vrms_efield_per_channel.values())).values()))
+
         speed_cut = float(self._config['speedup']['min_efield_amplitude'])
-        logger.status(f"All stations where all efields from all showers have amplitudes of less then {speed_cut:.1f} x Vrms_efield will be skipped.")
+        logger.status("All stations where all efields from all showers have amplitudes of less then "
+                      f"{speed_cut:.1f} x Vrms_efield will be skipped.")
 
         # define function for distance speedup cut
         self._get_distance_cut = None
@@ -1416,11 +1416,15 @@ class simulation:
             self._get_distance_cut = get_distance_cut
 
         particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
-        self._output_writer_hdf5 = outputWriterHDF5(self._outputfilename, self._config, self._det, self._station_ids,
-                                                    self._propagator.get_number_of_raytracing_solutions(),
-                                                    particle_mode=particle_mode)
+        self._output_writer_hdf5 = outputWriterHDF5(
+            self._outputfilename, self._config, self._det, self._station_ids,
+            self._propagator.get_number_of_raytracing_solutions(),
+            particle_mode=particle_mode)
 
-        efieldToVoltageConverter.begin(time_resolution=self._config['speedup']['time_res_efieldconverter'])
+        # For neutrino simulations caching the VEL is not useful as it is unlikely that a electric field has the
+        # identical arrival direction at an antenna twice. On the other side the trace lengths vary from event to
+        # event which requires the clear the cache very often.
+        efieldToVoltageConverter.begin(caching=False)
         channelGenericNoiseAdder.begin(seed=self._config['seed'])
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
@@ -1439,6 +1443,8 @@ class simulation:
         logger.status("Starting NuRadioMC simulation")
         self.__time_logger.reset_times()
 
+        i_triggered_events = 0 # counter for triggered events
+
         particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
         event_group_ids = np.array(self._fin['event_group_ids'])
         unique_event_group_ids = np.unique(event_group_ids)
@@ -1453,10 +1459,12 @@ class simulation:
 
         # loop over event groups
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
-            logger.debug(f"simulating event group id {event_group_id}")
             if self._event_group_list is not None and event_group_id not in self._event_group_list:
-                logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
+                logger.debug(f"Skipping event group {event_group_id} because it is not in the event "
+                             "group list provided to the __init__ function")
                 continue
+
+            logger.debug(f"Simulating event group id {event_group_id}")
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(event_group_ids == event_group_id)))
 
             self.__time_logger.show_time(len(unique_event_group_ids), i_event_group_id)
@@ -1594,7 +1602,7 @@ class simulation:
                     if not evt.get_station().has_triggered():
                         continue
 
-                    triggerTimeAdjuster.run(evt, station, self._det)
+                    channelReadoutWindowCutter.run(evt, station, self._det)
                     evt_group_triggered = True
                     output_buffer[station_id][evt.get_id()] = evt
                 # end event loop
@@ -1608,7 +1616,7 @@ class simulation:
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
                 non_trigger_channels = list(set(self._det.get_channel_ids(station_id)) - set(channel_ids))
                 if len(non_trigger_channels):
-                    logger.status(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
+                    logger.debug(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
                         if particle_mode:
                             sim_station = calculate_sim_efield(
@@ -1636,6 +1644,7 @@ class simulation:
                                         f"{len(sim_station.get_electric_fields())} efields, skipping to next channel")
                             continue
 
+
                         # applies the detector response to the electric fields (the antennas are defined
                         # in the json detector description file)
                         apply_det_response_sim(
@@ -1646,21 +1655,23 @@ class simulation:
                         logger.debug(f"Adding sim_station to station {station_id} for event group "
                                      f"{event_group.get_run_number()}, channel {channel_id}")
                         station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
-                        for evt in output_buffer[station_id].values():
-                            # determine the trigger that was used to determine the readout window
 
+                        # The non-triggered channels were simulated using the efieldToVoltageConverterPerEfield
+                        # (notice the "PerEfield" in the name). This means that each electric field was converted to
+                        # a sim channel. Now we still have to add together all sim channels associated with one "physical"
+                        # channel. Furthermore we have to cut out the correct readout window. For the trigger channels
+                        # this is done with the channelReadoutWindowCutter, here we have to do it manually.
+                        for evt in output_buffer[station_id].values():
                             for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
                                 if not station.has_channel(sim_channel.get_id()):
-                                    # add empty channel with the correct length and time if it doesn't exist yet.
+                                    # For each physical channel we first create a "empty" trace (all zeros)
+                                    # with the start time and length ....
                                     self._add_empty_channel(station, channel_id)
 
-                                # Add the sim_channel to the station channel:
                                 channel = station.get_channel(sim_channel.get_id())
-                                # we need to account for the pre trigger time of the trigger that was used to determine the readout window
-                                pre_trigger_time = station.get_primary_trigger().get_pre_trigger_time_channel(channel_id)
-                                sim_channel_copy = copy.deepcopy(sim_channel)
-                                sim_channel_copy.set_trace_start_time(sim_channel.get_trace_start_time() + pre_trigger_time)
-                                channel.add_to_trace(sim_channel_copy)
+                                # ... and now add the sim channel to the correct window defined by the "empty trace"
+                                # At this point the traces are noiseless, hence, we do not have to raise an error.
+                                channel.add_to_trace(sim_channel, raise_error=False)
 
                 for evt in output_buffer[station_id].values():
                     station = evt.get_station()
@@ -1671,7 +1682,7 @@ class simulation:
                         if not station.has_channel(channel_id):
                             self._add_empty_channel(station, channel_id)
 
-                    # the only thing left is to add noise to the non-trigger traces
+                    # The only thing left is to add noise to the non-trigger traces
                     # we need to do it a bit differently than for the trigger traces,
                     # because we need to add noise to traces where the amplifier response
                     # was already applied to.
@@ -1680,6 +1691,8 @@ class simulation:
 
                     channelSignalReconstructor.run(evt, station, self._det)
                     self._set_event_station_parameters(evt)
+
+                    i_triggered_events += 1 # count the number of triggered events
 
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size
@@ -1725,6 +1738,8 @@ class simulation:
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
+        return i_triggered_events
+
     def add_filtered_noise_to_channels(self, evt, station, channel_ids):
         """
         Add noise to the traces of the channels in the event.
@@ -1755,13 +1770,10 @@ class simulation:
 
     def _add_empty_channel(self, station, channel_id):
         """ Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time """
-        channel = NuRadioReco.framework.channel.Channel(channel_id)
-        n_samples = int(round(self._det.get_number_of_samples(station.get_id(), channel_id))
-                        * self._config['sampling_rate'] / self._det.get_sampling_frequency(station.get_id(), channel_id))
-        channel.set_trace(np.zeros(n_samples), self._config['sampling_rate'])
-        # we need to use any other channel to get the correct trace_start_time. All channels have the same start time at the end
-        # of the simulation.
-        channel.set_trace_start_time(station.get_channel(station.get_channel_ids()[0]).get_trace_start_time())
+        trigger = station.get_primary_trigger()
+        channel = NuRadioReco.modules.channelReadoutWindowCutter.get_empty_channel(
+            station.get_id(), channel_id, self._det, trigger, self._config['sampling_rate'])
+
         station.add_channel(channel)
 
     def _set_event_station_parameters(self, evt):
@@ -1865,3 +1877,23 @@ class simulation:
     @integrated_channel_response.setter
     def integrated_channel_response(self, value):
         self._integrated_channel_response = value
+
+def _calculate_amp_per_ray_solution(station):
+    """ Calculate the max amplitude and time of the ray solutions
+
+    Instead of using the channelSignalReconstructor module which calculates
+    these parameters (and may more) too, we use this function to save time
+    (the other parameters calculated by the channelSignalReconstructor
+    are not used/saved by the simulation.py).
+
+    Parameters
+    ----------
+    station : NuRadioReco.framework.sim_station.SimStation
+        the station object
+    """
+    for channel in station.iter_channels():
+        times = channel.get_times()
+        trace = channel.get_trace()
+        h = trace_utilities.get_hilbert_envelope(trace)
+        channel[chp.signal_time] = times[np.argmax(h)]
+        channel[chp.maximum_amplitude_envelope] = h.max()

@@ -2,8 +2,10 @@ from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
+import NuRadioReco.framework.parameters
 from six import iteritems
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 import logging
 import collections
 logger = logging.getLogger('NuRadioReco.Station')
@@ -13,6 +15,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def __init__(self, station_id):
         NuRadioReco.framework.base_station.BaseStation.__init__(self, station_id)
+        self.add_parameter_type(NuRadioReco.framework.parameters.ARIANNAParameters)
         self.__channels = collections.OrderedDict()
         self.__reference_reconstruction = 'RD'
         self.__sim_station = None
@@ -280,7 +283,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
                 'base_station': base_station_pkl,
                 'sim_station': sim_station_pkl}
 
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

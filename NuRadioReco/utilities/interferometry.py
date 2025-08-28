@@ -1,8 +1,20 @@
+"""
+This module contains helper functions for beam-forming. Originally for the module(s) in
+modules/efieldRadioInterferometricReconstruction.py. The functions with the abbriviation
+"rit" or "RIT" in their name refer to the "Radio Interferometric Technique" [1, 2].
+
+[1]: H. Schoorlemmer, W. R. Carvalho Jr., arXiv:2006.10348
+[2]: F. Schlueter, T. Huege, doi:10.1088/1748-0221/16/07/P07048
+"""
+
 import numpy as np
 import sys
 from scipy import signal, constants
 from radiotools import helper as hp
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.geometryUtilities import get_time_delay_from_direction
+import warnings
+
 
 # to convert V**2/m**2 * ns -> V**2/m**2 * s -> J/m**2 -> eV/m**2
 conversion_factor_integrated_signal = 1 / units.s * \
@@ -128,7 +140,7 @@ def interfere_traces_plane(positions, traces, times, zenith, azimuth, n0=1.00029
     sum_trace : np.array(n, m)
         Summed trace
     """
-    tshifts = get_time_shifts_plane(positions, zenith, azimuth, n0)
+    tshifts = get_time_delay_from_direction(zenith, azimuth, positions, n0)
     times_new = times - tshifts[:, None]
     return interfere_traces_interpolation(traces, times_new)
 
@@ -231,26 +243,9 @@ def get_time_shifts_plane(positions, zenith, azimuth, n0):
     tshifts : np.array(n,)
         Time delay for n observers
     """
-    # Rotation around z-axis -> shower axis (projected on ground) along the y-axis
-    c = np.cos(-azimuth + np.pi / 2)
-    s = np.sin(-azimuth + np.pi / 2)
-    e1 = np.matrix([[c, -s, 0],
-                    [s, c, 0],
-                    [0, 0, 1]])
-
-    # Rotation around x-axis -> rotation into "shower plane"
-    c = np.cos(-zenith)
-    s = np.sin(-zenith)
-    e2 = np.matrix([[1, 0, 0],
-                    [0, c, -s],
-                    [0, s, c]])
-
-    rotation_matrix = np.matmul(e2, e1)
-
-    pos_sp = np.squeeze(np.asarray(np.dot(rotation_matrix, positions.T)))
-    tshifts = pos_sp[2] / (constants.c / n0)  # n0 is the refractivity at observation level
-
-    return tshifts * units.s
+    warnings.warn(
+        "get_time_shifts_plane() is deprecated. Use `geometryUtilities.get_time_delay_from_direction()` instead.", DeprecationWarning)
+    return get_time_delay_from_direction(zenith=zenith, azimuth=azimuth, positions=positions, n=n0)
 
 
 def fit_axis(z, theta, phi, coreX, coreY):

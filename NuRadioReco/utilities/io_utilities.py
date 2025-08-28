@@ -1,10 +1,86 @@
-import pickle
-import logging
+"""
+IO utilities for NuRadioReco/NuRadioMC
 
+This module provides some pickling functions to allow
+for faster, numpy 2 cross-compatible pickled numpy arrays. This mostly happens
+'internally', so end users normally do not need to use this module.
+
+"""
+
+import pickle
+import copyreg
+import numpy as np
+import io
+from ._fastnumpyio import pack, unpack # these are essentially faster alternatives for np.load/save
+import logging
 import datetime
 import astropy.time
 
 logger = logging.getLogger('NuRadioReco.utilities.io_utilities')
+
+# we overwrite the default pickling mechanism for numpy arrays
+# and scalars. We store arrays using custom, faster versions of np.save/np.load,
+# and scalars by explicit casting to built-in Python types
+# (note that this upcasts some types, e.g. np.float32 to float)
+# This allows to maintain compatibility across numpy 2.0
+
+def _pickle_numpy_array(arr):
+    return _unpickle_numpy_array, (pack(arr),)
+
+def _unpickle_numpy_array(data):
+    return unpack(data)
+
+def _pickle_numpy_scalar(i):
+    """Convert a numpy scalar to its pure Python equivalent"""
+    if isinstance(i, np.floating):
+        return float, (float(i),)
+    elif isinstance(i, np.integer):
+        return int, (int(i),)
+    elif isinstance(i, np.complexfloating):
+        return complex, (complex(i),)
+    elif isinstance(i, np.bool_):
+        return bool, (bool(i),)
+    elif isinstance(i, np.str_):
+        return str, (str(i),)
+    elif isinstance(i, np.bytes_):
+        return bytes, (bytes(i),)
+    else:
+        raise TypeError(f"Unsupported type of numpy scalar {i} (type {type(i)})")
+
+class _NurPickler(pickle.Pickler):
+    """
+    Custom pickler class that overwrites the pickling of numpy objects
+
+    This class is used to overwrite the pickling mechanism
+    of numpy arrays and scalars for better IO compatibility,
+    as directly pickled numpy arrays are not read-compatible
+    between numpy versions ``<2`` ``>=2``.
+    """
+    dispatch_table = copyreg.dispatch_table.copy()
+    # the __reduce__ methods are overwritten by pickle.dispatch_table
+    # see https://docs.python.org/3/library/pickle.html#pickle.Pickler.dispatch_table
+    dispatch_table[np.ndarray] =  _pickle_numpy_array
+
+    # there are multiple numpy scalar types (float64, float32 etc.)
+    # we overwrite the pickling __reduce__ for all of them
+    # note that this might upcast in some cases
+    for dtype in np.ScalarType:
+        if dtype.__module__ == 'numpy':
+            dispatch_table[dtype] = _pickle_numpy_scalar
+
+def _dumps(obj, protocol=None, *, fix_imports=True, **kwargs):
+    """
+    Return the pickled representation of the object as a bytes object.
+
+    This is a copy of the standard `pickle.dumps` implementation,
+    but uses the custom `_NurPickler` class for pickling instead of the
+    global pickling mechanism. Currently, this affects only the pickling
+    of numpy objects.
+    """
+    f = io.BytesIO()
+    _NurPickler(f, protocol, fix_imports=fix_imports, **kwargs).dump(obj)
+    res = f.getvalue()
+    return res
 
 
 def read_pickle(filename, encoding='latin1'):
