@@ -28,7 +28,6 @@ import astropy.time
 
 import logging
 logger = logging.getLogger("NuRadioReco.MongoDBRead")
-logger.setLevel(logging.INFO)
 
 
 def _convert_astro_time_to_datetime(time_astro):
@@ -138,6 +137,8 @@ class Database(object):
         self.__get_collection_names = None
 
         self.__station_collection = "station_rnog"
+
+        self.__digitizer_collection = "digitizer_configuration"
 
 
     def set_database_time(self, time):
@@ -266,6 +267,40 @@ class Database(object):
                 break
 
         return infos
+    
+
+    def get_digitizer_configuration(self, config_id):
+        """ Get digitizer configuration from the database. Access information in the digitizer collection.
+
+        Parameters
+        ----------
+
+        config_id: int
+            Identifier to get the correct configuration
+
+        Returns
+        -------
+
+        config: dict
+        """
+
+        # filter to get the correct configuration
+        filter = [{"$match": {'id': config_id}}]
+
+        # query the configuration from the database
+        config = list(self.db[self.__digitizer_collection].aggregate(filter))
+
+        if len(config) > 1:
+            err = f"Found to many digitizer configurations (f{len(config)}) for: config_id = {config_id}"
+            logger.error(err)
+            raise ValueError(err)
+        elif len(config) == 0:
+            err = f"Found no digitizer configuration for: config_id = {config_id}"
+            logger.error(err)
+            raise ValueError(err)
+        
+        return config[0]
+
 
     @_check_database_time
     def get_general_station_information(self, station_id):
@@ -330,6 +365,15 @@ class Database(object):
         for key in ['channels', 'devices']:
             if key not in station_info[station_id].keys():
                 station_info[station_id][key] = {}
+
+        # load the signal / trigger digitizer configuration
+        for digitizer_type in ["signal", "trigger"]:
+            # get the correct key for the dict
+            digitizer_key = digitizer_type + "_digitizer_config"
+            
+            # get the id and load the information from the digitizer collection
+            digitizer_id = station_info[station_id][digitizer_key]
+            station_info[station_id][digitizer_key] = self.get_digitizer_configuration(config_id=digitizer_id)
 
         return station_info
 

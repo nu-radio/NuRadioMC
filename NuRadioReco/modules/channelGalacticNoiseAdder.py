@@ -1,21 +1,28 @@
-from NuRadioReco.utilities import units, ice, geometryUtilities
+from NuRadioReco.utilities import units, ice, geometryUtilities, signal_processing, fft
 from NuRadioReco.modules.base.module import register_run
+
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 import NuRadioReco.detector.antennapattern
-import logging
+
 import warnings
+import functools
 import numpy as np
 import scipy.constants
 import scipy.interpolate
-import functools
 from contextlib import redirect_stdout
 from numpy.random import Generator, Philox
+
 import healpy
 import astropy.coordinates
 import astropy.units
 
+import logging
 logger = logging.getLogger('NuRadioReco.channelGalacticNoiseAdder')
+
+# This is the maximum number caching entries for the vector effective length and
+# noise temperature.
+maxsize = 1024
 
 try:
     from pygdsm import (
@@ -42,6 +49,7 @@ except IndexError: # this is a common error if cfitsio is not found... there are
     logger.error(
         "pylfmap import failed. This might be because you do not have a working "
         "installation of cfitsio. See https://github.com/F-Tomas/pylfmap/issues/2 for potential tips")
+
 
 class channelGalacticNoiseAdder:
     """
@@ -72,7 +80,8 @@ class channelGalacticNoiseAdder:
             freq_range=None,
             interpolation_frequencies=None,
             seed=None,
-            caching=True
+            caching=True,
+            scaling=1.0
     ):
         """
         Set up important parameters for the module
@@ -104,6 +113,11 @@ class channelGalacticNoiseAdder:
         caching: bool, default: True
             If True, the antenna response is cached for each channel. This can speed up this module
             by a lot. If the frequencies of the channels change, the cache is cleared.
+        scaling: float, default: 1.0
+            Scaling factor for the noise. This is useful when doing interferometry with extremely large arrays
+            such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas. 
+            Instead, one can use every nth antenna and scale the noise by a factor of 1/\sqrt{n} (since the SNR 
+            is expected to scale with the square root of the number of antennas when using interferomtery/beamforming).
         """
         if debug:
             warnings.warn("This argument is deprecated and will be removed in future versions.", DeprecationWarning)
@@ -113,10 +127,11 @@ class channelGalacticNoiseAdder:
         self.solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
 
         self.__caching = caching
+        self.scaling = scaling
         self.__freqs = None
-        if self.__caching and self.__n_side >= 10:
+        if self.__caching and 12 * n_side ** 2 * 2 > maxsize:
             logger.warning(
-                "Caching for the vector effective length is enabled (with `maxsize=1024`) and `n_side >= 10`, and thus "
+                f"Caching for the vector effective length is enabled (with `maxsize={maxsize}`) and `n_side={n_side}` is to large, and thus "
                 "it produces to many different caching entries for two antenna models to be stored of one `station_time`. "
                 "Either decrease `n_side` or increase `maxsize` (has to be done in the source code).")
 
@@ -164,7 +179,7 @@ class channelGalacticNoiseAdder:
         self.__noise_temperatures = np.zeros(
             (len(self.__interpolation_frequencies), healpy.pixelfunc.nside2npix(self.__n_side))
         )
-        logger.info("generating noise temperatures")
+        logger.info("Generating noise temperatures ..")
 
         # generating sky maps and noise temperatures from chosen sky model in given frequency range
         for i_freq, noise_freq in enumerate(self.__interpolation_frequencies):
@@ -172,16 +187,54 @@ class channelGalacticNoiseAdder:
             self.__radio_sky = healpy.pixelfunc.ud_grade(self.__radio_sky, self.__n_side)
             self.__noise_temperatures[i_freq] = self.__radio_sky
 
+        # We can not already interpolate the efield amplitudes because for their normalization the
+        # frequency resoltion matters.
+        self.__noise_temperature_funcs = np.array([
+            scipy.interpolate.interp1d(self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
+            for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side))
+        ])
 
-    @functools.lru_cache(maxsize=1024)
+    @functools.lru_cache(maxsize=maxsize)
     def _get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
-        """ 
-        Returns the cached antenna reponse for a given antenna patter, antenna orientation 
+        """
+        Returns the cached antenna reponse for a given antenna patter, antenna orientation
         and signal arrival direction. This wrapper is necessary as arrays and list are not
-        hashable (i.e., can not be used as arguments in functions one wants to cache). 
+        hashable (i.e., can not be used as arguments in functions one wants to cache).
         This module ensures that the cache is clearied if the vector `self.__freqs` changes.
         """
         return ant_pattern.get_antenna_response_vectorized(self.__freqs, zen, azi, *ant_orient)
+
+    @functools.lru_cache(maxsize=maxsize)
+    def _get_cached_noise_temperature_for_pixel(self, i_pixel):
+        """
+        Returns the cached electric field amplitude for a given pixel.
+        This wrapper is necessary as arrays and list are not
+        hashable (i.e., can not be used as arguments in functions one wants to cache).
+        This module ensures that the cache is clearied if the vector `self.__freqs` changes.
+        """
+        return np.power(10, self.__noise_temperature_funcs[i_pixel](self.__freqs))
+
+    def _check_cache(self, freqs):
+        # If we cache the antenna pattern / sky noise temperature, we need to make sure that the frequencies have not changed
+        # between stations. If they have, we need to clear the cache.
+        if self.__caching:
+            if self.__freqs is None:
+                self.__freqs = freqs
+            else:
+                if len(self.__freqs) != len(freqs):
+                    self.__freqs = freqs
+                    self._get_cached_antenna_response.cache_clear()
+                    self._get_cached_noise_temperature_for_pixel.cache_clear()
+                    logger.warning(
+                        "Frequencies have changed (array length). Clearing antenna response / efield cache. "
+                        "(If this happens often, something might be wrong...")
+                elif not np.allclose(self.__freqs, freqs, rtol=0, atol=0.01 * units.MHz):
+                    self.__freqs = freqs
+                    self._get_cached_antenna_response.cache_clear()
+                    self._get_cached_noise_temperature_for_pixel.cache_clear()
+                    logger.warning(
+                        "Frequencies have changed (values). Clearing antenna response / efield cache. "
+                        "(If this happens often, something might be wrong...")
 
 
     @register_run()
@@ -190,7 +243,8 @@ class channelGalacticNoiseAdder:
             event,
             station,
             detector,
-            passband=None
+            passband=None,
+            excluded_channels=None
     ):
 
         """
@@ -207,7 +261,16 @@ class channelGalacticNoiseAdder:
         passband: list of float, optional
             Lower and upper bound of the frequency range in which noise shall be
             added. The default (no passband specified) is [10, 1000] MHz
+        excluded_channels: list, default=None
+            A list containing the channels IDs to exclude per station.
+            If None, all channels of the selected station in the detector are used.
         """
+        if excluded_channels is None:
+            selected_channel_ids = station.get_channel_ids()
+            logger.debug(f"Using all channels: {selected_channel_ids}")
+        else:
+            selected_channel_ids = [channel_id for channel_id in station.get_channel_ids() if channel_id not in excluded_channels]
+            logger.debug(f"Using selected channel ids: {selected_channel_ids}")
 
         if self.__noise_temperatures is None: # check if .begin has been called, give helpful error message if not
             msg = "channelGalacticNoiseAdder was not initialized correctly. Maybe you forgot to call `.begin()`?"
@@ -216,7 +279,7 @@ class channelGalacticNoiseAdder:
 
         # check that or all channels channel.get_frequencies() is identical
         last_freqs = None
-        for channel in station.iter_channels():
+        for channel in station.iter_channels(use_channels=selected_channel_ids):
             if last_freqs is not None and (
                     not np.allclose(last_freqs, channel.get_frequencies(), rtol=0, atol=0.1 * units.MHz)):
                 logger.error("The frequencies of each channel must be the same, but they are not!")
@@ -225,26 +288,13 @@ class channelGalacticNoiseAdder:
             last_freqs = channel.get_frequencies()
 
         freqs = last_freqs
-        d_f = freqs[2] - freqs[1]
-
-        # If we cache the antenna pattern, we need to make sure that the frequencies have not changed
-        # between stations. If they have, we need to clear the cache.
-        if self.__caching:
-            if self.__freqs is None:
-                self.__freqs = freqs
-            else:
-                if not np.allclose(self.__freqs, freqs, rtol=0, atol=0.01 * units.MHz):
-                    self.__freqs = freqs
-                    self._get_cached_antenna_response.cache_clear()
-                    logger.warning(
-                        "Frequencies have changed. Clearing antenna response cache. "
-                        "(If this happens often, something might be wrong...")
-
 
         if passband is None:
             passband = [10 * units.MHz, 1000 * units.MHz]
 
         passband_filter = (freqs > passband[0]) & (freqs < passband[1])
+
+        self._check_cache(freqs[passband_filter])
 
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
         station_time = station.get_station_time()
@@ -253,10 +303,9 @@ class channelGalacticNoiseAdder:
 
         n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
         n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
-        c_vac = scipy.constants.c * units.m / units.s
 
         channel_spectra = {}
-        for channel in station.iter_channels():
+        for channel in station.iter_channels(use_channels=selected_channel_ids):
             channel_spectra[channel.get_id()] = channel.get_frequency_spectrum()
 
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
@@ -266,41 +315,36 @@ class channelGalacticNoiseAdder:
             if zenith > 90. * units.deg:
                 continue
 
-            # consider signal reflection at ice surface
-            t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, 1)
-            t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, 1)
-            fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice, 1.)
+            if n_ice != n_air: # consider signal reflection at ice surface
+                t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, n_air)
+                t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, n_air)
+                fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice, n_air)
+            else: # we are at an in-air site; no refraction
+                t_theta = 1
+                t_phi = 1
+                fresnel_zenith = zenith
 
             if fresnel_zenith is None:
                 continue
 
-            temperature_interpolator = scipy.interpolate.interp1d(
-                self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
-            noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
+            if self.__caching:
+                noise_temperature = self._get_cached_noise_temperature_for_pixel(i_pixel)
+            else:
+                noise_temperature = np.power(10, self.__noise_temperature_funcs[i_pixel](freqs[passband_filter]))
 
-            # calculate spectral radiance of radio signal using rayleigh-jeans law
-            spectral_radiance = (2. * (scipy.constants.Boltzmann * units.joule / units.kelvin)
-                * freqs[passband_filter] ** 2 * noise_temperature * self.solid_angle / c_vac ** 2)
-            spectral_radiance[np.isnan(spectral_radiance)] = 0
-
-            # calculate radiance per energy bin
-            spectral_radiance_per_bin = spectral_radiance * d_f
-
-            # calculate electric field per frequency bin from the radiance per bin
-            efield_amplitude = np.sqrt(
-                spectral_radiance_per_bin / (c_vac * scipy.constants.epsilon_0 * (
-                        units.coulomb / units.V / units.m))) / d_f
+            efield_amplitude = signal_processing.get_electric_field_from_temperature(
+                freqs[passband_filter], noise_temperature, self.solid_angle)
 
             # assign random phases to electric field
             noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
-            phases = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
+            phases = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
             noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
             noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
 
             channel_noise_spec = np.zeros_like(noise_spectrum)
 
-            for channel in station.iter_channels():
+            for channel in station.iter_channels(use_channels=selected_channel_ids):
 
                 channel_pos = detector.get_relative_position(station.get_id(), channel.get_id())
                 if channel_pos[2] < 0:
@@ -331,13 +375,12 @@ class channelGalacticNoiseAdder:
                 delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
                 # add random polarizations and phase to electric field
-                polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(spectral_radiance))
+                polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
                 channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
-                    1j * delta_phases) * np.cos(polarizations)
+                    1j * delta_phases) * np.cos(polarizations) * curr_t_theta
                 channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
-                    1j * delta_phases) * np.sin(polarizations)
-
+                    1j * delta_phases) * np.sin(polarizations) * curr_t_phi
 
                 # fold electric field with antenna response
                 if self.__caching:
@@ -348,20 +391,83 @@ class channelGalacticNoiseAdder:
                         freqs, curr_fresnel_zenith, azimuth, *antenna_orientation)
 
                 channel_noise_spectrum = (
-                    antenna_response['theta'] * channel_noise_spec[1] * curr_t_theta
-                    + antenna_response['phi'] * channel_noise_spec[2] * curr_t_phi
+                    antenna_response['theta'] * channel_noise_spec[1][passband_filter]
+                    + antenna_response['phi'] * channel_noise_spec[2][passband_filter]
                 )
 
+                # scale noise spectrum:
+                channel_noise_spectrum *= self.scaling
+
                 # add noise spectrum from pixel in the sky to channel spectrum
-                channel_spectra[channel.get_id()] += channel_noise_spectrum
+                channel_spectra[channel.get_id()][passband_filter] += channel_noise_spectrum
 
         # store the updated channel spectra
-        for channel in station.iter_channels():
+        for channel in station.iter_channels(use_channels=selected_channel_ids):
             channel.set_frequency_spectrum(channel_spectra[channel.get_id()], "same")
+
+    def get_electric_field_strength(
+            self, location, obs_time, n_samples, sampling_rate, bandpass=None):
+        """
+        Returns the electric field strength at a given location and time
+
+        Parameters
+        ----------
+        location: tuple of floats
+            The latitude and longitude in deg.
+        obs_time: astropy.time.Time
+            The time at which the electric field strength is calculated
+        n_samples: int
+            The number of samples in the time domain
+        sampling_rate: float
+            The sampling rate of the trace
+        bandpass: list of floats, optional
+            The lower and upper bound of the frequency range in which the electric field strength
+            shall be calculated. By default no bandpass is applied (frequency range is from
+            0 to sampling_rate / 2)
+
+        Returns
+        -------
+        electric_field_strength: float
+            The electric field strength at the given location and time
+        """
+
+        local_coordinates = get_local_coordinates(location, obs_time, self.__n_side)
+
+        if bandpass is None:
+            bandpass = [10 * units.MHz, sampling_rate / 2]
+
+        freqs = fft.freqs(n_samples, sampling_rate)
+        spectrum = np.zeros_like(freqs, dtype=complex)
+
+        window = np.zeros_like(freqs, dtype=bool)
+        window[np.logical_and(bandpass[0] < freqs, freqs < bandpass[1])] = True
+
+        self._check_cache(freqs[window])
+
+        for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
+            zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad # this is the in-air zenith
+
+            if zenith > 90. * units.deg:
+                continue
+
+            if self.__caching:
+                noise_temperature = self._get_cached_noise_temperature_for_pixel(i_pixel)
+            else:
+                noise_temperature = np.power(10, self.__noise_temperature_funcs[i_pixel](freqs[window]))
+
+            efield_amplitude = signal_processing.get_electric_field_from_temperature(
+                freqs[window], noise_temperature, self.solid_angle)
+
+
+            phases = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
+            spectrum_pixel = np.exp(1j * phases) * efield_amplitude
+            spectrum[window] += spectrum_pixel
+
+        return np.std(fft.freq2time(spectrum, sampling_rate))
 
 
 @functools.lru_cache(maxsize=1)
-def get_local_coordinates(coordinates, time, n_side):
+def get_local_coordinates(coordinates, obs_time, n_side):
     """
     Calculates the local coordinates of the pixels of a healpix map given the site coordinates and time.
 
@@ -369,7 +475,7 @@ def get_local_coordinates(coordinates, time, n_side):
     ----------
     coordinates: tuple of float
         The latitude and longitude of the site
-    time: astropy.time.Time
+    obs_time: astropy.time.Time
         The time at which the observation is made (station time)
     n_side: int
         The n_side parameter of the healpix map
@@ -380,19 +486,23 @@ def get_local_coordinates(coordinates, time, n_side):
         The local coordinates of the pixels of the healpix map
     """
     site_latitude, site_longitude = coordinates
-    site_location = astropy.coordinates.EarthLocation(lat=site_latitude * astropy.units.deg,
-                                                        lon=site_longitude * astropy.units.deg)
+    site_location = astropy.coordinates.EarthLocation(
+        lat=site_latitude * astropy.units.deg, lon=site_longitude * astropy.units.deg)
 
-    local_cs = astropy.coordinates.AltAz(location=site_location, obstime=time)
+    local_cs = astropy.coordinates.AltAz(location=site_location, obstime=obs_time)
 
+    # because `lonlat=True` function returns angles in degrees
     pixel_longitudes, pixel_latitudes = healpy.pixelfunc.pix2ang(
         n_side, range(healpy.pixelfunc.nside2npix(n_side)), lonlat=True)
 
-    pixel_longitudes *= units.deg
-    pixel_latitudes *= units.deg
+    # First convert deg to rad using the NuRadio unit system
+    # Than convert them to astropy.Quantities to be used with the
+    # astropy class.
+    pixel_longitudes = pixel_longitudes * units.deg * astropy.units.rad
+    pixel_latitudes = pixel_latitudes * units.deg * astropy.units.rad
 
-    galactic_coordinates = astropy.coordinates.Galactic(l=pixel_longitudes * astropy.units.rad,
-                                                        b=pixel_latitudes * astropy.units.rad)
+    galactic_coordinates = astropy.coordinates.Galactic(
+        l=pixel_longitudes, b=pixel_latitudes)
+
     local_coordinates = galactic_coordinates.transform_to(local_cs)
-
     return local_coordinates

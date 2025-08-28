@@ -2,10 +2,9 @@ from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_storage
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+
+import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 import logging
 logger = logging.getLogger('NuRadioReco.Channel')
 
@@ -25,7 +24,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace,
         """
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
         NuRadioReco.framework.parameter_storage.ParameterStorage.__init__(
-            self, parameters.channelParameters)
+            self, [parameters.channelParameters, parameters.channelParametersRNOG])
 
         self._id = channel_id
         self._group_id = channel_group_id
@@ -93,7 +92,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace,
             'trigger_channel_pkl': trigger_channel_pkl,
         })
 
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

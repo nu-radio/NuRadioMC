@@ -2,6 +2,7 @@ import numpy as np
 import time
 import logging
 import copy
+import functools
 
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.base_trace
@@ -10,7 +11,9 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import units, fft, ice, trace_utilities, geometryUtilities as geo_utl
+from NuRadioReco.utilities import units, fft, ice, geometryUtilities as geo_utl
+
+logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
 
 
 class efieldToVoltageConverter():
@@ -31,17 +34,14 @@ class efieldToVoltageConverter():
         self.__debug = None
         self.__pre_pulse_time = None
         self.__post_pulse_time = None
-        self.__max_upsampling_factor = None
-        self.antenna_provider = None
-        self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
-        self.logger.setLevel(log_level)
+        self.__antenna_provider = None
+        logger.setLevel(log_level)
         self.begin()
 
 
-    def begin(self, debug=False, uncertainty=None,
-              time_resolution=None,
-              pre_pulse_time=200 * units.ns,
-              post_pulse_time=200 * units.ns
+    def begin(self, debug=False, uncertainty=None, time_resolution=None,
+              pre_pulse_time=200 * units.ns, post_pulse_time=400 * units.ns,
+              caching=True
               ):
         """
         Begin method, sets general parameters of module
@@ -60,21 +60,24 @@ class efieldToVoltageConverter():
                 specify value as relative difference of linear gain
              * 'amp': statistical uncertainty of the amplifier aplification,
                 specify value as relative difference of linear gain
-
+        time_resolution: float
+            Deprecated.
         pre_pulse_time: float
             length of empty samples that is added before the first pulse
         post_pulse_time: float
             length of empty samples that is added after the simulated trace
+        caching: bool
+            enable/disable caching of antenna response to save loading times (default: True)
         """
 
         if time_resolution is not None:
-            self.logger.warning("`time_resolution` is deprecated and will be removed in the future. "
+            logger.warning("`time_resolution` is deprecated and will be removed in the future. "
                                 "The argument is ignored.")
-
+        self.__caching = caching
+        self.__freqs = None
         self.__debug = debug
         self.__pre_pulse_time = pre_pulse_time
         self.__post_pulse_time = post_pulse_time
-        self.__max_upsampling_factor = 5000
 
         # some uncertainties are systematic, fix them here
         self.__uncertainty = uncertainty or {}
@@ -86,7 +89,23 @@ class efieldToVoltageConverter():
             for iCh in self.__uncertainty['sys_amp']:
                 self.__uncertainty['sys_amp'][iCh] = np.random.normal(1, self.__uncertainty['sys_amp'][iCh])
 
-        self.antenna_provider = antennapattern.AntennaPatternProvider()
+        self.__antenna_provider = antennapattern.AntennaPatternProvider()
+
+    @property
+    def antenna_provider(self):
+        logger.warning("Deprecation warning: `antenna_provider` is deprecated.")
+        return self.__antenna_provider
+
+    @functools.lru_cache(maxsize=1024)
+    def _get_cached_antenna_response(self, ant_pattern, zen, azi, *ant_orient):
+        """
+        Returns the cached antenna reponse for a given antenna pattern, antenna orientation
+        and signal arrival direction. This wrapper is necessary as arrays and list are not
+        hashable (i.e., can not be used as arguments in functions one wants to cache).
+        This module ensures that the cache is clearied if the vector `self.__freqs` changes.
+        """
+        return ant_pattern.get_antenna_response_vectorized(self.__freqs, zen, azi, *ant_orient)
+
 
     @register_run()
     def run(self, evt, station, det, channel_ids=None):
@@ -105,12 +124,15 @@ class efieldToVoltageConverter():
             channel_ids = det.get_channel_ids(sim_station_id)
 
         for channel_id in channel_ids:
+
             for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
                 cab_delay = det.get_cable_delay(sim_station_id, channel_id)
                 t0 = electric_field.get_trace_start_time() + cab_delay
 
-                # if we have a cosmic ray event, the different signal travel time to the antennas has to be taken into account
-                if sim_station.is_cosmic_ray():
+                # If the efield is not at the antenna (as possible for a simulated cosmic ray event),
+                # the different signal travel time to the antennas has to be taken into account
+                dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position())
+                if dist_channel_efield / units.mm > 0.01:
                     travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
                     t0 += travel_time_shift
 
@@ -118,16 +140,25 @@ class efieldToVoltageConverter():
                     # trace start time is None if no ray tracing solution was found and channel contains only zeros
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
-                    self.logger.debug("trace start time {}, cable delay {}, tracelength {}".format(
+                    logger.debug("trace start time {}, cable delay {}, tracelength {}".format(
                         electric_field.get_trace_start_time(), cab_delay,
                         electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
 
         times_min = np.min(times_min)
         times_max = np.max(times_max)
 
+        # Determine the maximum length of the "readout window"
+        max_channel_trace_length = np.max([
+            det.get_number_of_samples(station.get_id(), channel_id) / det.get_sampling_frequency(station.get_id(), channel_id)
+            for channel_id in channel_ids])
+
         # pad event times by pre/post pulse time
         times_min -= self.__pre_pulse_time
         times_max += self.__post_pulse_time
+
+        # Add post_pulse_time as long as we reach the minimum required trace length
+        while times_max - times_min < max_channel_trace_length:
+            times_max += self.__post_pulse_time
 
         # assumes that all electric fields have the same sampling rate
         time_resolution = 1. / electric_field.get_sampling_rate()
@@ -137,7 +168,7 @@ class efieldToVoltageConverter():
         if trace_length_samples % 2 != 0:
             trace_length_samples += 1
 
-        self.logger.debug(
+        logger.debug(
             "smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(
                 times_min, times_max, trace_length_samples, trace_length / units.ns))
 
@@ -148,7 +179,7 @@ class efieldToVoltageConverter():
             # so we loop over all simulated channels with the same id,
             # convolve each trace with the antenna response for the given angles
             # and everything up in the time domain
-            self.logger.debug('channel id {}'.format(channel_id))
+            logger.debug('channel id {}'.format(channel_id))
             channel = NuRadioReco.framework.channel.Channel(channel_id)
 
             if self.__debug:
@@ -165,10 +196,16 @@ class efieldToVoltageConverter():
                 # to achieve a good time resolution, we upsample the trace first.
                 new_trace = np.zeros((3, trace_length_samples))
 
+
+                dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position())
+                efield_is_at_antenna = dist_channel_efield / units.mm < 0.01
+
                 # calculate the start bin
                 if not np.isnan(electric_field.get_trace_start_time()):
                     cab_delay = det.get_cable_delay(sim_station_id, channel_id)
-                    if sim_station.is_cosmic_ray():
+
+                    dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position())
+                    if not efield_is_at_antenna:
                         travel_time_shift = calculate_time_shift_for_cosmic_ray(
                             det, sim_station, electric_field, channel_id)
                     else:
@@ -179,7 +216,7 @@ class efieldToVoltageConverter():
 
                     # calculate error by using discret bins
                     time_remainder = start_time - start_bin * time_resolution
-                    self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(
+                    logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(
                         channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
 
                     new_efield = NuRadioReco.framework.base_trace.BaseTrace()  # create new data structure with new efield length
@@ -192,13 +229,13 @@ class efieldToVoltageConverter():
                     # if checks should never be true...
                     if stop_bin > np.shape(new_trace)[-1]:
                         # ensure new efield does not extend beyond end of trace although this should not happen
-                        self.logger.warning("electric field trace extends beyond the end of the trace and will be cut.")
+                        logger.warning("electric field trace extends beyond the end of the trace and will be cut.")
                         stop_bin = np.shape(new_trace)[-1]
                         tr = np.atleast_2d(tr)[:, :stop_bin-start_bin]
 
                     if start_bin < 0:
                         # ensure new efield does not extend beyond start of trace although this should not happen
-                        self.logger.warning("electric field trace extends beyond the beginning of the trace and will be cut.")
+                        logger.warning("electric field trace extends beyond the beginning of the trace and will be cut.")
                         tr = np.atleast_2d(tr)[:, -start_bin:]
                         start_bin = 0
 
@@ -219,16 +256,58 @@ class efieldToVoltageConverter():
                 zenith = electric_field[efp.zenith]
                 azimuth = electric_field[efp.azimuth]
 
-                # get antenna pattern for current channel
-                VEL = trace_utilities.get_efield_antenna_factor(
-                    sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
+                # If we cache the antenna pattern, we need to make sure that the frequencies have not changed
+                # between stations. If they have, we need to clear the cache.
+                if self.__caching:
+                    if self.__freqs is None:
+                        self.__freqs = ff
+                    else:
+                        if len(self.__freqs) != len(ff):
+                            self.__freqs = ff
+                            self._get_cached_antenna_response.cache_clear()
+                            logger.warning(
+                                "Frequencies have changed (array length). Clearing antenna response cache. "
+                                "If you similate neutrinos/in-ice radio emission, this is not surprising. Please disable caching "
+                                "By passing `caching==False` to the begin method. If you simulate air showers and this happens often, "
+                                "something might be wrong...")
+                        elif not np.allclose(self.__freqs, ff, rtol=0, atol=0.01 * units.MHz):
+                            self.__freqs = ff
+                            self._get_cached_antenna_response.cache_clear()
+                            logger.warning(
+                                "Frequencies have changed (values). Clearing antenna response cache. "
+                                "If you similate neutrinos/in-ice radio emission, this is not surprising. Please disable caching "
+                                "By passing `caching==False` to the begin method. If you simulate air showers and this happens often, "
+                                "something might be wrong...")
 
-                if VEL is None:  # this can happen if there is not signal path to the antenna
+                # If the electric field is not at the antenna, we may need to change the
+                # signal arrival direction (due to refraction into the ice) and account for
+                # missing power due to the Fresnel factors.
+                if not efield_is_at_antenna:
+                    zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(
+                        det, sim_station, channel_id, zenith)
+                else:
+                    zenith_antenna = zenith
+                    t_theta = 1
+                    t_phi = 1
+
+                # Get the antenna pattern and orientation for the current channel
+                antenna_pattern, antenna_orientation = self.get_antenna_pattern_and_orientation(
+                    det, sim_station, channel_id, zenith_antenna)
+
+                # Get antenna sensitivity for the given direction
+                if self.__caching:
+                    vel = self._get_cached_antenna_response(
+                        antenna_pattern, zenith_antenna, azimuth, *antenna_orientation)
+                else:
+                    vel = antenna_pattern.get_antenna_response_vectorized(
+                        ff, zenith_antenna, azimuth, *antenna_orientation)
+
+                if vel is None:  # this can happen if there is not signal path to the antenna
                     voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros
                 else:
                     # Apply antenna response to electric field
-                    VEL = VEL[0]  # we only requested the VEL for one channel, so selecting it
-                    voltage_fft = np.sum(VEL * np.array([efield_fft[1], efield_fft[2]]), axis=0)
+                    vel = np.array([vel['theta'] * t_theta, vel['phi'] * t_phi])
+                    voltage_fft = np.sum(vel * np.array([efield_fft[1], efield_fft[2]]), axis=0)
 
                 # Remove DC offset
                 voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
@@ -267,42 +346,77 @@ class efieldToVoltageConverter():
 
     def end(self):
         from datetime import timedelta
-        self.logger.setLevel(logging.INFO)
+        logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
+        logger.info("total time used by this module is {}".format(dt))
         return dt
 
+    def get_antenna_pattern_and_orientation(self, det, station, channel_id, zenith):
+        """ Get the antenna pattern and orientation for a given channel and zenith angle.
 
-def calculate_time_shift_for_cosmic_ray(det, station, efield, channel_id):
+        Parameters
+        ----------
+        det: Detector
+            Detector object
+        station: Station
+            Station object
+        channel_id: int
+            Channel id of the channel
+        zenith: float
+            Zenith angle in radians. For some antenna models, the zenith angle is needed
+            to get the correct antenna pattern.
+
+        Returns
+        -------
+        antenna_pattern: AntennaPattern
+            Antenna pattern object
+        antenna_orientation: list
+            Antenna orientation in radians
+        """
+        antenna_model = det.get_antenna_model(station.get_id(), channel_id, zenith)
+        antenna_pattern = self.__antenna_provider.load_antenna_pattern(antenna_model)
+        antenna_orientation = det.get_antenna_orientation(station.get_id(), channel_id)
+        return antenna_pattern, antenna_orientation
+
+
+def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id):
     """
-    Calculate the time shift for a cosmic ray event
+    Calculate the time shift for an electric field to reach a channel.
+
+    For cosmic ray events, we often only have one electric field for all channels, so we have to account
+    for the difference in signal travel between channels.
 
     Parameters
     ----------
-    det : Detector
-    station : Station
-    efield : ElectricField
+    det: Detector
+    sim_station: SimStation
+    efield: ElectricField
+    channel_id: int
+        Channel id of the channel
 
     Returns
     -------
-    float
+    travel_time_shift: float
         time shift in ns
     """
-    station_id = station.get_id()
+    station_id = sim_station.get_id()
     site = det.get_site(station_id)
-    antenna_position = det.get_relative_position(station_id, channel_id) - efield.get_position()
-    if station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
-        index_of_refraction = ice.get_refractive_index(antenna_position[2], site)
+
+    if sim_station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
+        index_of_refraction = ice.get_refractive_index(det.get_relative_position(station_id, channel_id)[2], site)
     else:  # signal is coming from above, so we take IOR of air
         index_of_refraction = ice.get_refractive_index(1, site)
 
-    # For cosmic ray events, we only have one electric field for all channels, so we have to account
-    # for the difference in signal travel between channels. IMPORTANT: This is only accurate
-    # if all channels have the same z coordinate
+    antenna_position_rel = det.get_relative_position(station_id, channel_id) - efield.get_position()
+
+    if np.linalg.norm(antenna_position_rel) > 5 * units.m:
+        logger.warning("Calculate an additional time shift for an electric field that is more than 5 meters "
+                       "away from the antenna position.")
+
     travel_time_shift = geo_utl.get_time_delay_from_direction(
-        station.get_parameter(stnp.zenith),
-        station.get_parameter(stnp.azimuth),
-        antenna_position,
+        efield.get_parameter(efp.zenith),
+        efield.get_parameter(efp.azimuth),
+        antenna_position_rel,
         index_of_refraction
     )
 

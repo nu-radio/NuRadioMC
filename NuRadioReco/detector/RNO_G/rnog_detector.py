@@ -122,6 +122,7 @@ class Detector():
         }
 
         self.additional_data = {}
+        self.comment = ""
 
         if select_stations is not None and not isinstance(select_stations, list):
             select_stations = [select_stations]
@@ -185,7 +186,7 @@ class Detector():
         self.assume_inf = None  # Compatibility with other detectors classes
         self.antenna_by_depth = None  # Compatibility with other detectors classes
 
-    def export(self, filename, json_kwargs=None, additional_data=None, drop_response_data=False):
+    def export(self, filename, json_kwargs=None, additional_data=None, drop_response_data=False, comment=None):
         """
         Export the buffered detector description.
 
@@ -202,6 +203,9 @@ class Detector():
 
         drop_response_data: bool (Default: False)
             If True, the response data (frequency, mag, phase) will be dropped from the exported detector description.
+
+        comment: str (Default: None)
+            An optional comment describing this detector that will be added to the exported detector description.
         """
 
         periods = {}
@@ -244,6 +248,11 @@ class Detector():
 
         if additional_data is not None:
             export_dict["additional_data"] = additional_data
+
+        if comment is not None:
+            self.comment = "\n".join([self.comment, comment]).strip()
+
+        export_dict["comment"] = self.comment
 
         if not filename.endswith(".xz"):
             if not filename.endswith(".json"):
@@ -301,13 +310,15 @@ class Detector():
         if "version" in import_dict and import_dict["version"] == 1:
             self.__buffered_stations = {}
             self.additional_data = import_dict.get("additional_data", None)
+            self.comment = import_dict.get("comment", None)
 
-            # need to convert station/channel id keys back to integers
+            # need to convert station/channel/device id keys back to integers
             for station_id, station_data in import_dict["data"].items():
                 if self.selected_stations is not None and int(station_id) not in self.selected_stations:
                     continue
 
                 station_data["channels"] = {int(channel_id): channel_data for channel_id, channel_data in station_data["channels"].items()}
+                station_data["devices"] = {int(device_id): device_data for device_id, device_data in station_data["devices"].items()}
                 self.__buffered_stations[int(station_id)] = station_data
 
             # need to convert modification_timestamps back to datetime objects
@@ -331,6 +342,9 @@ class Detector():
             self.logger.error(f"{detector_file} with unknown version.")
             raise ReferenceError(f"{detector_file} with unknown version.")
 
+        # print any potential comment present in this detector description
+        if self.comment is not None:
+            self.logger.info("\n".join(["Loaded detector description with comment:", self.comment]))
 
     def _check_update_buffer(self):
         """
@@ -640,6 +654,13 @@ class Detector():
                 channel_data[key] = self.__default_values[key][channel_id]
             else:
                 channel_data[key] = self.__default_values[key]
+
+        # Add ADC parameter to channel description. This is needed for ADC and trigger modules.
+        for key, value in self.__buffered_stations[station_id]["signal_digitizer_config"].items():
+            channel_data[f"adc_{key}"] = value
+
+        for key, value in self.__buffered_stations[station_id]["trigger_digitizer_config"].items():
+            channel_data[f"trigger_adc_{key}"] = value
 
         return channel_data
 
@@ -1135,14 +1156,14 @@ class Detector():
             self.logger.error(err)
             raise ValueError(err)
 
-        if _keys_not_in_dict(self.__buffered_stations, [station_id, "number_of_samples"]):
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, "signal_digitizer_config", "number_of_samples"]):
             raise KeyError(
                 f"Could not find \"number_of_samples\" for station {station_id} in buffer. Did you call det.update(...)?")
 
-        return int(self.__buffered_stations[station_id]['number_of_samples'])
+        return int(self.__buffered_stations[station_id]["signal_digitizer_config"]['number_of_samples'])
 
 
-    def get_sampling_frequency(self, station_id, channel_id=None):
+    def get_sampling_frequency(self, station_id, channel_id=None, trigger=False):
         """ Get sampling frequency per station / channel
 
         All RNO-G channels have the same sampling frequency, the argument channel_id is not used but we keep
@@ -1150,17 +1171,18 @@ class Detector():
 
         Parameters
         ----------
-
         station_id: int
             Station id
 
         channel_id: int (default: None)
             Not Used!
 
+        trigger: bool
+            If True, the sampling rate of the trigger board is returned (FLOWER). (Default: False)
+
         Returns
         -------
-
-        sampling_rate: int
+        sampling_rate: float
             Sampling frequency
         """
         if not self.has_station(station_id):
@@ -1168,11 +1190,16 @@ class Detector():
             self.logger.error(err)
             raise ValueError(err)
 
-        if _keys_not_in_dict(self.__buffered_stations, [station_id, "sampling_rate"]):
-            raise KeyError(
-                f"Could not find \"sampling_rate\" for station {station_id} in buffer. Did you call det.update(...)?")
+        if trigger:
+            key = "trigger_digitizer_config"
+        else:
+            key = "signal_digitizer_config"
 
-        return float(self.__buffered_stations[station_id]['sampling_rate'])
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, key, "sampling_frequency"]):
+            raise KeyError(
+                f"Could not find \"sampling_frequency\" for station {station_id} in buffer. Did you call det.update(...)?")
+
+        return float(self.__buffered_stations[station_id][key]['sampling_frequency'])
 
 
     def get_noise_temperature(self, station_id, channel_id):
@@ -1189,7 +1216,7 @@ class Detector():
     def get_cable_delay(self, station_id, channel_id, use_stored=True, trigger=False):
         """ Same as `get_time_delay`. Only here to keep the same interface as the other detector classes. """
         # FS: For the RNO-G detector description it is not easy to determine the cable delay alone
-        # because it is not clear which reference components may need to be substraced.
+        # because it is not clear which reference components may need to be subtracted.
         # However, having the cable delay without amplifiers is anyway weird.
         return self.get_time_delay(station_id, channel_id, use_stored=use_stored, trigger=trigger)
 
@@ -1221,7 +1248,7 @@ class Detector():
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel.
 
-        Also see
+        See Also
         --------
         get_time_delay
         """
@@ -1289,9 +1316,15 @@ class Detector():
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel
 
+        Notes
+        -----
+        IMPORTANT: The value returned by this function does *not* directly correspond to the overall time
+        delay / cable delay of the requested channel! A residual group delay may be present and is accounted for
+        by the response provided by `get_amplifier_response`.
+
         See Also
         --------
-        get_cable_delay
+        get_cable_delay, get_amplifier_response
         """
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
@@ -1323,8 +1356,10 @@ class Detector():
 
 
     def get_site(self, station_id):
-        """
-        This detector class is exclusive for the RNO-G detector at Summit Greenland.
+        """ Returns the site "summit"
+
+        This detector class is exclusive for the RNO-G detector located
+        at Summit Station on the Greenland ice sheet.
 
         Parameters
         ----------
@@ -1343,6 +1378,10 @@ class Detector():
         """
         Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.
 
+        The returned location corresponds to the position of the DISC borehole which is
+        used as the origin of the RNO-G coordinate system, i.e., this locations acts as
+        a reference point to define the station positions.
+
         Parameters
         ----------
         station_id: int
@@ -1353,7 +1392,7 @@ class Detector():
         coordinates: tuple(float, float)
             Tuple of latitude and longitude in degrees
         """
-        return (72.57, -38.46)
+        return (72.582793, -38.455815)
 
 
     def get_database(self):
