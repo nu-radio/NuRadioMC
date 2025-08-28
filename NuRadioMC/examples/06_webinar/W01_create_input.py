@@ -113,4 +113,4 @@ And we call the function to generate the events.
 generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                             volume,
                             thetamin=thetamin, thetamax=thetamax,
-                            flavor=flavor)
+                            flavor=flavor,seed=10)
