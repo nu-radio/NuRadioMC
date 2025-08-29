@@ -1098,8 +1098,15 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using C++ raytracer&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;C++ raytracer is not available. Using Python raytracer.&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">use_cpp</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;C++ raytracer was explicitly requested, but is not available (i.e. on-the-fly compilation failed). &#39;</span>
+					   <span class="s1">&#39;Abort.... ! Either fix the compilation or set use_cpp to False. &#39;</span>
+					   <span class="s1">&#39;For compilation see NuRadioMC/SignalProp/install.sh resp. NuRadioMC/SignalProp/CPPAnalyticRayTracing.&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;C++ raytracer is not available. Using Python raytracer.&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">medium</span> <span class="o">=</span> <span class="n">medium</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="p">,</span> <span class="s2">&quot;reflection&quot;</span><span class="p">):</span>
