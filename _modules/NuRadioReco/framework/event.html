@@ -679,130 +679,45 @@
         <span class="c1"># saves which modules were executed with what parameters on station level</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Event.register_module_event">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.register_module_event">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">register_module_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        registers modules applied to this event</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        instance: module instance</span>
-<span class="sd">            the instance of the module that should be registered</span>
-<span class="sd">        name: module name</span>
-<span class="sd">            the name of the module</span>
-<span class="sd">        kwargs:</span>
-<span class="sd">            the key word arguments of the run method</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">])</span></div>
-
-
-<div class="viewcode-block" id="Event.register_module_station">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.register_module_station">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">register_module_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        registers modules applied to this event</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        station_id: int</span>
-<span class="sd">            the station id</span>
-<span class="sd">        instance: module instance</span>
-<span class="sd">            the instance of the module that should be registered</span>
-<span class="sd">        name: module name</span>
-<span class="sd">            the name of the module</span>
-<span class="sd">        kwargs:</span>
-<span class="sd">            the key word arguments of the run method</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">iE</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">iE</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">])</span></div>
-
-
-<div class="viewcode-block" id="Event.iter_modules">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.iter_modules">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">iter_modules</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns an interator that loops over all modules. If a station id is provided it loops</span>
-<span class="sd">        over all modules that are applied on event or station level (on this particular station). If no</span>
-<span class="sd">        station_id is provided, the loop is only over the event modules.</span>
-<span class="sd">        The order follows the sequence these modules were applied</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">iE</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">iS</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">iS</span><span class="p">)</span>
-                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">iS</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">iE</span><span class="p">):</span>
-                <span class="n">iS</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">iS</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="p">)</span> <span class="o">==</span> <span class="n">iE</span><span class="p">:</span>
-                    <span class="k">break</span>
-
-                <span class="n">iE</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="p">[</span><span class="n">iE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="Event.has_been_processed_by_module">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_been_processed_by_module">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_been_processed_by_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module_name</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Checks if the event has been processed by a module with a specific name.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        module_name: str</span>
-<span class="sd">            The name of the module to check for.</span>
-<span class="sd">        station_id: int</span>
-<span class="sd">            The station id for which the module is run.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_modules</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">module</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">module_name</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">True</span>
-
-        <span class="k">return</span> <span class="kc">False</span></div>
-
-
-<div class="viewcode-block" id="Event.get_generator_info">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_generator_info">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_generator_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`get_generator_info` is deprecated. Use `get_parameter` instead.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="Event.set_generator_info">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.set_generator_info">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_generator_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`set_generator_info` is deprecated. Use `set_parameter` instead.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="Event.has_generator_info">
-<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_generator_info">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_generator_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`has_generator_info` is deprecated. Use `has_parameter` instead.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="Event.get_id">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the event ID (Event Number).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            The event ID / number.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span></div>
 
 
 <div class="viewcode-block" id="Event.set_id">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.set_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the event ID.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        evt_id : int</span>
+<span class="sd">            The event ID to set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">evt_id</span></div>
 
 
 <div class="viewcode-block" id="Event.get_run_number">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_run_number">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_run_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the run number associated with the event.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            The run number.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span></div>
 
 
@@ -936,6 +851,9 @@
 <div class="viewcode-block" id="Event.get_stations">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_stations">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_stations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns an iterator over all stations in the event.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">itervalues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">station</span></div>
 
@@ -943,12 +861,23 @@
 <div class="viewcode-block" id="Event.get_station_ids">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_station_ids">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_station_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of all station IDs in the event.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="Event.set_station">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.set_station">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a station to the event.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station : NuRadioReco.framework.station.Station</span>
+<span class="sd">            The station object to add.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">station</span></div>
 
 
@@ -1346,9 +1275,170 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_information</span></div>
 
 
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_register_module_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        registers modules applied to this event</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        instance: module instance</span>
+<span class="sd">            the instance of the module that should be registered</span>
+<span class="sd">        name: module name</span>
+<span class="sd">            the name of the module</span>
+<span class="sd">        kwargs:</span>
+<span class="sd">            the key word arguments of the run method</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_register_module_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        registers modules applied to this event</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station_id: int</span>
+<span class="sd">            the station id</span>
+<span class="sd">        instance: module instance</span>
+<span class="sd">            the instance of the module that should be registered</span>
+<span class="sd">        name: module name</span>
+<span class="sd">            the name of the module</span>
+<span class="sd">        kwargs:</span>
+<span class="sd">        Registers modules applied to a specific station within this event.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station_id: int</span>
+<span class="sd">            The station id to which the module is applied.</span>
+<span class="sd">        instance: module instance</span>
+<span class="sd">            The instance of the module that should be registered.</span>
+<span class="sd">        name: module name</span>
+<span class="sd">            The name of the module.</span>
+<span class="sd">        kwargs:</span>
+<span class="sd">            The key word arguments of the run method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">iE</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">iE</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">])</span>
+
+<div class="viewcode-block" id="Event.iter_modules">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.iter_modules">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iter_modules</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns an interator that loops over all modules. If a station id is provided it loops</span>
+<span class="sd">        over all modules that are applied on event or station level (on this particular station). If no</span>
+<span class="sd">        station_id is provided, the loop is only over the event modules.</span>
+<span class="sd">        The order follows the sequence these modules were applied</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">iE</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">iS</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">iS</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">iS</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">iE</span><span class="p">):</span>
+                <span class="n">iS</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">iS</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="p">)</span> <span class="o">==</span> <span class="n">iE</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                <span class="n">iE</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules_event</span><span class="p">[</span><span class="n">iE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_has_been_processed_by_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module_name</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if the event has been processed by a module with a specific name.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        module_name: str</span>
+<span class="sd">            The name of the module to check for.</span>
+<span class="sd">        station_id: int</span>
+<span class="sd">            The station id for which the module is run.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_modules</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">module</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">module_name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Event.get_generator_info">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_generator_info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_generator_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deprecated. Use get_parameter instead.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            The key for the generator info.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        value : any</span>
+<span class="sd">            The value associated with the key.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`get_generator_info` is deprecated. Use `get_parameter` instead.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Event.set_generator_info">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.set_generator_info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_generator_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deprecated. Use set_parameter instead.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            The key for the generator info.</span>
+<span class="sd">        value : any</span>
+<span class="sd">            The value to set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`set_generator_info` is deprecated. Use `set_parameter` instead.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Event.has_generator_info">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_generator_info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_generator_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deprecated. Use has_parameter instead.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            The key for the generator info.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if the key exists, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`has_generator_info` is deprecated. Use `has_parameter` instead.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="Event.serialize">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.serialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serializes the event object and all its contents.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mode : str</span>
+<span class="sd">            The serialization mode.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bytes</span>
+<span class="sd">            The serialized event as a byte stream.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">stations_pkl</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">commit_hash</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get_NuRadioMC_commit_hash</span><span class="p">()</span>
@@ -1408,6 +1498,14 @@
 <div class="viewcode-block" id="Event.deserialize">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.deserialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deserializes the event from a byte stream.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data_pkl : bytes</span>
+<span class="sd">            The serialized event as a byte stream.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">station_pkl</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">]:</span>

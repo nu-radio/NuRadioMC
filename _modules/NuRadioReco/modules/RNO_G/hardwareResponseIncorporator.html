@@ -882,7 +882,7 @@
                 <span class="n">trace_fft</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">sim_to_data</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">evt</span><span class="o">.</span><span class="n">has_been_processed_by_module</span><span class="p">(</span><span class="s1">&#39;channelAddCableDelay&#39;</span><span class="p">,</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">evt</span><span class="o">.</span><span class="n">_has_been_processed_by_module</span><span class="p">(</span><span class="s1">&#39;channelAddCableDelay&#39;</span><span class="p">,</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="s2">&quot;The hardwareResponseIncorporator module should _not_ be used to remove the cable delay &quot;</span>
                     <span class="s2">&quot;from data anymore. Please use channelAddCableDelay module for this (before running &quot;</span>
