@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger('NuRadioReco.metaclasses')
+
 class Singleton(type):
     """
     Can be assigned to classes as a metaclass.
@@ -7,6 +10,7 @@ class Singleton(type):
     return the existing instance if one exists.
     """
     _instances = {}
+    _args_kwargs = {}
 
     def __call__(cls, *args, **kwargs):
         """
@@ -25,5 +29,14 @@ class Singleton(type):
 
         if Singleton._instances.get(cls, None) is None or create_new:
             Singleton._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        elif (args, kwargs) != Singleton._args_kwargs[cls]:
+            logger.warning(
+                f'{cls} is a Singleton, returning existing instance and ignoring '
+                'arguments passed to __init__. To create a new instance instead, include '
+                '`create_new=True` in the class initialization call.'
+                )
+
+        Singleton._args_kwargs[cls] = (args, kwargs)
+
 
         return Singleton._instances[cls]
