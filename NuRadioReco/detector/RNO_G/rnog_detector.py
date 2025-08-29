@@ -65,7 +65,7 @@ def _check_detector_time(method):
 class Detector():
     def __init__(self, database_connection='RNOG_public', log_level=logging.NOTSET, over_write_handset_values=None,
                  database_time=None, always_query_entire_description=False, detector_file=None,
-                 select_stations=None, create_new=False, database_name=None):
+                 select_stations=None, create_new=False, database_name=None, signal_chain_measurement_name=None):
         """
         The RNO-G detector description.
 
@@ -108,6 +108,10 @@ class Detector():
             Name of the database to connect to. If None, the default database will be used
             (see Database class in db_mongo_read.py).
 
+        signal_chain_measurement_name : str (Default: None)
+            Name of the signal chain measurement to use. If None, the signal chain is selected based on
+            database / primary time.
+
         Notes
         -----
         For more information about ``Detector`` objects in NuRadioMC, see
@@ -127,6 +131,9 @@ class Detector():
 
         self.additional_data = {}
         self.comment = ""
+
+        # If `self.__signal_chain_measurement_name is None` select signal chain according to primary time
+        self.__signal_chain_measurement_name = signal_chain_measurement_name
 
         if select_stations is not None and not isinstance(select_stations, list):
             select_stations = [select_stations]
@@ -192,6 +199,25 @@ class Detector():
 
         self.assume_inf = None  # Compatibility with other detectors classes
         self.antenna_by_depth = None  # Compatibility with other detectors classes
+
+    @property
+    def signal_chain_measurement_name(self):
+        """
+        The name of the signal chain measurement, or None if not set.
+        """
+        return self.__signal_chain_measurement_name
+
+    @signal_chain_measurement_name.setter
+    def signal_chain_measurement_name(self, name):
+        """
+        Set the name of the signal chain measurement.
+        """
+        if name != self.__signal_chain_measurement_name:
+            for station_id in self.__buffered_stations:
+                for channel_id in self.__buffered_stations[station_id]["channels"]:
+                    self.__buffered_stations[station_id]["channels"][channel_id].pop("signal_chain", None)
+
+            self.__signal_chain_measurement_name = name
 
     def export(self, filename, json_kwargs=None, additional_data=None, drop_response_data=False, comment=None):
         """
@@ -621,9 +647,10 @@ class Detector():
 
             signal_id = self.__buffered_stations[station_id]["channels"][channel_id]['id_signal']
             self.logger.debug(
-                f"Query signal chain of station.channel {station_id}.{channel_id} with id {signal_id}")
+                f"Query signal chain of station.channel {station_id}.{channel_id} with id {signal_id} "
+                f"and measurement name {self.__signal_chain_measurement_name}")
 
-            channel_sig_info = self.__db.get_channel_signal_chain(signal_id)
+            channel_sig_info = self.__db.get_channel_signal_chain(signal_id, measurement_name=self.__signal_chain_measurement_name)
             channel_sig_info.pop('channel_id', None)
 
             self.__buffered_stations[station_id]["channels"][channel_id]['signal_chain'] = channel_sig_info
