@@ -242,12 +242,14 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
 
     peak_width_limit = int(10 * 1e-3 / delta_f) #10 MHz 
 
+
     if algorithm == 'simple':
         # Compute RMS in the selected frequency band
         rms_band = np.sqrt(np.mean(spec_roi ** 2))
 
         # Find noise peaks based on this band-limited RMS
         peak_idxs, _ = signal.find_peaks(spec, height=peak_prominence * rms_band, width=(0, peak_width_limit))
+
      
 
     elif algorithm == 'sliding':
@@ -275,6 +277,7 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
 
         # Remove duplicates (since windows overlap)
         peak_idxs = sorted(set(all_peaks)) + first_idx  # Unique and sorted peaks
+
 
     noise_freqs = []
     corrected_waveform = wf.copy()
@@ -308,6 +311,8 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
             ampl_guess = guess_amplitude_iir(wf, noise_freq, sampling_rate)
             phase = guess_phase(spec_complex, freqs, noise_freq)
 
+            phase = 0.001
+
             initial_guess = [ampl_guess, noise_freq, phase]
             # Fit the sinusoidal model to the waveform
             try:
@@ -318,6 +323,7 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
                     raise RuntimeError("Fit returned invalid parameters.")
         
                 estimated_amplitude, estimated_freq, estimated_phase = params
+                print(estimated_amplitude)
 
                 filtered_freqs.append(estimated_freq)
                 # Check if the covariance matrix is invalid

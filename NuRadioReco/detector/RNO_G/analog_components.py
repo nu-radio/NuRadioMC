@@ -98,6 +98,7 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         amp_phase = amp_phase_f(freqs)
         return np.exp(1j * amp_phase)
 
+    amp_response['freq'] = ff
     amp_response['gain'] = get_amp_gain
     amp_response['phase'] = get_amp_phase
 

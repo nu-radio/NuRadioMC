@@ -150,6 +150,7 @@ class readRNOGData:
 
         # Initialize run table for run selection
         self.__run_table = None
+        
 
         if load_run_table:
             if run_table_path is None:
@@ -276,6 +277,7 @@ class readRNOGData:
             Otherwise, the event will be skipped in the case of infinite trigger times.
             (Default=True)
         """
+
         t0 = time.time()
 
         self._read_calibrated_data = read_calibrated_data

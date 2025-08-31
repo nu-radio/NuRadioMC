@@ -47,7 +47,7 @@ class dataProviderRNOG:
     """
 
     def __init__(self):
-        self.reader = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData()
+        self.reader = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData(load_run_table=True)
 
         self.channelGlitchDetector = NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector()
         self.channelBlockOffsetFitter = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets()
@@ -93,7 +93,7 @@ class dataProviderRNOG:
 
             # This will throw an error if the event has more than one station
             station = event.get_station()
-            self.detector.update(station.get_station_time())
+#            self.detector.update(station.get_station_time())
 
             glitch_disc = self.channelGlitchDetector.run(event, station, self.detector)
             if glitch_disc:

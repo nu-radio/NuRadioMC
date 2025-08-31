@@ -75,6 +75,8 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
             the key word arguments of the run method
         """
         iE = len(self.__modules_event)
+        if station_id not in self.__modules_station.keys():
+            self.__modules_station[station_id] = []
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
 
     def iter_modules(self, station_id=None):
