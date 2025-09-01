@@ -25,6 +25,8 @@
 	"createLPDA_100MHz_InfAir.pkl": "380f3c36e46bfeacf337bf68923c42cb435712d6",
 	"createLPDA_100MHz_InfFirn.pkl": "75539869378cf145b0735159fb59e1cb86206b6f",
   "createLPDA_100MHz_InfFirn_n1.4.pkl": "44826dc663ec712ca3f642314c688ce52c314387",
+	"createLPDA_100MHz_v2_InfFirn.pkl": "70efa8ef54742057d9d8c3e0045aa469b4214717",
+  "createLPDA_100MHz_v2_InfFirn_n1.4.pkl": "2feedcc4b0fb562a693f450c520d900688267ccc",
   "createLPDA_100MHz_z1cm_InFirn_RG.pkl": "14157207338067dd363153b5ec761694cae483ad",
   "createLPDA_100MHz_z1cm_InFirn_BoresightToBoundary.pkl": "4981d6a0e5f9813493d8a48416f4cd8e2e83259c",
   "createLPDA_100MHz_z10cm_InFirn_RG.pkl": "f9f15fc73b7f34b0eb9f45b485fbb2d0e3d74dd5",

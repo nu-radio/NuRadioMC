@@ -1,3 +1,12 @@
+"""
+This module contains helper functions for beam-forming. Originally for the module(s) in
+modules/efieldRadioInterferometricReconstruction.py. The functions with the abbriviation
+"rit" or "RIT" in their name refer to the "Radio Interferometric Technique" [1, 2].
+
+[1]: H. Schoorlemmer, W. R. Carvalho Jr., arXiv:2006.10348
+[2]: F. Schlueter, T. Huege, doi:10.1088/1748-0221/16/07/P07048
+"""
+
 import numpy as np
 import sys
 from scipy import signal, constants

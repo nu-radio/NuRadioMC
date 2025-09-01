@@ -93,9 +93,9 @@ def register_run(level=None):
             start = timer()
 
             if module_level == "event":
-                evt.register_module_event(self, self.__class__.__name__, store_kwargs)
+                evt._register_module_event(self, self.__class__.__name__, store_kwargs)
             elif module_level == "station":
-                evt.register_module_station(station.get_id(), self, self.__class__.__name__, store_kwargs)
+                evt._register_module_station(station.get_id(), self, self.__class__.__name__, store_kwargs)
             elif module_level == "reader":
                 # not sure what to do... function returns generator, not sure how to access the event...
                 pass
