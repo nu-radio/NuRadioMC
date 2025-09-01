@@ -7,11 +7,9 @@ see the documentation :doc:`here </NuRadioMC/pages/Manuals/icemodels>`.
 """
 
 from NuRadioMC.utilities import medium_base
-import itertools
 import numpy as np
 import os
 from NuRadioReco.utilities import units
-from scipy import interpolate
 
 logger = medium_base.logger
 
@@ -175,26 +173,26 @@ class greenland_firn(medium_base.IceModel):
 
         Parameters
         ----------
-        z_air_boundary:  float, NuRadio length units
-                         z coordinate of the surface of the glacier
-        z_bottom:  float, NuRadio length units
-                   z coordinate of the bedrock/bottom of the glacier.
-        z_firn:  float, NuRadio length units
-                 z coordinate of the transition from the upper
-                 exponential profile to the lower one
+        z_air_boundary: float, NuRadio length units
+            z coordinate of the surface of the glacier
+        z_bottom: float, NuRadio length units
+            z coordinate of the bedrock/bottom of the glacier.
+        z_firn: float, NuRadio length units
+            z coordinate of the transition from the upper
+            exponential profile to the lower one
 
         The following parameters can be found without (lower)
         and with (upper) the suffix of `_firn`
 
-        n_ice:  float, dimensionless
-                refractive index of the deep bulk ice
-        delta_n:  float, NuRadio length units
-                  difference between n_ice and the refractive index
-                  of the snow at the surface
-        z_0:  float, NuRadio length units
-              scale depth of the exponential
-        z_shift:  float, NuRadio length units
-                  up or down shift od the exponential profile
+        n_ice: float, dimensionless
+            refractive index of the deep bulk ice
+        delta_n: float, NuRadio length units
+            difference between n_ice and the refractive index
+            of the snow at the surface
+        z_0: float, NuRadio length units
+            scale depth of the exponential
+        z_shift: float, NuRadio length units
+            up or down shift od the exponential profile
         """
 
         if not medium_base.radiopropa_is_imported:
@@ -225,12 +223,12 @@ class greenland_firn(medium_base.IceModel):
 
         Parameters
         ----------
-        position:  3dim np.array
-                    point
+        position: 3dim np.array
+            point
 
         Returns
         -------
-        n:  float
+        n: float
             index of refraction
         """
         position = RP.Vector3d(*(position * RP.meter/units.meter))
@@ -244,14 +242,14 @@ class greenland_firn(medium_base.IceModel):
         Parameters
         ----------
         position1: 3dim np.array
-                    point
+            point
         position2: 3dim np.array
-                    point
+            point
 
         Returns
         -------
-        n_average:  float
-                    averaged index of refraction between the two points
+        n_average: float
+            averaged index of refraction between the two points
         """
         position1 = RP.Vector3d(*(position1 * RP.meter/units.meter))
         position2 = RP.Vector3d(*(position2 * RP.meter/units.meter))
@@ -266,12 +264,12 @@ class greenland_firn(medium_base.IceModel):
         Parameters
         ----------
         position: 3dim np.array
-                    point
+            point
 
         Returns
         -------
-        n_nabla:    (3,) np.array
-                    gradient of index of refraction at the point
+        n_nabla: np.array(3,)
+            gradient of index of refraction at the point
         """
         pos = RP.Vector3d(*(position * RP.meter/units.meter))
         return self._scalarfield.getGradient(pos) * (1 / (units.meter/RP.meter))
@@ -288,8 +286,8 @@ class greenland_firn(medium_base.IceModel):
 
         Returns
         -------
-        ice_model_radiopropa:   RadioPropaIceWrapper
-                                object holding the radiopropa scalarfield and modules
+        ice_model_radiopropa: RadioPropaIceWrapper
+            object holding the radiopropa scalarfield and modules
         """
         return medium_base.RadioPropaIceWrapper(self, self._scalarfield)
 
@@ -308,14 +306,35 @@ class greenland_perturbation(greenland_firn):
 
         Returns
         -------
-        ice_model_radiopropa:   RadioPropaIceWrapper
-                                object holding the radiopropa scalarfield and modules
+        ice_model_radiopropa: RadioPropaIceWrapper
+            object holding the radiopropa scalarfield and modules
         """
         ice = greenland_firn._compute_default_ice_model_radiopropa(self)
         #fraction from ArXiv 1805.12576 table IV last row
         perturbation_horz = RP.PerturbationHorizontal(-100*RP.meter,2*RP.meter, fraction=1)
         ice.add_module('horizontal perturbation',perturbation_horz)
         return ice
+
+class greenland_poly5(medium_base.IceModelExponentialPolynomial):
+    """
+    Fifth-degree exponential polynomial model for Summit Station, Greenland by Oeyen B.
+    https://doi.org/10.5281/zenodo.15067984
+    """
+    def __init__(self, density_factor=0.851 * (units.cm**3 / units.gram)):
+        """
+        initiation of the model based on the fitted coefficient
+
+        The bottom defined here is a boundary condition used in simulations and
+        should always be defined. Note: it is not the same as reflective bottom.
+        The latter can be added using the `add_reflective_layer` function.
+        """
+
+        super().__init__(
+            a=np.array([917, -62.2, 1177, -9051, 14360, -7024]) * (units.kg / units.m**3),
+            z_0=74.6 * units.meter,
+            density_factor=density_factor,
+            z_bottom=-3000 * units.meter
+        )
 
 
 class uniform_ice(medium_base.IceModelSimple):
@@ -338,12 +357,12 @@ def get_ice_model(name):
     Parameters
     ----------
     name: string
-          name of the class of the requested ice model
+        name of the class of the requested ice model
 
     Returns
     -------
     ice_model: IceModel object
-               object of the class with the name of the requested model
+        object of the class with the name of the requested model
     """
     if globals()[name]() == None:
         logger.error('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')

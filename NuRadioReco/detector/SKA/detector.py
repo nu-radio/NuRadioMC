@@ -11,7 +11,8 @@ class Detector:
 
     def __init__(
             self, position_path=None, channel_file=None,
-            detector_altitude=460 * units.m, maximum_radius=600 * units.m):
+            detector_altitude=460 * units.m, maximum_radius=600 * units.m,
+            n_samples=1024, sampling_frequency=0.8*units.GHz):
         """
         Simple class to describe an ideal SKA detector.
 
@@ -42,11 +43,17 @@ class Detector:
             Altitude of the detector in meters.
         maximum_radius: float (Default: 600 * units.m)
             Maximum radius of stations to be included when reading from file.
+        n_samples: int (Default: 1024)
+            Number of ADC samples per channel.
+        sampling_frequency: float (Default: 0.8 * units.GHz)
+            Sampling frequency of the channels.
         """
 
         self.logger = logging.getLogger("NuRadioReco.detector.SKA.detector")
         self.detector_altitude = detector_altitude
         self.maximum_radius = maximum_radius
+        self.__n_samples = n_samples 
+        self.__sampling_frequency = sampling_frequency # TODO: move to .json file once these values are confirmed 
 
         if channel_file is None:
             channel_file = os.path.join(
@@ -66,6 +73,37 @@ class Detector:
         self._station_positions = None
         if position_path is not None:
             self.read_antenna_positions(position_path, maximum_radius=maximum_radius)
+
+    def get_number_of_samples(self, station_id=None, channel_id=None):
+        """
+        returns the number of samples of a channel.
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns int
+        """
+
+        return self.__n_samples
+
+    def get_sampling_frequency(self, station_id=None, channel_id=None):
+        """
+        returns the sampling frequency
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns float
+        """
+        return self.__sampling_frequency
 
     def read_antenna_positions(self, base_path, maximum_radius=600 * units.m):
         """ Reads the antenna positions from the given path.
@@ -225,12 +263,36 @@ if __name__ == "__main__":
 
     det = Detector(position_path=sys.argv[1])
     print(det.get_station_ids())
-    fig, ax = plt.subplots()
+    
+    ska_positions = []
     for stid in det.get_station_ids():
+        pos_stid = det.get_absolute_position(stid)
+        ska_positions.append(pos_stid)
         for chid in det.get_channel_ids(stid):
-
-            pos = det.get_relative_position(stid, chid)
-            ax.plot(pos[0], pos[1], 'k.', alpha=0.1)
-
+            pos_ant = pos_stid + det.get_relative_position(stid, chid)
+            ska_positions.append(pos_ant)
+    ska_positions = np.array(ska_positions)
+    
+    fig, ax = plt.subplots(figsize=(10, 10))
+    
+    ax.scatter(ska_positions[:, 0], ska_positions[:, 1], marker='.')
+    ax.set_xlabel('East [m]')
+    ax.set_ylabel('North [m]')
     ax.set_aspect(1)
+    
+    #The part of the full layout you want to zoom in on
+    x1, x2,  y1, y2 = 0, 100, 0, -100
+    
+    #Location of the zoom, the Lower-left corner of inset axes, and its width and height.[x0, y0, width, height]
+    axins = ax.inset_axes([0.5, 0.5, 0.47, 0.47])
+    
+    axins.scatter(ska_positions[:, 0], ska_positions[:, 1], marker='.')
+    axins.set_xlim(x1, x2)
+    axins.set_ylim(y1, y2)
+    axins.set_xticks([])
+    axins.set_yticks([])
+    axins.set_aspect(1)
+    
+    ax.indicate_inset_zoom(axins, edgecolor="black")
+    
     plt.show()

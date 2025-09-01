@@ -10,7 +10,7 @@ class eventReader:
     read events from file
     """
 
-    def begin(self, filename, read_detector=False, log_level=logging.NOTSET):
+    def begin(self, filename, read_detector=False, log_level=logging.NOTSET, **backend_kwargs):
         """
         Setup function for the eventReader module
 
@@ -23,8 +23,9 @@ class eventReader:
              in the event files. This is necessary to use the get_detector functions
         log_level: logging enum
         """
+        print(backend_kwargs)
 
-        self.__fin = NuRadioRecoio.NuRadioRecoio(filename, parse_header=read_detector, log_level=log_level)
+        self.__fin = NuRadioRecoio.NuRadioRecoio(filename, parse_header=read_detector, log_level=log_level, **backend_kwargs)
 
     @register_run()
     def run(self):

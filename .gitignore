@@ -145,6 +145,9 @@ NuRadioReco/examples/*.nur
 # Default location for proposal tables with proposal7
 NuRadioMC/EvtGen/proposal_tables/
 
+# Default location for sample data for interactive examples
+NuRadioReco/examples/Interactive/data/
+
 # zipped DB json files
 *json.xz
 

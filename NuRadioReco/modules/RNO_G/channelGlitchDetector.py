@@ -128,6 +128,7 @@ class channelGlitchDetector:
         # update event counter
         self.events_checked += 1
 
+        glitch_disc_global = False
         for ch in station.iter_channels():
             ch_id = ch.get_id()
 
@@ -137,13 +138,17 @@ class channelGlitchDetector:
             # glitching test statistic and boolean discriminate
             glitch_ts = (diff_sq(trace) - diff_sq(trace_us)) / np.var(trace)
             glitch_disc = glitch_ts > self.ts_cut_value
+            if glitch_disc is True:
+                glitch_disc_global = True
+                return glitch_disc_global
 
             ch.set_parameter(chp.glitch, glitch_disc)
             ch.set_parameter(chp.glitch_test_statistic, glitch_ts)
 
             # update glitching statistics
             self.events_glitching_per_channel[ch_id] += glitch_disc
-
+        return glitch_disc_global
+  
 
 def has_glitch(event_or_station):
     """

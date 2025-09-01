@@ -1,6 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
-from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import signal_processing
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
@@ -58,7 +58,7 @@ class voltageToEfieldConverterPerChannel:
 
         use_channels = det.get_channel_ids(station.get_id())
         frequencies = station.get_channel(use_channels[0]).get_frequencies()  # assuming that all channels have the  same sampling rate and length
-        efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det,
+        efield_antenna_factor = signal_processing.get_efield_antenna_factor(station, frequencies, use_channels, det,
                                                                           zenith, azimuth, self.antenna_provider)
 
         sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate()

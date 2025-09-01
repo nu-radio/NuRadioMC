@@ -1,5 +1,5 @@
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, trace_utilities
+from NuRadioReco.utilities import units, signal_processing
 
 import scipy.interpolate
 import scipy.signal
@@ -329,7 +329,7 @@ class analogToDigitalConverter:
 
         if adc_time_delay:
             # Random clock offset
-            trace, dt_tstart = trace_utilities.delay_trace(channel, sampling_frequency, adc_time_delay)
+            trace, dt_tstart = signal_processing.delay_trace(channel, sampling_frequency, adc_time_delay)
             times = channel.get_times()
             if dt_tstart > 0:
                 # by design dt_tstart is a multiple of the sampling rate

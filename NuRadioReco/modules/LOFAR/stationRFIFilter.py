@@ -4,7 +4,7 @@ import numpy as np
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities.signal_processing import half_hann_window
-from NuRadioReco.modules.io.LOFAR.rawTBBio import MultiFile_Dal1
+from NuRadioReco.modules.io.LOFAR._rawTBBio import MultiFile_Dal1
 from NuRadioReco.modules.io.LOFAR.readLOFARData import tbbID_to_nrrID, nrrID_to_tbbID
 
 from NuRadioReco.framework.parameters import stationParameters

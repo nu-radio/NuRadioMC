@@ -1,6 +1,4 @@
-from __future__ import absolute_import, division, print_function
 from NuRadioReco.utilities import units
-from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 import numpy as np
 import logging
 
@@ -10,10 +8,8 @@ Structure of a ray-tracing module. For documentation and development purposes.
 
 class ray_tracing_base:
     """
-    base class of ray tracer. All ray tracing modules need to prodide the following functions
+    Case class of ray tracer. All ray tracing modules need to prodide the following functions
     """
-
-
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
                  detector=None, ray_tracing_2D_kwards={}):
@@ -36,8 +32,8 @@ class ray_tracing_base:
             * logging.WARNING
             * logging.INFO
             * logging.DEBUG
+            * logging.NOTSET (default -> Controlled by global logger level)
 
-            default is NOTSET (ie global control)
         n_frequencies_integration: int
             if this parameter is also defined in the config file, the value from the config file
             will be used. If not, the value from this parameter will be used.
@@ -60,46 +56,79 @@ class ray_tracing_base:
         self.__logger.setLevel(log_level)
 
         self._medium = medium
-        self._attenuation_model = attenuation_model
-        self._n_frequencies_integration = n_frequencies_integration
-        if(n_reflections):
-            if(not hasattr(self._medium, "reflection") or self._medium.reflection is None):
-                self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
-                n_reflections = 0
-        self._n_reflections = n_reflections
-
         self._config = config
-        if self._config is not None:
-            if 'n_freq' in self._config['propagation']:
-                if n_frequencies_integration is not None:
-                    self.__logger.warning(f"overriding n_frequencies_integration from config file from {n_frequencies_integration} to {self._config['propagation']['n_freq']}")
-                self._n_frequencies_integration = self._config['propagation']['n_freq']
-            if 'n_reflections' in self._config['propagation']:
-                if n_reflections is not None:
-                    self.__logger.warning(f"overriding n_reflections from config file from {n_reflections} to {self._config['propagation']['n_reflections']}")
-                self._n_reflections = self._config['propagation']['n_reflections']
-            if 'attenuation_model' in self._config['propagation']:
-                if attenuation_model is not None:
-                    self.__logger.warning(f"overriding attenuation_model from config file from {attenuation_model} to {self._config['propagation']['attenuation_model']}")
-                self._attenuation_model = self._config['propagation']['attenuation_model']
+        self._set_arguments(n_frequencies_integration, n_reflections, attenuation_model)
+
         self._detector = detector
         self._max_detector_frequency = None
         if self._detector is not None:
             for station_id in self._detector.get_station_ids():
                 channel_id_1st = self._detector.get_channel_ids(station_id)[0]
                 sampling_frequency = self._detector.get_sampling_frequency(station_id, channel_id_1st)
+
                 for channel_id in self._detector.get_channel_ids(station_id):
                     if self._detector.get_sampling_frequency(station_id, channel_id) != sampling_frequency:
-                        self.__logger.warning(f"Different channels have different sampling frequencies. Channel {channel_id} has sampling frequency" \
-                                               f"{self._detector.get_sampling_frequency(station_id, channel_id)/units.GHz:.1f}." \
-                                                f"Using the sampoing frequency of the first channel with id {channel_id_1st} with {sampling_frequency/units.GHz:.1f} GHz." \
-                                                    "to calculate the maximum relevant frequency for calculating signal attenuation.")
+                        self.__logger.warning(
+                            f"Different channels have different sampling frequencies. Channel {channel_id} has sampling frequency" \
+                            f"{self._detector.get_sampling_frequency(station_id, channel_id) / units.GHz:.1f}." \
+                            f"Using the sampoing frequency of the first channel with id {channel_id_1st} with {sampling_frequency/units.GHz:.1f} GHz." \
+                            "to calculate the maximum relevant frequency for calculating signal attenuation.")
+
                 if self._max_detector_frequency is None or sampling_frequency * .5 > self._max_detector_frequency:
                     self._max_detector_frequency = sampling_frequency * .5
 
         self._X1 = None
         self._X2 = None
         self._results = None
+
+    def _set_arguments(self, n_frequencies_integration, n_reflections, attenuation_model):
+        """ Helper function to set three parameters of the raytracer.
+
+        The arguments are either passed explicitly to the object at
+        initialization, or are read from the config file. In case they are
+        pass at initialization and read from config the values in the config
+        are used and a warning released. In case the parameters are not set
+        by either of the two options, default values are set with this function.
+        """
+        self._n_frequencies_integration = None
+        self._n_reflections = None
+        self._attenuation_model = None
+
+        if self._config is not None:
+            if 'n_freq' in self._config['propagation']:
+                if n_frequencies_integration is not None:
+                    self.__logger.warning(
+                        f"Overriding n_frequencies_integration from config file from {n_frequencies_integration} to {self._config['propagation']['n_freq']}")
+                self._n_frequencies_integration = self._config['propagation']['n_freq']
+
+            if 'n_reflections' in self._config['propagation']:
+                if n_reflections is not None:
+                    self.__logger.warning(
+                        f"Overriding n_reflections from config file from {n_reflections} to {self._config['propagation']['n_reflections']}")
+                self._n_reflections = self._config['propagation']['n_reflections']
+
+            if 'attenuation_model' in self._config['propagation']:
+                if attenuation_model is not None:
+                    self.__logger.warning(
+                        f"Overriding attenuation_model from config file from {attenuation_model} to {self._config['propagation']['attenuation_model']}")
+                self._attenuation_model = self._config['propagation']['attenuation_model']
+
+        # If arguments are not yet set, set them to their default values
+        if self._n_frequencies_integration is None:
+            self._n_frequencies_integration = n_frequencies_integration or 100
+
+        if self._n_reflections is None:
+            self._n_reflections = n_reflections or 0
+
+        if self._attenuation_model is None:
+            self._attenuation_model = attenuation_model or 'SP1'
+
+        if self._n_reflections:
+            if not hasattr(self._medium, "reflection") or self._medium.reflection is None:
+                self.__logger.warning(
+                    "Ray paths with bottom reflections requested but medium does "
+                    "not have any reflective layer, setting number of reflections to zero.")
+                self._n_reflections = 0
 
     def reset_solutions(self):
         self._X1 = None

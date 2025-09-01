@@ -154,9 +154,11 @@ class channelSignalReconstructor:
         if coincidence_window_size_bins < 2:
             logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
 
-        snr['peak_2_peak_amplitude_split_noise_rms'] = np.amax(trace_utilities.peak_to_peak_amplitudes(channel.get_trace(), coincidence_window_size_bins))
-        snr['peak_2_peak_amplitude_split_noise_rms'] /= trace_utilities.get_split_trace_noise_RMS(channel.get_trace(), segments=4, lowest=2)
-        snr['peak_2_peak_amplitude_split_noise_rms'] /= 2
+        noise_rms = trace_utilities.get_split_trace_noise_RMS(channel.get_trace(), segments=4, lowest=2)
+        # only calculate when noise_rms is not zero (can happen in noiseless simulations)
+        if noise_rms != 0:
+            snr['peak_2_peak_amplitude_split_noise_rms'] = (
+                np.amax(trace_utilities.peak_to_peak_amplitudes(channel.get_trace(), coincidence_window_size_bins)) / (2 * noise_rms))
 
         if self.__debug:
             plt.figure()

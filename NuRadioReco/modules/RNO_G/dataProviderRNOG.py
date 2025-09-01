@@ -16,10 +16,10 @@ class dataProviderRNOG:
     It does so by running a set of "processing" modules on the data.
     This module is a wrapper around the following modules (in this order):
 
-    #. `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`
-    #. `NuRadioReco.modules.RNO_G.channelGlitchDetector`
-    #. `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
-    #. `NuRadioReco.modules.channelAddCableDelay`
+    - `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`
+    - `NuRadioReco.modules.RNO_G.channelGlitchDetector`
+    - `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
+    - `NuRadioReco.modules.channelAddCableDelay`
 
     The module reads RNO-G data, applies a glitch detection algorithm (does not remove/fix them!),
     fits block offsets (and removes them!) and subtracts cable delays. The voltage calibration is applied
@@ -47,7 +47,7 @@ class dataProviderRNOG:
     """
 
     def __init__(self):
-        self.reader = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData()
+        self.reader = NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData(load_run_table=True)
 
         self.channelGlitchDetector = NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector()
         self.channelBlockOffsetFitter = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets()
@@ -63,7 +63,7 @@ class dataProviderRNOG:
         det: Detector
             Detector object.
         reader_kwargs: dict (default: {})
-            Keyword arguments passed to the reader module readRNOGDataMattak.
+            Keyword arguments passed to the reader module `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`.
         """
         self.files = files
         self.detector = det
@@ -93,9 +93,14 @@ class dataProviderRNOG:
 
             # This will throw an error if the event has more than one station
             station = event.get_station()
-            self.detector.update(station.get_station_time())
+#            self.detector.update(station.get_station_time())
 
-            self.channelGlitchDetector.run(event, station, self.detector)
+            glitch_disc = self.channelGlitchDetector.run(event, station, self.detector)
+            if glitch_disc:
+                print(f"Glitch found, skipping event {event.get_id()}")
+                continue
+
+
             self.channelBlockOffsetFitter.run(event, station, self.detector)
             self.channelCableDelayAdder.run(event, station, self.detector, mode='subtract')
 

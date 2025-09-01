@@ -272,7 +272,7 @@
     },
     "15": {
       "station_id": 11,
-      "channel_id": 20,
+      "channel_id": 17,
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
@@ -290,7 +290,7 @@
     },
     "16": {
       "station_id": 11,
-      "channel_id": 19,
+      "channel_id": 16,
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
@@ -308,7 +308,7 @@
     },
     "17": {
       "station_id": 11,
-      "channel_id": 18,
+      "channel_id": 15,
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 180.0,
@@ -380,7 +380,7 @@
     },
     "21": {
       "station_id": 11,
-      "channel_id": 15,
+      "channel_id": 18,
       "ant_rotation_phi": 328.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 58.0,
@@ -398,7 +398,7 @@
     },
     "22": {
       "station_id": 11,
-      "channel_id": 16,
+      "channel_id": 19,
       "ant_rotation_phi": 328.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
@@ -416,7 +416,7 @@
     },
     "23": {
       "station_id": 11,
-      "channel_id": 17,
+      "channel_id": 20,
       "ant_rotation_phi": 328.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 238.0,

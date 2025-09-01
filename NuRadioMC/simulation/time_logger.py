@@ -123,7 +123,7 @@ class timeLogger:
 
     def start_time(self, category):
         """
-        Start counting times for a specific category. 
+        Start counting times for a specific category.
 
         Parameters
         ----------
@@ -171,7 +171,7 @@ class timeLogger:
 
     def show_time(self, n_event_groups, i_event_group):
         """
-        Display the progress information of a simulation run. 
+        Display the progress information of a simulation run.
 
         Parameters:
             n_event_groups (int): Total number of event groups.
@@ -194,7 +194,7 @@ class timeLogger:
                 time_account_string = time_account_string + '{} = {:.0f}%, '.format(category, self.__times[category] / elapsed_time.sec * 100)
             time_account_string = time_account_string + 'unaccounted: {:.0f}%'.format((elapsed_time.sec - total_accounted_time) / elapsed_time.sec * 100)
             self.__logger.status(
-                'processing event group {}/{}. ETA: {}, time consumption: {}'.format(
+                'Processing event group {}/{}. ETA: {}, time consumption: {}'.format(
                     i_event_group,
                     n_event_groups,
                     pretty_time_delta(projected_time.sec),

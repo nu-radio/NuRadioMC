@@ -1,4 +1,16 @@
 """
+Module to read in calibration metadata from LOFAR TBB files.
+
+Adapted from https://github.com/Bhare8972/LOFAR-LIM/blob/master/LoLIM/IO/metadata.py;
+original description included below.
+Most users will not want to use this module directly, but instead use the
+`readLOFARData <NuRadioReco.modules.io.LOFAR.readLOFARData>` module, which converts the
+TBB data to the NuRadio ``Event`` format, taking care to use the correct units etc.
+Note that to minimize changes, **this** module adheres to the LOFAR internal units (seconds / Hz)
+rather than using the NuRadio unit system.
+
+Original description
+--------------------
 This module reads in calibration metadata from file in the early phases of LOFAR. In the future this should be replaced
 by reading the metadata from the files.
 
@@ -10,7 +22,7 @@ Modified by Brian Hare for use with LOFAR for Lightning Imaging.
 import logging
 import numpy as np
 
-from NuRadioReco.modules.io.LOFAR.rawTBBio_utilities import SId_to_Sname
+from NuRadioReco.modules.io.LOFAR._rawTBBio_utilities import SId_to_Sname
 
 
 logger = logging.getLogger('NuRadioReco.LOFAR.rawTBBio_metadata')

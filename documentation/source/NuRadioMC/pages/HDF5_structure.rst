@@ -1,9 +1,15 @@
 HDF5 output structure
 =====================
 
-The output of a NuRadioMC simulation is saved in the HDF5 file format, as well as (optionally) in ``.nur`` files.
-The data structure of ``.nur`` files is explained :doc:`here </NuRadioReco/pages/event_structure>`.
-This page outlines the structure of the HDF5 files v3.0. Find the structure of :doc:`v2.2 here </NuRadioMC/pages/HDF5_structures_history/HDF5_v2.2>`.
+.. Note::
+    The output of a NuRadioMC simulation is saved in the HDF5 file format, as well as (optionally) in ``.nur`` files.
+    The HDF5 files contain mostly high-level output parameters in a standard, table-like structure.
+    It does not include the simulated voltage traces. For more advanced analyses (e.g. reconstruction),
+    you probably need to use the ``.nur`` files.
+    The data structure of ``.nur`` files is explained :doc:`here </NuRadioReco/pages/event_structure>`.
+
+.. Note::
+    This page outlines the structure of the HDF5 files v3.0. Find the structure of :doc:`v2.2 here </NuRadioMC/pages/HDF5_structures_history/HDF5_v2.2>`.
 
 
 Opening the HDF5 file

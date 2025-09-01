@@ -50,7 +50,8 @@ class triggerSimulator:
             number_concidences=1,
             triggered_channels=None,
             coinc_window=200 * units.ns,
-            trigger_name='default_simple_threshold'):
+            trigger_name='default_simple_threshold',
+            pre_trigger_time=None):
         """
         Simulate simple trigger logic, no time window, just threshold in all channels
 
@@ -73,6 +74,13 @@ class triggerSimulator:
             time window in which number_concidences channels need to trigger
         trigger_name: string
             a unique name of this particular trigger
+        pre_trigger_time: float or dict of floats
+            Defines the amount of trace recorded before the trigger time. This module does not cut the traces,
+            but this trigger property is later used to trim traces accordingly.
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+            If none, the default value of the Trigger class is used, which is currently 55ns.
         """
         t = time.time()
 
@@ -120,7 +128,11 @@ class triggerSimulator:
                 max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
             station.set_parameter(stnp.channels_max_amplitude, max_signal)
 
-        trigger = SimpleThresholdTrigger(trigger_name, threshold, triggered_channels, number_concidences)
+        kwargs = {}
+        if pre_trigger_time is not None:
+            kwargs['pre_trigger_times'] = pre_trigger_time
+        trigger = SimpleThresholdTrigger(trigger_name, threshold, triggered_channels, number_concidences,
+                                         **kwargs)
         trigger.set_triggered_channels(channels_that_passed_trigger)
 
         if has_triggered:

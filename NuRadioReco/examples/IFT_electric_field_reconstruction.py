@@ -3,7 +3,7 @@ import datetime
 import astropy
 import argparse
 import numpy as np
-from NuRadioReco.utilities import units, bandpass_filter, geometryUtilities
+from NuRadioReco.utilities import units, signal_processing, geometryUtilities
 from NuRadioReco.detector import detector
 import NuRadioReco.modules.io.coreas.readCoREAS
 import NuRadioReco.modules.io.coreas.simulationSelector
@@ -95,7 +95,7 @@ sampling_rate = 5. * units.GHz
 # It is only used to determine the pulse timing, so
 # we can keep it simple and just use a
 # bandpass-filtered delta pulse
-spec = np.ones(int(128 * sampling_rate + 1)) * bandpass_filter.get_filter_response(np.fft.rfftfreq(int(256 * sampling_rate), 1. / sampling_rate), passband, 'butter', 10)
+spec = np.ones(int(128 * sampling_rate + 1)) * signal_processing.get_filter_response(np.fft.rfftfreq(int(256 * sampling_rate), 1. / sampling_rate), passband, 'butter', 10)
 efield_template = NuRadioReco.framework.base_trace.BaseTrace()
 efield_template.set_frequency_spectrum(spec, sampling_rate)
 efield_template.apply_time_shift(20. * units.ns, True)
@@ -142,4 +142,3 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
             channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
             electricFieldResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
             eventWriter.run(evt, det)
-

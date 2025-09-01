@@ -1,5 +1,17 @@
-from NuRadioMC.EvtGen.generator import *
+import numpy as np
 import matplotlib.pyplot as plt
+from NuRadioReco.utilities import units
+from NuRadioReco.utilities.constants import tau_rest_lifetime
+
+def get_decay_time_losses(*args, **kwargs):
+    raise NotImplementedError("FS: the implmentation of get_decay_time_losses is NuRadio. "
+                              "It might have been removed - I do not know .... This script is BROKEN!")
+
+def create_interp(*args, **kwargs):
+    raise NotImplementedError("FS: the implmentation of get_decay_time_losses is NuRadio. "
+                              "It might have been removed - I do not know .... This script is BROKEN!")
+
+
 
 def get_p(p):
 

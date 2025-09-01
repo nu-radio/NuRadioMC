@@ -1,6 +1,6 @@
 name: Build and publish
 
-on: 
+on:
   pull_request:
   workflow_dispatch:
   push:
@@ -57,22 +57,27 @@ jobs:
 
     - name: Publish distribution 📦 to Test PyPI
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        repository_url: https://test.pypi.org/legacy/
+        repository-url: https://test.pypi.org/legacy/
+        verbose: true
 
     - name: Publish distribution 📦 to PyPI
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
+        verbose: true
 
     - name: Make tag and release
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
       env:
         GH_TOKEN: ${{ github.token}}
       run: |
+        git config --global user.email "sjoerd.bouma@fau.de"
+        git config --global user.name "Sjoerd Bouma"
+
         export VERSION_NEW="$(poetry version -s)"
         export NEW_TAG=v$VERSION_NEW
         git tag $NEW_TAG -m "$NEW_TAG release"
@@ -81,6 +86,10 @@ jobs:
         # we want to include the changelog since the last release
         # First, we use gh release and some regex to get the latest tag
         export LATEST_TAG=$(gh release list | sed -rn 's/.*Latest\s*(\S+).*/\1/p')
+        # the checkout action does not by default fetch the entire remote,
+        # so to compare to the previous tag we first need to fetch it
+        git fetch --depth=1 origin refs/tags/$LATEST_TAG:refs/tags/$LATEST_TAG
+
         # Next, we use some more regex to select
         # the section of the changelog between the new and latest versions:
         git diff --output-indicator-new=\| $LATEST_TAG $NEW_TAG changelog.txt | sed -rn "/^\|.*$VERSION_NEW/,/^[^|]/{s/\|//p}" | sed -n "2,\$p" > /tmp/changelog_$NEW_TAG.md

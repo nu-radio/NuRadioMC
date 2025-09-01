@@ -45,8 +45,8 @@ d_numeric = 0
 d_analytic = 0
 t_numeric = 0
 t_analytic = 0
+r = ray.ray_tracing(ice, log_level=logging.WARNING, n_reflections=1)
 for iX, x in enumerate(points):
-    r = ray.ray_tracing(ice, log_level=logging.WARNING, n_reflections=1)
     r.set_start_and_end_point(x, x_receiver)
     r.find_solutions()
     if(r.has_solution()):

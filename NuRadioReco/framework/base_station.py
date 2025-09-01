@@ -11,6 +11,7 @@ import astropy.time
 import logging
 import collections
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 
 logger = logging.getLogger('NuRadioReco.BaseStation')
 
@@ -288,7 +289,7 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
             'electric_fields': efield_pkls
         })
 
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

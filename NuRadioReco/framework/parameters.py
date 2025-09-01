@@ -90,6 +90,9 @@ class channelParametersRNOG(Enum):
 class stationParametersRNOG(Enum):
     # RNO-G specific station parameters
     coherent_snr = 1  #: Signal to Noise Ratio of the coherently summed waveform using the SNR definition of #63 avg_ch_snr
+    coherent_impulsivity = 2  #: impulsivity of the coherently summed waveform
+    coherent_entropy = 3  #: Shannon entropy of the coherently summed waveform
+    coherent_kurtosis = 4  #: kurtosis of the coherently summed waveform
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')

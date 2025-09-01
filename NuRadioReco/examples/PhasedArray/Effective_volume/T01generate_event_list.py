@@ -50,9 +50,9 @@ phimin = 0. * units.deg
 phimax = 360. * units.deg
 
 if (mode == 'full'):
-    logEs = np.array([14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5])
+    logEs = np.array([14.5, 15.5, 16.5, 17.5, 18.5])
 else:
-    logEs = np.linspace(16., 20., 10)
+    logEs = np.linspace(16., 19., 10)
 
 Es = 10 ** logEs * units.eV
 Emins = Es[0:-1]

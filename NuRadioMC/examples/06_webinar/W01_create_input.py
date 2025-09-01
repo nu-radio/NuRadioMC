@@ -24,14 +24,14 @@ print(length/units.cm)
 """
 from NuRadioReco.utilities import units
 """
-When importing a NuRadioReco or NuRadioMC module, the parent loggers are 
+When importing a NuRadioReco or NuRadioMC module, the parent loggers are
 initialised automatically. They are instances of a custom logging class called
 NuRadioLogger, which is set as the default logging class when using this
 library. The NuRadioLogger class also has a STATUS logging level.
 
 All modules configure their own logger, following the NuRadioMC.MODULE or
 NuRadioReco.MODULE naming scheme. This ensures that the messages are properly
-passed on to the parent loggers, and as such ensures the output of all module 
+passed on to the parent loggers, and as such ensures the output of all module
 logging is consistent.
 """
 
@@ -45,9 +45,9 @@ from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 # Choose the number of events for this file
 n_events = 1000
 # Choose the minimum energy for the simulated bin.
-Emin = 10 ** 19.5 * units.eV
+Emin = 10 ** 17.5 * units.eV
 # Choose the maximum energy for the simulated bin.
-Emax = 1e20 * units.eV
+Emax = 1e19 * units.eV
 """
 We have chosen a half-decade bin with a fairly high energy. We will only
 use 1000 events for this simple example, so high energy increases our

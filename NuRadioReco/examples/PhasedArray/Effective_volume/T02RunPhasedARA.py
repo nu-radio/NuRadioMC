@@ -27,7 +27,7 @@ import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
-from NuRadioReco.utilities.traceWindows import get_window_around_maximum
+from NuRadioReco.utilities.diodeSimulator import get_window_around_maximum
 
 
 # initialize detector sim modules

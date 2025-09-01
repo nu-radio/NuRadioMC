@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 from NuRadioReco.framework.parameters import particleParameters as partp
 import NuRadioReco.framework.parameter_storage
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 import collections
 import math
 import logging
@@ -52,7 +53,7 @@ class Particle(NuRadioReco.framework.parameter_storage.ParameterStorage):
     def serialize(self):
         data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
         data['_id'] = self._id
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

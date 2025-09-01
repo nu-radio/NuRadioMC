@@ -160,7 +160,7 @@ class channelGenericNoiseAdder:
         return ampl
 
     def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='perfect_white',
-                          time_domain=True, bandwidth=None, station_id=None, channel_id=None):
+                          time_domain=True, bandwidth=None):
         """
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
 
@@ -184,7 +184,6 @@ class channelGenericNoiseAdder:
         type: string
             perfect_white: flat frequency spectrum
             rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
-            data-driven: Amplitude of each frequency bin is drawn from a data informed Rayleigh distribution
             # white: flat frequency spectrum with random jitter
         time_domain: bool (default True)
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
@@ -193,10 +192,6 @@ class channelGenericNoiseAdder:
             if this parameter is specified, the amplitude is interpreted as the amplitude for the bandwidth specified here
             Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq
             If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`
-        station_id: int or None (default)
-            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise
-        channel_id: int or None (default)
-            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise
 
         Notes
         -----
@@ -246,8 +241,6 @@ class channelGenericNoiseAdder:
         elif type == 'rayleigh':
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
-        elif type == "data-driven":
-            ampl = self.add_data_driven_noise(ampl, selection, frequencies, station_id, channel_id)
         # FIXME: amplitude normalization is not correct for 'white'
         # elif type == 'white':
         #   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
@@ -255,12 +248,7 @@ class channelGenericNoiseAdder:
             self.logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
-        if type == "data-driven":
-            # data-driven parameters were sampled from spectra that follow the NuRadio conventions
-            # and were hence already divide by the sampling rate
-            noise = self.add_random_phases(ampl, n_samples)
-        else:
-            noise = self.add_random_phases(ampl, n_samples) / sampling_rate
+        noise = self.add_random_phases(ampl, n_samples) / sampling_rate
         if time_domain:
             return fft.freq2time(noise, sampling_rate, n=n_samples)
         else:
@@ -413,7 +401,7 @@ class channelGenericNoiseAdder:
 
 
     def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude=None, type='perfect_white',
-                          time_domain=True, station_id=None, channel_id=None):
+                          time_domain=True):
         """
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
 
@@ -424,7 +412,7 @@ class channelGenericNoiseAdder:
         sampling_rate: float
             desired sampling rate of data
         spectrum: numpy.ndarray, function
-            desired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function
+            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function
             that takes the frequencies as an argument and returns the amplitudes. The overall normalization
             of the spectrum is ignored if the paramter "amplitude" is set.
         amplitude: float, optional
@@ -433,15 +421,10 @@ class channelGenericNoiseAdder:
         type: string
             perfect_white: flat frequency spectrum
             rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
-            data-driven : Amplitude of each frequency bin is drawn from a data informed Rayleigh distribution
             # white: flat frequency spectrum with random jitter
         time_domain: bool (default True)
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
             might be more performant as the noise is generated internally in the frequency domain.
-        station_id: int or None (default)
-            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise
-        channel_id: int or None (default)
-            Only necessary when selecting data-driven noise type to determine from which station/channel data to generate noise
         """
         frequencies = np.fft.rfftfreq(n_samples, 1. / sampling_rate)
         selection = frequencies > 0
@@ -466,19 +449,11 @@ class channelGenericNoiseAdder:
         elif type == 'rayleigh':
             fsigma = amplitude * sigscale / np.sqrt(2.)
             ampl[selection] = self.__random_generator.rayleigh(fsigma, n_samples_freq)
-        elif type == "data-driven":
-            ampl = self.add_data_driven_noise(ampl, selection, frequencies, station_id, channel_id)
-
         else:
             self.logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
-        if type == "data-driven":
-            # data-driven parameters were sampled from spectra that follow the NuRadio conventions
-            # and were hence already divide by the sampling rate
-            noise = self.add_random_phases(ampl, n_samples)
-        else:
-            noise = self.add_random_phases(ampl, n_samples) / sampling_rate
+        noise = self.add_random_phases(ampl, n_samples) / sampling_rate
         noise *= spectrum
         if time_domain:
             return fft.freq2time(noise, sampling_rate, n=n_samples)
@@ -491,27 +466,11 @@ class channelGenericNoiseAdder:
         self.logger = logging.getLogger('NuRadioReco.channelGenericNoiseAdder')
         self.begin()
 
-    def begin(self, debug=False, seed=None, scale_parameter_dir = None):
-        """
-        Parameters
-        ----------
-        scale_parameter_dir : string
-            Parameter for noise type "data-driven"
-            Path to the directory that contains the scale parameter files. One file contains one station.
-            The module expects the files to be named thermal_noise_scale_parameters_sXX_seasonXX.json
-        """
+    def begin(self, debug=False, seed=None):
         self.__debug = debug
         self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
-        self.scale_parameter_paths = []
-        if scale_parameter_dir is not None:
-            self.scale_parameter_dir = scale_parameter_dir
-            self.scale_parameter_paths = [scale_param_json for scale_param_json in os.listdir(scale_parameter_dir)
-                                          if (scale_param_json.endswith(".json") and
-                                              scale_param_json.startswith("thermal_noise_scale_parameters"))]
-            if len(self.scale_parameter_paths) == 0:
-                raise OSError(f"No scale parameter json files found in {self.scale_parameter_dir}")
 
     @register_run()
     def run(self, event, station, detector,
@@ -545,7 +504,6 @@ class channelGenericNoiseAdder:
         type: string
             perfect_white: flat frequency spectrum
             rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
-            data-driven: Amplitude of each frequency bin is drawn from a data-informed Rayleigh distribution 
         excluded_channels: list of ints
             the channels ids of channels where no noise will be added, default is that no channel is excluded
         bandwidth: float or None (default)
@@ -556,11 +514,9 @@ class channelGenericNoiseAdder:
         """
         if excluded_channels is None:
             excluded_channels = []
-        station_id = station.get_id()
         channels = station.iter_channels()
         for channel in channels:
-            channel_id = channel.get_id()
-            if(channel_id in excluded_channels):
+            if(channel.get_id() in excluded_channels):
                 continue
 
             trace = channel.get_trace()
@@ -577,9 +533,7 @@ class channelGenericNoiseAdder:
                                            sampling_rate=sampling_rate,
                                            amplitude=tmp_ampl,
                                            type=type,
-                                           bandwidth=bandwidth,
-                                           station_id=station_id,
-                                           channel_id=channel_id)
+                                           bandwidth=bandwidth)
 
             if self.__debug:
                 new_trace = trace + noise
@@ -604,75 +558,3 @@ class channelGenericNoiseAdder:
 
     def end(self):
         pass
-
-
-if __name__ == "__main__":
-    import argparse
-    from astropy.time import Time
-    import matplotlib.pyplot as plt
-    from NuRadioReco.framework.event import Event
-    from NuRadioReco.framework.station import Station
-    from NuRadioReco.framework.channel import Channel
-    from NuRadioReco.detector import detector
-
-    parser  =argparse.ArgumentParser()
-    parser.add_argument("--station", "-s", type=int, default=11)
-    parser.add_argument("--channel", "-c", type=int, default=0)
-    args = parser.parse_args()
-
-    def create_sim_event(station_id, channel_id, detector, frequencies, sampling_rate):
-        event = Event(run_number=-1, event_id=-1)
-        station = Station(station_id)
-        station.set_station_time(detector.get_detector_time())
-        channel = Channel(channel_id)
-        channel.set_frequency_spectrum(np.zeros_like(frequencies, dtype=np.complex128), sampling_rate)
-        station.add_channel(channel)
-        event.set_station(station)
-        return event, station
-    
-
-
-    log_level = logging.DEBUG
-
-    det = detector.Detector(source="rnog_mongo",
-                            always_query_entire_description=False,
-                            database_connection="RNOG_public",
-                            select_stations=args.station,
-                            log_level=log_level)
-    det.update(Time("2023-08-01"))
-
-    nr_samples = 2048
-    sampling_rate = 3.2 * units.GHz
-    frequencies = np.fft.rfftfreq(nr_samples, d=1./sampling_rate)
-
-    event, station = create_sim_event(args.station, args.channel, det, frequencies, sampling_rate)
-
-    scale_parameter_dir = "/insert/path/to/scale/parameters/here"
-
-    generic_noise_adder = channelGenericNoiseAdder()
-    generic_noise_adder.begin(scale_parameter_dir=scale_parameter_dir)
-    
-    channel = station.get_channel(args.channel)
-    # noise = generic_noise_adder.bandlimited_noise(0, 1.6, nr_samples, sampling_rate, amplitude=None, type="data-driven", time_domain=False,
-    #                                               station_id=args.station, channel_id=args.channel)
-    spectrum = np.zeros_like(frequencies)
-    spectrum[100:700] = 1
-    noise = generic_noise_adder.bandlimited_noise_from_spectrum(nr_samples, sampling_rate, spectrum, amplitude=None, type="data-driven", time_domain=False,
-                                                                station_id=args.station, channel_id=args.channel)
-
-    channel.set_frequency_spectrum(noise, sampling_rate)
-
-    frequency_spectrum = channel.get_frequency_spectrum()
-    times = channel.get_times()
-    trace = channel.get_trace()
-    plt.plot(frequencies, np.abs(frequency_spectrum))
-    plt.xlabel("freq / GHz")
-    plt.ylabel("spectral amplitude / V/GHz")
-    plt.savefig("channelGenericNoiseAdder_spectrumtest.png")
-    plt.close()
-
-    plt.plot(times, trace)
-    plt.xlabel("times / ns")
-    plt.ylabel("amplitude / V")
-    plt.savefig("channelGenericNoiseAdder_tracetest.png")
-    plt.close()
