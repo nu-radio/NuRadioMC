@@ -71,8 +71,8 @@ class Database(object):
                 * `"mongodb*": Every string which starts with `"mongodb"` will be used to connect to
                   a mongo server
 
-        database_name : str (Default: None -> `"RNOG_live"`)
-            Select the database by name. If None (default) is passed, set to `"RNOG_live"`
+        database_name : str (Default: None -> `"RNOG_hardware_v0"`)
+            Select the database by name. If None (default) is passed, set to `"RNOG_hardware_v0"`
 
         mongo_kwargs : dict (Default: `{}`)
             Additional arguments to pass to MongoClient.
@@ -118,7 +118,7 @@ class Database(object):
         self.__mongo_client = MongoClient(connection_string, **mongo_kwargs)
 
         if database_name is None:
-            database_name = "RNOG_live"
+            database_name = "RNOG_hardware_v0"
 
         if database_name not in self.__mongo_client.list_database_names():
             logger.error(f'Could not find database "{database_name}" in mongo client.')
@@ -158,7 +158,7 @@ class Database(object):
             logger.error("Set invalid time for database. Time has to be of type datetime.datetime")
             raise TypeError("Set invalid time for database. Time has to be of type datetime.datetime")
 
-        if time < datetime.datetime(2024, 11, 1):
+        if time < datetime.datetime(2024, 11, 1, tzinfo=datetime.timezone.utc):
             logger.error("Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.")
             raise ValueError("Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.")
 
