@@ -491,7 +491,7 @@ class Database(object):
         return device_info[0]['devices']
 
     @_check_database_time
-    def get_collection_information(self, collection_name, search_by, obj_id, measurement_name=None, channel_id=None, use_primary_time_with_measurement=False):
+    def get_collection_information(self, collection_name, search_by, obj_id, measurement_name=None, channel_id=None, use_primary_time=None):
         """
         Get the information for a specified collection (will only work for 'station_position', 'channel_position' and 'signal_chain')
         if the station does not exist, {} will be returned. Return primary measurement unless measurement_name is specified.
@@ -510,22 +510,23 @@ class Database(object):
             station id or position/signal_chain identifier
 
         measurement_name: string
-            Use the measurement name to select the requested data (not database time / primary time).
-            If "use_primary_time_with_measurement" is True, use measurement_name and primary time to
-            find matching objects. (Default: None -> return measurement based on primary time)
+            Use the measurement name to select the requested data. (Default: None -> return measurement based on primary time)
 
         channel_id: int
             Unique identifier of the channel. Only allowed if searched by 'station_id'
 
-        use_primary_time_with_measurement: bool
-            If True (and measurement_name is not None), use measurement name and primary time to select objects.
-            (Default: False)
+        use_primary_time: bool
+            If True, use primary time to select objects.
+            (Default: None -> Set to `use_primary_time = measurement_name is None`)
 
         Returns
         -------
 
         info: list(dict)
         """
+
+        if use_primary_time is None:
+            use_primary_time = measurement_name is None
 
         if search_by == 'station_id':
             id_dict = {'id': {'$regex': f'_stn{obj_id}_'}}
@@ -557,7 +558,7 @@ class Database(object):
             # add {'measurements.channel_id': channel_id} to dict in '$match'
             search_filter[-1]['$match'].update({'measurements.channel_id': channel_id})
 
-        if measurement_name is None or use_primary_time_with_measurement:
+        if use_primary_time:
             search_filter += [
                 {'$unwind': '$measurements.primary_measurement'},
                 {'$match': {'measurements.primary_measurement.start': {'$lte': self.__database_time},
@@ -720,12 +721,15 @@ class Database(object):
 
 
     def get_position(self, station_id=None, channel_device_id=None, position_id=None,
-                     measurement_name=None, use_primary_time_with_measurement=False,
+                     measurement_name=None, use_primary_time=None,
                      component="station", verbose=False):
         """
         Function to return the channel position,
         returns primary unless measurement_name is not None
         """
+
+        if use_primary_time is None:
+            use_primary_time = measurement_name is None
 
         # If the channel_position_id is given, the position is directly collected from the channel position
         # collection (no need to look into the main collection again)
@@ -739,7 +743,7 @@ class Database(object):
         # if measurement name is None, the primary measurement is returned
         collection_info = self.get_collection_information(
             f'{component}_position', search_by='id', obj_id=position_id, measurement_name=measurement_name,
-            use_primary_time_with_measurement=use_primary_time_with_measurement)
+            use_primary_time=use_primary_time)
 
         # raise an error if more than one value is returned
         if len(collection_info) > 1:
@@ -789,11 +793,27 @@ class Database(object):
             return {k:collection_info[0]['measurements'][k] for k in ('VEL', 'response_chain', 'primary_components')}
 
 
-    def get_component_data(self, component_type, component_id, supplementary_info={}, primary_time=None, verbose=True, sparameter='S21', use_primary_time=True):
+    def get_component_data(self, collection_name, component_name, supplementary_info={}, primary_time=None, verbose=True, sparameter='S21', use_primary_time=True):
         """
-        returns the current primary measurement of the component, reads in the component collection
+        Returns a single measurement of a component. (e.g. gain of an IGLU)
 
-        Returns a single measurement (e.g. gain of an IGLU)
+        Parameters
+        ----------
+        collection_name : str
+            Specify collection to look for component. Previously named `component_type`
+            (collection names are typically the type of the component, e.g.. 'iglu_board').
+        component_name : str
+            Name of the component (e.g. 'C0069'). Previously named `component_id`.
+        supplementary_info : dict
+            Additional information to filter the measurement (e.g. {'channel_id': 0}).
+        primary_time : datetime
+            Time to use for the primary measurement (if None, the current time is used).
+        verbose : bool
+            If True, return the full measurement, otherwise return a simplified version.
+        sparameter : str
+            S-parameter to retrieve (e.g. 'S21').
+        use_primary_time : bool
+            If True, use the primary time to select the measurement.
 
         Examples
         --------
@@ -807,8 +827,8 @@ class Database(object):
 
             # gives you the entry in the database
             database_entry = db.get_component_data(
-                component_type='iglu_board',
-                component_id='C0069',
+                collection_name='iglu_board',
+                component_name='C0069',
                 supplementary_info={}, # if you want a DRAB you have to specify the channel: {'channel_id':0}
                 verbose=True,
                 sparameter='S21', # you can also read the other S parameters
@@ -827,9 +847,9 @@ class Database(object):
             primary_time = self.get_database_time()
 
         # define a search filter
-        search_filter = [{'$match': {'name': component_id}}, {'$unwind': '$measurements'}, {'$match': {}}]
+        search_filter = [{'$match': {'name': component_name}}, {'$unwind': '$measurements'}, {'$match': {}}]
 
-        # if supplemenatry information exsits (like channel id, etc ...), update the search filter
+        # if supplementary information exists (like channel id, etc ...), update the search filter
         if supplementary_info != {}:
             for supp_info in supplementary_info.keys():
                 search_filter[-1]['$match'].update({f'measurements.{supp_info}': supplementary_info[supp_info]})
@@ -842,7 +862,7 @@ class Database(object):
             search_filter.append({'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
                                             'measurements.primary_measurement.end': {'$gte': primary_time}}})
 
-        search_result = list(self.db[component_type].aggregate(search_filter))
+        search_result = list(self.db[collection_name].aggregate(search_filter))
 
         if len(search_result) != 1:
             raise ValueError(f'Found {len(search_result)} measurements with {search_filter}:\n {search_result}')
@@ -1073,8 +1093,8 @@ class Database(object):
                     supp_info = {key: component_entry[key] for key in component_entry.keys() if re.search("(channel|breakout)", key)}
 
                     component_data = self.get_component_data(
-                        component_type=component_entry["collection"],
-                        component_id=component_entry["name"],
+                        collection_name=component_entry["collection"],
+                        component_name=component_entry["name"],
                         supplementary_info=supp_info,
                         verbose=verbose,
                         sparameter='S21')
