@@ -845,7 +845,7 @@ class Database(object):
         search_result = list(self.db[component_type].aggregate(search_filter))
 
         if len(search_result) != 1:
-            raise ValueError(f'No or more than one measurement found: {search_result}. Search filter: {search_filter}')
+            raise ValueError(f'Found {len(search_result)} measurements with {search_filter}:\n {search_result}')
 
         measurement = search_result[0]['measurements']
 
@@ -1040,6 +1040,10 @@ class Database(object):
         channel_signal_id: str
             Indentifier of the signal chain
 
+        measurement_name: str
+            If not None, this measurement will be used to select the correct signal chain (not used in subsequent calls to
+            `get_component_data` or `get_time_dependent_factor`)
+
         Returns
         -------
 
@@ -1063,7 +1067,7 @@ class Database(object):
                 if component_entry["collection"] in ["gain_calibration", "time_delays"]:
                     # only load a single calibration value
                     component_data = self.get_time_dependent_factor(
-                        collection=component_entry["collection"], search_id=component_entry["id"], use_primary_time=measurement_name is None)
+                        collection=component_entry["collection"], search_id=component_entry["id"])
                 else:
                     # create a search dict with addtional informations
                     supp_info = {key: component_entry[key] for key in component_entry.keys() if re.search("(channel|breakout)", key)}
@@ -1073,8 +1077,7 @@ class Database(object):
                         component_id=component_entry["name"],
                         supplementary_info=supp_info,
                         verbose=verbose,
-                        sparameter='S21',
-                        use_primary_time=measurement_name is None)
+                        sparameter='S21')
 
                 # add the component data to the channel_sig_info dict
                 channel_sig_info[chain_key][ice].update(component_data)
