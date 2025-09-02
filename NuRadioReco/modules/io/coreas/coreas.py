@@ -466,8 +466,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
                     "CORSIKA MAGNET stores only (By, -Bz); this component is implicitly assumed zero.")
 
             magnetic_field_vector = np.array([By_corsika, minBz_corsika])
-            print(np.rad2deg(zenith_NNR), np.rad2deg(azimuth_NNR))
-            print((zenith), (azimuth))
+        
             return zenith, azimuth, magnetic_field_vector
 
         zenith_NNR = sim_shower.get_parameter(shp.zenith)
