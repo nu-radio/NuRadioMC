@@ -466,7 +466,8 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
                     "CORSIKA MAGNET stores only (By, -Bz); this component is implicitly assumed zero.")
 
             magnetic_field_vector = np.array([By_corsika, minBz_corsika])
-        
+            print(np.rad2deg(zenith_NNR), np.rad2deg(azimuth_NNR))
+            print((zenith), (azimuth))
             return zenith, azimuth, magnetic_field_vector
 
         zenith_NNR = sim_shower.get_parameter(shp.zenith)
@@ -475,8 +476,8 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
         
         zenith, azimuth, B_vec = get_angles_corsika(zenith_NNR, azimuth_NNR, B_vec_NNR, declination)
         
-        inputs_grp.attrs["THETAP"] = zenith
-        inputs_grp.attrs["PHIP"] = azimuth
+        inputs_grp.attrs["THETAP"] = np.array([zenith, zenith])
+        inputs_grp.attrs["PHIP"] =  np.array([azimuth, azimuth])
         inputs_grp.attrs["MAGNET"] = B_vec
 
         if sim_shower.has_parameter(shp.atmospheric_model):
