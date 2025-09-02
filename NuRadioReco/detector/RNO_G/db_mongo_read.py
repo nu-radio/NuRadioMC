@@ -158,7 +158,7 @@ class Database(object):
             logger.error("Set invalid time for database. Time has to be of type datetime.datetime")
             raise TypeError("Set invalid time for database. Time has to be of type datetime.datetime")
 
-        if time < datetime.datetime(2024,11,1,0,0,0):
+        if time < datetime.datetime(2024, 11, 1):
             logger.error("Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.")
             raise ValueError("Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.")
 
