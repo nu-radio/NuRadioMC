@@ -447,6 +447,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
             """
             zenith = zenith_NNR / units.deg            
             azimuth = (azimuth_NNR - 3*np.pi / 2. - declination / units.rad) / units.deg
+
             
             # Unit vectors in geographic CS:
             # magnetic north unit vector in geographic coordinates (rotated from geographic north by declination)
@@ -474,8 +475,8 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
         
         zenith, azimuth, B_vec = get_angles_corsika(zenith_NNR, azimuth_NNR, B_vec_NNR, declination)
         
-        inputs_grp.attrs["PHIP"] = zenith
-        inputs_grp.attrs["THETAP"] = azimuth
+        inputs_grp.attrs["THETAP"] = zenith
+        inputs_grp.attrs["PHIP"] = azimuth
         inputs_grp.attrs["MAGNET"] = B_vec
 
         if sim_shower.has_parameter(shp.atmospheric_model):
@@ -512,7 +513,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
                 azimuth_NNR,
                 B_vec_NNR
             )
-            
+
             data_set = observers_grp.create_dataset(dataset_name, data=efield_corsika)
             data_set.attrs["position"] = pos_corsika
             data_set.attrs["name"] = dataset_name
