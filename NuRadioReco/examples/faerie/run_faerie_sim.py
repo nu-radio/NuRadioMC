@@ -47,7 +47,7 @@ def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns):
         tstart = 0 * units.ns
         tend = 0 * units.ns
     else:
-        tstart = np.min(tstarts) - pad_before
+        tstart = np.min(tstarts) + pad_before
         tend = np.max(tends) + pad_after
 
     t_readout_window = det.get_number_of_samples(sim_station.get_id(), 0) / \
@@ -65,7 +65,7 @@ def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns):
         readout = BaseTrace()
         readout.set_trace(np.zeros((3, n_samples)), electric_field.get_sampling_rate(), tstart)
 
-        if len(electric_field.get_trace()) > 100: ## assumes short traces are not useful
+        if len(electric_field.get_trace()) <= 200: ## assumes short traces are not useful
             readout.add_to_trace(electric_field)
         electric_field.set_trace(readout.get_trace(), "same", tstart)
 
@@ -162,8 +162,8 @@ if __name__ == "__main__":
         select_stations=[args.station], detector_file=args.detector_file, database_connection="RNOG_public", always_query_entire_description=False)
     det_rnog.update(dt.datetime(2023, 8, 1))
 
-    trigger_channels = np.array([0, 1, 2, 3])
-    # trigger_channels = np.array([0])
+    # trigger_channels = np.array([0, 1, 2, 3])
+    trigger_channels = np.array([0])
     
     thresholds = {
         "hilo_sigma_3": 3,
@@ -213,7 +213,7 @@ if __name__ == "__main__":
         'Channels': True,
         'ElectricFields': False,
         'SimChannels': True,
-        'SimElectricFields': False
+        'SimElectricFields': True
     }
 
     for combined_event in readFAERIEShower.run(depth=args.depth, station_id=args.station):
