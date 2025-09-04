@@ -667,7 +667,7 @@ a mongo server</p></li>
 </ul>
 </div></blockquote>
 </dd>
-<dt><strong>database_name</strong><span class="classifier">str (Default: None -&gt; <em class="xref py py-obj">“RNOG_live”</em>)</span></dt><dd><p>Select the database by name. If None (default) is passed, set to <em class="xref py py-obj">“RNOG_live”</em></p>
+<dt><strong>database_name</strong><span class="classifier">str (Default: None -&gt; <em class="xref py py-obj">“RNOG_hardware_v0”</em>)</span></dt><dd><p>Select the database by name. If None (default) is passed, set to <em class="xref py py-obj">“RNOG_hardware_v0”</em></p>
 </dd>
 <dt><strong>mongo_kwargs</strong><span class="classifier">dict (Default: <em class="xref py py-obj">{}</em>)</span></dt><dd><p>Additional arguments to pass to MongoClient.</p>
 </dd>
@@ -680,80 +680,80 @@ a mongo server</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_entry_to_database" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_entry_to_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_entry_to_database</span></code></a>(collection, ...[, ...])</p></td>
 <td><p>inserts a entry into the database.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_antenna_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_antenna_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_antenna_measurement</span></code></a>(...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_time_dependent_entry_to_database" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_time_dependent_entry_to_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_time_dependent_entry_to_database</span></code></a>(...[, ...])</p></td>
+<td><p>inserts a time dependent entry into the database.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_antenna_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_antenna_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_antenna_measurement</span></code></a>(...)</p></td>
 <td><p>changes the current active primary measurement for a single antenna measurement</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_cable_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_cable_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_cable_measurement</span></code></a>(cable_type, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_cable_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_cable_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_cable_measurement</span></code></a>(cable_type, ...)</p></td>
 <td><p>changes the current active primary measurement for a single cable measurement</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_downhole_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_downhole_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_downhole_measurement</span></code></a>(...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_downhole_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_downhole_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_downhole_measurement</span></code></a>(...)</p></td>
 <td><p>changes the current active primary measurement for a single board measurement</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_drab_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_drab_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_drab_measurement</span></code></a>(board_type, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_drab_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_drab_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_drab_measurement</span></code></a>(board_type, ...)</p></td>
 <td><p>changes the current active primary measurement for a single board measurement</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_iglu_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_iglu_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_iglu_measurement</span></code></a>(board_type, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_iglu_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_iglu_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_iglu_measurement</span></code></a>(board_type, ...)</p></td>
 <td><p>changes the current active primary measurement for a single board measurement</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_surface_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_surface_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_surface_measurement</span></code></a>(...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_surface_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.change_primary_surface_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_primary_surface_measurement</span></code></a>(...)</p></td>
 <td><p>changes the current active primary measurement for a single board measurement</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_channel" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decommission_a_channel</span></code></a>(station_id, ...)</p></td>
-<td><p>function to decommission an active channel in the db</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_device" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_device"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decommission_a_device</span></code></a>(station_id, device_id, ...)</p></td>
-<td><p>function to decommission an active device in the db</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_station" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decommission_a_station</span></code></a>(station_id, decomm_time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_object" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_object"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decommission_a_object</span></code></a>(station_id, ...[, ...])</p></td>
 <td><p>function to decommission an active station in the db</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.find_primary_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.find_primary_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_primary_measurement</span></code></a>(collection_name, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.find_primary_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.find_primary_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_primary_measurement</span></code></a>(collection_name, ...)</p></td>
 <td><p>Find the object_id of entry with name 'name' and gives the measurement_id of the primary measurement, return the id of the object and the measurement</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_all_available_signal_chain_configs" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_all_available_signal_chain_configs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_available_signal_chain_configs</span></code></a>(...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_all_available_signal_chain_configs" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_all_available_signal_chain_configs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_available_signal_chain_configs</span></code></a>(...)</p></td>
 <td><p>Depending on the inputs, all possible configurations in the database are returned; Input example: 'iglu_boards', 'Golden_IGLU' {'measurement_temp': 20, 'DRAB_id': 'Golden_DRAB'}</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_channel_signal_chain" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_channel_signal_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_signal_chain</span></code></a>(channel_signal_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_channel_signal_chain" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_channel_signal_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_signal_chain</span></code></a>(channel_signal_id)</p></td>
 <td><p>Returns the response data for a given signal chain.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_channel_signal_chain_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_channel_signal_chain_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_signal_chain_measurement</span></code></a>([...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_channel_signal_chain_measurement" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_channel_signal_chain_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_signal_chain_measurement</span></code></a>([...])</p></td>
 <td><p>function to return the channels signal chain information, returns primary unless measurement_name is not None</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_collection_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_collection_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_collection_information</span></code></a>(collection_name, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_collection_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_collection_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_collection_information</span></code></a>(collection_name, ...)</p></td>
 <td><p>Get the information for a specified collection (will only work for 'station_position', 'channel_position' and 'signal_chain') if the station does not exist, {} will be returned.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_channel_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_channel_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_complete_channel_information</span></code></a>(station_id, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_channel_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_channel_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_complete_channel_information</span></code></a>(station_id, ...)</p></td>
 <td><p>Collects all available information about the input channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_device_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_device_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_complete_device_information</span></code></a>(station_id, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_device_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_device_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_complete_device_information</span></code></a>(station_id, ...)</p></td>
 <td><p>Collects all available information about a device</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_station_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_station_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_complete_station_information</span></code></a>(station_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_station_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_complete_station_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_complete_station_information</span></code></a>(station_id)</p></td>
 <td><p>Collects all available information about the station</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_component_data" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_component_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_component_data</span></code></a>(component_type, component_id)</p></td>
-<td><p>returns the current primary measurement of the component, reads in the component collection</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_component_data" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_component_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_component_data</span></code></a>(collection_name, ...[, ...])</p></td>
+<td><p>Returns a single measurement of a component.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_digitizer_configuration" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_digitizer_configuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_digitizer_configuration</span></code></a>(config_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_digitizer_configuration" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_digitizer_configuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_digitizer_configuration</span></code></a>(config_id)</p></td>
 <td><p>Get digitizer configuration from the database.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_channel_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_channel_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_general_channel_information</span></code></a>(station_id, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_channel_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_channel_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_general_channel_information</span></code></a>(station_id, ...)</p></td>
 <td><p>Get information from one channel.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_device_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_device_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_general_device_information</span></code></a>(station_id, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_device_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_device_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_general_device_information</span></code></a>(station_id, ...)</p></td>
 <td><p>Get information from one device.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_station_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_station_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_general_station_information</span></code></a>(station_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_station_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_general_station_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_general_station_information</span></code></a>(station_id)</p></td>
 <td><p>Get information from one station.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_identifier" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_identifier</span></code></a>(station_id[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_identifier" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_identifier</span></code></a>(station_id[, ...])</p></td>
 <td><p>Get the identifier for a station/channel/device measurement,</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_position" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_position</span></code></a>([station_id, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_position" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_position</span></code></a>([station_id, ...])</p></td>
 <td><p>Function to return the channel position, returns primary unless measurement_name is not None</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_quantity_names" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_quantity_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_quantity_names</span></code></a>(collection_name, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_quantity_names" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_quantity_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_quantity_names</span></code></a>(collection_name, ...)</p></td>
 <td><p>Returns a list with all measurement names, ids, .</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_time_dependent_factor" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_time_dependent_factor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_dependent_factor</span></code></a>(collection, search_id)</p></td>
+<td><p>Get the time dependent factor for a given station and channel id for the current detector time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.load_board_information" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.load_board_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_board_information</span></code></a>(type, board_name, ...)</p></td>
 <td><p>Load the information for a single component from the database (can be used for IGLU / DRAB)</p></td>
@@ -774,7 +774,7 @@ a mongo server</p></li>
 <td><p>inserts that the input unit is broken.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.update_current_primary" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.update_current_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_current_primary</span></code></a>(collection_name, ...)</p></td>
-<td><p>updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow()</p></td>
+<td><p>updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow() or primary_end_time</p></td>
 </tr>
 </tbody>
 </table>
@@ -894,6 +894,36 @@ Only works for the following collections: hpol, vpol, surface, …</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_time_dependent_entry_to_database">
+<span class="sig-name descname"><span class="pre">add_time_dependent_entry_to_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identification_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identification_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_measurement</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commission_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decommission_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_measurement_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_write.html#Database.add_time_dependent_entry_to_database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_time_dependent_entry_to_database" title="Link to this definition"></a></dt>
+<dd><p>inserts a time dependent entry into the database.
+If the measurement dosn’t exist yet, it will be created.
+Only works for the following collections: gain_calibration</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>collection: string</strong></dt><dd><p>specify the collection in which the entry will be added</p>
+</dd>
+<dt><strong>identification_key: string</strong></dt><dd><p>specify the key used for identification (must be ‘name’ or ‘id’)</p>
+</dd>
+<dt><strong>identification_value: string</strong></dt><dd><p>specify the name of the entry (e.g. the name of the measurement or the channel position identifier)</p>
+</dd>
+<dt><strong>primary_measurement: bool</strong></dt><dd><p>indicates the primary measurement to be used for analysis</p>
+</dd>
+<dt><strong>data_dict: dict</strong></dt><dd><p>dictionary with all the information that should be saved for this entry</p>
+</dd>
+<dt><strong>commission_time: datetime.datetime</strong></dt><dd><p>The commission time of the measurement.</p>
+</dd>
+<dt><strong>decommission_time: datetime.datetime</strong></dt><dd><p>The decommission time of the measurement.</p>
+</dd>
+<dt><strong>primary_measurement_start: datetime.datetime</strong></dt><dd><p>If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_station_info">
 <span class="sig-name descname"><span class="pre">add_general_station_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_comment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_digitizer_config_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_digitizer_config_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commission_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decommission_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">datetime.datetime(2080,</span> <span class="pre">1,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_write.html#Database.add_general_station_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_station_info" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -915,8 +945,8 @@ Only works for the following collections: hpol, vpol, surface, …</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.update_current_primary">
-<span class="sig-name descname"><span class="pre">update_current_primary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identification_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_write.html#Database.update_current_primary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.update_current_primary" title="Link to this definition"></a></dt>
-<dd><p>updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow()</p>
+<span class="sig-name descname"><span class="pre">update_current_primary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identification_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_write.html#Database.update_current_primary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.update_current_primary" title="Link to this definition"></a></dt>
+<dd><p>updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow() or primary_end_time</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -927,6 +957,8 @@ Only works for the following collections: hpol, vpol, surface, …</p>
 <dt><strong>identification_label: string</strong></dt><dd><p>specify what kind of label is used for the identification (“name” or “id”)</p>
 </dd>
 <dt><strong>data_dict: dict</strong></dt><dd><p>dictionary containing additional information that are used to search the database (e.g., channel_id, S_parameter)</p>
+</dd>
+<dt><strong>primary_end_time: datetime.datetime or None</strong></dt><dd><p>If this argument is given, the end of the current primary measurement is set to this timestamp (instead of now).</p>
 </dd>
 </dl>
 </dd>
@@ -1104,51 +1136,19 @@ Only works for the following collections: hpol, vpol, surface, …</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_station">
-<span class="sig-name descname"><span class="pre">decommission_a_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decomm_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_write.html#Database.decommission_a_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_station" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_object">
+<span class="sig-name descname"><span class="pre">decommission_a_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decomm_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_write.html#Database.decommission_a_object"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_object" title="Link to this definition"></a></dt>
 <dd><p>function to decommission an active station in the db</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the unique identifier of the station</p>
 </dd>
-<dt><strong>decomm_time: datetime</strong></dt><dd><p>time which should be used for updating the decommission time</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_channel">
-<span class="sig-name descname"><span class="pre">decommission_a_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decomm_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_write.html#Database.decommission_a_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_channel" title="Link to this definition"></a></dt>
-<dd><p>function to decommission an active channel in the db</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>the unique identifier of the station</p>
-</dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>the unique identifier of the channel</p>
+<dt><strong>object_name: str</strong></dt><dd><p>type of the object that will be decommissioned (station|channel|device)</p>
 </dd>
 <dt><strong>decomm_time: datetime</strong></dt><dd><p>time which should be used for updating the decommission time</p>
 </dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_device">
-<span class="sig-name descname"><span class="pre">decommission_a_device</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decomm_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_write.html#Database.decommission_a_device"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_device" title="Link to this definition"></a></dt>
-<dd><p>function to decommission an active device in the db</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>the unique identifier of the station</p>
-</dd>
-<dt><strong>device_id: int</strong></dt><dd><p>the unique identifier of the device</p>
-</dd>
-<dt><strong>decomm_time: datetime</strong></dt><dd><p>time which should be used for updating the decommission time</p>
+<dt><strong>object_id: int</strong></dt><dd><p>id of the object that gets decommissioned (only necessary for (channel|device))</p>
 </dd>
 </dl>
 </dd>
@@ -1194,6 +1194,9 @@ Input example: ‘iglu_boards’, ‘Golden_IGLU’ {‘measurement_temp’: 20,
 <dd class="field-odd"><dl class="simple">
 <dt><strong>channel_signal_id: str</strong></dt><dd><p>Indentifier of the signal chain</p>
 </dd>
+<dt><strong>measurement_name: str</strong></dt><dd><p>If not None, this measurement will be used to select the correct signal chain (not used in subsequent calls to
+<a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_component_data" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_component_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_component_data</span></code></a> or <a class="reference internal" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_time_dependent_factor" title="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_time_dependent_factor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_dependent_factor</span></code></a>)</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1214,7 +1217,7 @@ components in the signal chain.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_collection_information">
-<span class="sig-name descname"><span class="pre">get_collection_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_by</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurement_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_primary_time_with_measurement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database.get_collection_information"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_collection_information" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_collection_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_by</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurement_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_primary_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database.get_collection_information"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_collection_information" title="Link to this definition"></a></dt>
 <dd><p>Get the information for a specified collection (will only work for ‘station_position’, ‘channel_position’ and ‘signal_chain’)
 if the station does not exist, {} will be returned. Return primary measurement unless measurement_name is specified.</p>
 <dl class="field-list simple">
@@ -1227,14 +1230,12 @@ if the station does not exist, {} will be returned. Return primary measurement u
 </dd>
 <dt><strong>obj_id: string or int</strong></dt><dd><p>station id or position/signal_chain identifier</p>
 </dd>
-<dt><strong>measurement_name: string</strong></dt><dd><p>Use the measurement name to select the requested data (not database time / primary time).
-If “use_primary_time_with_measurement” is True, use measurement_name and primary time to
-find matching objects. (Default: None -&gt; return measurement based on primary time)</p>
+<dt><strong>measurement_name: string</strong></dt><dd><p>Use the measurement name to select the requested data. (Default: None -&gt; return measurement based on primary time)</p>
 </dd>
 <dt><strong>channel_id: int</strong></dt><dd><p>Unique identifier of the channel. Only allowed if searched by ‘station_id’</p>
 </dd>
-<dt><strong>use_primary_time_with_measurement: bool</strong></dt><dd><p>If True (and measurement_name is not None), use measurement name and primary time to select objects.
-(Default: False)</p>
+<dt><strong>use_primary_time: bool</strong></dt><dd><p>If True, use primary time to select objects.
+(Default: None -&gt; Set to <em class="xref py py-obj">use_primary_time = measurement_name is None</em>)</p>
 </dd>
 </dl>
 </dd>
@@ -1328,9 +1329,29 @@ find matching objects. (Default: None -&gt; return measurement based on primary 
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_component_data">
-<span class="sig-name descname"><span class="pre">get_component_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supplementary_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'S21'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database.get_component_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_component_data" title="Link to this definition"></a></dt>
-<dd><p>returns the current primary measurement of the component, reads in the component collection</p>
-<p>Returns a single measurement (e.g. gain of an IGLU)</p>
+<span class="sig-name descname"><span class="pre">get_component_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supplementary_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'S21'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_primary_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database.get_component_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_component_data" title="Link to this definition"></a></dt>
+<dd><p>Returns a single measurement of a component. (e.g. gain of an IGLU)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>collection_name</strong><span class="classifier">str</span></dt><dd><p>Specify collection to look for component. Previously named <em class="xref py py-obj">component_type</em>
+(collection names are typically the type of the component, e.g.. ‘iglu_board’).</p>
+</dd>
+<dt><strong>component_name</strong><span class="classifier">str</span></dt><dd><p>Name of the component (e.g. ‘C0069’). Previously named <em class="xref py py-obj">component_id</em>.</p>
+</dd>
+<dt><strong>supplementary_info</strong><span class="classifier">dict</span></dt><dd><p>Additional information to filter the measurement (e.g. {‘channel_id’: 0}).</p>
+</dd>
+<dt><strong>primary_time</strong><span class="classifier">datetime</span></dt><dd><p>Time to use for the primary measurement (if None, the current time is used).</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">bool</span></dt><dd><p>If True, return the full measurement, otherwise return a simplified version.</p>
+</dd>
+<dt><strong>sparameter</strong><span class="classifier">str</span></dt><dd><p>S-parameter to retrieve (e.g. ‘S21’).</p>
+</dd>
+<dt><strong>use_primary_time</strong><span class="classifier">bool</span></dt><dd><p>If True, use the primary time to select the measurement.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.RNO_G.db_mongo_read</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
@@ -1339,8 +1360,8 @@ find matching objects. (Default: None -&gt; return measurement based on primary 
 
 <span class="c1"># gives you the entry in the database</span>
 <span class="n">database_entry</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_component_data</span><span class="p">(</span>
-    <span class="n">component_type</span><span class="o">=</span><span class="s1">&#39;iglu_board&#39;</span><span class="p">,</span>
-    <span class="n">component_id</span><span class="o">=</span><span class="s1">&#39;C0069&#39;</span><span class="p">,</span>
+    <span class="n">collection_name</span><span class="o">=</span><span class="s1">&#39;iglu_board&#39;</span><span class="p">,</span>
+    <span class="n">component_name</span><span class="o">=</span><span class="s1">&#39;C0069&#39;</span><span class="p">,</span>
     <span class="n">supplementary_info</span><span class="o">=</span><span class="p">{},</span> <span class="c1"># if you want a DRAB you have to specify the channel: {&#39;channel_id&#39;:0}</span>
     <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">sparameter</span><span class="o">=</span><span class="s1">&#39;S21&#39;</span><span class="p">,</span> <span class="c1"># you can also read the other S parameters</span>
@@ -1483,7 +1504,7 @@ position and signal chain identifier.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_position">
-<span class="sig-name descname"><span class="pre">get_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_device_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurement_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_primary_time_with_measurement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'station'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database.get_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_position" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_device_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurement_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_primary_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'station'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database.get_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_position" title="Link to this definition"></a></dt>
 <dd><p>Function to return the channel position,
 returns primary unless measurement_name is not None</p>
 </dd></dl>
@@ -1499,6 +1520,35 @@ or what is specified (example: wanted_quantity = measurements.measurement_name)<
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_station_ids">
 <span class="sig-name descname"><span class="pre">get_station_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database.get_station_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_station_ids" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_time_dependent_factor">
+<span class="sig-name descname"><span class="pre">get_time_dependent_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurement_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_primary_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database.get_time_dependent_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_time_dependent_factor" title="Link to this definition"></a></dt>
+<dd><p>Get the time dependent factor for a given station and channel id for the current detector time. 
+Time dependent factors are quantities that have commissioning and decommissioning times (e.g., gain calibration values or time delays).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>collection: string</strong></dt><dd><p>Name of the collection in which the gain calibration is stored.</p>
+</dd>
+<dt><strong>search_id: int</strong></dt><dd><p>Combination of channel and station id. Used toegther with the detector time to select the correct absolute gain factor.</p>
+</dd>
+<dt><strong>measurement_name: string, optional</strong></dt><dd><p>Use the measurement name to select the requested data (not database time / primary time).
+If “use_primary_time” is explicitly set to True, use measurement_name and primary time to
+find matching objects. (Default: None -&gt; return measurement based on primary time)</p>
+</dd>
+<dt><strong>use_primary_time: bool, optional</strong></dt><dd><p>If True, use primary time to find matching objects.
+(Default: None -&gt; use primary time if measurement_name is None)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>factor_dict: dict</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.load_board_information">

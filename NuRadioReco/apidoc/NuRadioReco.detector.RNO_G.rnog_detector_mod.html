@@ -687,6 +687,18 @@ means to descibe all commissioned stations.</p>
 <dt><strong>create_new</strong><span class="classifier">bool (Default: False)</span></dt><dd><p>If False, and a database already exists, the existing database will be used rather than initializing a
 new connection. Set to True to create a new database connection.</p>
 </dd>
+<dt><strong>database_name</strong><span class="classifier">str (Default: None)</span></dt><dd><p>Name of the database to connect to. If None, the default database will be used
+(see Database class in db_mongo_read.py).</p>
+</dd>
+<dt><strong>signal_chain_measurement_name</strong><span class="classifier">str (Default: None)</span></dt><dd><p>Name of the signal chain measurement to use. If None, the signal chain is selected based on
+database / primary time.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.signal_chain_measurement_name" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.signal_chain_measurement_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">signal_chain_measurement_name</span></code></a></dt><dd><p>The name of the signal chain measurement, or None if not set.</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -1589,6 +1601,12 @@ the basic information of all stations and checks if station is among them.</p>
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.is_channel_noiseless">
 <span class="sig-name descname"><span class="pre">is_channel_noiseless</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.is_channel_noiseless" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.signal_chain_measurement_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">signal_chain_measurement_name</span></span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.signal_chain_measurement_name" title="Link to this definition"></a></dt>
+<dd><p>The name of the signal chain measurement, or None if not set.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.update">

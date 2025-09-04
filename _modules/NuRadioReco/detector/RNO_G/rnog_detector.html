@@ -703,7 +703,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">Detector</span><span class="p">():</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_connection</span><span class="o">=</span><span class="s1">&#39;RNOG_public&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">over_write_handset_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">database_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">detector_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">select_stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">create_new</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                 <span class="n">select_stations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">create_new</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">database_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">signal_chain_measurement_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The RNO-G detector description.</span>
 
@@ -742,6 +742,14 @@
 <span class="sd">            If False, and a database already exists, the existing database will be used rather than initializing a</span>
 <span class="sd">            new connection. Set to True to create a new database connection.</span>
 
+<span class="sd">        database_name : str (Default: None)</span>
+<span class="sd">            Name of the database to connect to. If None, the default database will be used</span>
+<span class="sd">            (see Database class in db_mongo_read.py).</span>
+
+<span class="sd">        signal_chain_measurement_name : str (Default: None)</span>
+<span class="sd">            Name of the signal chain measurement to use. If None, the signal chain is selected based on</span>
+<span class="sd">            database / primary time.</span>
+
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        For more information about ``Detector`` objects in NuRadioMC, see</span>
@@ -762,6 +770,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">additional_data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
+        <span class="c1"># If `self.__signal_chain_measurement_name is None` select signal chain according to primary time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__signal_chain_measurement_name</span> <span class="o">=</span> <span class="n">signal_chain_measurement_name</span>
+
         <span class="k">if</span> <span class="n">select_stations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">select_stations</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">select_stations</span> <span class="o">=</span> <span class="p">[</span><span class="n">select_stations</span><span class="p">]</span>
 
@@ -771,7 +782,10 @@
         <span class="k">if</span> <span class="n">detector_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_det_imported_from_file</span> <span class="o">=</span> <span class="kc">False</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">__db</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">database_connection</span><span class="o">=</span><span class="n">database_connection</span><span class="p">,</span> <span class="n">create_new</span><span class="o">=</span><span class="n">create_new</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__db</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span>
+                <span class="n">database_connection</span><span class="o">=</span><span class="n">database_connection</span><span class="p">,</span>
+                <span class="n">create_new</span><span class="o">=</span><span class="n">create_new</span><span class="p">,</span> <span class="n">database_name</span><span class="o">=</span><span class="n">database_name</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="n">database_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__db</span><span class="o">.</span><span class="n">set_database_time</span><span class="p">(</span><span class="n">database_time</span><span class="p">)</span>
 
@@ -823,6 +837,25 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">assume_inf</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Compatibility with other detectors classes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">antenna_by_depth</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Compatibility with other detectors classes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">signal_chain_measurement_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The name of the signal chain measurement, or None if not set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_chain_measurement_name</span>
+
+    <span class="nd">@signal_chain_measurement_name</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">signal_chain_measurement_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the name of the signal chain measurement.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_chain_measurement_name</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;channels&quot;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;channels&quot;</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;signal_chain&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__signal_chain_measurement_name</span> <span class="o">=</span> <span class="n">name</span>
 
 <div class="viewcode-block" id="Detector.export">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.export">[docs]</a>
@@ -1270,9 +1303,10 @@
 
             <span class="n">signal_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;channels&quot;</span><span class="p">][</span><span class="n">channel_id</span><span class="p">][</span><span class="s1">&#39;id_signal&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Query signal chain of station.channel </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> with id </span><span class="si">{</span><span class="n">signal_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">&quot;Query signal chain of station.channel </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> with id </span><span class="si">{</span><span class="n">signal_id</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;and measurement name </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__signal_chain_measurement_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="n">channel_sig_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__db</span><span class="o">.</span><span class="n">get_channel_signal_chain</span><span class="p">(</span><span class="n">signal_id</span><span class="p">)</span>
+            <span class="n">channel_sig_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__db</span><span class="o">.</span><span class="n">get_channel_signal_chain</span><span class="p">(</span><span class="n">signal_id</span><span class="p">,</span> <span class="n">measurement_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__signal_chain_measurement_name</span><span class="p">)</span>
             <span class="n">channel_sig_info</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;channel_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;channels&quot;</span><span class="p">][</span><span class="n">channel_id</span><span class="p">][</span><span class="s1">&#39;signal_chain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">channel_sig_info</span>
@@ -1569,52 +1603,80 @@
 
         <span class="c1"># total_response can be None if imported from file</span>
         <span class="k">if</span> <span class="n">response_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span> <span class="ow">or</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_key</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">measurement_components_dic</span> <span class="o">=</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_chain_key</span><span class="p">]</span>
+            <span class="n">measurement_components_list</span> <span class="o">=</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_chain_key</span><span class="p">]</span>
 
             <span class="c1"># Here comes a HACK</span>
-            <span class="n">components</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">measurement_components_dic</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;collection&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">measurement_components_list</span><span class="p">]</span>
             <span class="n">is_equal</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">if</span> <span class="s2">&quot;drab_board&quot;</span> <span class="ow">in</span> <span class="n">components</span> <span class="ow">and</span> <span class="s2">&quot;iglu_board&quot;</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
-
                 <span class="n">is_equal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
-                    <span class="n">measurement_components_dic</span><span class="p">[</span><span class="s2">&quot;drab_board&quot;</span><span class="p">][</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span>
-                    <span class="n">measurement_components_dic</span><span class="p">[</span><span class="s2">&quot;iglu_board&quot;</span><span class="p">][</span><span class="s2">&quot;mag&quot;</span><span class="p">])</span>
+                    <span class="n">measurement_components_list</span><span class="p">[</span><span class="n">components</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;drab_board&quot;</span><span class="p">)][</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span>
+                    <span class="n">measurement_components_list</span><span class="p">[</span><span class="n">components</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;iglu_board&quot;</span><span class="p">)][</span><span class="s2">&quot;mag&quot;</span><span class="p">])</span>
 
                 <span class="k">if</span> <span class="n">is_equal</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;Station.channel </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">: Currently both, &quot;</span>
                         <span class="s2">&quot;iglu and drab board are configured in the signal chain but their &quot;</span>
                         <span class="s2">&quot;responses are the same (because we measure them together in the lab). &quot;</span>
                         <span class="s2">&quot;Skip the drab board response.&quot;</span><span class="p">)</span>
 
             <span class="n">responses</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">measurement_components_dic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
+            <span class="k">for</span> <span class="n">component_entry</span> <span class="ow">in</span> <span class="n">measurement_components_list</span><span class="p">:</span>
                 <span class="c1"># Skip drab_board if its equal with iglu (see warning above)</span>
-                <span class="k">if</span> <span class="n">is_equal</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;drab_board&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">is_equal</span> <span class="ow">and</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;collection&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;drab_board&quot;</span><span class="p">:</span>
                     <span class="k">continue</span>
 
-                <span class="k">if</span> <span class="s2">&quot;weight&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Component </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> does not have a weight. Assume a weight of 1 ...&quot;</span><span class="p">)</span>
-                <span class="n">weight</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-
-                <span class="n">attenuator</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attenuator&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
-                <span class="k">if</span> <span class="s2">&quot;time_delay&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-                    <span class="n">time_delay</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;time_delay&quot;</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;The signal chain component </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> of station.channel &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> has no time delay stored... &quot;</span>
-                        <span class="s2">&quot;Set component time delay to 0&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">component_entry</span><span class="p">[</span><span class="s1">&#39;collection&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;gain_calibration&quot;</span><span class="p">:</span>
+                    <span class="n">ydata</span> <span class="o">=</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;gain_factor&quot;</span><span class="p">]</span>
+                    <span class="n">y_units</span> <span class="o">=</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;gain_factor_unit&quot;</span><span class="p">]</span>
+                    <span class="n">frequencies</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="n">time_delay</span> <span class="o">=</span> <span class="mi">0</span>
 
-                <span class="n">ydata</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">]]</span>
-                <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;frequencies&quot;</span><span class="p">],</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;y-axis_units&quot;</span><span class="p">],</span>
-                                    <span class="n">time_delay</span><span class="o">=</span><span class="n">time_delay</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
-                                    <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span>
-                                    <span class="n">log_level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__log_level</span><span class="p">,</span>
-                                    <span class="n">attenuator_in_dB</span><span class="o">=</span><span class="n">attenuator</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">component_entry</span><span class="p">[</span><span class="s1">&#39;collection&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;time_delays&quot;</span><span class="p">:</span>
+                    <span class="n">ydata</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Fake gain factor of 1 in magitude (does nothing)</span>
+                    <span class="n">y_units</span> <span class="o">=</span> <span class="s2">&quot;mag&quot;</span>
+                    <span class="n">frequencies</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">time_delay</span> <span class="o">=</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;time_delay&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;time_delay_unit&quot;</span><span class="p">])</span>
+
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Get the response data</span>
+                    <span class="n">ydata</span> <span class="o">=</span> <span class="p">[</span><span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">]]</span>
+                    <span class="n">y_units</span> <span class="o">=</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;y-axis_units&quot;</span><span class="p">]</span>
+                    <span class="n">frequencies</span> <span class="o">=</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;frequencies&quot;</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="s2">&quot;weight&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">component_entry</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Component </span><span class="si">{</span><span class="n">component_entry</span><span class="p">[</span><span class="s1">&#39;collection&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> with the name </span><span class="si">{</span><span class="n">component_entry</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>
+                            <span class="s2">&quot;does not have a weight. Assume a weight of 1 ...&quot;</span><span class="p">)</span>
+
+                    <span class="n">weight</span> <span class="o">=</span> <span class="n">component_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="c1"># returns 1 as the default if weight is not included</span>
+                    <span class="n">attenuator</span> <span class="o">=</span> <span class="n">component_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attenuator&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># returns 0 as the default if attenuator is not included</span>
+
+                    <span class="k">if</span> <span class="s2">&quot;time_delay&quot;</span> <span class="ow">in</span> <span class="n">component_entry</span><span class="p">:</span>
+                        <span class="n">time_delay</span> <span class="o">=</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;time_delay&quot;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;The signal chain component </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">component_entry</span><span class="p">[</span><span class="s1">&#39;collection&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> with the name </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">component_entry</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> of station.channel &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> has no time delay stored... &quot;</span>
+                            <span class="s2">&quot;Set component time delay to 0&quot;</span><span class="p">)</span>
+                        <span class="n">time_delay</span> <span class="o">=</span> <span class="mi">0</span>
+
+                    <span class="c1"># Apply the addtional attenuator (stored in dB) to the response if present in measurement</span>
+                    <span class="k">if</span> <span class="n">attenuator</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">y_units</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;dB&quot;</span><span class="p">:</span>
+                            <span class="n">ydata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ydata</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">attenuator</span>
+                        <span class="k">elif</span> <span class="n">y_units</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;mag&quot;</span><span class="p">:</span>
+                            <span class="n">ydata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ydata</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">attenuator</span> <span class="o">/</span> <span class="mi">20</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">KeyError</span>
+
+                <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span>
+                    <span class="n">frequencies</span><span class="p">,</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">y_units</span><span class="p">,</span>
+                    <span class="n">time_delay</span><span class="o">=</span><span class="n">time_delay</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span>
+                    <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;collection&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span>
+                    <span class="n">log_level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__log_level</span><span class="p">)</span>
 
                 <span class="n">responses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 
@@ -1972,7 +2034,7 @@
 <span class="sd">        get_time_delay</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">signal_chain_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel_signal_chain</span><span class="p">(</span>
-        <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
+            <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">trigger</span><span class="p">:</span>
             <span class="n">response_chain_key</span> <span class="o">=</span> <span class="s2">&quot;trigger_response_chain&quot;</span>
@@ -1985,21 +2047,25 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">response_chain_key</span> <span class="o">=</span> <span class="s2">&quot;response_chain&quot;</span>
 
-        <span class="n">measurement_components_dic</span> <span class="o">=</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_chain_key</span><span class="p">]</span>
+        <span class="n">measurement_components_list</span> <span class="o">=</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_chain_key</span><span class="p">]</span>
 
         <span class="n">total_time_delay</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">measurement_components_dic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">component_dic</span> <span class="ow">in</span> <span class="n">measurement_components_list</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">component_dic</span><span class="p">[</span><span class="s2">&quot;collection&quot;</span><span class="p">]</span>
 
-            <span class="k">if</span> <span class="s2">&quot;weight&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-                <span class="n">weight</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;gain_calibration&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># skip gain calibration, it has no time delay</span>
+
+            <span class="k">if</span> <span class="s2">&quot;weight&quot;</span> <span class="ow">in</span> <span class="n">component_dic</span><span class="p">:</span>
+                <span class="n">weight</span> <span class="o">=</span> <span class="n">component_dic</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Component </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> does not have a weight. Assume a weight of 1 ...&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Component </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> does not have a weight. Assume a weight of 1 ...&quot;</span><span class="p">)</span>
                 <span class="n">weight</span> <span class="o">=</span> <span class="mi">1</span>
 
             <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Weight is </span><span class="si">{</span><span class="n">weight</span><span class="si">}</span><span class="s2">, only values of `-1` and `1` are currently supported.&quot;</span>
 
-            <span class="k">if</span> <span class="s2">&quot;time_delay&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-                <span class="n">time_delay</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;time_delay&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;time_delay&quot;</span> <span class="ow">in</span> <span class="n">component_dic</span><span class="p">:</span>
+                <span class="n">time_delay</span> <span class="o">=</span> <span class="n">component_dic</span><span class="p">[</span><span class="s2">&quot;time_delay&quot;</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;The signal chain component </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> of station.channel &quot;</span>
@@ -2062,15 +2128,19 @@
                 <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No trigger response for station.channel </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;trigger_&quot;</span> <span class="k">if</span> <span class="n">trigger</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">response_chain&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">ydata</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">component_dic</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">response_chain&quot;</span><span class="p">]:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="n">component_dic</span><span class="p">[</span><span class="s2">&quot;collection&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;gain_calibration&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>  <span class="c1"># skip gain calibration, it has no time delay</span>
+
+                <span class="n">ydata</span> <span class="o">=</span> <span class="p">[</span><span class="n">component_dic</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span> <span class="n">component_dic</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">]]</span>
                 <span class="c1"># This is different from within `get_signal_chain_response` because we do set the time delay here</span>
                 <span class="c1"># and thus we do not remove it from the response.</span>
-                <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;frequencies&quot;</span><span class="p">],</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;y-axis_units&quot;</span><span class="p">],</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="n">component_dic</span><span class="p">[</span><span class="s2">&quot;frequencies&quot;</span><span class="p">],</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">component_dic</span><span class="p">[</span><span class="s2">&quot;y-axis_units&quot;</span><span class="p">],</span>
                                     <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span>
                                     <span class="n">log_level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__log_level</span><span class="p">)</span>
 
-                <span class="n">weight</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">weight</span> <span class="o">=</span> <span class="n">component_dic</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">time_delay</span> <span class="o">+=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">response</span><span class="o">.</span><span class="n">_calculate_time_delay</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">time_delay</span></div>

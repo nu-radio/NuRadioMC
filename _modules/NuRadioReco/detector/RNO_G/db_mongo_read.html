@@ -709,8 +709,8 @@
 <span class="sd">                * `&quot;mongodb*&quot;: Every string which starts with `&quot;mongodb&quot;` will be used to connect to</span>
 <span class="sd">                  a mongo server</span>
 
-<span class="sd">        database_name : str (Default: None -&gt; `&quot;RNOG_live&quot;`)</span>
-<span class="sd">            Select the database by name. If None (default) is passed, set to `&quot;RNOG_live&quot;`</span>
+<span class="sd">        database_name : str (Default: None -&gt; `&quot;RNOG_hardware_v0&quot;`)</span>
+<span class="sd">            Select the database by name. If None (default) is passed, set to `&quot;RNOG_hardware_v0&quot;`</span>
 
 <span class="sd">        mongo_kwargs : dict (Default: `{}`)</span>
 <span class="sd">            Additional arguments to pass to MongoClient.</span>
@@ -756,7 +756,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span> <span class="o">=</span> <span class="n">MongoClient</span><span class="p">(</span><span class="n">connection_string</span><span class="p">,</span> <span class="o">**</span><span class="n">mongo_kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">database_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">database_name</span> <span class="o">=</span> <span class="s2">&quot;RNOG_live&quot;</span>
+            <span class="n">database_name</span> <span class="o">=</span> <span class="s2">&quot;RNOG_hardware_v0&quot;</span>
 
         <span class="k">if</span> <span class="n">database_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mongo_client</span><span class="o">.</span><span class="n">list_database_names</span><span class="p">():</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Could not find database &quot;</span><span class="si">{</span><span class="n">database_name</span><span class="si">}</span><span class="s1">&quot; in mongo client.&#39;</span><span class="p">)</span>
@@ -767,7 +767,7 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;... connection to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> established&quot;</span><span class="p">)</span>
 
         <span class="c1"># Set timestamp of database. This is used to determine which primary measurement is used</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__database_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__database_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
 
         <span class="c1"># This is used to get commissioned stations/channels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span> <span class="o">=</span> <span class="kc">None</span>
@@ -777,6 +777,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span> <span class="o">=</span> <span class="s2">&quot;station_rnog&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__digitizer_collection</span> <span class="o">=</span> <span class="s2">&quot;digitizer_configuration&quot;</span>
+
 
 
 <div class="viewcode-block" id="Database.set_database_time">
@@ -796,6 +797,11 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Set invalid time for database. Time has to be of type datetime.datetime&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Set invalid time for database. Time has to be of type datetime.datetime&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">time</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.&quot;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__database_time</span> <span class="o">=</span> <span class="n">time</span></div>
 
 
@@ -932,7 +938,7 @@
 
         <span class="k">return</span> <span class="n">infos</span></div>
 
-    
+
 
 <div class="viewcode-block" id="Database.get_digitizer_configuration">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_digitizer_configuration">[docs]</a>
@@ -965,7 +971,7 @@
             <span class="n">err</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Found no digitizer configuration for: config_id = </span><span class="si">{</span><span class="n">config_id</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
-        
+
         <span class="k">return</span> <span class="n">config</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 
@@ -1040,7 +1046,7 @@
         <span class="k">for</span> <span class="n">digitizer_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;signal&quot;</span><span class="p">,</span> <span class="s2">&quot;trigger&quot;</span><span class="p">]:</span>
             <span class="c1"># get the correct key for the dict</span>
             <span class="n">digitizer_key</span> <span class="o">=</span> <span class="n">digitizer_type</span> <span class="o">+</span> <span class="s2">&quot;_digitizer_config&quot;</span>
-            
+
             <span class="c1"># get the id and load the information from the digitizer collection</span>
             <span class="n">digitizer_id</span> <span class="o">=</span> <span class="n">station_info</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">digitizer_key</span><span class="p">]</span>
             <span class="n">station_info</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">digitizer_key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_digitizer_configuration</span><span class="p">(</span><span class="n">config_id</span><span class="o">=</span><span class="n">digitizer_id</span><span class="p">)</span>
@@ -1164,7 +1170,7 @@
 <div class="viewcode-block" id="Database.get_collection_information">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_collection_information">[docs]</a>
     <span class="nd">@_check_database_time</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_collection_information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">search_by</span><span class="p">,</span> <span class="n">obj_id</span><span class="p">,</span> <span class="n">measurement_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_primary_time_with_measurement</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_collection_information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">search_by</span><span class="p">,</span> <span class="n">obj_id</span><span class="p">,</span> <span class="n">measurement_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_primary_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the information for a specified collection (will only work for &#39;station_position&#39;, &#39;channel_position&#39; and &#39;signal_chain&#39;)</span>
 <span class="sd">        if the station does not exist, {} will be returned. Return primary measurement unless measurement_name is specified.</span>
@@ -1183,22 +1189,23 @@
 <span class="sd">            station id or position/signal_chain identifier</span>
 
 <span class="sd">        measurement_name: string</span>
-<span class="sd">            Use the measurement name to select the requested data (not database time / primary time).</span>
-<span class="sd">            If &quot;use_primary_time_with_measurement&quot; is True, use measurement_name and primary time to</span>
-<span class="sd">            find matching objects. (Default: None -&gt; return measurement based on primary time)</span>
+<span class="sd">            Use the measurement name to select the requested data. (Default: None -&gt; return measurement based on primary time)</span>
 
 <span class="sd">        channel_id: int</span>
 <span class="sd">            Unique identifier of the channel. Only allowed if searched by &#39;station_id&#39;</span>
 
-<span class="sd">        use_primary_time_with_measurement: bool</span>
-<span class="sd">            If True (and measurement_name is not None), use measurement name and primary time to select objects.</span>
-<span class="sd">            (Default: False)</span>
+<span class="sd">        use_primary_time: bool</span>
+<span class="sd">            If True, use primary time to select objects.</span>
+<span class="sd">            (Default: None -&gt; Set to `use_primary_time = measurement_name is None`)</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
 <span class="sd">        info: list(dict)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">use_primary_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">use_primary_time</span> <span class="o">=</span> <span class="n">measurement_name</span> <span class="ow">is</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">search_by</span> <span class="o">==</span> <span class="s1">&#39;station_id&#39;</span><span class="p">:</span>
             <span class="n">id_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;$regex&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;_stn</span><span class="si">{</span><span class="n">obj_id</span><span class="si">}</span><span class="s1">_&#39;</span><span class="p">}}</span>
@@ -1223,14 +1230,14 @@
             <span class="n">search_filter</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;$match&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span><span class="s1">&#39;measurements.measurement_name&#39;</span><span class="p">:</span> <span class="n">measurement_name</span><span class="p">})</span>
 
-        <span class="k">if</span> <span class="n">channel_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="p">:</span>
+        <span class="k">if</span> <span class="n">channel_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">search_by</span> <span class="o">==</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;channel_id can only be used if the collection is searched by &quot;station_id&quot;&#39;</span><span class="p">)</span>
 
             <span class="c1"># add {&#39;measurements.channel_id&#39;: channel_id} to dict in &#39;$match&#39;</span>
             <span class="n">search_filter</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;$match&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;measurements.channel_id&#39;</span><span class="p">:</span> <span class="n">channel_id</span><span class="p">})</span>
 
-        <span class="k">if</span> <span class="n">measurement_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">use_primary_time_with_measurement</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">use_primary_time</span><span class="p">:</span>
             <span class="n">search_filter</span> <span class="o">+=</span> <span class="p">[</span>
                 <span class="p">{</span><span class="s1">&#39;$unwind&#39;</span><span class="p">:</span> <span class="s1">&#39;$measurements.primary_measurement&#39;</span><span class="p">},</span>
                 <span class="p">{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;measurements.primary_measurement.start&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;$lte&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__database_time</span><span class="p">},</span>
@@ -1239,7 +1246,11 @@
             <span class="c1"># measurement/object identified by soley by &quot;measurement_name&quot;</span>
             <span class="k">pass</span>
 
+
         <span class="n">search_result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">search_filter</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">search_result</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">search_result</span><span class="p">)</span><span class="si">}</span><span class="s1"> matching entries in collection </span><span class="si">{</span><span class="n">collection_name</span><span class="si">}</span><span class="s1"> for </span><span class="si">{</span><span class="n">search_filter</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">search_result</span> <span class="o">==</span> <span class="p">[]:</span>
             <span class="k">return</span> <span class="n">search_result</span>
@@ -1287,13 +1298,14 @@
             <span class="n">search_filter</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;$unwind&#39;</span><span class="p">:</span> <span class="s1">&#39;$measurements&#39;</span><span class="p">})</span>
             <span class="n">help_dic1</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">help_dic2</span> <span class="o">=</span> <span class="p">{}</span>
+
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">input_dic</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">input_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">help_dic2</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;measurements.</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">help_dic2</span> <span class="o">!=</span> <span class="p">{}:</span>
                 <span class="n">help_dic1</span><span class="p">[</span><span class="s1">&#39;$match&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">help_dic2</span>
                 <span class="n">search_filter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">help_dic1</span><span class="p">)</span>
-            <span class="c1"># print(search_filter)</span>
+
             <span class="n">search_result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">search_filter</span><span class="p">))</span>
 
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">input_dic</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -1400,12 +1412,15 @@
 <div class="viewcode-block" id="Database.get_position">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_position">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_device_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">position_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                     <span class="n">measurement_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_primary_time_with_measurement</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                     <span class="n">measurement_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_primary_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">component</span><span class="o">=</span><span class="s2">&quot;station&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function to return the channel position,</span>
 <span class="sd">        returns primary unless measurement_name is not None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">use_primary_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">use_primary_time</span> <span class="o">=</span> <span class="n">measurement_name</span> <span class="ow">is</span> <span class="kc">None</span>
 
         <span class="c1"># If the channel_position_id is given, the position is directly collected from the channel position</span>
         <span class="c1"># collection (no need to look into the main collection again)</span>
@@ -1415,12 +1430,11 @@
 
             <span class="n">position_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_identifier</span><span class="p">(</span>
                 <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_device_id</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">component</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s1">&#39;position&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">position_id</span><span class="p">)</span>
 
         <span class="c1"># if measurement name is None, the primary measurement is returned</span>
         <span class="n">collection_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_collection_information</span><span class="p">(</span>
             <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">component</span><span class="si">}</span><span class="s1">_position&#39;</span><span class="p">,</span> <span class="n">search_by</span><span class="o">=</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">obj_id</span><span class="o">=</span><span class="n">position_id</span><span class="p">,</span> <span class="n">measurement_name</span><span class="o">=</span><span class="n">measurement_name</span><span class="p">,</span>
-            <span class="n">use_primary_time_with_measurement</span><span class="o">=</span><span class="n">use_primary_time_with_measurement</span><span class="p">)</span>
+            <span class="n">use_primary_time</span><span class="o">=</span><span class="n">use_primary_time</span><span class="p">)</span>
 
         <span class="c1"># raise an error if more than one value is returned</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">collection_info</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -1460,7 +1474,7 @@
 
         <span class="c1"># raise an error if more than one value is returned</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">collection_info</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;More than one signal chain measurement found!&quot;</span><span class="p">)</span>
 
         <span class="c1"># return empty dict if no measurement is found</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">collection_info</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1476,11 +1490,27 @@
 
 <div class="viewcode-block" id="Database.get_component_data">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_component_data">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_component_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_type</span><span class="p">,</span> <span class="n">component_id</span><span class="p">,</span> <span class="n">supplementary_info</span><span class="o">=</span><span class="p">{},</span> <span class="n">primary_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sparameter</span><span class="o">=</span><span class="s1">&#39;S21&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_component_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">component_name</span><span class="p">,</span> <span class="n">supplementary_info</span><span class="o">=</span><span class="p">{},</span> <span class="n">primary_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sparameter</span><span class="o">=</span><span class="s1">&#39;S21&#39;</span><span class="p">,</span> <span class="n">use_primary_time</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns the current primary measurement of the component, reads in the component collection</span>
+<span class="sd">        Returns a single measurement of a component. (e.g. gain of an IGLU)</span>
 
-<span class="sd">        Returns a single measurement (e.g. gain of an IGLU)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        collection_name : str</span>
+<span class="sd">            Specify collection to look for component. Previously named `component_type`</span>
+<span class="sd">            (collection names are typically the type of the component, e.g.. &#39;iglu_board&#39;).</span>
+<span class="sd">        component_name : str</span>
+<span class="sd">            Name of the component (e.g. &#39;C0069&#39;). Previously named `component_id`.</span>
+<span class="sd">        supplementary_info : dict</span>
+<span class="sd">            Additional information to filter the measurement (e.g. {&#39;channel_id&#39;: 0}).</span>
+<span class="sd">        primary_time : datetime</span>
+<span class="sd">            Time to use for the primary measurement (if None, the current time is used).</span>
+<span class="sd">        verbose : bool</span>
+<span class="sd">            If True, return the full measurement, otherwise return a simplified version.</span>
+<span class="sd">        sparameter : str</span>
+<span class="sd">            S-parameter to retrieve (e.g. &#39;S21&#39;).</span>
+<span class="sd">        use_primary_time : bool</span>
+<span class="sd">            If True, use the primary time to select the measurement.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1494,8 +1524,8 @@
 
 <span class="sd">            # gives you the entry in the database</span>
 <span class="sd">            database_entry = db.get_component_data(</span>
-<span class="sd">                component_type=&#39;iglu_board&#39;,</span>
-<span class="sd">                component_id=&#39;C0069&#39;,</span>
+<span class="sd">                collection_name=&#39;iglu_board&#39;,</span>
+<span class="sd">                component_name=&#39;C0069&#39;,</span>
 <span class="sd">                supplementary_info={}, # if you want a DRAB you have to specify the channel: {&#39;channel_id&#39;:0}</span>
 <span class="sd">                verbose=True,</span>
 <span class="sd">                sparameter=&#39;S21&#39;, # you can also read the other S parameters</span>
@@ -1514,9 +1544,9 @@
             <span class="n">primary_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database_time</span><span class="p">()</span>
 
         <span class="c1"># define a search filter</span>
-        <span class="n">search_filter</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">component_id</span><span class="p">}},</span> <span class="p">{</span><span class="s1">&#39;$unwind&#39;</span><span class="p">:</span> <span class="s1">&#39;$measurements&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{}}]</span>
+        <span class="n">search_filter</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">component_name</span><span class="p">}},</span> <span class="p">{</span><span class="s1">&#39;$unwind&#39;</span><span class="p">:</span> <span class="s1">&#39;$measurements&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{}}]</span>
 
-        <span class="c1"># if supplemenatry information exsits (like channel id, etc ...), update the search filter</span>
+        <span class="c1"># if supplementary information exists (like channel id, etc ...), update the search filter</span>
         <span class="k">if</span> <span class="n">supplementary_info</span> <span class="o">!=</span> <span class="p">{}:</span>
             <span class="k">for</span> <span class="n">supp_info</span> <span class="ow">in</span> <span class="n">supplementary_info</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="n">search_filter</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;$match&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="sa">f</span><span class="s1">&#39;measurements.</span><span class="si">{</span><span class="n">supp_info</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">:</span> <span class="n">supplementary_info</span><span class="p">[</span><span class="n">supp_info</span><span class="p">]})</span>
@@ -1524,14 +1554,15 @@
         <span class="c1"># add the S parameter to the search filter, only collect single S parameter</span>
         <span class="n">search_filter</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;$match&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;measurements.S_parameter&#39;</span><span class="p">:</span> <span class="n">sparameter</span><span class="p">})</span>
 
-        <span class="n">search_filter</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;$unwind&#39;</span><span class="p">:</span> <span class="s1">&#39;$measurements.primary_measurement&#39;</span><span class="p">})</span>
-        <span class="n">search_filter</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;measurements.primary_measurement.start&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;$lte&#39;</span><span class="p">:</span> <span class="n">primary_time</span><span class="p">},</span>
-                                         <span class="s1">&#39;measurements.primary_measurement.end&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;$gte&#39;</span><span class="p">:</span> <span class="n">primary_time</span><span class="p">}}})</span>
+        <span class="k">if</span> <span class="n">use_primary_time</span><span class="p">:</span>
+            <span class="n">search_filter</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;$unwind&#39;</span><span class="p">:</span> <span class="s1">&#39;$measurements.primary_measurement&#39;</span><span class="p">})</span>
+            <span class="n">search_filter</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;measurements.primary_measurement.start&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;$lte&#39;</span><span class="p">:</span> <span class="n">primary_time</span><span class="p">},</span>
+                                            <span class="s1">&#39;measurements.primary_measurement.end&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;$gte&#39;</span><span class="p">:</span> <span class="n">primary_time</span><span class="p">}}})</span>
 
-        <span class="n">search_result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">component_type</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">search_filter</span><span class="p">))</span>
+        <span class="n">search_result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">search_filter</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">search_result</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No or more than one measurement found: </span><span class="si">{</span><span class="n">search_result</span><span class="si">}</span><span class="s1">. Search filter: </span><span class="si">{</span><span class="n">search_filter</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">search_result</span><span class="p">)</span><span class="si">}</span><span class="s1"> measurements with </span><span class="si">{</span><span class="n">search_filter</span><span class="si">}</span><span class="s1">:</span><span class="se">\n</span><span class="s1"> </span><span class="si">{</span><span class="n">search_result</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
         <span class="n">measurement</span> <span class="o">=</span> <span class="n">search_result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;measurements&#39;</span><span class="p">]</span>
 
@@ -1542,6 +1573,101 @@
             <span class="k">return</span> <span class="n">measurement</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">measurement</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;channel_id&#39;</span><span class="p">,</span> <span class="s1">&#39;frequencies&#39;</span><span class="p">,</span> <span class="s1">&#39;mag&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">measurement</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span></div>
+
+
+
+<div class="viewcode-block" id="Database.get_time_dependent_factor">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_read.Database.get_time_dependent_factor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_dependent_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="n">search_id</span><span class="p">,</span> <span class="n">measurement_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_primary_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the time dependent factor for a given station and channel id for the current detector time. </span>
+<span class="sd">        Time dependent factors are quantities that have commissioning and decommissioning times (e.g., gain calibration values or time delays).</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        collection: string</span>
+<span class="sd">            Name of the collection in which the gain calibration is stored.</span>
+
+<span class="sd">        search_id: int</span>
+<span class="sd">            Combination of channel and station id. Used toegther with the detector time to select the correct absolute gain factor.</span>
+
+<span class="sd">        measurement_name: string, optional</span>
+<span class="sd">            Use the measurement name to select the requested data (not database time / primary time).</span>
+<span class="sd">            If &quot;use_primary_time&quot; is explicitly set to True, use measurement_name and primary time to</span>
+<span class="sd">            find matching objects. (Default: None -&gt; return measurement based on primary time)</span>
+
+<span class="sd">        use_primary_time: bool, optional</span>
+<span class="sd">            If True, use primary time to find matching objects.</span>
+<span class="sd">            (Default: None -&gt; use primary time if measurement_name is None)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        factor_dict: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">use_primary_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">use_primary_time</span> <span class="o">=</span> <span class="n">measurement_name</span> <span class="ow">is</span> <span class="kc">None</span>
+
+        <span class="c1"># define the id that is used to search the collection</span>
+        <span class="n">id_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">search_id</span><span class="p">,</span>
+                   <span class="s1">&#39;commission_time&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;$lte&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span><span class="p">},</span>
+                   <span class="s1">&#39;decommission_time&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;$gte&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span><span class="p">}}</span>
+
+        <span class="c1"># if the collection is empty, return an empty dict</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection</span><span class="p">]</span><span class="o">.</span><span class="n">count_documents</span><span class="p">(</span><span class="n">id_dict</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No entry found for id </span><span class="si">{</span><span class="n">search_id</span><span class="si">}</span><span class="s1"> at time </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No entry found for id </span><span class="si">{</span><span class="n">search_id</span><span class="si">}</span><span class="s1"> at time </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+
+        <span class="c1"># define the search filter</span>
+        <span class="n">search_filter</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="n">id_dict</span><span class="p">},</span>
+                         <span class="p">{</span><span class="s1">&#39;$unwind&#39;</span><span class="p">:</span> <span class="s1">&#39;$measurements&#39;</span><span class="p">}]</span>
+
+        <span class="n">search_filter</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{}})</span>
+
+        <span class="k">if</span> <span class="n">measurement_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># add {&#39;measurements.measurement_name&#39;: measurement_name} to dict in &#39;$match&#39;</span>
+            <span class="n">search_filter</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;$match&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="s1">&#39;measurements.measurement_name&#39;</span><span class="p">:</span> <span class="n">measurement_name</span><span class="p">})</span>
+
+
+        <span class="k">if</span> <span class="n">use_primary_time</span><span class="p">:</span>
+            <span class="n">search_filter</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s1">&#39;$unwind&#39;</span><span class="p">:</span> <span class="s1">&#39;$measurements.primary_measurement&#39;</span><span class="p">},</span>
+                <span class="p">{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;measurements.primary_measurement.start&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;$lte&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__database_time</span><span class="p">},</span>
+                            <span class="s1">&#39;measurements.primary_measurement.end&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;$gte&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__database_time</span><span class="p">}}}]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># measurement/object identified by soley by id (and optional &quot;measurement_name&quot;)</span>
+            <span class="k">pass</span>
+
+        <span class="n">search_result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">search_filter</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">search_result</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No entry found for id </span><span class="si">{</span><span class="n">search_filter</span><span class="si">}</span><span class="s1"> at time </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No entry found for id </span><span class="si">{</span><span class="n">search_filter</span><span class="si">}</span><span class="s1"> at time </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">search_result</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;More than one entry found for id </span><span class="si">{</span><span class="n">search_filter</span><span class="si">}</span><span class="s1"> at time </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;More than one entry found for id </span><span class="si">{</span><span class="n">search_filter</span><span class="si">}</span><span class="s1"> at time </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__detector_time</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+
+        <span class="c1"># The following code block is necessary if the &quot;primary_measurement&quot; has several entries. Right now we always do that.</span>
+        <span class="c1"># Extract the information using the object and measurements id</span>
+        <span class="n">id_filter</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;$in&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">dic</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">dic</span> <span class="ow">in</span> <span class="n">search_result</span><span class="p">]}}},</span>
+            <span class="p">{</span><span class="s1">&#39;$unwind&#39;</span><span class="p">:</span> <span class="s1">&#39;$measurements&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">&#39;$match&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;measurements.id_measurement&#39;</span><span class="p">:</span>
+                <span class="p">{</span><span class="s1">&#39;$in&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">dic</span><span class="p">[</span><span class="s1">&#39;measurements&#39;</span><span class="p">][</span><span class="s1">&#39;id_measurement&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">dic</span> <span class="ow">in</span> <span class="n">search_result</span><span class="p">]}}}]</span>
+
+        <span class="n">info</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">id_filter</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># remove the measurements dict, and move the content to the main dict</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;measurements&#39;</span><span class="p">))</span>
+
+        <span class="c1"># remove &#39;id_measurement&#39; and &#39;_id&#39; object</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;id_measurement&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">info</span></div>
 
 
 
@@ -1610,7 +1736,6 @@
 
         <span class="c1"># include the channel information into the final dict</span>
         <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">general_info</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s1">&#39;channels&#39;</span><span class="p">]:</span>
-            <span class="c1"># print(general_info[station_id][&#39;channels&#39;][channel_id].keys(), channel_info[channel_id].keys())</span>
             <span class="n">general_info</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">channel_info</span><span class="p">[</span><span class="n">channel_id</span><span class="p">])</span>
 
         <span class="c1"># get the device ids of all devices contained in the station</span>
@@ -1642,6 +1767,10 @@
 <span class="sd">        channel_signal_id: str</span>
 <span class="sd">            Indentifier of the signal chain</span>
 
+<span class="sd">        measurement_name: str</span>
+<span class="sd">            If not None, this measurement will be used to select the correct signal chain (not used in subsequent calls to</span>
+<span class="sd">            `get_component_data` or `get_time_dependent_factor`)</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
@@ -1660,50 +1789,25 @@
             <span class="k">if</span> <span class="n">chain_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">channel_sig_info</span><span class="p">:</span>
                 <span class="k">continue</span>
 
-            <span class="c1"># extract the information about the used components</span>
-            <span class="n">component_dict</span> <span class="o">=</span> <span class="n">channel_sig_info</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">chain_key</span><span class="p">)</span>
-
-            <span class="c1"># Certain keys in the response chain only carry additional information of other components</span>
-            <span class="c1"># and do not describe own components on their own (&quot;channel&quot;, &quot;breakout&quot;, &quot;weight&quot;)</span>
-            <span class="c1"># extract the information about the components, the additional information and the weights from the response chain dict</span>
-            <span class="n">filtered_component_dict</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">additional_information</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">weight_dict</span> <span class="o">=</span> <span class="p">{}</span>
-
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">component_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;(channel|breakout|weight)&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">filtered_component_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ele</span>
-                <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">weight_dict</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_weight&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">ele</span>
+            <span class="c1"># go through the component list query the corresponing measurements from the database (s parameters)</span>
+            <span class="k">for</span> <span class="n">ice</span><span class="p">,</span> <span class="n">component_entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">channel_sig_info</span><span class="p">[</span><span class="n">chain_key</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;collection&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;gain_calibration&quot;</span><span class="p">,</span> <span class="s2">&quot;time_delays&quot;</span><span class="p">]:</span>
+                    <span class="c1"># only load a single calibration value</span>
+                    <span class="n">component_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time_dependent_factor</span><span class="p">(</span>
+                        <span class="n">collection</span><span class="o">=</span><span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;collection&quot;</span><span class="p">],</span> <span class="n">search_id</span><span class="o">=</span><span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">additional_information</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ele</span>
+                    <span class="c1"># create a search dict with addtional informations</span>
+                    <span class="n">supp_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">component_entry</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">component_entry</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;(channel|breakout)&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)}</span>
 
-            <span class="c1"># go through all components and load the s parameter measurements for each used component</span>
-            <span class="n">components_data</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="k">for</span> <span class="n">component</span><span class="p">,</span> <span class="n">component_id</span> <span class="ow">in</span> <span class="n">filtered_component_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="c1"># Add the additional informatio which were filtered out above to the correct components</span>
-                <span class="n">supp_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">component</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span> <span class="n">additional_information</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">additional_information</span>
-                            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">k</span><span class="p">)}</span>
+                    <span class="n">component_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_component_data</span><span class="p">(</span>
+                        <span class="n">collection_name</span><span class="o">=</span><span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;collection&quot;</span><span class="p">],</span>
+                        <span class="n">component_name</span><span class="o">=</span><span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+                        <span class="n">supplementary_info</span><span class="o">=</span><span class="n">supp_info</span><span class="p">,</span>
+                        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                        <span class="n">sparameter</span><span class="o">=</span><span class="s1">&#39;S21&#39;</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;_[0-9]+&quot;</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">):</span>
-                    <span class="n">collection_suffix</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;(_[0-9]+)&quot;</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="n">collection_component</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">collection_suffix</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">collection_component</span> <span class="o">=</span> <span class="n">component</span>
-
-                <span class="c1"># load the s21 parameter measurement</span>
-                <span class="n">component_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_component_data</span><span class="p">(</span>
-                    <span class="n">collection_component</span><span class="p">,</span> <span class="n">component_id</span><span class="p">,</span> <span class="n">supp_info</span><span class="p">,</span> <span class="n">primary_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__database_time</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-
-                <span class="c1"># add the component name, the weight of the s21 measurement and the actual s21 measurement (component_data) to a combined dictionary</span>
-                <span class="n">components_data</span><span class="p">[</span><span class="n">component</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">component_id</span><span class="p">}</span>
-                <span class="k">if</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">weight_dict</span><span class="p">:</span>
-                    <span class="n">components_data</span><span class="p">[</span><span class="n">component</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">weight_dict</span><span class="p">[</span><span class="n">component</span><span class="p">]})</span>
-
-                <span class="n">components_data</span><span class="p">[</span><span class="n">component</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">component_data</span><span class="p">)</span>
-
-            <span class="c1"># add/update the signal chain to the channel data</span>
-            <span class="n">channel_sig_info</span><span class="p">[</span><span class="n">chain_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">components_data</span>
+                <span class="c1"># add the component data to the channel_sig_info dict</span>
+                <span class="n">channel_sig_info</span><span class="p">[</span><span class="n">chain_key</span><span class="p">][</span><span class="n">ice</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">component_data</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">channel_sig_info</span></div>
 

@@ -637,6 +637,7 @@
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.RNO_G.db_mongo_read</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.metaclasses</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">six</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">bson</span><span class="w"> </span><span class="kn">import</span> <span class="n">ObjectId</span>
@@ -720,7 +721,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">},</span>
                                      <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;measurements&#39;</span><span class="p">:</span> <span class="p">{</span>
                                          <span class="s1">&#39;id_measurement&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(),</span>
-                                         <span class="s1">&#39;last_updated&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">(),</span>
+                                         <span class="s1">&#39;last_updated&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
                                          <span class="s1">&#39;function_test&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                                          <span class="s1">&#39;primary_measurement&#39;</span><span class="p">:</span> <span class="n">primary_measurement_times</span><span class="p">,</span>
                                          <span class="s1">&#39;channel_id&#39;</span><span class="p">:</span> <span class="n">channel_id</span>
@@ -729,7 +730,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">},</span>
                                      <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;measurements&#39;</span><span class="p">:</span> <span class="p">{</span>
                                          <span class="s1">&#39;id_measurement&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(),</span>
-                                         <span class="s1">&#39;last_updated&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">(),</span>
+                                         <span class="s1">&#39;last_updated&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
                                          <span class="s1">&#39;function_test&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                                          <span class="s1">&#39;primary_measurement&#39;</span><span class="p">:</span> <span class="n">primary_measurement_times</span><span class="p">,</span>
                                          <span class="s1">&#39;breakout&#39;</span><span class="p">:</span> <span class="n">breakout_id</span><span class="p">,</span>
@@ -739,7 +740,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">},</span>
                                      <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;measurements&#39;</span><span class="p">:</span> <span class="p">{</span>
                                          <span class="s1">&#39;id_measurement&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(),</span>
-                                         <span class="s1">&#39;last_updated&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">(),</span>
+                                         <span class="s1">&#39;last_updated&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
                                          <span class="s1">&#39;function_test&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                                          <span class="s1">&#39;primary_measurement&#39;</span><span class="p">:</span> <span class="n">primary_measurement_times</span>
                                      <span class="p">}}},</span> <span class="n">upsert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
@@ -769,27 +770,90 @@
 <span class="sd">            If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_database_time</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_database_time</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
 
         <span class="c1"># close the time period of the old primary measurement</span>
         <span class="k">if</span> <span class="n">primary_measurement</span> <span class="ow">and</span> <span class="n">identification_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection</span><span class="p">]</span><span class="o">.</span><span class="n">distinct</span><span class="p">(</span><span class="n">identification_key</span><span class="p">):</span>
+            <span class="n">primary_time_end</span> <span class="o">=</span> <span class="n">primary_measurement_start</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">update_current_primary</span><span class="p">(</span>
-                <span class="n">collection</span><span class="p">,</span> <span class="n">identification_value</span><span class="p">,</span> <span class="n">identification_label</span><span class="o">=</span><span class="n">identification_key</span><span class="p">,</span> <span class="n">data_dict</span><span class="o">=</span><span class="n">data_dict</span><span class="p">)</span>
+                <span class="n">collection</span><span class="p">,</span> <span class="n">identification_value</span><span class="p">,</span> <span class="n">identification_label</span><span class="o">=</span><span class="n">identification_key</span><span class="p">,</span> <span class="n">data_dict</span><span class="o">=</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">primary_end_time</span><span class="o">=</span><span class="n">primary_time_end</span><span class="p">)</span>
 
         <span class="c1"># define the new primary measurement times</span>
         <span class="k">if</span> <span class="n">primary_measurement</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">primary_measurement_start</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">primary_measurement_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+                <span class="n">primary_measurement_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
             <span class="n">primary_measurement_times</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="n">primary_measurement_start</span><span class="p">,</span> <span class="s1">&#39;end&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2100</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)}]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">primary_measurement_times</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="c1"># update the entry with the measurement (if the entry doesn&#39;t exist it will be created)</span>
         <span class="n">data_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;id_measurement&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(</span>
-        <span class="p">),</span> <span class="s1">&#39;primary_measurement&#39;</span><span class="p">:</span> <span class="n">primary_measurement_times</span><span class="p">,</span> <span class="s1">&#39;last_updated&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()})</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="n">identification_key</span><span class="p">:</span> <span class="n">identification_value</span><span class="p">},</span>
+        <span class="p">),</span> <span class="s1">&#39;primary_measurement&#39;</span><span class="p">:</span> <span class="n">primary_measurement_times</span><span class="p">,</span> <span class="s1">&#39;last_updated&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)})</span>
+
+        <span class="n">main_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">identification_key</span><span class="p">:</span> <span class="n">identification_value</span><span class="p">}</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span><span class="n">main_dict</span><span class="p">,</span>
                                        <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;measurements&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">}},</span> <span class="n">upsert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
+
+    
+<div class="viewcode-block" id="Database.add_time_dependent_entry_to_database">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_time_dependent_entry_to_database">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_time_dependent_entry_to_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="n">identification_key</span><span class="p">,</span> <span class="n">identification_value</span><span class="p">,</span> <span class="n">primary_measurement</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">,</span> <span class="n">commission_time</span><span class="p">,</span> <span class="n">decommission_time</span><span class="p">,</span> <span class="n">primary_measurement_start</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        inserts a time dependent entry into the database.</span>
+<span class="sd">        If the measurement dosn&#39;t exist yet, it will be created.</span>
+<span class="sd">        Only works for the following collections: gain_calibration</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        collection: string</span>
+<span class="sd">            specify the collection in which the entry will be added</span>
+<span class="sd">        identification_key: string</span>
+<span class="sd">            specify the key used for identification (must be &#39;name&#39; or &#39;id&#39;)</span>
+<span class="sd">        identification_value: string</span>
+<span class="sd">            specify the name of the entry (e.g. the name of the measurement or the channel position identifier)</span>
+<span class="sd">        primary_measurement: bool</span>
+<span class="sd">            indicates the primary measurement to be used for analysis</span>
+<span class="sd">        data_dict: dict</span>
+<span class="sd">            dictionary with all the information that should be saved for this entry</span>
+<span class="sd">        commission_time: datetime.datetime</span>
+<span class="sd">            The commission time of the measurement.</span>
+<span class="sd">        decommission_time: datetime.datetime</span>
+<span class="sd">            The decommission time of the measurement.</span>
+<span class="sd">        primary_measurement_start: datetime.datetime</span>
+<span class="sd">            If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_database_time</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
+
+        <span class="n">search_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">identification_key</span><span class="p">:</span> <span class="n">identification_value</span><span class="p">,</span>
+                       <span class="s2">&quot;commission_time&quot;</span><span class="p">:</span> <span class="n">commission_time</span><span class="p">,</span>
+                       <span class="s2">&quot;decommission_time&quot;</span><span class="p">:</span> <span class="n">decommission_time</span><span class="p">}</span>
+
+        <span class="c1"># close the time period of the old primary measurement (if it exists)</span>
+        <span class="n">search_result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">([{</span><span class="s2">&quot;$match&quot;</span><span class="p">:</span> <span class="n">search_dict</span><span class="p">}]))</span>
+        <span class="k">if</span> <span class="n">primary_measurement</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">search_result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># an entry already exists and needs to be updated</span>
+                <span class="n">primary_time_end</span> <span class="o">=</span> <span class="n">primary_measurement_start</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">update_current_primary</span><span class="p">(</span>
+                    <span class="n">collection</span><span class="p">,</span> <span class="n">search_result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;_id&quot;</span><span class="p">],</span> <span class="n">identification_label</span><span class="o">=</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="n">data_dict</span><span class="o">=</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">primary_end_time</span><span class="o">=</span><span class="n">primary_time_end</span><span class="p">)</span>
+
+        <span class="c1"># define the new primary measurement times</span>
+        <span class="k">if</span> <span class="n">primary_measurement</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">primary_measurement_start</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">primary_measurement_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+            <span class="n">primary_measurement_times</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="n">primary_measurement_start</span><span class="p">,</span> <span class="s1">&#39;end&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2100</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)}]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">primary_measurement_times</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># update the entry with the measurement (if the entry doesn&#39;t exist it will be created)</span>
+        <span class="n">data_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;id_measurement&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(</span>
+        <span class="p">),</span> <span class="s1">&#39;primary_measurement&#39;</span><span class="p">:</span> <span class="n">primary_measurement_times</span><span class="p">,</span> <span class="s1">&#39;last_updated&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)})</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span><span class="n">search_dict</span><span class="p">,</span>
+                                       <span class="p">{</span><span class="s1">&#39;$push&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;measurements&#39;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">}},</span> <span class="n">upsert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+        
 
 <div class="viewcode-block" id="Database.add_general_station_info">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_general_station_info">[docs]</a>
@@ -805,7 +869,9 @@
         <span class="n">stations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">time_filter</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stations</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">decommission_a_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">commission_time</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decommission_a_object</span><span class="p">(</span><span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> 
+                                       <span class="n">object_name</span><span class="o">=</span><span class="s2">&quot;station&quot;</span><span class="p">,</span>
+                                       <span class="n">decomm_time</span><span class="o">=</span><span class="n">commission_time</span><span class="p">)</span>
 
         <span class="c1"># create uniqe position identifier</span>
         <span class="n">position_identifier</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;position_stn</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">commission_time</span><span class="o">.</span><span class="n">month</span><span class="si">}{</span><span class="n">commission_time</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s1">&#39;</span>
@@ -852,7 +918,10 @@
 
         <span class="c1"># check if the channel already exist, decommission the active channel first</span>
         <span class="k">if</span> <span class="n">entries</span> <span class="o">!=</span> <span class="p">[]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">decommission_a_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">commission_time</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decommission_a_object</span><span class="p">(</span><span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> 
+                                       <span class="n">object_name</span><span class="o">=</span><span class="s2">&quot;channel&quot;</span><span class="p">,</span>
+                                       <span class="n">decomm_time</span><span class="o">=</span><span class="n">commission_time</span><span class="p">,</span>
+                                       <span class="n">object_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
 
         <span class="c1"># create uniqe position and signal chain identifier</span>
         <span class="n">position_identifier</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;position_stn</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s1">_cha</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">commission_time</span><span class="o">.</span><span class="n">month</span><span class="si">}{</span><span class="n">commission_time</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s1">&#39;</span>
@@ -901,7 +970,10 @@
 
         <span class="c1"># check if the device already exist, decommission the active device first</span>
         <span class="k">if</span> <span class="n">entries</span> <span class="o">!=</span> <span class="p">[]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">decommission_a_device</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">,</span> <span class="n">commission_time</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decommission_a_object</span><span class="p">(</span><span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> 
+                                       <span class="n">object_name</span><span class="o">=</span><span class="s2">&quot;device&quot;</span><span class="p">,</span>
+                                       <span class="n">decomm_time</span><span class="o">=</span><span class="n">commission_time</span><span class="p">,</span>
+                                       <span class="n">object_id</span><span class="o">=</span><span class="n">device_id</span><span class="p">)</span>
 
         <span class="c1"># create uniqe position and identifier</span>
         <span class="n">position_identifier</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;position_stn</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s1">_dev</span><span class="si">{</span><span class="n">device_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">commission_time</span><span class="o">.</span><span class="n">month</span><span class="si">}{</span><span class="n">commission_time</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s1">&#39;</span>
@@ -925,16 +997,16 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">add_measurement_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol_name</span><span class="p">):</span>
         <span class="c1"># insert the new measurement protocol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="s1">&#39;measurement_protocol&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">insert_one</span><span class="p">({</span><span class="s1">&#39;protocol&#39;</span><span class="p">:</span> <span class="n">protocol_name</span><span class="p">,</span>
-                                                   <span class="s1">&#39;inserted&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()})</span></div>
+                                                   <span class="s1">&#39;inserted&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)})</span></div>
 
 
     <span class="c1"># operation that change the primary status of a measurement</span>
 
 <div class="viewcode-block" id="Database.update_current_primary">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.update_current_primary">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">update_current_primary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">identification_label</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_current_primary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">identification_label</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">,</span> <span class="n">primary_end_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow()</span>
+<span class="sd">        updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow() or primary_end_time</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -946,9 +1018,11 @@
 <span class="sd">            specify what kind of label is used for the identification (&quot;name&quot; or &quot;id&quot;)</span>
 <span class="sd">        data_dict: dict</span>
 <span class="sd">            dictionary containing additional information that are used to search the database (e.g., channel_id, S_parameter)</span>
+<span class="sd">        primary_end_time: datetime.datetime or None</span>
+<span class="sd">            If this argument is given, the end of the current primary measurement is set to this timestamp (instead of now).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">present_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__database_time</span>
+        <span class="n">present_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
 
         <span class="c1"># find the current primary measurement</span>
         <span class="n">obj_id</span><span class="p">,</span> <span class="n">measurement_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_primary_measurement</span><span class="p">(</span>
@@ -972,10 +1046,14 @@
                 <span class="n">primary_times</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;measurements&#39;</span><span class="p">][</span><span class="s1">&#39;primary_measurement&#39;</span><span class="p">]</span>
 
                 <span class="c1"># update the &#39;end&#39; time to the present time</span>
-                <span class="n">primary_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">present_time</span>
+                <span class="k">if</span> <span class="n">primary_end_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">primary_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">primary_end_time</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">primary_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">present_time</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">obj_id</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;$set&quot;</span><span class="p">:</span> <span class="p">{</span>
                                          <span class="s2">&quot;measurements.$[updateIndex].primary_measurement&quot;</span><span class="p">:</span> <span class="n">primary_times</span><span class="p">}},</span> <span class="n">array_filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;updateIndex.id_measurement&quot;</span><span class="p">:</span> <span class="n">m_id</span><span class="p">}])</span></div>
+
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__change_primary_object_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_type</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">search_filter</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">breakout_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">breakout_channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -999,7 +1077,7 @@
 <span class="sd">            If a brakout channel id is given (for a downhole_chain) the value is used to search for the current primary measurement (default: None).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">present_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+        <span class="n">present_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
 
         <span class="c1"># get the information about the measurement specified in the search filter</span>
         <span class="n">search_results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">object_type</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">search_filter</span><span class="p">))</span>
@@ -1303,10 +1381,9 @@
 
 
     <span class="c1"># operation that decommission a object</span>
-
-<div class="viewcode-block" id="Database.decommission_a_station">
-<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_station">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">decommission_a_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">decomm_time</span><span class="p">):</span>
+<div class="viewcode-block" id="Database.decommission_a_object">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_object">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decommission_a_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">decomm_time</span><span class="p">,</span> <span class="n">object_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        function to decommission an active station in the db</span>
 
@@ -1314,46 +1391,19 @@
 <span class="sd">        ----------</span>
 <span class="sd">        station_id: int</span>
 <span class="sd">            the unique identifier of the station</span>
+<span class="sd">        object_name: str</span>
+<span class="sd">            type of the object that will be decommissioned (station|channel|device)</span>
 <span class="sd">        decomm_time: datetime</span>
 <span class="sd">            time which should be used for updating the decommission time</span>
+<span class="sd">        object_id: int</span>
+<span class="sd">            id of the object that gets decommissioned (only necessary for (channel|device))</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># get the entry of the aktive station</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">count_documents</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">station_id</span><span class="p">})</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No active station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s1"> in the database&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># filter to get all active stations with the correct id</span>
-            <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span>
-            <span class="n">time_filter</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;$match&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;commission_time&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$lte&quot;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span>
-                <span class="s1">&#39;decommission_time&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$gte&quot;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span>
-                <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">station_id</span><span class="p">}}]</span>
-            <span class="c1"># get all stations which fit the filter (should only be one)</span>
-            <span class="n">stations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">time_filter</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stations</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;More than one active station was found.&#39;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">object_id</span> <span class="o">=</span> <span class="n">stations</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span>
-
-                <span class="c1"># change the commission/decomission time</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
-                    <span class="p">{</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">object_id</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;decommission_time&#39;</span><span class="p">:</span> <span class="n">decomm_time</span><span class="p">}})</span></div>
-
-
-<div class="viewcode-block" id="Database.decommission_a_channel">
-<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_channel">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">decommission_a_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">decomm_time</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        function to decommission an active channel in the db</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        station_id: int</span>
-<span class="sd">            the unique identifier of the station</span>
-<span class="sd">        channel_id: int</span>
-<span class="sd">            the unique identifier of the channel</span>
-<span class="sd">        decomm_time: datetime</span>
-<span class="sd">            time which should be used for updating the decommission time</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># checks if the arguments are valid</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(station|channel|device)&quot;</span><span class="p">,</span> <span class="n">object_name</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The given object name is not valid. Please only use &#39;station&#39; or &#39;channel&#39; or &#39;device&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(channel|device)&quot;</span><span class="p">,</span> <span class="n">object_name</span><span class="p">)</span> <span class="ow">and</span> <span class="n">object_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Object id is missing. You try to decommission a channel or device without specifying the id.&quot;</span><span class="p">)</span>
+        
         <span class="c1"># get the entry of the aktive station</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">count_documents</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">station_id</span><span class="p">})</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No active station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s1"> in the database&#39;</span><span class="p">)</span>
@@ -1371,46 +1421,13 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">object_id</span> <span class="o">=</span> <span class="n">stations</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span>
 
-                <span class="c1"># change the decommission time of a specific channel</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">object_id</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;channels.$[updateIndex].decommission_time&#39;</span><span class="p">:</span> <span class="n">decomm_time</span><span class="p">}},</span>
-                                               <span class="n">array_filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;updateIndex.id&quot;</span><span class="p">:</span> <span class="n">channel_id</span><span class="p">}])</span></div>
-
-
-<div class="viewcode-block" id="Database.decommission_a_device">
-<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.decommission_a_device">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">decommission_a_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">,</span> <span class="n">decomm_time</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        function to decommission an active device in the db</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        station_id: int</span>
-<span class="sd">            the unique identifier of the station</span>
-<span class="sd">        device_id: int</span>
-<span class="sd">            the unique identifier of the device</span>
-<span class="sd">        decomm_time: datetime</span>
-<span class="sd">            time which should be used for updating the decommission time</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># get the entry of the active station</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">count_documents</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">station_id</span><span class="p">})</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No active station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s1"> in the database&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># filter to get all active stations with the correct id</span>
-            <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span>
-            <span class="n">time_filter</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;$match&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;commission_time&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$lte&quot;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span>
-                <span class="s1">&#39;decommission_time&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$gte&quot;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span>
-                <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">station_id</span><span class="p">}}]</span>
-            <span class="c1"># get all stations which fit the filter (should only be one)</span>
-            <span class="n">stations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">time_filter</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stations</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;More than one active station was found.&#39;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">object_id</span> <span class="o">=</span> <span class="n">stations</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span>
-
-                <span class="c1"># change the decommission time of a specific device</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">({</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">object_id</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;devices.$[updateIndex].decommission_time&#39;</span><span class="p">:</span> <span class="n">decomm_time</span><span class="p">}},</span>
-                                               <span class="n">array_filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;updateIndex.id&quot;</span><span class="p">:</span> <span class="n">device_id</span><span class="p">}])</span></div>
+                <span class="c1"># change the commission/decomission time</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;station&quot;</span><span class="p">,</span> <span class="n">object_name</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
+                        <span class="p">{</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">object_id</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;decommission_time&#39;</span><span class="p">:</span> <span class="n">decomm_time</span><span class="p">}})</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_collection</span><span class="p">]</span><span class="o">.</span><span class="n">update_one</span><span class="p">(</span>
+                        <span class="p">{</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">object_id</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">object_name</span><span class="si">}</span><span class="s1">s.$[updateIndex].decommission_time&#39;</span><span class="p">:</span> <span class="n">decomm_time</span><span class="p">}},</span> <span class="n">array_filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;updateIndex.id&quot;</span><span class="p">:</span> <span class="n">object_id</span><span class="p">}])</span></div>
 </div>
 
 </pre></div>
