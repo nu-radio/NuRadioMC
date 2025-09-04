@@ -880,8 +880,9 @@ class Database(object):
 
     def get_time_dependent_factor(self, collection, search_id, measurement_name=None, use_primary_time=None):
         """
-        Get the time dependent factor for a given station and channel id for the current detector time.
-
+        Get the time dependent factor for a given station and channel id for the current detector time. 
+        Time dependent factors are quantities that have commissioning and decommissioning times (e.g., gain calibration values or time delays).
+        
         Parameters
         ----------
         collection: string
