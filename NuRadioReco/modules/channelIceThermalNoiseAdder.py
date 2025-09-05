@@ -13,7 +13,7 @@ import NuRadioReco.detector.antennapattern
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, ice, geometryUtilities
+from NuRadioReco.utilities import units, ice, geometryUtilities, signal_processing
 
 import logging
 logger = logging.getLogger('NuRadioReco.channelThermalNoiseAdder')
@@ -166,24 +166,17 @@ class channelThermalNoiseAdder:
                     channel_id = channel.get_id()
                     depth = self.channel_depths[channel_id]
                     eff_temperature = self.eff_temperature[depth]
+
                     # calculate spectral radiance of radio signal using rayleigh-jeans law
-                    spectral_radiance = (2. * (scipy.constants.Boltzmann * units.joule / units.kelvin)
-                        * freqs[passband_filter] ** 2 * eff_temperature[theta_i] * solid_angle / c_vac ** 2)
-                    spectral_radiance[np.isnan(spectral_radiance)] = 0
-
-                    # calculate radiance per energy bin
-                    spectral_radiance_per_bin = spectral_radiance * d_f
-
-                    # calculate electric field per frequency bin from the radiance per bin
-                    efield_amplitude = np.sqrt(
-                        spectral_radiance_per_bin / (c_vac * scipy.constants.epsilon_0 * (
-                                units.coulomb / units.V / units.m))) / d_f
+                    efield_amplitude = signal_processing.get_electric_field_from_temperature(freqs[passband_filter],
+                                                                                             eff_temperature[theta_i],
+                                                                                             solid_angle)
 
                     # assign random phases to electric field
                     if self.debug:
-                        phases = 0 * np.ones(len(spectral_radiance))
+                        phases = 0 * np.ones(len(efield_amplitude))
                     else:
-                        phases = np.random.uniform(0, 2. * np.pi, len(spectral_radiance))
+                        phases = np.random.uniform(0, 2. * np.pi, len(efield_amplitude))
 
                     noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
                     noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
@@ -195,9 +188,9 @@ class channelThermalNoiseAdder:
 
                     # add random polarizations and phase to electric field
                     if self.debug:
-                        polarizations = [0.] * len(spectral_radiance)
+                        polarizations = [0.] * len(efield_amplitude)
                     else:
-                        polarizations = np.random.uniform(0, 2. * np.pi, len(spectral_radiance))
+                        polarizations = np.random.uniform(0, 2. * np.pi, len(efield_amplitude))
 
                     channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.cos(polarizations)
                     channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.sin(polarizations)
@@ -246,7 +239,7 @@ if __name__ == "__main__":
         station.add_channel(channel)
     event.set_station(station)
 
-    sim_library_dir="/user/rcamphyn/noise_study/sim/library"
+    sim_library_dir="/inser/path/to/eff_tmp/files/here"
 
     thermal_noise_adder = channelThermalNoiseAdder()
     thermal_noise_adder.begin(sim_library_dir=sim_library_dir)
