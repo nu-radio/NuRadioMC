@@ -180,7 +180,7 @@ jobs:
     - name: "channelGalacticNoiseAdder"
       if: always()
       run: |
-        pip install git+https://github.com/telegraphic/pygdsm pylfmap
+        pip install -e .[galacticnoise]
         python NuRadioReco/examples/StandAloneScripts/B01galacticnoiseadder.py
     - name: "detector.Response"
       if: always()
