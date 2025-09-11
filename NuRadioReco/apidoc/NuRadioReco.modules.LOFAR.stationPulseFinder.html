@@ -17,6 +17,7 @@
       <script src="../../_static/documentation_options.js?v=69a0ff83"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -646,10 +647,8 @@
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationPulseFinder.find_snr_of_timeseries">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationPulseFinder.</span></span><span class="sig-name descname"><span class="pre">find_snr_of_timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeseries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#find_snr_of_timeseries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.find_snr_of_timeseries" title="Link to this definition"></a></dt>
 <dd><p>Return the signal-to-noise ratio (SNR) of a given time trace, defined as</p>
-<dl class="simple">
-<dt>..math ::</dt><dd><p>frac{max( | Hilbert(timeseries[window]) | )}{ STD( Hilbert(timeseries[noise]) ) }</p>
-</dd>
-</dl>
+<div class="math notranslate nohighlight">
+\[\frac{max( | Hilbert(timeseries[window]) | )}{ STD( Hilbert(timeseries[noise]) ) }\]</div>
 <p>The signal window and noise window are controlled through the extra parameters to the function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -682,14 +681,15 @@
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.stationPulseFinder.</span></span><span class="sig-name descname"><span class="pre">stationPulseFinder</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Look for significant pulses in every station. The module uses beamforming to enhance the sensitivity in
+<p>Look for significant pulses in every station.</p>
+<p>The module uses beamforming to enhance the sensitivity in
 direction estimated from the LORA particle data. It also identifies the channels which have an SNR good
 enough to use for direction fitting later.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin" title="NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([window, noise_window, cr_snr, ...])</p></td>
-<td><p>Sets the window size to use for pulse finding, as well as the number of samples away from the pulse to use for noise measurements.</p></td>
+<td><p>Set parameters for pulse finding</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.run" title="NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, detector)</p></td>
 <td><p>Run a beamformer on all stations in <em class="xref py py-obj">event</em> to search for significant pulses.</p></td>
@@ -706,7 +706,8 @@ enough to use for direction fitting later.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin">
 <span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cr_snr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">good_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/stationPulseFinder.html#stationPulseFinder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin" title="Link to this definition"></a></dt>
-<dd><p>Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
+<dd><p>Set parameters for pulse finding</p>
+<p>Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
 to use for noise measurements. The function also defines what an acceptable SNR is to consider a
 cosmic-ray signal to be in the trace, as well as the number of good channels a station should have
 to be kept for further processing.</p>

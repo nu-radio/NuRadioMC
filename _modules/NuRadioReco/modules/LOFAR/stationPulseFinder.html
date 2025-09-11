@@ -653,7 +653,7 @@
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return the signal-to-noise ratio (SNR) of a given time trace, defined as</span>
 
-<span class="sd">    ..math ::</span>
+<span class="sd">    .. math::</span>
 <span class="sd">        \frac{max( | Hilbert(timeseries[window]) | )}{ STD( Hilbert(timeseries[noise]) ) }</span>
 
 <span class="sd">    The signal window and noise window are controlled through the extra parameters to the function.</span>
@@ -721,7 +721,9 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationPulseFinder.html#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">stationPulseFinder</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Look for significant pulses in every station. The module uses beamforming to enhance the sensitivity in</span>
+<span class="sd">    Look for significant pulses in every station.</span>
+
+<span class="sd">    The module uses beamforming to enhance the sensitivity in</span>
 <span class="sd">    direction estimated from the LORA particle data. It also identifies the channels which have an SNR good</span>
 <span class="sd">    enough to use for direction fitting later.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -740,6 +742,8 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationPulseFinder.html#NuRadioReco.modules.LOFAR.stationPulseFinder.stationPulseFinder.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">noise_window</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">cr_snr</span><span class="o">=</span><span class="mf">6.5</span><span class="p">,</span> <span class="n">good_channels</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set parameters for pulse finding</span>
+
 <span class="sd">        Sets the window size to use for pulse finding, as well as the number of samples away from the pulse</span>
 <span class="sd">        to use for noise measurements. The function also defines what an acceptable SNR is to consider a</span>
 <span class="sd">        cosmic-ray signal to be in the trace, as well as the number of good channels a station should have</span>
