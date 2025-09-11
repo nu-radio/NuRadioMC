@@ -14,7 +14,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.channelThermalNoiseAdder')
 
 
-class channelThermalNoiseAdder:
+class channelIceThermalNoiseAdder:
     """
     Module to generate thermal noise from ice
     This class is a stripped version of channelGalacticNoiseAdder
@@ -141,24 +141,24 @@ class channelThermalNoiseAdder:
 
         d_thetas = np.diff(self.thetas)
         d_phis = np.diff(self.phis)
-        for phi, d_phi in zip(self.phis, d_phis):
-            for theta_i, (theta, d_theta) in enumerate(zip(self.thetas, d_thetas)):
-                solid_angle = self.solid_angle(theta, d_theta, d_phi)
+        for channel in station.iter_channels():
+            channel_depth = detector.get_channel(station.get_id(), channel.get_id())["channel_position"]["position"][-1]
+            depth_mask = np.isclose(self.eff_temperature_depths, channel_depth, atol=self.channel_depth_matching_error)
+            if np.all(depth_mask is False):
+                raise KeyError(f"No eff temperature found for depth {channel_depth}, either change the depth_error tolerance or generate effective temperatures closer to this depth")
+            
+            eff_temperature = self.eff_temperature[depth_mask]
+            if len(eff_temperature) > 1:
+                raise KeyError(f"Channel depth {channel_depth} corresponds to multiple eff temperature files, decrease the channel_depth_matching_error tolerance") 
+            eff_temperature = eff_temperature[0]
 
-                noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
-                channel_noise_spec = np.zeros_like(noise_spectrum)
-                for channel in station.iter_channels():
-                    channel_depth = detector.get_channel(station.get_id(), channel.get_id())["channel_position"]["position"][-1]
-                    depth_mask = np.isclose(self.eff_temperature_depths, channel_depth, atol=self.channel_depth_matching_error)
-                    
-                    if np.all(depth_mask is False):
-                        raise KeyError(f"No eff temperature found for depth {channel_depth}, either change the depth_error tolerance or generate effective temperatures closer to this depth")
-                    
-                    eff_temperature = self.eff_temperature[depth_mask]
-                    if len(eff_temperature) > 1:
-                        raise KeyError(f"Channel depth {channel_depth} corresponds to multiple eff temperature files, decrease the channel_depth_matching_error, tolerance")
-                    
-                    eff_temperature = eff_temperature[0]
+            for phi, d_phi in zip(self.phis, d_phis):
+                for theta_i, (theta, d_theta) in enumerate(zip(self.thetas, d_thetas)):
+                    solid_angle = self.solid_angle(theta, d_theta, d_phi)
+
+                    noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
+                    channel_noise_spec = np.zeros_like(noise_spectrum)
+                        
 
                     # calculate spectral radiance of radio signal using rayleigh-jeans law
                     efield_amplitude = signal_processing.get_electric_field_from_temperature(
@@ -166,38 +166,38 @@ class channelThermalNoiseAdder:
 
                     # assign random phases to electric field
                     if self.debug:
-                        phases =  np.zeros(len(efield_amplitude))
+                        phases = np.zeros(len(efield_amplitude))
                     else:
                         phases = np.random.uniform(0, 2 * np.pi, len(efield_amplitude))
 
-                    noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
-                    noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
+                        noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
+                        noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
 
-                    antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(
-                        detector.get_antenna_model(station.get_id(), channel.get_id()),
+                        antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(
+                            detector.get_antenna_model(station.get_id(), channel.get_id()),
+                            )
+                        antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel.get_id())
+
+                        # add random polarizations and phase to electric field
+                        if self.debug:
+                            polarizations = np.zeros(len(efield_amplitude))
+                        else:
+                            polarizations = np.random.uniform(0, 2 * np.pi, len(efield_amplitude))
+
+                        channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.cos(polarizations)
+                        channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.sin(polarizations)
+
+                        # fold electric field with antenna response
+                        antenna_response = self.get_cached_antenna_response(
+                            antenna_pattern, theta, phi, *antenna_orientation)
+
+                        channel_noise_spectrum = (
+                            antenna_response['theta'] * channel_noise_spec[1]
+                            + antenna_response['phi'] * channel_noise_spec[2]
                         )
-                    antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel.get_id())
 
-                    # add random polarizations and phase to electric field
-                    if self.debug:
-                        polarizations = np.zeros(len(efield_amplitude))
-                    else:
-                        polarizations = np.random.uniform(0, 2 * np.pi, len(efield_amplitude))
-
-                    channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.cos(polarizations)
-                    channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.sin(polarizations)
-
-                    # fold electric field with antenna response
-                    antenna_response = self.get_cached_antenna_response(
-                        antenna_pattern, theta, phi, *antenna_orientation)
-
-                    channel_noise_spectrum = (
-                        antenna_response['theta'] * channel_noise_spec[1]
-                        + antenna_response['phi'] * channel_noise_spec[2]
-                    )
-
-                    # add noise spectrum from pixel in the sky to channel spectrum
-                    channel_spectra[channel.get_id()] += channel_noise_spectrum
+                        # add noise spectrum from pixel in the sky to channel spectrum
+                        channel_spectra[channel.get_id()] += channel_noise_spectrum
 
         # store the updated channel spectra
         for channel in station.iter_channels():
@@ -232,16 +232,21 @@ if __name__ == "__main__":
         station.add_channel(channel)
     event.set_station(station)
 
-    eff_temperature_files = ["/add/list/of/eff_temperature/files/here"] 
-    thermal_noise_adder = channelThermalNoiseAdder()
+#    eff_temperature_files = ["/add/list/of/eff_temperature/files/here"] 
+    eff_temperature_files = ["/home/ruben/Downloads/eff_temperatures/eff_temperature_-1.0m_ntheta100_GL3.json", "/home/ruben/Downloads/eff_temperatures/eff_temperature_-40m_ntheta100.json", "/home/ruben/Downloads/eff_temperatures/eff_temperature_-100m_ntheta100_GL3.json"] 
+    thermal_noise_adder = channelIceThermalNoiseAdder()
     thermal_noise_adder.begin(eff_temperature_files=eff_temperature_files)
     thermal_noise_adder.run(event, station, detector)
 
     station = event.get_station()
     channel = station.get_channel(0)
     plt.plot(channel.get_times(), channel.get_trace())
+    plt.xlabel("time / ns")
+    plt.ylabel("amplitude / V")
     plt.show()
     plt.clf()
 
     plt.plot(channel.get_frequencies(), np.abs(channel.get_frequency_spectrum()))
+    plt.xlabel("freq / GHz")
+    plt.ylabel("spectral amplitude / V/GHz")
     plt.savefig("test_thermal_noise")
