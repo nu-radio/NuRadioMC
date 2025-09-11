@@ -1,12 +1,7 @@
-import astropy.coordinates
 import functools
 import json
 import numpy as np
 import os
-import scipy.constants
-import scipy.interpolate
-from scipy.interpolate import interp1d
-from urllib.request import urlretrieve
 import warnings
 
 import NuRadioReco.detector.antennapattern
@@ -155,23 +150,25 @@ class channelThermalNoiseAdder:
                 for channel in station.iter_channels():
                     channel_depth = detector.get_channel(station.get_id(), channel.get_id())["channel_position"]["position"][-1]
                     depth_mask = np.isclose(self.eff_temperature_depths, channel_depth, atol=self.channel_depth_matching_error)
+                    
                     if np.all(depth_mask is False):
                         raise KeyError(f"No eff temperature found for depth {channel_depth}, either change the depth_error tolerance or generate effective temperatures closer to this depth")
+                    
                     eff_temperature = self.eff_temperature[depth_mask]
                     if len(eff_temperature) > 1:
                         raise KeyError(f"Channel depth {channel_depth} corresponds to multiple eff temperature files, decrease the channel_depth_matching_error, tolerance")
+                    
                     eff_temperature = eff_temperature[0]
 
                     # calculate spectral radiance of radio signal using rayleigh-jeans law
-                    efield_amplitude = signal_processing.get_electric_field_from_temperature(freqs[passband_filter],
-                                                                                             eff_temperature[theta_i],
-                                                                                             solid_angle)
+                    efield_amplitude = signal_processing.get_electric_field_from_temperature(
+                        freqs[passband_filter], eff_temperature[theta_i], solid_angle)
 
                     # assign random phases to electric field
                     if self.debug:
-                        phases = 0 * np.ones(len(efield_amplitude))
+                        phases =  np.zeros(len(efield_amplitude))
                     else:
-                        phases = np.random.uniform(0, 2. * np.pi, len(efield_amplitude))
+                        phases = np.random.uniform(0, 2 * np.pi, len(efield_amplitude))
 
                     noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
                     noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
@@ -183,16 +180,17 @@ class channelThermalNoiseAdder:
 
                     # add random polarizations and phase to electric field
                     if self.debug:
-                        polarizations = [0.] * len(efield_amplitude)
+                        polarizations = np.zeros(len(efield_amplitude))
                     else:
-                        polarizations = np.random.uniform(0, 2. * np.pi, len(efield_amplitude))
+                        polarizations = np.random.uniform(0, 2 * np.pi, len(efield_amplitude))
 
                     channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.cos(polarizations)
                     channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.sin(polarizations)
 
                     # fold electric field with antenna response
-                    antenna_response = self.get_cached_antenna_response(antenna_pattern, theta, phi,
-                                                                        *antenna_orientation)
+                    antenna_response = self.get_cached_antenna_response(
+                        antenna_pattern, theta, phi, *antenna_orientation)
+
                     channel_noise_spectrum = (
                         antenna_response['theta'] * channel_noise_spec[1]
                         + antenna_response['phi'] * channel_noise_spec[2]
