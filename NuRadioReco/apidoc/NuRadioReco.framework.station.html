@@ -755,6 +755,9 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_triggered" title="NuRadioReco.framework.station.Station.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>Convenience function to set a simple trigger.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.show" title="NuRadioReco.framework.station.Station.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([show_parameters, show_channels, ...])</p></td>
+<td><p>Print an overview of the structure of the Station.</p></td>
+</tr>
 </tbody>
 </table>
 <table class="docutils align-default">
@@ -1058,6 +1061,47 @@ should be the id of the Channel, but supplying the Channel object itself is also
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.deserialize">
 <span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/station.html#Station.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.station.Station.deserialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_efields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/station.html#Station.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.station.Station.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of the Station.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>show_parameters</strong><span class="classifier">int, default: 0</span></dt><dd><ul class="simple">
+<li><p>If &gt; 0, print the parameters stored in the Station.</p></li>
+<li><p>If &gt; 1, also recursively print the parameters of objects stored
+inside the Station (e.g. Channels, Triggers, …). The value of <em class="xref py py-obj">show_parameters</em>
+indicates the maximum number of recursions</p></li>
+</ul>
+</dd>
+<dt><strong>show_channels</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), also show the <em class="xref py py-obj">Channel</em> objects stored in the Station</p>
+</dd>
+<dt><strong>show_efields</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), also show the <em class="xref py py-obj">ElectricField</em> objects stored in the Station</p>
+</dd>
+<dt><strong>show_triggers</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), also show the <em class="xref py py-obj">Trigger</em> objects stored in the Station</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of the Station structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print the Station structure to stdout.
+Otherwise, return the string representation</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments, optional</span></dt><dd><p>keyword arguments passed on to <em class="xref py py-obj">show()</em> method of
+objects stored inside <a class="reference internal" href="#NuRadioReco.framework.station.Station" title="NuRadioReco.framework.station.Station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Station</span></code></a>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.add_electric_field">

@@ -1555,6 +1555,81 @@
         <span class="k">if</span> <span class="s2">&quot;__modules_station&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__modules_station&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__modules_station</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="Event.show">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.show">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">show_parameters</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">show_stations</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_showers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">show_sim_showers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_particles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">print_stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print an overview of the structure of the event.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        show_parameters : int, default: 0</span>
+
+<span class="sd">            * If &gt; 0, print the parameters stored in the Event.</span>
+<span class="sd">            * If &gt; 1, also recursively print the parameters of objects stored</span>
+<span class="sd">              inside the Event (e.g. Stations, ...). The value of `show_parameters`</span>
+<span class="sd">              indicates the maximum number of recursions</span>
+
+<span class="sd">        show_stations : bool, optional</span>
+<span class="sd">            If `True` (default), also show the `Station` objects stored in the event</span>
+<span class="sd">        show_showers : bool, optional</span>
+<span class="sd">            If `True` (default), also show the `Shower` objects stored in the event</span>
+<span class="sd">        show_sim_showers : bool, optional</span>
+<span class="sd">            If `True` (default), also show the `SimShower` objects stored in the event</span>
+<span class="sd">        show_particles : bool, optional</span>
+<span class="sd">            If `True` (default), also show the `Particle` objects stored in the event</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        print_stdout : bool, optional</span>
+<span class="sd">            If `True` (default), print the Event structure to stdout.</span>
+<span class="sd">            Otherwise, return the string representation</span>
+<span class="sd">        **kwargs : keyword arguments, optional</span>
+<span class="sd">            keyword arguments passed on to `.show()` method of</span>
+<span class="sd">            objects stored inside `Event`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str_output : str, optional</span>
+<span class="sd">            A string representation of the Event structure.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">self_string</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;Event(run=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">()</span><span class="si">}</span><span class="s2">, id=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">show_parameters</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">self_string</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;    Parameters&#39;</span><span class="p">]</span>
+            <span class="n">par_string</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;      </span><span class="si">{</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s1">16s</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="k">for</span> <span class="n">par</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+            <span class="n">self_string</span> <span class="o">+=</span> <span class="n">par_string</span>
+
+        <span class="n">iterators</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">show_stations</span><span class="p">:</span>
+            <span class="n">iterators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_stations</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show_showers</span><span class="p">:</span>
+            <span class="n">iterators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_showers</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show_sim_showers</span><span class="p">:</span>
+            <span class="n">iterators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_sim_showers</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show_particles</span><span class="p">:</span>
+            <span class="n">iterators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_particles</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">iterator</span> <span class="ow">in</span> <span class="n">iterators</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">():</span>
+                <span class="n">self_string</span> <span class="o">+=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="s1">&#39;    &#39;</span> <span class="o">+</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">show_parameters</span><span class="o">=</span><span class="n">show_parameters</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">print_stdout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="p">]</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">self_string</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">print_stdout</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">return</span> <span class="n">output</span></div>
 </div>
 
 </pre></div>

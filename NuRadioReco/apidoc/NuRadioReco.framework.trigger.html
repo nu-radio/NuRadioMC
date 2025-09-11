@@ -696,6 +696,9 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_triggered" title="NuRadioReco.framework.trigger.Trigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.show" title="NuRadioReco.framework.trigger.Trigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<td><p>Print an overview of the structure of the Trigger.</p></td>
+</tr>
 </tbody>
 </table>
 <table class="docutils align-default">
@@ -776,6 +779,9 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_triggered" title="NuRadioReco.framework.trigger.Trigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.show" title="NuRadioReco.framework.trigger.Trigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
 </table>
@@ -988,6 +994,27 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.Trigger.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#Trigger.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.Trigger.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of the Trigger.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of the Trigger structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print the Trigger structure to stdout.
+Otherwise, return the string representation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.Trigger.get_trigger_settings">
 <span class="sig-name descname"><span class="pre">get_trigger_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#Trigger.get_trigger_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_settings" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -1066,6 +1093,9 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_triggered" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.show" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1282,6 +1312,27 @@ The trigger time of the primary trigger is used to define the readout window. Th
 <span class="sig-name descname"><span class="pre">set_triggered_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_triggered_channels" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimpleThresholdTrigger.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of the Trigger.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of the Trigger structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print the Trigger structure to stdout.
+Otherwise, return the string representation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1365,6 +1416,9 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_triggered" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.show" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1581,6 +1635,27 @@ The trigger time of the primary trigger is used to define the readout window. Th
 <span class="sig-name descname"><span class="pre">set_triggered_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_triggered_channels" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of the Trigger.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of the Trigger structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print the Trigger structure to stdout.
+Otherwise, return the string representation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1668,6 +1743,9 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_triggered" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.show" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1884,6 +1962,27 @@ The trigger time of the primary trigger is used to define the readout window. Th
 <span class="sig-name descname"><span class="pre">set_triggered_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_triggered_channels" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of the Trigger.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of the Trigger structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print the Trigger structure to stdout.
+Otherwise, return the string representation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1962,6 +2061,9 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_triggered" title="NuRadioReco.framework.trigger.HighLowTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.show" title="NuRadioReco.framework.trigger.HighLowTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2178,6 +2280,27 @@ The trigger time of the primary trigger is used to define the readout window. Th
 <span class="sig-name descname"><span class="pre">set_triggered_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_triggered_channels" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.HighLowTrigger.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.HighLowTrigger.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of the Trigger.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of the Trigger structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print the Trigger structure to stdout.
+Otherwise, return the string representation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -2252,6 +2375,9 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_triggered" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.show" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2468,6 +2594,27 @@ The trigger time of the primary trigger is used to define the readout window. Th
 <span class="sig-name descname"><span class="pre">set_triggered_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_triggered_channels" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.IntegratedPowerTrigger.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of the Trigger.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of the Trigger structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print the Trigger structure to stdout.
+Otherwise, return the string representation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -2546,6 +2693,9 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_triggered" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.show" title="NuRadioReco.framework.trigger.EnvelopeTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2762,6 +2912,27 @@ The trigger time of the primary trigger is used to define the readout window. Th
 <span class="sig-name descname"><span class="pre">set_triggered_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_triggered_channels" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopeTrigger.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of the Trigger.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of the Trigger structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print the Trigger structure to stdout.
+Otherwise, return the string representation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -2840,6 +3011,9 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_triggered" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.show" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
 </table>
@@ -3055,6 +3229,27 @@ The trigger time of the primary trigger is used to define the readout window. Th
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_triggered_channels">
 <span class="sig-name descname"><span class="pre">set_triggered_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_triggered_channels" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of the Trigger.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of the Trigger structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print the Trigger structure to stdout.
+Otherwise, return the string representation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 

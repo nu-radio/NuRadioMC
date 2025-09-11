@@ -923,6 +923,38 @@
             <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span>
 
+<div class="viewcode-block" id="Trigger.show">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.show">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">print_stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print an overview of the structure of the Trigger.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        print_stdout : bool, optional</span>
+<span class="sd">            If `True` (default), print the Trigger structure to stdout.</span>
+<span class="sd">            Otherwise, return the string representation</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str_output : str, optional</span>
+<span class="sd">            A string representation of the Trigger structure.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">self_string</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Trigger(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2">) (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;primary, &#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_primary</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;triggered, &#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;channels </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_triggered_channels</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">print_stdout</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">self_string</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">return</span> <span class="n">self_string</span></div>
+
+
 <div class="viewcode-block" id="Trigger.get_trigger_settings">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_settings">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_trigger_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

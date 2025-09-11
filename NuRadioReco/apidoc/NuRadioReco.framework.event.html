@@ -803,6 +803,9 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.set_station" title="NuRadioReco.framework.event.Event.set_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station</span></code></a>(station)</p></td>
 <td><p>Adds a station to the event.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.show" title="NuRadioReco.framework.event.Event.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([show_parameters, show_stations, ...])</p></td>
+<td><p>Print an overview of the structure of the event.</p></td>
+</tr>
 </tbody>
 </table>
 <dl class="py method">
@@ -1306,6 +1309,49 @@ The order follows the sequence these modules were applied</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>data_pkl</strong><span class="classifier">bytes</span></dt><dd><p>The serialized event as a byte stream.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_showers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_sim_showers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_particles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of the event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>show_parameters</strong><span class="classifier">int, default: 0</span></dt><dd><ul class="simple">
+<li><p>If &gt; 0, print the parameters stored in the Event.</p></li>
+<li><p>If &gt; 1, also recursively print the parameters of objects stored
+inside the Event (e.g. Stations, …). The value of <em class="xref py py-obj">show_parameters</em>
+indicates the maximum number of recursions</p></li>
+</ul>
+</dd>
+<dt><strong>show_stations</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), also show the <em class="xref py py-obj">Station</em> objects stored in the event</p>
+</dd>
+<dt><strong>show_showers</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), also show the <em class="xref py py-obj">Shower</em> objects stored in the event</p>
+</dd>
+<dt><strong>show_sim_showers</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), also show the <em class="xref py py-obj">SimShower</em> objects stored in the event</p>
+</dd>
+<dt><strong>show_particles</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), also show the <em class="xref py py-obj">Particle</em> objects stored in the event</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of the Event structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print the Event structure to stdout.
+Otherwise, return the string representation</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments, optional</span></dt><dd><p>keyword arguments passed on to <em class="xref py py-obj">show()</em> method of
+objects stored inside <a class="reference internal" href="#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Event</span></code></a>.</p>
 </dd>
 </dl>
 </dd>

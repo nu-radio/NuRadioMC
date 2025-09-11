@@ -731,6 +731,9 @@ the channels of a single dual or triple polarized antenna as common in air showe
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.set_trigger_channel" title="NuRadioReco.framework.channel.Channel.set_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_channel</span></code></a>(trigger_channel)</p></td>
 <td><p>Sets an extra trigger channel of this channel.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.channel.Channel.show" title="NuRadioReco.framework.channel.Channel.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([show_parameters, print_stdout])</p></td>
+<td><p>Print an overview of the structure of this Channel/ElectricField object.</p></td>
+</tr>
 </tbody>
 </table>
 <table class="docutils align-default">
@@ -1101,6 +1104,33 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 <dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.set_trace_start_time">
 <span class="sig-name descname"><span class="pre">set_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.set_trace_start_time" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.channel.Channel.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.channel.Channel.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of this Channel/ElectricField object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>show_parameters</strong><span class="classifier">int, default: 1</span></dt><dd><p>If &gt; 0, print the parameters stored in this Channel/ElectricField object.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of this Channel/ElectricField object structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print <em class="xref py py-obj">str_output</em> to stdout.
+Otherwise, return it.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 

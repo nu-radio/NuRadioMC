@@ -998,6 +998,87 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__reference_reconstruction</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__reference_reconstruction&#39;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Station.show">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.show">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">show_parameters</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">show_channels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">show_efields</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_triggers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">print_stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print an overview of the structure of the Station.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        show_parameters : int, default: 0</span>
+
+<span class="sd">            * If &gt; 0, print the parameters stored in the Station.</span>
+<span class="sd">            * If &gt; 1, also recursively print the parameters of objects stored</span>
+<span class="sd">              inside the Station (e.g. Channels, Triggers, ...). The value of `show_parameters`</span>
+<span class="sd">              indicates the maximum number of recursions</span>
+
+<span class="sd">        show_channels : bool, optional</span>
+<span class="sd">            If `True` (default), also show the `Channel` objects stored in the Station</span>
+<span class="sd">        show_efields : bool, optional</span>
+<span class="sd">            If `True` (default), also show the `ElectricField` objects stored in the Station</span>
+<span class="sd">        show_triggers : bool, optional</span>
+<span class="sd">            If `True` (default), also show the `Trigger` objects stored in the Station</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        print_stdout : bool, optional</span>
+<span class="sd">            If `True` (default), print the Station structure to stdout.</span>
+<span class="sd">            Otherwise, return the string representation</span>
+<span class="sd">        **kwargs : keyword arguments, optional</span>
+<span class="sd">            keyword arguments passed on to `.show()` method of</span>
+<span class="sd">            objects stored inside `Station`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str_output : str, optional</span>
+<span class="sd">            A string representation of the Station structure.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_channels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">())</span>
+        <span class="n">n_efields</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_electric_field_ids</span><span class="p">())</span>
+        <span class="n">n_triggers</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_triggers</span><span class="p">())</span>
+
+        <span class="n">self_string</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s1">&#39;Station(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">) (&#39;</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">n_channels</span><span class="si">}</span><span class="s1"> Channels, &#39;</span> <span class="k">if</span> <span class="n">n_channels</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">n_efields</span><span class="si">}</span><span class="s1"> Efields, &#39;</span> <span class="k">if</span> <span class="n">n_efields</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">n_triggers</span><span class="si">}</span><span class="s1"> Triggers, &#39;</span> <span class="k">if</span> <span class="n">n_triggers</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;SimStation&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_sim_station</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">show_parameters</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">self_string</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;    Parameters&#39;</span><span class="p">]</span>
+            <span class="n">par_string</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;      </span><span class="si">{</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s1">16s</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="k">for</span> <span class="n">par</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+            <span class="n">self_string</span> <span class="o">+=</span> <span class="n">par_string</span>
+
+        <span class="n">iterators</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">show_channels</span><span class="p">:</span>
+            <span class="n">iterators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show_efields</span><span class="p">:</span>
+            <span class="n">iterators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show_triggers</span><span class="p">:</span>
+            <span class="n">iterators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_triggers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">iterator</span> <span class="ow">in</span> <span class="n">iterators</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">():</span>
+                <span class="n">self_string</span> <span class="o">+=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="s1">&#39;    &#39;</span> <span class="o">+</span> <span class="n">k</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">show_parameters</span><span class="o">=</span><span class="n">show_parameters</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">print_stdout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="p">]</span>
+
+        <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">self_string</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">print_stdout</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">return</span> <span class="n">output</span></div>
 </div>
 
 </pre></div>
