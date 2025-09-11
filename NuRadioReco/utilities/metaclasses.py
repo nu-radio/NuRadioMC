@@ -31,10 +31,11 @@ class Singleton(type):
             Singleton._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
             Singleton._args_kwargs[cls] = (args, kwargs)
         elif (args, kwargs) != Singleton._args_kwargs[cls]:
-            logger.warning(
-                f'{cls} is a Singleton, returning existing instance and ignoring '
-                'arguments passed to __init__. To create a new instance instead, include '
+            msg = (
+                f'Singleton class {cls} was already initialized with different arguments. '
+                'To create a new instance with different initial values, include '
                 '`create_new=True` in the class initialization call.'
                 )
+            raise ValueError(msg)
 
         return Singleton._instances[cls]
