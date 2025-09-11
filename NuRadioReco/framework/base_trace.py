@@ -407,6 +407,49 @@ class BaseTrace:
 
         self.set_trace(original_trace, sampling_rate_readout)
 
+    def show(self, show_parameters=1, print_stdout=True, **kwargs):
+        """
+        Print an overview of the structure of this Channel/ElectricField object.
+
+        Parameters
+        ----------
+        show_parameters : int, default: 1
+            If > 0, print the parameters stored in this Channel/ElectricField object.
+
+        Other Parameters
+        ----------------
+        print_stdout : bool, optional
+            If `True` (default), print `str_output` to stdout.
+            Otherwise, return it.
+
+        Returns
+        -------
+        str_output : str, optional
+            A string representation of this Channel/ElectricField object structure.
+
+        """
+        if hasattr(self, 'get_id'): # Channel
+            string_id = f'({self.get_id()})'
+        elif hasattr(self, 'get_unique_identifier'): # SimChannel / ElectricField
+            string_id = f'{self.get_unique_identifier()}'
+        else:
+            string_id = ''
+
+        self_string = [f'{type(self).__name__}{string_id} {self.get_trace().shape}']
+
+        if show_parameters > 0:
+            self_string += ['    Parameters']
+            par_string = [f'      {par.name:16s}: {val}'
+                for par, val in self.get_parameters().items()]
+            self_string += par_string
+
+        output = '\n'.join(self_string)
+        if print_stdout:
+            print(output)
+            return
+
+        return output
+
 
     def __add__(self, x):
         """
