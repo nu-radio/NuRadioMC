@@ -708,7 +708,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">files</span> <span class="o">=</span> <span class="n">files</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">detector</span> <span class="o">=</span> <span class="n">det</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">,</span> <span class="o">**</span><span class="n">reader_kwargs</span><span class="p">)</span>
+        <span class="n">apply_baseline_correction</span> <span class="o">=</span> <span class="n">reader_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;apply_baseline_correction&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;The &#39;apply_baseline_correction&#39; argument is kwargs will be ignored. &quot;</span>
+                <span class="s2">&quot;Instead the &#39;channelBlockOffsetFitter&#39; is used explicitly in the module sequence.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">,</span> <span class="n">apply_baseline_correction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">reader_kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">channelBlockOffsetFitter</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">channelGlitchDetector</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
@@ -741,8 +747,8 @@
             <span class="n">station</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_station_time</span><span class="p">())</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">channelGlitchDetector</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">channelBlockOffsetFitter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channelGlitchDetector</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">channelCableDelayAdder</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;subtract&#39;</span><span class="p">)</span>
 
             <span class="k">yield</span> <span class="n">event</span></div>
