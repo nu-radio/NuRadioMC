@@ -167,7 +167,6 @@ if __name__ == "__main__":
         # the following code is just an example of how to access the channel waveforms and plot them
         # we do it only for high-SNR events
         if max_SNR > 5:
-
             # iterate over some channels in station and plot them
             fig, ax = plt.subplots(4, 2)
             for channel_id in range(4): # iterate over the first 4 channels
