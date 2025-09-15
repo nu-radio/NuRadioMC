@@ -21,7 +21,7 @@ import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.detector.RNO_G.rnog_detector
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.RNO_G.stationHitFilter
-import NuRadioReco.modules.RNO_G.channelImpulsivityCalculator
+import NuRadioReco.modules.RNO_G.channelPiCalculator
 from NuRadioReco.utilities import units, logging as nulogging
 
 
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     channelSignalReconstructor.begin()
 
     # initialize our new module
-    channelImpCal = NuRadioReco.modules.RNO_G.channelImpulsivityCalculator.channelImpulsivityCalculator()
+    channelPiCal = NuRadioReco.modules.RNO_G.channelPiCalculator.channelPiCalculator()
 
     # Initialize Hit Filter
     stationHitFilter = NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter()
@@ -146,11 +146,12 @@ if __name__ == "__main__":
         ########################
 
         # Run our impulsivity calculation
-        channelImpCal.run(evt, station, det)
+        channelPiCal.run(evt, station, det)
 
         # the following code is just an example of how to access reconstructed parameters
         # (the ones that were calculated in the processing steps by the channelSignalReconstructor)
         from NuRadioReco.framework.parameters import channelParameters as chp
+        from NuRadioReco.framework.parameters import channelParametersRNOG as chpg
         max_SNR = 0
         for channel in station.iter_channels():
             SNR = channel[chp.SNR]['peak_2_peak_amplitude']  # alternatively, channel.get_parameter(chp.SNR)
@@ -158,20 +159,14 @@ if __name__ == "__main__":
             signal_amplitude = channel[chp.maximum_amplitude_envelope]
             signal_time = channel[chp.signal_time]
 
-            #print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude / units.mV:.2f}mV, "
-                  #f"signal time={signal_time / units.ns:.2f}ns")
+            # print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude / units.mV:.2f}mV, "
+                  # f"signal time={signal_time / units.ns:.2f}ns")
 
-        # Print some results
-        from NuRadioReco.framework.parameters import channelParametersRNOG as chpg
-        for channel_id in range(4):
-            channel = station.get_channel(channel_id)
-            SNR = channel[chp.SNR]['peak_2_peak_amplitude']
-            power_impulsivity = channel[chpg.power_impulsivity]
-            logger.status(f"CH{channel_id}: SNR = {SNR:.2f}, power_impulsivity = {power_impulsivity:.2f}")
-        
+            print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, pi={channel[chpg.rnog_pi]}")
+
         # the following code is just an example of how to access the channel waveforms and plot them
         # we do it only for high-SNR events
-        if max_SNR > 8:
+        if max_SNR > 5:
 
             # iterate over some channels in station and plot them
             fig, ax = plt.subplots(4, 2)

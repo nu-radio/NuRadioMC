@@ -86,7 +86,7 @@ class channelParametersRNOG(Enum):
     # FS: I did not start with a negative parameter on the 1, hence I chose 100
     glitch = 100 #: True if channel is likely to have a glitch. See 'NuRadioReco.modules.RNO_G.channelGlitchDetector'
     glitch_test_statistic = 101 #: Numerical value delivered by the glitch detector. Positive values indicate a likely glitch.
-    power_impulsivity = 102
+    rnog_pi = 102
 
 class stationParametersRNOG(Enum):
     # RNO-G specific station parameters
