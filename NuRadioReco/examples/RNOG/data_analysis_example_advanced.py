@@ -159,8 +159,8 @@ if __name__ == "__main__":
             signal_amplitude = channel[chp.maximum_amplitude_envelope]
             signal_time = channel[chp.signal_time]
 
-            # print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude / units.mV:.2f}mV, "
-                  # f"signal time={signal_time / units.ns:.2f}ns")
+            #print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude / units.mV:.2f}mV, "
+                  #f"signal time={signal_time / units.ns:.2f}ns")
 
             print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, pi={channel[chpg.rnog_pi]}")
 
