@@ -526,7 +526,7 @@ class PhasedArrayBase():
         is_triggered = np.any(triggered_beams)
 
         if is_triggered:
-            trigger_time = np.amin([x for x in trigger_times.values()])
+            trigger_time = np.amin([x.min() for x in trigger_times.values()])
             logger.debug("Trigger condition satisfied!\n"
                 "All trigger times: {}\n".format(trigger_times) +
                 "Minimum trigger time is {:.0f}ns".format(trigger_time))

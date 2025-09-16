@@ -163,7 +163,7 @@ class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
         trigger = SimplePhasedTrigger(
             trigger_name,
             threshold,
-            triggered_channels=triggered_channels,
+            channels=triggered_channels,
             primary_angles=phasing_angles,
             trigger_delays=trigger_delays,
             window_size=window,
