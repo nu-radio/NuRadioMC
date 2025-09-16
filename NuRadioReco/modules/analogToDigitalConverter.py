@@ -444,8 +444,6 @@ def downsampling_linear_interpolation(trace, sampling_rate, new_sampling_rate):
 
     Returns
     -------
-    times_downsampled: array of floats
-        The times of the downsampled trace (without start time)
     downsampled_trace: array of floats
         The downsampled trace
     """
