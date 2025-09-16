@@ -243,7 +243,7 @@ class DetectorBase(object):
         the value to the attribute.
         """
         if isinstance(value, bool):
-            self.__assume_inf = value
+            self._antenna_by_depth = value
         else:
             raise ValueError(f"Value for antenna_by_depth should be boolean, not {type(value)}")
 
