@@ -1929,7 +1929,7 @@ class ray_tracing(ray_tracing_base):
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
                  detector=None, ray_tracing_2D_kwards={},
-                 use_cpp=cpp_available, compile_numba=None, store_attenuation=False):
+                 use_cpp=cpp_available, compile_numba=None):
         """
         class initilization
 
@@ -2003,7 +2003,6 @@ class ray_tracing(ray_tracing_base):
                          config=config,
                          detector=detector)
 
-        self._store_attenuation = store_attenuation
         self.set_config(config=config)
 
         self.use_cpp = use_cpp
@@ -2950,8 +2949,6 @@ class ray_tracing(ray_tracing_base):
                 max_freq = self._max_detector_frequency
             attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
             spec *= attenuation
-            if self._store_attenuation:
-                efield.set_parameter(efp.attenuation, attenuation)
 
         zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
         for zenith_reflection in zenith_reflections:  # loop through all possible reflections
