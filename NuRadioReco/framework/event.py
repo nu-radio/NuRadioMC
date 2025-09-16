@@ -798,3 +798,75 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         if "__modules_station" in data:
             for key, value in data['__modules_station'].items():
                 self.__modules_station[key] = value
+
+
+    def show(
+            self, show_parameters=0, show_stations=True, show_showers=True,
+            show_sim_showers=True, show_particles=True, print_stdout=True,
+            **kwargs):
+        """
+        Print an overview of the structure of the event.
+
+        Parameters
+        ----------
+        show_parameters : int, default: 0
+
+            * If > 0, print the parameters stored in the Event.
+            * If > 1, also recursively print the parameters of objects stored
+              inside the Event (e.g. Stations, ...). The value of `show_parameters`
+              indicates the maximum number of recursions
+
+        show_stations : bool, optional
+            If `True` (default), also show the `Station` objects stored in the event
+        show_showers : bool, optional
+            If `True` (default), also show the `Shower` objects stored in the event
+        show_sim_showers : bool, optional
+            If `True` (default), also show the `SimShower` objects stored in the event
+        show_particles : bool, optional
+            If `True` (default), also show the `Particle` objects stored in the event
+
+        Other Parameters
+        ----------------
+        print_stdout : bool, optional
+            If `True` (default), print the Event structure to stdout.
+            Otherwise, return the string representation
+        **kwargs : keyword arguments, optional
+            keyword arguments passed on to `.show()` method of
+            objects stored inside `Event`.
+
+        Returns
+        -------
+        str_output : str, optional
+            A string representation of the Event structure.
+
+        """
+        self_string = [f"Event(run={self.get_run_number()}, id={self.get_id()})"]
+        if show_parameters > 0:
+            self_string += ['    Parameters']
+            par_string = [f'      {par.name:16s}: {val}'
+                for par, val in self.get_parameters().items()]
+            self_string += par_string
+
+        iterators = []
+        if show_stations:
+            iterators.append(self.get_stations)
+        if show_showers:
+            iterators.append(self.get_showers)
+        if show_sim_showers:
+            iterators.append(self.get_sim_showers)
+        if show_particles:
+            iterators.append(self.get_particles)
+
+        for iterator in iterators:
+            for item in iterator():
+                self_string += [
+                    ('    ' + k)
+                    for k in item.show(show_parameters=show_parameters-1, print_stdout=False, **kwargs).split('\n')
+                ]
+        output = '\n'.join(self_string)
+
+        if print_stdout:
+            print(output)
+            return
+
+        return output
