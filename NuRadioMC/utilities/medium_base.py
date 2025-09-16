@@ -668,16 +668,6 @@ if radiopropa_is_imported:
                                            )
             self.__modules["air boundary"]=air_boundary
 
-            boundary_above_surface = RP.ObserverSurface(RP.Plane(RP.Vector3d(*((air_boundary_pos+100*step)
-                                                                             *(RP.meter/units.meter)),
-                                                                            ),
-                                                                 RP.Vector3d(0,0,1)),
-                                                                )
-            air_observer = RP.Observer()
-            air_observer.setDeactivateOnDetection(True)
-            air_observer.add(boundary_above_surface)
-            self.__modules["air observer"] = air_observer
-
             bottom_boundary_pos = np.array([0, 0, self.__ice_model_nuradio.z_bottom])
             boundary_bottom = RP.ObserverSurface(RP.Plane(RP.Vector3d(*((bottom_boundary_pos)
                                                                       *(RP.meter/units.meter)),
