@@ -43,7 +43,7 @@ appropriate to study effective volumes, for instance.
 from NuRadioMC.EvtGen.generator import generate_eventlist_cylinder
 
 # Choose the number of events for this file
-n_events = 1000
+n_events = 5000
 # Choose the minimum energy for the simulated bin.
 Emin = 10 ** 17.5 * units.eV
 # Choose the maximum energy for the simulated bin.
@@ -113,4 +113,4 @@ And we call the function to generate the events.
 generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                             volume,
                             thetamin=thetamin, thetamax=thetamax,
-                            flavor=flavor)
+                            flavor=flavor,seed=10)
