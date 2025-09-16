@@ -325,7 +325,8 @@ class analogToDigitalConverter:
             apply_filter(channel, trigger_filter)
 
         if clock_offset:
-            assert clock_offset - int(clock_offset) == 0, "The clock offset must be an integer number of clock cycles"
+            if clock_offset - int(clock_offset) != 0:
+                raise ValueError("The clock offset must be an integer number of clock cycles")
             adc_time_delay += clock_offset / adc_sampling_frequency
 
         if adc_time_delay:
