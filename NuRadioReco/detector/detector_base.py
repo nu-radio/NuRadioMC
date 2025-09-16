@@ -175,10 +175,10 @@ class DetectorBase(object):
             self._db.truncate()
             stations_table = self._db.table('stations', cache_size=1000)
             for station in dictionary['stations'].values():
-                stations_table.insert(station)
+                stations_table.insert({**station})
             channels_table = self._db.table('channels', cache_size=1000)
             for channel in dictionary['channels'].values():
-                channels_table.insert(channel)
+                channels_table.insert({**channel})
         else:
             self._db = TinyDB(
                 json_filename,
@@ -243,7 +243,7 @@ class DetectorBase(object):
         the value to the attribute.
         """
         if isinstance(value, bool):
-            self.__assume_inf = value
+            self._antenna_by_depth = value
         else:
             raise ValueError(f"Value for antenna_by_depth should be boolean, not {type(value)}")
 
