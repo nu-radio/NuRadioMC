@@ -114,8 +114,7 @@ class PhasedArrayBase():
             delays = (ant_z - ref_z) / cspeed * ref_index * np.sin(angle) - cable_delays - group_delays
             delays -= np.min(delays)
             roll = np.array(np.round(delays * sampling_frequency)).astype(int)
-            subbeam_rolls = dict(zip(triggered_channels, roll))
-            beam_rolls.append(subbeam_rolls)
+            beam_rolls.append(roll)
 
         self.buffered_delays[station.get_id()] = beam_rolls
 
