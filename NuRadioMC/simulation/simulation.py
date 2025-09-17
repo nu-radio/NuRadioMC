@@ -127,7 +127,9 @@ def calculate_sim_efield(
 
     """
     if distance_cut is not None:
-        time_logger.start_time('distance cut')
+        if time_logger is not None:
+            time_logger.start_time('distance cut')
+
         vertex_positions = []
         shower_energies = []
         for i, shower in enumerate(showers):
@@ -136,7 +138,10 @@ def calculate_sim_efield(
         vertex_positions = np.array(vertex_positions)
         shower_energies = np.array(shower_energies)
         vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
-        time_logger.stop_time('distance cut')
+
+        if time_logger is not None:
+            time_logger.stop_time('distance cut')
+
     logger.debug("Calculating electric field for station %d , channel %d from list of showers", station_id, channel_id)
 
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
@@ -154,16 +159,20 @@ def calculate_sim_efield(
     for iSh, shower in enumerate(showers):
         x1 = shower.get_parameter(shp.vertex)
         if distance_cut is not None:
-            time_logger.start_time('distance cut')
+            if time_logger is not None:
+                time_logger.start_time('distance cut')
             mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < config['speedup']['distance_cut_sum_length']
             shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
             if np.linalg.norm(x1 - x2) > distance_cut(shower_energy_sum):
-                time_logger.stop_time('distance cut')
+                if time_logger is not None:
+                    time_logger.stop_time('distance cut')
                 continue
 
-            time_logger.stop_time('distance cut')
+            if time_logger is not None:
+                time_logger.stop_time('distance cut')
 
-        time_logger.start_time('ray tracing')
+        if time_logger is not None:
+            time_logger.start_time('ray tracing')
         logger.debug(f"Calculating electric field for shower {shower.get_id()} and station {station_id}, channel {channel_id}")
         shower_direction = -1 * shower.get_axis() # We need the propagation direction here, so we multiply the shower axis with '-1'
         n_index = medium.get_index_of_refraction(x1)
@@ -187,14 +196,17 @@ def calculate_sim_efield(
         for iS in range(n):
             viewing_angles[iS] = hp.get_angle(shower_direction, propagator.get_launch_vector(iS))
             delta_Cs[iS] = viewing_angles[iS] - cherenkov_angle
+
         # discard event if delta_C (angle off cherenkov cone) is too large
         if min(np.abs(delta_Cs)) > config['speedup']['delta_C_cut']:
             logger.debug(f'delta_C too large, event unlikely to be observed, (min(Delta_C) = {min(np.abs(delta_Cs))/units.deg:.1f}deg), skipping event')
             continue
-        time_logger.stop_time('ray tracing')
+        if time_logger is not None:
+            time_logger.stop_time('ray tracing')
 
         for iS in range(n): # loop through all ray tracing solution
-            time_logger.start_time('ray tracing (time)')
+            if time_logger is not None:
+                time_logger.start_time('ray tracing (time)')
             # skip individual channels where the viewing angle difference is too large
             # discard event if delta_C (angle off cherenkov cone) is too large
             if np.abs(delta_Cs[iS]) > config['speedup']['delta_C_cut']:
@@ -203,7 +215,8 @@ def calculate_sim_efield(
             # TODO: Fill with previous values if RT was already performed
             wave_propagation_distance = propagator.get_path_length(iS)  # calculate path length
             wave_propagation_time = propagator.get_travel_time(iS)  # calculate travel time
-            time_logger.start_time('ray tracing (time)')
+            if time_logger is not None:
+                time_logger.start_time('ray tracing (time)')
             if wave_propagation_distance is None or wave_propagation_time is None:
                 logger.warning('travel distance or travel time could not be calculated, skipping ray tracing solution. '
                                f'Shower ID: {shower.get_id()} Station ID: {station_id} Channel ID: {channel_id}')
@@ -219,15 +232,19 @@ def calculate_sim_efield(
                 kwargs['k_L'] = shower[shp.k_L]
                 logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
 
-            time_logger.start_time('signal generation')
+            if time_logger is not None:
+                time_logger.start_time('signal generation')
+
             spectrum, additional_output = askaryan.get_frequency_spectrum(shower[shp.energy], viewing_angles[iS],
                             n_samples, dt, shower[shp.type], n_index, wave_propagation_distance,
                             config['signal']['model'], seed=config['seed'], full_output=True, **kwargs)
+
             # save shower realization to SimShower and hdf5 file
             if config['signal']['model'] in ["ARZ2019", "ARZ2020"]:
                 if not shower.has_parameter(shp.charge_excess_profile_id):
                     shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
                     logger.debug(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
+
             if config['signal']['model'] == "Alvarez2009":
                 if not shower.has_parameter(shp.k_L):
                     shower.set_parameter(shp.k_L, additional_output['k_L'])
@@ -235,16 +252,19 @@ def calculate_sim_efield(
             polarization_direction_onsky = calculate_polarization_vector(shower_direction, propagator.get_launch_vector(iS), config)
             receive_vector = propagator.get_receive_vector(iS)
             eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
-            time_logger.stop_time('signal generation')
+            if time_logger is not None:
+                time_logger.stop_time('signal generation')
 
             # this is common stuff which is the same between emitters and showers
             electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
                                     position=det.get_relative_position(station_id, channel_id),
                                     shower_id=shower.get_id(), ray_tracing_id=iS)
             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / dt)
-            time_logger.start_time('propagation effects')
+            if time_logger is not None:
+                time_logger.start_time('propagation effects')
             electric_field = propagator.apply_propagation_effects(electric_field, iS)
-            time_logger.stop_time('propagation effects')
+            if time_logger is not None:
+                time_logger.stop_time('propagation effects')
             # Trace start time is equal to the interaction time relative to the first
             # interaction plus the wave travel time.
             if shower.has_parameter(shp.vertex_time):
