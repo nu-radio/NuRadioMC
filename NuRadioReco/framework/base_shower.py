@@ -77,7 +77,7 @@ class BaseShower(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
         return f"Shower {self._id}: E = {print_key(showerParameters.energy, ' eV')}" + \
             f", (zen, azi) = ({print_key(showerParameters.zenith, ' deg')}, {print_key(showerParameters.azimuth, ' deg')})" + \
-            f", (x, y, z) = ({print_key(showerParameters.vertex, 'm')}"
+            f", (x, y, z) = ({print_key(showerParameters.vertex, 'm')})"
 
     def serialize(self):
         data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
