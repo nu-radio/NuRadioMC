@@ -94,7 +94,13 @@ class PhasedArrayBase():
         ant_z = self._get_antenna_positions(station, det, triggered_channels, 2)
         self.check_vertical_string(station, det, triggered_channels)
         ref_z = np.max(ant_z)
-        cable_delays = np.array([det.get_cable_delay(station.get_id(), channel_id, trigger=True) for channel_id in triggered_channels])
+        try:
+            # RNO-G Detector
+            cable_delays = np.array([det.get_cable_delay(station.get_id(), channel_id, trigger=True) for channel_id in triggered_channels])
+        except:
+            # Others without trigger kwarg
+            cable_delays = np.array([det.get_cable_delay(station.get_id(), channel_id) for channel_id in triggered_channels])
+
         group_delays = np.zeros(len(triggered_channels))
 
         for i, channel in enumerate(triggered_channels):
@@ -309,7 +315,7 @@ class PhasedArrayBase():
         for channel in station.iter_trigger_channels(use_channels=triggered_channels):
             if apply_digitization:
                 trace, adc_sampling_frequency = self._adc_to_digital_converter.get_digital_trace(
-                    station, det, channel, **adc_kwargs)
+                    station, det, channel, return_sampling_frequency=True, **adc_kwargs)
             else:
                 adc_sampling_frequency = channel.get_sampling_rate()
                 trace = channel.get_trace()

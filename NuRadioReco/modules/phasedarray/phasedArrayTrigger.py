@@ -132,7 +132,6 @@ class PhasedArrayTrigger(PhasedArrayBase):
                 window=window,
                 step=step,
                 averaging_divisor=None,
-                ideal_transformer=False,
                 mode="power_sum",
             )
 

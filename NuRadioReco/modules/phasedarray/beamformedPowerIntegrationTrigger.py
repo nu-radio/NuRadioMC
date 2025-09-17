@@ -155,7 +155,6 @@ class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
                     step=step,
                     window=window,
                     averaging_divisor=averaging_divisor,
-                    ideal_transformer=False,
                     mode="power_sum",
             )
 
