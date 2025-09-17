@@ -1,7 +1,8 @@
 import logging
+import functools
 import numpy as np
 from scipy import constants
-from scipy.signal import hilbert
+from scipy.signal import hilbert, firwin
 
 from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
@@ -332,10 +333,9 @@ class PhasedArrayBase():
         return traces, final_sampling_frequency
 
 
-    def hilbert_envelope(self, coh_sum, adc_output='voltage', coeff_gain=1, ideal_transformer=True):
+    def hilbert_envelope(self, coh_sum, adc_output='voltage', ideal_transformer=False, hilbert_n_taps=31, hilbert_coeff_gain=1):
 
         if ideal_transformer:
-
             imag_an = np.imag(hilbert(coh_sum))
 
             if adc_output=='counts':
@@ -344,17 +344,14 @@ class PhasedArrayBase():
             envelope = np.sqrt(coh_sum**2 + imag_an**2)
 
         else:
-            #firmware like
-            #31 sample fir transformer
-            #hil=[-0.0424413, 0., -0.0489708, 0., -0.0578745, 0., -0.0707355, 0., -0.0909457, 0., -0.127324, 0.
-            #      , -0.2122066, 0., -0.6366198, 0., 0.6366198, 0., 0.2122066, 0., 0.127324,0., 0.0909457, 0., .0707355
-            #      , 0., 0.0578745, 0., 0.0489708, 0., 0.0424413]
-            #middle 15 coefficients ^
-            hil = np.array([-0.0909457, 0., -0.127324, 0., -0.2122066, 0., -0.6366198, 0., 0.6366198, 0., 0.2122066,
-                0., 0.127324, 0., 0.0909457])
+            assert hilbert_n_taps % 2 != 0, "Num taps MUST be odd for a hilbert transformer"
 
-            if coeff_gain != 1:
-                hil = np.round(hil * coeff_gain) / coeff_gain
+            sin_factor = np.sin(np.linspace(-(hilbert_n_taps-1)/2, (hilbert_n_taps-1)/2, hilbert_n_taps))
+            lp_filter = -1 * firwin(hilbert_n_taps, cutoff=0.25, pass_zero=False, fs=1)
+            hil = 2 * sin_factor * lp_filter
+
+            if hilbert_coeff_gain != 1:
+                hil = np.round(hil * hilbert_coeff_gain) / hilbert_coeff_gain
 
             imag_an = np.convolve(coh_sum, hil, mode='full')[len(hil) // 2 : len(coh_sum) + len(hil) // 2]
 
@@ -386,7 +383,10 @@ class PhasedArrayBase():
             window=32,
             step=16,
             averaging_divisor=None,
-            ideal_transformer=False,
+            hilbert_transformer_kwargs=dict(
+                ideal_transformer=False,
+                hilbert_n_taps=31,
+                hilbert_coeff_gain=128),
             mode="power_sum",
         ):
         """
@@ -432,7 +432,13 @@ class PhasedArrayBase():
             Power integral divisor for averaging (division by 2^n much easier in firmware)
             Units of ADC time ticks
         ideal_transformer: bool (default False)
-            TODO: Missing
+            If true, use scipy.hilbert to compute an exact Hilbert envelope with scipy.hilbert and np.sqrt.
+            Otherwise, a firmware-like FIR-based Hilbert transformer will be used and with an approximation
+            function to a square root to calculate the envelope.
+        hilbert_n_taps: int (defult 31)
+            Number of taps used to construct the FIR-based Hilbert transformer
+        hilbert_coeff_gain: int (default 128)
+            Rescaling factor to quantize the FIR-based Hilbert transformer
         mode: string (default: "power_sum")
             The mode of the trigger. Can be either "power_sum" or "hilbert_env".
 
@@ -499,7 +505,7 @@ class PhasedArrayBase():
             elif mode == "hilbert_env":
                 coeff_gain = upsampling_kwargs.get("coeff_gain")
                 sig_trace = self.hilbert_envelope(
-                    coh_sum=phased_trace, adc_output=adc_output, coeff_gain=coeff_gain, ideal_transformer=ideal_transformer)
+                    coh_sum=phased_trace, adc_output=adc_output, **hilbert_transformer_kwargs)
             else:
                 raise ValueError("mode must be either 'power_sum' or 'hilbert_env'")
 

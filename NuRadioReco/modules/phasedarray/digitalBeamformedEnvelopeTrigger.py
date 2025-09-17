@@ -153,7 +153,10 @@ class PhasedEnvelopeTriggerSimulator(PhasedArrayBase):
                     window=None,
                     step=None,
                     averaging_divisor=None,
-                    ideal_transformer=ideal_transformer,
+                    hilbert_transformer_kwargs=dict(
+                        ideal_transformer=ideal_transformer,
+                        hilbert_n_taps=31,
+                        hilbert_coeff_gain=128),
                     mode="hilbert_env"
                     )
 
