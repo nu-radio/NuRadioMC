@@ -73,7 +73,7 @@ class BaseShower(NuRadioReco.framework.parameter_storage.ParameterStorage):
             if self.has_parameter(key):
                 return f"{str(self.get_parameter(key))}{add}"
             else:
-                return None
+                return "-"
 
         return f"Shower {self._id}: E = {print_key(showerParameters.energy, ' eV')}" + \
             f", (zen, azi) = ({print_key(showerParameters.zenith, ' deg')}, {print_key(showerParameters.azimuth, ' deg')})" + \
