@@ -215,5 +215,5 @@ jobs:
         jupyter execute NuRadioMC/examples/Interactive/W01-simulate-neutrino-detector.ipynb
         jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
-        jupyter execute NuRadioReco/examples/Interactive/processing-RNOG-files.ipynb
+        jupyter execute NuRadioReco/examples/Interactive/read_RNOG_data.ipynb
 
