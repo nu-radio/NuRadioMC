@@ -365,8 +365,8 @@ class DigitalEnvelopePhasedTrigger(Trigger):
         ----------
         name: string
             unique name of the trigger
-        threshold_factor: float
-            the threshold factor
+        threshold: float
+            the threshold
         power_mean: float
             mean of the noise trace after being filtered with the diode
         power_std: float

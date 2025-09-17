@@ -110,11 +110,10 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
 
             traces[channel_id] = trace[:]
 
-        beam_rolls = self.calculate_time_delays(station, det,
-                                                triggered_channels,
-                                                phasing_angles,
-                                                ref_index=ref_index,
-                                                sampling_frequency=adc_sampling_frequency)
+        beam_rolls = self.calculate_time_delays(
+            station, det, triggered_channels,
+            phasing_angles, ref_index=ref_index,
+            sampling_frequency=adc_sampling_frequency)
 
         phased_traces = self.phase_signals(traces, beam_rolls)
 
@@ -139,10 +138,10 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
             threshold_passed = np.min(phased_trace) < low_trigger
 
             if threshold_passed:
-                is_triggered = True
-                for channel_id in beam_rolls:
-                    trigger_delays[channel_id] = beam_rolls[channel_id] * time_step
                 logger.debug("Station has triggered")
+                is_triggered = True
+                trigger_delays[iTrace] = {channel_id: beam_rolls[iTrace][channel_id] * time_step
+                    for channel_id in beam_rolls[iTrace]}
 
             triggered_beams.append(is_triggered)
 
@@ -154,7 +153,7 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
             trigger_time = min([x.min() for x in trigger_times.values()])
             logger.debug(f"minimum trigger time is {trigger_time:.0f}ns")
 
-        return is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps, n_trigs, triggered_beams
+        return is_triggered, trigger_delays, trigger_time, trigger_times, n_trigs, maximum_amps, triggered_beams
 
     @register_run()
     def run(self, evt, station, det,
@@ -244,20 +243,21 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
         else:
             logger.debug("primary channels: {}".format(triggered_channels))
 
-            is_triggered, trigger_delays, trigger_time, trigger_times, n_triggers = self.envelope_trigger(
-                station,
-                det,
-                phasing_angles,
-                ref_index,
-                triggered_channels=triggered_channels,
-                threshold_factor=threshold_factor,
-                power_mean=power_mean,
-                power_std=power_std,
-                output_passband=output_passband,
-                threshold=threshold,
-                trigger_adc=trigger_adc,
-                apply_digitization=apply_digitization,
-                adc_output=adc_output
+            is_triggered, trigger_delays, trigger_time, trigger_times, n_triggers, a_max, triggered_beams = \
+                self.envelope_trigger(
+                    station,
+                    det,
+                    phasing_angles,
+                    ref_index,
+                    triggered_channels=triggered_channels,
+                    threshold_factor=threshold_factor,
+                    power_mean=power_mean,
+                    power_std=power_std,
+                    output_passband=output_passband,
+                    threshold=threshold,
+                    trigger_adc=trigger_adc,
+                    apply_digitization=apply_digitization,
+                    adc_output=adc_output
             )
 
         trigger = AnalogEnvelopePhasedTrigger(
