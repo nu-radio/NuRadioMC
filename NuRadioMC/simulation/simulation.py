@@ -173,6 +173,7 @@ def calculate_sim_efield(
 
         if time_logger is not None:
             time_logger.start_time('ray tracing')
+        
         logger.debug(f"Calculating electric field for shower {shower.get_id()} and station {station_id}, channel {channel_id}")
         shower_direction = -1 * shower.get_axis() # We need the propagation direction here, so we multiply the shower axis with '-1'
         n_index = medium.get_index_of_refraction(x1)
@@ -183,6 +184,7 @@ def calculate_sim_efield(
         if config['speedup']['redo_raytracing']:  # check if raytracing was already performed
             pass
             # TODO: initiatlize ray tracer with existing results if available
+        
         propagator.find_solutions()
         if not propagator.has_solution():
             logger.debug(f"shower {shower.get_id()} and station {station_id}, channel {channel_id} from {x1} to {x2} does not have any ray tracing solution")
@@ -190,6 +192,7 @@ def calculate_sim_efield(
 
         n = propagator.get_number_of_solutions()
         logger.debug(f"found {n} solutions for shower {shower.get_id()} and station {station_id}, channel {channel_id} from {x1} to {x2}")
+        
         delta_Cs = np.zeros(n)
         viewing_angles = np.zeros(n)
         # loop through all ray tracing solution
@@ -201,26 +204,31 @@ def calculate_sim_efield(
         if min(np.abs(delta_Cs)) > config['speedup']['delta_C_cut']:
             logger.debug(f'delta_C too large, event unlikely to be observed, (min(Delta_C) = {min(np.abs(delta_Cs))/units.deg:.1f}deg), skipping event')
             continue
+        
         if time_logger is not None:
             time_logger.stop_time('ray tracing')
 
         for iS in range(n): # loop through all ray tracing solution
             if time_logger is not None:
                 time_logger.start_time('ray tracing (time)')
+            
             # skip individual channels where the viewing angle difference is too large
             # discard event if delta_C (angle off cherenkov cone) is too large
             if np.abs(delta_Cs[iS]) > config['speedup']['delta_C_cut']:
                 logger.debug('delta_C too large, ray tracing solution unlikely to be observed, skipping ray tracing solution')
                 continue
+            
             # TODO: Fill with previous values if RT was already performed
             wave_propagation_distance = propagator.get_path_length(iS)  # calculate path length
             wave_propagation_time = propagator.get_travel_time(iS)  # calculate travel time
             if time_logger is not None:
-                time_logger.start_time('ray tracing (time)')
+                time_logger.stop_time('ray tracing (time)')
+            
             if wave_propagation_distance is None or wave_propagation_time is None:
                 logger.warning('travel distance or travel time could not be calculated, skipping ray tracing solution. '
                                f'Shower ID: {shower.get_id()} Station ID: {station_id} Channel ID: {channel_id}')
                 continue
+            
             kwargs = {}
             # if the input file specifies a specific shower realization, or
             # if the shower was already simulated (e.g. for a different channel or ray tracing solution)
@@ -260,11 +268,13 @@ def calculate_sim_efield(
                                     position=det.get_relative_position(station_id, channel_id),
                                     shower_id=shower.get_id(), ray_tracing_id=iS)
             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / dt)
+            
             if time_logger is not None:
                 time_logger.start_time('propagation effects')
             electric_field = propagator.apply_propagation_effects(electric_field, iS)
             if time_logger is not None:
                 time_logger.stop_time('propagation effects')
+            
             # Trace start time is equal to the interaction time relative to the first
             # interaction plus the wave travel time.
             if shower.has_parameter(shp.vertex_time):
