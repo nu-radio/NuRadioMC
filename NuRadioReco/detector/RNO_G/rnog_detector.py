@@ -100,9 +100,10 @@ class Detector():
             This is useful for example in simulations when one wants to simulate only one station. The default None
             means to descibe all commissioned stations.
 
-        create_new : bool (Default: False)
-            If False, and a database already exists, the existing database will be used rather than initializing a
-            new connection. Set to True to create a new database connection.
+        create_new : bool (Default: None)
+            If ``False``, the existing database connection (if there is one) will be used rather than initializing a
+            new connection. Set to ``True`` to always create a new database connection.
+            The default is to create a new database only if the ``database_connection`` argument has changed.
 
         database_name : str (Default: None)
             Name of the database to connect to. If None, the default database will be used
