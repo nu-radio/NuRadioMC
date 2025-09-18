@@ -789,6 +789,7 @@
                  <span class="n">dictionary</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assume_inf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">antenna_by_depth</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the stations detector properties.</span>
+
 <span class="sd">        By default, a new detector instance is only created of none exists yet, otherwise the existing instance</span>
 <span class="sd">        is returned. To force the creation of a new detector instance, pass the additional keyword parameter</span>
 <span class="sd">        `create_new=True` to this function. For more details, check the documentation for the</span>
@@ -812,8 +813,8 @@
 <span class="sd">            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by</span>
 <span class="sd">            appending e.g. &#39;_InfFirn&#39; to the antenna model name.</span>
 <span class="sd">            if False, the antenna model as specified in the database is used.</span>
-<span class="sd">        create_new: bool (default:False)</span>
-<span class="sd">            Can be used to force the creation of a new detector object. By default, the __init__ will only create a new</span>
+<span class="sd">        create_new: bool (default: None)</span>
+<span class="sd">            Set to ``True`` to force the creation of a new detector object. By default, the __init__ will only create a new</span>
 <span class="sd">            object if none already exists.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_serialization</span> <span class="o">=</span> <span class="n">SerializationMiddleware</span><span class="p">()</span>

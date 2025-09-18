@@ -688,6 +688,13 @@ metaclass to it. The metaclass supercedes the __call__ method
 already exists and return that instance instead of creating a new one.</p>
 <p>If you want to enforce the creation of a new class instance, you can overwrite this behavior
 by passing <code class="docutils literal notranslate"><span class="pre">create_new=True</span></code> as a parameter to the __call__ method.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Prior to version 3.1.0, any arguments passed to the <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> of a Singleton class
+would be silently ignored. As of version 3.1.0, instead a new instance of the class is generated
+with the correct arguments if <code class="docutils literal notranslate"><span class="pre">create_new==None</span></code> (the new default), or an error is raised if
+<code class="docutils literal notranslate"><span class="pre">create_new==False</span></code>.</p>
+</div>
 </section>
 </section>
 </section>

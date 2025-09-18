@@ -672,8 +672,9 @@ This value is currently set to <code class="docutils literal notranslate"><span 
 This is useful for example in simulations when one wants to simulate only one station. The default None
 means to descibe all commissioned stations.</p>
 </dd>
-<dt><strong>create_new</strong><span class="classifier">bool (Default: False)</span></dt><dd><p>If False, and a database already exists, the existing database will be used rather than initializing a
-new connection. Set to True to create a new database connection.</p>
+<dt><strong>create_new</strong><span class="classifier">bool (Default: None)</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">False</span></code>, the existing database connection (if there is one) will be used rather than initializing a
+new connection. Set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to always create a new database connection.
+The default is to create a new database only if the <code class="docutils literal notranslate"><span class="pre">database_connection</span></code> argument has changed.</p>
 </dd>
 <dt><strong>database_name</strong><span class="classifier">str (Default: None)</span></dt><dd><p>Name of the database to connect to. If None, the default database will be used
 (see Database class in db_mongo_read.py).</p>

@@ -830,8 +830,8 @@ if False: the mysql database will be buffered as a tiny tb object and saved in a
 </tr>
 </tbody>
 </table>
-<p>Initialize the stations detector properties.
-By default, a new detector instance is only created of none exists yet, otherwise the existing instance
+<p>Initialize the stations detector properties.</p>
+<p>By default, a new detector instance is only created of none exists yet, otherwise the existing instance
 is returned. To force the creation of a new detector instance, pass the additional keyword parameter
 <em class="xref py py-obj">create_new=True</em> to this function. For more details, check the documentation for the
 <a class="reference external" href="NuRadioReco.utilities.html#NuRadioReco.utilities.metaclasses.Singleton">Singleton metaclass</a>.</p>
@@ -854,7 +854,7 @@ default value is ‘ARIANNA/arianna_detector_db.json’</p>
 appending e.g. ‘_InfFirn’ to the antenna model name.
 if False, the antenna model as specified in the database is used.</p>
 </dd>
-<dt><strong>create_new: bool (default:False)</strong></dt><dd><p>Can be used to force the creation of a new detector object. By default, the __init__ will only create a new
+<dt><strong>create_new: bool (default: None)</strong></dt><dd><p>Set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to force the creation of a new detector object. By default, the __init__ will only create a new
 object if none already exists.</p>
 </dd>
 </dl>

@@ -660,17 +660,34 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        create_new: bool (default: False)</span>
-<span class="sd">            If set to true, a new instance will always be created, even if one already exists.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">create_new</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;create_new&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="sd">        create_new: bool (default: None)</span>
+<span class="sd">            * If ``False``, this will always attempt to return an existing instance of the class.</span>
+<span class="sd">              If the existing instance was created with different initial arguments, this raises an error.</span>
+<span class="sd">            * If ``True``, a new instance will always be created, even if one already exists.</span>
+<span class="sd">            * If ``None`` (default), try to return an existing instance only if the provided arguments match,</span>
+<span class="sd">              otherwise return a new instance (implies ``create_new=True``).</span>
 
-        <span class="k">if</span> <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">create_new</span><span class="p">:</span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The `Singleton` metaclass is intended for classes that are expensive to initialize</span>
+<span class="sd">        (e.g. because of a large amount of I/O, such as loading an antenna model from disk).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">create_new</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;create_new&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+
+        <span class="n">create_new</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">create_new</span>
+            <span class="ow">or</span> <span class="bp">cls</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span>
+            <span class="ow">or</span> <span class="n">create_new</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">!=</span> <span class="n">Singleton</span><span class="o">.</span><span class="n">_args_kwargs</span><span class="p">[</span><span class="bp">cls</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">create_new</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Creating new instance of </span><span class="si">{</span><span class="bp">cls</span><span class="si">}</span><span class="s1">...&#39;</span><span class="p">)</span>
             <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span><span class="p">[</span><span class="bp">cls</span><span class="p">]</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Singleton</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="n">Singleton</span><span class="o">.</span><span class="n">_args_kwargs</span><span class="p">[</span><span class="bp">cls</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
         <span class="k">elif</span> <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">!=</span> <span class="n">Singleton</span><span class="o">.</span><span class="n">_args_kwargs</span><span class="p">[</span><span class="bp">cls</span><span class="p">]:</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="sa">f</span><span class="s1">&#39;Singleton class </span><span class="si">{</span><span class="bp">cls</span><span class="si">}</span><span class="s1"> was already initialized with different arguments. &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;Singleton </span><span class="si">{</span><span class="bp">cls</span><span class="si">}</span><span class="s1"> was already initialized with different arguments. &#39;</span>
                 <span class="s1">&#39;To create a new instance with different initial values, include &#39;</span>
                 <span class="s1">&#39;`create_new=True` in the class initialization call.&#39;</span>
                 <span class="p">)</span>

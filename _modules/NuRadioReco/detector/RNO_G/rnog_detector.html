@@ -738,9 +738,10 @@
 <span class="sd">            This is useful for example in simulations when one wants to simulate only one station. The default None</span>
 <span class="sd">            means to descibe all commissioned stations.</span>
 
-<span class="sd">        create_new : bool (Default: False)</span>
-<span class="sd">            If False, and a database already exists, the existing database will be used rather than initializing a</span>
-<span class="sd">            new connection. Set to True to create a new database connection.</span>
+<span class="sd">        create_new : bool (Default: None)</span>
+<span class="sd">            If ``False``, the existing database connection (if there is one) will be used rather than initializing a</span>
+<span class="sd">            new connection. Set to ``True`` to always create a new database connection.</span>
+<span class="sd">            The default is to create a new database only if the ``database_connection`` argument has changed.</span>
 
 <span class="sd">        database_name : str (Default: None)</span>
 <span class="sd">            Name of the database to connect to. If None, the default database will be used</span>
