@@ -242,7 +242,7 @@ if __name__ == "__main__":
 
     # These files were generated using the code NuRadioMC/examples/simulate_effective_ice_temperature
     # see the README there for more details
-    eff_temperature_dir = "NuRadioReco/examples/RNOG/thermal_noise/eff_temperatures"
+    eff_temperature_dir = f"{NuRadioReco.__path__[0]}/examples/RNOG/thermal_noise/eff_temperatures"
     eff_temperature_files = ["eff_temperature_-1.0m_ntheta100_GL3.json", "eff_temperature_-40m_ntheta100.json", "eff_temperature_-100m_ntheta100_GL3.json"] 
     eff_temperature_paths = [os.path.join(eff_temperature_dir, eff_temp_f) for eff_temp_f in eff_temperature_files]
     thermal_noise_adder = channelIceThermalNoiseAdder()
