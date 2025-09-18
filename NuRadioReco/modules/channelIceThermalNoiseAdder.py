@@ -48,6 +48,14 @@ class channelIceThermalNoiseAdder:
             temperature_file_dict = json.load(file_open)
         z_antenna = temperature_file_dict["z_antenna"]
         theta = temperature_file_dict["theta"] * units.rad
+
+        if not np.isclose(theta[-1] - theta[0], 180 * units.degree, atol=1 * units.degree):
+            raise ValueError(f"Theta angles of {temperature_file} do not extend over 180 degrees.")
+        if np.any([t > 10 for t in theta]):
+            raise ValueError("Thetas seem too large to be in radians (> 10), the files should give angles in units of radians.")
+        if z_antenna > 0:
+            raise ValueError(f"Antenna depth {z_antenna} should be negative, the code does not account for antennas above the ice")
+
         eff_temperature = temperature_file_dict["eff_temperature"]
         return z_antenna, theta, eff_temperature
 
