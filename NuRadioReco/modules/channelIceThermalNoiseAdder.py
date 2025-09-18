@@ -232,10 +232,13 @@ if __name__ == "__main__":
         station.add_channel(channel)
     event.set_station(station)
 
-#    eff_temperature_files = ["/add/list/of/eff_temperature/files/here"] 
-    eff_temperature_files = ["/home/ruben/Downloads/eff_temperatures/eff_temperature_-1.0m_ntheta100_GL3.json", "/home/ruben/Downloads/eff_temperatures/eff_temperature_-40m_ntheta100.json", "/home/ruben/Downloads/eff_temperatures/eff_temperature_-100m_ntheta100_GL3.json"] 
+    # These files were generated using the code NuRadioMC/examples/simulate_effective_ice_temperature
+    # see the README there for more details
+    eff_temperature_dir = "NuRadioReco/examples/RNOG/thermal_noise/eff_temperatures"
+    eff_temperature_files = ["eff_temperature_-1.0m_ntheta100_GL3.json", "eff_temperature_-40m_ntheta100.json", "eff_temperature_-100m_ntheta100_GL3.json"] 
+    eff_temperature_paths = [os.path.join(eff_temperature_dir, eff_temp_f) for eff_temp_f in eff_temperature_files]
     thermal_noise_adder = channelIceThermalNoiseAdder()
-    thermal_noise_adder.begin(eff_temperature_files=eff_temperature_files)
+    thermal_noise_adder.begin(eff_temperature_files=eff_temperature_paths)
     thermal_noise_adder.run(event, station, detector)
 
     station = event.get_station()
