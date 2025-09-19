@@ -68,7 +68,13 @@ class dataProviderRNOG:
         self.files = files
         self.detector = det
 
-        self.reader.begin(self.files, **reader_kwargs)
+        apply_baseline_correction = reader_kwargs.pop('apply_baseline_correction', None)
+        if apply_baseline_correction is not None:
+            logger.warning(
+                "The 'apply_baseline_correction' argument is kwargs will be ignored. "
+                "Instead the 'channelBlockOffsetFitter' is used explicitly in the module sequence.")
+
+        self.reader.begin(self.files, apply_baseline_correction=None, **reader_kwargs)
 
         self.channelBlockOffsetFitter.begin()
         self.channelGlitchDetector.begin()
@@ -96,8 +102,8 @@ class dataProviderRNOG:
             station = event.get_station()
             self.detector.update(station.get_station_time())
 
-            self.channelGlitchDetector.run(event, station, self.detector)
             self.channelBlockOffsetFitter.run(event, station, self.detector)
+            self.channelGlitchDetector.run(event, station, self.detector)
             self.channelCableDelayAdder.run(event, station, self.detector, mode='subtract')
 
             yield event
