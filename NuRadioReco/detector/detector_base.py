@@ -139,6 +139,7 @@ class DetectorBase(object):
                  dictionary=None, assume_inf=True, antenna_by_depth=True):
         """
         Initialize the stations detector properties.
+
         By default, a new detector instance is only created of none exists yet, otherwise the existing instance
         is returned. To force the creation of a new detector instance, pass the additional keyword parameter
         `create_new=True` to this function. For more details, check the documentation for the
@@ -162,8 +163,8 @@ class DetectorBase(object):
             if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
             appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
-        create_new: bool (default:False)
-            Can be used to force the creation of a new detector object. By default, the __init__ will only create a new
+        create_new: bool (default: None)
+            Set to ``True`` to force the creation of a new detector object. By default, the __init__ will only create a new
             object if none already exists.
         """
         self._serialization = SerializationMiddleware()
