@@ -1,14 +1,4 @@
-import numpy as np
-cimport numpy as np
 from operator import itemgetter
-import time
-
-# Numpy must be initialized. When using numpy from C or Cython you must
-# _always_ do that, or you will have segfaults
-np.import_array()
-
-cdef extern from "numpy/arrayobject.h":
-    void PyArray_ENABLEFLAGS(np.ndarray arr, int flags)
 
 cdef extern from "analytic_raytracing.cpp":
     void find_solutions2(double * &, double * &, int * &, int & , double, double, double, double, double, double, double, int, int, double)
@@ -16,7 +6,7 @@ cdef extern from "analytic_raytracing.cpp":
     double get_attenuation_length_wrapper(double, double, int)
 
 cpdef find_solutions(x1, x2, n_ice, delta_n, z_0, reflection, reflection_case, ice_reflection):
-    cdef:
+    cdef: # These will give a warning for not being assigned during compilation, but this is fine (they are assigned in find_solutions2)
         double * C0s
         double * C1s
         int * types
