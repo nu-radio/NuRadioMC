@@ -1223,10 +1223,10 @@ class simulation:
         self._antenna_pattern_provider = antennapattern.AntennaPatternProvider()
         if det is None:
             logger.status("Detectorfile {}".format(os.path.abspath(detectorfile)))
-            kwargs = dict(json_filename=detectorfile, default_station=default_detector_station,
+            det_kwargs_default = dict(json_filename=detectorfile, default_station=default_detector_station,
                               default_channel=default_detector_channel, antenna_by_depth=False)
-            kwargs.update(det_kwargs)
-            self._det = detector.Detector(**kwargs)
+            det_kwargs_default.update(det_kwargs)
+            self._det = detector.Detector(**det_kwargs_default)
         else:
             self._det = det
 
@@ -1247,7 +1247,7 @@ class simulation:
             log_level=self._log_level_ray_propagation,
             config=self._config,
             detector=self._det,
-            use_cpp=kwargs.get('use_cpp', True),
+            use_cpp=kwargs.get('use_cpp', None),
         )
 
         self._station_ids = self._det.get_station_ids()
