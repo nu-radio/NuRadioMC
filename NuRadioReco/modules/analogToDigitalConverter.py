@@ -314,9 +314,6 @@ class analogToDigitalConverter:
         adc_n_bits, adc_ref_voltage, adc_sampling_frequency, adc_time_delay = self._get_adc_parameters(
             det_channel, channel_id=channel_id, vrms=Vrms, trigger_adc=trigger_adc)
 
-        if clock_offset:
-            adc_time_delay += clock_offset / adc_sampling_frequency
-
         sampling_frequency = channel.get_sampling_rate()
         if adc_sampling_frequency > sampling_frequency:
             raise ValueError(
@@ -326,6 +323,11 @@ class analogToDigitalConverter:
 
         if trigger_filter is not None:
             apply_filter(channel, trigger_filter)
+
+        if clock_offset:
+            if clock_offset - int(clock_offset) != 0:
+                raise ValueError("The clock offset must be an integer number of clock cycles")
+            adc_time_delay += clock_offset / adc_sampling_frequency
 
         if adc_time_delay:
             # Random clock offset
@@ -342,23 +344,23 @@ class analogToDigitalConverter:
             logger.debug("Adding a baseline voltage of {:.2f} V to the trace".format(adc_baseline_voltage))
             channel.set_trace(channel.get_trace() + adc_baseline_voltage, "same")
 
+        # down sample if necessary
         if adc_sampling_frequency != sampling_frequency:
             # Upsampling to 5 GHz before downsampling using interpolation.
             # We cannot downsample with a Fourier method because we want to keep
-            # the higher Nyquist zones.
+            # frequencies in higher Nyquist zones to correctly simulate aliasing.
             upsampling_frequency = 5.0 * units.GHz
             if upsampling_frequency > sampling_frequency:
                 channel.resample(upsampling_frequency)
 
-            # Downsampling to ADC frequency
-            resampled_times, resampled_trace = downsampling_linear_interpolation(
+            # Downsampling to ADC frequency using linear interpolation to keep aliasing effects
+            trace = downsampling_linear_interpolation(
                 channel.get_trace(), channel.get_sampling_rate(), adc_sampling_frequency)
-            resampled_times += channel.get_trace_start_time()
-
-            # Digitisation
-            digital_trace = self._adc_types[adc_type](resampled_trace, adc_n_bits, adc_ref_voltage, adc_output)
         else:
-            digital_trace = self._adc_types[adc_type](channel.get_trace(), adc_n_bits, adc_ref_voltage, adc_output)
+            trace = channel.get_trace()
+
+        # Digitisation
+        digital_trace = self._adc_types[adc_type](trace, adc_n_bits, adc_ref_voltage, adc_output)
 
         # Ensuring trace has an even number of samples
         if len(digital_trace) % 2 == 1:
@@ -442,8 +444,6 @@ def downsampling_linear_interpolation(trace, sampling_rate, new_sampling_rate):
 
     Returns
     -------
-    times_downsampled: array of floats
-        The times of the downsampled trace (without start time)
     downsampled_trace: array of floats
         The downsampled trace
     """
@@ -459,9 +459,8 @@ def downsampling_linear_interpolation(trace, sampling_rate, new_sampling_rate):
     #   resampled_times, times, trace, left=trace[0], right=trace[-1])
     interpolate_trace = scipy.interpolate.interp1d(
         times, trace, kind='linear', fill_value=(trace[0], trace[-1]), bounds_error=False)
-    downsampled_trace = interpolate_trace(times_downsampled)
 
-    return times_downsampled, downsampled_trace
+    return interpolate_trace(times_downsampled)
 
 
 def apply_filter(channel, filter):
