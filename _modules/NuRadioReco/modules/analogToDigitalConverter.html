@@ -966,9 +966,6 @@
         <span class="n">adc_n_bits</span><span class="p">,</span> <span class="n">adc_ref_voltage</span><span class="p">,</span> <span class="n">adc_sampling_frequency</span><span class="p">,</span> <span class="n">adc_time_delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_adc_parameters</span><span class="p">(</span>
             <span class="n">det_channel</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">vrms</span><span class="o">=</span><span class="n">Vrms</span><span class="p">,</span> <span class="n">trigger_adc</span><span class="o">=</span><span class="n">trigger_adc</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">clock_offset</span><span class="p">:</span>
-            <span class="n">adc_time_delay</span> <span class="o">+=</span> <span class="n">clock_offset</span> <span class="o">/</span> <span class="n">adc_sampling_frequency</span>
-
         <span class="n">sampling_frequency</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">adc_sampling_frequency</span> <span class="o">&gt;</span> <span class="n">sampling_frequency</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -978,6 +975,11 @@
 
         <span class="k">if</span> <span class="n">trigger_filter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">apply_filter</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">trigger_filter</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">clock_offset</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">clock_offset</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">clock_offset</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The clock offset must be an integer number of clock cycles&quot;</span><span class="p">)</span>
+            <span class="n">adc_time_delay</span> <span class="o">+=</span> <span class="n">clock_offset</span> <span class="o">/</span> <span class="n">adc_sampling_frequency</span>
 
         <span class="k">if</span> <span class="n">adc_time_delay</span><span class="p">:</span>
             <span class="c1"># Random clock offset</span>
@@ -994,23 +996,23 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Adding a baseline voltage of </span><span class="si">{:.2f}</span><span class="s2"> V to the trace&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">adc_baseline_voltage</span><span class="p">))</span>
             <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="o">+</span> <span class="n">adc_baseline_voltage</span><span class="p">,</span> <span class="s2">&quot;same&quot;</span><span class="p">)</span>
 
+        <span class="c1"># down sample if necessary</span>
         <span class="k">if</span> <span class="n">adc_sampling_frequency</span> <span class="o">!=</span> <span class="n">sampling_frequency</span><span class="p">:</span>
             <span class="c1"># Upsampling to 5 GHz before downsampling using interpolation.</span>
             <span class="c1"># We cannot downsample with a Fourier method because we want to keep</span>
-            <span class="c1"># the higher Nyquist zones.</span>
+            <span class="c1"># frequencies in higher Nyquist zones to correctly simulate aliasing.</span>
             <span class="n">upsampling_frequency</span> <span class="o">=</span> <span class="mf">5.0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span>
             <span class="k">if</span> <span class="n">upsampling_frequency</span> <span class="o">&gt;</span> <span class="n">sampling_frequency</span><span class="p">:</span>
                 <span class="n">channel</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">upsampling_frequency</span><span class="p">)</span>
 
-            <span class="c1"># Downsampling to ADC frequency</span>
-            <span class="n">resampled_times</span><span class="p">,</span> <span class="n">resampled_trace</span> <span class="o">=</span> <span class="n">downsampling_linear_interpolation</span><span class="p">(</span>
+            <span class="c1"># Downsampling to ADC frequency using linear interpolation to keep aliasing effects</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">downsampling_linear_interpolation</span><span class="p">(</span>
                 <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">(),</span> <span class="n">adc_sampling_frequency</span><span class="p">)</span>
-            <span class="n">resampled_times</span> <span class="o">+=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
-
-            <span class="c1"># Digitisation</span>
-            <span class="n">digital_trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adc_types</span><span class="p">[</span><span class="n">adc_type</span><span class="p">](</span><span class="n">resampled_trace</span><span class="p">,</span> <span class="n">adc_n_bits</span><span class="p">,</span> <span class="n">adc_ref_voltage</span><span class="p">,</span> <span class="n">adc_output</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">digital_trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adc_types</span><span class="p">[</span><span class="n">adc_type</span><span class="p">](</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="n">adc_n_bits</span><span class="p">,</span> <span class="n">adc_ref_voltage</span><span class="p">,</span> <span class="n">adc_output</span><span class="p">)</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
+
+        <span class="c1"># Digitisation</span>
+        <span class="n">digital_trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adc_types</span><span class="p">[</span><span class="n">adc_type</span><span class="p">](</span><span class="n">trace</span><span class="p">,</span> <span class="n">adc_n_bits</span><span class="p">,</span> <span class="n">adc_ref_voltage</span><span class="p">,</span> <span class="n">adc_output</span><span class="p">)</span>
 
         <span class="c1"># Ensuring trace has an even number of samples</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">digital_trace</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -1104,8 +1106,6 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    times_downsampled: array of floats</span>
-<span class="sd">        The times of the downsampled trace (without start time)</span>
 <span class="sd">    downsampled_trace: array of floats</span>
 <span class="sd">        The downsampled trace</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1121,9 +1121,8 @@
     <span class="c1">#   resampled_times, times, trace, left=trace[0], right=trace[-1])</span>
     <span class="n">interpolate_trace</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
         <span class="n">times</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">trace</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">downsampled_trace</span> <span class="o">=</span> <span class="n">interpolate_trace</span><span class="p">(</span><span class="n">times_downsampled</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">times_downsampled</span><span class="p">,</span> <span class="n">downsampled_trace</span></div>
+    <span class="k">return</span> <span class="n">interpolate_trace</span><span class="p">(</span><span class="n">times_downsampled</span><span class="p">)</span></div>
 
 
 
