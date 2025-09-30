@@ -822,5 +822,5 @@ if radiopropa_is_imported:
                 gradient of index of refraction at the point
             """
             pos = np.array([position.x, position.y, position.z]) / meter
-            gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos) * meter
+            gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos) / meter
             return RP.Vector3d(*gradient)
