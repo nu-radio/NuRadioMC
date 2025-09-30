@@ -8,6 +8,9 @@ import numpy as np
 import logging
 logger = logging.getLogger('NuRadioReco.analogBeamformedEnvelopeTrigger')
 
+main_low_angle = -50. * units.deg
+main_high_angle = 50. * units.deg
+analog_envelope_default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 30))
 
 class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
     """
@@ -27,15 +30,12 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
             phasing_angles,
             ref_index,
             triggered_channels,
-            envelope_type="diode",
             threshold_factor=None,
             power_mean=None,
             power_std=None,
             output_passband=(None, 200 * units.MHz),
-            threshold=None,
-            trigger_adc=False,
-            apply_digitization=False,
-            adc_output="voltage"
+            cut_times=(None, None),
+            trigger_adc=False
         ):
         """
         Calculates the envelope trigger for a certain phasing configuration.
@@ -79,8 +79,20 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
         is_triggered: bool
             True if the triggering condition is met
         trigger_delays: dictionary
-            the delays for the primary channels that have caused a trigger.
+            The delays for the primary channels that have caused a trigger
             If there is no trigger, it's an empty dictionary
+        trigger_time: float
+            Minimum time of when a trigger occurs
+        trigger_times: list
+            Minimum trigger times for each beam
+        n_trigs: int
+            Total number of triggers that occured across all beams
+        maximum_amps: dict
+            Maximum (minimum with a negative thresholded trigger) amplitude in the phased traces
+            for each beam
+        triggered_beams: list
+            List of booleans to denote which beams triggered
+
         """
         station_id = station.get_id()
 
@@ -108,6 +120,12 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
                 trace = diode.tunnel_diode(channel)  # get the enveloped trace
                 times = np.copy(channel.get_times())  # get the corresponding time bins
 
+            if cut_times != (None, None):
+                left_bin = np.argmin(np.abs(times - cut_times[0]))
+                right_bin = np.argmin(np.abs(times - cut_times[1]))
+                trace[0:left_bin] = 0
+                trace[right_bin:None] = 0
+
             traces[channel_id] = trace[:]
 
         beam_rolls = self.calculate_time_delays(
@@ -116,7 +134,6 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
             sampling_frequency=adc_sampling_frequency)
 
         phased_traces = self.phase_signals(traces, beam_rolls)
-
 
         trigger_time = None
         trigger_times = {}
@@ -131,17 +148,23 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
             # Number of antennas: primary beam antennas
             Nant = len(beam_rolls[iTrace])
 
-
             low_trigger = power_mean - power_std * np.abs(threshold_factor)
             low_trigger *= Nant
 
-            threshold_passed = np.min(phased_trace) < low_trigger
+            maximum_amps[iTrace] = np.min(phased_trace)
+            triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(phased_trace < low_trigger)))
+            threshold_passed = np.any(triggered_bins)
 
             if threshold_passed:
                 logger.debug("Station has triggered")
                 is_triggered = True
                 trigger_delays[iTrace] = {channel_id: beam_rolls[iTrace][channel_id] * time_step
                     for channel_id in beam_rolls[iTrace]}
+
+                channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
+
+                trigger_times[iTrace] = np.min( np.abs(np.min(list(trigger_delays[iTrace]))) + \
+                                               triggered_bins * time_step + channel_trace_start_time )
 
             triggered_beams.append(is_triggered)
 
@@ -159,18 +182,15 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
     def run(self, evt, station, det,
             trigger_name='envelope_phased_threshold',
             triggered_channels=None,
-            phasing_angles=default_angles,
+            phasing_angles=analog_envelope_default_angles,
             set_not_triggered=False,
             ref_index=1.75,
-            envelope_type="diode",
             threshold_factor=None,
             power_mean=None,
             power_std=None,
             output_passband=(None, 200 * units.MHz),
-            threshold=None,
+            cut_times=(None,None),
             trigger_adc=False,
-            apply_digitization=False,
-            adc_output="voltage",
             return_n_triggers=False
             ):
         """
@@ -208,24 +228,30 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
             pointing angles for the primary beam
         set_not_triggered: bool (default: False)
             if True not trigger simulation will be performed and this trigger will be set to not_triggered
-        ref_index: float
+        ref_index: float (default: 1.75)
             refractive index for beam forming
-        output_passband: (float, float) tuple
+        output_passband: (float, float) tuple (default: (None, 200 MHz))
             Frequencies for a 6th-order Butterworth filter to be applied after
             the diode filtering.
-        cut_times: (float, float) tuple
+        cut_times: (float, float) tuple (default: (None, None))
             Times for cutting the trace after diode filtering. This helps reducing
             the number of noise-induced triggers. Doing it the other way, that is,
             cutting and then filtering, will create two artificial pulses on the
             edges of the trace.
-        trigger_adc: bool
+        trigger_adc: bool (default: False)
             If True, analog to digital conversion is performed. It must be specified in the
             detector file. See analogToDigitalConverter module for information
+        return_n_triggers: bool (default: False)
+            If True, the total number of triggers that occured is returned so triggers rates
+            can be better estimated for a trace
 
         Returns
         -------
         is_triggered: bool
             True if the triggering condition is met
+        n_triggers: int
+            Optional return value if return_n_triggers is True which counts the total number
+            of triggers that happened
         """
 
         if triggered_channels is None:
@@ -254,11 +280,9 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
                     power_mean=power_mean,
                     power_std=power_std,
                     output_passband=output_passband,
-                    threshold=threshold,
-                    trigger_adc=trigger_adc,
-                    apply_digitization=apply_digitization,
-                    adc_output=adc_output
-            )
+                    cut_times=cut_times,
+                    trigger_adc=trigger_adc
+                    )
 
         trigger = AnalogEnvelopePhasedTrigger(
             trigger_name, threshold_factor, power_mean, power_std,
@@ -268,7 +292,9 @@ class AnalogBeamformedEnvelopeTrigger(PhasedArrayBase):
         trigger.set_triggered(is_triggered)
 
         if is_triggered:
-            #trigger_time(s)= time(s) from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction; time offset to interaction time (channel_trace_start_time) already recognized in self.phased_trigger
+            # trigger_time(s) = time(s) from start of trace + start time of trace with respect to
+            # moment of first interaction = trigger time from moment of first interaction;
+            # time offset to interaction time (channel_trace_start_time)
             trigger.set_trigger_time(trigger_time)
             trigger.set_trigger_times(trigger_times)
         else:
