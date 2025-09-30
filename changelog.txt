@@ -16,6 +16,7 @@ new features:
 bugfixes:
 - Fixed the core parameter in Events created by the readCoREASDetector module not being 3-dimensional
 - Convert list of channel ids to tuple in efield.get_unique_identifier() to make it hashable
+- Fixed discrepancy in index of refraction (NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction) when calling with 1D vs. 2D array
 
 version 3.0.3
 bugfixes:

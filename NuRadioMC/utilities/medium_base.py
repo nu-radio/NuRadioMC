@@ -268,7 +268,7 @@ class IceModelSimple(IceModel):
                 return 1
         else:
             ior = self.n_ice - self.delta_n * np.exp((position[:, 2] - self.z_shift) / self.z_0)
-            ior[position[:, 2] >= 0] = 1.
+            ior[position[:, 2] - self.z_air_boundary > 0] = 1.
             return ior
 
     def get_average_index_of_refraction(self, position1, position2):
@@ -337,7 +337,7 @@ class IceModelSimple(IceModel):
                 gradient[2] = gradient_z(position[2])
         else:
             gradient = gradient_z(position[:,2])
-            gradient[position[:, 2] >= 0] = 0
+            gradient[position[:, 2] - self.z_air_boundary > 0] = 0
             gradient = np.stack((np.zeros_like(gradient),np.zeros_like(gradient),gradient),axis=1)
 
         return gradient
@@ -490,7 +490,7 @@ class IceModelExponentialPolynomial(IceModel):
                 return 1.
         else:
             ior = ior(position[:,2])
-            ior[position[:, 2] > 0] = 1.
+            ior[position[:, 2] - self.z_air_boundary > 0] = 1.
             return ior
 
     def get_average_index_of_refraction(self, position1, position2):
@@ -571,7 +571,7 @@ class IceModelExponentialPolynomial(IceModel):
                 return np.array([0, 0, 0])
         else:
             dior = dior_dz(position[:,2])
-            dior[position[:, 2] > 0] = 0
+            dior[position[:, 2] - self.z_air_boundary > 0] = 0
             return np.stack((np.zeros_like(dior),np.zeros_like(dior),dior),axis=1)
 
 
@@ -667,16 +667,6 @@ if radiopropa_is_imported:
                                             self.__ice_model_nuradio.get_index_of_refraction(air_boundary_pos+step),
                                            )
             self.__modules["air boundary"]=air_boundary
-
-            boundary_above_surface = RP.ObserverSurface(RP.Plane(RP.Vector3d(*((air_boundary_pos+100*step)
-                                                                             *(RP.meter/units.meter)),
-                                                                            ),
-                                                                 RP.Vector3d(0,0,1)),
-                                                                )
-            air_observer = RP.Observer()
-            air_observer.setDeactivateOnDetection(True)
-            air_observer.add(boundary_above_surface)
-            self.__modules["air observer"] = air_observer
 
             bottom_boundary_pos = np.array([0, 0, self.__ice_model_nuradio.z_bottom])
             boundary_bottom = RP.ObserverSurface(RP.Plane(RP.Vector3d(*((bottom_boundary_pos)
