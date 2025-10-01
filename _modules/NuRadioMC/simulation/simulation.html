@@ -683,6 +683,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioMC.simulation.time_logger</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.simulation&quot;</span><span class="p">)</span>
+<span class="n">time_logger</span> <span class="o">=</span> <span class="n">NuRadioMC</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">time_logger</span><span class="o">.</span><span class="n">timeLogger</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">update_interval</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>  <span class="c1"># sec</span>
 
 
 <span class="c1"># initialize a few NuRadioReco modules</span>
@@ -733,7 +734,6 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">calculate_sim_efield</span><span class="p">(</span>
         <span class="n">showers</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span>
         <span class="n">det</span><span class="p">,</span> <span class="n">propagator</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span>
-        <span class="n">time_logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">min_efield_amplitude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">distance_cut</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -755,8 +755,6 @@
 <span class="sd">        the medium in which the electric field is propagating, typically ice</span>
 <span class="sd">    config : dict</span>
 <span class="sd">        the NuRadioMC configuration dictionary (from the yaml file)</span>
-<span class="sd">    time_logger: time_logger object</span>
-<span class="sd">        the time logger to be used for the simulation</span>
 <span class="sd">    min_efield_amplitude: float</span>
 <span class="sd">        speedup cut: the minimum electric field amplitude, if all efields from all showers are below this threshold value</span>
 <span class="sd">        the station will not be set as candidate station.</span>
@@ -769,6 +767,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">distance_cut</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;distance cut&#39;</span><span class="p">)</span>
+
         <span class="n">vertex_positions</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">shower_energies</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shower</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">showers</span><span class="p">):</span>
@@ -777,7 +776,9 @@
         <span class="n">vertex_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vertex_positions</span><span class="p">)</span>
         <span class="n">shower_energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shower_energies</span><span class="p">)</span>
         <span class="n">vertex_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vertex_positions</span> <span class="o">-</span> <span class="n">vertex_positions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
         <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;distance cut&#39;</span><span class="p">)</span>
+
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Calculating electric field for station </span><span class="si">%d</span><span class="s2"> , channel </span><span class="si">%d</span><span class="s2"> from list of showers&quot;</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
     <span class="n">sim_station</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">sim_station</span><span class="o">.</span><span class="n">SimStation</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
@@ -815,6 +816,7 @@
         <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;redo_raytracing&#39;</span><span class="p">]:</span>  <span class="c1"># check if raytracing was already performed</span>
             <span class="k">pass</span>
             <span class="c1"># TODO: initiatlize ray tracer with existing results if available</span>
+
         <span class="n">propagator</span><span class="o">.</span><span class="n">find_solutions</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">propagator</span><span class="o">.</span><span class="n">has_solution</span><span class="p">():</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;shower </span><span class="si">{</span><span class="n">shower</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> and station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">, channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">x2</span><span class="si">}</span><span class="s2"> does not have any ray tracing solution&quot;</span><span class="p">)</span>
@@ -822,12 +824,14 @@
 
         <span class="n">n</span> <span class="o">=</span> <span class="n">propagator</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;found </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> solutions for shower </span><span class="si">{</span><span class="n">shower</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> and station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">, channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">x2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="n">delta_Cs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
         <span class="n">viewing_angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
         <span class="c1"># loop through all ray tracing solution</span>
         <span class="k">for</span> <span class="n">iS</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
             <span class="n">viewing_angles</span><span class="p">[</span><span class="n">iS</span><span class="p">]</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">get_angle</span><span class="p">(</span><span class="n">shower_direction</span><span class="p">,</span> <span class="n">propagator</span><span class="o">.</span><span class="n">get_launch_vector</span><span class="p">(</span><span class="n">iS</span><span class="p">))</span>
             <span class="n">delta_Cs</span><span class="p">[</span><span class="n">iS</span><span class="p">]</span> <span class="o">=</span> <span class="n">viewing_angles</span><span class="p">[</span><span class="n">iS</span><span class="p">]</span> <span class="o">-</span> <span class="n">cherenkov_angle</span>
+
         <span class="c1"># discard event if delta_C (angle off cherenkov cone) is too large</span>
         <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">delta_Cs</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;delta_C_cut&#39;</span><span class="p">]:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;delta_C too large, event unlikely to be observed, (min(Delta_C) = </span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">delta_Cs</span><span class="p">))</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">deg), skipping event&#39;</span><span class="p">)</span>
@@ -841,6 +845,7 @@
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">delta_Cs</span><span class="p">[</span><span class="n">iS</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;delta_C_cut&#39;</span><span class="p">]:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;delta_C too large, ray tracing solution unlikely to be observed, skipping ray tracing solution&#39;</span><span class="p">)</span>
                 <span class="k">continue</span>
+
             <span class="c1"># TODO: Fill with previous values if RT was already performed</span>
             <span class="n">wave_propagation_distance</span> <span class="o">=</span> <span class="n">propagator</span><span class="o">.</span><span class="n">get_path_length</span><span class="p">(</span><span class="n">iS</span><span class="p">)</span>  <span class="c1"># calculate path length</span>
             <span class="n">wave_propagation_time</span> <span class="o">=</span> <span class="n">propagator</span><span class="o">.</span><span class="n">get_travel_time</span><span class="p">(</span><span class="n">iS</span><span class="p">)</span>  <span class="c1"># calculate travel time</span>
@@ -849,6 +854,7 @@
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;travel distance or travel time could not be calculated, skipping ray tracing solution. &#39;</span>
                                <span class="sa">f</span><span class="s1">&#39;Shower ID: </span><span class="si">{</span><span class="n">shower</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1"> Station ID: </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s1"> Channel ID: </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="k">continue</span>
+
             <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="c1"># if the input file specifies a specific shower realization, or</span>
             <span class="c1"># if the shower was already simulated (e.g. for a different channel or ray tracing solution)</span>
@@ -861,14 +867,17 @@
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;reusing k_L parameter of Alvarez2009 model of k_L = </span><span class="si">{</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;k_L&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;signal generation&#39;</span><span class="p">)</span>
+
             <span class="n">spectrum</span><span class="p">,</span> <span class="n">additional_output</span> <span class="o">=</span> <span class="n">askaryan</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">(</span><span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">energy</span><span class="p">],</span> <span class="n">viewing_angles</span><span class="p">[</span><span class="n">iS</span><span class="p">],</span>
                             <span class="n">n_samples</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">type</span><span class="p">],</span> <span class="n">n_index</span><span class="p">,</span> <span class="n">wave_propagation_distance</span><span class="p">,</span>
                             <span class="n">config</span><span class="p">[</span><span class="s1">&#39;signal&#39;</span><span class="p">][</span><span class="s1">&#39;model&#39;</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;seed&#39;</span><span class="p">],</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
             <span class="c1"># save shower realization to SimShower and hdf5 file</span>
             <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;signal&#39;</span><span class="p">][</span><span class="s1">&#39;model&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ARZ2019&quot;</span><span class="p">,</span> <span class="s2">&quot;ARZ2020&quot;</span><span class="p">]:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">shower</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">charge_excess_profile_id</span><span class="p">):</span>
                     <span class="n">shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">charge_excess_profile_id</span><span class="p">,</span> <span class="n">additional_output</span><span class="p">[</span><span class="s1">&#39;iN&#39;</span><span class="p">])</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;setting shower profile for ARZ shower library to i = </span><span class="si">{</span><span class="n">additional_output</span><span class="p">[</span><span class="s1">&#39;iN&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;signal&#39;</span><span class="p">][</span><span class="s1">&#39;model&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Alvarez2009&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">shower</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">k_L</span><span class="p">):</span>
                     <span class="n">shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">k_L</span><span class="p">,</span> <span class="n">additional_output</span><span class="p">[</span><span class="s1">&#39;k_L&#39;</span><span class="p">])</span>
@@ -931,7 +940,6 @@
         <span class="n">emitters</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span>
         <span class="n">det</span><span class="p">,</span> <span class="n">propagator</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span>
         <span class="n">rnd</span><span class="p">,</span> <span class="n">antenna_pattern_provider</span><span class="p">,</span>
-        <span class="n">time_logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">min_efield_amplitude</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the simulated electric field for a given shower and channel.</span>
@@ -956,8 +964,6 @@
 <span class="sd">        the random number generator to be used for the simulation</span>
 <span class="sd">    antenna_pattern_provider: antenna pattern provider object</span>
 <span class="sd">        the antenna pattern provider object to be used for the simulation</span>
-<span class="sd">    time_logger: time_logger object</span>
-<span class="sd">        the time logger to be used for the simulation</span>
 <span class="sd">    min_efield_amplitude: float</span>
 <span class="sd">        speedup cut: the minimum electric field amplitude, if all efields from all showers are belwo this threshold value</span>
 <span class="sd">        the station will not be set as candidate station.</span>
@@ -1108,8 +1114,7 @@
         <span class="n">detector_simulation_filter_amp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">evt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">event_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">detector_simulation_part1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">time_logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">detector_simulation_part1</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Apply the detector response to the simulated electric field, i.e., calculate the voltage traces as</span>
 <span class="sd">    seen by the readout system, per shower, raytracing solution and channel.</span>
@@ -1141,8 +1146,7 @@
 
 <span class="sd">    Returns nothing. The SimChannels are added to the SimStation object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">time_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;detector response (sim)&#39;</span><span class="p">)</span>
+    <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;detector response (sim)&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">evt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">evt</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
@@ -1167,8 +1171,7 @@
     <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;amp_per_ray_solution&#39;</span><span class="p">]:</span>
         <span class="n">_calculate_amp_per_ray_solution</span><span class="p">(</span><span class="n">sim_station</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">time_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;detector response (sim)&#39;</span><span class="p">)</span></div>
+    <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;detector response (sim)&#39;</span><span class="p">)</span></div>
 
 
 
@@ -1182,7 +1185,6 @@
         <span class="n">integrated_channel_response</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">noiseless_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">detector_simulation_part2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">time_logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">channel_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Apply the detector response to the simulated electric field, i.e., the voltage traces</span>
@@ -1216,15 +1218,12 @@
 <span class="sd">    detector_simulation_part2: function (optional)</span>
 <span class="sd">        this function gives the user the full flexibility to implement all processing</span>
 <span class="sd">        arguments to the function are (event, station, detector)</span>
-<span class="sd">    time_logger: time_logger object</span>
-<span class="sd">        the time logger to be used for the simulation</span>
 <span class="sd">    channel_ids: list of ints</span>
 <span class="sd">        the channel ids for which the detector response should be calculated. If None, all channels are used.</span>
 
 <span class="sd">    Returns nothing. The Channels are added to the Station object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">time_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;detector response&#39;</span><span class="p">)</span>
+    <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;detector response&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">detector_simulation_filter_amp</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">detector_simulation_part2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No detector response function provided. Please provide either detector_simulation_filter_amp or detector_simulation_part2&quot;</span><span class="p">)</span>
@@ -1257,8 +1256,7 @@
 
         <span class="n">detector_simulation_filter_amp</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">time_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;detector response&#39;</span><span class="p">)</span></div>
+    <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;detector response&#39;</span><span class="p">)</span></div>
 
 
 
@@ -1314,7 +1312,7 @@
 
 <div class="viewcode-block" id="build_NuRadioEvents_from_hdf5">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.build_NuRadioEvents_from_hdf5">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">build_NuRadioEvents_from_hdf5</span><span class="p">(</span><span class="n">fin</span><span class="p">,</span> <span class="n">fin_attrs</span><span class="p">,</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">time_logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_NuRadioEvents_from_hdf5</span><span class="p">(</span><span class="n">fin</span><span class="p">,</span> <span class="n">fin_attrs</span><span class="p">,</span> <span class="n">idxs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build NuRadioReco event structures from the input file</span>
 
@@ -1337,8 +1335,7 @@
 <span class="sd">        the output should contain all relevant information from the hdf5 file (except the attributes)</span>
 <span class="sd">        to perform a NuRadioMC simulation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">time_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;event builder (hdf5 -&gt; nur)&#39;</span><span class="p">)</span>
+    <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;event builder (hdf5 -&gt; nur)&#39;</span><span class="p">)</span>
 
     <span class="n">parent_id</span> <span class="o">=</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">event_group_id</span> <span class="o">=</span> <span class="n">fin</span><span class="p">[</span><span class="s1">&#39;event_group_ids&#39;</span><span class="p">][</span><span class="n">parent_id</span><span class="p">]</span>
@@ -1416,8 +1413,7 @@
                         <span class="n">emitter_obj</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">fin</span><span class="p">[</span><span class="s1">&#39;emitter_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
             <span class="n">event_group</span><span class="o">.</span><span class="n">add_sim_emitter</span><span class="p">(</span><span class="n">emitter_obj</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">time_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;event builder (hdf5 -&gt; nur)&#39;</span><span class="p">)</span>
+    <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;event builder (hdf5 -&gt; nur)&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">event_group</span></div>
 
@@ -1579,7 +1575,7 @@
 <div class="viewcode-block" id="group_into_events">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.group_into_events">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">group_into_events</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">event_group</span><span class="p">,</span> <span class="n">particle_mode</span><span class="p">,</span> <span class="n">split_event_time_diff</span><span class="p">,</span>
-                      <span class="n">zerosignal</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">time_logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                      <span class="n">zerosignal</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Group the signals from a station into multiple events based on signal arrival times.</span>
 
@@ -1601,8 +1597,7 @@
 <span class="sd">    events : list of NuRadioReco.framework.event.Event</span>
 <span class="sd">        The list of events created from the grouped signals.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">time_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;group into events&#39;</span><span class="p">)</span>
+    <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;group into events&#39;</span><span class="p">)</span>
 
     <span class="n">event_group_id</span> <span class="o">=</span> <span class="n">event_group</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">()</span>
     <span class="n">start_times</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1687,8 +1682,7 @@
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;created </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span><span class="si">}</span><span class="s2"> events from event group </span><span class="si">{</span><span class="n">event_group_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">time_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;group into events&#39;</span><span class="p">)</span>
+    <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;group into events&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">events</span></div>
 
@@ -1839,7 +1833,10 @@
 <span class="sd">        trigger_channels: list of ints or dict of list of ints</span>
 <span class="sd">            list of channel ids that are used for the trigger (per station_id). If None, all channels are used.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_level</span> <span class="o">=</span> <span class="n">log_level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_level_ray_propagation</span> <span class="o">=</span> <span class="n">log_level_propagation</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_level</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="s1">&#39;write_mode&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Parameter write_mode is deprecated. Define the output format in the config file instead.&#39;</span><span class="p">)</span>
 
@@ -1848,10 +1845,6 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;No trigger channels specified. All channels will be simulated even if they don&#39;t contribute to any trigger. &quot;</span>
                 <span class="s2">&quot;This can be inefficient. Processing time can be saved by specifying the trigger channels.&quot;</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log_level</span> <span class="o">=</span> <span class="n">log_level</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log_level_ray_propagation</span> <span class="o">=</span> <span class="n">log_level_propagation</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span> <span class="o">=</span> <span class="n">NuRadioMC</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">time_logger</span><span class="o">.</span><span class="n">timeLogger</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">update_interval</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>  <span class="c1"># sec</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">get_config</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;seed&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2123,7 +2116,7 @@
             <span class="k">return</span> <span class="mi">0</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Starting NuRadioMC simulation&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="o">.</span><span class="n">reset_times</span><span class="p">()</span>
+        <span class="n">time_logger</span><span class="o">.</span><span class="n">reset_times</span><span class="p">()</span>
 
         <span class="n">i_triggered_events</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># counter for triggered events</span>
 
@@ -2149,17 +2142,17 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulating event group id </span><span class="si">{</span><span class="n">event_group_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">event_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">event_group_ids</span> <span class="o">==</span> <span class="n">event_group_id</span><span class="p">)))</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="o">.</span><span class="n">show_time</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_event_group_ids</span><span class="p">),</span> <span class="n">i_event_group_id</span><span class="p">)</span>
+            <span class="n">time_logger</span><span class="o">.</span><span class="n">show_time</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_event_group_ids</span><span class="p">),</span> <span class="n">i_event_group_id</span><span class="p">)</span>
 
-            <span class="n">event_group</span> <span class="o">=</span> <span class="n">build_NuRadioEvents_from_hdf5</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">,</span> <span class="n">event_indices</span><span class="p">,</span> <span class="n">time_logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="p">)</span>
+            <span class="n">event_group</span> <span class="o">=</span> <span class="n">build_NuRadioEvents_from_hdf5</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">,</span> <span class="n">event_indices</span><span class="p">)</span>
             <span class="n">event_group</span><span class="o">.</span><span class="n">set_event_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt_time</span><span class="p">)</span>
 
             <span class="c1"># determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s2">&quot;weight calc.&quot;</span><span class="p">)</span>
+            <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s2">&quot;weight calc.&quot;</span><span class="p">)</span>
             <span class="n">weight</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">particle_mode</span><span class="p">:</span>
                 <span class="n">weight</span> <span class="o">=</span> <span class="n">calculate_particle_weight</span><span class="p">(</span><span class="n">event_group</span><span class="p">,</span> <span class="n">event_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s2">&quot;weight calc.&quot;</span><span class="p">)</span>
+            <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s2">&quot;weight calc.&quot;</span><span class="p">)</span>
             <span class="c1"># skip all events where neutrino weights is zero, i.e., do not</span>
             <span class="c1"># simulate neutrino that propagate through the Earth</span>
             <span class="k">if</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;minimum_weight_cut&#39;</span><span class="p">]:</span>
@@ -2169,7 +2162,7 @@
             <span class="c1"># these quantities get computed to apply the distance cut as a function of shower energies</span>
             <span class="c1"># the shower energies of closeby showers will be added as they can constructively interfere</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;distance_cut&#39;</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s2">&quot;distance cut&quot;</span><span class="p">)</span>
+                <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s2">&quot;distance cut&quot;</span><span class="p">)</span>
                 <span class="n">shower_energies</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="n">vertex_positions</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">shower</span> <span class="ow">in</span> <span class="n">event_group</span><span class="o">.</span><span class="n">get_sim_showers</span><span class="p">():</span>
@@ -2177,7 +2170,7 @@
                     <span class="n">vertex_positions</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">vertex</span><span class="p">]])</span>
                 <span class="n">shower_energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shower_energies</span><span class="p">)</span>
                 <span class="n">vertex_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vertex_positions</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s2">&quot;distance cut&quot;</span><span class="p">)</span>
+                <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s2">&quot;distance cut&quot;</span><span class="p">)</span>
 
             <span class="n">output_buffer</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="c1"># loop over all stations (each station is treated independently)</span>
@@ -2215,7 +2208,6 @@
                             <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span>
                             <span class="n">det</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_propagator</span><span class="p">,</span> <span class="n">medium</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ice</span><span class="p">,</span>
                             <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span>
-                            <span class="n">time_logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="p">,</span>
                             <span class="n">min_efield_amplitude</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;min_efield_amplitude&#39;</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms_efield_per_channel</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">channel_id</span><span class="p">],</span>
                             <span class="n">distance_cut</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_distance_cut</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
@@ -2224,8 +2216,7 @@
                             <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span>
                             <span class="n">det</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_propagator</span><span class="p">,</span> <span class="n">medium</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ice</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span>
                             <span class="n">rnd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rnd</span><span class="p">,</span> <span class="n">antenna_pattern_provider</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_antenna_pattern_provider</span><span class="p">,</span>
-                            <span class="n">min_efield_amplitude</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;min_efield_amplitude&#39;</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms_efield_per_channel</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">channel_id</span><span class="p">],</span>
-                            <span class="n">time_logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="p">)</span>
+                            <span class="n">min_efield_amplitude</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;min_efield_amplitude&#39;</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms_efield_per_channel</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">channel_id</span><span class="p">])</span>
 
                     <span class="k">if</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">is_candidate</span><span class="p">():</span>
                         <span class="n">candidate_station</span> <span class="o">=</span> <span class="kc">True</span>
@@ -2241,7 +2232,7 @@
                     <span class="c1"># in the json detector description file)</span>
                     <span class="n">apply_det_response_sim</span><span class="p">(</span>
                         <span class="n">sim_station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector_simulation_filter_amp</span><span class="p">,</span>
-                        <span class="n">event_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt_time</span><span class="p">,</span> <span class="n">time_logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="p">,</span>
+                        <span class="n">event_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt_time</span><span class="p">,</span>
                         <span class="n">detector_simulation_part1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">detector_simulation_part1</span><span class="p">)</span>
 
                     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;adding sim_station to station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> for event group &quot;</span>
@@ -2261,8 +2252,7 @@
 
                 <span class="c1"># group events into events based on signal arrival times</span>
                 <span class="n">events</span> <span class="o">=</span> <span class="n">group_into_events</span><span class="p">(</span>
-                    <span class="n">station</span><span class="p">,</span> <span class="n">event_group</span><span class="p">,</span> <span class="n">particle_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;split_event_time_diff&#39;</span><span class="p">],</span>
-                    <span class="n">time_logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="p">)</span>
+                    <span class="n">station</span><span class="p">,</span> <span class="n">event_group</span><span class="p">,</span> <span class="n">particle_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;split_event_time_diff&#39;</span><span class="p">])</span>
 
                 <span class="n">evt_group_triggered</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">for</span> <span class="n">evt</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
@@ -2272,15 +2262,14 @@
                         <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;noise&#39;</span><span class="p">]),</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms_per_channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrated_channel_response</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_noiseless_channels</span><span class="p">,</span>
-                        <span class="n">time_logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="p">,</span>
                         <span class="n">channel_ids</span><span class="o">=</span><span class="n">channel_ids</span><span class="p">,</span>
                         <span class="n">detector_simulation_part2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">detector_simulation_part2</span><span class="p">)</span>
 
                     <span class="c1"># calculate trigger</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s2">&quot;trigger&quot;</span><span class="p">)</span>
+                    <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s2">&quot;trigger&quot;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">detector_simulation_trigger</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">)</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;event </span><span class="si">{</span><span class="n">evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">()</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> tiggered: </span><span class="si">{</span><span class="n">evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s2">&quot;trigger&quot;</span><span class="p">)</span>
+                    <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s2">&quot;trigger&quot;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">():</span>
                         <span class="k">continue</span>
 
@@ -2306,7 +2295,6 @@
                                 <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">,</span>
                                 <span class="n">det</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_propagator</span><span class="p">,</span> <span class="n">medium</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ice</span><span class="p">,</span>
                                 <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span>
-                                <span class="n">time_logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="p">,</span>
                                 <span class="n">min_efield_amplitude</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;min_efield_amplitude&#39;</span><span class="p">])</span>
                                     <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms_efield_per_channel</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">channel_id</span><span class="p">],</span>
                                 <span class="n">distance_cut</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_distance_cut</span><span class="p">)</span>
@@ -2317,8 +2305,7 @@
                                 <span class="n">det</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span> <span class="n">propagator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_propagator</span><span class="p">,</span> <span class="n">medium</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ice</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span>
                                 <span class="n">rnd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rnd</span><span class="p">,</span> <span class="n">antenna_pattern_provider</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_antenna_pattern_provider</span><span class="p">,</span>
                                 <span class="n">min_efield_amplitude</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;min_efield_amplitude&#39;</span><span class="p">])</span>
-                                    <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms_efield_per_channel</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">channel_id</span><span class="p">],</span>
-                                <span class="n">time_logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="p">)</span>
+                                    <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms_efield_per_channel</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">channel_id</span><span class="p">])</span>
 
                         <span class="c1"># skip to next channel if the efield is below the speed cut</span>
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
@@ -2331,7 +2318,7 @@
                         <span class="c1"># in the json detector description file)</span>
                         <span class="n">apply_det_response_sim</span><span class="p">(</span>
                             <span class="n">sim_station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector_simulation_filter_amp</span><span class="p">,</span>
-                            <span class="n">event_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt_time</span><span class="p">,</span> <span class="n">time_logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_logger</span><span class="p">,</span>
+                            <span class="n">event_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt_time</span><span class="p">,</span>
                             <span class="n">detector_simulation_part1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">detector_simulation_part1</span><span class="p">)</span>
 
                         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding sim_station to station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> for event group &quot;</span>
