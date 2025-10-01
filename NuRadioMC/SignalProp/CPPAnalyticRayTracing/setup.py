@@ -17,6 +17,7 @@ if __name__ == "__main__":
                 include_dirs=[numpy.get_include(), '../../utilities/', str(os.environ['GSLDIR']) + '/include/'],
                 library_dirs=[str(os.environ['GSLDIR']) + '/lib/'],
                 extra_compile_args=['-O3'],
+                define_macros = [('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
                 libraries=['gsl', 'gslcblas'],
                 language='c++'
                 ),
