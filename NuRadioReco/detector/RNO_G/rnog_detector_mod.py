@@ -74,7 +74,10 @@ class ModDetector(Detector):
     @_check_detector_time
     def get_channel(self, station_id, channel_id):
         """
-        Returns a dictionary of all channel parameters
+        Returns a dictionary of all channel parameters. 
+        
+        The dictionary is returned as a "reference" (as every mutable object in python, without a copy call). 
+        That means, changing entries in this dictionary will change the detector description in memory. 
 
         Parameters
         ----------
