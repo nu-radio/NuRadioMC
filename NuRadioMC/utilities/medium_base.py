@@ -672,7 +672,7 @@ if radiopropa_is_imported:
             air_boundary_pos = np.array([0, 0, self.__ice_model_nuradio.z_air_boundary])
 
             air_boundary = RP.Discontinuity(
-                RP.Plane(RP.Vector3d(*(air_boundary_pos * nu2rp_meter)), z_unit),
+                RP.Plane(RP.Vector3d(0, 0, self.__ice_model_nuradio.z_air_boundary * nu2rp_meter), z_unit),
                 self.__ice_model_nuradio.get_index_of_refraction(air_boundary_pos - step),
                 self.__ice_model_nuradio.get_index_of_refraction(air_boundary_pos + step),
             )
