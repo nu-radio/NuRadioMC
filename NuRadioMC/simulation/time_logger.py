@@ -1,5 +1,6 @@
 import astropy.time
 
+
 def pretty_time_delta(seconds):
     """
     Convert a time duration in seconds to a human-readable format.
@@ -114,6 +115,7 @@ class timeLogger:
         self.__times = {}
         self.__total_start_time = astropy.time.Time.now()
         self.__last_update = astropy.time.Time.now()
+
         if categories is None:
             for key in self.__times:
                 self.__times[key] = 0
@@ -164,8 +166,10 @@ class timeLogger:
         """
         if category not in self.__times:
             raise KeyError('Time category {} not found. Did you reset times?'.format(category))
+
         if category not in self.__start_times.keys() or self.__start_times[category] is None:
             raise RuntimeError('It looks like you stopped taking time for {} before starting it.'.format(category))
+
         self.__times[category] += (astropy.time.Time.now() - self.__start_times[category]).sec
         self.__start_times[category] = None
 
@@ -192,6 +196,7 @@ class timeLogger:
             for category in self.__times:
                 total_accounted_time += self.__times[category]
                 time_account_string = time_account_string + '{} = {:.0f}%, '.format(category, self.__times[category] / elapsed_time.sec * 100)
+
             time_account_string = time_account_string + 'unaccounted: {:.0f}%'.format((elapsed_time.sec - total_accounted_time) / elapsed_time.sec * 100)
             self.__logger.status(
                 'Processing event group {}/{}. ETA: {}, time consumption: {}'.format(
