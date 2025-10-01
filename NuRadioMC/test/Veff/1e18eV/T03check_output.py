@@ -20,7 +20,7 @@ trigger_per_file = {
 
 Veff_mean_per_file = {
     "output.hdf5": 4.62703,
-    "output_noise.hdf5": 7.3716
+    "output_noise.hdf5": 7.300575
 }
 Veff_sigma = 0.0001
 

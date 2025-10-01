@@ -12,6 +12,7 @@ new features:
   Now, instead a new instance of the class is generated
   with the correct arguments if ``create_new==None`` (the new default), or an error is raised if
   ``create_new==False``.
+- Refactor phased array trigger modules to minimize repeated code and add support for realistic trigger firmware (ex. RNO-G PA)
 
 bugfixes:
 - Fixed the core parameter in Events created by the readCoREASDetector module not being 3-dimensional
