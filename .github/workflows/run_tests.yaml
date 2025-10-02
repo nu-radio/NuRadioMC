@@ -50,7 +50,7 @@ jobs:
     - name: Generate cache keys
       id: cache-keys
       run: |
-        echo "env-key=${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}" >> $GITHUB_OUTPUT
+        echo "env-key=${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v2" >> $GITHUB_OUTPUT
         echo "data-key=ci-data" >> $GITHUB_OUTPUT
 
     - name: Cache Python environment
@@ -137,19 +137,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
           ${{ runner.os }}-env-
-
-    - name: Restore system packages
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          /var/cache/apt
-          /var/lib/apt
-          /usr/include/gsl
-          /usr/lib/x86_64-linux-gnu/libgsl*
-          /usr/bin/gsl-config
-        key: ${{ needs.setup.outputs.system-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-system-
 
     - name: "Validate separate trigger channels"
       if: always()
