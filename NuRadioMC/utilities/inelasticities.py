@@ -27,9 +27,20 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
         the inelasticity model to use
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
+    nu_energies: float or array (default: 1 EeV)
+        Energy of the neutrino. If a float is provided, all events will have the same
+        energy. If an array is provided, it must have the same length as n_events
+    flavors: int or array (default: 12)
+        The flavor of the neutrino. 12 = nu_e, 14 = nu_mu, 16 = nu_tau, -12 = anti-nu_e,
+        -14 = anti-nu_mu, -16 = anti-nu_tau. Negative values are used for antineutrinos.
+        If an array is provided, it must have the same length as n_events.
+    ncccs: string or array (default: "CC")
+        The interaction type: "CC" for charged current, "NC" for neutral current. If an
+        array is provided, it must have the same length as n_events.
+
     Returns
     -------
-    inelasticies: array
+    inelasticities: array
         Array with the inelasticities
     """
     rnd = rnd or np.random.default_rng()
