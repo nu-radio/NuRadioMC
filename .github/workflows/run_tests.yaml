@@ -36,11 +36,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     outputs:
-      cache-key: ${{ steps.cache-keys.outputs.pip-key }}
-      data-cache-key: ${{ steps.cache-keys.outputs.data-key }}
       env-cache-key: ${{ steps.cache-keys.outputs.env-key }}
-      system-cache-key: ${{ steps.cache-keys.outputs.system-key }}
-      gsl-dir: ${{ steps.gsl-config.outputs.gsl-dir }}
 
     steps:
     - uses: actions/checkout@v4
@@ -53,10 +49,7 @@ jobs:
     - name: Generate cache keys
       id: cache-keys
       run: |
-        echo "pip-key=${{ runner.os }}-pip-${{ hashFiles('NuRadioMC/test/requirements.txt') }}" >> $GITHUB_OUTPUT
-        echo "data-key=ci-data" >> $GITHUB_OUTPUT
         echo "env-key=${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}" >> $GITHUB_OUTPUT
-        echo "system-key=${{ runner.os }}-system-libgsl-dev" >> $GITHUB_OUTPUT
 
     - name: Cache Python environment
       id: cache-env
@@ -70,31 +63,6 @@ jobs:
           ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
           ${{ runner.os }}-env-
 
-    - name: Cache system packages
-      id: cache-system
-      uses: actions/cache@v4
-      with:
-        path: |
-          /var/cache/apt
-          /var/lib/apt
-          /usr/include/gsl
-          /usr/lib/x86_64-linux-gnu/libgsl*
-          /usr/bin/gsl-config
-        key: ${{ steps.cache-keys.outputs.system-key }}
-        restore-keys: |
-          ${{ runner.os }}-system-
-
-    - name: Install system dependencies
-      if: steps.cache-system.outputs.cache-hit != 'true'
-      run: |
-        sudo apt-get update
-        sudo apt-get install libgsl-dev
-
-    - name: Get GSL configuration
-      id: gsl-config
-      run: |
-        echo "gsl-dir=$(gsl-config --prefix)" >> $GITHUB_OUTPUT
-
     - name: Install Python dependencies
       if: steps.cache-env.outputs.cache-hit != 'true'
       run: |
@@ -104,15 +72,6 @@ jobs:
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
-
-    # Cache data used in tests
-    - name: Cache CI data
-      uses: actions/cache@v4
-      with:
-        path: |
-          NuRadioReco/examples/Interactive/data
-          NuRadioReco/test/data
-        key: ${{ steps.cache-keys.outputs.data-key }}
 
   lint:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
@@ -152,11 +111,14 @@ jobs:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    env:
-      GSLDIR: ${{ needs.setup.outputs.gsl-dir }}
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Install system-packages
+      run: |
+        sudo apt-get install libgsl-dev
+        export GSLDIR=$(gsl-config --prefix)
 
     - name: Set up Python [${{ env.PYTHON_VERSION }}]
       uses: actions/setup-python@v5
@@ -225,11 +187,14 @@ jobs:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    env:
-      GSLDIR: ${{ needs.setup.outputs.gsl-dir }}
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Install system-packages
+      run: |
+        sudo apt-get install libgsl-dev
+        export GSLDIR=$(gsl-config --prefix)
 
     - name: Set up Python [${{ env.PYTHON_VERSION }}]
       uses: actions/setup-python@v5
@@ -287,11 +252,14 @@ jobs:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    env:
-      GSLDIR: ${{ needs.setup.outputs.gsl-dir }}
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Install system-packages
+      run: |
+        sudo apt-get install libgsl-dev
+        export GSLDIR=$(gsl-config --prefix)
 
     - name: Set up Python [${{ env.PYTHON_VERSION }}]
       uses: actions/setup-python@v5
@@ -308,27 +276,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
           ${{ runner.os }}-env-
-
-    - name: Cache CI data
-      uses: actions/cache@v4
-      with:
-        path: |
-          NuRadioReco/examples/Interactive/data
-          NuRadioReco/test/data
-        key: ${{ needs.setup.outputs.data-cache-key }}
-
-    - name: Restore system packages
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          /var/cache/apt
-          /var/lib/apt
-          /usr/include/gsl
-          /usr/lib/x86_64-linux-gnu/libgsl*
-          /usr/bin/gsl-config
-        key: ${{ needs.setup.outputs.system-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-system-
 
     - name: "Test Veff example"
       if: always()
@@ -389,14 +336,6 @@ jobs:
           ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
           ${{ runner.os }}-env-
 
-    - name: Cache CI data
-      uses: actions/cache@v4
-      with:
-        path: |
-          NuRadioReco/examples/Interactive/data
-          NuRadioReco/test/data
-        key: ${{ needs.setup.outputs.data-cache-key }}
-
     - name: "RNO-G Detector"
       if: always()
       run: |
@@ -412,8 +351,6 @@ jobs:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    env:
-      GSLDIR: ${{ needs.setup.outputs.gsl-dir }}
 
     steps:
     - uses: actions/checkout@v4
@@ -433,27 +370,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
           ${{ runner.os }}-env-
-
-    - name: Cache CI data
-      uses: actions/cache@v4
-      with:
-        path: |
-          NuRadioReco/examples/Interactive/data
-          NuRadioReco/test/data
-        key: ${{ needs.setup.outputs.data-cache-key }}
-
-    - name: Restore system packages
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          /var/cache/apt
-          /var/lib/apt
-          /usr/include/gsl
-          /usr/lib/x86_64-linux-gnu/libgsl*
-          /usr/bin/gsl-config
-        key: ${{ needs.setup.outputs.system-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-system-
 
     - name: "channelGalacticNoiseAdder"
       if: always()
@@ -480,11 +396,14 @@ jobs:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    env:
-      GSLDIR: ${{ needs.setup.outputs.gsl-dir }}
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Install system-packages
+      run: |
+        sudo apt-get install libgsl-dev
+        export GSLDIR=$(gsl-config --prefix)
 
     - name: Set up Python [${{ env.PYTHON_VERSION }}]
       uses: actions/setup-python@v5
@@ -501,27 +420,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
           ${{ runner.os }}-env-
-
-    - name: Cache CI data
-      uses: actions/cache@v4
-      with:
-        path: |
-          NuRadioReco/examples/Interactive/data
-          NuRadioReco/test/data
-        key: ${{ needs.setup.outputs.data-cache-key }}
-
-    - name: Restore system packages
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          /var/cache/apt
-          /var/lib/apt
-          /usr/include/gsl
-          /usr/lib/x86_64-linux-gnu/libgsl*
-          /usr/bin/gsl-config
-        key: ${{ needs.setup.outputs.system-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-system-
 
     - name: "Install proposal dependencies"
       if: always()
