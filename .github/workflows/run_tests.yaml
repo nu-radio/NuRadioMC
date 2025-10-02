@@ -14,6 +14,7 @@ on:
         description: OS to run tests on
         type: string
         default: ubuntu-latest
+
   workflow_call:
     inputs:
       python_version:
@@ -157,11 +158,6 @@ jobs:
           NuRadioReco/test/data
         key: ${{ needs.setup.outputs.data-cache-key }}
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install libgsl-dev
-
     - name: "Single event test (South Pole)"
       if: always()
       run: |
@@ -225,11 +221,6 @@ jobs:
           NuRadioReco/test/data
         key: ${{ needs.setup.outputs.data-cache-key }}
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install libgsl-dev
-
     - name: Signal generation test
       if: always()
       run : |
@@ -279,11 +270,6 @@ jobs:
           NuRadioReco/examples/Interactive/data
           NuRadioReco/test/data
         key: ${{ needs.setup.outputs.data-cache-key }}
-
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install libgsl-dev
 
     - name: "Test Veff example"
       if: always()
@@ -360,11 +346,6 @@ jobs:
           NuRadioReco/test/data
         key: ${{ needs.setup.outputs.data-cache-key }}
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install libgsl-dev
-
     - name: "RNO-G Detector"
       if: always()
       run: |
@@ -407,11 +388,6 @@ jobs:
           NuRadioReco/examples/Interactive/data
           NuRadioReco/test/data
         key: ${{ needs.setup.outputs.data-cache-key }}
-
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install libgsl-dev
 
     - name: "channelGalacticNoiseAdder"
       if: always()
@@ -466,11 +442,6 @@ jobs:
           NuRadioReco/examples/Interactive/data
           NuRadioReco/test/data
         key: ${{ needs.setup.outputs.data-cache-key }}
-
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install libgsl-dev
 
     - name: "Test webinar examples"
       if: always()
