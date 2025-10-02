@@ -65,13 +65,18 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
                     inccc = np.argwhere(ncccs_ref == nccc)[0][0]
                     iE = np.argmin(np.abs(energy - nu_energies_ref))
                     get_y = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]),
-                                          fill_value="extrapolate", kind="cubic")
+                                          fill_value="extrapolate", kind="linear")
 
-                    yyy = np.linspace(0, 1, 1000)
-                    yyy = 0.5 * (yyy[:-1] + yyy[1:])
+                    # The inelasticity distribution is upsampled (interpoaled and extrapolated) with logarithmic
+                    # binning below 0.1 and linear binning above 0.1:
+                    yyy_1 = np.logspace(-8, -1, 2000, endpoint=False)
+                    yyy_2 = np.linspace(1e-1, 1, 2000)
+                    yyy = np.append(yyy_1, yyy_2)
                     dsigma_dyy = 10 ** get_y(np.log10(yyy))
+                    probability_mass = dsigma_dyy * 0.5 * np.append(np.diff(yyy), yyy[-1] - yyy[-2])
+                    probability_mass /= np.sum(probability_mass)
 
-                    yy[mask] = rnd.choice(yyy, size=size, p=dsigma_dyy / np.sum(dsigma_dyy))
+                    yy[mask] = rnd.choice(yyy, size=size, p=probability_mass)
         return yy
 
     else:
