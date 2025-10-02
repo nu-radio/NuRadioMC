@@ -21,17 +21,27 @@ WARNING: this file needs NuRadioMC to be run.
 from __future__ import absolute_import, division, print_function
 import argparse
 # import detector simulation modules
-import NuRadioReco.modules.phasedarray.analogBeamformedEnvelopeTrigger
+import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.trigger.simpleThreshold
+import NuRadioReco.modules.envelope_phasedarray.triggerSimulator
+import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
+import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import NuRadioReco.utilities.diodeSimulator
 from NuRadioReco.utilities.diodeSimulator import get_window_around_maximum
 import numpy as np
 
+
 # initialize detector sim modules
-triggerSimulator = NuRadioReco.modules.phasedarray.analogBeamformedEnvelopeTrigger.AnalogBeamformedEnvelopeTrigger()
+efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
+efieldToVoltageConverter.begin(debug=False)
+triggerSimulator = NuRadioReco.modules.envelope_phasedarray.triggerSimulator.triggerSimulator()
+channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
 main_low_angle = -50 * units.deg
 main_high_angle = 50 * units.deg
@@ -49,11 +59,36 @@ class mySimulation(simulation.simulation):
         channelBandPassFilter.run(evt, station, det, passband=[0, 700 * units.MHz],
                                   filter_type='butter', order=10)
 
-    def _detector_simulation_trigger(self, evt, station, det):
-
+    def _detector_simulation_part2(self):
+        # start detector simulation
+        efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
+        # downsample trace to 3 ns
         new_sampling_rate = 3 * units.GHz
+        channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)
 
-        cut_times = get_window_around_maximum(station, diodeSimulator, ratio=0.01)
+        cut_times = get_window_around_maximum(self._station, diodeSimulator, ratio=0.01)
+
+        # Bool for checking the noise triggering rate
+        check_only_noise = False
+
+        if check_only_noise:
+
+            for channel in self._station.iter_channels():  # loop over all channels (i.e. antennas) of the station
+                trace = channel.get_trace() * 0
+                channel.set_trace(trace, sampling_rate=new_sampling_rate)
+
+        if self._is_simulate_noise():
+            max_freq = 0.5 / self._dt
+            norm = self._get_noise_normalization(
+                self._station.get_id())  # assuming the same noise level for all stations
+            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=self._Vrms,
+                                         min_freq=0 * units.MHz,
+                                         max_freq=max_freq, type='rayleigh', bandwidth=norm)
+        # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
+        channelBandPassFilter.run(self._evt, self._station, self._det, passband=[132 * units.MHz, 1150 * units.MHz],
+                                  filter_type='butter', order=8)
+        channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 700 * units.MHz],
+                                  filter_type='butter', order=10)
 
         # for running an ARA-like trigger, we need to know the filtered noise
         # parameters. REMEMBER TO CHANGE THE FREQUENCIES FOR CALCULATING THEM
@@ -63,7 +98,7 @@ class mySimulation(simulation.simulation):
                                                                           amplitude=self._Vrms)
 
         # first run a simple threshold trigger
-        triggerSimulator.run(evt, station, det,
+        triggerSimulator.run(self._evt, self._station, self._det,
                              threshold_factor=3.9,  # see envelope phased trigger module for explanation
                              power_mean=power_mean,
                              power_std=power_std,

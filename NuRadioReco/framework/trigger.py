@@ -22,6 +22,8 @@ def deserialize(triggers_pkl):
             trigger = EnvelopeTrigger(None, None, None, None)
         elif trigger_type == 'int_power':
             trigger = IntegratedPowerTrigger(None, None, None)
+        elif trigger_type == 'envelope_phased':
+            trigger  = EnvelopePhasedTrigger(None, None, None, None)
         elif trigger_type == 'digital_envelope_phased':
             trigger  = DigitalEnvelopePhasedTrigger(None, None, None, None)
         elif trigger_type == 'analog_envelope_phased':
@@ -306,7 +308,7 @@ class SimpleThresholdTrigger(Trigger):
         self._coinc_window = channel_coincidence_window
 
 
-class AnalogEnvelopePhasedTrigger(Trigger):
+class EnvelopePhasedTrigger(Trigger):
 
     def __init__(self, name, threshold_factor, power_mean, power_std,
                  triggered_channels=None, phasing_angles=None, trigger_delays=None,
