@@ -26,8 +26,6 @@ def deserialize(triggers_pkl):
             trigger  = EnvelopePhasedTrigger(None, None, None, None)
         elif trigger_type == 'digital_envelope_phased':
             trigger  = DigitalEnvelopePhasedTrigger(None, None, None, None)
-        elif trigger_type == 'analog_envelope_phased':
-            trigger  = AnalogEnvelopePhasedTrigger(None, None, None)
         elif trigger_type == 'rnog_surface_trigger':
             trigger = RNOGSurfaceTrigger(None, None, None, None)
         else:
