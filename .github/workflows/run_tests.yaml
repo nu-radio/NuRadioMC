@@ -30,29 +30,49 @@ env: # set the python_version to 3.10 if the workflow is not triggered by workfl
   PYTHON_VERSION: ${{ inputs.python_version || '3.10' }}
 
 jobs:
-  build:
+  setup:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    outputs:
+      cache-key: ${{ steps.cache-keys.outputs.pip-key }}
+      data-cache-key: ${{ steps.cache-keys.outputs.data-key }}
+      env-cache-key: ${{ steps.cache-keys.outputs.env-key }}
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up Python [${{ env.PYTHON_VERSION }}]
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    - name: Cache pip
+
+    - name: Generate cache keys
+      id: cache-keys
+      run: |
+        echo "pip-key=${{ runner.os }}-pip-${{ hashFiles('NuRadioMC/test/requirements.txt') }}" >> $GITHUB_OUTPUT
+        echo "data-key=ci-data" >> $GITHUB_OUTPUT
+        echo "env-key=${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}" >> $GITHUB_OUTPUT
+
+    - name: Cache Python environment
+      id: cache-env
       uses: actions/cache@v4
       with:
-        # This path is specific to Ubuntu
-        path: ~/.cache/pip
-        # Look to see if there is a cache hit for the corresponding requirements file
-        key: ${{ runner.os }}-pip-${{ hashFiles('NuRadioMC/test/requirements.txt') }}
+        path: |
+          ~/.cache/pip
+          ${{ env.pythonLocation }}
+        key: ${{ steps.cache-keys.outputs.env-key }}
         restore-keys: |
-          ${{ runner.os }}-pip-
-          ${{ runner.os }}-
-    - name: Install dependencies
+          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
+          ${{ runner.os }}-env-
+
+    - name: Install system dependencies
       run: |
+        sudo apt-get update
         sudo apt-get install libgsl-dev
+
+    - name: Install Python dependencies
+      if: steps.cache-env.outputs.cache-hit != 'true'
+      run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
         export GSLDIR=$(gsl-config --prefix)
@@ -61,14 +81,6 @@ jobs:
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
-    - name: Lint with flake8 (important)
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    - name: Lint with flake8 (unimportant)
-      run: |
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  --exit-zero
 
     # Cache data used in tests
     - name: Cache CI data
@@ -77,137 +89,402 @@ jobs:
         path: |
           NuRadioReco/examples/Interactive/data
           NuRadioReco/test/data
-        key: 'ci-data'
+        key: ${{ steps.cache-keys.outputs.data-key }}
 
-    ### Neutrino simulations
-    # Single event tests
+  lint:
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python [${{ env.PYTHON_VERSION }}]
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Restore Python environment
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ${{ env.pythonLocation }}
+        key: ${{ needs.setup.outputs.env-cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
+          ${{ runner.os }}-env-
+
+    - name: Lint with flake8 (important)
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Lint with flake8 (unimportant)
+      run: |
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  --exit-zero
+
+  single-events:
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python [${{ env.PYTHON_VERSION }}]
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Restore Python environment
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ${{ env.pythonLocation }}
+        key: ${{ needs.setup.outputs.env-cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
+          ${{ runner.os }}-env-
+
+    - name: Cache CI data
+      uses: actions/cache@v4
+      with:
+        path: |
+          NuRadioReco/examples/Interactive/data
+          NuRadioReco/test/data
+        key: ${{ needs.setup.outputs.data-cache-key }}
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libgsl-dev
+
     - name: "Single event test (South Pole)"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/test_build.sh
+
     - name: Single event test (Moore's Bay)
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/validate_MB.sh
+
     - name: Single event test (ARZ)
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
 
-    # Signal generation tests
     - name: Test Numba version of ARZ
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         pip install numba
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
-    - name: Signal generation test
-      if: always()
-      run : |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/SignalGen/test_build.sh
+
     - name: "Validate separate trigger channels"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/validate_separate_trigger_channels.sh
 
-    # Signal propagation and birefringence
+  signal-processing:
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python [${{ env.PYTHON_VERSION }}]
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Restore Python environment
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ${{ env.pythonLocation }}
+        key: ${{ needs.setup.outputs.env-cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
+          ${{ runner.os }}-env-
+
+    - name: Cache CI data
+      uses: actions/cache@v4
+      with:
+        path: |
+          NuRadioReco/examples/Interactive/data
+          NuRadioReco/test/data
+        key: ${{ needs.setup.outputs.data-cache-key }}
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libgsl-dev
+
+    - name: Signal generation test
+      if: always()
+      run : |
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/SignalGen/test_build.sh
+
     - name: "Signal propagation tests"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SignalProp/run_signal_test.sh
+
     - name: "Test Birefringence"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SignalProp/run_birefringence_tests.sh
 
-    # Effective volume, pulsers
+  effective-volume:
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python [${{ env.PYTHON_VERSION }}]
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Restore Python environment
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ${{ env.pythonLocation }}
+        key: ${{ needs.setup.outputs.env-cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
+          ${{ runner.os }}-env-
+
+    - name: Cache CI data
+      uses: actions/cache@v4
+      with:
+        path: |
+          NuRadioReco/examples/Interactive/data
+          NuRadioReco/test/data
+        key: ${{ needs.setup.outputs.data-cache-key }}
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libgsl-dev
+
     - name: "Test Veff example"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         pip install -e .[proposal]
         NuRadioMC/test/examples/test_veff_example.sh
+
     - name: "Test calibration pulser example"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/examples/test_cal_pulser_example.sh
+
     - name: "Test radio emitter pulser example"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
+
     - name: "Veff test"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/Veff/1e18eV/test_build.sh
+
     - name: "Veff test with noise and phased array"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/Veff/1e18eV/test_build_noise.sh
+
     - name: "Atmospheric Aeff test"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
+
     - name: "Trigger tests"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
 
-    ### RNO-G specific tests
+  rno-g-tests:
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python [${{ env.PYTHON_VERSION }}]
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Restore Python environment
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ${{ env.pythonLocation }}
+        key: ${{ needs.setup.outputs.env-cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
+          ${{ runner.os }}-env-
+
+    - name: Cache CI data
+      uses: actions/cache@v4
+      with:
+        path: |
+          NuRadioReco/examples/Interactive/data
+          NuRadioReco/test/data
+        key: ${{ needs.setup.outputs.data-cache-key }}
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libgsl-dev
+
     - name: "RNO-G Detector"
       if: always()
       run: |
         python NuRadioReco/detector/test/test_rnog_detector.py
+
     - name: "RNO-G data reader"
       if: always()
       run: |
         pip install git+https://github.com/RNO-G/mattak.git
         NuRadioReco/test/RNO_G/test_read_rnog_data.sh
 
-    ### Other tests
+  other-tests:
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python [${{ env.PYTHON_VERSION }}]
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Restore Python environment
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ${{ env.pythonLocation }}
+        key: ${{ needs.setup.outputs.env-cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
+          ${{ runner.os }}-env-
+
+    - name: Cache CI data
+      uses: actions/cache@v4
+      with:
+        path: |
+          NuRadioReco/examples/Interactive/data
+          NuRadioReco/test/data
+        key: ${{ needs.setup.outputs.data-cache-key }}
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libgsl-dev
+
     - name: "channelGalacticNoiseAdder"
       if: always()
       run: |
         pip install -e .[galacticnoise]
         python NuRadioReco/examples/StandAloneScripts/B01galacticnoiseadder.py
+
     - name: "detector.Response"
       if: always()
       run: |
         python NuRadioReco/detector/test/test_response.py
+
     - name: "Test unfolding with voltageToEfieldConverter"
       if: always()
       run: |
         python NuRadioReco/test/voltageToEfieldConverter/test-unfolding.py
+
     - name: "Test module structure of all modules in NuRadioReco.modules"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         python NuRadioReco/test/check_modules.py -r
 
-    ### Test examples
+  examples:
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python [${{ env.PYTHON_VERSION }}]
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Restore Python environment
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ${{ env.pythonLocation }}
+        key: ${{ needs.setup.outputs.env-cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
+          ${{ runner.os }}-env-
+
+    - name: Cache CI data
+      uses: actions/cache@v4
+      with:
+        path: |
+          NuRadioReco/examples/Interactive/data
+          NuRadioReco/test/data
+        key: ${{ needs.setup.outputs.data-cache-key }}
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libgsl-dev
+
     - name: "Test webinar examples"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/examples/test_webinar.sh
+
     - name: "Test all examples"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         pip install -e .[cr_interpolator]
         NuRadioReco/test/test_examples.sh
+
     - name: "Test interactive examples"
       run: |
         export GSLDIR=$(gsl-config --prefix)
@@ -216,4 +493,3 @@ jobs:
         jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_RNOG_data.ipynb
-
