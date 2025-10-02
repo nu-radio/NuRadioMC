@@ -740,7 +740,7 @@ database / primary time.</p>
 <td><p>Same as <a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel</span></code></a>(station_id, channel_id)</p></td>
-<td><p>Returns a dictionary of all channel parameters</p></td>
+<td><p>Returns a dictionary of all channel parameters.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_ids" title="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_ids</span></code></a>(station_id)</p></td>
 <td><p>Get channel ids for a particlular station.</p></td>
@@ -855,7 +855,9 @@ database / primary time.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel">
 <span class="sig-name descname"><span class="pre">get_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/rnog_detector_mod.html#ModDetector.get_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.get_channel" title="Link to this definition"></a></dt>
-<dd><p>Returns a dictionary of all channel parameters</p>
+<dd><p>Returns a dictionary of all channel parameters.</p>
+<p>The dictionary is returned as a “reference” (as every mutable object in python, without a copy call). 
+That means, changing entries in this dictionary will change the detector description in memory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">

@@ -890,12 +890,12 @@
             <span class="n">adc_voltage_range</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">adc_voltage_range_tmp</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">adc_voltage_range_tmp</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="p">(</span><span class="s2">&quot;ADC parameters: &quot;</span>
+            <span class="p">(</span><span class="s2">&quot;ADC parameters Channel </span><span class="si">{}</span><span class="s2">: &quot;</span>
             <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">adc_voltage_range: (</span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">) V&quot;</span>
             <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">adc_n_bits: </span><span class="si">{}</span><span class="s2">&quot;</span>
             <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">adc_sampling_frequency: </span><span class="si">{}</span><span class="s2"> GHz&quot;</span>
             <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">adc_time_delay: </span><span class="si">{}</span><span class="s2"> ns&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">adc_voltage_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">V</span><span class="p">,</span> <span class="n">adc_voltage_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">V</span><span class="p">,</span>
+                <span class="n">channel_id</span><span class="p">,</span> <span class="n">adc_voltage_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">V</span><span class="p">,</span> <span class="n">adc_voltage_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">V</span><span class="p">,</span>
                 <span class="n">adc_n_bits</span><span class="p">,</span> <span class="n">adc_sampling_frequency</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">,</span> <span class="n">adc_time_delay</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span>
             <span class="p">))</span>
 
@@ -997,7 +997,7 @@
             <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="o">+</span> <span class="n">adc_baseline_voltage</span><span class="p">,</span> <span class="s2">&quot;same&quot;</span><span class="p">)</span>
 
         <span class="c1"># down sample if necessary</span>
-        <span class="k">if</span> <span class="n">adc_sampling_frequency</span> <span class="o">!=</span> <span class="n">sampling_frequency</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">adc_sampling_frequency</span><span class="p">,</span> <span class="n">sampling_frequency</span><span class="p">):</span>
             <span class="c1"># Upsampling to 5 GHz before downsampling using interpolation.</span>
             <span class="c1"># We cannot downsample with a Fourier method because we want to keep</span>
             <span class="c1"># frequencies in higher Nyquist zones to correctly simulate aliasing.</span>

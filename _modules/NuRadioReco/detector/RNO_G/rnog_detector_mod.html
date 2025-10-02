@@ -720,7 +720,10 @@
     <span class="nd">@_check_detector_time</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a dictionary of all channel parameters</span>
+<span class="sd">        Returns a dictionary of all channel parameters. </span>
+<span class="sd">        </span>
+<span class="sd">        The dictionary is returned as a &quot;reference&quot; (as every mutable object in python, without a copy call). </span>
+<span class="sd">        That means, changing entries in this dictionary will change the detector description in memory. </span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -735,7 +738,8 @@
 <span class="sd">            Dictionary of channel parameters</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>  <span class="c1"># this adds `total_response` to dict</span>
-        <span class="n">channel_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Detector__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">with_position</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_signal_chain</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="c1"># FS: Removed copy.deepcopy() to increase performance. This class anyway modifies the channel description</span>
+        <span class="n">channel_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Detector__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">with_position</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_signal_chain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Detector__default_values</span><span class="p">:</span>
 
@@ -744,6 +748,14 @@
                 <span class="n">channel_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Detector__default_values</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">channel_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Detector__default_values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+
+        <span class="c1"># Add ADC parameter to channel description. This is needed for ADC and trigger modules.</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Detector__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;signal_digitizer_config&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">channel_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;adc_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Detector__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;trigger_digitizer_config&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">channel_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;trigger_adc_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
         <span class="k">return</span> <span class="n">channel_data</span></div>
 
@@ -861,7 +873,7 @@
 
         <span class="k">if</span> <span class="n">time_delay</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expect positive additional delay; use &#39;weight = -1&#39; to implement a negative delay.&quot;</span><span class="p">)</span>
-        
+
         <span class="n">sampling_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
         <span class="c1"># number of samples a trace would have with a length at least that of the time delay</span>
