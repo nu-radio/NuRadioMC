@@ -50,7 +50,7 @@ jobs:
     - name: Generate cache keys
       id: cache-keys
       run: |
-        echo "env-key=${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v2" >> $GITHUB_OUTPUT
+        echo "env-key=${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3" >> $GITHUB_OUTPUT
         echo "data-key=ci-data" >> $GITHUB_OUTPUT
 
     - name: Cache Python environment
@@ -70,7 +70,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
-        pip install -e .
+        pip install -e .[proposal,galacticnoise,cr_interpolator]
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
@@ -342,7 +342,6 @@ jobs:
     - name: "channelGalacticNoiseAdder"
       if: always()
       run: |
-        pip install -e .[galacticnoise]
         python NuRadioReco/examples/StandAloneScripts/B01galacticnoiseadder.py
 
     - name: "detector.Response"
@@ -397,11 +396,6 @@ jobs:
           NuRadioReco/test/data
         key: ${{ needs.setup.outputs.data-cache-key }}
 
-    - name: "Install proposal"
-      if: always()
-      run: |
-        pip install -e .[proposal]
-
     - name: "Test webinar examples"
       if: always()
       run: |
@@ -410,7 +404,6 @@ jobs:
     - name: "Test all examples"
       if: always()
       run: |
-        pip install -e .[cr_interpolator]
         NuRadioReco/test/test_examples.sh
 
     - name: "Test interactive examples"
