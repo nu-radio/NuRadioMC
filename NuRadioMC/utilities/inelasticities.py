@@ -69,14 +69,17 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
 
                     # The inelasticity distribution is upsampled (interpoaled and extrapolated) with logarithmic
                     # binning below 0.1 and linear binning above 0.1:
-                    yyy_1 = np.logspace(-8, -1, 2000, endpoint=False)
-                    yyy_2 = np.linspace(1e-1, 1, 2000)
+                    yyy_1 = np.logspace(-8, -1, 500, endpoint=False)
+                    yyy_2 = np.linspace(1e-1, 1, 500, endpoint=False)
                     yyy = np.append(yyy_1, yyy_2)
                     dsigma_dyy = 10 ** get_y(np.log10(yyy))
                     probability_mass = dsigma_dyy * 0.5 * np.append(np.diff(yyy), yyy[-1] - yyy[-2])
                     probability_mass /= np.sum(probability_mass)
 
-                    yy[mask] = rnd.choice(yyy, size=size, p=probability_mass)
+                    # Sample inelasticities from the distribution and add additional uniform sub-sample smearing:
+                    indicies = rnd.choice(range(len(yyy)), size=size, p=probability_mass)
+                    yy[mask] = yyy[indicies] + np.random.uniform(0, 1, size=size) * np.append(np.diff(yyy), yyy[-1] - yyy[-2])[indicies]
+
         return yy
 
     else:
