@@ -325,6 +325,7 @@ jobs:
     - name: "Test interactive examples"
       run: |
         pip install jupyter
+        pip install git+https://github.com/RNO-G/mattak.git
         jupyter execute NuRadioMC/examples/Interactive/W01-simulate-neutrino-detector.ipynb
         jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
