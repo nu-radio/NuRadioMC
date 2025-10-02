@@ -83,21 +83,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python [${{ env.PYTHON_VERSION }}]
-      uses: actions/setup-python@v5
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Restore Python environment
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          ~/.cache/pip
-          ${{ env.pythonLocation }}
-        key: ${{ needs.setup.outputs.env-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
-          ${{ runner.os }}-env-
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
     - name: Lint with flake8 (important)
       run: |
@@ -117,26 +107,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install system-packages
-      run: |
-        sudo apt-get install libgsl-dev
-        export GSLDIR=$(gsl-config --prefix)
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
 
-    - name: Set up Python [${{ env.PYTHON_VERSION }}]
-      uses: actions/setup-python@v5
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Restore Python environment
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          ~/.cache/pip
-          ${{ env.pythonLocation }}
-        key: ${{ needs.setup.outputs.env-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
-          ${{ runner.os }}-env-
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
     - name: "Validate separate trigger channels"
       if: always()
@@ -172,26 +150,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install system-packages
-      run: |
-        sudo apt-get install libgsl-dev
-        export GSLDIR=$(gsl-config --prefix)
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
 
-    - name: Set up Python [${{ env.PYTHON_VERSION }}]
-      uses: actions/setup-python@v5
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Restore Python environment
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          ~/.cache/pip
-          ${{ env.pythonLocation }}
-        key: ${{ needs.setup.outputs.env-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
-          ${{ runner.os }}-env-
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
     - name: Signal generation test
       if: always()
@@ -216,26 +182,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install system-packages
-      run: |
-        sudo apt-get install libgsl-dev
-        export GSLDIR=$(gsl-config --prefix)
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
 
-    - name: Set up Python [${{ env.PYTHON_VERSION }}]
-      uses: actions/setup-python@v5
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Restore Python environment
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          ~/.cache/pip
-          ${{ env.pythonLocation }}
-        key: ${{ needs.setup.outputs.env-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
-          ${{ runner.os }}-env-
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
     - name: "Test Veff example"
       if: always()
@@ -280,29 +234,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python [${{ env.PYTHON_VERSION }}]
-      uses: actions/setup-python@v5
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
       with:
         python-version: ${{ env.PYTHON_VERSION }}
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
-    - name: Restore Python environment
-      uses: actions/cache/restore@v4
+    - name: Cache CI Data
+      uses: ./.github/actions/cache-ci-data
       with:
-        path: |
-          ~/.cache/pip
-          ${{ env.pythonLocation }}
-        key: ${{ needs.setup.outputs.env-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
-          ${{ runner.os }}-env-
-
-    - name: Cache CI data
-      uses: actions/cache@v4
-      with:
-        path: |
-          NuRadioReco/examples/Interactive/data
-          NuRadioReco/test/data
-        key: ${{ needs.setup.outputs.data-cache-key }}
+        cache-key: ${{ needs.setup.outputs.data-cache-key }}
 
     - name: "RNO-G Detector"
       if: always()
@@ -323,21 +264,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python [${{ env.PYTHON_VERSION }}]
-      uses: actions/setup-python@v5
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Restore Python environment
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          ~/.cache/pip
-          ${{ env.pythonLocation }}
-        key: ${{ needs.setup.outputs.env-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
-          ${{ runner.os }}-env-
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
     - name: "channelGalacticNoiseAdder"
       if: always()
@@ -367,34 +298,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install system-packages
-      run: |
-        sudo apt-get install libgsl-dev
-        export GSLDIR=$(gsl-config --prefix)
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
 
-    - name: Set up Python [${{ env.PYTHON_VERSION }}]
-      uses: actions/setup-python@v5
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
       with:
         python-version: ${{ env.PYTHON_VERSION }}
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
-    - name: Restore Python environment
-      uses: actions/cache/restore@v4
+    - name: Cache CI Data
+      uses: ./.github/actions/cache-ci-data
       with:
-        path: |
-          ~/.cache/pip
-          ${{ env.pythonLocation }}
-        key: ${{ needs.setup.outputs.env-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
-          ${{ runner.os }}-env-
-
-    - name: Cache CI data
-      uses: actions/cache@v4
-      with:
-        path: |
-          NuRadioReco/examples/Interactive/data
-          NuRadioReco/test/data
-        key: ${{ needs.setup.outputs.data-cache-key }}
+        cache-key: ${{ needs.setup.outputs.data-cache-key }}
 
     - name: "Test webinar examples"
       if: always()
