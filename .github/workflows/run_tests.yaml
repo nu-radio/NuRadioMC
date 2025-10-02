@@ -276,7 +276,6 @@ jobs:
     - name: "Test Veff example"
       if: always()
       run: |
-        pip install -e .[proposal]
         NuRadioMC/test/examples/test_veff_example.sh
 
     - name: "Test calibration pulser example"
@@ -440,6 +439,11 @@ jobs:
           NuRadioReco/examples/Interactive/data
           NuRadioReco/test/data
         key: ${{ needs.setup.outputs.data-cache-key }}
+
+    - name: "Install proposal dependencies"
+      if: always()
+      run: |
+        pip install -e .[proposal]
 
     - name: "Test webinar examples"
       if: always()
