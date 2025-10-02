@@ -37,6 +37,7 @@ jobs:
 
     outputs:
       env-cache-key: ${{ steps.cache-keys.outputs.env-key }}
+      data-cache-key: ${{ steps.cache-keys.outputs.data-key }}
 
     steps:
     - uses: actions/checkout@v4
@@ -50,6 +51,7 @@ jobs:
       id: cache-keys
       run: |
         echo "env-key=${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}" >> $GITHUB_OUTPUT
+        echo "data-key=ci-data" >> $GITHUB_OUTPUT
 
     - name: Cache Python environment
       id: cache-env
@@ -136,14 +138,6 @@ jobs:
           ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
           ${{ runner.os }}-env-
 
-    - name: Cache CI data
-      uses: actions/cache@v4
-      with:
-        path: |
-          NuRadioReco/examples/Interactive/data
-          NuRadioReco/test/data
-        key: ${{ needs.setup.outputs.data-cache-key }}
-
     - name: Restore system packages
       uses: actions/cache/restore@v4
       with:
@@ -211,27 +205,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
           ${{ runner.os }}-env-
-
-    - name: Cache CI data
-      uses: actions/cache@v4
-      with:
-        path: |
-          NuRadioReco/examples/Interactive/data
-          NuRadioReco/test/data
-        key: ${{ needs.setup.outputs.data-cache-key }}
-
-    - name: Restore system packages
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          /var/cache/apt
-          /var/lib/apt
-          /usr/include/gsl
-          /usr/lib/x86_64-linux-gnu/libgsl*
-          /usr/bin/gsl-config
-        key: ${{ needs.setup.outputs.system-cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-system-
 
     - name: Signal generation test
       if: always()
@@ -336,6 +309,14 @@ jobs:
           ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
           ${{ runner.os }}-env-
 
+    - name: Cache CI data
+      uses: actions/cache@v4
+      with:
+        path: |
+          NuRadioReco/examples/Interactive/data
+          NuRadioReco/test/data
+        key: ${{ needs.setup.outputs.data-cache-key }}
+
     - name: "RNO-G Detector"
       if: always()
       run: |
@@ -421,7 +402,15 @@ jobs:
           ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
           ${{ runner.os }}-env-
 
-    - name: "Install proposal dependencies"
+    - name: Cache CI data
+      uses: actions/cache@v4
+      with:
+        path: |
+          NuRadioReco/examples/Interactive/data
+          NuRadioReco/test/data
+        key: ${{ needs.setup.outputs.data-cache-key }}
+
+    - name: "Install proposal"
       if: always()
       run: |
         pip install -e .[proposal]
