@@ -12,7 +12,9 @@ new features:
   Now, instead a new instance of the class is generated
   with the correct arguments if ``create_new==None`` (the new default), or an error is raised if
   ``create_new==False``.
-- Refactor phased array trigger modules to minimize repeated code and add support for realistic trigger firmware (ex. RNO-G PA)
+- Refactor phased array trigger modules and expands to three trigger modules, phasedArrayTrigger is the legacy trigger with a simple
+  interface, beamformedPowerIntegrationTrigger performs the same function as phasedArrayTrigger but access to lower level options to mimic firmware,
+  digitalBeamformedEnvelopeTrigger instead computes the Hilbert envelope of the beamformed traces and allows access to lower level options.
 
 bugfixes:
 - Fixed the core parameter in Events created by the readCoREASDetector module not being 3-dimensional

@@ -258,11 +258,6 @@ class PhasedArrayBase():
 
         coh_sum_squared = (coh_sum * coh_sum)
 
-        # if(adc_output == 'voltage'):
-        #     coh_sum_squared = (coh_sum * coh_sum).astype(float)
-        # elif(adc_output == 'counts'):
-        #     coh_sum_squared = (coh_sum * coh_sum).astype(int)
-
         coh_sum_windowed = np.lib.stride_tricks.as_strided(
             coh_sum_squared, (num_frames, window),
             (coh_sum_squared.strides[0] * step, coh_sum_squared.strides[0]))
@@ -364,6 +359,7 @@ class PhasedArrayBase():
             if adc_output == 'counts':
                 imag_an = np.rint(imag_an)
 
+            # simple square root calculation taken from section 13.2 in Understanding Digital Signal Processing by Richard Lyons
             envelope = np.max(np.array((coh_sum, imag_an)), axis=0) + (3 / 8) * np.min(np.array((coh_sum, imag_an)), axis=0)
 
         if adc_output == 'counts':

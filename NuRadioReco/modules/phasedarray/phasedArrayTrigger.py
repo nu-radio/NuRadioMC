@@ -12,10 +12,9 @@ logger = logging.getLogger('NuRadioReco.PhasedArrayTrigger')
 
 class PhasedArrayTrigger(PhasedArrayBase):
     """
-    Calculates the trigger for a phased array with a primary beam.
-
-    The channels that participate in both beams and the pointing angle for each
-    subbeam can be specified.
+    Calculates the trigger for a phased array with primary beam locations
+    using a power integrated envelope. This module maintains the legacy interface
+    and performs ideal calculations in upsampling, beamforming, and power averaging.
 
     See https://arxiv.org/pdf/1809.04573.pdf
     """

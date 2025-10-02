@@ -9,14 +9,13 @@ logger = logging.getLogger('NuRadioReco.phasedEnvelopeTriggerSimulator')
 
 class PhasedEnvelopeTriggerSimulator(PhasedArrayBase):
     """
-    Calculates the trigger for a phased array with primary beams.
-
-    The channels that participate in both beams and the pointing angle for each
-    subbeam can be specified.
-
-    Calculates Hilbert Envelope using digital FIR filters.
+    Calculates the trigger for a phased array with primary beam locations
+    using a Hilbert envelope. This module allows access to lower level options
+    used during trigger calculations that allow for realistic models of firmware, such as 
+    upsampling with FIR filters and integer math specifics like rounding and saturation.
+    An ideal Hilbert transformer using scipy or a FIR-based Hilbert transformer with a crude
+    square root can be used.
     """
-
 
     @register_run()
     def run(self, evt, station, det,
