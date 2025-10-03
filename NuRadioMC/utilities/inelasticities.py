@@ -12,7 +12,6 @@ logger = logging.getLogger('NuRadioMC.inelasticities')
 from NuRadioReco.utilities.constants import (
     e_mass, mu_mass, pi_mass, rho770_mass, a1_mass, rho1450_mass, tau_mass, G_F)
 
-nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
 
 def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
                               nu_energies=1 * units.EeV, flavors=12, ncccs="CC"):
@@ -54,10 +53,14 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
 
     elif model.lower() == "bgr18" or model.lower() == "hedis_bgr18":
         yy = np.zeros(n_events)
+
+        nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
+        
         nu_energies_binned = nu_energies_ref[np.digitize(nu_energies, nu_energies_ref)]
         uEE_binned = np.unique(nu_energies_binned)
         uFlavor = np.unique(flavors)
         uNCCC = np.unique(ncccs)
+        
         for energy in uEE_binned:
             if energy > 10 * units.EeV:
                 logger.warning(
@@ -87,8 +90,10 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
         raise AttributeError(f"inelasticity model {model} is not implemented.")
 
 
-@functools.lru_cache(maxsize = int(len(nu_energies_ref) * len(flavors_ref) * len(ncccs_ref)))
+@functools.lru_cache(maxsize=int(2**(int(np.log2(len(nu_energies_ref) * len(flavors_ref) * len(ncccs_ref)) + 1))))
 def _get_inverse_cdf_interpolation(iF, inccc, iE):
+    nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
+    
     log10_dsigma_dy_interp = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]),
                                             fill_value="extrapolate", kind="linear")
 
