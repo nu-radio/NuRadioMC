@@ -55,17 +55,18 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
         yy = np.zeros(n_events)
 
         nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
-        
+
         nu_energies_binned = nu_energies_ref[np.digitize(nu_energies, nu_energies_ref)]
         uEE_binned = np.unique(nu_energies_binned)
         uFlavor = np.unique(flavors)
         uNCCC = np.unique(ncccs)
-        
+
         if np.any(uEE_binned > 10 * units.EeV):
             logger.warning(
                 "You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
                 f"You requested {energy / units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
 
+        for energy in uEE_binned:
             for flavor in uFlavor:
                 for nccc in uNCCC:
                     mask = (energy == nu_energies_binned) & (flavor == flavors) & (nccc == ncccs)
@@ -89,7 +90,7 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
         raise AttributeError(f"inelasticity model {model} is not implemented.")
 
 
-@functools.lru_cache(maxsize=int(2**(int(np.log2(len(nu_energies_ref) * len(flavors_ref) * len(ncccs_ref)) + 1))))
+@functools.lru_cache(maxsize=int(2**(int(np.log2(100 * 6 * 2 + 1)))))
 def _get_inverse_cdf_interpolation(iF, inccc, iE):
     nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
     
