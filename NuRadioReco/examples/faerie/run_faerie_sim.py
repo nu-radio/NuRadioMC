@@ -71,7 +71,7 @@ def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns):
 
 
 
-def split_events(event, det, trigger_channels):
+def split_events(event, det, trigger_channels,num_channels_per_event=4):
     """ Split an event with more than 4 channels into multiple events with 4 channels. """
 
     det.set_event(event)
@@ -86,25 +86,50 @@ def split_events(event, det, trigger_channels):
                          f"match the trigger channels ({trigger_channels})")
 
     # Split the event into multiple events
+    all_sim_channel_ids = np.array([efields.get_channel_ids()[0] for efields in station.get_sim_station().get_electric_fields()])
+    string_sim_channel_ids = ["{}".format(ch_ids) for ch_ids in all_sim_channel_ids] ## mimic list of strings
+    sorted_string_sim_channel_ids = sorted(string_sim_channel_ids)
+    num_from_sorted_string = [ int(ch) for ch in sorted_string_sim_channel_ids ]
+    argsort_from_sorted_num = np.argsort(num_from_sorted_string)
+    string_argsort = np.argsort(string_sim_channel_ids) ## order ch-id was sorted in hdf5
+    channel_to_index_map = {ch_id: index for ch_id, index in enumerate(string_argsort)}
+    print("argsort_from_num",argsort_from_sorted_num[:20])
+    print("channel_to_index_map",channel_to_index_map)
+
+
     sim_channel_ids = np.unique([efields.get_channel_ids() for efields in station.get_sim_station().get_electric_fields()])
     channel_positions = np.array([det.get_relative_position(station.get_id(), sim_channel_id) for sim_channel_id in sim_channel_ids])
+    
+    ## testing channel ids and positions
+    # for chid,chpos in zip(all_sim_channel_ids, channel_positions):
+    #     print(f"Sim channel IDs\n{chid[0]} at {chpos}")
 
-    unique_xy_positions = np.unique(channel_positions[:, :2], axis=0)
-    n_batches = len(unique_xy_positions)
+    # unique_xy_positions = np.unique(channel_positions[:, :2], axis=0)
+    # n_batches = len(unique_xy_positions)
+    n_batches = np.ceil( len(all_sim_channel_ids)/ num_channels_per_event ).astype(int) ## round up
 
+    # sim_channel_ids_batches = [[] for _ in range(n_batches)]
+    # for sim_channel_id, xy_position in zip(sim_channel_ids, channel_positions[:, :2]):
+    #     idx = np.arange(n_batches)[np.all(unique_xy_positions == xy_position, axis=1)][0]
+    #     sim_channel_ids_batches[idx].append(sim_channel_id)
+    
+    # sim_channel_ids_batches = np.array(all_sim_channel_ids[argsort_from_sorted_num]).reshape(n_batches, num_channels_per_event).tolist()
     sim_channel_ids_batches = [[] for _ in range(n_batches)]
-    for sim_channel_id, xy_position in zip(sim_channel_ids, channel_positions[:, :2]):
-        idx = np.arange(n_batches)[np.all(unique_xy_positions == xy_position, axis=1)][0]
-        sim_channel_ids_batches[idx].append(sim_channel_id)
-
+    for i in range(n_batches):
+        channels_in_batch = np.array([ch for ch in range(num_channels_per_event)]) + i*num_channels_per_event
+        for ch in channels_in_batch:
+            if ch < len(all_sim_channel_ids):
+                sim_channel_ids_batches[i].append(all_sim_channel_ids[channel_to_index_map[ch]])
+    for batch in sim_channel_ids_batches:
+        print("batch",batch)
     events = []
     for sim_channel_ids_batch in sim_channel_ids_batches:
         new_event = copy.deepcopy(event)
 
 
-        if len(sim_channel_ids_batch) != len(trigger_channels):
-            raise ValueError("Some thing unexpected happend. The batch has not the same number of channels as the trigger channels "
-                             f"sim_channel_ids_batch: {sim_channel_ids_batch}, trigger_channels: {trigger_channels}")
+        # if len(sim_channel_ids_batch) != len(trigger_channels):
+        #     raise ValueError("Some thing unexpected happend. The batch has not the same number of channels as the trigger channels "
+        #                      f"sim_channel_ids_batch: {sim_channel_ids_batch}, trigger_channels: {trigger_channels}")
 
         new_sim_station = NuRadioReco.framework.sim_station.SimStation(station.get_id())  # set sim station id to 0
         new_sim_station.set_is_neutrino() # HACK: Since the sim. efields are always at the exact positions as the antenna(channels).
@@ -218,7 +243,7 @@ if __name__ == "__main__":
 
     for combined_event in readFAERIEShower.run(depth=args.depth, station_id=args.station):
 
-        for edx, event in enumerate(split_events(combined_event, dummy_detector_for_positions_only, trigger_channels)):
+        for edx, event in enumerate(split_events(combined_event, dummy_detector_for_positions_only, trigger_channels,num_channels_per_event=5)):
             dummy_detector_for_positions_only.set_event(event)
             pad_traces(event, det_rnog)
 
