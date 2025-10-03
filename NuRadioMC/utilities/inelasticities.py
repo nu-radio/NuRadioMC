@@ -1,5 +1,5 @@
+import functools
 import numpy as np
-
 from scipy import constants
 from scipy import interpolate as intp
 
@@ -12,6 +12,7 @@ logger = logging.getLogger('NuRadioMC.inelasticities')
 from NuRadioReco.utilities.constants import (
     e_mass, mu_mass, pi_mass, rho770_mass, a1_mass, rho1450_mass, tau_mass, G_F)
 
+nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
 
 def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
                               nu_energies=1 * units.EeV, flavors=12, ncccs="CC"):
@@ -52,13 +53,12 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
         return (-np.log(r1 + rnd.uniform(0., 1., n_events) * r2)) ** 2.5
 
     elif model.lower() == "bgr18" or model.lower() == "hedis_bgr18":
-        nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
-
         yy = np.zeros(n_events)
-        uEE = np.unique(nu_energies)
+        nu_energies_binned = nu_energies_ref[np.digitize(nu_energies, nu_energies_ref)]
+        uEE_binned = np.unique(nu_energies_binned)
         uFlavor = np.unique(flavors)
         uNCCC = np.unique(ncccs)
-        for energy in uEE:
+        for energy in uEE_binned:
             if energy > 10 * units.EeV:
                 logger.warning(
                     "You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
@@ -66,7 +66,7 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
 
             for flavor in uFlavor:
                 for nccc in uNCCC:
-                    mask = (nu_energies == energy) & (flavor == flavors) & (nccc == ncccs)
+                    mask = (energy ==nu_energies_binned) & (flavor == flavors) & (nccc == ncccs)
                     size = n_events
                     if isinstance(mask, np.ndarray):
                         size = np.sum(mask)
@@ -75,16 +75,9 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
                     iF = np.argwhere(flavors_ref == flavor)[0][0]
                     inccc = np.argwhere(ncccs_ref == nccc)[0][0]
                     iE = np.argmin(np.abs(energy - nu_energies_ref))
-                    log10_dsigma_dy_interp = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]),
-                                          fill_value="extrapolate", kind="linear")
 
-                    yyy = np.logspace(-8, 0, 1000, endpoint=True)
-                    dsigma_dy = 10 ** log10_dsigma_dy_interp(np.log10(yyy))
-                    probability_mass = dsigma_dy * 0.5 * np.append(np.diff(yyy), yyy[-1] - yyy[-2])
-                    probability_mass /= np.sum(probability_mass)
+                    cdf_interp = _get_inverse_cdf_interpolation(iF, inccc, iE)
 
-                    cdf = np.cumsum(probability_mass)
-                    cdf_interp = intp.interp1d(cdf, yyy, fill_value="extrapolate", kind="linear")
                     randoms = rnd.uniform(0, 1, size=size)
                     yy[mask] = cdf_interp(randoms)
 
@@ -92,6 +85,20 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
 
     else:
         raise AttributeError(f"inelasticity model {model} is not implemented.")
+
+
+@functools.lru_cache(maxsize = int(len(nu_energies_ref) * len(flavors_ref) * len(ncccs_ref)))
+def _get_inverse_cdf_interpolation(iF, inccc, iE):
+    log10_dsigma_dy_interp = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]),
+                                            fill_value="extrapolate", kind="linear")
+
+    yyy = np.logspace(-8, 0, 1000, endpoint=True)
+    dsigma_dy = 10 ** log10_dsigma_dy_interp(np.log10(yyy))
+    probability_mass = dsigma_dy * 0.5 * np.append(np.diff(yyy), yyy[-1] - yyy[-2])
+    probability_mass /= np.sum(probability_mass)
+    cdf = np.cumsum(probability_mass)
+
+    return intp.interp1d(cdf, yyy, fill_value="extrapolate", kind="linear")
 
 
 def get_ccnc(n_events, rnd=None, model="hedis_bgr18", energy=None, flavors=12):
