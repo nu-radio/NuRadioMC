@@ -56,15 +56,17 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
 
         nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
 
-        nu_energies_binned = nu_energies_ref[np.digitize(nu_energies, nu_energies_ref)]
+        if np.any(nu_energies > 10 * units.EeV):
+                logger.warning(
+                    "You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
+                    f"You requested maximum energy {max(np.atleast_1d(nu_energies)) / units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
+
+        energy_indicies = np.digitize(nu_energies, nu_energies_ref)
+        energy_indicies = np.clip(energy_indicies, 0, len(nu_energies_ref) - 1)
+        nu_energies_binned = nu_energies_ref[energy_indicies]
         uEE_binned = np.unique(nu_energies_binned)
         uFlavor = np.unique(flavors)
         uNCCC = np.unique(ncccs)
-
-        if np.any(uEE_binned > 10 * units.EeV):
-            logger.warning(
-                "You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
-                f"You requested {energy / units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
 
         for energy in uEE_binned:
             for flavor in uFlavor:
