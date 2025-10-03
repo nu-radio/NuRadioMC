@@ -61,15 +61,14 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
         uFlavor = np.unique(flavors)
         uNCCC = np.unique(ncccs)
         
-        for energy in uEE_binned:
-            if energy > 10 * units.EeV:
-                logger.warning(
-                    "You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
-                    f"You requested {energy / units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
+        if np.any(uEE_binned > 10 * units.EeV):
+            logger.warning(
+                "You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
+                f"You requested {energy / units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
 
             for flavor in uFlavor:
                 for nccc in uNCCC:
-                    mask = (energy ==nu_energies_binned) & (flavor == flavors) & (nccc == ncccs)
+                    mask = (energy == nu_energies_binned) & (flavor == flavors) & (nccc == ncccs)
                     size = n_events
                     if isinstance(mask, np.ndarray):
                         size = np.sum(mask)
