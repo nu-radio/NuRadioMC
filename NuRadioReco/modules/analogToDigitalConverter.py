@@ -240,12 +240,12 @@ class analogToDigitalConverter:
             adc_voltage_range = (-adc_voltage_range_tmp / 2, adc_voltage_range_tmp / 2)
 
         logger.debug(
-            ("ADC parameters: "
+            ("ADC parameters Channel {}: "
             "\n\tadc_voltage_range: ({}, {}) V"
             "\n\tadc_n_bits: {}"
             "\n\tadc_sampling_frequency: {} GHz"
             "\n\tadc_time_delay: {} ns").format(
-                adc_voltage_range[0] / units.V, adc_voltage_range[1] / units.V,
+                channel_id, adc_voltage_range[0] / units.V, adc_voltage_range[1] / units.V,
                 adc_n_bits, adc_sampling_frequency / units.GHz, adc_time_delay / units.ns
             ))
 
@@ -344,9 +344,8 @@ class analogToDigitalConverter:
             logger.debug("Adding a baseline voltage of {:.2f} V to the trace".format(adc_baseline_voltage))
             channel.set_trace(channel.get_trace() + adc_baseline_voltage, "same")
 
-        if not np.allclose(adc_sampling_frequency, sampling_frequency):
         # down sample if necessary
-
+        if not np.allclose(adc_sampling_frequency, sampling_frequency):
             # Upsampling to 5 GHz before downsampling using interpolation.
             # We cannot downsample with a Fourier method because we want to keep
             # frequencies in higher Nyquist zones to correctly simulate aliasing.
