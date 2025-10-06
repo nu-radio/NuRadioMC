@@ -642,6 +642,11 @@
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">radiopropa</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">RP</span>
+    <span class="c1"># nu2rp_meter = RP.meter / units.meter</span>
+    <span class="c1"># The line above gives 1. The reason why we are not using it is that it gives an error when building the docs:</span>
+    <span class="c1"># TypeError: unsupported operand type(s) for /: &#39;meter&#39; and &#39;int&#39;</span>
+    <span class="c1"># I do not understand why... Therefore we define it manually here</span>
+    <span class="n">nu2rp_meter</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">radiopropa_is_imported</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">radiopropa_is_imported</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1029,10 +1034,12 @@
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span>
 
         <span class="n">scalar_field</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">IceModel_Simple</span><span class="p">(</span>
-            <span class="n">z_surface</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">z_surface</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">*</span> <span class="n">nu2rp_meter</span><span class="p">,</span>
             <span class="n">n_ice</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span> <span class="n">delta_n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span>
-            <span class="n">z_0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_0</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
-            <span class="n">z_shift</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
+            <span class="n">z_0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_0</span> <span class="o">*</span> <span class="n">nu2rp_meter</span><span class="p">,</span>
+            <span class="n">z_shift</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span> <span class="o">*</span> <span class="n">nu2rp_meter</span>
+        <span class="p">)</span>
+
         <span class="k">return</span> <span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">)</span></div>
 
 
@@ -1277,23 +1284,24 @@
 <span class="sd">        ice: RadioPropaIceWrapper</span>
 <span class="sd">            object holding the radiopropa scalarfield and modules</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
-            <span class="n">coeff</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">DoubleVector_1D</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">ai</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a</span><span class="p">:</span>
-                <span class="n">coeff</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">ai</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">kg</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">kilogram</span> <span class="o">/</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span>
-
-            <span class="n">scalar_field</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">IceModel_Polynomial</span><span class="p">(</span>
-                <span class="n">coeff</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_z_0</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_z_shift</span> <span class="o">*</span> <span class="n">RP</span><span class="o">.</span><span class="n">meter</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_density_factor</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">**</span><span class="mi">3</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">kilogram</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">**</span><span class="mi">3</span> <span class="o">/</span> <span class="n">RP</span><span class="o">.</span><span class="n">kilogram</span><span class="p">))</span>
-
-            <span class="k">return</span> <span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependency was not import and can therefore not be used.&#39;</span>
                          <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span>
+
+        <span class="n">coeff</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">DoubleVector_1D</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">ai</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a</span><span class="p">:</span>
+            <span class="n">coeff</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">ai</span><span class="p">)</span>
+
+        <span class="n">scalar_field</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">IceModel_Polynomial</span><span class="p">(</span>
+            <span class="n">coeff</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_z_0</span> <span class="o">*</span> <span class="n">nu2rp_meter</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">*</span> <span class="n">nu2rp_meter</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_z_shift</span> <span class="o">*</span> <span class="n">nu2rp_meter</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_density_factor</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="IceModelExponentialPolynomial.set_density_factor">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExponentialPolynomial.set_density_factor">[docs]</a>
@@ -1332,6 +1340,8 @@
 <span class="sd">        --&gt; this converts the distance from SI unit meter into NuRadio units</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">z_unit</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
 <div class="viewcode-block" id="RadioPropaIceWrapper">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper">[docs]</a>
     <span class="k">class</span><span class="w"> </span><span class="nc">RadioPropaIceWrapper</span><span class="p">():</span>
@@ -1350,35 +1360,30 @@
             <span class="c1"># layers, observers to confine the model in a certain space ...</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span> <span class="o">=</span> <span class="p">{}</span>
 
-            <span class="n">step</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">centimeter</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">centimeter</span>
             <span class="n">air_boundary_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">])</span>
-            <span class="n">air_boundary</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">Discontinuity</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">Plane</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">air_boundary_pos</span><span class="o">*</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">))),</span>
-                                                     <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
-                                                    <span class="p">),</span>
-                                            <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">air_boundary_pos</span><span class="o">-</span><span class="n">step</span><span class="p">),</span>
-                                            <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">air_boundary_pos</span><span class="o">+</span><span class="n">step</span><span class="p">),</span>
-                                           <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="s2">&quot;air boundary&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">air_boundary</span>
 
-            <span class="n">bottom_boundary_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">z_bottom</span><span class="p">])</span>
-            <span class="n">boundary_bottom</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">ObserverSurface</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">Plane</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="p">((</span><span class="n">bottom_boundary_pos</span><span class="p">)</span>
-                                                                      <span class="o">*</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">)),</span>
-                                                                     <span class="p">),</span>
-                                                          <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)),</span>
-                                                         <span class="p">)</span>
+            <span class="n">air_boundary</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">Discontinuity</span><span class="p">(</span>
+                <span class="n">RP</span><span class="o">.</span><span class="n">Plane</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">*</span> <span class="n">nu2rp_meter</span><span class="p">),</span> <span class="n">z_unit</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">air_boundary_pos</span> <span class="o">-</span> <span class="n">step</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">air_boundary_pos</span> <span class="o">+</span> <span class="n">step</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="s2">&quot;air boundary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">air_boundary</span>
+
+            <span class="n">boundary_bottom</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">ObserverSurface</span><span class="p">(</span>
+                <span class="n">RP</span><span class="o">.</span><span class="n">Plane</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">z_bottom</span> <span class="o">*</span> <span class="n">nu2rp_meter</span><span class="p">),</span> <span class="n">z_unit</span><span class="p">))</span>
+
             <span class="n">bottom_observer</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">Observer</span><span class="p">()</span>
             <span class="n">bottom_observer</span><span class="o">.</span><span class="n">setDeactivateOnDetection</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">bottom_observer</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">boundary_bottom</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="s2">&quot;bottom observer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bottom_observer</span>
 
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="p">,</span> <span class="s1">&#39;reflection&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">reflection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">reflection_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">reflection</span><span class="p">])</span>
-                <span class="n">bottom_reflection</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">ReflectiveLayer</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">Plane</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">reflection_pos</span><span class="o">*</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">))),</span>
-                                                                <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
-                                                                <span class="p">),</span>
-                                                       <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">reflection_coefficient</span><span class="p">,</span>
-                                                      <span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="s2">&quot;bottom reflection&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">bottom_reflection</span>
+                <span class="n">bottom_reflection</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">ReflectiveLayer</span><span class="p">(</span>
+                    <span class="n">RP</span><span class="o">.</span><span class="n">Plane</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">reflection</span> <span class="o">*</span> <span class="n">nu2rp_meter</span><span class="p">),</span> <span class="n">z_unit</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">reflection_coefficient</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="s2">&quot;bottom reflection&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bottom_reflection</span>
 
 <div class="viewcode-block" id="RadioPropaIceWrapper.get_modules">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules">[docs]</a>
@@ -1520,7 +1525,7 @@
 <span class="sd">            n: float</span>
 <span class="sd">                index of refraction</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">])</span> <span class="o">/</span> <span class="n">nu2rp_meter</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span></div>
 
 
@@ -1540,8 +1545,8 @@
 <span class="sd">            n_nabla: radiopropa.Vector3d</span>
 <span class="sd">                gradient of index of refraction at the point</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
-            <span class="n">gradient</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">))</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">])</span> <span class="o">/</span> <span class="n">nu2rp_meter</span>
+            <span class="n">gradient</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">/</span> <span class="n">nu2rp_meter</span>
             <span class="k">return</span> <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="n">gradient</span><span class="p">)</span></div>
 </div>
 
