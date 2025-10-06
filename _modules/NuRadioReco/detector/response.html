@@ -1018,7 +1018,7 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanity_check</span><span class="p">:</span>
                 <span class="n">trace_length</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="n">other</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
-                <span class="n">time_delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_time_delay</span><span class="p">()</span>
+                <span class="n">time_delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_time_delay</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">time_delay</span> <span class="o">&gt;</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The time shift appiled by the response is larger than half the trace length:</span><span class="se">\n\t</span><span class="s2">&quot;</span>
                                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">trace_length</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1074,7 +1074,7 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanity_check</span><span class="p">:</span>
                 <span class="n">trace_length</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="n">other</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
-                <span class="n">time_delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_time_delay</span><span class="p">()</span>
+                <span class="n">time_delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_time_delay</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">time_delay</span> <span class="o">&gt;</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The time shift appiled by the response is larger than half the trace length:</span><span class="se">\n\t</span><span class="s2">&quot;</span>
                                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">trace_length</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1178,42 +1178,60 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_time_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Response.calculate_time_delay">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.calculate_time_delay">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_time_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmin</span><span class="o">=</span><span class="mi">150</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">fmax</span><span class="o">=</span><span class="mi">200</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate time delay from phase of the stored complex response function.</span>
 <span class="sd">        This is not the time delay which is stored in the DB and which is used in</span>
 <span class="sd">        the `__init__()` to normalize the response function. Rather, its the remaining</span>
 <span class="sd">        group delay.</span>
 
-<span class="sd">        The time delay is calculated as the mean between 195 and 205 MHz.</span>
+<span class="sd">        The time delay is calculated as the mean between fmin to fmax.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fmin: float</span>
+<span class="sd">            lower frequency limit to use in the averaging of the group delay</span>
+<span class="sd">        fmax: float</span>
+<span class="sd">            upper frequency limit to use in the averaging of the group delay</span>
+<span class="sd">        method: str</span>
+<span class="sd">            Method to calculate the time delay. Options are:</span>
+
+<span class="sd">            - &#39;mean&#39;: Calculate the mean group delay over the band fmin to fmax.</span>
+<span class="sd">            - &#39;fit&#39;: Fit a linear function to the unwrapped phase and calculate the time delay</span>
+<span class="sd">                     from the slope of the fit. This is only meaningful if the group delay is</span>
+<span class="sd">                     approximately constant over the whole frequency range (which is the case for most cables).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
-<span class="sd">        time_delay1 : float</span>
-<span class="sd">            The time delay at ~ 200 MHz</span>
+<span class="sd">        delay : float</span>
+<span class="sd">            The group delay over the band fmin to fmax</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">1200</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
-
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">fmin</span><span class="p">,</span> <span class="n">fmax</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
-        <span class="n">delta_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
-        <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="n">unwrapped_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">response</span><span class="p">))</span>
 
-        <span class="n">time_delay</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">phase</span><span class="p">))</span> <span class="o">/</span> <span class="n">delta_freq</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="mi">195</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span> <span class="o">&lt;</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">freqs</span> <span class="o">&lt;</span> <span class="mi">250</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">time_delay1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">time_delay</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span><span class="p">:</span>
+            <span class="n">group_delays</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">unwrapped_phase</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">freqs</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">group_delays</span><span class="p">)</span>
 
-        <span class="c1"># This alternative calculation is only meaningful if group delay is ~ constant over the whole frequency range (which is the case for most cables)</span>
-        <span class="c1"># # fit the unwrapped phase with a linear function</span>
-        <span class="c1"># popt = np.polyfit(freqs, np.unwrap(phase), 1)</span>
-        <span class="c1"># time_delay2 = -popt[0] / (2 * np.pi)</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;fit&quot;</span><span class="p">:</span>
+            <span class="c1"># This alternative calculation is only meaningful if group delay</span>
+            <span class="c1"># is ~ constant over the whole frequency range</span>
+            <span class="c1"># (which is the case for most cables)</span>
 
-        <span class="c1"># if np.abs(time_delay1 - time_delay2) &gt; 0.1 * units.ns:</span>
-        <span class="c1">#     self.logger.warning(&quot;Calculation of time delay. The two methods yield different results: &quot;</span>
-        <span class="c1">#                         f&quot;{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...&quot;)</span>
+            <span class="c1"># # fit the unwrapped phase with a linear function</span>
+            <span class="n">popt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">unwrapped_phase</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">time_delay</span> <span class="o">=</span> <span class="o">-</span><span class="n">popt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">time_delay1</span></div>
+            <span class="k">return</span> <span class="n">time_delay</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown method </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2"> to calculate time delay. &quot;</span>
+                             <span class="s2">&quot;Options are: &#39;mean&#39;, &#39;fit&#39;.&quot;</span><span class="p">)</span></div>
+</div>
 
 
 

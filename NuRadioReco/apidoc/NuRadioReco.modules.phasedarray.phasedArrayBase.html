@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.detector.response module &mdash; NuRadio 3.1.0-dev documentation</title>
+  <title>NuRadioReco.modules.phasedarray.phasedArrayBase module &mdash; NuRadio 3.1.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
@@ -20,8 +20,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.detector.sql_to_json module" href="NuRadioReco.detector.sql_to_json.html" />
-    <link rel="prev" title="NuRadioReco.detector.generic_detector module" href="NuRadioReco.detector.generic_detector.html" /> 
+    <link rel="next" title="NuRadioReco.modules.phasedarray.phasedArrayTrigger module" href="NuRadioReco.modules.phasedarray.phasedArrayTrigger.html" />
+    <link rel="prev" title="NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger module" href="NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -294,8 +294,8 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.html">NuRadioReco.modules package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3 current"><a class="reference internal" href="NuRadioReco.modules.html">NuRadioReco.modules package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.LOFAR.html">NuRadioReco.modules.LOFAR package</a></li>
@@ -307,7 +307,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
+<li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
 </ul>
 </li>
@@ -350,7 +350,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="reference internal" href="NuRadioReco.detector.html">NuRadioReco.detector package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.detector.html">NuRadioReco.detector package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
@@ -358,7 +358,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
 </ul>
 </li>
-<li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.detector.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.detector.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.amp.html">NuRadioReco.detector.amp module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.antennapattern.html">NuRadioReco.detector.antennapattern module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.detector.html">NuRadioReco.detector.detector module</a></li>
@@ -367,7 +367,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.generic_detector.html">NuRadioReco.detector.generic_detector module</a></li>
-<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.detector.response module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.response.html">NuRadioReco.detector.response module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.sql_to_json.html">NuRadioReco.detector.sql_to_json module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.test_detector_db.html">NuRadioReco.detector.test_detector_db module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.visualize_detector.html">NuRadioReco.detector.visualize_detector module</a></li>
@@ -628,10 +628,11 @@
       <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
-          <li class="breadcrumb-item"><a href="NuRadioReco.detector.html">NuRadioReco.detector package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.detector.response module</li>
+          <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
+          <li class="breadcrumb-item"><a href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.phasedarray.phasedArrayBase module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.detector.response.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.phasedArrayBase.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -639,248 +640,311 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.detector.response">
-<span id="nuradioreco-detector-response-module"></span><h1>NuRadioReco.detector.response module<a class="headerlink" href="#module-NuRadioReco.detector.response" title="Link to this heading"></a></h1>
+  <section id="module-NuRadioReco.modules.phasedarray.phasedArrayBase">
+<span id="nuradioreco-modules-phasedarray-phasedarraybase-module"></span><h1>NuRadioReco.modules.phasedarray.phasedArrayBase module<a class="headerlink" href="#module-NuRadioReco.modules.phasedarray.phasedArrayBase" title="Link to this heading"></a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="NuRadioReco.detector.response.Response">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.response.</span></span><span class="sig-name descname"><span class="pre">Response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_time_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuator_in_dB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#Response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.Response" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.phasedarray.phasedArrayBase.</span></span><span class="sig-name descname"><span class="pre">PhasedArrayBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/phasedArrayBase.html#PhasedArrayBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>This class provides an interface to read-in and apply the complex response functions of the
-various components of the signal chain of a RNO-G channel. The class allows to combine the
-response of several components into one response by multiplying them.</p>
+<p>Base class for all phased array trigger modules.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(freq[, component_names, blacklist])</p></td>
-<td><p>Returns the complex response for a given frequency.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.calculate_time_delays" title="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.calculate_time_delays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_time_delays</span></code></a>(station, det, ...[, ...])</p></td>
+<td><p>Calculates the delays needed for phasing the array.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.calculate_time_delay" title="NuRadioReco.detector.response.Response.calculate_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_time_delay</span></code></a>([fmin, fmax, method])</p></td>
-<td><p>Calculate time delay from phase of the stored complex response function.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.check_vertical_string" title="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.check_vertical_string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_vertical_string</span></code></a>(station, det, ...)</p></td>
+<td><p>Checks if the triggering antennas lie in a straight vertical line Throws error if not.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.get" title="NuRadioReco.detector.response.Response.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a>(name)</p></td>
-<td><p>Get a component response from the response object.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.get_channel_trace_start_time" title="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.get_channel_trace_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_trace_start_time</span></code></a>(station, ...)</p></td>
+<td><p>Finds the start time of the desired traces.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.get_names" title="NuRadioReco.detector.response.Response.get_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_names</span></code></a>()</p></td>
-<td><p>Get list of the names of all individual responses</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.get_traces" title="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.get_traces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_traces</span></code></a>(station, det[, ...])</p></td>
+<td><p>Get the traces from the station object</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.get_time_delay" title="NuRadioReco.detector.response.Response.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>()</p></td>
-<td><p>Get time delay from DB</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.phase_signals" title="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.phase_signals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phase_signals</span></code></a>(traces, beam_rolls[, ...])</p></td>
+<td><p>Phase signals together given the rolls</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.get_time_delays" title="NuRadioReco.detector.response.Response.get_time_delays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delays</span></code></a>()</p></td>
-<td><p>Get time delay from DB</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.phased_trigger" title="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.phased_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phased_trigger</span></code></a>(station, det[, threshold, ...])</p></td>
+<td><p>simulates phased array trigger for each event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.remove" title="NuRadioReco.detector.response.Response.remove"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove</span></code></a>(name)</p></td>
-<td><p>Remove a component response from the response object.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.power_sum" title="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.power_sum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">power_sum</span></code></a>(coh_sum, window, step[, ...])</p></td>
+<td><p>Calculate power summed over a length defined by 'window', overlapping at intervals defined by 'step'</p></td>
 </tr>
 </tbody>
 </table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>plot</strong></p></td>
+<tr class="row-odd"><td><p><strong>begin</strong></p></td>
 <td></td>
 </tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span><span class="n">station_id</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-<span class="c1"># Multipy the response to a trace. The multiply operator takes care of everything</span>
-<span class="n">trace_at_readout</span> <span class="o">=</span> <span class="n">trace_at_antenna</span> <span class="o">*</span> <span class="n">response</span>
-
-<span class="c1"># getting the complex response as array</span>
-<span class="n">freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
-<span class="n">complex_resp</span> <span class="o">=</span> <span class="n">response</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Specify the response of a component by either providing a frequency vector, absolute gain and phase vector
-as well as corresponding units (<em class="xref py py-obj">y</em> and <em class="xref py py-obj">y_unit</em> are a list of two entried for gain (0) and phase (1)), or
-by providing a single value for the gain (<em class="xref py py-obj">y</em> is a float and <em class="xref py py-obj">y_unit</em> is a string).</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
-<dt><strong>frequency</strong><span class="classifier">list(float) or None</span></dt><dd><p>The frequency vector at which the response is measured. Unit has to be GHz. If <em class="xref py py-obj">None</em>,
-the response is assumed to be constant (<em class="xref py py-obj">y</em> is interpreted as a scalar for the gain).</p>
-</dd>
-<dt><strong>y</strong><span class="classifier">[list(float), list(float)] or float</span></dt><dd><p>The measured response. First entry is the vector of the measured amplitude, the second entry is the measured phase.
-The unit of both entries is specified with the next argument.</p>
-</dd>
-<dt><strong>y_unit</strong><span class="classifier">[str, str] or str</span></dt><dd><p>The first entry specifies the unit of the measured amplitude. Options are “dB”, “MAG” and “mag”.
-The second entry specifies the unit of the measured phase. Options are “rad” and “deg”.</p>
-</dd>
-<dt><strong>time_delay</strong><span class="classifier">float (Default: 0)</span></dt><dd><p>“Average” group delay. Read from database. Will be used to normalize the phase and stored alongside response</p>
-</dd>
-<dt><strong>weight</strong><span class="classifier">float (Default: 1)</span></dt><dd><p>Specifies the weight with which this component reponse “adds” to the total signal-chain response or data.
-Its the exponent of the complex multiplicitive gain. That means that a value of 1 means to linear multiply this
-reponse while a value of -1 means to divide by this reponse.</p>
-</dd>
-<dt><strong>name</strong><span class="classifier">str (Default: “default”)</span></dt><dd><p>Give the response a name. This is only use for printing purposes.</p>
-</dd>
-<dt><strong>station_id</strong><span class="classifier">int (Default: None)</span></dt><dd><p>Associated station id.</p>
-</dd>
-<dt><strong>channel_id</strong><span class="classifier">int (Default: None)</span></dt><dd><p>Associated channel id.</p>
-</dd>
-<dt><strong>remove_time_delay</strong><span class="classifier">bool (Default: True)</span></dt><dd><p>If True, remove <em class="xref py py-obj">time_delay</em> from response.</p>
-</dd>
-<dt><strong>debug_plot</strong><span class="classifier">bool (Default: False)</span></dt><dd><p>If True, produce a debug plot</p>
-</dd>
-<dt><strong>attenuator_in_dB</strong><span class="classifier">float (Default: None)</span></dt><dd><p>DEPRECATED: Define a new response object with a single valued gain instead.
-Old description: Allows to add an additional attenuation/gain to the response.
-This is useful to simulate or correct of the the effect of an attenuator. The value is in dB.
-A value of 10dB will increase the response by 10 dB. (Default: 0 -&gt; no attenuation)</p>
-</dd>
-<dt><strong>log_level</strong><span class="classifier"><em class="xref py py-obj">logging.LOG_LEVEL</em> (Default: logging.NOTSET)</span></dt><dd><p>Overrides verbosity level of logger. Other options are: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.WARNING" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.WARNING</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.DEBUG" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.DEBUG</span></code></a>, …</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(freq[, component_names, blacklist])</p></td>
-<td><p>Returns the complex response for a given frequency.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.calculate_time_delay" title="NuRadioReco.detector.response.Response.calculate_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_time_delay</span></code></a>([fmin, fmax, method])</p></td>
-<td><p>Calculate time delay from phase of the stored complex response function.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.get" title="NuRadioReco.detector.response.Response.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a>(name)</p></td>
-<td><p>Get a component response from the response object.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.get_names" title="NuRadioReco.detector.response.Response.get_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_names</span></code></a>()</p></td>
-<td><p>Get list of the names of all individual responses</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.get_time_delay" title="NuRadioReco.detector.response.Response.get_time_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delay</span></code></a>()</p></td>
-<td><p>Get time delay from DB</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.get_time_delays" title="NuRadioReco.detector.response.Response.get_time_delays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_delays</span></code></a>()</p></td>
-<td><p>Get time delay from DB</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.response.Response.remove" title="NuRadioReco.detector.response.Response.remove"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove</span></code></a>(name)</p></td>
-<td><p>Remove a component response from the response object.</p></td>
-</tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><strong>plot</strong></p></td>
+<tr class="row-even"><td><p><strong>hilbert_envelope</strong></p></td>
 <td></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.response.Response.get_names">
-<span class="sig-name descname"><span class="pre">get_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#Response.get_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.Response.get_names" title="Link to this definition"></a></dt>
-<dd><p>Get list of the names of all individual responses</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.response.Response.remove">
-<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#Response.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.Response.remove" title="Link to this definition"></a></dt>
-<dd><p>Remove a component response from the response object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>name: str</strong></dt><dd><p>Name of the component to remove</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.response.Response.get">
-<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#Response.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.Response.get" title="Link to this definition"></a></dt>
-<dd><p>Get a component response from the response object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>name: str</strong></dt><dd><p>Name of the component to get</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.response.Response.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_dB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plt_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#Response.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.Response.plot" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.begin">
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_trigger_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/phasedArrayBase.html#PhasedArrayBase.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.begin" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.response.Response.get_time_delay">
-<span class="sig-name descname"><span class="pre">get_time_delay</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#Response.get_time_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.Response.get_time_delay" title="Link to this definition"></a></dt>
-<dd><p>Get time delay from DB</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.response.Response.get_time_delays">
-<span class="sig-name descname"><span class="pre">get_time_delays</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#Response.get_time_delays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.Response.get_time_delays" title="Link to this definition"></a></dt>
-<dd><p>Get time delay from DB</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.response.Response.calculate_time_delay">
-<span class="sig-name descname"><span class="pre">calculate_time_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#Response.calculate_time_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.Response.calculate_time_delay" title="Link to this definition"></a></dt>
-<dd><p>Calculate time delay from phase of the stored complex response function.
-This is not the time delay which is stored in the DB and which is used in
-the <em class="xref py py-obj">__init__()</em> to normalize the response function. Rather, its the remaining
-group delay.</p>
-<p>The time delay is calculated as the mean between fmin to fmax.</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.calculate_time_delays">
+<span class="sig-name descname"><span class="pre">calculate_time_delays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phasing_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/phasedArrayBase.html#PhasedArrayBase.calculate_time_delays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.calculate_time_delays" title="Link to this definition"></a></dt>
+<dd><p>Calculates the delays needed for phasing the array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>fmin: float</strong></dt><dd><p>lower frequency limit to use in the averaging of the group delay</p>
+<dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
 </dd>
-<dt><strong>fmax: float</strong></dt><dd><p>upper frequency limit to use in the averaging of the group delay</p>
+<dt><strong>det: Detector object</strong></dt><dd><p>Description of the current detector</p>
 </dd>
-<dt><strong>method: str</strong></dt><dd><p>Method to calculate the time delay. Options are:</p>
-<ul class="simple">
-<li><p>‘mean’: Calculate the mean group delay over the band fmin to fmax.</p></li>
-<li><dl class="simple">
-<dt>‘fit’: Fit a linear function to the unwrapped phase and calculate the time delay</dt><dd><p>from the slope of the fit. This is only meaningful if the group delay is
-approximately constant over the whole frequency range (which is the case for most cables).</p>
+<dt><strong>triggered_channels: array of ints</strong></dt><dd><p>channels ids of the channels that form the primary phasing array
+if None, all channels are taken</p>
+</dd>
+<dt><strong>phasing_angles: array of float</strong></dt><dd><p>pointing angles for the primary beam</p>
+</dd>
+<dt><strong>ref_index: float</strong></dt><dd><p>refractive index for beam forming</p>
+</dd>
+<dt><strong>sampling_frequency: float</strong></dt><dd><p>Rate of the ADC used</p>
 </dd>
 </dl>
-</li>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>beam_rolls: array of dicts of keys=antenna and content=delay</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.get_channel_trace_start_time">
+<span class="sig-name descname"><span class="pre">get_channel_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/phasedArrayBase.html#PhasedArrayBase.get_channel_trace_start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.get_channel_trace_start_time" title="Link to this definition"></a></dt>
+<dd><p>Finds the start time of the desired traces.
+Throws an error if all the channels dont have the same start time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
+</dd>
+<dt><strong>triggered_channels: array of ints</strong></dt><dd><p>channels ids of the channels that form the primary phasing array
+if None, all channels are taken</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>channel_trace_start_time: float</dt><dd><p>Channel start time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.check_vertical_string">
+<span class="sig-name descname"><span class="pre">check_vertical_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/phasedArrayBase.html#PhasedArrayBase.check_vertical_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.check_vertical_string" title="Link to this definition"></a></dt>
+<dd><p>Checks if the triggering antennas lie in a straight vertical line
+Throws error if not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
+</dd>
+<dt><strong>det: Detector object</strong></dt><dd><p>Description of the current detector</p>
+</dd>
+<dt><strong>triggered_channels: array of ints</strong></dt><dd><p>channels ids of the channels that form the primary phasing array
+if None, all channels are taken</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.phase_signals">
+<span class="sig-name descname"><span class="pre">phase_signals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_rolls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saturation_bits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/phasedArrayBase.html#PhasedArrayBase.phase_signals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.phase_signals" title="Link to this definition"></a></dt>
+<dd><p>Phase signals together given the rolls</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>traces: 2D array of floats</strong></dt><dd><p>Signals from the antennas to be phased together.</p>
+</dd>
+<dt><strong>beam_rolls: 2D array of floats</strong></dt><dd><p>The amount to shift each signal before phasing the
+traces together</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>phased_traces: array of arrays</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.power_sum">
+<span class="sig-name descname"><span class="pre">power_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coh_sum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">averaging_divisor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/phasedArrayBase.html#PhasedArrayBase.power_sum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.power_sum" title="Link to this definition"></a></dt>
+<dd><p>Calculate power summed over a length defined by ‘window’, overlapping at intervals defined by ‘step’</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>coh_sum: array of floats</strong></dt><dd><p>Phased signal to be integrated over</p>
+</dd>
+<dt><strong>window: int</strong></dt><dd><p>Power integral window
+Units of ADC time ticks</p>
+</dd>
+<dt><strong>step: int</strong></dt><dd><p>Time step in power integral. If equal to window, there is no time overlap
+in between neighboring integration windows
+Units of ADC time ticks.</p>
+</dd>
+<dt><strong>adc_output: string</strong></dt><dd><p>Options:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘voltage’ to store the ADC output as discretised voltage trace</p></li>
+<li><p>‘counts’ to store the ADC output in ADC counts</p></li>
 </ul>
+</div></blockquote>
+</dd>
+<dt><strong>averaging_divisor: int (default None)</strong></dt><dd><p>Power integral divisor for averaging. If not specified,
+the divisor is the same as the summation window.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>delay</strong><span class="classifier">float</span></dt><dd><p>The group delay over the band fmin to fmax</p>
+<dt>power:</dt><dd><p>Integrated power in each integration window</p>
+</dd>
+<dt>num_frames</dt><dd><p>Number of integration windows calculated</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.response.subtract_time_delay_from_response">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.response.</span></span><span class="sig-name descname"><span class="pre">subtract_time_delay_from_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/response.html#subtract_time_delay_from_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.response.subtract_time_delay_from_response" title="Link to this definition"></a></dt>
-<dd><p>Remove a constant time delay from a complex response function</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.get_traces">
+<span class="sig-name descname"><span class="pre">get_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_digitization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/phasedArrayBase.html#PhasedArrayBase.get_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.get_traces" title="Link to this definition"></a></dt>
+<dd><p>Get the traces from the station object</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>frequencies</strong><span class="classifier">array of floats</span></dt><dd><p>Corresponding frequencies</p>
+<dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
 </dd>
-<dt><strong>resp</strong><span class="classifier">array of (complex) floats</span></dt><dd><p>Complex response function (if <em class="xref py py-obj">phase is None</em>), Real gain of a complex response
-function (if <em class="xref py py-obj">phase is not None</em>).</p>
+<dt><strong>det: Detector object</strong></dt><dd><p>Description of the current detector</p>
 </dd>
-<dt><strong>phase</strong><span class="classifier">array of floats</span></dt><dd><p>Phase of the complex response function (optional). (Default: None)</p>
+<dt><strong>triggered_channels: array of ints (default: None)</strong></dt><dd><p>channels ids of the channels that form the primary phasing array
+if None, all channels are taken</p>
 </dd>
-<dt><strong>time_delay</strong><span class="classifier">float</span></dt><dd><p>Time delay to be removed</p>
+<dt><strong>apply_digitization: bool</strong></dt><dd><p>If True, the traces are digitized</p>
+</dd>
+<dt><strong>adc_kwargs: dict</strong></dt><dd><p>Keyword arguments for the ADC</p>
+</dd>
+<dt><strong>upsampling_kwargs: dict</strong></dt><dd><p>Keyword arguments for the upsampling function</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>resp: array of complex floats</dt><dd><p>Corrected response function</p>
+<dt>traces: 2D array of floats</dt><dd><p>Signals from the antennas to be phased together.</p>
+</dd>
+<dt>sampling_frequency: float</dt><dd><p>Sampling frequency of the traces</p>
 </dd>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.hilbert_envelope">
+<span class="sig-name descname"><span class="pre">hilbert_envelope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coh_sum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_transformer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hilbert_n_taps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">31</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hilbert_coeff_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/phasedArrayBase.html#PhasedArrayBase.hilbert_envelope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.hilbert_envelope" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.phased_trigger">
+<span class="sig-name descname"><span class="pre">phased_trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phasing_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([-9.59931089e-01,</span> <span class="pre">-7.14608352e-01,</span> <span class="pre">-5.13801244e-01,</span> <span class="pre">-3.33826648e-01,</span> <span class="pre">-1.64572284e-01,</span> <span class="pre">1.11022302e-16,</span> <span class="pre">1.64572284e-01,</span> <span class="pre">3.33826648e-01,</span> <span class="pre">5.13801244e-01,</span> <span class="pre">7.14608352e-01,</span> <span class="pre">9.59931089e-01])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_digitization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'adc_output':</span> <span class="pre">'voltage'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'coeff_gain':</span> <span class="pre">128,</span> <span class="pre">'filter_taps':</span> <span class="pre">31,</span> <span class="pre">'upsampling_factor':</span> <span class="pre">1,</span> <span class="pre">'upsampling_method':</span> <span class="pre">'fft'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saturation_bits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">averaging_divisor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hilbert_transformer_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'hilbert_coeff_gain':</span> <span class="pre">128,</span> <span class="pre">'hilbert_n_taps':</span> <span class="pre">31,</span> <span class="pre">'ideal_transformer':</span> <span class="pre">False}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'power_sum'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/phasedArrayBase.html#PhasedArrayBase.phased_trigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.phasedArrayBase.PhasedArrayBase.phased_trigger" title="Link to this definition"></a></dt>
+<dd><p>simulates phased array trigger for each event</p>
+<p>Several channels are phased by delaying their signals by an amount given
+by a pointing angle. Several pointing angles are possible in order to cover
+the sky. The array triggered_channels controls the channels that are phased,
+according to the angles phasing_angles.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
+</dd>
+<dt><strong>det: Detector object</strong></dt><dd><p>Description of the current detector</p>
+</dd>
+<dt><strong>threshold: float</strong></dt><dd><p>threshold above (or below) a trigger is issued, absolute amplitude</p>
+</dd>
+<dt><strong>triggered_channels: array of ints</strong></dt><dd><p>channels ids of the channels that form the primary phasing array
+if None, all channels are taken</p>
+</dd>
+<dt><strong>phasing_angles: array of float</strong></dt><dd><p>pointing angles for the primary beam</p>
+</dd>
+<dt><strong>ref_index: float (default 1.75)</strong></dt><dd><p>refractive index for beam forming</p>
+</dd>
+<dt><strong>apply_digitization: bool (default False)</strong></dt><dd><p>Perform the quantization with the analogToDigitalConverter module.</p>
+</dd>
+<dt><strong>adc_kwargs: dict</strong></dt><dd><p>Keyword arguments for the ADC module. Only used if <em class="xref py py-obj">apply_digitization == True</em>.
+For arguments, see the documentation of the analogToDigitalConverter module.</p>
+</dd>
+<dt><strong>upsampling_kwargs: dict</strong></dt><dd><p>For arguments, see the documentation of the digital_upsampling function</p>
+</dd>
+<dt><strong>saturation_bits: int (default None)</strong></dt><dd><p>Determines what the coherenty summed waveforms will saturate to if using adc counts</p>
+</dd>
+<dt><strong>window: int (default 32)</strong></dt><dd><p>Power integration window for averaging
+Units of ADC time ticks</p>
+</dd>
+<dt><strong>step: int (default 16)</strong></dt><dd><p>Time step in power integral. If equal to window, there is no time overlap
+in between neighboring integration windows.
+Units of ADC time ticks</p>
+</dd>
+<dt><strong>averaging_divisor: int (default 32)</strong></dt><dd><p>Power integral divisor for averaging (division by 2^n much easier in firmware)
+Units of ADC time ticks</p>
+</dd>
+<dt><strong>ideal_transformer: bool (default False)</strong></dt><dd><p>If true, use scipy.hilbert to compute an exact Hilbert envelope with scipy.hilbert and np.sqrt.
+Otherwise, a firmware-like FIR-based Hilbert transformer will be used and with an approximation
+function to a square root to calculate the envelope.</p>
+</dd>
+<dt><strong>hilbert_n_taps: int (defult 31)</strong></dt><dd><p>Number of taps used to construct the FIR-based Hilbert transformer</p>
+</dd>
+<dt><strong>hilbert_coeff_gain: int (default 128)</strong></dt><dd><p>Rescaling factor to quantize the FIR-based Hilbert transformer</p>
+</dd>
+<dt><strong>mode: string (default: “power_sum”)</strong></dt><dd><p>The mode of the trigger. Can be either “power_sum” or “hilbert_env”.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>“power_sum”: uses the power_sum method to calculate the trigger</p></li>
+<li><p>“hilbert_env”: uses the hilbert envelope method to calculate the trigger</p></li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>is_triggered: bool</dt><dd><p>True if the triggering condition is met</p>
+</dd>
+<dt>trigger_delays: dictionary</dt><dd><p>the delays for the primary channels that have caused a trigger.
+If there is no trigger, it’s an empty dictionary</p>
+</dd>
+<dt>trigger_time: float</dt><dd><p>the earliest trigger time with respect to first interaction time.</p>
+</dd>
+<dt>trigger_times: dictionary</dt><dd><p>all time bins that fulfil the trigger condition per beam. The key is the beam number. Time with respect to first interaction time.</p>
+</dd>
+<dt>maximum_amps: list of floats (length equal to that of <em class="xref py py-obj">phasing_angles</em>)</dt><dd><p>the maximum value of all the integration windows for each of the phased waveforms</p>
+</dd>
+<dt>n_trigs: int</dt><dd><p>total number of triggers that happened for all beams across the full traces</p>
+</dd>
+<dt>triggered_beams: list</dt><dd><p>list of bools for which beams triggered</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -889,8 +953,8 @@ function (if <em class="xref py py-obj">phase is not None</em>).</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.detector.generic_detector.html" class="btn btn-neutral float-left" title="NuRadioReco.detector.generic_detector module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.detector.sql_to_json.html" class="btn btn-neutral float-right" title="NuRadioReco.detector.sql_to_json module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.phasedarray.phasedArrayTrigger.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.phasedarray.phasedArrayTrigger module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

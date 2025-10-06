@@ -1,0 +1,7 @@
+NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger module
+========================================================================
+
+.. automodule:: NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger
+   :members:
+   :undoc-members:
+   :show-inheritance:

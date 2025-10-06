@@ -12,4 +12,7 @@ Submodules
 .. toctree::
    :maxdepth: 1
 
-   NuRadioReco.modules.phasedarray.triggerSimulator
+   NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger
+   NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger
+   NuRadioReco.modules.phasedarray.phasedArrayBase
+   NuRadioReco.modules.phasedarray.phasedArrayTrigger

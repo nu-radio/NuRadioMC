@@ -723,9 +723,8 @@
 <span class="sd">    resampled_trace : ndarray</span>
 <span class="sd">        The resampled trace.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">resampling_factor</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span>
-        <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="n">sampling_factor</span><span class="p">)</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">limit_denominator</span><span class="p">(</span><span class="mi">5000</span><span class="p">)</span>
+    <span class="n">resampling_factor</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="n">sampling_factor</span><span class="p">))</span><span class="o">.</span><span class="n">limit_denominator</span><span class="p">(</span><span class="mi">5000</span><span class="p">)</span>
+
     <span class="n">n_samples</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">resampled_trace</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
 
@@ -750,9 +749,93 @@
 
 
 
+<div class="viewcode-block" id="digital_upsampling">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html#NuRadioReco.utilities.signal_processing.digital_upsampling">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">digital_upsampling</span><span class="p">(</span>
+        <span class="n">trace</span><span class="p">,</span> <span class="n">adc_sampling_frequency</span><span class="p">,</span> <span class="n">upsampling_method</span><span class="o">=</span><span class="s1">&#39;fft&#39;</span><span class="p">,</span>
+        <span class="n">upsampling_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">coeff_gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">filter_taps</span><span class="o">=</span><span class="mi">45</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Digital upsampling with various methods and settings.</span>
+
+<span class="sd">    In this context digital upsampling means that the upsampling factor is an integer.</span>
+<span class="sd">    If the input trace is &quot;digital&quot; (i.e., all values are all integers), the output trace will also be</span>
+<span class="sd">    digital (upsampled values are rounded to the nearest integer).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace : 1d array (float or int)</span>
+<span class="sd">        Input trace to upsample</span>
+<span class="sd">    adc_sampling_frequency : float</span>
+<span class="sd">        Original sampling frequency for trace</span>
+<span class="sd">    upsampling_method: str (default &#39;fft&#39;)</span>
+<span class="sd">        Choose between FFT, FIR, or Linear Interpolaion based upsampling methods</span>
+<span class="sd">    upsampling_factor : float (default 2)</span>
+<span class="sd">        The factor which the sampling frequency increases</span>
+<span class="sd">    coeff_gain: int (default 1)</span>
+<span class="sd">        If using the FIR upsampling, this will convert the floating point output of the</span>
+<span class="sd">        scipy filter to a fixed point value by multiplying by this factor and rounding to an int.</span>
+<span class="sd">        If set to 1, this will preserve the float value of the filter coefficients.</span>
+<span class="sd">    filter_taps : int (default 45)</span>
+<span class="sd">        Number of taps in the FIR filter in FIR-based upsampling.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    upsampled_trace : 1d array (float or int)</span>
+<span class="sd">        Upsampled trace at the new sampling frequency</span>
+<span class="sd">    new_sampling_frequency : float</span>
+<span class="sd">        New sampling frequency</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">upsampling_factor</span><span class="p">)</span> <span class="o">-</span> <span class="n">upsampling_factor</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-3</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The input upsampling factor does not seem to be close to an integer. &quot;</span>
+            <span class="s2">&quot;It has been rounded to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">upsampling_factor</span><span class="p">)))</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">upsampling_factor</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">upsampling_factor</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not convert upsampling_factor to integer. Exiting.&quot;</span><span class="p">)</span>
+
+    <span class="n">is_digital_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">trace</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">upsampling_factor</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Upsampling factor is less or equal to 1. Upsampling will not be performed.&quot;</span><span class="p">)</span>
+        <span class="n">upsampled_trace</span> <span class="o">=</span> <span class="n">trace</span>
+        <span class="n">new_sampling_freq</span> <span class="o">=</span> <span class="n">adc_sampling_frequency</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">new_sampling_freq</span> <span class="o">=</span> <span class="n">adc_sampling_frequency</span> <span class="o">*</span> <span class="n">upsampling_factor</span>
+        <span class="n">new_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">*</span> <span class="n">upsampling_factor</span>
+
+        <span class="k">if</span> <span class="n">upsampling_method</span> <span class="o">==</span> <span class="s1">&#39;fft&#39;</span><span class="p">:</span>
+            <span class="n">upsampled_trace</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">new_len</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">upsampling_method</span> <span class="o">==</span> <span class="s1">&#39;lin&#39;</span><span class="p">:</span>
+            <span class="n">cur_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">adc_sampling_frequency</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">),</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">adc_sampling_frequency</span><span class="p">)</span>
+            <span class="n">new_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">adc_sampling_frequency</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">),</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">new_sampling_freq</span><span class="p">)</span>
+            <span class="n">upsampled_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">new_t</span><span class="p">,</span> <span class="n">cur_t</span><span class="p">,</span> <span class="n">trace</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">upsampling_method</span> <span class="o">==</span> <span class="s1">&#39;fir&#39;</span><span class="p">:</span>
+            <span class="n">upsampled_trace</span> <span class="o">=</span> <span class="n">upsampling_fir</span><span class="p">(</span>
+                <span class="n">trace</span><span class="p">,</span> <span class="n">adc_sampling_frequency</span><span class="p">,</span> <span class="n">upsampling_factor</span><span class="o">=</span><span class="n">upsampling_factor</span><span class="p">,</span>
+                <span class="n">ntaps</span><span class="o">=</span><span class="n">filter_taps</span><span class="p">,</span> <span class="n">coeff_gain</span><span class="o">=</span><span class="n">coeff_gain</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="s1">&#39;Interpolation method must be lin, fft, or fir&#39;</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">is_digital_trace</span><span class="p">:</span>
+            <span class="n">upsampled_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">upsampled_trace</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">upsampled_trace</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">upsampled_trace</span> <span class="o">=</span> <span class="n">upsampled_trace</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">upsampled_trace</span><span class="p">,</span> <span class="n">new_sampling_freq</span></div>
+
+
+
 <div class="viewcode-block" id="upsampling_fir">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html#NuRadioReco.utilities.signal_processing.upsampling_fir">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">upsampling_fir</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">original_sampling_frequency</span><span class="p">,</span> <span class="n">int_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ntaps</span><span class="o">=</span><span class="mi">2</span><span class="o">**</span><span class="mi">7</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">upsampling_fir</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">original_sampling_frequency</span><span class="p">,</span> <span class="n">upsampling_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ntaps</span><span class="o">=</span><span class="mi">2</span><span class="o">**</span><span class="mi">7</span><span class="p">,</span> <span class="n">coeff_gain</span><span class="o">=</span><span class="mi">128</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function performs an upsampling by inserting a number of zeroes</span>
 <span class="sd">    between samples and then applying a finite impulse response (FIR) filter.</span>
@@ -763,10 +846,10 @@
 <span class="sd">        Trace to be upsampled</span>
 <span class="sd">    original_sampling_frequency: float</span>
 <span class="sd">        Sampling frequency of the input trace</span>
-<span class="sd">    int_factor: integer</span>
+<span class="sd">    upsampling_factor: int</span>
 <span class="sd">        Upsampling factor. The resulting trace will have a sampling frequency</span>
-<span class="sd">        int_factor times higher than the original one</span>
-<span class="sd">    ntaps: integer</span>
+<span class="sd">        upsampling_factor times higher than the original one</span>
+<span class="sd">    ntaps: int</span>
 <span class="sd">        Number of taps (order) of the FIR filter</span>
 
 <span class="sd">    Returns</span>
@@ -775,35 +858,24 @@
 <span class="sd">        The upsampled trace</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">int_factor</span><span class="p">)</span> <span class="o">-</span> <span class="n">int_factor</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-3</span><span class="p">:</span>
-        <span class="n">warning_msg</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="s2">&quot;The input upsampling factor does not seem to be close to an integer.&quot;</span>
-        <span class="p">)</span>
-        <span class="n">warning_msg</span> <span class="o">+=</span> <span class="s2">&quot;It has been rounded to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">int_factor</span><span class="p">))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">warning_msg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">upsampling_factor</span><span class="p">)</span> <span class="o">-</span> <span class="n">upsampling_factor</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-5</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The input upsampling factor does not seem to be close to an integer.&quot;</span><span class="p">)</span>
 
-    <span class="n">int_factor</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">int_factor</span><span class="p">)</span>
+    <span class="n">upsampling_factor</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">upsampling_factor</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">int_factor</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">error_msg</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="s2">&quot;Upsampling factor is less or equal to 1. Upsampling will not be performed.&quot;</span>
-        <span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+    <span class="n">cutoff</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">up_filt</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">firwin</span><span class="p">(</span>
+        <span class="n">ntaps</span><span class="p">,</span> <span class="n">original_sampling_frequency</span> <span class="o">*</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">pass_zero</span><span class="o">=</span><span class="s1">&#39;lowpass&#39;</span><span class="p">,</span>
+        <span class="n">fs</span><span class="o">=</span><span class="n">original_sampling_frequency</span> <span class="o">*</span> <span class="n">upsampling_factor</span><span class="p">)</span>
 
-    <span class="n">zeroed_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">*</span> <span class="n">int_factor</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i_point</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trace</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-        <span class="n">zeroed_trace</span><span class="p">[</span><span class="n">i_point</span> <span class="o">*</span> <span class="n">int_factor</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span>
+    <span class="k">if</span> <span class="n">coeff_gain</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">up_filt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">up_filt</span> <span class="o">*</span> <span class="n">coeff_gain</span><span class="p">)</span> <span class="o">/</span> <span class="n">coeff_gain</span>
+        <span class="n">up_filt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trim_zeros</span><span class="p">(</span><span class="n">up_filt</span><span class="p">)</span>
 
-    <span class="n">upsampled_delta_time</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">int_factor</span> <span class="o">*</span> <span class="n">original_sampling_frequency</span><span class="p">)</span>
-    <span class="n">upsampled_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
-        <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">zeroed_trace</span><span class="p">)</span> <span class="o">*</span> <span class="n">upsampled_delta_time</span><span class="p">,</span> <span class="n">upsampled_delta_time</span>
-    <span class="p">)</span>
-
-    <span class="n">cutoff</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">int_factor</span>
-    <span class="n">fir_coeffs</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">firwin</span><span class="p">(</span><span class="n">ntaps</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s2">&quot;boxcar&quot;</span><span class="p">)</span>
-    <span class="n">upsampled_trace</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">zeroed_trace</span><span class="p">,</span> <span class="n">fir_coeffs</span><span class="p">)[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">upsampled_times</span><span class="p">)]</span> <span class="o">*</span> <span class="n">int_factor</span>
-    <span class="p">)</span>
+    <span class="n">zero_padded_sig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">*</span> <span class="n">upsampling_factor</span><span class="p">)</span>
+    <span class="n">zero_padded_sig</span><span class="p">[::</span><span class="n">upsampling_factor</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span>
+    <span class="n">upsampled_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">zero_padded_sig</span><span class="p">,</span> <span class="n">up_filt</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)[</span>
+        <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">up_filt</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">zero_padded_sig</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">up_filt</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">upsampling_factor</span>
 
     <span class="k">return</span> <span class="n">upsampled_trace</span></div>
 

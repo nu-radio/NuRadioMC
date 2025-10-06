@@ -1,0 +1,7 @@
+NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger module
+=======================================================================
+
+.. automodule:: NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -707,8 +707,45 @@ middle to make the window <em class="xref py py-obj">length</em> long. Note that
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.signal_processing.digital_upsampling">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">digital_upsampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_sampling_frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fft'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_taps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">45</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#digital_upsampling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.digital_upsampling" title="Link to this definition"></a></dt>
+<dd><p>Digital upsampling with various methods and settings.</p>
+<p>In this context digital upsampling means that the upsampling factor is an integer.
+If the input trace is “digital” (i.e., all values are all integers), the output trace will also be
+digital (upsampled values are rounded to the nearest integer).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace</strong><span class="classifier">1d array (float or int)</span></dt><dd><p>Input trace to upsample</p>
+</dd>
+<dt><strong>adc_sampling_frequency</strong><span class="classifier">float</span></dt><dd><p>Original sampling frequency for trace</p>
+</dd>
+<dt><strong>upsampling_method: str (default ‘fft’)</strong></dt><dd><p>Choose between FFT, FIR, or Linear Interpolaion based upsampling methods</p>
+</dd>
+<dt><strong>upsampling_factor</strong><span class="classifier">float (default 2)</span></dt><dd><p>The factor which the sampling frequency increases</p>
+</dd>
+<dt><strong>coeff_gain: int (default 1)</strong></dt><dd><p>If using the FIR upsampling, this will convert the floating point output of the
+scipy filter to a fixed point value by multiplying by this factor and rounding to an int.
+If set to 1, this will preserve the float value of the filter coefficients.</p>
+</dd>
+<dt><strong>filter_taps</strong><span class="classifier">int (default 45)</span></dt><dd><p>Number of taps in the FIR filter in FIR-based upsampling.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>upsampled_trace</strong><span class="classifier">1d array (float or int)</span></dt><dd><p>Upsampled trace at the new sampling frequency</p>
+</dd>
+<dt><strong>new_sampling_frequency</strong><span class="classifier">float</span></dt><dd><p>New sampling frequency</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.signal_processing.upsampling_fir">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">upsampling_fir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_sampling_frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#upsampling_fir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.upsampling_fir" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">upsampling_fir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_sampling_frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#upsampling_fir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.upsampling_fir" title="Link to this definition"></a></dt>
 <dd><p>This function performs an upsampling by inserting a number of zeroes
 between samples and then applying a finite impulse response (FIR) filter.</p>
 <dl class="field-list simple">
@@ -718,10 +755,10 @@ between samples and then applying a finite impulse response (FIR) filter.</p>
 </dd>
 <dt><strong>original_sampling_frequency: float</strong></dt><dd><p>Sampling frequency of the input trace</p>
 </dd>
-<dt><strong>int_factor: integer</strong></dt><dd><p>Upsampling factor. The resulting trace will have a sampling frequency
-int_factor times higher than the original one</p>
+<dt><strong>upsampling_factor: int</strong></dt><dd><p>Upsampling factor. The resulting trace will have a sampling frequency
+upsampling_factor times higher than the original one</p>
 </dd>
-<dt><strong>ntaps: integer</strong></dt><dd><p>Number of taps (order) of the FIR filter</p>
+<dt><strong>ntaps: int</strong></dt><dd><p>Number of taps (order) of the FIR filter</p>
 </dd>
 </dl>
 </dd>

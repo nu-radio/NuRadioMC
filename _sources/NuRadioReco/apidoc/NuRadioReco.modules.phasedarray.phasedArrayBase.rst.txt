@@ -1,0 +1,7 @@
+NuRadioReco.modules.phasedarray.phasedArrayBase module
+======================================================
+
+.. automodule:: NuRadioReco.modules.phasedarray.phasedArrayBase
+   :members:
+   :undoc-members:
+   :show-inheritance:

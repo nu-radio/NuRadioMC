@@ -1,0 +1,7 @@
+NuRadioReco.modules.phasedarray.phasedArrayTrigger module
+=========================================================
+
+.. automodule:: NuRadioReco.modules.phasedarray.phasedArrayTrigger
+   :members:
+   :undoc-members:
+   :show-inheritance:

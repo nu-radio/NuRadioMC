@@ -634,10 +634,11 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.framework.trigger</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">six</span><span class="w"> </span><span class="kn">import</span> <span class="n">iteritems</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dumps</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">six</span><span class="w"> </span><span class="kn">import</span> <span class="n">iteritems</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
 
@@ -647,26 +648,30 @@
     <span class="n">triggers</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">data_pkl</span> <span class="ow">in</span> <span class="n">triggers_pkl</span><span class="p">:</span>
         <span class="n">trigger_type</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)[</span><span class="s1">&#39;_trigger_type&#39;</span><span class="p">]</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;default&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;default&#39;</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">Trigger</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span><span class="p">(</span><span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;simple_threshold&#39;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;simple_threshold&#39;</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">SimpleThresholdTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span><span class="p">(</span><span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;high_low&#39;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;high_low&#39;</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">HighLowTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span><span class="p">(</span><span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;simple_phased&#39;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;simple_phased&#39;</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">SimplePhasedTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span><span class="p">(</span><span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;envelope_trigger&#39;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;envelope_trigger&#39;</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">EnvelopeTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;int_power&#39;</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">IntegratedPowerTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;envelope_phased&#39;</span><span class="p">:</span>
             <span class="n">trigger</span>  <span class="o">=</span> <span class="n">EnvelopePhasedTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span><span class="p">(</span><span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;rnog_surface_trigger&#39;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;digital_envelope_phased&#39;</span><span class="p">:</span>
+            <span class="n">trigger</span>  <span class="o">=</span> <span class="n">DigitalEnvelopePhasedTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;rnog_surface_trigger&#39;</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">RNOGSurfaceTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unknown trigger type&quot;</span><span class="p">)</span>
+
         <span class="n">trigger</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
         <span class="n">triggers</span><span class="p">[</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()]</span> <span class="o">=</span> <span class="n">trigger</span>
+
     <span class="k">return</span> <span class="n">triggers</span></div>
 
 
@@ -1043,7 +1048,7 @@
 <span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">,</span> <span class="s1">&#39;envelope_phased&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
+        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">,</span> <span class="s1">&#39;analog_envelope_phased&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered_channels</span> <span class="o">=</span> <span class="n">triggered_channels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_phasing_angles</span> <span class="o">=</span> <span class="n">phasing_angles</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_factor</span> <span class="o">=</span> <span class="n">threshold_factor</span>
@@ -1051,6 +1056,48 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_power_std</span> <span class="o">=</span> <span class="n">power_std</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_delays</span> <span class="o">=</span> <span class="n">trigger_delays</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_output_passband</span> <span class="o">=</span> <span class="n">output_passband</span></div>
+
+
+<div class="viewcode-block" id="DigitalEnvelopePhasedTrigger">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DigitalEnvelopePhasedTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">phasing_angles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_delays</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">maximum_amps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        initialize trigger class</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name: string</span>
+<span class="sd">            unique name of the trigger</span>
+<span class="sd">        threshold: float</span>
+<span class="sd">            the threshold</span>
+<span class="sd">        power_mean: float</span>
+<span class="sd">            mean of the noise trace after being filtered with the diode</span>
+<span class="sd">        power_std: float</span>
+<span class="sd">            standard deviation of the noise trace after being filtered with the</span>
+<span class="sd">            diode. power_mean and power_std can be calculated with the function</span>
+<span class="sd">            calculate_noise_parameters from utilities.diodeSimulator</span>
+<span class="sd">        triggered_channels: array of ints or None</span>
+<span class="sd">            the channels that are involved in the main phased beam</span>
+<span class="sd">            default: None, i.e. all channels</span>
+<span class="sd">        phasing_angles: array of floats or None</span>
+<span class="sd">            the angles for each beam</span>
+<span class="sd">        trigger_delays: dictionary</span>
+<span class="sd">            the delays for the channels that have caused a trigger.</span>
+<span class="sd">            If there is no trigger, it&#39;s an empty dictionary</span>
+<span class="sd">        output_passband: (float, float) tuple</span>
+<span class="sd">            Frequencies for a 6th-order Butterworth filter to be applied after</span>
+<span class="sd">            the diode filtering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="s1">&#39;digital_envelope_phased&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_channels</span> <span class="o">=</span> <span class="n">trigger_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phasing_angles</span> <span class="o">=</span> <span class="n">phasing_angles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_delays</span> <span class="o">=</span> <span class="n">trigger_delays</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maximum_amps</span> <span class="o">=</span> <span class="n">maximum_amps</span></div>
 
 
 

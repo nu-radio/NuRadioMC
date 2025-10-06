@@ -1659,6 +1659,324 @@ Otherwise, return the string representation</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.trigger.</span></span><span class="sig-name descname"><span class="pre">DigitalEnvelopePhasedTrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phasing_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_delays</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum_amps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_trigger_times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">55</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#DigitalEnvelopePhasedTrigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">Trigger</span></code></a></p>
+<p>initialize trigger class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name: string</strong></dt><dd><p>unique name of the trigger</p>
+</dd>
+<dt><strong>threshold: float</strong></dt><dd><p>the threshold</p>
+</dd>
+<dt><strong>power_mean: float</strong></dt><dd><p>mean of the noise trace after being filtered with the diode</p>
+</dd>
+<dt><strong>power_std: float</strong></dt><dd><p>standard deviation of the noise trace after being filtered with the
+diode. power_mean and power_std can be calculated with the function
+calculate_noise_parameters from utilities.diodeSimulator</p>
+</dd>
+<dt><strong>triggered_channels: array of ints or None</strong></dt><dd><p>the channels that are involved in the main phased beam
+default: None, i.e. all channels</p>
+</dd>
+<dt><strong>phasing_angles: array of floats or None</strong></dt><dd><p>the angles for each beam</p>
+</dd>
+<dt><strong>trigger_delays: dictionary</strong></dt><dd><p>the delays for the channels that have caused a trigger.
+If there is no trigger, it’s an empty dictionary</p>
+</dd>
+<dt><strong>output_passband: (float, float) tuple</strong></dt><dd><p>Frequencies for a 6th-order Butterworth filter to be applied after
+the diode filtering.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_name" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<td><p>get trigger name</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
+<td><p>get the trigger time for a specific channel</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
+<td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
+<td><p>Get the trigger time.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a>()</p></td>
+<td><p>Get the trigger times</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_triggered_channels" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_triggered_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_channels</span></code></a>()</p></td>
+<td><p>get IDs of channels that have triggered</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_type" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_type</span></code></a>()</p></td>
+<td><p>get trigger type</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.has_triggered" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>()</p></td>
+<td><p>returns true if station has trigger, false otherwise</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.is_primary" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.is_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_primary</span></code></a>()</p></td>
+<td><p>return True if this trigger is the primary trigger</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
+<td><p>Set the pre-trigger times</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_primary" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
+<td><p>set the trigger to be the primary trigger.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<td><p>set the trigger time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<td><p>set the trigger times</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_triggered" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<td><p>set the trigger to True or False</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.show" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<td><p>Print an overview of the structure of the Trigger.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_trigger_settings</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>serialize</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>set_triggered_channels</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.deserialize">
+<span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.deserialize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_name">
+<span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_name" title="Link to this definition"></a></dt>
+<dd><p>get trigger name</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_time_channel">
+<span class="sig-name descname"><span class="pre">get_pre_trigger_time_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_time_channel" title="Link to this definition"></a></dt>
+<dd><p>get the trigger time for a specific channel</p>
+<p>convenience function to get the trigger time for a specific channel</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>channel_id: int</strong></dt><dd><p>the channel id</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>trigger_time: float</dt><dd><p>the trigger time for the channel</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_times">
+<span class="sig-name descname"><span class="pre">get_pre_trigger_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_times" title="Link to this definition"></a></dt>
+<dd><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>pre_trigger_times: dict | float</dt><dd><p>the time before the trigger time that should be read out
+if a dict is returned, the keys are the channel_ids, and the value is the pre_trigger_time between the
+start of the trace and the trigger time.
+if only a float is given, the same pre_trigger_time is used for all channels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_settings">
+<span class="sig-name descname"><span class="pre">get_trigger_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_settings" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_time">
+<span class="sig-name descname"><span class="pre">get_trigger_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_time" title="Link to this definition"></a></dt>
+<dd><p>Get the trigger time.</p>
+<p>Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.
+This is defined relative to the <a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_time</strong><span class="classifier">float</span></dt><dd><p>The trigger time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_times" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a></dt><dd><p>function to return all times where the trigger condition was fulfilled</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_times">
+<span class="sig-name descname"><span class="pre">get_trigger_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_times" title="Link to this definition"></a></dt>
+<dd><p>Get the trigger times</p>
+<p>For some triggers, in addition to the time of the first trigger,
+also all subsequent times where the trigger condition were fulfilled are
+stored. For triggers that do not store this information, this method
+is equivalent to <a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a> with the exception that it returns
+an array (of shape (1,)) instead of a scalar.
+Note that the trigger times are defined relative to the
+<a class="reference internal" href="NuRadioReco.framework.station.html#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_time</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_times</strong><span class="classifier">np.ndarray</span></dt><dd><p>Array of all times where the trigger condition was satisfied</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a></dt><dd><p>method to return the (first) trigger time</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_triggered_channels">
+<span class="sig-name descname"><span class="pre">get_triggered_channels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_triggered_channels" title="Link to this definition"></a></dt>
+<dd><p>get IDs of channels that have triggered</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_type">
+<span class="sig-name descname"><span class="pre">get_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_type" title="Link to this definition"></a></dt>
+<dd><p>get trigger type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.has_triggered">
+<span class="sig-name descname"><span class="pre">has_triggered</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.has_triggered" title="Link to this definition"></a></dt>
+<dd><p>returns true if station has trigger, false otherwise</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.is_primary">
+<span class="sig-name descname"><span class="pre">is_primary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.is_primary" title="Link to this definition"></a></dt>
+<dd><p>return True if this trigger is the primary trigger</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.serialize">
+<span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.serialize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_pre_trigger_times">
+<span class="sig-name descname"><span class="pre">set_pre_trigger_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pre_trigger_times</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_pre_trigger_times" title="Link to this definition"></a></dt>
+<dd><p>Set the pre-trigger times</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>pre_trigger_times: float or dict</strong></dt><dd><p>the time before the trigger time that should be read out
+if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+start of the trace and the trigger time.
+if only a float is given, the same pre_trigger_time is used for all channels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_primary">
+<span class="sig-name descname"><span class="pre">set_primary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">primary_trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_primary" title="Link to this definition"></a></dt>
+<dd><p>set the trigger to be the primary trigger.
+The trigger time of the primary trigger is used to define the readout window. There should only be one primary trigger.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_time">
+<span class="sig-name descname"><span class="pre">set_trigger_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_time" title="Link to this definition"></a></dt>
+<dd><p>set the trigger time</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time: float</strong></dt><dd><p>the trigger time from the beginning of the trace</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_times">
+<span class="sig-name descname"><span class="pre">set_trigger_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">times</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_times" title="Link to this definition"></a></dt>
+<dd><p>set the trigger times</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>times: array</strong></dt><dd><p>all trigger times</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_triggered">
+<span class="sig-name descname"><span class="pre">set_triggered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_triggered" title="Link to this definition"></a></dt>
+<dd><p>set the trigger to True or False</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_triggered_channels">
+<span class="sig-name descname"><span class="pre">set_triggered_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_triggered_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">print_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.show" title="Link to this definition"></a></dt>
+<dd><p>Print an overview of the structure of the Trigger.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>str_output</strong><span class="classifier">str, optional</span></dt><dd><p>A string representation of the Trigger structure.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>print_stdout</strong><span class="classifier">bool, optional</span></dt><dd><p>If <em class="xref py py-obj">True</em> (default), print the Trigger structure to stdout.
+Otherwise, return the string representation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.trigger.</span></span><span class="sig-name descname"><span class="pre">SimplePhasedTrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_delays</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sec_trigger_delays</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum_amps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_trigger_times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">55</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#SimplePhasedTrigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">Trigger</span></code></a></p>
