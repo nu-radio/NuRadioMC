@@ -101,6 +101,7 @@ jobs:
         flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  --exit-zero
 
   single-events:
+    name: Single event simulation | signal and trigger simulation validation
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
@@ -181,6 +182,7 @@ jobs:
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
 
   effective-volume:
+    name: Validation of effective volume and area simulation (fixed seeds)
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
@@ -196,11 +198,6 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache-key: ${{ needs.setup.outputs.env-cache-key }}
-
-    - name: "Test Veff example"
-      if: always()
-      run: |
-        NuRadioMC/test/examples/test_veff_example.sh
 
     - name: "Veff test"
       if: always()
@@ -218,6 +215,7 @@ jobs:
         NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
 
   rno-g-tests:
+    name: RNO-G example scripts and code
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
@@ -312,6 +310,11 @@ jobs:
       uses: ./.github/actions/cache-ci-data
       with:
         cache-key: ${{ needs.setup.outputs.data-cache-key }}
+
+    - name: "Test Veff example"
+      if: always()
+      run: |
+        NuRadioMC/test/examples/test_veff_example.sh
 
     - name: "Test webinar examples"
       if: always()
