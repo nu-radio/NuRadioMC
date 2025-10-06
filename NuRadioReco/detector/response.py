@@ -371,7 +371,7 @@ class Response:
             other = copy.copy(other)
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
-                time_delay = self._calculate_time_delay()
+                time_delay = self.calculate_time_delay()
                 if time_delay > trace_length / 2:
                     self.logger.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
                                         f"{time_delay:.2f} vs {trace_length:.2f}")
@@ -427,7 +427,7 @@ class Response:
             other = copy.copy(other)
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
-                time_delay = self._calculate_time_delay()
+                time_delay = self.calculate_time_delay()
                 if time_delay > trace_length / 2:
                     self.logger.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
                                         f"{time_delay:.2f} vs {trace_length:.2f}")
@@ -522,42 +522,57 @@ class Response:
         """ Get time delay from DB """
         return self.__time_delays
 
-    def _calculate_time_delay(self):
+    def calculate_time_delay(self, fmin=150*units.MHz, fmax=200*units.MHz, method="mean"):
         """
         Calculate time delay from phase of the stored complex response function.
         This is not the time delay which is stored in the DB and which is used in
         the `__init__()` to normalize the response function. Rather, its the remaining
         group delay.
 
-        The time delay is calculated as the mean between 195 and 205 MHz.
+        The time delay is calculated as the mean between fmin to fmax.
+
+        Parameters
+        ----------
+        fmin: float
+            lower frequency limit to use in the averaging of the group delay
+        fmax: float
+            upper frequency limit to use in the averaging of the group delay
+        method: str
+            Method to calculate the time delay. Options are:
+
+            - 'mean': Calculate the mean group delay over the band fmin to fmax.
+            - 'fit': Fit a linear function to the unwrapped phase and calculate the time delay
+                     from the slope of the fit. This is only meaningful if the group delay is
+                     approximately constant over the whole frequency range (which is the case for most cables).
 
         Returns
         -------
-
-        time_delay1 : float
-            The time delay at ~ 200 MHz
+        delay : float
+            The group delay over the band fmin to fmax
         """
 
-        freqs = np.arange(50, 1200, 0.5) * units.MHz
-
+        freqs = np.linspace(fmin, fmax, 1000)
         response = self(freqs)
-        delta_freq = np.diff(freqs)
-        phase = np.angle(response)
+        unwrapped_phase = np.unwrap(np.angle(response))
 
-        time_delay = -np.diff(np.unwrap(phase)) / delta_freq / 2 / np.pi
-        mask = np.all([195 * units.MHz < freqs, freqs < 250 * units.MHz], axis=0)[:-1]
-        time_delay1 = np.mean(time_delay[mask])
+        if method == "mean":
+            group_delays = -np.gradient(unwrapped_phase) / (2 * np.pi * np.gradient(freqs))
+            return np.mean(group_delays)
 
-        # This alternative calculation is only meaningful if group delay is ~ constant over the whole frequency range (which is the case for most cables)
-        # # fit the unwrapped phase with a linear function
-        # popt = np.polyfit(freqs, np.unwrap(phase), 1)
-        # time_delay2 = -popt[0] / (2 * np.pi)
+        elif method == "fit":
+            # This alternative calculation is only meaningful if group delay
+            # is ~ constant over the whole frequency range
+            # (which is the case for most cables)
 
-        # if np.abs(time_delay1 - time_delay2) > 0.1 * units.ns:
-        #     self.logger.warning("Calculation of time delay. The two methods yield different results: "
-        #                         f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
+            # # fit the unwrapped phase with a linear function
+            popt = np.polyfit(freqs, unwrapped_phase, 1)
+            time_delay = -popt[0] / (2 * np.pi)
 
-        return time_delay1
+            return time_delay
+
+        else:
+            raise ValueError(f"Unknown method {method} to calculate time delay. "
+                             "Options are: 'mean', 'fit'.")
 
 
 def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=None):
