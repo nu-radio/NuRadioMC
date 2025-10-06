@@ -175,6 +175,11 @@ jobs:
       run: |
         NuRadioMC/test/SignalProp/run_birefringence_tests.sh
 
+    - name: "Trigger tests"
+      if: always()
+      run: |
+        NuRadioReco/test/trigger_tests/run_trigger_test.sh
+
   effective-volume:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
@@ -197,16 +202,6 @@ jobs:
       run: |
         NuRadioMC/test/examples/test_veff_example.sh
 
-    - name: "Test calibration pulser example"
-      if: always()
-      run: |
-        NuRadioMC/test/examples/test_cal_pulser_example.sh
-
-    - name: "Test radio emitter pulser example"
-      if: always()
-      run: |
-        NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
-
     - name: "Veff test"
       if: always()
       run: |
@@ -221,11 +216,6 @@ jobs:
       if: always()
       run: |
         NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
-
-    - name: "Trigger tests"
-      if: always()
-      run: |
-        NuRadioReco/test/trigger_tests/run_trigger_test.sh
 
   rno-g-tests:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
@@ -290,6 +280,16 @@ jobs:
       if: always()
       run: |
         python NuRadioReco/test/check_modules.py -r
+
+    - name: "Test calibration pulser example"
+      if: always()
+      run: |
+        NuRadioMC/test/examples/test_cal_pulser_example.sh
+
+    - name: "Test radio emitter pulser example"
+      if: always()
+      run: |
+        NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
 
   examples:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
