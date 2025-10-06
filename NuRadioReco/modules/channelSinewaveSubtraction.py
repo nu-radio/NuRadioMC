@@ -63,9 +63,10 @@ class channelSinewaveSubtraction:
         for channel in station.iter_channels():
             sampling_rate = channel.get_sampling_rate()
             trace = channel.get_trace()
+            # Call sinewave_subtraction with saved_noise_freqs=[] to match your old inline usage
             trace_fil = sinewave_subtraction(
                 trace, peak_prominence, sampling_rate=sampling_rate,
-                saved_noise_freqs=self.save_filtered_freqs, freq_band=self.freq_band)
+                saved_noise_freqs=[], freq_band=self.freq_band)
 
             channel.set_trace(trace_fil, sampling_rate)
 
@@ -307,7 +308,8 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_
                 logger.error(f"Curve fitting failed for frequency: {noise_freq / units.MHz} MHz")
 
     else:
-        saved_noise_freqs.append([])
+        if saved_noise_freqs is not None:
+            saved_noise_freqs.append([])
 
     return corrected_waveform
 
