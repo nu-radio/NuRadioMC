@@ -47,6 +47,10 @@ sphinx-rtd-theme = {version = "*", optional = true}
 numpydoc = {version = "*", optional = true}
 proposal = {version = "7.6.2", optional = true}
 pylfmap = {version = "*", optional = true}
+pygdsm = [
+    {version = "<=1.6.0", python = "<3.10", optional = true},
+    {version = "*", python = ">=3.10", optional = true}
+]
 healpy = {version = "*", optional = true}
 MCEq = {version = "*", optional = true}
 crflux = {version = "*", optional = true}
@@ -59,7 +63,7 @@ pre-commit = "*"
 [tool.poetry.extras]
 dev = ["pre-commit", "Sphinx", "sphinx-rtd-theme", "numpydoc"]
 proposal = ["proposal"]
-galacticnoise = ['pylfmap', 'healpy']
+galacticnoise = ['pylfmap', 'pygdsm', 'healpy']
 muon-flux = ['MCEq', 'crflux']
 cr_interpolator = ["cr-pulse-interpolator"]
 ALL = ["proposal", "pylfmap", "healpy", "MCEq", "crflux", "cr-pulse-interpolator"]
