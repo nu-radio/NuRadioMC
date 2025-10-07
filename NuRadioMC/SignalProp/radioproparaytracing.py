@@ -1,22 +1,19 @@
-from __future__ import absolute_import, division, print_function
-import numpy as np
-from radiotools import helper as hp
-from NuRadioMC.utilities import attenuation as attenuation_util
-from NuRadioMC.utilities import medium_base
-from scipy import interpolate, optimize
-import NuRadioReco.utilities.geometryUtilities
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, geometryUtilities
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp import analyticraytracing as ana
-from NuRadioMC.utilities import medium
-from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
+from NuRadioMC.utilities import medium, medium_base, attenuation as attenuation_util
+from NuRadioMC.SignalProp.propagation import solution_types_revert
+
 import radiopropa
-import scipy.constants
+from radiotools import helper as hp
+
+from scipy import interpolate, optimize, constants
+import numpy as np
 import copy
 import logging
 import time
-from matplotlib import pyplot as plt
 
 """
 RadioPropa is a C++ module dedicated for ray tracing. It is a seperate module and
@@ -45,8 +42,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
     that have only changing refractive index in z. More information on RadioPropa and
     how to install it can be found at https://github.com/nu-radio/RadioPropa"""
 
-    def __init__(self, medium, attenuation_model="SP1", log_level=logging.NOTSET,
-                 n_frequencies_integration=100, n_reflections=0, config=None, detector=None):
+    def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
+                 n_frequencies_integration=None, n_reflections=None, config=None, detector=None):
 
         """
         class initilization
@@ -57,6 +54,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             class describing the index-of-refraction profile
         attenuation_model: string
             signal attenuation model
+            (default: None -> 'SP1' (see `ray_tracing_base._set__set_arguments`))
         log_level: logging object
             specify the log level of the ray tracing class
 
@@ -70,8 +68,10 @@ class radiopropa_ray_tracing(ray_tracing_base):
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
-        n_reflections: int (default 0)
+            (default: None -> 100 (see `ray_tracing_base._set__set_arguments`))
+        n_reflections: int
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
+            (default: None -> 0 (see `ray_tracing_base._set__set_arguments`))
         config: dict or None
             a dictionary with the optional config settings. If None, the default config is used:
                 config['propagation']['attenuate_ice'] = True
@@ -313,7 +313,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
             w = (u / np.linalg.norm(u)) * 2*sphere_size
             boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(X2 + w)), radiopropa.Vector3d(*w)))
             obs2.add(boundary_behind_channel)
-            boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0, 0, 1*radiopropa.meter), radiopropa.Vector3d(0, 0, 1)))
+            max_height=np.max([self._X1[2], self._X2[2]+2*sphere_size, 1*radiopropa.meter])
+            boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0, 0, max_height), radiopropa.Vector3d(0, 0, 1)))
             obs2.add(boundary_above_surface)
             sim.add(obs2)
 
@@ -957,7 +958,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             raise IndexError
 
         refrac_index = self._medium.get_index_of_refraction(self._X2)
-        return self.get_correction_path_length(iS) / ((scipy.constants.c*units.meter/units.second)/refrac_index)
+        return self.get_correction_path_length(iS) / ((constants.c * units.meter / units.second) / refrac_index)
 
 
     def get_path_length(self, iS):
@@ -1075,14 +1076,15 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         mask = frequency > 0
         freqs = self.get_frequencies_for_attenuation(frequency, self._max_detector_frequency)
-        integral = np.zeros(len(freqs))
 
-        def dt(depth, freqs):
-            ds = np.sqrt((path[:, 0][depth] - path[:, 0][depth+1])**2 + (path[:, 1][depth] - path[:, 1][depth+1])**2 + (path[:, 2][depth] - path[:, 2][depth+1])**2) # get step size
-            return ds / attenuation_util.get_attenuation_length(path[:, 2][depth], freqs, self._attenuation_model)
+        ds_path_segments = np.linalg.norm(path[:-1] - path[1:], axis=1)
+        central_depths = path[:-1, 2] + np.diff(path[:, 2]) / 2
+        attenuation_lengths = np.array(
+            [attenuation_util.get_attenuation_length(depth, freqs, self._attenuation_model)
+            for depth in central_depths])
 
-        for z_position in range(len(path[:, 2]) - 1):
-            integral += dt(z_position, freqs)
+        # Approximating integral by discret sum
+        integral = np.sum(ds_path_segments[:, None] / attenuation_lengths, axis=0)
 
         att_func = interpolate.interp1d(freqs, integral)
         tmp = att_func(frequency[mask])
@@ -1180,10 +1182,10 @@ class radiopropa_ray_tracing(ray_tracing_base):
         for zenith_reflection in zenith_reflections:
             if (zenith_reflection is None):
                 continue
-            r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(zenith_reflection,
+            r_theta = geometryUtilities.get_fresnel_r_p(zenith_reflection,
                 n_2=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], +1 * units.cm])),
                 n_1=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], -1 * units.cm])))
-            r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(zenith_reflection,
+            r_phi = geometryUtilities.get_fresnel_r_s(zenith_reflection,
                 n_2=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], +1 * units.cm])),
                 n_1=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], -1 * units.cm])))
             efield[efp.reflection_coefficient_theta] = r_theta

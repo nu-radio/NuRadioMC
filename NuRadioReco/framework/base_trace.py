@@ -1,18 +1,15 @@
 from __future__ import absolute_import, division, print_function
 
-from NuRadioReco.utilities import fft, bandpass_filter
+from NuRadioReco.utilities import fft, signal_processing
 import NuRadioReco.detector.response
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, signal_processing
 
 import numpy as np
 import logging
-import fractions
-import decimal
 import numbers
-import functools
-import scipy.signal
 import copy
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 logger = logging.getLogger("NuRadioReco.BaseTrace")
 
 
@@ -73,7 +70,7 @@ class BaseTrace:
         """
         spec = copy.copy(self.get_frequency_spectrum())
         freq = self.get_frequencies()
-        filter_response = bandpass_filter.get_filter_response(freq, passband, filter_type, order, rp)
+        filter_response = signal_processing.get_filter_response(freq, passband, filter_type, order, rp)
         spec *= filter_response
         return fft.freq2time(spec, self.get_sampling_rate())
 
@@ -279,22 +276,17 @@ class BaseTrace:
             self.set_frequency_spectrum(spec, self.get_sampling_rate())
 
     def resample(self, sampling_rate):
+        """ Resamples the trace to a new sampling rate.
+
+        Parameters
+        ----------
+        sampling_rate: float
+            The new sampling rate.
+        """
         if sampling_rate == self.get_sampling_rate():
             return
-        resampling_factor = fractions.Fraction(decimal.Decimal(sampling_rate / self.get_sampling_rate())).limit_denominator(5000)
 
-        resampled_trace = self.get_trace()
-        if resampling_factor.numerator != 1:
-            # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
-            resampled_trace = scipy.signal.resample(resampled_trace, resampling_factor.numerator * self.get_number_of_samples(), axis=-1)
-
-        if resampling_factor.denominator != 1:
-            # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
-            resampled_trace = scipy.signal.resample(resampled_trace, np.shape(resampled_trace)[-1] // resampling_factor.denominator, axis=-1)
-
-        if resampled_trace.shape[-1] % 2 != 0:
-            resampled_trace = resampled_trace.T[:-1].T
-
+        resampled_trace = signal_processing.resample(self.get_trace(), sampling_rate / self.get_sampling_rate())
         self.set_trace(resampled_trace, sampling_rate)
 
     def serialize(self):
@@ -305,7 +297,7 @@ class BaseTrace:
         data = {'sampling_rate': self.get_sampling_rate(),
                 'time_trace': time_trace,
                 'trace_start_time': self.get_trace_start_time()}
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
@@ -365,13 +357,13 @@ class BaseTrace:
             return int(np.ceil(round(x, int(np.log10(1/(0.01*units.ps))))))
 
         # 2. Channel starts before readout window:
-        if t0_channel < t0_readout:
+        if t0_channel <= t0_readout:
             i_start_readout = 0
             t_start_readout = t0_readout
             i_start_channel = ceil((t0_readout - t0_channel) * sampling_rate_channel) # The first bin of channel inside readout
             t_start_channel = tt_channel[i_start_channel]
         # 3. Channel starts after readout window:
-        elif t0_channel >= t0_readout:
+        elif t0_channel > t0_readout:
             if raise_error:
                 logger.error("The readout window starts before the incoming channel")
                 raise ValueError('The readout window starts before the incoming channel')
@@ -393,6 +385,7 @@ class BaseTrace:
 
             i_end_readout = floor((t1_channel - t0_readout) * sampling_rate_readout) + 1 # The bin of readout right before channel ends
             i_end_channel = n_samples_channel
+
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
         residual_time_offset = t_start_channel - t_start_readout
         if np.abs(residual_time_offset) >= min_residual_time_offset:
@@ -413,6 +406,49 @@ class BaseTrace:
         original_trace[..., i_start_readout:i_end_readout] += trace_to_add[..., i_start_channel:i_end_channel]
 
         self.set_trace(original_trace, sampling_rate_readout)
+
+    def show(self, show_parameters=1, print_stdout=True, **kwargs):
+        """
+        Print an overview of the structure of this Channel/ElectricField object.
+
+        Parameters
+        ----------
+        show_parameters : int, default: 1
+            If > 0, print the parameters stored in this Channel/ElectricField object.
+
+        Other Parameters
+        ----------------
+        print_stdout : bool, optional
+            If `True` (default), print `str_output` to stdout.
+            Otherwise, return it.
+
+        Returns
+        -------
+        str_output : str, optional
+            A string representation of this Channel/ElectricField object structure.
+
+        """
+        if hasattr(self, 'get_id'): # Channel
+            string_id = f'({self.get_id()})'
+        elif hasattr(self, 'get_unique_identifier'): # SimChannel / ElectricField
+            string_id = f'{self.get_unique_identifier()}'
+        else:
+            string_id = ''
+
+        self_string = [f'{type(self).__name__}{string_id} {self.get_trace().shape}']
+
+        if show_parameters > 0:
+            self_string += ['    Parameters']
+            par_string = [f'      {par.name:16s}: {val}'
+                for par, val in self.get_parameters().items()]
+            self_string += par_string
+
+        output = '\n'.join(self_string)
+        if print_stdout:
+            print(output)
+            return
+
+        return output
 
 
     def __add__(self, x):
