@@ -92,7 +92,7 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
         raise AttributeError(f"inelasticity model {model} is not implemented.")
 
 
-@functools.lru_cache(maxsize=int(2**(int(np.log2(100 * 6 * 2 + 1)))))
+@functools.lru_cache(maxsize=int(2**(int(np.log2(100 * 6 * 2) + 1))))
 def _get_inverse_cdf_interpolation(iF, inccc, iE):
     nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
     
