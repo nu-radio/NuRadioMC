@@ -81,6 +81,9 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
     def get_id(self):
         return self._station_id
 
+    def set_id(self, station_id):
+        self._station_id = station_id
+
     def remove_triggers(self):
         """
         removes all triggers from the station
