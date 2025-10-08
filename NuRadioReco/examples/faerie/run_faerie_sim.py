@@ -33,12 +33,12 @@ def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns):
     tends = []
     for electric_field in sim_station.get_electric_fields():
         if len(electric_field.get_times()) <= 200:
-            print(f"!!!!!!!!!!!!!! Warning: Electric field with only {len(electric_field.get_times())} samples found. Skipping padding. !!!!!!!!!!!!!!")
+            print(f"!!!!!!!!!!!!!! Warning: Electric field with only {len(electric_field.get_times())} samples found. !!!!!!!!!!!!!!")
             print("Event ID:", event.get_id(), "Station ID:", sim_station.get_id(),"ch",electric_field.get_channel_ids())
             print("E-field min/max:", electric_field.get_trace().min(), electric_field.get_trace().max())
-            dtime = np.linalg.norm(electric_field.get_position())/(3e8 * units.m / units.s)  # time it takes for light to travel the distance
-            electric_field.set_trace_start_time(dtime)
-            # continue
+            # dtime = np.linalg.norm(electric_field.get_position())/(3e8 * units.m / units.s)  # time it takes for light to travel the distance
+            # electric_field.set_trace_start_time(dtime)
+            continue
         times = electric_field.get_times()
         tstarts.append(times[0])
         tends.append(times[-1])
@@ -65,8 +65,16 @@ def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns):
         readout = BaseTrace()
         readout.set_trace(np.zeros((3, n_samples)), electric_field.get_sampling_rate(), tstart)
 
-        if len(electric_field.get_trace()) <= 200: ## assumes short traces are not useful
-            readout.add_to_trace(electric_field)
+        # if len(electric_field.get_trace()) > 100: ## assumes short traces are not useful
+        readout.add_to_trace(electric_field)
+        # try:
+        #     readout.add_to_trace(electric_field)
+        # except:
+        #     print(f"!!!!!!!!!!!!!! Warning couldn't add_to_trace, use zero trace !!!!!!!!!!!!!!")
+        #     print("Event ID:", event.get_id(), "Station ID:", sim_station.get_id(),"ch",electric_field.get_channel_ids())
+        #     print("E-field shape",electric_field.get_trace().shape,"\nmin/max:", electric_field.get_trace().min(), electric_field.get_trace().max())
+
+        #     pass
         electric_field.set_trace(readout.get_trace(), "same", tstart)
 
 
@@ -76,29 +84,33 @@ def split_events(event, det, trigger_channels,num_channels_per_event=4):
 
     det.set_event(event)
     station = event.get_station()
-    if (len(det.get_channel_ids(station.get_id())) == len(trigger_channels) and
-        np.all(det.get_channel_ids(station.get_id()) == trigger_channels)):
+    # if (len(det.get_channel_ids(station.get_id())) == len(trigger_channels) and
+    #     np.all(det.get_channel_ids(station.get_id()) == trigger_channels)):
+    #     return [event]
+    if (len(det.get_channel_ids(station.get_id())) == num_channels_per_event and
+        np.all(det.get_channel_ids(station.get_id()) == np.arange(num_channels_per_event))):
         return [event]
 
-    if len(det.get_channel_ids(station.get_id())) == len(trigger_channels):
-        raise ValueError("Some thing unexpected happend. The event has only 4 channels but "
-                         f"the channel ids {det.get_channel_ids(station.get_id())} do not "
-                         f"match the trigger channels ({trigger_channels})")
+    # if len(det.get_channel_ids(station.get_id())) == len(trigger_channels):
+    #     raise ValueError("Some thing unexpected happend. The event has only 4 channels but "
+    #                      f"the channel ids {det.get_channel_ids(station.get_id())} do not "
+    #                      f"match the trigger channels ({trigger_channels})")
 
     # Split the event into multiple events
     all_sim_channel_ids = np.array([efields.get_channel_ids()[0] for efields in station.get_sim_station().get_electric_fields()])
     string_sim_channel_ids = ["{}".format(ch_ids) for ch_ids in all_sim_channel_ids] ## mimic list of strings
+
     sorted_string_sim_channel_ids = sorted(string_sim_channel_ids)
     num_from_sorted_string = [ int(ch) for ch in sorted_string_sim_channel_ids ]
     argsort_from_sorted_num = np.argsort(num_from_sorted_string)
-    string_argsort = np.argsort(string_sim_channel_ids) ## order ch-id was sorted in hdf5
-    channel_to_index_map = {ch_id: index for ch_id, index in enumerate(string_argsort)}
-    print("argsort_from_num",argsort_from_sorted_num[:20])
+    print("argsort_from_num[:20]",argsort_from_sorted_num[:20])
+    
+    channel_to_index_map = {ch_id: index for ch_id, index in enumerate(argsort_from_sorted_num)}
     print("channel_to_index_map",channel_to_index_map)
 
 
-    sim_channel_ids = np.unique([efields.get_channel_ids() for efields in station.get_sim_station().get_electric_fields()])
-    channel_positions = np.array([det.get_relative_position(station.get_id(), sim_channel_id) for sim_channel_id in sim_channel_ids])
+    # sim_channel_ids = np.unique([efields.get_channel_ids() for efields in station.get_sim_station().get_electric_fields()])
+    # channel_positions = np.array([det.get_relative_position(station.get_id(), sim_channel_id) for sim_channel_id in sim_channel_ids])
     
     ## testing channel ids and positions
     # for chid,chpos in zip(all_sim_channel_ids, channel_positions):
@@ -120,10 +132,10 @@ def split_events(event, det, trigger_channels,num_channels_per_event=4):
         for ch in channels_in_batch:
             if ch < len(all_sim_channel_ids):
                 sim_channel_ids_batches[i].append(all_sim_channel_ids[channel_to_index_map[ch]])
-    for batch in sim_channel_ids_batches:
-        print("batch",batch)
+
     events = []
     for sim_channel_ids_batch in sim_channel_ids_batches:
+        print("sim_channel_ids_batch",sim_channel_ids_batch)
         new_event = copy.deepcopy(event)
 
 
@@ -138,15 +150,20 @@ def split_events(event, det, trigger_channels,num_channels_per_event=4):
         new_event.set_station(new_station)  # overwrites existing station
         events.append(new_event)
 
-        depth = np.array([det.get_relative_position(station.get_id(), sim_channel_id)[2] for sim_channel_id in sim_channel_ids_batch])
-        sort = np.argsort(depth)
+        # sort the sim_channel_ids_batch by depth
+        # depth = np.array([det.get_relative_position(station.get_id(), sim_channel_id)[2] for sim_channel_id in sim_channel_ids_batch])
+        # sort = np.argsort(depth)
 
-        sorted_sim_channel_ids_batch = np.array(sim_channel_ids_batch)[sort]
-        for sim_channel_id, new_id in zip(sorted_sim_channel_ids_batch, trigger_channels):
+        # sorted_sim_channel_ids_batch = np.array(sim_channel_ids_batch)[sort]
+        sorted_sim_channel_ids_batch = np.array(sim_channel_ids_batch)  # assume batch already sorted by ch-id 
+        # for sim_channel_id, new_id in zip(sorted_sim_channel_ids_batch, trigger_channels):
+        for sim_channel_id, new_id in zip(sorted_sim_channel_ids_batch, np.arange(len(sorted_sim_channel_ids_batch))):  ## assume already sorted by ch-id 
             for efield in station.get_sim_station().get_electric_fields_for_channels([sim_channel_id]):
                 efield_new = copy.deepcopy(efield)
                 efield_new.set_channel_ids([new_id])
                 new_sim_station.add_electric_field(efield_new)
+                print(f"  Adding sim efield channel {efield_new.get_channel_ids()[0]} at {efield_new.get_position()}")
+                print(f"    min/max: {efield_new.get_trace().min()}/{efield_new.get_trace().max()} with {(efield_new.get_trace()).shape} samples")
 
 
     return events
@@ -187,8 +204,8 @@ if __name__ == "__main__":
         select_stations=[args.station], detector_file=args.detector_file, database_connection="RNOG_public", always_query_entire_description=False)
     det_rnog.update(dt.datetime(2023, 8, 1))
 
-    # trigger_channels = np.array([0, 1, 2, 3])
-    trigger_channels = np.array([0])
+    trigger_channels = np.array([0, 1, 2, 3])
+    # trigger_channels = np.array([0])
     
     thresholds = {
         "hilo_sigma_3": 3,
@@ -238,12 +255,12 @@ if __name__ == "__main__":
         'Channels': True,
         'ElectricFields': False,
         'SimChannels': True,
-        'SimElectricFields': True
+        'SimElectricFields': False
     }
 
     for combined_event in readFAERIEShower.run(depth=args.depth, station_id=args.station):
 
-        for edx, event in enumerate(split_events(combined_event, dummy_detector_for_positions_only, trigger_channels,num_channels_per_event=5)):
+        for edx, event in enumerate(split_events(combined_event, dummy_detector_for_positions_only, trigger_channels,num_channels_per_event=24)):
             dummy_detector_for_positions_only.set_event(event)
             pad_traces(event, det_rnog)
 
@@ -251,7 +268,8 @@ if __name__ == "__main__":
             for sdx, station in enumerate(event.get_stations()):
                 sim_station = station.get_sim_station()
 
-                if (edx + sdx) % 100 == 0:
+                # if (edx + sdx) % 100 == 0:
+                if (edx + sdx) % 1 == 0:
                     print(f"Processing event: {event.get_id()} station {station.get_id()}")
                     print(f"Energy: {shower.get_parameter(shp.energy) / units.PeV} PeV, "
                         f"Zenith: {shower.get_parameter(shp.zenith) / units.deg}, "
@@ -260,10 +278,12 @@ if __name__ == "__main__":
                 # Temporary sanity checks - to apply the correct noise and filter the event
                 # can only have 4 channels with IDs [0, 1, 2, 3] (and they should be at the
                 # correct depths)
-                assert np.all(dummy_detector_for_positions_only.get_channel_ids(station.get_id()) == trigger_channels), "Expected channels [0, 1, 2, 3]"
-                channel_depths = np.array([dummy_detector_for_positions_only.get_relative_position(
-                    station.get_id(), channel_id)[2] for channel_id in dummy_detector_for_positions_only.get_channel_ids(station.get_id())])
-                assert np.all(np.argsort(channel_depths) == trigger_channels), "Expected channels to be sorted by depth"
+
+                ## skip assertion for now due to change in expectation
+                # assert np.all(dummy_detector_for_positions_only.get_channel_ids(station.get_id()) == trigger_channels), "Expected channels [0, 1, 2, 3]"
+                # channel_depths = np.array([dummy_detector_for_positions_only.get_relative_position(
+                #     station.get_id(), channel_id)[2] for channel_id in dummy_detector_for_positions_only.get_channel_ids(station.get_id())])
+                # assert np.all(np.argsort(channel_depths) == trigger_channels), "Expected channels to be sorted by depth"
 
                 if args.add_noise and args.noise_type == "data-driven":
                     detector_simulation_with_data_driven_noise(
@@ -287,5 +307,5 @@ if __name__ == "__main__":
 
                 channelReadoutWindowCutter.run(event, station, det_rnog)
                 channelResampler.run(event, station, det_rnog)
-
+            # print("running eventWriter with mode",mode)
             eventWriter.run(event, mode=mode)
