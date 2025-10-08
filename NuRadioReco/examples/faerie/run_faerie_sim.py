@@ -13,6 +13,7 @@ from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import \
 import NuRadioReco.modules.channelReadoutWindowCutter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.efieldToVoltageConverter
+import NuRadioReco.modules.efieldToVoltageConverterPerEfield
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 
@@ -25,13 +26,16 @@ import argparse
 import copy
 
 
-def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns):
+def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns,trigger_channels=[0]):
     """ Makes sure all traces have the same length and starting time. """
     sim_station = event.get_station().get_sim_station()
 
     tstarts = []
     tends = []
     for electric_field in sim_station.get_electric_fields():
+        if electric_field.get_channel_ids()[0] not in trigger_channels:
+            ## don't care about non-trigger channels regarding start time
+            continue
         if len(electric_field.get_times()) <= 200:
             print(f"!!!!!!!!!!!!!! Warning: Electric field with only {len(electric_field.get_times())} samples found. !!!!!!!!!!!!!!")
             print("Event ID:", event.get_id(), "Station ID:", sim_station.get_id(),"ch",electric_field.get_channel_ids())
@@ -52,7 +56,6 @@ def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns):
 
     t_readout_window = det.get_number_of_samples(sim_station.get_id(), 0) / \
         det.get_sampling_frequency(sim_station.get_id(), 0)
-
     if tend - tstart < t_readout_window:
         tend = tstart + t_readout_window + pad_after * units.ns
 
@@ -60,21 +63,22 @@ def pad_traces(event, det, pad_before=20 * units.ns, pad_after=20 * units.ns):
     n_samples = int((tend - tstart) * electric_field.get_sampling_rate())
     if n_samples % 2 != 0:
         n_samples += 1
-
+    print("event:",event.get_id()," t_readout_window",t_readout_window/units.ns,"ns","tstart",tstart/units.ns,"tend",tend/units.ns)
+    print(n_samples,"samples at",electric_field.get_sampling_rate()/units.GHz,"GHz")
     for electric_field in sim_station.get_electric_fields():
         readout = BaseTrace()
         readout.set_trace(np.zeros((3, n_samples)), electric_field.get_sampling_rate(), tstart)
 
         # if len(electric_field.get_trace()) > 100: ## assumes short traces are not useful
-        readout.add_to_trace(electric_field)
-        # try:
-        #     readout.add_to_trace(electric_field)
-        # except:
-        #     print(f"!!!!!!!!!!!!!! Warning couldn't add_to_trace, use zero trace !!!!!!!!!!!!!!")
-        #     print("Event ID:", event.get_id(), "Station ID:", sim_station.get_id(),"ch",electric_field.get_channel_ids())
-        #     print("E-field shape",electric_field.get_trace().shape,"\nmin/max:", electric_field.get_trace().min(), electric_field.get_trace().max())
-
-        #     pass
+        # readout.add_to_trace(electric_field)
+        try:
+            readout.add_to_trace(electric_field)
+        except:
+            ## typically fail when efield has too few samples or outside readout window (surface channel)
+            print(f"!!!!!!!!!!!!!! Warning couldn't add_to_trace, use zero trace !!!!!!!!!!!!!!")
+            print("Event ID:", event.get_id(), "Station ID:", sim_station.get_id(),"ch",electric_field.get_channel_ids())
+            print("E-field shape",electric_field.get_trace().shape,"\nmin/max:", electric_field.get_trace().min(), electric_field.get_trace().max())
+            pass
         electric_field.set_trace(readout.get_trace(), "same", tstart)
 
 
@@ -134,10 +138,11 @@ def split_events(event, det, trigger_channels,num_channels_per_event=4):
                 sim_channel_ids_batches[i].append(all_sim_channel_ids[channel_to_index_map[ch]])
 
     events = []
-    for sim_channel_ids_batch in sim_channel_ids_batches:
+
+    for ievent,sim_channel_ids_batch in enumerate(sim_channel_ids_batches):
         print("sim_channel_ids_batch",sim_channel_ids_batch)
         new_event = copy.deepcopy(event)
-
+        new_event.set_id(ievent)
 
         # if len(sim_channel_ids_batch) != len(trigger_channels):
         #     raise ValueError("Some thing unexpected happend. The batch has not the same number of channels as the trigger channels "
@@ -156,6 +161,7 @@ def split_events(event, det, trigger_channels,num_channels_per_event=4):
 
         # sorted_sim_channel_ids_batch = np.array(sim_channel_ids_batch)[sort]
         sorted_sim_channel_ids_batch = np.array(sim_channel_ids_batch)  # assume batch already sorted by ch-id 
+        print("  sorted_sim_channel_ids_batch",sorted_sim_channel_ids_batch)
         # for sim_channel_id, new_id in zip(sorted_sim_channel_ids_batch, trigger_channels):
         for sim_channel_id, new_id in zip(sorted_sim_channel_ids_batch, np.arange(len(sorted_sim_channel_ids_batch))):  ## assume already sorted by ch-id 
             for efield in station.get_sim_station().get_electric_fields_for_channels([sim_channel_id]):
@@ -206,6 +212,7 @@ if __name__ == "__main__":
 
     trigger_channels = np.array([0, 1, 2, 3])
     # trigger_channels = np.array([0])
+    num_channels_per_event = 24  # number of channels per event in the input file
     
     thresholds = {
         "hilo_sigma_3": 3,
@@ -243,6 +250,8 @@ if __name__ == "__main__":
     efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
     efieldToVoltageConverter.begin(post_pulse_time=0 * units.ns, pre_pulse_time=50 * units.ns)
 
+    efieldToVoltageConverterPerEfield = NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
+
     rnogHarwareResponse = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
     rnogHarwareResponse.begin(trigger_channels=trigger_channels)
 
@@ -260,9 +269,9 @@ if __name__ == "__main__":
 
     for combined_event in readFAERIEShower.run(depth=args.depth, station_id=args.station):
 
-        for edx, event in enumerate(split_events(combined_event, dummy_detector_for_positions_only, trigger_channels,num_channels_per_event=24)):
+        for edx, event in enumerate(split_events(combined_event, dummy_detector_for_positions_only, trigger_channels,num_channels_per_event=num_channels_per_event)):
             dummy_detector_for_positions_only.set_event(event)
-            pad_traces(event, det_rnog)
+            pad_traces(event, det_rnog,trigger_channels=trigger_channels)
 
             shower = event.get_first_sim_shower()
             for sdx, station in enumerate(event.get_stations()):
@@ -290,7 +299,8 @@ if __name__ == "__main__":
                         event, station, det_rnog, trigger_channels=trigger_channels)
                 else:
                     assert args.noise_type == "rayleigh", "Only 'rayleigh' and 'data-driven' noise is supported."
-                    efieldToVoltageConverter.run(event, station, det_rnog, channel_ids=trigger_channels)
+                    efieldToVoltageConverter.run(event, station, det_rnog, channel_ids=np.arange(num_channels_per_event))
+                    efieldToVoltageConverterPerEfield.run(event, station, det_rnog)
 
                     if args.add_noise:
                         channelGenericNoiseAdder.run(
