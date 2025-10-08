@@ -320,6 +320,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelCWNotchFilter.html">NuRadioReco.modules.channelCWNotchFilter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelIceThermalNoiseAdder.html">NuRadioReco.modules.channelIceThermalNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html">NuRadioReco.modules.channelReadoutWindowCutter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
@@ -706,7 +707,7 @@ given in the <code class="docutils literal notranslate"><span class="pre">getLog
 <strong>explicitly in the module</strong>. This ensures that the logging level is inherited from the
 parent logger, which allows users to easily control the logging level of all modules at once.
 If you want to provide the functionality to change the logging level of the module,
-for example in the <code class="docutils literal notranslate"><span class="pre">begin()</span></code> function, please make sure the default is <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.NOTSET" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.NOTSET</span></code></a>.</p>
+for example in the <code class="docutils literal notranslate"><span class="pre">begin()</span></code> function, please make sure the default is <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.NOTSET" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.NOTSET</span></code></a>.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.MODULE&#39;</span><span class="p">)</span>
 

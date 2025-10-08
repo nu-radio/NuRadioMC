@@ -40,6 +40,7 @@ Submodules
    NuRadioReco.modules.channelCWNotchFilter
    NuRadioReco.modules.channelGalacticNoiseAdder
    NuRadioReco.modules.channelGenericNoiseAdder
+   NuRadioReco.modules.channelIceThermalNoiseAdder
    NuRadioReco.modules.channelLengthAdjuster
    NuRadioReco.modules.channelReadoutWindowCutter
    NuRadioReco.modules.channelResampler

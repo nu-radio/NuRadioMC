@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelIceThermalNoiseAdder module
+======================================================
+
+.. automodule:: NuRadioReco.modules.channelIceThermalNoiseAdder
+   :members:
+   :undoc-members:
+   :show-inheritance:
