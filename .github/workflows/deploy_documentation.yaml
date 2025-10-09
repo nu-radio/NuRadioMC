@@ -2,11 +2,13 @@ name: Deploy Documentation
 
 on: [push, pull_request, workflow_dispatch]
 
+concurrency: # run only one instance of the tests per branch
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true # cancel currently running checks on a new push
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-
 
     steps:
       - uses: actions/checkout@v4 # get the develop branch
