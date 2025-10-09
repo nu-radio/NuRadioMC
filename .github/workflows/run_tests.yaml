@@ -77,7 +77,6 @@ jobs:
   lint:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
     - uses: actions/checkout@v4
@@ -104,7 +103,6 @@ jobs:
     name: Single event simulation | signal and trigger simulation validation
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
     - uses: actions/checkout@v4
@@ -147,7 +145,6 @@ jobs:
   signal-processing:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
     - uses: actions/checkout@v4
@@ -185,7 +182,6 @@ jobs:
     name: Validation of effective volume and area simulation (fixed seeds)
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
     - uses: actions/checkout@v4
@@ -218,7 +214,6 @@ jobs:
     name: RNO-G example scripts and code
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
     - uses: actions/checkout@v4
@@ -248,7 +243,6 @@ jobs:
   other-tests:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
     - uses: actions/checkout@v4
@@ -292,7 +286,6 @@ jobs:
   examples:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
     - uses: actions/checkout@v4
