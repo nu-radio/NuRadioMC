@@ -32,6 +32,7 @@ env: # set the python_version to 3.10 if the workflow is not triggered by workfl
 
 jobs:
   setup:
+    name: Setup environment and Linting
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
@@ -73,19 +74,6 @@ jobs:
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
-
-  lint:
-    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
-    needs: setup
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
     - name: Lint with flake8 (important)
       if: always()
@@ -246,6 +234,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
       uses: ./.github/actions/setup-python-env
