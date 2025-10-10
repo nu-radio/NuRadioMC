@@ -1,7 +1,6 @@
-# PATH INFO
 detector_json: "RNO_G/RNO_season_2024.json"
-time_delay_tables: "/storage/group/szw5718/default/rno-g/cr_search/tools/reconstruction/tables/rz/"
-save_plots_to: "/storage/group/szw5718/default/rno-g/figures/just_test/"
+time_delay_tables: "tables/rz/"
+save_plots_to: "figures/"
 
 station_id: 21
 channels: [0, 1, 2, 3, 9, 10]
@@ -9,7 +8,7 @@ channels: [0, 1, 2, 3, 9, 10]
 coord_system: "cylindrical"
 rec_type: "phiz"
 
-limits: [0, 360, 0, -186]
+limits: [0, 360, 0, -200]
 step_sizes: [0.5, 0.5]
 
 fixed_coord: 30
