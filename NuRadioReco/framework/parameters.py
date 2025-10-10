@@ -50,6 +50,8 @@ class stationParameters(Enum):
     rec_rho = 70  #: reconstructed radial distance (cylindrical rhoz mode) from directionReconstructionDeepCRsearch
     rec_coord0 = 71  #: generic first coordinate from directionReconstructionDeepCRsearch (φ, ρ, or φ depending on mode)
     rec_coord1 = 72  #: generic second coordinate from directionReconstructionDeepCRsearch (z, z, or θ depending on mode)
+    rec_coord0_alt = 73  #: alternate first coordinate from directionReconstructionDeepCRsearch (φ, ρ, or φ depending on mode)
+    rec_coord1_alt = 74  #: alternate second coordinate from directionReconstructionDeepCRsearch (z, z, or θ depending on mode)
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction

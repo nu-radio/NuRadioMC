@@ -1,0 +1,28 @@
+# PATH INFO
+detector_json: "RNO_G/RNO_season_2024.json"
+time_delay_tables: "/storage/group/szw5718/default/rno-g/cr_search/tools/reconstruction/tables/rz/"
+save_plots_to: "/storage/group/szw5718/default/rno-g/figures/just_test/"
+
+station_id: 21
+channels: [0, 1, 2, 3, 9, 10]
+
+coord_system: "cylindrical"
+rec_type: "phiz"
+
+limits: [0, 360, 0, -186]
+step_sizes: [0.5, 0.5]
+
+fixed_coord: 30
+
+# Additional OPTIONAL processing (block offsets and voltage calibration automatically handled by ReadRNOGDataMattak)
+apply_upsampling: true
+apply_cw_removal: true
+apply_cable_delays: true
+apply_waveform_scaling: true
+apply_bandpass: false
+apply_hann_window: false
+use_hilbert_envelope: true
+
+find_alternate_reco: true
+alternate_exclude_radius_deg: 5.0
+create_minimaps: true
