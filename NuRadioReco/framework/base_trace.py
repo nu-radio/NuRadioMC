@@ -357,13 +357,13 @@ class BaseTrace:
             return int(np.ceil(round(x, int(np.log10(1/(0.01*units.ps))))))
 
         # 2. Channel starts before readout window:
-        if t0_channel < t0_readout:
+        if t0_channel <= t0_readout:
             i_start_readout = 0
             t_start_readout = t0_readout
             i_start_channel = ceil((t0_readout - t0_channel) * sampling_rate_channel) # The first bin of channel inside readout
             t_start_channel = tt_channel[i_start_channel]
         # 3. Channel starts after readout window:
-        elif t0_channel >= t0_readout:
+        elif t0_channel > t0_readout:
             if raise_error:
                 logger.error("The readout window starts before the incoming channel")
                 raise ValueError('The readout window starts before the incoming channel')
@@ -385,6 +385,7 @@ class BaseTrace:
 
             i_end_readout = floor((t1_channel - t0_readout) * sampling_rate_readout) + 1 # The bin of readout right before channel ends
             i_end_channel = n_samples_channel
+
         # Determine the remaining time between the binning of the two traces and use time shift as interpolation:
         residual_time_offset = t_start_channel - t_start_readout
         if np.abs(residual_time_offset) >= min_residual_time_offset:
@@ -405,6 +406,49 @@ class BaseTrace:
         original_trace[..., i_start_readout:i_end_readout] += trace_to_add[..., i_start_channel:i_end_channel]
 
         self.set_trace(original_trace, sampling_rate_readout)
+
+    def show(self, show_parameters=1, print_stdout=True, **kwargs):
+        """
+        Print an overview of the structure of this Channel/ElectricField object.
+
+        Parameters
+        ----------
+        show_parameters : int, default: 1
+            If > 0, print the parameters stored in this Channel/ElectricField object.
+
+        Other Parameters
+        ----------------
+        print_stdout : bool, optional
+            If `True` (default), print `str_output` to stdout.
+            Otherwise, return it.
+
+        Returns
+        -------
+        str_output : str, optional
+            A string representation of this Channel/ElectricField object structure.
+
+        """
+        if hasattr(self, 'get_id'): # Channel
+            string_id = f'({self.get_id()})'
+        elif hasattr(self, 'get_unique_identifier'): # SimChannel / ElectricField
+            string_id = f'{self.get_unique_identifier()}'
+        else:
+            string_id = ''
+
+        self_string = [f'{type(self).__name__}{string_id} {self.get_trace().shape}']
+
+        if show_parameters > 0:
+            self_string += ['    Parameters']
+            par_string = [f'      {par.name:16s}: {val}'
+                for par, val in self.get_parameters().items()]
+            self_string += par_string
+
+        output = '\n'.join(self_string)
+        if print_stdout:
+            print(output)
+            return
+
+        return output
 
 
     def __add__(self, x):

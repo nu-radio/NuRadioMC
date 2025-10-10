@@ -1,3 +1,4 @@
+import functools
 import numpy as np
 from scipy import constants
 from scipy import interpolate as intp
@@ -5,20 +6,11 @@ from scipy import interpolate as intp
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import cross_sections
 
-
 import logging
 logger = logging.getLogger('NuRadioMC.inelasticities')
 
-e_mass = constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
-mu_mass = constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV
-# Mass energy equivalent of the tau lepton
-tau_mass = constants.physical_constants['tau mass energy equivalent in MeV'][0] * units.MeV
-pi_mass = 139.57061 * units.MeV
-rho770_mass = 775.49 * units.MeV
-rho1450_mass = 1465 * units.MeV
-a1_mass = 1230 * units.MeV
-cspeed = constants.c * units.m / units.s
-G_F = constants.physical_constants['Fermi coupling constant'][0] * units.GeV ** (-2)
+from NuRadioReco.utilities.constants import (
+    e_mass, mu_mass, pi_mass, rho770_mass, a1_mass, rho1450_mass, tau_mass, G_F)
 
 
 def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
@@ -35,9 +27,20 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
         the inelasticity model to use
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
+    nu_energies: float or array (default: 1 EeV)
+        Energy of the neutrino. If a float is provided, all events will have the same
+        energy. If an array is provided, it must have the same length as n_events
+    flavors: int or array (default: 12)
+        The flavor of the neutrino. 12 = nu_e, 14 = nu_mu, 16 = nu_tau, -12 = anti-nu_e,
+        -14 = anti-nu_mu, -16 = anti-nu_tau. Negative values are used for antineutrinos.
+        If an array is provided, it must have the same length as n_events.
+    ncccs: string or array (default: "CC")
+        The interaction type: "CC" for charged current, "NC" for neutral current. If an
+        array is provided, it must have the same length as n_events.
+
     Returns
     -------
-    inelasticies: array
+    inelasticities: array
         Array with the inelasticities
     """
     rnd = rnd or np.random.default_rng()
@@ -49,21 +52,26 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
         return (-np.log(r1 + rnd.uniform(0., 1., n_events) * r2)) ** 2.5
 
     elif model.lower() == "bgr18" or model.lower() == "hedis_bgr18":
+        yy = np.zeros(n_events)
+
         nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
 
-        yy = np.zeros(n_events)
-        uEE = np.unique(nu_energies)
-        uFlavor = np.unique(flavors)
-        uNCCC = np.unique(ncccs)
-        for energy in uEE:
-            if energy > 10 * units.EeV:
+        if np.any(nu_energies > 10 * units.EeV):
                 logger.warning(
                     "You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
-                    f"You requested {energy / units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
+                    f"You requested maximum energy {max(np.atleast_1d(nu_energies)) / units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
 
+        energy_indicies = np.digitize(nu_energies, nu_energies_ref)
+        energy_indicies = np.clip(energy_indicies, 0, len(nu_energies_ref) - 1)
+        nu_energies_binned = nu_energies_ref[energy_indicies]
+        uEE_binned = np.unique(nu_energies_binned)
+        uFlavor = np.unique(flavors)
+        uNCCC = np.unique(ncccs)
+
+        for energy in uEE_binned:
             for flavor in uFlavor:
                 for nccc in uNCCC:
-                    mask = (nu_energies == energy) & (flavor == flavors) & (nccc == ncccs)
+                    mask = (energy == nu_energies_binned) & (flavor == flavors) & (nccc == ncccs)
                     size = n_events
                     if isinstance(mask, np.ndarray):
                         size = np.sum(mask)
@@ -72,18 +80,32 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
                     iF = np.argwhere(flavors_ref == flavor)[0][0]
                     inccc = np.argwhere(ncccs_ref == nccc)[0][0]
                     iE = np.argmin(np.abs(energy - nu_energies_ref))
-                    get_y = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]),
-                                          fill_value="extrapolate", kind="cubic")
 
-                    yyy = np.linspace(0, 1, 1000)
-                    yyy = 0.5 * (yyy[:-1] + yyy[1:])
-                    dsigma_dyy = 10 ** get_y(np.log10(yyy))
+                    cdf_interp = _get_inverse_cdf_interpolation(iF, inccc, iE)
 
-                    yy[mask] = rnd.choice(yyy, size=size, p=dsigma_dyy / np.sum(dsigma_dyy))
+                    randoms = rnd.uniform(0, 1, size=size)
+                    yy[mask] = cdf_interp(randoms)
+
         return yy
 
     else:
         raise AttributeError(f"inelasticity model {model} is not implemented.")
+
+
+@functools.lru_cache(maxsize=int(2**(int(np.log2(100 * 6 * 2) + 1))))
+def _get_inverse_cdf_interpolation(iF, inccc, iE):
+    nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
+    
+    log10_dsigma_dy_interp = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]),
+                                            fill_value="extrapolate", kind="linear")
+
+    yyy = np.logspace(-8, 0, 1000, endpoint=True)
+    dsigma_dy = 10 ** log10_dsigma_dy_interp(np.log10(yyy))
+    probability_mass = dsigma_dy * 0.5 * np.append(np.diff(yyy), yyy[-1] - yyy[-2])
+    probability_mass /= np.sum(probability_mass)
+    cdf = np.cumsum(probability_mass)
+
+    return intp.interp1d(cdf, yyy, fill_value="extrapolate", kind="linear")
 
 
 def get_ccnc(n_events, rnd=None, model="hedis_bgr18", energy=None, flavors=12):

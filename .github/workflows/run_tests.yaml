@@ -69,19 +69,18 @@ jobs:
       run: |
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  --exit-zero
-    - name: "RNO-G Detector"
-      if: always()
-      run: |
-        python NuRadioReco/detector/test/test_rnog_detector.py
-    - name: "detector.Response"
-      if: always()
-      run: |
-        python NuRadioReco/detector/test/test_response.py
-    - name: "RNO-G data reader"
-      if: always()
-      run: |
-        pip install git+https://github.com/RNO-G/mattak.git
-        NuRadioReco/test/RNO_G/test_read_rnog_data.sh
+
+    # Cache data used in tests
+    - name: Cache CI data
+      uses: actions/cache@v4
+      with:
+        path: |
+          NuRadioReco/examples/Interactive/data
+          NuRadioReco/test/data
+        key: 'ci-data'
+
+    ### Neutrino simulations
+    # Single event tests
     - name: "Single event test (South Pole)"
       if: always()
       run: |
@@ -97,6 +96,8 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
+
+    # Signal generation tests
     - name: Test Numba version of ARZ
       if: always()
       run: |
@@ -113,6 +114,8 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/validate_separate_trigger_channels.sh
+
+    # Signal propagation and birefringence
     - name: "Signal propagation tests"
       if: always()
       run: |
@@ -123,6 +126,8 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SignalProp/run_birefringence_tests.sh
+
+    # Effective volume, pulsers
     - name: "Test Veff example"
       if: always()
       run: |
@@ -139,11 +144,6 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
-    - name: "Test webinar examples"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/examples/test_webinar.sh
     - name: "Veff test"
       if: always()
       run: |
@@ -164,26 +164,56 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
-    - name: "Test channelGalacticNoiseAdder"
+
+    ### RNO-G specific tests
+    - name: "RNO-G Detector"
       if: always()
       run: |
-        pip install git+https://github.com/telegraphic/pygdsm pylfmap
+        python NuRadioReco/detector/test/test_rnog_detector.py
+    - name: "RNO-G data reader"
+      if: always()
+      run: |
+        pip install git+https://github.com/RNO-G/mattak.git
+        NuRadioReco/test/RNO_G/test_read_rnog_data.sh
+
+    ### Other tests
+    - name: "channelGalacticNoiseAdder"
+      if: always()
+      run: |
+        pip install -e .[galacticnoise]
         python NuRadioReco/examples/StandAloneScripts/B01galacticnoiseadder.py
+    - name: "detector.Response"
+      if: always()
+      run: |
+        python NuRadioReco/detector/test/test_response.py
+    - name: "Test unfolding with voltageToEfieldConverter"
+      if: always()
+      run: |
+        python NuRadioReco/test/voltageToEfieldConverter/test-unfolding.py
+    - name: "Test module structure of all modules in NuRadioReco.modules"
+      if: always()
+      run: |
+        export GSLDIR=$(gsl-config --prefix)
+        python NuRadioReco/test/check_modules.py -r
+
+    ### Test examples
+    - name: "Test webinar examples"
+      if: always()
+      run: |
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/examples/test_webinar.sh
     - name: "Test all examples"
       if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         pip install -e .[cr_interpolator]
         NuRadioReco/test/test_examples.sh
-    - name: "Test module structure of all modules in NuRadioReco.modules"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        python NuRadioReco/test/check_modules.py -r
     - name: "Test interactive examples"
       run: |
         export GSLDIR=$(gsl-config --prefix)
         pip install jupyter
         jupyter execute NuRadioMC/examples/Interactive/W01-simulate-neutrino-detector.ipynb
         jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
+        jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
+        jupyter execute NuRadioReco/examples/Interactive/read_RNOG_data.ipynb
 
