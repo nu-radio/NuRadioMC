@@ -4,9 +4,26 @@ This module performs directional reconstruction of radio signals by fitting time
 
 ## Files in this Directory
 
-- **`interferometric_reco_runner.py`**: Command-line script for running reconstructions
+- **`interferometric_reco_example.py`**: Main reconstruction script with preprocessing options
+- **`correlation_map_plotter.py`**: Standalone script for plotting saved correlation maps
 - **`example_config.yaml`**: Example configuration file with all available options
 - **`INTERFEROMETRIC_RECONSTRUCTION_README.md`**: This documentation file
+
+## Supporting Modules
+
+The reconstruction uses several NuRadioReco utility modules:
+
+- **`NuRadioReco.utilities.interferometry_io_utilities`**: I/O functions for saving/loading results and correlation maps
+  - `save_interferometric_results_hdf5()`: Save reconstruction results to HDF5
+  - `save_interferometric_results_nur()`: Save results to NUR format
+  - `save_correlation_map()`: Save correlation map data to pickle
+  - `load_correlation_map()`: Load correlation map from pickle
+  - `create_organized_paths()`: Create organized directory structure for outputs
+
+- **`NuRadioReco.utilities.caching_utilities`**: Caching system for delay matrices
+  - Automatically caches computed delay matrices in `~/.cache/nuradio_delay_matrices/`
+  - Cache key based on station, channels, grid parameters, and cable delays
+  - Significantly speeds up repeated runs with same configuration
 
 ## Overview
 
@@ -24,6 +41,7 @@ The core reconstruction functionality is implemented in the NuRadioReco module:
 - [Configuration File](#configuration-file)
 - [Usage Examples](#usage-examples)
 - [Output Formats](#output-formats)
+- [Visualizing Results](#visualizing-results)
 - [Coordinate Systems](#coordinate-systems)
 - [Time Delay Tables](#time-delay-tables)
 - [Advanced Options](#advanced-options)
@@ -38,21 +56,45 @@ You **must** have pre-calculated time delay tables for your station and channels
 
 **Location:** Tables should be in: `{time_delay_tables}/station{station_id}/ch{channel}_rz_table_rel_ant.npz`
 
-**Format:** Each table is a 2D grid of travel times as a function of (r, z) coordinates **relative to that antenna**:
-- **r**: perpendicular distance from the antenna
-- **z**: vertical offset from the antenna (positive above, negative below)
+**Format:** Each table is a 2D grid of travel times as a function of (r, z) coordinates:
+- **r**: perpendicular distance from the antenna (relative)
+- **z**: absolute depth coordinate (NOT relative to antenna)
 
 ### Python Dependencies
 - NuRadioReco
+- Mattak
 - numpy
 - scipy
 - matplotlib
 - h5py
 - pyyaml
 
+**Note:** The detector configuration is automatically loaded from the RNO-G MongoDB database. No detector JSON file is needed.
+
 ---
 
 ## Quick Start
+
+### 0. Try the Example First
+
+To quickly see the reconstruction in action, before even looking at setting it up yourself in the next steps, you can use the provided example files like so:
+
+```bash
+# Run reconstruction with example config and data
+python interferometric_reco_example.py \
+    --config example_config.yaml \
+    --inputfile combined.root \
+    --events 7 \
+    --save_maps \
+    --verbose
+
+# Plot the correlation map
+python correlation_map_plotter.py \
+    --input results/station21/run476/corr_map_data/station21_run476_evt7_corrmap.pkl \
+    --minimaps
+```
+
+This should reproduce the example figure shown in `example_station21_run476_evt7_corrmap.png` at "./figures/station21/run476/". The "combined.root" file used to reproduce this is from a calibration pulsing run with pulser on helper string C, which is near Vpol channels 22 and 23, so we exclude those channels due to saturation.
 
 ### 1. Create a Configuration File
 
@@ -87,14 +129,16 @@ step_sizes: [0.5, 0.5]
 #   For spherical: fixed r (radial distance) in meters
 fixed_coord: 125.0
 
+# Station ID (required for processing and cache organization)
+station_id: 21
+
 # Path to time delay tables directory
 time_delay_tables: "/path/to/time_delay_tables/"
 
-# Path to save correlation map plots (if requested)
-save_plots_to: "./figures/correlation_maps/"
-
-# Detector configuration (for real data)
-detector_json: "RNO_G/RNO_season_2024.json"
+# Output directory settings (optional - will use defaults if not specified)
+save_results_to: "./results/"    # Base directory for all reconstruction data (default: "./results/")
+                                 # Structure: {base}/station{ID}/run{NUM}/reco_data/ (results)
+                                 #           {base}/station{ID}/run{NUM}/corr_map_data/ (correlation maps)
 
 # Signal processing options
 apply_cable_delays: true          # Apply cable delay corrections
@@ -109,9 +153,6 @@ use_hilbert_envelope: false       # Use Hilbert envelope for correlations
 find_alternate_reco: false        # Find alternate reconstruction coordinates
 alternate_exclude_radius_deg: 5.0 # Exclusion radius around primary maximum (degrees)
 
-# Plotting options
-create_minimaps: false            # Create minimap insets in correlation plots
-
 # CW removal parameters (if apply_cw_removal: true)
 cw_freq_band: [0.1, 0.7]         # Frequency band in GHz
 cw_peak_prominence: 4.0          # Peak prominence threshold
@@ -121,29 +162,46 @@ cw_peak_prominence: 4.0          # Peak prominence threshold
 
 **Basic usage:**
 ```bash
-python interferometricDirectionReconstruction.py \
+python interferometric_reco_example.py \
     --config reco_config.yaml \
     --inputfile /path/to/data.root \
-    --outputfile /path/to/output.h5
+    --output_type hdf5
 ```
 
 **Process specific events:**
 ```bash
-python interferometricDirectionReconstruction.py \
+python interferometric_reco_example.py \
     --config reco_config.yaml \
     --inputfile /path/to/data.root \
-    --events 100 200 300 \
-    --outputfile output.h5 \
-    --save_plots \
+    --events 7 10 15 \
+    --save_maps \
     --verbose
 ```
 
 **Multiple input files (same station):**
 ```bash
-python interferometricDirectionReconstruction.py \
+python interferometric_reco_example.py \
     --config reco_config.yaml \
     --inputfile file1.root file2.root file3.root \
-    --outputfile merged_output.h5
+    --output_type hdf5
+```
+
+### 3. Visualize Correlation Maps (Optional)
+
+If you saved correlation maps with `--save_maps`, use the separate plotting script:
+
+```bash
+# Plot a single correlation map
+python correlation_map_plotter.py --input results/station21/run476/corr_map_data/station21_run476_evt7_corrmap.pkl
+
+# Plot all maps in a directory
+python correlation_map_plotter.py --input results/station21/run476/corr_map_data/
+
+# Plot with minimaps enabled
+python correlation_map_plotter.py --input results/station21/run476/corr_map_data/ --minimaps
+
+# Custom output directory
+python correlation_map_plotter.py --input map.pkl --output custom_figures/
 ```
 
 ---
@@ -179,17 +237,14 @@ python interferometricDirectionReconstruction.py \
 | `apply_upsampling` | bool | `false` | Upsample to 5 GHz |
 | `apply_bandpass` | bool | `false` | Apply 100-600 MHz bandpass filter |
 | `apply_cw_removal` | bool | `false` | Remove CW interference |
-| `apply_waveform_scaling` | bool | `false` | Normalize waveforms (not recommended) |
+| `apply_waveform_scaling` | bool | `false` | Normalize waveforms |
 | `apply_hann_window` | bool | `false` | Apply Hann window to correlations |
 | `use_hilbert_envelope` | bool | `false` | Use Hilbert envelope for correlations |
 | `find_alternate_reco` | bool | `false` | Find alternate reconstruction coordinates |
 | `alternate_exclude_radius_deg` | float | `5.0` | Exclusion radius around primary maximum (degrees) |
-| `create_minimaps` | bool | `false` | Create minimap insets in correlation plots |
-| `station_id` | int | None | Station ID for processing and cache organization |
+| `save_results_to` | string | `"./results/"` | Base directory for organized output structure |
 | `cw_freq_band` | list[float] | `[0.1, 0.7]` | CW removal frequency band (GHz) |
 | `cw_peak_prominence` | float | `4.0` | CW peak detection threshold |
-| `detector_json` | string | `"RNO_G/RNO_season_2024.json"` | Detector configuration file |
-| `save_plots_to` | string | `"./"` | Directory for correlation map plots |
 
 ---
 
@@ -197,7 +252,7 @@ python interferometricDirectionReconstruction.py \
 
 ### Example 1: Azimuth Reconstruction (phiz)
 
-Reconstruct azimuth and depth with fixed radius of 125m:
+Reconstruct azimuth and depth with fixed perpendicular distance of 125m:
 
 ```yaml
 # config_phiz.yaml
@@ -207,16 +262,16 @@ channels: [0, 1, 2, 3]
 limits: [0, 360, -200, 0]        # φ: 0-360°, z: 0 to -200m
 step_sizes: [0.5, 0.5]           # 0.5° in φ, 0.5m in z
 fixed_coord: 125.0               # ρ = 125m
+station_id: 23
 time_delay_tables: "/path/to/tables/"
-save_plots_to: "./phiz_maps/"
 apply_cable_delays: true
 ```
 
 ```bash
-python interferometricDirectionReconstruction.py \
+python interferometric_reco_example.py \
     --config config_phiz.yaml \
     --inputfile station23_run1234.root \
-    --outputfile azimuth_reco.h5
+    --output_type hdf5
 ```
 
 ### Example 2: Zenith Reconstruction (rhoz)
@@ -230,9 +285,9 @@ rec_type: "rhoz"
 channels: [0, 1, 2, 3]
 limits: [0, 200, -200, 0]        # ρ: 0-200m, z: 0 to -200m
 step_sizes: [0.5, 0.5]           # 0.5m in both
-fixed_coord: 180.0               # φ = 180° (west)
+fixed_coord: 0.0                 # φ = 0° (east) - doesn't matter if only using antennas on power string
+station_id: 23
 time_delay_tables: "/path/to/tables/"
-apply_cable_delays: true
 ```
 
 ### Example 3: Full Spherical
@@ -244,11 +299,11 @@ Reconstruct both azimuth and zenith with fixed distance:
 coord_system: "spherical"
 # rec_type not needed for spherical
 channels: [0, 1, 2, 3]
-limits: [0, 360, 0, 180]         # φ: 0-360°, θ: 0° (directly up) to 180° (directly down)
+limits: [0, 360, 0, 180]         # φ: 0-360°, θ: 0° (up) to 180° (down)
 step_sizes: [0.5, 0.2]           # 0.5° in φ, 0.2° in θ
-fixed_coord: 150.0               # r = 150m
+fixed_coord: 50.0               # r = 50m
+station_id: 23
 time_delay_tables: "/path/to/tables/"
-apply_cable_delays: true
 ```
 
 ### Example 4: With Signal Processing
@@ -262,7 +317,9 @@ channels: [0, 1, 2, 3]
 limits: [0, 360, -200, 0]
 step_sizes: [5, 5]
 fixed_coord: 125.0
+station_id: 23
 time_delay_tables: "/path/to/tables/"
+
 apply_cable_delays: true
 apply_upsampling: true           # Upsample to 5 GHz
 apply_cw_removal: true           # Remove CW interference
@@ -270,25 +327,37 @@ apply_hann_window: false         # Apply Hann window to correlations
 use_hilbert_envelope: false      # Use Hilbert envelope for correlations
 find_alternate_reco: true        # Find alternate reconstruction coordinates
 alternate_exclude_radius_deg: 5.0 # Exclusion radius around primary (degrees)
-create_minimaps: true            # Create minimap insets in plots
-cw_freq_band: [0.1, 0.7]
-cw_peak_prominence: 4.0
 ```
 
 ---
 
 ## Output Formats
 
+The reconstruction automatically creates an organized directory structure:
+
+```
+results/
+└── station{ID}/
+    └── run{NUM}/
+        ├── reco_data/
+        │   └── station{ID}_run{NUM}_reco.h5  (or .nur)
+        └── corr_map_data/  (if --save_maps used)
+            ├── station{ID}_run{NUM}_evt{N}_corrmap.pkl
+            └── ...
+```
+
+You can customize the base directory with the `save_results_to` config parameter.
+
 ### HDF5 Output (`.h5`)
 
-Structured table with reconstruction results:
+Structured table with reconstruction results saved to `{base}/station{ID}/run{NUM}/reco_data/`:
 
 ```python
 import h5py
 import pandas as pd
 
 # Read HDF5 file
-with h5py.File('output.h5', 'r') as f:
+with h5py.File('results/station21/run476/reco_data/station21_run476_reco.h5', 'r') as f:
     data = f['reconstruction'][:]
     config = dict(f.attrs)  # Configuration stored as attributes
 
@@ -337,6 +406,60 @@ for event in reader.run():
     # For rhoz: coord0 = rho, coord1 = z
     # For spherical: coord0 = phi, coord1 = theta
 ```
+
+### Correlation Map Data
+
+When using `--save_maps`, correlation map data is saved to pickle files in `{base}/station{ID}/run{NUM}/corr_map_data/`:
+
+Each `.pkl` file contains:
+- `corr_matrix`: 2D correlation map
+- `station_id`, `run_number`, `event_number`: Event identifiers
+- `config`: Reconstruction configuration
+- `coord_system`, `rec_type`: Coordinate system information
+- `limits`: Grid boundaries
+- `channels`: Channels used
+- `fixed_coord`: Fixed coordinate value
+- `coord0_alt`, `coord1_alt`: Alternate reconstruction coordinates (if enabled)
+- `exclusion_bounds`: Exclusion zone information (if alternate reco enabled)
+
+These files can be visualized using `correlation_map_plotter.py` (see next section).
+
+---
+
+## Visualizing Results
+
+### Plotting Correlation Maps
+
+Use the standalone `correlation_map_plotter.py` script to visualize saved correlation maps:
+
+```bash
+# Plot a single event
+python correlation_map_plotter.py --input results/station21/run476/corr_map_data/station21_run476_evt7_corrmap.pkl
+
+# Plot all events in a run
+python correlation_map_plotter.py --input results/station21/run476/corr_map_data/
+
+# Enable minimap insets for detailed views
+python correlation_map_plotter.py --input results/station21/run476/corr_map_data/ --minimaps
+
+# Save to custom directory
+python correlation_map_plotter.py --input map.pkl --output my_figures/
+
+# Process with pattern matching
+python correlation_map_plotter.py --input results/station21/run476/corr_map_data/ --pattern "*evt7*"
+```
+
+**Output:** Plots are automatically saved to an organized structure:
+- Default: `figures/station{ID}/run{NUM}/station{ID}_run{NUM}_evt{N}_corrmap.png`
+- Custom: `{output_dir}/station{ID}/run{NUM}/station{ID}_run{NUM}_evt{N}_corrmap.png`
+
+**Plot features:**
+- Color-coded correlation strength
+- Primary reconstruction point (green circle)
+- Alternate reconstruction point (hollow green circle, if enabled)
+- Exclusion zones (red dashed lines, if alternate reco enabled)
+- Minimap insets (optional, with `--minimaps`)
+- Coordinate-system-specific axis labels and annotations
 
 ---
 
@@ -402,19 +525,19 @@ time_delay_tables/
 Each `.npz` file must contain:
 - `data`: 2D array of travel times (nanoseconds) with shape: (len(r_range_vals), len(z_range_vals))
 - `r_range_vals`: 1D array of **perpendicular distances** from the antenna (meters)
-- `z_range_vals`: 1D array of **vertical offsets** from the antenna (meters)
+- `z_range_vals`: 1D array of **absolute depths** (meters)
 
 **Important coordinate details:**
-- **r (perpendicular)**: Distance from antenna in the perpendicular plane
+- **r (perpendicular)**: Distance from antenna in the perpendicular plane (relative to antenna)
   - Example: r=100m means 100 meters away perpendicularly from the antenna
-- **z (vertical)**: **Vertical offset from the antenna position**
-  - Example: z=-50m means 50 meters below the antenna
-  - z=0 is at the antenna depth, z<0 is below antenna, z>0 is above antenna
+- **z (depth)**: **Absolute depth coordinate** (NOT relative to antenna)
+  - Example: z=-50m means 50 meters below the ice surface (absolute depth)
+  - z=0 is at the ice surface, z<0 is below surface (in the ice)
 
 **Table interpretation:**
-- `data[i, j]` = travel time from source (at offset `(r[i], 0, z[j])` from the antenna) to the antenna
-- The source is placed at perpendicular distance `r[i]` and vertical offset `z[j]` from the antenna
-- During reconstruction, absolute source positions are converted to antenna-relative (r, z) before lookup
+- `data[i, j]` = travel time from source at position `(ant_x + r[i], ant_y, z[j])` to the antenna
+- The source is placed at perpendicular distance `r[i]` from the antenna, at absolute depth `z[j]`
+- The horizontal position is offset by `r` from the antenna, but the vertical position is **absolute**, not relative to antenna depth
 
 ### Generating Time Delay Tables
 
@@ -427,14 +550,10 @@ Time delay tables can be generated using ray-tracing codes that account for:
 **Example generation code:**
 ```python
 # For each grid point (r, z):
-src_position = antenna_position + [r, 0, 0]  # Offset perpendicularly
-src_position[2] = z                          # Set to absolute depth
+src_position = antenna_position + [r, 0, 0]  # Offset perpendicularly by r
+src_position[2] = z                          # Set to absolute depth z (not relative!)
 travel_time = raytracer.get_travel_time(src_position, antenna_position)
 ```
-
-*Note: Full table generation code is in the `tools/reconstruction/tables/` directory.*
-
----
 
 ## Advanced Options
 
@@ -451,17 +570,14 @@ When enabled, alternate coordinates are saved in the HDF5 output as `phi_alt`, `
 
 ### Enhanced Plotting
 
-Correlation maps can include enhanced visualizations:
+The `correlation_map_plotter.py` script has options for enhanced visualizations with minimap insets.
 
-```yaml
-create_minimaps: true            # Add minimap insets showing zoomed regions
-save_plots_to: "./figures/"     # Directory for correlation plots
+**Note:** The `create_minimaps` parameter is used in the **plotter script**, not in the reconstruction config:
+
+```bash
+# Enable minimaps when plotting (not in config.yaml)
+python correlation_map_plotter.py --input corr_map_data/ --minimaps
 ```
-
-When `save_plots` is used, plots will show:
-- Primary and alternate reconstruction points
-- Exclusion zones (when alternate reconstruction is enabled)
-- Minimap insets for detailed views around correlation peaks
 
 ### Signal Processing Options
 
@@ -474,12 +590,16 @@ use_hilbert_envelope: true       # Use envelope correlation for better SNR
 
 ### Caching
 
-The module automatically caches delay matrices to speed up repeated runs:
+The module uses `NuRadioReco.utilities.caching_utilities` to automatically cache delay matrices:
 - **Cache location:** `~/.cache/nuradio_delay_matrices/`
-- **Cache key:** Generated from station, channels, grid, and cable delays
-- **Behavior:** Cache is automatically loaded if available
+- **Cache key:** Generated from station ID, channels, grid parameters, and cable delay settings
+- **Behavior:** Automatically loads from cache if available, significantly speeding up repeated runs
+- **Cache management:** To force regeneration, delete the cache directory or specific cache files
 
-To force regeneration, delete the cache directory.
+The cache is particularly beneficial when:
+- Running the same configuration multiple times
+- Processing multiple events from the same station/run
+- Testing different preprocessing options with the same reconstruction grid
 
 ### Parallel Processing
 
@@ -492,10 +612,10 @@ For processing many files, use job arrays:
 FILES=(run_*.root)
 FILE=${FILES[$SLURM_ARRAY_TASK_ID]}
 
-python interferometricDirectionReconstruction.py \
+python interferometric_reco_example.py \
     --config config.yaml \
     --inputfile $FILE \
-    --outputfile output_${SLURM_ARRAY_TASK_ID}.h5
+    --output_type hdf5
 ```
 
 ## Troubleshooting
@@ -532,17 +652,17 @@ python interferometricDirectionReconstruction.py \
 ## Command-Line Arguments Reference
 
 ```bash
-python interferometricDirectionReconstruction.py [OPTIONS]
+python interferometric_reco_example.py [OPTIONS]
 
 Required:
-  --config CONFIG            Path to YAML configuration file
+  --config CONFIG              Path to YAML configuration file
   --inputfile FILE [FILE ...]  Input data file(s) (.root or .nur)
 
 Optional:
-  --outputfile FILE          Output file (.h5 for HDF5, .nur for NuRadioReco)
-  --events N [N ...]         Specific event IDs/indices to process
-  --save_plots               Save correlation map plots for processed events
-  --verbose                  Print reconstruction results for each event
+  --output_type {hdf5,nur}     Output format (default: hdf5)
+  --events N [N ...]           Specific event IDs/indices to process
+  --save_maps                  Save correlation map data to pickle files
+  --verbose                    Print reconstruction results for each event
 ```
 
 ---
@@ -556,6 +676,3 @@ For questions or issues:
 
 ---
 
-## Version History
-
-- **v1.0** (2025-10): Initial version
