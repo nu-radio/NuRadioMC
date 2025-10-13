@@ -1,0 +1,12 @@
+name: 'Setup GSL'
+description: 'Install GSL system packages and set GSLDIR'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install GSL system packages
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install libgsl-dev
+        export GSLDIR=$(gsl-config --prefix)
