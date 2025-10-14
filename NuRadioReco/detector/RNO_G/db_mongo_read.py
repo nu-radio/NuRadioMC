@@ -1051,7 +1051,7 @@ class Database(object):
         return general_info
 
 
-    def get_channel_signal_chain(self, channel_signal_id, measurement_name=None, verbose=True):
+    def get_channel_signal_chain(self, channel_signal_id, measurement_name=None, primary_time=None, verbose=True):
         """
         Returns the response data for a given signal chain.
 
@@ -1064,6 +1064,9 @@ class Database(object):
         measurement_name: str
             If not None, this measurement will be used to select the correct signal chain (not used in subsequent calls to
             `get_component_data` or `get_time_dependent_factor`)
+
+        primary_time : datetime
+            Time to use for the primary measurement (if None, the current time is used).
 
         Returns
         -------
@@ -1098,6 +1101,7 @@ class Database(object):
                         component_name=component_entry["name"],
                         supplementary_info=supp_info,
                         verbose=verbose,
+                        primary_time=primary_time,
                         sparameter='S21')
 
                 # add the component data to the channel_sig_info dict
