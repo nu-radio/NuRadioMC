@@ -827,7 +827,7 @@ def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, f
     f_sampling: float
         Desired sampling rate of impulse response (2 * max of frequency bins)
     n_bins: int
-        Number of frequency bins in spectrum. Creates 2n-1 time bins
+        Number of frequency bins in spectrum. Creates 2(n-1) time bins
     fmin: float
         minimum frequency in range to compare phases, lower end of the bandpass with good gain
     fmax: float
@@ -849,7 +849,7 @@ def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, f
         The time shift (ns) needed to compute a mostly causal impulse response
     """
     frequencies = np.linspace(0, f_sampling/2, n_bins)
-    times = np.linspace(-n_bins, n_bins, 2*(n_bins-1)) / f_sampling
+    times = np.linspace(-(n_bins-1), n_bins-1, 2*(n_bins-1)) / f_sampling
     response = channel_response(frequencies)
     mask = np.logical_and(frequencies>fmin, frequencies<fmax)
     min_err = atol * (np.max(np.imag(response[mask])) - np.min(np.imag(response[mask])))
@@ -875,20 +875,20 @@ def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, f
         if shift>=max_delay_time:
             raise RuntimeError(f"Causal response not found, try increasing error fraction or time range, loop min err {min_computed_err:.2f} > set err {min_err:.2f}")
         
-    impulse_response = np.fft.irfft(np.real(shifted_response)+1j*hilbert_phase)
+    impulse_response = fft.freq2time(np.real(shifted_response)+1j*hilbert_phase, f_sampling)
     impulse_response = np.roll(impulse_response, len(impulse_response)//2)
 
     if debug_plots:
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots(1,1)
-        ax.plot(frequencies, np.imag(shifted_response), label="Shifted original imag")
-        ax.plot(frequencies, hilbert_phase, label="Hilbert derived imag")
+        ax.plot(frequencies, np.imag(shifted_response), label="Imag(Shifted original)")
+        ax.plot(frequencies, hilbert_phase, label="Imag(Hilbert derived)")
         ax.legend()
         ax.set_xlabel("Frequencies [GHz]")
-        ax.set_ylabel(f"Amplitude of Imag(Response) [V] - max err {min_computed_err:.1f}")
+        ax.set_ylabel(f"Amplitude of Imag(Response) [V/GHz] - max err {min_computed_err/min_err:.1f}")
 
-        original_impulse = np.fft.irfft(response)
+        original_impulse = fft.freq2time(response, f_sampling)
         original_impulse = np.roll(original_impulse,len(times)//2)
         fig_impulse, ax_impulse = plt.subplots(1,1)
         ax_impulse.plot(times,original_impulse, label="Original Impulse")
