@@ -873,7 +873,7 @@ def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, f
             min_computed_err = np.max(np.abs(np.imag(shifted_response[mask]) - hilbert_phase[mask]))
         
         if shift>=max_delay_time:
-            raise RuntimeError(f"Causal response not found, try increasing error fraction or time range, loop min err {min_computed_err:.2f} > set err {min_err:.2f}")
+            raise RuntimeError(f"Causal response not found, try increasing error fraction, time range, or specify a time delay, loop min err {min_computed_err:.2f} > set err {min_err:.2f}")
         
     impulse_response = fft.freq2time(np.real(shifted_response)+1j*hilbert_phase, f_sampling)
     impulse_response = np.roll(impulse_response, len(impulse_response)//2)
@@ -886,7 +886,7 @@ def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, f
         ax.plot(frequencies, hilbert_phase, label="Imag(Hilbert derived)")
         ax.legend()
         ax.set_xlabel("Frequencies [GHz]")
-        ax.set_ylabel(f"Amplitude of Imag(Response) [V/GHz] - max err {min_computed_err/min_err:.1f}")
+        ax.set_ylabel(f"Amplitude of Imag(Response) [V/GHz] - max_err={min_computed_err*atol/min_err:.2f}*amp")
 
         original_impulse = fft.freq2time(response, f_sampling)
         original_impulse = np.roll(original_impulse,len(times)//2)
