@@ -1,12 +1,14 @@
 import numpy as np
+import logging
 from scipy.interpolate import interp1d
 import os
+from functools import lru_cache
+
 from NuRadioReco.utilities import units, bandpass_filter
 from radiotools import helper as hp
-import logging
 logger = logging.getLogger('NuRadioReco.analog_components')
 
-
+@lru_cache(maxsize=128)
 def load_amp_response(amp_type='rno_surface', temp=293.15,
                       path=os.path.dirname(os.path.realpath(__file__))):  # use this function to read in log data
     """
