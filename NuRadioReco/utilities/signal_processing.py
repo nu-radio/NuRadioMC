@@ -807,9 +807,9 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
     return resp_f
 
 def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, fmin=100*units.MHz, fmax=300*units.MHz, max_delay_time=20*units.ns, atol=0.1, time_shift=None, debug_plots=False):
-    '''
+    """
     Calculates a causal impulse response using a Hilbert derived phase - the theory can be found in chapter 8 of
-    "Advanced Signal Integrity for High-Speed Digitial Designs" by Hall and Heck. The Hilbert derived phased is defined by
+    'Advanced Signal Integrity for High-Speed Digitial Designs' by Hall and Heck. The Hilbert derived phased is defined by
     the Kramers-Kronig relations where the imaginary component of a response can be computed by the Hilbert tranformation of the real
     component. Since causality cannot be immediately enforced, this function will compare the imaginary component of channel_response
     to the Hilbert derived imaginary component with some difference error (atol*amplitude(phase)) at discrete time shifts to see when the majority
@@ -821,7 +821,7 @@ def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, f
     Warning: function may not converge if error is too small and acausal FFT artifacts may be present if f_sampling > 2*f_cutoff of the filter
 
     Parameters
-    -------
+    ----------
     channel_response: NuRadioReco.detector.response.Response class
         Response class for the signal chain
     f_sampling: float
@@ -837,17 +837,17 @@ def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, f
     atol: float
         min error fraction of the amplitude of the response's imaginary component to compare
     time_shift: float
-        Optional parameter to manually delay the response by some ammount to ignore the "optimization" loop
+        Optional parameter to manually delay the response by some ammount to ignore the 'optimization' loop
 
     Returns
-    -------
+    ----------
     impulse_response: array of float
         Hilbert derived impulse response (V). Can still contain acausal FFT artifacts
     times: array of float
         Time bins of impulse response
     time_delay: float
         The time shift (ns) needed to compute a mostly causal impulse response
-    '''
+    """
     frequencies = np.linspace(0, f_sampling/2, n_bins)
     times = np.linspace(-n_bins, n_bins, 2*(n_bins-1)) / f_sampling
     response = channel_response(frequencies)
