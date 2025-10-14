@@ -808,9 +808,9 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
 
 def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, fmin=100*units.MHz, fmax=300*units.MHz, max_delay_time=20*units.ns, atol=0.1, time_shift=None, debug_plots=False):
     """
-    Calculates a causal impulse response using a Hilbert derived phase - the theory can be found in chapter 8 of
+    Calculates a causal impulse response using a Hilbert derived phase. The theory can be found in chapter 8 of
     'Advanced Signal Integrity for High-Speed Digitial Designs' by Hall and Heck. The Hilbert derived phased is defined by
-    the Kramers-Kronig relations where the imaginary component of a response can be computed by the Hilbert tranformation of the real
+    the Kramers Kronig relations where the imaginary component of a response can be computed by the Hilbert tranformation of the real
     component. Since causality cannot be immediately enforced, this function will compare the imaginary component of channel_response
     to the Hilbert derived imaginary component with some difference error (atol*amplitude(phase)) at discrete time shifts to see when the majority
     of the pulse is causal. This functions assumes the pulse is well defined (single pulse with no large pre-pulse signals, v(t) -> 0 over time, no aliasing)
@@ -840,7 +840,7 @@ def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, f
         Optional parameter to manually delay the response by some ammount to ignore the 'optimization' loop
 
     Returns
-    ----------
+    -------
     impulse_response: array of float
         Hilbert derived impulse response (V). Can still contain acausal FFT artifacts
     times: array of float
