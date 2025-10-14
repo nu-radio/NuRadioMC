@@ -805,3 +805,104 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
     resp_f = interpolate.interp1d(freqs, response_freq, kind='linear', bounds_error=False, fill_value=0 + 0j)
 
     return resp_f
+
+def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, fmin=100*units.MHz, fmax=300*units.MHz, max_delay_time=20*units.ns, atol=0.1, time_shift=None, debug_plots=False):
+    '''
+    Calculates a causal impulse response using a Hilbert derived phase - the theory can be found in chapter 8 of
+    "Advanced Signal Integrity for High-Speed Digitial Designs" by Hall and Heck. The Hilbert derived phased is defined by
+    the Kramers-Kronig relations where the imaginary component of a response can be computed by the Hilbert tranformation of the real
+    component. Since causality cannot be immediately enforced, this function will compare the imaginary component of channel_response
+    to the Hilbert derived imaginary component with some difference error (atol*amplitude(phase)) at discrete time shifts to see when the majority
+    of the pulse is causal. This functions assumes the pulse is well defined (single pulse with no large pre-pulse signals, v(t) -> 0 over time, no aliasing)
+
+    There is overlap with the functionality of window_response_in_time_domain, but this function does not filter the impulse response
+    which 'should' keep the impulse shape at t>0 intact.
+
+    Warning: function may not converge if error is too small and acausal FFT artifacts may be present if f_sampling > 2*f_cutoff of the filter
+
+    Parameters
+    -------
+    channel_response: NuRadioReco.detector.response.Response class
+        Response class for the signal chain
+    f_sampling: float
+        Desired sampling rate of impulse response (2 * max of frequency bins)
+    n_bins: int
+        Number of frequency bins in spectrum. Creates 2n-1 time bins
+    fmin: float
+        minimum frequency in range to compare phases, lower end of the bandpass with good gain
+    fmax: float
+        maximum frequency in range to compare phases, upper end of the bandpass with good gain
+    max_delay_time: float
+        Max time shift allowed to be searched when getting causal impulse response
+    atol: float
+        min error fraction of the amplitude of the response's imaginary component to compare
+    time_shift: float
+        Optional parameter to manually delay the response by some ammount to ignore the "optimization" loop
+
+    Returns
+    -------
+    impulse_response: array of float
+        Hilbert derived impulse response (V). Can still contain acausal FFT artifacts
+    times: array of float
+        Time bins of impulse response
+    time_delay: float
+        The time shift (ns) needed to compute a mostly causal impulse response
+    '''
+    frequencies = np.linspace(0, f_sampling/2, n_bins)
+    times = np.linspace(-n_bins, n_bins, 2*(n_bins-1)) / f_sampling
+    response = channel_response(frequencies)
+    mask = np.logical_and(frequencies>fmin, frequencies<fmax)
+    min_err = atol * (np.max(np.imag(response[mask])) - np.min(np.imag(response[mask])))
+    
+    shifted_response = response
+    hilbert_phase = -np.imag(signal.hilbert(np.real(response)))
+
+    if time_shift is not None:
+        shifted_response = response * np.exp(-2j*np.pi*frequencies*time_shift)
+        hilbert_phase = -np.imag(signal.hilbert(np.real(shifted_response)))
+        shift = time_shift
+        min_computed_err = np.max(np.abs(np.imag(shifted_response[mask]) - hilbert_phase[mask]))
+
+    else:
+        shift = 0*units.ns
+
+        while(shift<max_delay_time and not np.allclose(np.imag(shifted_response[mask]), hilbert_phase[mask], atol=min_err)):
+            shift += 0.1 * units.ns
+            shifted_response = response * np.exp(-2j*np.pi*frequencies*shift)
+            hilbert_phase = -np.imag(signal.hilbert(np.real(shifted_response)))
+            min_computed_err = np.max(np.abs(np.imag(shifted_response[mask]) - hilbert_phase[mask]))
+        
+        if shift>=max_delay_time:
+            raise RuntimeError(f"Causal response not found, try increasing error fraction or time range, loop min err {min_computed_err:.2f} > set err {min_err:.2f}")
+        
+    impulse_response = np.fft.irfft(np.real(shifted_response)+1j*hilbert_phase)
+    impulse_response = np.roll(impulse_response, len(impulse_response)//2)
+
+    if debug_plots:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots(1,1)
+        ax.plot(frequencies, np.imag(shifted_response), label="Shifted original imag")
+        ax.plot(frequencies, hilbert_phase, label="Hilbert derived imag")
+        ax.legend()
+        ax.set_xlabel("Frequencies [GHz]")
+        ax.set_ylabel(f"Amplitude of Imag(Response) [V] - max err {min_computed_err:.1f}")
+
+        original_impulse = np.fft.irfft(response)
+        original_impulse = np.roll(original_impulse,len(times)//2)
+        fig_impulse, ax_impulse = plt.subplots(1,1)
+        ax_impulse.plot(times,original_impulse, label="Original Impulse")
+        ax_impulse.plot(times, impulse_response, label="Hilbert Derived Impulse")
+        ax_impulse.legend()
+        ax_impulse.set_xlabel(f"Time [ns] - Opt. Shift = {shift:.1f} ns")
+        ax_impulse.set_ylabel("Impulse Response [V]")
+        ax_impulse.set_xlim(left=-50, right=100)
+
+        plt.show()
+
+    return impulse_response, times, shift
+
+
+
+
+
