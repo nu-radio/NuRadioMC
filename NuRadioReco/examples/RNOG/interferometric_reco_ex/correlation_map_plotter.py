@@ -26,7 +26,7 @@ from NuRadioReco.utilities.interferometry_io_utilities import (
 )
 
 
-def plot_correlation_map(map_data, file_path=None, output_arg=None, show_minimaps=False):
+def plot_correlation_map(map_data, file_path=None, output_arg=None, show_minimaps=False, extra_points=None):
     """
     Generate correlation map plot from saved data.
     
@@ -100,20 +100,23 @@ def plot_correlation_map(map_data, file_path=None, output_arg=None, show_minimap
     
     if coord_system == "cylindrical":
         if rec_type == "phiz":
-            legend_label = f"Max corr: {max_corr_value:.2f} at ({int(max_corr_x)}°, {int(max_corr_y)}m)"
+            legend_label = f"Max corr: {max_corr_value:.2f} at ({max_corr_x:.2f}°, {max_corr_y:.2f}m)"
         elif rec_type == "rhoz":
-            legend_label = f"Max corr: {max_corr_value:.2f} at ({int(max_corr_x)}m, {int(max_corr_y)}m)"
+            legend_label = f"Max corr: {max_corr_value:.2f} at ({max_corr_x:.2f}m, {max_corr_y:.2f}m)"
     elif coord_system == "spherical":
-        legend_label = f"Max corr: {max_corr_value:.2f} at ({int(max_corr_x)}°, {int(limits[3] - max_corr_y)}°)"
+        legend_label = f"Max corr: {max_corr_value:.2f} at ({max_corr_x:.2f}°, {(max_corr_y):.2f}°)"
     
     ax.plot(
         max_corr_x,
         max_corr_y,
         "o",
-        markersize=10,
+        markersize=5,
         color="lime",
         label=legend_label,
     )
+            
+    for x, y, label in extra_points:
+        ax.plot(x, y, "o", markersize=5, color="magenta", label=label + f"({x}, {y})")
 
     if 'coord0_alt' in map_data and map_data['coord0_alt'] is not None:
         coord0_alt = map_data['coord0_alt']
@@ -453,6 +456,8 @@ def main():
                        help="Create minimap insets showing zoomed-in views around correlation peaks")
     parser.add_argument("--verbose", "-v", action="store_true",
                        help="Print detailed processing information")
+    parser.add_argument("--extra-points", nargs="*", default=[],
+        help="Extra points to plot, format: x,y,label (repeat for multiple)")
     
     args = parser.parse_args()
     
@@ -479,7 +484,18 @@ def main():
         try:
             map_data = load_correlation_map(file_path)
             
-            saved_path = plot_correlation_map(map_data, file_path, args.output, show_minimaps)
+            extra_points = []
+            for pt in args.extra_points:
+                parts = pt.split(",")
+                if len(parts) == 3:
+                    try:
+                        x, y = float(parts[0]), float(parts[1])
+                        label = parts[2]
+                        extra_points.append((x, y, label))
+                    except Exception:
+                        continue
+            
+            saved_path = plot_correlation_map(map_data, file_path, args.output, show_minimaps, extra_points)
             
             if args.verbose:
                 station_id = map_data['station_id']

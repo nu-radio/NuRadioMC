@@ -451,13 +451,23 @@ python correlation_map_plotter.py --input results/station21/run476/corr_map_data
 - Default: `figures/station{ID}/run{NUM}/station{ID}_run{NUM}_evt{N}_corrmap.png`
 - Custom: `{output_dir}/station{ID}/run{NUM}/station{ID}_run{NUM}_evt{N}_corrmap.png`
 
-**Plot features:**
-- Color-coded correlation strength
-- Primary reconstruction point (green circle)
-- Alternate reconstruction point (hollow green circle, if enabled)
-- Exclusion zones (red dashed lines, if alternate reco enabled)
-- Minimap insets (optional, with `--minimaps`)
-- Coordinate-system-specific axis labels and annotations
+### Enhanced Plotting
+
+The `correlation_map_plotter.py` script has options for enhanced visualizations with minimap insets.
+
+**Note:** The `create_minimaps` parameter is used in the **plotter script**, not in the reconstruction config:
+
+```bash
+# Enable minimaps when plotting
+python correlation_map_plotter.py --input corr_map_data/ --minimaps
+```
+
+It also allows for plotting an arbitrary number of additional points through the optional --extra-points argument. It expects 3 values: x value, y value, and label. This is most useful for adding a known location point to the map to compare to the reconstructed location. For example, let's say I know that my calibration pulser is at 182.1 degrees in azimuth and 87.5 m in depth with respect to the center of the phased array (the origin for the spherical case) and I want the known pulser location to be on the map. Then I would do:
+
+```bash
+# Enable extra point when plotting
+python correlation_map_plotter.py --input corr_map_data/ --extra-points "182.1, 87.5, Pulser"
+```
 
 ---
 
@@ -565,17 +575,6 @@ alternate_exclude_radius_deg: 5.0 # Exclusion radius around primary maximum
 ```
 
 When enabled, alternate coordinates are saved in the HDF5 output as `phi_alt`, `z_alt`, etc., and displayed in plots.
-
-### Enhanced Plotting
-
-The `correlation_map_plotter.py` script has options for enhanced visualizations with minimap insets.
-
-**Note:** The `create_minimaps` parameter is used in the **plotter script**, not in the reconstruction config:
-
-```bash
-# Enable minimaps when plotting (not in config.yaml)
-python correlation_map_plotter.py --input corr_map_data/ --minimaps
-```
 
 ### Signal Processing Options
 
