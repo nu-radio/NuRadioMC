@@ -22,10 +22,10 @@ def deserialize(triggers_pkl):
             trigger = EnvelopeTrigger(None, None, None, None)
         elif trigger_type == 'int_power':
             trigger = IntegratedPowerTrigger(None, None, None)
+        elif trigger_type == 'envelope_phased':
+            trigger  = EnvelopePhasedTrigger(None, None, None, None)
         elif trigger_type == 'digital_envelope_phased':
             trigger  = DigitalEnvelopePhasedTrigger(None, None, None, None)
-        elif trigger_type == 'analog_envelope_phased':
-            trigger  = AnalogEnvelopePhasedTrigger(None, None, None)
         elif trigger_type == 'rnog_surface_trigger':
             trigger = RNOGSurfaceTrigger(None, None, None, None)
         else:
@@ -306,7 +306,7 @@ class SimpleThresholdTrigger(Trigger):
         self._coinc_window = channel_coincidence_window
 
 
-class AnalogEnvelopePhasedTrigger(Trigger):
+class EnvelopePhasedTrigger(Trigger):
 
     def __init__(self, name, threshold_factor, power_mean, power_std,
                  triggered_channels=None, phasing_angles=None, trigger_delays=None,
@@ -365,8 +365,8 @@ class DigitalEnvelopePhasedTrigger(Trigger):
         ----------
         name: string
             unique name of the trigger
-        threshold_factor: float
-            the threshold factor
+        threshold: float
+            the threshold
         power_mean: float
             mean of the noise trace after being filtered with the diode
         power_std: float

@@ -175,6 +175,7 @@ class triggerSimulator:
             align_strides_to_start=False,
             pre_trigger_time=None):
         """
+        Calculates the high-low coincidence trigger for an event.
 
         Parameters
         ----------
