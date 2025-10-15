@@ -31,7 +31,6 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         * "rno_surface": the surface signal chain
         * "iglu": the in-ice signal chain
         * "phased_array": the additional filter of the phased array channels before going into the phased array trigger. 
-        * "dummy_amp": no amplifier (response of 1)
 
     temp: float (default 293.15K)
         the default temperature in Kelvin that the amplifier response is corrected for
