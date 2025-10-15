@@ -1,6 +1,13 @@
+"""
+Example forward-folding neutrino reconstruction script.
+
+"""
+
+import os
+import time
+import argparse
+import numpy as np
 import logging
-import subprocess
-logging.basicConfig(format="%(levelname)s:%(asctime)s:%(name)s:%(message)s", datefmt="%H:%M:%S")
 
 import NuRadioReco.modules.io.eventReader as eventReader
 import NuRadioReco.modules.io.eventWriter as eventWriter
@@ -9,18 +16,12 @@ from NuRadioReco.utilities import units, fft
 import NuRadioReco.detector.detector as detector
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.modules import channelAddCableDelay
-import numpy as np
-import pandas as pd
 from NuRadioReco.modules.neutrinoVertexReconstructor import neutrino3DVertexReconstructor
 from NuRadioReco.modules.neutrinoDirectionReconstructor import rayTypeSelecter, neutrinoDirectionReconstructor
 from NuRadioReco.modules import channelBandPassFilter, channelResampler, channelGenericNoiseAdder
 import NuRadioMC.utilities.medium
 import NuRadioMC.SignalGen.askaryan
 import NuRadioReco.framework.base_trace
-import os
-import time
-import yaml
-import argparse
 from radiotools import helper as hp
 
 stnp = parameters.stationParameters
@@ -39,14 +40,12 @@ noiseadder = channelGenericNoiseAdder.channelGenericNoiseAdder()
 logger = logging.getLogger('reconstruction')
 logger.setLevel(logging.INFO)
 
-### set settings for debug plots (?)
-import matplotlib.pyplot as plt
-plt.rc('font', size=14)
-plt.rc('legend', fontsize=12, handlelength=1, borderaxespad=.3)
-plt.rc('axes', labelsize=14, titlesize=14)
+# Uncomment the following to show additional debug outputs
+# directionrecologger = logging.getLogger('NuRadioReco.neutrinoDirectionReconstructor')
+# directionrecologger.setLevel(logging.DEBUG)
 
-plt.rc('xtick', direction='in', top=True)
-plt.rc('ytick', direction='in', right=True)
+# vertexlogger = logging.getLogger('NuRadioReco.neutrinoVertexReconstructor')
+# vertexlogger.setLevel(logging.DEBUG)
 
 if __name__ == "__main__":
 
@@ -64,15 +63,41 @@ if __name__ == "__main__":
     channel_dict['phased_array'] = np.array([0,1,2,3])
     channel_dict['phased_array_cluster'] = np.array([0,1,2,3,7,8])
 
+    # We also need to specify:
+    # - The signal windows: the size of the window around the pulse position to use in the fit
+    #   This depends in general on the group delays of the antenna + signal chain and may be different for vpol and hpol antennas
+    # - The sampling rate: we upsample the data before fitting in the time domain
+    # - Any other non-default settings to pass to the NeutrinoVertexReconstructor or NeutrinoDirectionReconstructor
+
+    window_vpol = [-20*units.ns, 20*units.ns]
+    window_hpol = [0*units.ns, 25*units.ns]
+    sampling_rate = 6.4 * units.GHz
+
+    # see NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor for a description of all parameters
+    vertex_settings = dict(
+        passband=[80*units.MHz, 300*units.MHz], # using a bandpass filter with a relatively low highpass (increases sensitivity for antennas which are more off-cone)
+        distances_2d=[100*units.m, 6000*units.m] # the default search distance is too small to include some of the expected vertices at higher energies.
+    )
+
+    # see NuRadioReco.modules.neutrinoDirectionReconstructor.neutrinoDirectionReconstructor for a description of all parameters
+    direction_settings = dict(
+        passband=[70*units.MHz, 700*units.MHz], # bandpass-filtering may improve SNR
+        brute_force=False, # quicker
+        use_fallback_timing=True, # include more Hpol channels by using approximate timing from Vpols
+        fit_shower_type=True, # run another fit iteration with an EM shower as the fit hypothesis - may improve fit for EM events
+        )
+
+    ### some inputs can be passed interactively
     argparser = argparse.ArgumentParser(
         "Reconstruction",
         description="Script to run neutrino reconstruction, suitable for parallelization."
     )
     argparser.add_argument("filename", type=str, help="path to .nur file to reconstruct")
     argparser.add_argument("detector", type=str, help="Path to detector description.")
+    argparser.add_argument("prop_config", type=str, help="Path to propagation settings (ice model, raytracer, attenuation model) to use in reconstruction.")
     argparser.add_argument("station_id", type=int, help="Station id of station to use for reconstruction.")
     argparser.add_argument("lookup_table_path", type=str, help="Path to lookup tables.")
-    argparser.add_argument("output_path", type=str, help="Path to output folder.")
+    argparser.add_argument("--output_path", '-o', type=str, help="Where to store outputs (results, debug plots, nur files).", default='./output')
     argparser.add_argument("--vertex", "-v", action='store_true', help="Reconstruct vertex position.")
     argparser.add_argument("--direction", "-d", action='store_true', help="Reconstruct neutrino direction.")
     argparser.add_argument("--save_nur", action='store_true', help="Store nur output file")
@@ -84,16 +109,6 @@ if __name__ == "__main__":
 
     run_vertex_reco = args.vertex
     run_direction_reco = args.direction
-
-    # load settings to use in reconstruction
-    with open('./input/config_reconstruction.yaml') as f:
-        reco_config = yaml.load(f, yaml.FullLoader)
-    # propagation config (used in direction reconstruction)
-    with open("./input/config_RNOG.yaml", 'r') as f:
-        prop_config = yaml.load(f, Loader=yaml.FullLoader)
-
-    vertex_reco_settings = reco_config['vertex']
-    direction_reco_settings = reco_config['direction']
 
     eventreader = eventReader.eventReader()
     eventreader.begin(args.filename)
@@ -110,11 +125,12 @@ if __name__ == "__main__":
     det = detector.Detector(json_filename=args.detector, antenna_by_depth=False)
     station_id = args.station_id
 
-    # make templates
-    # for the vertex reconstruction, we need an electric field template
+    # For the vertex reconstruction, we need an electric field template
+    # We use the SignalGen.askaryan module to generate a template of an askaryan pulse
     n_samples = 1024
     viewing_angle = 1.5 * units.deg
-    sampling_rate = reco_config['sampling_rate']
+    sampling_rate = det.get_sampling_frequency(station_id, channel_dict['all'][0])
+
     ice = NuRadioMC.utilities.medium.get_ice_model('greenland_simple')
     ior = ice.get_index_of_refraction([0, 0, -1. * units.km])
     cherenkov_angle = np.arccos(1. / ior)
@@ -134,14 +150,14 @@ if __name__ == "__main__":
 
     # the template for the direction reconstruction should be convolved with the detector response
     # TODO: make the raytypeselecter do this?
-    vpol_antenna = antenna_provider.load_antenna_pattern(det.get_antenna_model(station_id, 0))
+    vpol_antenna = antenna_provider.load_antenna_pattern(det.get_antenna_model(station_id, channel_dict['phased_array'][0]))
     antenna_response = vpol_antenna.get_antenna_response_vectorized(
         efield_template.get_frequencies(),
         70 * units.deg,
         0*units.deg,
-        *det.get_antenna_orientation(station_id, 0)
+        *det.get_antenna_orientation(station_id, channel_dict['phased_array'][0])
     )['theta']
-    amp_response = det.get_amplifier_response(station_id, 0, efield_template.get_frequencies())
+    amp_response = det.get_amplifier_response(station_id, channel_dict['phased_array'][0], efield_template.get_frequencies())
 
     direction_pulse_template = fft.freq2time(efield_spec * antenna_response * amp_response, sampling_rate)
 
@@ -154,24 +170,23 @@ if __name__ == "__main__":
         if len(run_ids):
             if run_number not in run_ids:
                 continue
-        results = dict()
-        particle = evt.get_primary()
-        E_nu = particle.get_parameter(pap.energy)
+
         output_path = args.output_path
         if not os.path.exists(output_path):
             os.makedirs(output_path)
-            subprocess.run(["mkdir", output_path])
-        event_id = evt.get_id()
-        weight = particle.get_parameter(pap.weight)
-        zenith_sim = particle.get_parameter(pap.zenith)
-        azimuth_sim = particle.get_parameter(pap.azimuth)
-        x_sim = particle.get_parameter(pap.vertex)
-        E_sh = evt.get_first_sim_shower().get_parameter(shp.energy)
 
-        data = [E_nu, E_sh, file_id, run_number, event_id, weight, zenith_sim, azimuth_sim, x_sim]
-        for key, value in zip(['E_nu', 'E_sh', 'file_id', 'run_number', 'event_id', 'weight',
-                'zenith_sim', 'azimuth_sim', 'x_sim',], data):
-            results[key] = value 
+        results = dict()
+        particle = evt.get_primary()
+        results['file_id'] = file_id
+        results['run_number'] = run_number
+        results['event_id'] = evt.get_id()
+
+        results['E_nu_sim'] = particle.get_parameter(pap.energy)
+        results['weight'] = particle.get_parameter(pap.weight)
+        results['zenith_sim'] = particle.get_parameter(pap.zenith)
+        results['azimuth_sim'] = particle.get_parameter(pap.azimuth)
+        results['vertex_sim'] = particle.get_parameter(pap.vertex)
+        results['E_sh_sim'] = evt.get_first_sim_shower().get_parameter(shp.energy)
 
         logger.info("Starting reconstruction for run {}".format(run_number))
 
@@ -181,17 +196,15 @@ if __name__ == "__main__":
 
         resampler.begin()
         resampler.run(evt, station, det, sampling_rate=sampling_rate)
-        if sim_station is not None:
-            resampler.run(evt, sim_station, det, sampling_rate=sampling_rate)
         cabledelayadder.run(evt, station, det, mode='subtract')
+
         # same treatment for sim_station - useful for debugging
         if station.has_sim_station():
             resampler.run(evt, sim_station, det, sampling_rate=sampling_rate)
             cabledelayadder.run(evt, sim_station, det, mode='subtract')
 
-
         t0 = time.time()
-        ### vertex reconstruction
+        ### Step 1: Vertex reconstruction
 
         # we only use the vpol channels in the vertex reconstruction
         vertex_channels = [
@@ -202,8 +215,8 @@ if __name__ == "__main__":
         if run_vertex_reco:
             vertex3d.begin(
                 station_id, vertex_channels, det, template=efield_template,
+                **vertex_settings,
                 debug_folder=output_path,
-                **reco_config['vertex']
             )
 
             vertex3d.run(evt, station, det, debug=args.debug)
@@ -219,26 +232,18 @@ if __name__ == "__main__":
             sim_shower = evt.get_first_sim_shower()
             logger.warning("!!! Setting reconstructed vertex to simulated vertex!!!")
 
-            # shift to xmax
-            def get_xmax(energy):
-                return 0.25 * np.log(energy) - 2.78
-
-            shower_axis = -hp.spherical_to_cartesian(zenith_sim, azimuth_sim)
             vertex_sim = sim_shower[shp.vertex]
-            xmax_sim = vertex_sim + get_xmax(E_sh)*shower_axis
-
             station.set_parameter(stnp.nu_vertex, vertex_sim) ### FOR DEBUGGING ONLY!
-            # sim_shower.set_parameter(shp.vertex, xmax_sim)
-        results['x'] = station.get_parameter(stnp.nu_vertex)
+
+        results['vertex'] = station.get_parameter(stnp.nu_vertex)
         t1 = time.time()
 
 
-        ### Direction reconstruction
+        ### Step 2: Direction reconstruction
         if run_direction_reco:
-            passband = reco_config['direction']['passband']
-            Hpol = channel_dict['hpol_channels']
-
-            raytypeselecter.begin(debug=args.debug, debugplots_path=output_path)
+            raytypeselecter.begin(
+               propagation_config=args.prop_config,
+               debug=args.debug, debugplots_path=output_path)
 
             # TODO This needs some tidying up still...
             # The reference channel used to determine the pulse position by the ray type selecter
@@ -251,17 +256,15 @@ if __name__ == "__main__":
                 raytypeselecter.run(
                     evt, station, det, vrms=None, use_channels=channel_dict['phased_array'][::-1], # using the top phased-array channel as reference channel
                     sim = False, template = direction_pulse_template,
-                    ice_model=prop_config['propagation']['ice_model'], attenuation_model=prop_config['propagation']['attenuation_model'],
                     )
                 reference_vpol = channel_dict['phased_array'][-1]
             except UnboundLocalError: # no RT solutions for given channel:
                 raytypeselecter.run(
                     evt, station, det, vrms=None, use_channels=channel_dict['phased_array'], # using the bottom phased-array channel as reference channel
                     sim = False, template = direction_pulse_template,
-                    ice_model=prop_config['propagation']['ice_model'], attenuation_model=prop_config['propagation']['attenuation_model'],
                     )
                 reference_vpol = channel_dict['phased_array'][0]
-            
+
             # to keep some debug plots happy, one can either re-run the raytypeselecter using sim=True, or manually set the missing parameters
             station.set_parameter(stnp.raytype_sim, station[stnp.raytype])
             station.set_parameter(stnp.pulse_position_sim, station[stnp.pulse_position])
@@ -269,18 +272,17 @@ if __name__ == "__main__":
             #     raytypeselecter.run(
             #         evt, station, det, vrms=None, use_channels=channel_dict['phased_array'][::-1],
             #         sim = True, template = direction_pulse_template,
-            #         ice_model=prop_config['propagation']['ice_model'], attenuation_model=prop_config['propagation']['attenuation_model'],
             #         )
             # except UnboundLocalError:
             #     raytypeselecter.run(
             #         evt, station, det, vrms=None, use_channels=channel_dict['phased_array'],
             #         sim = True, template = direction_pulse_template,
-            #         ice_model=prop_config['propagation']['ice_model'], attenuation_model=prop_config['propagation']['attenuation_model'],
             #         )
 
             results['ray_type'] = station.get_parameter(stnp.raytype)
             results['ray_type_sim'] = station.get_parameter(stnp.raytype_sim)
-            results['ch_Vpol'] = reference_vpol
+            results['reference_antenna'] = reference_vpol
+
 
 
             neutrinodirectionreconstructor.begin(
@@ -288,17 +290,18 @@ if __name__ == "__main__":
                 reference_vpol=reference_vpol,
                 pa_cluster_channels=channel_dict['phased_array_cluster'],
                 hpol_channels=channel_dict['hpol_channels'],
-                propagation_config=prop_config,
+                propagation_config=args.prop_config,
                 vrms=None,
-                **reco_config['direction'],
+                **direction_settings,
                 debug_folder = output_path,
                 debug_formats=['.pdf']
             )
             try:
-                neutrinodirectionreconstructor.run(debug=args.debug)
+                neutrinodirectionreconstructor.run(evt, station, det, debug=args.debug)
             except ValueError as e:
                 logger.warning("Direction reconstruction failed. Error message:")
                 logger.exception(e)
+
             try:
                 results['zenith'] = station.get_parameter(stnp.nu_zenith)
                 results['azimuth'] = station.get_parameter(stnp.nu_azimuth)
@@ -319,20 +322,33 @@ if __name__ == "__main__":
 
         if args.save_nur:
             eventwriter.run(
-                evt, mode=dict(
-                    Channels=False,
-                    ElectricFields=False,
-                    SimChannels=False,
-                    SimElectricFields=False
-                )
+                evt,
+                # mode=dict( # uncomment to only save reconstructed parameters, no voltage traces (resulting in much smaller file size)
+                #     Channels=False,
+                #     ElectricFields=False,
+                #     SimChannels=False,
+                #     SimElectricFields=False)
             )
         t2 = time.time()
 
         print("Took {:.0f} s ({:.0f} s vertex fit / {:.0f} s direction reco)".format(t2-t0, t1-t0, t2-t1))
 
-        import pickle
-        with open('./reconstruction_results.p', 'wb') as f:
-            pickle.dump(results, f)
+
+        ## Some code to export the results
+        ## If you are reconstructing multiple events something like a pandas DataFrame might be more convenient
+        import json
+        class NumpyEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, np.integer):
+                    return int(obj)
+                if isinstance(obj, np.float32):
+                    return obj.item()
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                return json.JSONEncoder.default(self, obj)
+
+        with open(os.path.join(args.output_path, 'results.json'), 'w') as f:
+            json.dump(results, f, indent=4, cls=NumpyEncoder)
 
     if args.save_nur:
         logger.info(f"Finished run {run_number}. Writing output nur to {nur_output_path}...")
