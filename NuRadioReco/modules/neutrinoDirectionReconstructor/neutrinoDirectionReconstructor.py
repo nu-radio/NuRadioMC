@@ -1,3 +1,16 @@
+"""
+Module to reconstruct neutrino properties through a forward-folding fit
+
+This module is designed to reconstruct neutrino properties using the 'deep' channels
+of an in-ice radio detector such as RNO-G or ARA. It uses both Vpol and Hpol antennas.
+To run the reconstruction, one needs to consecutively run:
+
+1. A neutrino vertex reconstruction (e.g. using `NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor`);
+2. A module to identify the (dominant) ray type and approximate pulse positions (e.g. using `NuRadioReco.modules.neutrinoDirectionReconstructor.rayTypeSelecter`)
+3. The `neutrinoDirectionReconstructor`
+
+"""
+
 from radiotools import helper as hp
 import radiotools.coordinatesystems as cstrans
 import matplotlib.pyplot as plt
@@ -7,16 +20,16 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.modules.neutrinoDirectionReconstructor import analytic_pulse
 from NuRadioMC.utilities import medium
+from NuRadioMC.simulation.simulation import get_config
 from scipy import signal, constants, optimize
 from scipy.spatial.transform import Rotation
 import datetime
-from NuRadioReco.utilities import units, bandpass_filter
+from NuRadioReco.utilities import units, signal_processing
 import datetime
 import logging
 import pickle
 
-logger = logging.getLogger("neutrinoDirectionReconstructor")
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("NuRadioReco.neutrinoDirectionReconstructor")
 
 class neutrinoDirectionReconstructor:
     """
@@ -24,9 +37,41 @@ class neutrinoDirectionReconstructor:
 
     This class can be used to reconstruct the arrival direction of a neutrino in an (ARA/RNO-G-style)
     deep in-ice radio detector. To reconstruct neutrinos detected by a shallow detector (using LPDAs),
-    see :mod:`voltageToEfieldAnalyticConverterForNeutrinos <NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos>`
+    see :mod:`voltageToEfieldAnalyticConverterForNeutrinos <NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos>`.
+
+    The outputs of the direction reconstruction are stored as `stationParameters <NuRadioReco.framework.parameters.stationParameters>`.
 
     For a more detailed description of this algorithm, see https://doi.org/10.1140/epjc/s10052-023-11604-w
+
+    Examples
+    --------
+    .. code-block::
+
+        from NuRadioReco.modules.io import eventReader
+        from NuRadioReco.detector import detector
+
+        from NuRadioReco.modules.neutrinoVertexReconstructor import neutrino3DVertexReconstructor
+        from NuRadioReco.modules.neutrinoDirectionReconstructor import rayTypeSelecter, neutrinoDirectionReconstructor
+
+        reader = eventReader.eventReader()
+        det = detector.Detector('path-to-detector-json')
+        vertexreconstructor = neutrino3DVertexReconstructor.neutrino3DVertexReconstructor('path-to-vertex-lookup-tables')
+        raytypeselecter = rayTypeSelecter.rayTypeSelecter()
+        directionreconstructor = neutrinoDirectionReconstructor.neutrinoDirectionReconstructor()
+
+        for evt in reader.run():
+            station = evt.get_station()
+
+            # Initialize modules with correct settings
+            # (see descriptions of each module for required / optional inputs)
+            vertexreconstructor.begin(...)
+            raytypeselecter.begin(...)
+            directionreconstructor.begin(...)
+
+            # Run the reconstruction
+            vertexreconstructor.run(evt, station, det)
+            raytypeselecter.run(evt, station, det, use_channels=...)
+            directionreconstructor.run(...)
 
     """
 
@@ -40,7 +85,7 @@ class neutrinoDirectionReconstructor:
             window_vpol = [-10, +50], window_hpol = [10, 40],
             vrms = None,
             passband = None,
-            brute_force=True,
+            brute_force=False,
             use_fallback_timing=False,
             fit_shower_type=False,
             grid_spacing_viewing_angle=.5*units.deg,
@@ -71,8 +116,20 @@ class neutrinoDirectionReconstructor:
             list of channel ids in the 'phased array cluster', consisting of both Vpol and adjacent Hpol antennas
         hpol_channels: list of ints
             list of 'hpol'-type channels; all other channels are assumed to be 'vpol'-type
-        propagation_config : dict
-            Dictionary with settings to use in propagation; relevant for e.g. attenuation and focussing.
+        propagation_config : dict | str
+            Settings to use for the in-ice propagation. If given as a dictionary,
+            should at least include:
+
+            - ``ice_model``: str
+                Ice model used for the propagation (e.g. 'greenland_simple').
+            - ``module`` : str
+                Method used for the raytracing (e.g. 'analytic')
+            - ``attenuation_model``: str
+                Attenuation model used for the raytracing (e.g. 'GL1')
+
+            Additionally, the setting for focussing is also taken from this config.
+            Instead of a dict, the config can also be provided as a string or Path to a simulation-style yaml config.
+
             See :ref:`here <NuRadioMC/pages/Manuals/signal_propagation:propagation module>` for
             details on propagation settings.
         window_vpol : tuple of floats
@@ -102,9 +159,11 @@ class neutrinoDirectionReconstructor:
             If not None, applies a bandpass filter before performing the fit
             Can either be given as a [highpass, lowpass] tuple, or as a dictionary
             where the keys are channel_ids and the values are [highpass, lowpass] tuples.
-        brute_force: bool, default: True
+        brute_force: bool, default False
             If True, brute force minimization is used. If False, a scipy minimization is used.
-        use_fallback_timing: bool, default: False
+            The brute force minimization is naturally better at avoiding local minima, but takes
+            significantly longer to run.
+        use_fallback_timing: bool, default False
             if True, include all Hpol channels (including those with low SNR)
             by using the timing of adjacent Vpol channels. May improve polarization resolution,
             assuming Hpol timing can be inferred accurately.
@@ -115,7 +174,7 @@ class neutrinoDirectionReconstructor:
         Other Parameters
         ----------------
         sim: bool, default: False
-            If True, the simulated vertex is used. This is for debugging purposes. Default sim_vertex = False.
+            If True, the simulated vertex is used. This is for debugging purposes. Default sim = False.
         full_station: bool, default: True
             If True, all the raytypes in the list use_channels are used. If False, only the triggered pulse is used.
         grid_spacing_viewing_angle: float, default 0.5*units.deg
@@ -155,13 +214,15 @@ class neutrinoDirectionReconstructor:
             for hpol_id in hpol_channels])
         self._reference_Hpol = hpol_channels[reference_hpol_index]
 
-        # as we only have propagation settings, the user might pass config['propagation'] or config
-		# we try to account for this by restoring the 'propagation' level
-        if isinstance(propagation_config, dict):
-            if not 'propagation' in propagation_config:
-                propagation_config = dict(propagation=propagation_config)
+        if not isinstance(propagation_config, dict):
+            propagation_config = get_config(propagation_config)
 
+        # We are only interested in propagation settings;
+        # if we got a 'top-level' config file we only keep the propagation settings in it
+        if 'propagation' in propagation_config:
+            propagation_config = propagation_config['propagation']
         self._prop_config = propagation_config
+
         if passband is not None:
             if not isinstance(passband, dict):
                 passband = {channel_id: passband for channel_id in use_channels}
@@ -172,9 +233,12 @@ class neutrinoDirectionReconstructor:
             ff = np.linspace(0, 5*units.GHz, 8192)
             for channel_id in use_channels:
                 amp_response = detector.get_amplifier_response(station.get_id(), channel_id=channel_id, frequencies=ff)
-                filt = bandpass_filter.get_filter_response(
-                    ff, passband=passband[channel_id], filter_type='butterabs', order=10)
-                effective_bandwidth = np.trapz(np.abs(amp_response * filt)**2, ff)
+                if passband is None:
+                    filt = 1
+                else:
+                    filt = signal_processing.get_filter_response(
+                        ff, passband=passband[channel_id], filter_type='butterabs', order=10)
+                effective_bandwidth = np.trapezoid(np.abs(amp_response * filt)**2, ff)
                 vrms[channel_id] = (300 * 50 * constants.k * effective_bandwidth / units.Hz) ** 0.5
 
         if not isinstance(vrms, dict):
@@ -227,6 +291,7 @@ class neutrinoDirectionReconstructor:
         for channel in station.iter_channels():
             self._sampling_rate = channel.get_sampling_rate()
             break
+
         # we try to get the simulated shower energy, and other parameters
         simulated_energy = 0
         shower_ids = []
@@ -260,7 +325,7 @@ class neutrinoDirectionReconstructor:
             passband=self._passband, propagation_config=self._prop_config
         )
         self._launch_vector_sim, view =  simulation.simulation(
-            detector, station, vertex[0],vertex[1], vertex[2], self._simulated_zenith,
+            detector, station, vertex, self._simulated_zenith,
             self._simulated_azimuth, simulated_energy, use_channels,
             first_iteration = True)[2:4]
         self._simulation = simulation
@@ -281,7 +346,7 @@ class neutrinoDirectionReconstructor:
         ):
 
         """
-        Module to reconstruct the direction of the event.
+        Run the direction reconstruction.
 
         Parameters
         ----------
@@ -323,7 +388,7 @@ class neutrinoDirectionReconstructor:
 
             logger.debug(f"reconstructed vertex direction reco {reconstructed_vertex}")
         self._vertex_azimuth = np.arctan2(reconstructed_vertex[1], reconstructed_vertex[0])
-        ice = medium.get_ice_model(self._prop_config['propagation']['ice_model'])
+        ice = medium.get_ice_model(self._prop_config['ice_model'])
 
         self._cherenkov_angle = np.arccos(1 / ice.get_index_of_refraction(reconstructed_vertex))
 
@@ -348,7 +413,7 @@ class neutrinoDirectionReconstructor:
                 reference_channel = self._reference_Vpol,
                 passband=self._passband, propagation_config=self._prop_config, systematics = systematics)
             tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
-                detector, station, *simulated_vertex,
+                detector, station, simulated_vertex,
                 simulated_zenith, simulated_azimuth, simulated_energy,
                 use_channels, first_iteration = True)
             if pol_sim is None: # for some reason, didn't manage to obtain simulated vw / polarization angle
@@ -378,7 +443,7 @@ class neutrinoDirectionReconstructor:
             systematics = systematics)
         self._simulation = simulation
         self._launch_vector = simulation.simulation(
-            detector, station, *reconstructed_vertex, np.pi/2, 0, 1e17,
+            detector, station, reconstructed_vertex, np.pi/2, 0, 1e17,
             use_channels, first_iteration=True)[2]
 
         # initialize simulated ref values to avoid UnboundLocalError if no sim_station is present
@@ -390,13 +455,13 @@ class neutrinoDirectionReconstructor:
             if has_sim_station:
                 fsimsim = self.minimizer(
                     [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
-                    *simulated_vertex, 
+                    simulated_vertex,
                     minimize =  True, first_iter = True, 
                     ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
                     full_station = self._full_station, sim = True)
                 sim_simvertex_output = self.minimizer(
                     [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
-                    *simulated_vertex, 
+                    simulated_vertex,
                     minimize =  False, first_iter = True, 
                     ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
                     full_station = self._full_station, sim = True)
@@ -406,13 +471,13 @@ class neutrinoDirectionReconstructor:
 
                 fsim = self.minimizer(
                     [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
-                    *reconstructed_vertex,
+                    reconstructed_vertex,
                     minimize =  True, first_iter = True, 
                     ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
                     full_station = self._full_station, sim = True)
                 all_fsim = self.minimizer(
                     [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
-                    *reconstructed_vertex,
+                    reconstructed_vertex,
                     minimize=False, first_iter=True, 
                     ch_Vpol=self._reference_Vpol, ch_Hpol=self._reference_Hpol,
                     full_station=self._full_station, sim=True)[3]
@@ -422,7 +487,7 @@ class neutrinoDirectionReconstructor:
 
                 tracsim_recvertex = self.minimizer(
                     [simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], 
-                    *reconstructed_vertex, 
+                    reconstructed_vertex,
                     minimize =  False, first_iter = True,
                     ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
                     full_station = self._full_station)[0]                
@@ -440,14 +505,14 @@ class neutrinoDirectionReconstructor:
         cop = datetime.datetime.now()
         logger.info("Starting direction reconstruction...")
         minimizer_args = (
-            reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
+            reconstructed_vertex,
             True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
             self._full_station)
         if self._brute_force and not self._restricted_input: # restricted_input:
             logger.warning("Using brute force optimization")
             if starting_values:
-                results2 = optimize.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .15, np.log10(energy_start) + .15, .1)), full_output = True, finish = optimize.fmin , args = (reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
-                results1 = optimize.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .15, np.log10(energy_start) + .15, .1)), full_output = True, finish = optimize.fmin , args = (reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
+                results2 = optimize.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .15, np.log10(energy_start) + .15, .1)), full_output = True, finish = optimize.fmin , args = (reconstructed_vertex, True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
+                results1 = optimize.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .15, np.log10(energy_start) + .15, .1)), full_output = True, finish = optimize.fmin , args = (reconstructed_vertex, True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
                 if results2[1] < results1[1]:
                     results = results2
                 else:
@@ -478,7 +543,7 @@ class neutrinoDirectionReconstructor:
                     slice(azimuth_start, azimuth_end, np.deg2rad(.5)), 
                     slice(energy_start, energy_end, .05)), 
                 finish = optimize.fmin, full_output = True, args = ( ### not the same as minimizer_args!
-                    reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2],
+                    reconstructed_vertex,
                     True, False, False, False, False, 
                     self._reference_Vpol, self._reference_Hpol, self._full_station)
             )
@@ -565,7 +630,7 @@ class neutrinoDirectionReconstructor:
                 chisq = chisq[:4]
             # ---
 
-            logger.debug(
+            logger.status(
                 'Fitter output:\n'
                 '{:>8s} | {:>8s} {:>8s} {:>8s} {:>8s} {:>8s}\n'.format('Chisq', 'type', 'vw.ang', 'pol.ang', 'log10(E)', 'valid') +
                 '\n'.join([
@@ -614,7 +679,7 @@ class neutrinoDirectionReconstructor:
         ## get the traces for the reconstructed energy and direction
         reconstruction_output = self.minimizer(
             [rec_zenith, rec_azimuth, np.log10(rec_energy)], 
-            *reconstructed_vertex, minimize = False, 
+            reconstructed_vertex, minimize = False,
             ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol,
             full_station = self._full_station)
         tracrec = reconstruction_output[0]
@@ -626,21 +691,22 @@ class neutrinoDirectionReconstructor:
 
         fminfit = self.minimizer(
             [rec_zenith, rec_azimuth, np.log10(rec_energy)],
-            *reconstructed_vertex, 
+            reconstructed_vertex,
             minimize =  True, 
             ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
             full_station = self._full_station)
 
-        all_fminfit = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)[3]
+        all_fminfit = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex, minimize =  False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)[3]
         bounds = ((14, 20))
         method = 'BFGS'
         fmin_simdir_recvertex = np.nan        
-        if station.has_sim_station(): 
-            results = optimize.minimize(self.minimizer, [14],method = method, args=(reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False,False, [simulated_zenith, simulated_azimuth], self._reference_Vpol, self._reference_Hpol, True, False), bounds= bounds)
-            fmin_simdir_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, results.x[0]], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)
+        # if station.has_sim_station():
+        #     results = optimize.minimize(self.minimizer, [14],method = method, args=(reconstructed_vertex, True, False, False,False, [simulated_zenith, simulated_azimuth], self._reference_Vpol, self._reference_Hpol, True, False), bounds= bounds)
+        #     fmin_simdir_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, results.x[0]], reconstructed_vertex, minimize = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)
 
         ### values for reconstructed vertex and reconstructed direction
-        traces_rec, timing_rec, launch_vector_rec, viewingangle_rec, a, pol_rec =  simulation.simulation( detector, station, reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], rec_zenith, rec_azimuth, rec_energy, use_channels, first_iteration = True)
+        traces_rec, timing_rec, launch_vector_rec, viewingangle_rec, a, pol_rec = simulation.simulation(
+            detector, station, reconstructed_vertex, rec_zenith, rec_azimuth, rec_energy, use_channels, first_iteration = True)
 
         if debug:
             logger.warning("making debug plots....")
@@ -649,12 +715,12 @@ class neutrinoDirectionReconstructor:
             timingdata = reconstruction_output[2]
             timingsim = self.minimizer(
                 [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)],
-                *simulated_vertex,
+                simulated_vertex,
                 first_iter = True, minimize = False, 
                 ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol,
                 full_station = self._full_station, sim=True)[2]
 
-            timingsim_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], first_iter = True, minimize = False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)[2]
+            timingsim_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex, first_iter = True, minimize = False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)[2]
             sim_station = station.get_sim_station()
 
             fig, ax = plt.subplots(len(use_channels), 3, sharex=False, figsize=(16, 4*len(use_channels)))
@@ -809,7 +875,7 @@ class neutrinoDirectionReconstructor:
                 plt.close()
 
 
-        ###### STORE PARAMTERS AND PRINT PARAMTERS #########
+        ###### STORE PARAMETERS AND PRINT PARAMETERS #########
         neutrino_reconstruction_results = dict(
             extra_channels = extra_channel,
             overreconstructed_channels=channels_overreconstructed,
@@ -870,7 +936,7 @@ class neutrinoDirectionReconstructor:
 
     #TODO: cleanup/add docstring (or just make private...)
     def minimizer(
-            self, params, vertex_x, vertex_y, vertex_z, minimize = True, timing_k = False,
+            self, params, vertex, minimize = True, timing_k = False,
             first_iter = False, banana = False,  direction = [0, 0], ch_Vpol = 6, ch_Hpol = False,
             full_station = False, single_pulse =False, fixed_timing = False,
             starting_values = False, penalty = False, sim = False, shower_type='HAD'
@@ -886,8 +952,8 @@ class neutrinoDirectionReconstructor:
             * If 2 parameters, they are interpreted as viewing angle and log10(energy)
             * If only one parameter is given, it is interpreted as the polarization angle.
 
-        vertex_x, vertex_y, vertex_z: float
-            input vertex
+        vertex: np.ndarray of floats
+            Neutrino vertex position
         minimize: Boolean
             If true, minimization output is given (chi2). If False, parameters are returned. Default minimize = True.
         first_iter: Boolean
@@ -952,7 +1018,7 @@ class neutrinoDirectionReconstructor:
         # if self._single_pulse_fit:
         #     pol_angle = self._pol_angle
         traces, timing, launch_vector, viewingangles, raytypes, pol = self._simulation.simulation(
-            self._detector, self._station, vertex_x, vertex_y, vertex_z, zenith, azimuth, energy,
+            self._detector, self._station, vertex, zenith, azimuth, energy,
             self._use_channels, first_iteration = first_iter, starting_values = starting_values, shower_type=shower_type) ## get traces due to neutrino direction and vertex position
         chi2 = 0
         all_chi2 = dict()

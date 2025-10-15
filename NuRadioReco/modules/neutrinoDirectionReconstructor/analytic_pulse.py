@@ -17,19 +17,14 @@ from radiotools import coordinatesystems as cstrans
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.framework.electric_field import ElectricField
 from NuRadioReco.utilities import trace_utilities, bandpass_filter
-from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator
-import NuRadioReco.modules.io.eventReader
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from radiotools import helper as hp
 import numpy as np
 import logging
 import copy
-from inspect import signature
 
 logger = logging.getLogger("analytic_pulse")
 logger.setLevel(logging.INFO)
-
-hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
 class simulation():
 
@@ -52,6 +47,7 @@ class simulation():
         self._template = template
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         self._raytracing = dict()
+        self._vertex = np.zeros(3)
         self._launch_vectors = None
         self._launch_vector = None
         self._viewingangle = None
@@ -175,6 +171,9 @@ class simulation():
         self._n_samples = int(time_trace * self._sampling_rate) ## templates are 800 samples long. The analytic models can be longer.
         self._first_iteration = True
 
+        if not 'propagation' in propagation_config: # restore 'propagation' level for compatibility with the raytracing modules
+            propagation_config = dict(propagation=propagation_config)
+
         if ice_model is None:
             ice_model = propagation_config['propagation']['ice_model']
         if isinstance(ice_model, str):
@@ -185,7 +184,7 @@ class simulation():
             attenuation_model = propagation_config['propagation']['attenuation_model']
         self._attenuation_model = attenuation_model
         self._askaryan_model = askaryan_model
-        self._prop = propagation.get_propagation_module(propagation_module)
+        self._prop = propagation.get_propagation_module(propagation_module)(self._ice_model, attenuation_model, config=propagation_config)
         self._prop_config = propagation_config
         self._shift_for_xmax = shift_for_xmax
 
@@ -229,13 +228,13 @@ class simulation():
 
     @lru_cache(maxsize=128)
     def _raytracer(self, x1_x, x1_y, x1_z, x2_x, x2_y, x2_z):
-        r = self._prop(self._ice_model, self._attenuation_model, config=self._prop_config)
+        r = self._prop
         r.set_start_and_end_point([x1_x, x1_y, x1_z], [x2_x, x2_y, x2_z])
         r.find_solutions()
         return copy.deepcopy(r)
 
     def simulation(
-            self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith,
+            self, det, station, vertex, nu_zenith,
             nu_azimuth, energy, use_channels,
             first_iteration = False,
             starting_values = False,
@@ -251,9 +250,7 @@ class simulation():
         ----------
         det
         station
-        vertex_x
-        vertex_y
-        vertex_z
+        vertex
         nu_zenith
         nu_azimuth
         energy
@@ -277,38 +274,26 @@ class simulation():
         """
         ice = self._ice_model
 
-        vertex = np.array([vertex_x, vertex_y, vertex_z])
         self._shower_axis = -1 * hp.spherical_to_cartesian(nu_zenith, nu_azimuth)
         n_index = ice.get_index_of_refraction(vertex)
         cherenkov_angle = np.arccos(1/n_index)
 
         raytracing = self._raytracing # dictionary to store ray tracing properties
-        if (self._first_iteration or first_iteration): # we run the ray tracer only on the first iteration
+        if not all([ch in raytracing for ch in use_channels]) or not np.allclose(vertex, self._vertex):
+            first_iteration = True # we are missing some solutions or the vertex has changed
 
+        if first_iteration: # we run the ray tracer only on the first iteration
+            self._vertex = vertex
             launch_vectors = []
             polarizations = []
             viewing_angles = []
-            chid = self._ch_Vpol
-            x2 = det.get_relative_position(station.get_id(), chid) + det.get_absolute_position(station.get_id())
-            # r = prop( ice, self._attenuation_model, config=self._prop_config)
-            # r.set_start_and_end_point(vertex, x2)
-
-            # r.find_solutions()
-            r = self._raytracer(*vertex, *x2)
-            for iS in range(r.get_number_of_solutions()):
-                if iS == self._raytypesolution:
-                    launch = r.get_launch_vector(iS)
-
-                    receive_zenith = hp.cartesian_to_spherical(*r.get_receive_vector(iS))[0]
 
             # logger.debug("Solving for channels {}".format(use_channels))
             for channel_id in use_channels:
                 # logger.debug("Obtaining ray tracing info for channel {}".format(channel_id))
                 raytracing[channel_id] = {}
                 x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
-                # r = prop( ice,self._attenuation_model, config=self._prop_config)
-                # r.set_start_and_end_point(vertex, x2)
-                # r.find_solutions()
+
                 r = self._raytracer(*vertex, *x2)
                 if(not r.has_solution()):
                     logger.warning(f"warning: no solutions for channel {channel_id}")
@@ -344,7 +329,7 @@ class simulation():
                     raytracing[channel_id][iS]["raytype"] = r.get_solution_type(soltype)
                     zenith_reflections = np.atleast_1d(r.get_reflection_angle(soltype))
                     raytracing[channel_id][iS]["reflection angle"] = zenith_reflections
-                    viewing_angle = hp.get_angle(self._shower_axis,raytracing[channel_id][iS]["launch vector"])
+                    viewing_angle = hp.get_angle(self._shower_axis, raytracing[channel_id][iS]["launch vector"])
                     if channel_id == self._ch_Vpol:
                         launch_vectors.append(self._launch_vector)
                         viewing_angles.append(viewing_angle)
@@ -368,7 +353,7 @@ class simulation():
 
                 timing[channel_id][iS] = raytracing[channel_id][iS]["travel time"]
                 raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]
-                viewing_angle = hp.get_angle(self._shower_axis,raytracing[channel_id][iS]["launch vector"])
+                viewing_angle = hp.get_angle(self._shower_axis, raytracing[channel_id][iS]["launch vector"])
                 polarization_direction_onsky = self._calculate_polarization_vector(channel_id, iS)
                 # viewingangles[ich,i_s] = viewing_angle
 
@@ -462,8 +447,6 @@ class simulation():
                 #ax = fig.add_subplot(111)
                 #ax.plot(fft.freq2time(analytic_trace_fft, self._sampling_rate))
                 #ax.plot(np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), -int(np.argmax(abs(fft.freq2time(analytic_trace_fft, self._sampling_rate)))-0.5*len(fft.freq2time(analytic_trace_fft, self._sampling_rate)))))
-                #fig.savefig("/lustre/fs22/group/radio/plaisier/software/simulations/full_reco/Penalty/test_2.pdf")
-                                ## shift such that maximum is in middle
 
                 traces[channel_id][iS] = np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), -int(self._n_samples /4))#-int(np.argmax(abs(fft.freq2time(analytic_trace_fft, self._sampling_rate)))-0.5*len(fft.freq2time(analytic_trace_fft, self._sampling_rate))))# np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), int(self._n_samples / 4))
 
