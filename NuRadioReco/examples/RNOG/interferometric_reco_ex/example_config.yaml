@@ -1,0 +1,29 @@
+time_delay_tables: "tables/rz/"
+
+station_id: 21
+channels: [0, 1, 2, 3, 9, 10]
+
+coord_system: "cylindrical"
+rec_type: "phiz"
+
+limits: [0, 360, -200, 0]
+step_sizes: [0.5, 0.5]
+
+fixed_coord: 34
+
+# Additional OPTIONAL arguments (block offsets and voltage calibration automatically handled by ReadRNOGDataMattak)
+apply_upsampling: true
+apply_cw_removal: true
+apply_cable_delays: true
+use_hilbert_envelope: true
+apply_bandpass: false
+apply_hann_window: false
+
+find_alternate_reco: false
+alternate_exclude_radius_deg: 5.0
+
+# Output directory settings (optional - will use defaults if not specified)
+save_results_to: "results/"    # Base directory for all reconstruction data (default: "./results/")
+                               # Structure: {base}/station{ID}/run{NUM}/reco_data/ (results)
+                               #           {base}/station{ID}/run{NUM}/corr_map_data/ (correlation maps)
+
