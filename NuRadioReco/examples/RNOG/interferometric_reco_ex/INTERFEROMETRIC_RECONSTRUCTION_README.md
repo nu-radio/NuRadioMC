@@ -145,7 +145,6 @@ apply_cable_delays: true          # Apply cable delay corrections
 apply_upsampling: true           # Upsample waveforms to 5 GHz
 apply_bandpass: false             # Apply bandpass filter
 apply_cw_removal: false           # Remove CW interference
-apply_waveform_scaling: false     # Normalize waveforms
 apply_hann_window: false          # Apply Hann window to correlations
 use_hilbert_envelope: false       # Use Hilbert envelope for correlations
 
@@ -237,7 +236,6 @@ python correlation_map_plotter.py --input map.pkl --output custom_figures/
 | `apply_upsampling` | bool | `false` | Upsample to 5 GHz |
 | `apply_bandpass` | bool | `false` | Apply 100-600 MHz bandpass filter |
 | `apply_cw_removal` | bool | `false` | Remove CW interference |
-| `apply_waveform_scaling` | bool | `false` | Normalize waveforms |
 | `apply_hann_window` | bool | `false` | Apply Hann window to correlations |
 | `use_hilbert_envelope` | bool | `false` | Use Hilbert envelope for correlations |
 | `find_alternate_reco` | bool | `false` | Find alternate reconstruction coordinates |

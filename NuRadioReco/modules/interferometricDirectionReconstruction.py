@@ -113,20 +113,24 @@ class interferometricDirectionReconstruction():
             
             if use_hilbert:
                 from scipy.signal import hilbert
-                v1_proc = np.abs(hilbert(v1))
-                v2_proc = np.abs(hilbert(v2))
+                v1_processed = np.abs(hilbert(v1))
+                v2_processed = np.abs(hilbert(v2))
             else:
-                v1_proc = v1
-                v2_proc = v2
+                v1_processed = v1
+                v2_processed = v2
             
             if apply_hann_window:
-                window1 = np.hanning(len(v1_proc))
-                window2 = np.hanning(len(v2_proc))
-                v1_proc = v1_proc * window1
-                v2_proc = v2_proc * window2
+                window1 = np.hanning(len(v1_processed))
+                window2 = np.hanning(len(v2_processed))
+                v1_processed = v1_processed * window1
+                v2_processed = v2_processed * window2
             
-            corr = correlate(v1_proc, v2_proc, mode='full', method='auto')
+            v1_processed = (v1_processed - np.mean(v1_processed)) / np.std(v1_processed)
+            v2_processed = (v2_processed - np.mean(v2_processed)) / np.std(v2_processed)
+            
+            corr = correlate(v1_processed, v2_processed, mode='full', method='auto')
             corr_normalized = corr / overlap_norms[len_key]
+            
             volt_corrs.append(corr_normalized)
             
             lags = correlation_lags(len(v1), len(v2), mode="full")
@@ -194,7 +198,7 @@ class interferometricDirectionReconstruction():
         limits = config['limits']
         step_sizes = config['step_sizes']
 
-        ant_locs = self._get_ant_locs(station_id, det)
+        self.ant_locs = self._get_ant_locs(station_id, det)
 
         if config.get('apply_cable_delays', True):
             if station_id not in self._cable_delay_cache:
@@ -229,7 +233,7 @@ class interferometricDirectionReconstruction():
                     station_id, det, limits, step_sizes, coord_system, fixed_coord, rec_type
                 )
                 delay_matrices = self._get_t_delay_matrices(
-                    station_id, config, src_posn_enu_matrix, ant_locs, cable_delays
+                    station_id, config, src_posn_enu_matrix, self.ant_locs, cable_delays
                 )
                 
                 metadata = {
@@ -295,14 +299,7 @@ class interferometricDirectionReconstruction():
         for ch in channels:
             channel = station.get_channel(ch)
             trace = channel.get_trace()
-            
-            if config.get('apply_waveform_scaling', True):
-                if np.max(trace) != 0:
-                    trace = trace / np.max(trace)
-                if np.std(trace) != 0:
-                    trace = trace / np.std(trace)
-                trace = trace - np.mean(trace)
-            
+
             volt_arrays.append(trace)
             time_arrays.append(channel.get_times())
 
@@ -355,6 +352,8 @@ class interferometricDirectionReconstruction():
             num_rows_to_10m = int(np.ceil(10 / abs(step_sizes[1])))
             surface_corr= self.get_surf_corr(corr_matrix, num_rows_to_10m)
             station.set_parameter(stnp.rec_surf_corr, surface_corr)
+        else:
+            station.set_parameter(stnp.rec_surf_corr, np.nan)
             
         # elif coord_system == "spherical":
         #     num_rows_to_10m = 10
@@ -491,10 +490,15 @@ class interferometricDirectionReconstruction():
     def _generate_coord_arrays(self, limits, step_sizes, coord_system, rec_type):
         """Generate coordinate arrays with proper units."""
         left, right, bottom, top = limits
-        coord0_vec = np.arange(left, right + step_sizes[0], step_sizes[0])
-        # For coord1, go from bottom (min) to top (max), but reverse the array for plotting
-        # (so first row is top, last row is bottom - matches typical image orientation)
-        coord1_vec = np.arange(bottom, top + step_sizes[1], step_sizes[1])[::-1]
+        
+        buffer = 0.5 # buffer R [m] used to avoid weirdness that happens near 0
+        if coord_system == "cylindrical" and left < buffer:
+            coord0_vec = np.arange(buffer, right + step_sizes[0], step_sizes[0])
+        else:
+            coord0_vec = np.arange(left, right + step_sizes[0], step_sizes[0])
+        
+        coord1_vec = np.arange(bottom, top + step_sizes[1], step_sizes[1])
+        
         if coord0_vec[-1] < right:
             coord0_vec = np.append(coord0_vec, right)
         if coord1_vec[0] > top:  # After reversal, first element should be top
@@ -532,6 +536,11 @@ class interferometricDirectionReconstruction():
             raise ValueError(f"Unsupported coordinate system: {coord_system}")
 
     def _get_enu_coordinates(self, coords, coord_system):
+        
+        ch_1_loc = self.ant_locs[1]
+        ch_2_loc = self.ant_locs[2]
+        center_of_PA = (ch_1_loc + ch_2_loc) / 2.0
+                
         """Convert coordinate grids to ENU coordinates."""
         if coord_system == "cylindrical":
             rhos = coords[0]
@@ -544,9 +553,10 @@ class interferometricDirectionReconstruction():
             rs = coords[0]
             phis = coords[1]
             thetas = coords[2]
-            eastings = rs * np.sin(thetas) * np.cos(phis)
-            northings = rs * np.sin(thetas) * np.sin(phis)
-            elevations = rs * np.cos(thetas)
+            eastings = rs * np.sin(thetas) * np.cos(phis) + center_of_PA[0]
+            northings = rs * np.sin(thetas) * np.sin(phis) + center_of_PA[1]
+            elevations = rs * np.cos(thetas) + center_of_PA[2]
+            
         return eastings, northings, elevations
 
     def _get_source_enu_matrix(self, station_id, det, limits, step_sizes, coord_system, fixed_coord, rec_type):
@@ -562,6 +572,7 @@ class interferometricDirectionReconstruction():
         rec_pulser_loc0_idx, rec_pulser_loc1_idx = self._get_max_val_indices(corr_matrix)
         coord0_best = coord0_vec[rec_pulser_loc0_idx]
         coord1_best = coord1_vec[rec_pulser_loc1_idx]
+                
         return coord0_best, coord1_best
     
     def end(self):

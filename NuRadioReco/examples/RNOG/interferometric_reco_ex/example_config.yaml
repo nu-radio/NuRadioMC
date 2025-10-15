@@ -9,16 +9,15 @@ rec_type: "phiz"
 limits: [0, 360, -200, 0]
 step_sizes: [0.5, 0.5]
 
-fixed_coord: 30
+fixed_coord: 34
 
 # Additional OPTIONAL arguments (block offsets and voltage calibration automatically handled by ReadRNOGDataMattak)
 apply_upsampling: true
 apply_cw_removal: true
 apply_cable_delays: true
-apply_waveform_scaling: true
+use_hilbert_envelope: true
 apply_bandpass: false
 apply_hann_window: false
-use_hilbert_envelope: true
 
 find_alternate_reco: false
 alternate_exclude_radius_deg: 5.0
