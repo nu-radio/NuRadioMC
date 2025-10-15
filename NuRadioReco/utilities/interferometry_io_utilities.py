@@ -173,7 +173,14 @@ def save_interferometric_results_hdf5(results, filepath, config):
             if all(v is None for v in values):
                 continue
             
-            if key in ['station_id', 'run_number', 'event_number']:
+            # Handle string fields (like filename)
+            if key == 'filename' or all(isinstance(v, str) for v in values if v is not None):
+                # Create variable-length string dataset
+                dt = h5py.string_dtype(encoding='utf-8')
+                data = np.array([v if v is not None else "" for v in values], dtype=dt)
+                results_group.create_dataset(key, data=data)
+            
+            elif key in ['station_id', 'run_number', 'event_number', 'runNum', 'eventNum']:
                 data = np.array([v if v is not None else -1 for v in values], dtype=int)
                 results_group.create_dataset(key, data=data)
             

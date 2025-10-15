@@ -65,9 +65,11 @@ def main():
                        help="Path(s) to input data file(s) (ROOT or NUR). Can specify multiple files for same station.")
     parser.add_argument("--output_type", type=str, choices=['hdf5', 'nur'], default='hdf5',
                        help="Output file format: 'hdf5' for HDF5 tables or 'nur' for NuRadioReco format (default: hdf5)")
+    parser.add_argument("--outputfile", type=str, default=None,
+                       help="Optional: manually specify output file path. If not set, uses organized default path.")
     parser.add_argument("--events", type=int, nargs="*", default=None, 
                        help="Specific event IDs to process (optional). If not provided, processes all events")
-    parser.add_argument("--save_maps", action="store_true",
+    parser.add_argument("--save-maps", action="store_true",
                        help="Save correlation map data to pickle files for later plotting")
     parser.add_argument("--verbose", action="store_true", 
                        help="Print reconstruction results for each event")
@@ -136,6 +138,9 @@ def main():
     for file_idx, input_file in enumerate(input_files, 1):
         file_events_processed = 0
         
+        # Get basename for unique identification (critical for simulation files with duplicate run/event IDs)
+        input_basename = os.path.basename(input_file)
+        
         print(f"Processing file {file_idx}/{len(input_files)}: {input_file}", flush=True)
         
         if is_nur_file:
@@ -173,11 +178,16 @@ def main():
                         continue
 
             if results_path is None:
-                results_path, maps_dir = create_organized_paths(config, run_number, args.output_type)
-                if results is not None or events_for_nur is not None:
+                if args.outputfile is not None:
+                    results_path = args.outputfile
+                    maps_dir = None
                     print(f"Will save reconstruction results to: {results_path}")
-                if args.save_maps:
-                    print(f"Will save correlation map data to: {maps_dir}")
+                else:
+                    results_path, maps_dir = create_organized_paths(config, run_number, args.output_type)
+                    if results is not None or events_for_nur is not None:
+                        print(f"Will save reconstruction results to: {results_path}")
+                    if args.save_maps:
+                        print(f"Will save correlation map data to: {maps_dir}")
             
             event_station = event.get_station(station_id)
             
@@ -224,6 +234,7 @@ def main():
             # Convert generic coordinates to physically meaningful values based on coord_system
             if results is not None:
                 result_row = {
+                    "filename": input_basename,  # Critical for simulation files with duplicate IDs
                     "runNum": run_number,
                     "eventNum": event_id,
                     "maxCorr": max_corr,
