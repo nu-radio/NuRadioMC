@@ -3,6 +3,7 @@ import numpy as np
 from NuRadioReco.utilities import units, fft
 from NuRadioMC.SignalGen import parametrizations as par
 import logging
+
 logger = logging.getLogger("NuRadioMC.SignalGen.askaryan")
 
 

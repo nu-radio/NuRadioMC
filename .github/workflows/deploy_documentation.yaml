@@ -1,12 +1,14 @@
 name: Deploy Documentation
 
-on: [push, pull_request, workflow_dispatch]
+on: [workflow_dispatch, workflow_call]
+
+concurrency: # run only one instance of the tests per branch
+  group: documentation-${{ github.ref }}
+  cancel-in-progress: true # cancel currently running checks on a new push
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-
 
     steps:
       - uses: actions/checkout@v4 # get the develop branch
@@ -34,7 +36,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest
           export GSLDIR=$(gsl-config --prefix)
-          python install_dev.py --install --dev documentation proposal --no-interactive
+          pip install -e .[dev,proposal,cr_interpolator]
           export PYTHONPATH=$PWD:$PYTHONPATH
           echo $PYTHONPATH
           NuRadioMC/SignalProp/install.sh

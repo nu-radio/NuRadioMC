@@ -25,6 +25,8 @@
 	"createLPDA_100MHz_InfAir.pkl": "380f3c36e46bfeacf337bf68923c42cb435712d6",
 	"createLPDA_100MHz_InfFirn.pkl": "75539869378cf145b0735159fb59e1cb86206b6f",
   "createLPDA_100MHz_InfFirn_n1.4.pkl": "44826dc663ec712ca3f642314c688ce52c314387",
+	"createLPDA_100MHz_v2_InfFirn.pkl": "70efa8ef54742057d9d8c3e0045aa469b4214717",
+  "createLPDA_100MHz_v2_InfFirn_n1.4.pkl": "2feedcc4b0fb562a693f450c520d900688267ccc",
   "createLPDA_100MHz_z1cm_InFirn_RG.pkl": "14157207338067dd363153b5ec761694cae483ad",
   "createLPDA_100MHz_z1cm_InFirn_BoresightToBoundary.pkl": "4981d6a0e5f9813493d8a48416f4cd8e2e83259c",
   "createLPDA_100MHz_z10cm_InFirn_RG.pkl": "f9f15fc73b7f34b0eb9f45b485fbb2d0e3d74dd5",
@@ -48,10 +50,16 @@
   "RNOG_vpol_4inch_center_n1.73.pkl": "5f429ed9ed08175a7f75fd44422367d2278bf2e1",
   "RNOG_vpol_4inch_wall_n1.73.pkl": "da24017eb80f7a68348a674be2c527457fe19992",
   "RNOG_vpol_v2_5inch_center_n1.75.pkl":"b589906a6871bb093fdded9dcb4369631031f5d4",
+  "RNOG_vpol_v3_5inch_center_n1.74.pkl": "d7b051d09e8c2934f923b00eabbe2637d5cd9108",
   "RNOG_quadslot_v1_n1.74.pkl": "e9c4946dd2176489249c862f32ef272ab627dc28",
   "RNOG_quadslot_v2_n1.74.pkl": "b99d69578f8e7c006dcce3de51e26c4f463872b8",
+  "RNOG_hpol_v4_8inch_center_n1.74.pkl": "470a84035f4ee15f3f283aeed458f5b6c4ffb9d1",
   "SKALA_InfFirn": "69b3007da083bb722a4494af97221917973ab297",
   "SKALA_v4_Xpol.pkl": "358fd555653fe00ea9383139d6a14cc9d63e8b01",
   "SKALA_v4_Ypol.pkl": "daa13bcc559dbc4750be34d0bbc9fa12bbadb522",
-  "LOFAR_LBA.pkl": "19e1021d3c70fb64f663a0819130d1d91a97dbaa"
+  "LOFAR_LBA.pkl": "19e1021d3c70fb64f663a0819130d1d91a97dbaa",
+  "SmallBlackSpider_ground2_measured.pkl": "41a8b7786419e780abb76a6725a10d4b588e607d",
+  "Butterfly_ground2.pkl": "ad799d1aa17d6846452dcb3bd3105afacd2fc407",
+  "Butterfly_ground2_East.pkl": "c0de92602ec0090faadd7165739b617acdd65262",
+  "Butterfly_ground2_North.pkl": "84299595c0cf96d172fcee98dccf85c1f2ce732d"
 }
