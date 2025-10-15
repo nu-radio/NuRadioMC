@@ -80,39 +80,6 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         ff *= units.MHz
         amp_gain_discrete = hp.dB_to_linear(S21gain)
         amp_phase_discrete = S21deg * units.deg
-    elif amp_type == 'dummy_amp':
-        def dummy_amp_gain(freqs, temp=None):
-            return np.ones_like(freqs)
-        
-        amp_response['gain'] = dummy_amp_gain
-        amp_response['phase'] = np.ones_like
-        return amp_response
-    elif amp_type =='gen2_sim_2021':
-        passband_low = [0, 1000*units.MHz]
-        passband_high = [96*units.MHz, 100*units.GHz]
-        order_low = 7
-        order_high = 4
-        def get_amp_gain(freqs, temp=None):
-            filt1 = bandpass_filter.get_filter_response(
-                frequencies=freqs, passband=passband_low,
-                filter_type='cheby1', order=order_low, rp=0.1)
-            filt2 = bandpass_filter.get_filter_response(
-                frequencies=freqs, passband=passband_high,
-                filter_type='cheby1', order=order_high, rp=0.1)
-            return np.abs(filt1 * filt2)
-        
-        def get_amp_phase(freqs):
-            filt1 = bandpass_filter.get_filter_response(
-                frequencies=freqs, passband=passband_low,
-                filter_type='cheby1', order=order_low, rp=0.1)
-            filt2 = bandpass_filter.get_filter_response(
-                frequencies=freqs, passband=passband_high,
-                filter_type='cheby1', order=order_high, rp=0.1)
-            return np.exp(1j*np.angle(filt1 * filt2))
-        
-        amp_response['gain'] = get_amp_gain
-        amp_response['phase'] = get_amp_phase
-        return amp_response
     else:
         msg = f"Amp type `{amp_type}` not recognized. possible values are {get_available_amplifiers()}"
         logger.error(msg)
