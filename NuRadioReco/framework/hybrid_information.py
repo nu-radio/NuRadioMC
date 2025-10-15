@@ -1,4 +1,5 @@
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 import NuRadioReco.framework.hybrid_shower
 
 
@@ -29,7 +30,7 @@ class HybridInformation():
         data = {
             'shower_pickles': shower_pickles
         }
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         for shower_pkl in pickle.loads(data_pkl)['shower_pickles']:

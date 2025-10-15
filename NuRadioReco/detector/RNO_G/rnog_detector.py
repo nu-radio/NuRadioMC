@@ -65,7 +65,7 @@ def _check_detector_time(method):
 class Detector():
     def __init__(self, database_connection='RNOG_public', log_level=logging.NOTSET, over_write_handset_values=None,
                  database_time=None, always_query_entire_description=False, detector_file=None,
-                 select_stations=None, create_new=False):
+                 select_stations=None, create_new=False, database_name=None, signal_chain_measurement_name=None):
         """
         The RNO-G detector description.
 
@@ -100,9 +100,18 @@ class Detector():
             This is useful for example in simulations when one wants to simulate only one station. The default None
             means to descibe all commissioned stations.
 
-        create_new : bool (Default: False)
-            If False, and a database already exists, the existing database will be used rather than initializing a
-            new connection. Set to True to create a new database connection.
+        create_new : bool (Default: None)
+            If ``False``, the existing database connection (if there is one) will be used rather than initializing a
+            new connection. Set to ``True`` to always create a new database connection.
+            The default is to create a new database only if the ``database_connection`` argument has changed.
+
+        database_name : str (Default: None)
+            Name of the database to connect to. If None, the default database will be used
+            (see Database class in db_mongo_read.py).
+
+        signal_chain_measurement_name : str (Default: None)
+            Name of the signal chain measurement to use. If None, the signal chain is selected based on
+            database / primary time.
 
         Notes
         -----
@@ -124,6 +133,9 @@ class Detector():
         self.additional_data = {}
         self.comment = ""
 
+        # If `self.__signal_chain_measurement_name is None` select signal chain according to primary time
+        self.__signal_chain_measurement_name = signal_chain_measurement_name
+
         if select_stations is not None and not isinstance(select_stations, list):
             select_stations = [select_stations]
 
@@ -133,7 +145,10 @@ class Detector():
         if detector_file is None:
             self._det_imported_from_file = False
 
-            self.__db = Database(database_connection=database_connection, create_new=create_new)
+            self.__db = Database(
+                database_connection=database_connection,
+                create_new=create_new, database_name=database_name)
+
             if database_time is not None:
                 self.__db.set_database_time(database_time)
 
@@ -185,6 +200,25 @@ class Detector():
 
         self.assume_inf = None  # Compatibility with other detectors classes
         self.antenna_by_depth = None  # Compatibility with other detectors classes
+
+    @property
+    def signal_chain_measurement_name(self):
+        """
+        The name of the signal chain measurement, or None if not set.
+        """
+        return self.__signal_chain_measurement_name
+
+    @signal_chain_measurement_name.setter
+    def signal_chain_measurement_name(self, name):
+        """
+        Set the name of the signal chain measurement.
+        """
+        if name != self.__signal_chain_measurement_name:
+            for station_id in self.__buffered_stations:
+                for channel_id in self.__buffered_stations[station_id]["channels"]:
+                    self.__buffered_stations[station_id]["channels"][channel_id].pop("signal_chain", None)
+
+            self.__signal_chain_measurement_name = name
 
     def export(self, filename, json_kwargs=None, additional_data=None, drop_response_data=False, comment=None):
         """
@@ -251,7 +285,7 @@ class Detector():
 
         if comment is not None:
             self.comment = "\n".join([self.comment, comment]).strip()
-            
+
         export_dict["comment"] = self.comment
 
         if not filename.endswith(".xz"):
@@ -614,9 +648,10 @@ class Detector():
 
             signal_id = self.__buffered_stations[station_id]["channels"][channel_id]['id_signal']
             self.logger.debug(
-                f"Query signal chain of station.channel {station_id}.{channel_id} with id {signal_id}")
+                f"Query signal chain of station.channel {station_id}.{channel_id} with id {signal_id} "
+                f"and measurement name {self.__signal_chain_measurement_name}")
 
-            channel_sig_info = self.__db.get_channel_signal_chain(signal_id)
+            channel_sig_info = self.__db.get_channel_signal_chain(signal_id, measurement_name=self.__signal_chain_measurement_name)
             channel_sig_info.pop('channel_id', None)
 
             self.__buffered_stations[station_id]["channels"][channel_id]['signal_chain'] = channel_sig_info
@@ -887,52 +922,80 @@ class Detector():
 
         # total_response can be None if imported from file
         if response_key not in signal_chain_dict or signal_chain_dict[response_key] is None:
-            measurement_components_dic = signal_chain_dict[response_chain_key]
+            measurement_components_list = signal_chain_dict[response_chain_key]
 
             # Here comes a HACK
-            components = list(measurement_components_dic.keys())
+            components = [entry["collection"] for entry in measurement_components_list]
             is_equal = False
             if "drab_board" in components and "iglu_board" in components:
-
                 is_equal = np.allclose(
-                    measurement_components_dic["drab_board"]["mag"],
-                    measurement_components_dic["iglu_board"]["mag"])
+                    measurement_components_list[components.index("drab_board")]["mag"],
+                    measurement_components_list[components.index("iglu_board")]["mag"])
 
                 if is_equal:
-                    self.logger.warn(
+                    self.logger.warning(
                         f"Station.channel {station_id}.{channel_id}: Currently both, "
                         "iglu and drab board are configured in the signal chain but their "
                         "responses are the same (because we measure them together in the lab). "
                         "Skip the drab board response.")
 
             responses = []
-            for key, value in measurement_components_dic.items():
-
+            for component_entry in measurement_components_list:
                 # Skip drab_board if its equal with iglu (see warning above)
-                if is_equal and key == "drab_board":
+                if is_equal and component_entry["collection"] == "drab_board":
                     continue
 
-                if "weight" not in value:
-                    self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
-                weight = value.get("weight", 1)
-
-                attenuator = value.get("attenuator", 0)
-
-                if "time_delay" in value:
-                    time_delay = value["time_delay"]
-                else:
-                    self.logger.warning(
-                        f"The signal chain component \"{key}\" of station.channel "
-                        f"{station_id}.{channel_id} has no time delay stored... "
-                        "Set component time delay to 0")
+                if component_entry['collection'] == "gain_calibration":
+                    ydata = component_entry["gain_factor"]
+                    y_units = component_entry["gain_factor_unit"]
+                    frequencies = None
                     time_delay = 0
 
-                ydata = [value["mag"], value["phase"]]
-                response = Response(value["frequencies"], ydata, value["y-axis_units"],
-                                    time_delay=time_delay, weight=weight, name=key,
-                                    station_id=station_id, channel_id=channel_id,
-                                    log_level=self.__log_level,
-                                    attenuator_in_dB=attenuator)
+                elif component_entry['collection'] == "time_delays":
+                    ydata = 1  # Fake gain factor of 1 in magitude (does nothing)
+                    y_units = "mag"
+                    frequencies = None
+                    time_delay = component_entry["time_delay"] * getattr(units, component_entry["time_delay_unit"])
+
+
+                else:
+                    # Get the response data
+                    ydata = [component_entry["mag"], component_entry["phase"]]
+                    y_units = component_entry["y-axis_units"]
+                    frequencies = component_entry["frequencies"]
+
+                    if "weight" not in component_entry.keys():
+                        self.logger.warning(
+                            f"Component {component_entry['collection']} with the name {component_entry['name']} "
+                            "does not have a weight. Assume a weight of 1 ...")
+
+                    weight = component_entry.get("weight", 1) # returns 1 as the default if weight is not included
+                    attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
+
+                    if "time_delay" in component_entry:
+                        time_delay = component_entry["time_delay"]
+                    else:
+                        self.logger.warning(
+                            f"The signal chain component \"{component_entry['collection']}\" with the name \"{component_entry['name']}\" of station.channel "
+                            f"{station_id}.{channel_id} has no time delay stored... "
+                            "Set component time delay to 0")
+                        time_delay = 0
+
+                    # Apply the addtional attenuator (stored in dB) to the response if present in measurement
+                    if attenuator:
+                        if y_units[0] == "dB":
+                            ydata[0] = np.asarray(ydata[0]) + attenuator
+                        elif y_units[0].lower() == "mag":
+                            ydata[0] = np.asarray(ydata[0]) * 10 ** (attenuator / 20)
+                        else:
+                            raise KeyError
+
+                response = Response(
+                    frequencies, ydata, y_units,
+                    time_delay=time_delay, weight=weight,
+                    name=f'{component_entry["collection"]}:{component_entry["name"]}',
+                    station_id=station_id, channel_id=channel_id,
+                    log_level=self.__log_level)
 
                 responses.append(response)
 
@@ -1248,12 +1311,12 @@ class Detector():
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel.
 
-        Also see
+        See Also
         --------
         get_time_delay
         """
         signal_chain_dict = self.get_channel_signal_chain(
-        station_id, channel_id)
+            station_id, channel_id)
 
         if trigger:
             response_chain_key = "trigger_response_chain"
@@ -1266,21 +1329,25 @@ class Detector():
         else:
             response_chain_key = "response_chain"
 
-        measurement_components_dic = signal_chain_dict[response_chain_key]
+        measurement_components_list = signal_chain_dict[response_chain_key]
 
         total_time_delay = 0
-        for key, value in measurement_components_dic.items():
+        for component_dic in measurement_components_list:
+            key = component_dic["collection"]
 
-            if "weight" in value:
-                weight = value["weight"]
+            if key == "gain_calibration":
+                continue  # skip gain calibration, it has no time delay
+
+            if "weight" in component_dic:
+                weight = component_dic["weight"]
             else:
-                self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
+                self.logger.warning(f"Component {key} does not have a weight. Assume a weight of 1 ...")
                 weight = 1
 
             assert abs(weight) == 1, f"Weight is {weight}, only values of `-1` and `1` are currently supported."
 
-            if "time_delay" in value:
-                time_delay = value["time_delay"]
+            if "time_delay" in component_dic:
+                time_delay = component_dic["time_delay"]
             else:
                 self.logger.warning(
                     f"The signal chain component \"{key}\" of station.channel "
@@ -1321,7 +1388,7 @@ class Detector():
         IMPORTANT: The value returned by this function does *not* directly correspond to the overall time
         delay / cable delay of the requested channel! A residual group delay may be present and is accounted for
         by the response provided by `get_amplifier_response`.
-        
+
         See Also
         --------
         get_cable_delay, get_amplifier_response
@@ -1341,15 +1408,19 @@ class Detector():
                 raise KeyError(f"No trigger response for station.channel {station_id}.{channel_id}")
 
             prefix = "trigger_" if trigger else ""
-            for key, value in signal_chain_dict[f"{prefix}response_chain"].items():
-                ydata = [value["mag"], value["phase"]]
+            for component_dic in signal_chain_dict[f"{prefix}response_chain"]:
+                key = component_dic["collection"]
+                if key == "gain_calibration":
+                    continue  # skip gain calibration, it has no time delay
+
+                ydata = [component_dic["mag"], component_dic["phase"]]
                 # This is different from within `get_signal_chain_response` because we do set the time delay here
                 # and thus we do not remove it from the response.
-                response = Response(value["frequencies"], ydata, value["y-axis_units"],
+                response = Response(component_dic["frequencies"], ydata, component_dic["y-axis_units"],
                                     name=key, station_id=station_id, channel_id=channel_id,
                                     log_level=self.__log_level)
 
-                weight = value.get("weight", 1)
+                weight = component_dic.get("weight", 1)
                 time_delay += weight * response._calculate_time_delay()
 
         return time_delay
@@ -1357,7 +1428,7 @@ class Detector():
 
     def get_site(self, station_id):
         """ Returns the site "summit"
-        
+
         This detector class is exclusive for the RNO-G detector located
         at Summit Station on the Greenland ice sheet.
 
@@ -1378,7 +1449,7 @@ class Detector():
         """
         Get the (latitude, longitude) coordinates (in degrees) for the RNO-G detector site.
 
-        The returned location corresponds to the position of the DISC borehole which is 
+        The returned location corresponds to the position of the DISC borehole which is
         used as the origin of the RNO-G coordinate system, i.e., this locations acts as
         a reference point to define the station positions.
 

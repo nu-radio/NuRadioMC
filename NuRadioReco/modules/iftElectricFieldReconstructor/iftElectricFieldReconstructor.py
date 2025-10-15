@@ -9,9 +9,20 @@ import NuRadioReco.modules.iftElectricFieldReconstructor.operators
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
 from NuRadioReco.modules.base.module import register_run
+import logging
+
+logger = logging.getLogger('NuRadioReco.iftElectricFieldReconstructor')
 
 import scipy
-import nifty5 as ift
+try:
+    import nifty5 as ift
+except ImportError as e:
+    logger.error(
+        "To use the iftElectricFieldReconstructor, 'nifty5' and 'pypocketfft' need to be installed:\n\n"
+        "\t pip install git+https://gitlab.mpcdf.mpg.de/ift/nifty.git@NIFTy_5 git+https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"
+        )
+    raise(e)
+
 import matplotlib.pyplot as plt
 import scipy.signal
 import radiotools.helper
