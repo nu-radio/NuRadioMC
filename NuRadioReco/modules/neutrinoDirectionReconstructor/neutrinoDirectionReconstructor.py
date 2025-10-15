@@ -11,23 +11,23 @@ To run the reconstruction, one needs to consecutively run:
 
 """
 
-from radiotools import helper as hp
-import radiotools.coordinatesystems as cstrans
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import signal, constants, optimize
+from scipy.spatial.transform import Rotation
+import logging
+import pickle
+from radiotools import helper as hp
+import radiotools.coordinatesystems as cstrans
+
 from NuRadioReco.utilities import fft
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.modules.neutrinoDirectionReconstructor import analytic_pulse
+from NuRadioReco.modules.base.module import register_run
 from NuRadioMC.utilities import medium
 from NuRadioMC.simulation.simulation import get_config
-from scipy import signal, constants, optimize
-from scipy.spatial.transform import Rotation
-import datetime
 from NuRadioReco.utilities import units, signal_processing
-import datetime
-import logging
-import pickle
 
 logger = logging.getLogger("NuRadioReco.neutrinoDirectionReconstructor")
 
@@ -79,9 +79,9 @@ class neutrinoDirectionReconstructor:
         pass
 
     def begin(
-            self, event, station, detector, use_channels, 
-            reference_vpol, pa_cluster_channels,
-            hpol_channels, propagation_config, 
+            self, use_channels,
+            reference_vpol, pa_cluster_channels, hpol_channels,
+            propagation_config,
             window_vpol = [-10, +50], window_hpol = [10, 40],
             vrms = None,
             passband = None,
@@ -92,7 +92,7 @@ class neutrinoDirectionReconstructor:
             grid_spacing_polarization_angle=5*units.deg,
             grid_spacing_energy=.2,
             full_station=True,
-            sim = False, template = False,
+            template = False,
             single_pulse_fit=False, restricted_input=False,
             debug_folder='.',
             debug_formats=['.pdf']):
@@ -101,12 +101,6 @@ class neutrinoDirectionReconstructor:
 
         Parameters
         ----------
-        event: Event
-            The event to reconstruct the direction
-        station: Station
-            The station used to reconstruct the direction
-        detector: Detector
-            ``Detector`` object specifying the detector layout
         use_channels: list
             list of channel ids used for the reconstruction
         reference_vpol: int
@@ -173,8 +167,6 @@ class neutrinoDirectionReconstructor:
 
         Other Parameters
         ----------------
-        sim: bool, default: False
-            If True, the simulated vertex is used. This is for debugging purposes. Default sim = False.
         full_station: bool, default: True
             If True, all the raytypes in the list use_channels are used. If False, only the triggered pulse is used.
         grid_spacing_viewing_angle: float, default 0.5*units.deg
@@ -202,18 +194,6 @@ class neutrinoDirectionReconstructor:
             List of formats to save debug plots in (e.g. ``png``, ``pdf`` or ``pickle``)
 
         """
-        self._sim_vertex = sim
-        self._event = event
-        self._station = station
-        self._detector = detector
-        self._reference_Vpol = reference_vpol
-        # for the reference Hpol (hpol which is always included in fits),
-        # we pick the hpol closest to the reference Vpol
-        reference_hpol_index = np.argmin([
-            np.linalg.norm(detector.get_relative_position(station.get_id(), hpol_id) - detector.get_relative_position(station.get_id(), reference_vpol))
-            for hpol_id in hpol_channels])
-        self._reference_Hpol = hpol_channels[reference_hpol_index]
-
         if not isinstance(propagation_config, dict):
             propagation_config = get_config(propagation_config)
 
@@ -228,39 +208,87 @@ class neutrinoDirectionReconstructor:
                 passband = {channel_id: passband for channel_id in use_channels}
         self._passband = passband
 
-        if vrms is None: # compute vrms from noise temperature
-            vrms = {}
-            ff = np.linspace(0, 5*units.GHz, 8192)
-            for channel_id in use_channels:
-                amp_response = detector.get_amplifier_response(station.get_id(), channel_id=channel_id, frequencies=ff)
-                if passband is None:
-                    filt = 1
-                else:
-                    filt = signal_processing.get_filter_response(
-                        ff, passband=passband[channel_id], filter_type='butterabs', order=10)
-                effective_bandwidth = np.trapezoid(np.abs(amp_response * filt)**2, ff)
-                vrms[channel_id] = (300 * 50 * constants.k * effective_bandwidth / units.Hz) ** 0.5
-
-        if not isinstance(vrms, dict):
-            vrms = {ch : vrms for ch in use_channels}
+        # We sort the channels. This is used in the minimizer,
+        # where if the timing for a vpol/hpol channel cannot be determined,
+        # the timing of the reference vpol/nearest vpol is used, respectively, as a fallback.
+        vpol_channels = np.array([channel_id for channel_id in use_channels if channel_id not in hpol_channels])
+        hpol_channels = np.array([channel_id for channel_id in use_channels if channel_id in hpol_channels])
+        use_channels_sorted = np.concatenate([[reference_vpol], vpol_channels, hpol_channels])
+        _, idx = np.unique(use_channels_sorted, return_index=True)
+        use_channels = use_channels_sorted[np.sort(idx)]
+        self._use_channels = use_channels
 
         self._Vrms = vrms
-
         self._full_station = full_station
         self.__minimization_grid_spacings = grid_spacing_viewing_angle, grid_spacing_polarization_angle, grid_spacing_energy
         self._use_fallback_timing = use_fallback_timing
         self._fit_shower_type = fit_shower_type
         self._debug_path = debug_folder
 
-        # We sort the channels. This is used in the minimizer,
-        # where if the timing for a vpol/hpol channel cannot be determined,
-        # the timing of the reference vpol/nearest vpol is used, respectively, as a fallback. 
-        vpol_channels = np.array([channel_id for channel_id in use_channels if channel_id not in hpol_channels])
-        hpol_channels = np.array([channel_id for channel_id in use_channels if channel_id in hpol_channels])
-        use_channels_sorted = np.concatenate([[reference_vpol], vpol_channels, hpol_channels])
-        _, idx = np.unique(use_channels_sorted, return_index=True)
-        use_channels = use_channels_sorted[np.sort(idx)] 
-        self._use_channels = use_channels
+        self._single_pulse_fit = single_pulse_fit
+        self._reference_Vpol = reference_vpol
+        self._PA_cluster_channels = pa_cluster_channels
+        self._Hpol_channels = hpol_channels
+        self._window_Vpol = window_vpol
+        self._window_Hpol = window_hpol
+        self._template = template
+        self._restricted_input = restricted_input
+        self._brute_force = brute_force
+        self._debug_formats = debug_formats
+        logger.debug(f'self._brute_force={self._brute_force}')
+
+    @register_run()
+    def run(
+            self, event, station, detector,
+            debug=False, systematics = None, sim = False
+        ):
+
+        """
+        Run the direction reconstruction.
+
+        Parameters
+        ----------
+        event: Event
+            The event to reconstruct the direction
+        station: Station
+            The station used to reconstruct the direction
+        detector: Detector
+            ``Detector`` object specifying the detector layout
+        debug: bool, default: False
+            if True, debug plots are produced. Default debug_plots = False.
+        systematics: dict | None, default: None
+            if dictionary is given, sytematic uncertainties are added to the VEL.
+            The dictionary should be a nested dictionary of the following form::
+
+                {"antenna response": {
+                    "gain": (...) # array with len(use_channels) (factor to mulitply VEL with),
+                    "phase": (...) # array with shift in frequency in MHz, array of len(use_channels)
+                }}
+        sim : bool, default False
+            If True, use the simulated vertex instead of the reconstructed vertex (if available).
+            Can be useful for debugging purposes.
+        """
+
+        self._sim_vertex = sim
+        self._event = event
+        self._station = station
+        self._detector = detector
+
+        reference_vpol = self._reference_Vpol
+        use_channels = self._use_channels
+        hpol_channels = self._Hpol_channels
+        vpol_channels = np.array([
+            channel_id for channel_id in use_channels
+            if channel_id not in hpol_channels])
+        vrms = self._Vrms
+        passband = self._passband
+
+        # for the reference Hpol (hpol which is always included in fits),
+        # we pick the hpol closest to the reference Vpol
+        reference_hpol_index = np.argmin([
+            np.linalg.norm(detector.get_relative_position(station.get_id(), hpol_id) - detector.get_relative_position(station.get_id(), reference_vpol))
+            for hpol_id in hpol_channels])
+        self._reference_Hpol = hpol_channels[reference_hpol_index]
 
         if passband is None:
             self._data_traces_full = {
@@ -273,6 +301,23 @@ class neutrinoDirectionReconstructor:
                     passband[channel_id], filter_type='butterabs', order=10)
                 for channel_id in use_channels
             }
+
+        if vrms is None: # compute vrms from noise temperature
+            vrms = {}
+            ff = np.linspace(0, 5*units.GHz, 8192)
+            for channel_id in use_channels:
+                amp_response = detector.get_amplifier_response(station.get_id(), channel_id=channel_id, frequencies=ff)
+                if passband is None:
+                    filt = 1
+                else:
+                    filt = signal_processing.get_filter_response(
+                        ff, passband=passband[channel_id], filter_type='butterabs', order=10)
+                effective_bandwidth = np.trapezoid(np.abs(amp_response * filt)**2, ff)
+                vrms[channel_id] = (300 * 50 * constants.k * effective_bandwidth / units.Hz) ** 0.5
+        elif not isinstance(vrms, dict): # convert single vrms value to a dictionary
+            vrms = {ch : vrms for ch in use_channels}
+
+        self._Vrms = vrms
 
         # get the nearest channel as a fallback option for each hpol channel
         fallback_channels = dict()
@@ -298,17 +343,13 @@ class neutrinoDirectionReconstructor:
         for sim_shower in event.get_sim_showers():
             simulated_energy += sim_shower[shp.energy]
             shower_ids.append(sim_shower.get_id())
+
         self._shower_ids = shower_ids
         if len(shower_ids):
             shower_id = shower_ids[0]
             self._simulated_azimuth = event.get_sim_shower(shower_id)[shp.azimuth]
             self._simulated_zenith = event.get_sim_shower(shower_id)[shp.zenith]
 
-        if sim:
-            vertex = event.get_sim_shower(shower_id)[shp.vertex]
-        else:
-            vertex = station[stnp.nu_vertex]
-        simulation = analytic_pulse.simulation(template, vertex)
         try:
             if sim:
                 rt = self._station[stnp.raytype_sim]
@@ -320,52 +361,10 @@ class neutrinoDirectionReconstructor:
                 "Did you forget to run the rayTypeSelecter module?"
                 )
             raise e
-        simulation.begin(
-            detector, station, use_channels, raytypesolution = rt, reference_channel= reference_vpol,
-            passband=self._passband, propagation_config=self._prop_config
-        )
-        self._launch_vector_sim, view =  simulation.simulation(
-            detector, station, vertex, self._simulated_zenith,
-            self._simulated_azimuth, simulated_energy, use_channels,
-            first_iteration = True)[2:4]
-        self._simulation = simulation
-        self._single_pulse_fit = single_pulse_fit
-        self._PA_cluster_channels = pa_cluster_channels
-        self._Hpol_channels = hpol_channels
-        self._window_Vpol = window_vpol
-        self._window_Hpol = window_hpol
-        self._template = template
-        self._restricted_input = restricted_input
-        self._brute_force = brute_force
-        self._debug_formats = debug_formats
-        logger.debug(f'self._brute_force={self._brute_force}')
-        return self._launch_vector_sim, view
 
-    def run(
-            self, debug=False, systematics = None,
-        ):
-
-        """
-        Run the direction reconstruction.
-
-        Parameters
-        ----------
-        debug: bool, default: False
-            if True, debug plots are produced. Default debug_plots = False.
-        systematics: dict | None, default: None
-            if dictionary is given, sytematic uncertainties are added to the VEL.
-            The dictionary should be a nested dictionary of the following form::
-
-                {"antenna response": {
-                    "gain": (...) # array with len(use_channels) (factor to mulitply VEL with),
-                    "phase": (...) # array with shift in frequency in MHz, array of len(use_channels)
-                }}
-        """
-        event = self._event
-        station = self._station
         shower_ids = self._shower_ids
         template = self._template
-        use_channels = self._use_channels
+        passband = self._passband
         debug_path = self._debug_path
 
         if self._single_pulse_fit:
@@ -373,11 +372,9 @@ class neutrinoDirectionReconstructor:
         else:
             starting_values = False
 
-
-        channl = station.get_channel(use_channels[0])
-        self._sampling_rate = channl.get_sampling_rate()
+        channel = station.get_channel(use_channels[0])
+        self._sampling_rate = channel.get_sampling_rate()
         sampling_rate = self._sampling_rate
-        detector = self._detector
 
         if self._sim_vertex:
             shower_id = self._shower_ids
@@ -385,8 +382,8 @@ class neutrinoDirectionReconstructor:
             logger.debug(f"simulated vertex direction reco: {event.get_sim_shower(shower_id)[shp.vertex]}")
         else:
             reconstructed_vertex = station[stnp.nu_vertex]
-
             logger.debug(f"reconstructed vertex direction reco {reconstructed_vertex}")
+
         self._vertex_azimuth = np.arctan2(reconstructed_vertex[1], reconstructed_vertex[0])
         ice = medium.get_ice_model(self._prop_config['ice_model'])
 
@@ -421,6 +418,7 @@ class neutrinoDirectionReconstructor:
                 vw_sim = np.nan
                 has_sim_station = False # skip anything involving the sim station to avoid errors
             self._launch_vector_sim = lv_sim # not used?
+            self._viewing_angle_sim = vw_sim
             logger.debug(
                 "Simulated viewing angle: {:.1f} deg / Polarization angle: {:.1f} deg".format(
                     vw_sim / units.deg, np.arctan2(pol_sim[2], pol_sim[1]) / units.deg
@@ -492,17 +490,9 @@ class neutrinoDirectionReconstructor:
                     ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
                     full_station = self._full_station)[0]                
 
-        viewing_start = self._cherenkov_angle - np.deg2rad(10)
-        viewing_end = self._cherenkov_angle + np.deg2rad(10)
-        energy_start = 1e16 * units.eV
-        energy_end = 1e19 * units.eV + 1e14 * units.eV
-        theta_start = np.deg2rad(-180) #-180
-        theta_end =  np.deg2rad(180) #180
 
-        d_viewing_grid, d_theta_grid, d_log_energy = self.__minimization_grid_spacings
         shower_type = "HAD" # by default, we assume a hadronic shower
 
-        cop = datetime.datetime.now()
         logger.info("Starting direction reconstruction...")
         minimizer_args = (
             reconstructed_vertex,
@@ -510,6 +500,15 @@ class neutrinoDirectionReconstructor:
             self._full_station)
         if self._brute_force and not self._restricted_input: # restricted_input:
             logger.warning("Using brute force optimization")
+            viewing_start = self._cherenkov_angle - np.deg2rad(10)
+            viewing_end = self._cherenkov_angle + np.deg2rad(10)
+            energy_start = 1e16 * units.eV
+            energy_end = 1e19 * units.eV + 1e14 * units.eV
+            theta_start = np.deg2rad(-180) #-180
+            theta_end =  np.deg2rad(180) #180
+
+            d_viewing_grid, d_theta_grid, d_log_energy = self.__minimization_grid_spacings
+
             if starting_values:
                 results2 = optimize.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .15, np.log10(energy_start) + .15, .1)), full_output = True, finish = optimize.fmin , args = (reconstructed_vertex, True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
                 results1 = optimize.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .15, np.log10(energy_start) + .15, .1)), full_output = True, finish = optimize.fmin , args = (reconstructed_vertex, True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
@@ -554,7 +553,7 @@ class neutrinoDirectionReconstructor:
             results = np.nan * np.zeros((8,3))
             is_valid = np.nan * np.zeros(8)
             shower_type = 4*['HAD',] + 4*['EM',]
-            
+
             res = optimize.minimize(
                 self.minimizer, x0=[self._cherenkov_angle, 0, 18.0], 
                 args = minimizer_args, 
@@ -585,7 +584,7 @@ class neutrinoDirectionReconstructor:
                     viewing_guess = self._cherenkov_angle + viewing_sign * np.min([7*units.deg, np.abs(old_guess[0] - self._cherenkov_angle)])
                     polarization_guess = polarization_sign * np.min([np.pi/3,np.abs(old_guess[1])])
                     energy_guess = np.median([16, old_guess[2],19])
-                    
+
                     res = optimize.minimize(
                         self.minimizer, x0=[viewing_guess, polarization_guess, energy_guess], 
                         args = minimizer_args, 
@@ -641,7 +640,7 @@ class neutrinoDirectionReconstructor:
             results = results[np.nanargmin(chisq)]
             shower_type = shower_type[np.nanargmin(chisq)]
 
-        logger.info(f"...finished direction reconstruction in {datetime.datetime.now() - cop}")
+        logger.info(f"...finished direction reconstruction.")
         # print("cache statistics for analytic_pulse ray tracer")
         # print(self._simulation._raytracer.cache_info())
         vw_grid = results[-2]
@@ -728,76 +727,75 @@ class neutrinoDirectionReconstructor:
             ich = 0
             SNRs = np.zeros((len(use_channels), 2))
 
-            for channel in station.iter_channels():
-                channel_id = channel.get_id()
-                if channel_id in use_channels: # use channels needs to be sorted
-                    sim_traces = []
-                    sim_times = []
-                    if sim_station:
-                        for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
-                            sim_times.append(sim_channel.get_times())
-                            if self._passband is not None:
-                                sim_traces.append(sim_channel.get_filtered_trace(self._passband[channel_id], filter_type='butterabs', order=10))
-                            else:
-                                sim_traces.append(sim_channel.get_trace())
-                    handles_labels = None
-                    for key in tracdata[channel_id].keys():
-                        # logger.debug("Plotting channel {}....".format(channel_id))
-                        # logger.debug("Data trace: {:.0f} - {:.0f} ns".format(channel.get_times()[0], channel.get_times()[-1]))
-                        # logger.debug("Sim trace: {:.0f} - {:.0f} ns".format(timingsim[channel_id][0][0], timingsim[channel_id][0][-1]))
-                        ax[ich][key].set_xlabel("timing [ns]", )
-                        ax[ich][key].plot(channel.get_times(), self._data_traces_full[channel_id], lw = linewidth, label = 'data', color = 'black')
-
-                        #ax[ich][0].fill_between(timingdata[channel_id][0], tracrec[channel_id][0] - tracrec[channel_id][0], tracrec[channel_id][0] +  tracrec[channel_id][0], color = 'green', alpha = 0.2)
-                        ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][key]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel_id][key], sampling_rate)), color = 'black', lw = linewidth)
-                        if key in tracsim[channel_id].keys():
-                            ax[ich][key].plot(timingsim[channel_id][key], tracsim[channel_id][key], label = 'sim (reco prediction)', color = 'orange', lw = linewidth)
-                            ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][key]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][key], sampling_rate)), lw = linewidth, color = 'orange')
-                        for sim_time, sim_trace in zip(sim_times, sim_traces):
-                            ax[ich][key].plot(sim_time, sim_trace, label = 'sim (simulation)', color = 'red', lw = linewidth)
-
-                        if key in tracsim_recvertex[channel_id].keys():
-                            ax[ich][key].plot(timingsim_recvertex[channel_id][key], tracsim_recvertex[channel_id][key], label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
-
-                        # show data / simulation time windows
-                        if key in timingsim[channel_id].keys():
-                            window_sim = timingsim[channel_id][key][0], timingsim[channel_id][key][-1]
+            for ich, channel_id in enumerate(use_channels):
+                channel = station.get_channel(channel_id)
+                sim_traces = []
+                sim_times = []
+                if sim_station:
+                    for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
+                        sim_times.append(sim_channel.get_times())
+                        if self._passband is not None:
+                            sim_traces.append(sim_channel.get_filtered_trace(self._passband[channel_id], filter_type='butterabs', order=10))
                         else:
-                            window_sim = ()
-                        window_rec = timingdata[channel_id][key][0], timingdata[channel_id][key][-1]
-                        for t in window_sim:
-                            ax[ich][key].axvline(t, color='orange', ls=':')
-                        for t in window_rec:
-                            ax[ich][key].axvline(t, color='green', ls=':')
-                        ax[ich][key].set_xlim(np.min(window_sim+window_rec)-5, np.max(window_sim+window_rec)+5)
+                            sim_traces.append(sim_channel.get_trace())
+                handles_labels = None
+                for key in tracdata[channel_id].keys():
+                    # logger.debug("Plotting channel {}....".format(channel_id))
+                    # logger.debug("Data trace: {:.0f} - {:.0f} ns".format(channel.get_times()[0], channel.get_times()[-1]))
+                    # logger.debug("Sim trace: {:.0f} - {:.0f} ns".format(timingsim[channel_id][0][0], timingsim[channel_id][0][-1]))
+                    ax[ich][key].set_xlabel("timing [ns]", )
+                    ax[ich][key].plot(channel.get_times(), self._data_traces_full[channel_id]/units.mV, lw = linewidth, label = 'data', color = 'black')
 
-                        ax[ich][key].plot(timingdata[channel_id][key], tracrec[channel_id][key], label = 'reconstruction', lw = linewidth, color = 'green')
+                    #ax[ich][0].fill_between(timingdata[channel_id][0], tracrec[channel_id][0] - tracrec[channel_id][0], tracrec[channel_id][0] +  tracrec[channel_id][0], color = 'green', alpha = 0.2)
+                    ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][key]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel_id][key], sampling_rate)), color = 'black', lw = linewidth)
+                    if key in tracsim[channel_id].keys():
+                        ax[ich][key].plot(timingsim[channel_id][key], tracsim[channel_id][key]/units.mV, label = 'sim (reco prediction)', color = 'orange', lw = linewidth)
+                        ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][key]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][key], sampling_rate)), lw = linewidth, color = 'orange')
+                    for sim_time, sim_trace in zip(sim_times, sim_traces):
+                        ax[ich][key].plot(sim_time, sim_trace/units.mV, label = 'sim (simulation)', color = 'red', lw = linewidth)
 
-                        for sim_trace in sim_traces:
-                            ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace), 1/sampling_rate), abs(fft.time2freq(sim_trace, sampling_rate)), lw = linewidth, color = 'red')
+                    if key in tracsim_recvertex[channel_id].keys():
+                        ax[ich][key].plot(timingsim_recvertex[channel_id][key], tracsim_recvertex[channel_id][key]/units.mV, label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
 
-                        ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][key]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][key], sampling_rate)), color = 'green', lw = linewidth)
-                        if handles_labels is None:
-                            handles_labels = ax[ich][key].get_legend_handles_labels()
-                    ax[ich][2].set_xlim((0, 1))
-                    ax[ich][2].set_xlabel("frequency [GHz]", )
-                    if not handles_labels is None:
-                        ax[ich][0].legend(*handles_labels)
-                    ax[ich][0].grid()
-                    ax[ich][1].grid()
-                    ax[ich][2].grid()
-                    ax[ich][0].set_ylabel(f'Ch. {channel_id} {["", " (Hpol)"][channel_id in self._Hpol_channels]}')
+                    # show data / simulation time windows
+                    if key in timingsim[channel_id].keys():
+                        window_sim = timingsim[channel_id][key][0], timingsim[channel_id][key][-1]
+                    else:
+                        window_sim = ()
+                    window_rec = timingdata[channel_id][key][0], timingdata[channel_id][key][-1]
+                    for t in window_sim:
+                        ax[ich][key].axvline(t, color='orange', ls=':')
+                    for t in window_rec:
+                        ax[ich][key].axvline(t, color='green', ls=':')
+                    ax[ich][key].set_xlim(np.min(window_sim+window_rec)-5, np.max(window_sim+window_rec)+5)
 
-                    for ii in range(2):
-                        if ii in chi2_dict[channel_id].keys():
-                            chi2 = chi2_dict[channel_id][ii]
-                            ax[ich][ii].set_title(f'$\chi^2={chi2:.2f}$')
-                        else:
-                            ax[ich][ii].set_fc('grey')
+                    ax[ich][key].plot(timingdata[channel_id][key], tracrec[channel_id][key]/units.mV, label = 'reconstruction', lw = linewidth, color = 'green')
 
-                    ich += 1
-            ax[0][0].legend()
+                    for sim_trace in sim_traces:
+                        ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace), 1/sampling_rate), abs(fft.time2freq(sim_trace, sampling_rate)), lw = linewidth, color = 'red')
 
+                    ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][key]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][key], sampling_rate)), color = 'green', lw = linewidth)
+
+                    if key in chi2_dict[channel_id]:
+                        chi2 = chi2_dict[channel_id][key]
+                        n_samples = int((window_rec[1] - window_rec[0]) * sampling_rate)
+                        ax[ich][key].set_title(f'$\chi^2={chi2:.2f}~/~{n_samples}$')
+                    else:
+                        ax[ich][key].set_fc('grey')
+
+                    if handles_labels is None:
+                        handles_labels = ax[ich][key].get_legend_handles_labels()
+
+                ax[ich][2].set_xlim((0, 1))
+                ax[ich][2].set_xlabel("frequency [GHz]", )
+                if not handles_labels is None:
+                    # remove duplicate labels
+                    unique_labels, idx = np.unique(handles_labels[1], return_index=True)
+                    ax[ich][0].legend(handles = [handles_labels[0][i] for i in idx], labels=list(unique_labels))
+                ax[ich][0].grid()
+                ax[ich][1].grid()
+                ax[ich][2].grid()
+                ax[ich][0].set_ylabel(f'Ch. {channel_id} {["", " (Hpol)"][channel_id in self._Hpol_channels]} [mV]')
 
             fig.tight_layout()
             fig_path = "{}/{}_{}_fit".format(debug_path, self._event.get_run_number(), self._event.get_id())
@@ -1025,30 +1023,26 @@ class neutrinoDirectionReconstructor:
         over_reconstructed = [] ## list for channel ids where reconstruction is larger than data
         # extra_channel = 0 ## count number of pulses besides triggering pulse in Vpol + Hpol
 
-
         rec_traces = {} ## to store reconstructed traces
         data_traces = {} ## to store data traces
         data_timing = {} ## to store timing
 
-
         #get timing and pulse position for raytype of triggered pulse
-        solution_number = None
         if sim or self._sim_vertex:
             raytype = self._station[stnp.raytype_sim]
         else:
             raytype = self._station[stnp.raytype]
-        for iS in raytypes[ch_Vpol]:
-            if iS == raytype:
-                solution_number = iS
-        if solution_number is None:
+
+        if raytype not in raytypes[ch_Vpol]:
             logger.warning(f"No solution for reference ch_Vpol ({ch_Vpol}) with ray type {raytype}!")
             return np.inf
-        T_ref = timing[ch_Vpol][solution_number]
+        T_ref = timing[ch_Vpol][raytype]
         trace_start_time_ref = self._station.get_channel(ch_Vpol).get_trace_start_time()
 
+        # get pulse position for triggered pulse
         if sim or self._sim_vertex: 
-            k_ref = self._station[stnp.pulse_position_sim]# get pulse position for triggered pulse
-        if not sim and not self._sim_vertex:  
+            k_ref = self._station[stnp.pulse_position_sim]
+        else:
             k_ref = self._station[stnp.pulse_position]
 
         dict_dt = {}
@@ -1069,7 +1063,7 @@ class neutrinoDirectionReconstructor:
             dict_snr[channel_id] = {}
             all_chi2[channel_id] = {}
             
-            keys = sorted(traces[channel_id].keys(), key=lambda iS: iS!=solution_number) # start with the reference trace
+            keys = sorted(traces[channel_id].keys(), key=lambda iS: iS!=raytype) # start with the reference trace
             for key in keys:
                 rec_trace = traces[channel_id][key]
 
@@ -1105,14 +1099,14 @@ class neutrinoDirectionReconstructor:
 
                 # decide whether to use the timing from the reference channel, or use correlation
                 dt = None
-                if fixed_timing and not (channel_id == ch_Vpol and key == solution_number):
-                    dt = dict_dt[ch_Vpol][solution_number]
+                if fixed_timing and not (channel_id == ch_Vpol and key == raytype):
+                    dt = dict_dt[ch_Vpol][raytype]
                 elif snr < 3.5:
-                    if channel_id in self._PA_cluster_channels and key == solution_number and channel_id != ch_Vpol:
-                        dt = dict_dt[ch_Vpol][solution_number]
-                    elif self._use_fallback_timing and channel_id in self._fallback_channels.keys() and key == solution_number:
+                    if channel_id in self._PA_cluster_channels and key == raytype and channel_id != ch_Vpol:
+                        dt = dict_dt[ch_Vpol][raytype]
+                    elif self._use_fallback_timing and channel_id in self._fallback_channels.keys() and key == raytype:
                         try:
-                            dt = dict_dt[self._fallback_channels[channel_id]][solution_number]
+                            dt = dict_dt[self._fallback_channels[channel_id]][raytype]
                         except KeyError: # fallback channel does not contain the relevant dt
                             continue
                 if dt is None:
@@ -1125,9 +1119,9 @@ class neutrinoDirectionReconstructor:
                     # for the PA cluster, we constrain the pulse position to be close to the
                     # pulse position of the reference Vpol TODO - extend to other channels?
                     if channel_id in self._PA_cluster_channels and not channel_id == ch_Vpol:
-                        if key == solution_number:
-                            corr_window_start = np.max([0, dict_dt[ch_Vpol][solution_number] - np.min(lags) - 5])
-                            corr_window_end = np.min([len(corr), dict_dt[ch_Vpol][solution_number] - np.min(lags) + 5])
+                        if key == raytype:
+                            corr_window_start = np.max([0, dict_dt[ch_Vpol][raytype] - np.min(lags) - 5])
+                            corr_window_end = np.min([len(corr), dict_dt[ch_Vpol][raytype] - np.min(lags) + 5])
                     # if corr_window_end - corr_window_start < 1:
                     #     print(channel_id, key, dict_dt[ch_Vpol][solution_number], np.min(lags), corr_window_start, corr_window_end)
                     max_cor = np.arange(corr_window_start,corr_window_end, 1)[np.argmax(corr[corr_window_start:corr_window_end])]
@@ -1151,7 +1145,7 @@ class neutrinoDirectionReconstructor:
                 data_traces[channel_id][key] = data_trace
                 data_timing[channel_id][key] = data_times
 
- # TODO - REMOVE (used for debugging)
+                # TODO - REMOVE (used for debugging)
                 # if dt < -1000:
                 #     print(rec_trace)
                 #     print(corr)
@@ -1179,11 +1173,11 @@ class neutrinoDirectionReconstructor:
                     for other_key in keys if other_key != key])
 
                 if pulse_overlap: # if they overlap, we exclude them from the fit, unless they are the reference pulse
-                    if (channel_id == ch_Vpol or channel_id == ch_Hpol) and key == solution_number:
+                    if (channel_id == ch_Vpol or channel_id == ch_Hpol) and key == raytype:
                         all_chi2[channel_id][key] = chi2_for_channel_and_trace
-                elif (snr > 3.5) or (channel_id in self._PA_cluster_channels and key == solution_number):
+                elif (snr > 3.5) or (channel_id in self._PA_cluster_channels and key == raytype):
                     all_chi2[channel_id][key] = chi2_for_channel_and_trace
-                elif channel_id in self._fallback_channels.keys() and key == solution_number:
+                elif channel_id in self._fallback_channels.keys() and key == raytype:
                     if dict_snr[self._fallback_channels[channel_id]][key] > 3.5 and self._use_fallback_timing:
                         all_chi2[channel_id][key] = chi2_for_channel_and_trace
                 elif penalty:
