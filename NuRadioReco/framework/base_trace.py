@@ -114,7 +114,7 @@ class BaseTrace:
         trace_start_time : float (default: None)
             Set the start time of the trace. If None, the start time is not changed/set.
         """
-        if np.any(trace!=None):
+        if trace is not None:
             if trace.shape[trace.ndim - 1] % 2 != 0:
                 raise ValueError(
                     f'Attempted to set trace with an uneven number ({trace.shape[trace.ndim - 1]}) '
