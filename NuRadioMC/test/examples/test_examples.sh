@@ -50,14 +50,14 @@ rm sim_results_03.pkl
 cd ../SPICE_birefringence/01_SPice_simulation_ARIANNA
 python3 A01generate_pulser_events.py
 python3 A02RunSimulation.py
-rm input_spice.hdf5   
+rm input_spice.hdf5
 rm output_MC.hdf5
 rm output_reco.nur
 
 cd ../02_SPice_simulation_ARA
 python3 A01generate_pulser_events.py
 python3 A02RunSimulation.py
-rm input_spice.hdf5   
+rm input_spice.hdf5
 rm output_MC.hdf5
 rm output_reco.nur
 
@@ -69,7 +69,6 @@ python3 W03CheckOutput.py
 python3 W04EffectiveVolumes.py
 python3 W05ElectricFields.py
 rm -r results
-rm input_3.2e+19_1.0e+20.hdf5
+rm input_3.2e+17_1.0e+19.hdf5
 rm input_3.2e+18_1.0e+19.hdf5.part000?
 rm tables/**/*.dat
-

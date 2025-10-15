@@ -3,6 +3,7 @@ import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.channel
 
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 import logging
 logger = logging.getLogger('NuRadioReco.SimChannel')
 
@@ -55,7 +56,7 @@ class SimChannel(NuRadioReco.framework.channel.Channel):
             'channel': channel_pkl
         }
 
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)

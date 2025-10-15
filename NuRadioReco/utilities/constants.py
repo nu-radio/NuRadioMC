@@ -1,15 +1,16 @@
+"""
+This module (re)defines physics constants in NuRadio units.
+"""
+
 from scipy import constants as scipy_constants
 
 from NuRadioReco.utilities import units
 
-# Speed of light in NuRadioReco units
-c = scipy_constants.c * units.m / units.s
+c = scipy_constants.c * units.m / units.s  #: Vacuum speed of light
 
-#Vacuum permittivity in NuRadioReco units
-epsilon_0 = scipy_constants.epsilon_0 * (units.coulomb / units.V / units.m)
+epsilon_0 = scipy_constants.epsilon_0 * (units.coulomb / units.V / units.m)  #: Vacuum permittivity in NuRadioReco units
 
-# Boltzmann constant
-k_B = scipy_constants.k * units.joule / units.kelvin
+k_B = scipy_constants.k * units.joule / units.kelvin  #: Boltzman constant
 
 e_mass = scipy_constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
 mu_mass = scipy_constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV

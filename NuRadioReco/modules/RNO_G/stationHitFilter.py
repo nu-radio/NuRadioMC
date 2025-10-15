@@ -296,6 +296,10 @@ class stationHitFilter:
         # This implicitly obeys the channel mapping
         traces = np.array([np.array(channel.get_trace()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
         times = np.array([np.array(channel.get_times()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
+        channels = np.array([channel.get_id() for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
+        sorted_indices = channels.argsort()
+        traces = traces[sorted_indices]
+        times = times[sorted_indices]
 
         if noise_RMS_all is not None:
             noise_RMS = noise_RMS_all[self._in_ice_channels]  # HACK: use channel IDs to index noise_RMS

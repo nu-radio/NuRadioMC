@@ -6,6 +6,11 @@ from NuRadioReco.utilities import units
 from NuRadioReco.utilities.constants import (
     tau_rest_lifetime, c as cspeed)
 
+def get_decay_time_losses(*args, **kwargs):
+    raise NotImplementedError("FS: the implmentation of get_decay_time_losses is NuRadio. "
+                              "It might have been removed - I do not know .... This script is BROKEN!")
+
+
 """
 This file calculates some percentiles for the tau length and energy distributions
 given by the CSDA, plots them, and saves them to a json file.
