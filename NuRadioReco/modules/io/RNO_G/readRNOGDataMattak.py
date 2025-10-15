@@ -340,6 +340,8 @@ class readRNOGData:
         self._events_information = None
         self._datasets_paths = []
         self.__n_events_per_dataset = []
+        self._runs = []
+        self._stations = []
 
         if not isinstance(dirs_files, (list, np.ndarray)):
             dirs_files = [dirs_files]
@@ -379,6 +381,8 @@ class readRNOGData:
             self.__n_runs += 1
             self._datasets_paths.append(dir_file)
             self.__n_events_per_dataset.append(dataset.N())
+            self._runs.append(dataset.run)
+            self._stations.append(dataset.station)
 
         if not len(self._datasets_paths):
             err = "Found no valid datasets. Stop!"
@@ -397,6 +401,35 @@ class readRNOGData:
             err = "No runs have been selected. Abort ..."
             self.logger.error(err)
             raise ValueError(err)
+
+    def get_run_numbers(self):
+        """ Get run numbers of the datasets which are read in """
+        return np.array(self._runs)
+
+    def get_station_id(self, except_multiple_stations=False):
+        """ Get station ids of the datasets which are read in
+
+        By default returns a single unique station id. If multiple stations are found an error is raised.
+        If except_multiple_stations is set to True, all station ids are returned.
+
+        Parameters
+        ----------
+        except_multiple_stations: bool
+            If True, return all station ids (as np.array). If False (default), raise an error if multiple
+            stations are found.
+
+        Returns
+        -------
+        station_id: int or np.array
+            Station id(s) of the datasets which are read in.
+        """
+        station_ids = np.unique(self._stations)
+        if len(station_ids) > 1:
+            if not except_multiple_stations:
+                raise ValueError("Multiple stations found. Use get_station_id(except_multiple_stations=False) to get all station ids.")
+            return np.array(station_ids)
+        else:
+            return station_ids[0]
 
     def __get_dataset(self, path):
         """ Return a mattak.Dataset.Dataset object for a given path """
