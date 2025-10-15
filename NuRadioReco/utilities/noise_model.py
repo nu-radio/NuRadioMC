@@ -260,7 +260,9 @@ class NoiseModel:
 
             # Make sure covariance matrix is symmetric (no numerical errors):
             for k in range(int(self.n_samples / 2)):
-                covariances_avg[-k] = covariances_avg[k]
+                mean = 0.5 * (covariances_avg[k] + covariances_avg[-k])
+                covariances_avg[k] = mean
+                covariances_avg[-k] = mean
 
             # Construct covariances matrix:
             averaged_covariance_matrix = np.zeros([self.n_samples, self.n_samples])
@@ -1061,7 +1063,7 @@ class NoiseModel:
         plt.ylabel(f"Cov$(\Delta t)$")
         plt.tight_layout()
 
-    def plot_llh_distribution(self, data, n_dof=None, frequency_domain=False, make_new_figure = True):
+    def plot_llh_distribution(self, data, n_dof=None, signal=None, frequency_domain=False, make_new_figure=True):
         """
         Calculate the llh values for many datasets and plot the distribution alongside a chi2
         distribution with dof equal to the number of samples
@@ -1078,7 +1080,7 @@ class NoiseModel:
             make_new_figure : bool
                 If True create a new figure
         """
-        LLH_array = self.calculate_delta_llh(data, frequency_domain=frequency_domain)
+        LLH_array = self.calculate_delta_llh(data, signal=signal, frequency_domain=frequency_domain)
 
         n_datasets = len(data)
         if n_dof is None:
