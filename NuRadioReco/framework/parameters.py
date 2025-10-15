@@ -42,6 +42,16 @@ class stationParameters(Enum):
     cr_dominant_polarisation = 61  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
     dirty_fft_channels = 62  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
     channels_max_amplitude_norm = 63  #: maximum std-normalised peak to peak amplitude of all chosen channels
+    rec_azimuth = 64  #: reconstructed azimuth angle (or radius in rhoz mode) from directionReconstructionDeepCRsearch
+    rec_zenith = 65  #: reconstructed zenith angle from directionReconstructionDeepCRsearch (spherical mode)
+    rec_max_correlation = 66  #: the maximum correlation value from directionReconstructionDeepCRsearch
+    rec_surf_corr= 67  #: the surface correlation value from directionReconstructionDeepCRsearch
+    rec_z = 69  #: reconstructed depth (z coordinate) from directionReconstructionDeepCRsearch
+    rec_rho = 70  #: reconstructed radial distance (cylindrical rhoz mode) from directionReconstructionDeepCRsearch
+    rec_coord0 = 71  #: generic first coordinate from directionReconstructionDeepCRsearch (φ, ρ, or φ depending on mode)
+    rec_coord1 = 72  #: generic second coordinate from directionReconstructionDeepCRsearch (z, z, or θ depending on mode)
+    rec_coord0_alt = 73  #: alternate first coordinate from directionReconstructionDeepCRsearch (φ, ρ, or φ depending on mode)
+    rec_coord1_alt = 74  #: alternate second coordinate from directionReconstructionDeepCRsearch (z, z, or θ depending on mode)
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction

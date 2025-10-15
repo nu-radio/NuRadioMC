@@ -307,7 +307,8 @@ def sinewave_subtraction(wf: np.ndarray, peak_prominence: float = 4.0, sampling_
                 logger.error(f"Curve fitting failed for frequency: {noise_freq / units.MHz} MHz")
 
     else:
-        saved_noise_freqs.append([])
+        if saved_noise_freqs is not None:
+            saved_noise_freqs.append([])
 
     return corrected_waveform
 

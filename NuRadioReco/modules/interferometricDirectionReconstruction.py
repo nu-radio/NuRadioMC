@@ -354,12 +354,6 @@ class interferometricDirectionReconstruction():
             station.set_parameter(stnp.rec_surf_corr, surface_corr)
         else:
             station.set_parameter(stnp.rec_surf_corr, np.nan)
-            
-        # elif coord_system == "spherical":
-        #     num_rows_to_10m = 10
-        #     surface_corr= self.get_surf_corr(corr_matrix, num_rows_to_10m)
-        # else:
-        #     surface_corr = -1.0
 
         station.set_parameter(stnp.rec_max_correlation, max_corr)
 
@@ -498,11 +492,7 @@ class interferometricDirectionReconstruction():
             coord0_vec = np.arange(left, right + step_sizes[0], step_sizes[0])
         
         coord1_vec = np.arange(bottom, top + step_sizes[1], step_sizes[1])
-        
-        if coord0_vec[-1] < right:
-            coord0_vec = np.append(coord0_vec, right)
-        if coord1_vec[0] > top:  # After reversal, first element should be top
-            coord1_vec = np.insert(coord1_vec, 0, top)
+            
         if coord_system == "cylindrical":
             if rec_type == "phiz":
                 coord0_vec = [coord0 * units.deg for coord0 in coord0_vec]
