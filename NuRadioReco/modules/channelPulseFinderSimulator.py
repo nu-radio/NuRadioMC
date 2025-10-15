@@ -34,7 +34,7 @@ class channelPulseFinderSimulator:
         Set up module configuration
 
         Parameters
-        ------------
+        ----------
         noise_level: float
             Root mean square of the noise on the voltage waveforms.
         min_snr: float
