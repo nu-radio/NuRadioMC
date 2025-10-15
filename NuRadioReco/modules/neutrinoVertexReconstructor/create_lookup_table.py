@@ -1,7 +1,7 @@
 import numpy as np
 import NuRadioMC.SignalProp.analyticraytracing
 import NuRadioMC.utilities.medium
-import pickle
+import h5py
 import argparse
 import logging
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         }
     }
     for channel_type in channel_types:
-        print('Calculating lookup table for ' + channel_type['name'])
+        logger.status('Calculating lookup table for ' + channel_type['name'])
         travel_times_D = np.zeros((len(x_pos), len(z_pos)))
         travel_times_R = np.zeros((len(x_pos), len(z_pos)))
         for i_x, xx in enumerate(x_pos):
@@ -106,17 +106,17 @@ if __name__ == "__main__":
                         travel_times_D[i_x][i_z] = ray_tracing.get_travel_time(iS, analytic=True)
                     elif iS == 1:
                         travel_times_R[i_x][i_z] = ray_tracing.get_travel_time(iS, analytic=True)
-                # z_coords = sorted([zz, channel_type['z']]) # ensures that x2 is always higher up than x1
-                # solutions = ray_tracing.find_solutions([-xx, z_coords[0]], [0, z_coords[1]])
-                # for iS, solution in enumerate(solutions):
-                #     if iS == 0:
-                #         travel_times_D[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
-                #     elif iS == 1:
-                #         travel_times_R[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
         lookup_table[channel_type['name']] = {
             'D': travel_times_D,
             'R': travel_times_R,
         }
 
-    with open('{}/lookup_table_{:.3f}.p'.format(args.output_path, args.antenna_depth), 'wb') as f:
-        pickle.dump(lookup_table, f)
+    # Store lookup tables as HDF5 files
+    with h5py.File(f'{args.output_path}/{args.ice_model}_z{antenna_depth:.3f}.hdf5', mode = 'w') as f:
+        f.attrs['antenna_depth'] = antenna_depth
+        f.attrs['ice_model'] = args.ice_model
+        for key, value in lookup_table['header'].items():
+            f.attrs[key] = value
+
+        for key, values in lookup_table[channel_type['name']].items():
+            f.create_dataset(name=key, data=values)
