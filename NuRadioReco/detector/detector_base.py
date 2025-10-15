@@ -1109,14 +1109,16 @@ def _load_custom_amp(amp_type, directory=os.path.join(os.path.dirname(__file__),
     amp_csv = np.loadtxt(custom_amps[amp_type])
     assert amp_csv.shape[1] == 3, "Custom amplifier response does not have expected format (frequency in Hz, S21 mag, S21 phase in rad)"
 
-    # for some strange reason 'phase' in response_functions is actually the magnitude-normalized complex response
-    interp_phase = scipy.interpolate.make_interp_spline(amp_csv[:,0] * units.Hz, amp_csv[:,2], k=1)
-    def get_phase(freqs):
-        return np.exp(1j * interp_phase(freqs))
+    def interp_amp(freqs):
+        return np.interp(freqs, amp_csv[:,0] * units.Hz, amp_csv[:,1], left=0, right=0)
+
+    # for some reason 'phase' in response_functions is actually the magnitude-normalized complex response
+    def interp_phase(freqs):
+        return np.exp(1j * np.interp(freqs, amp_csv[:,0] * units.Hz, amp_csv[:,2], left=0, right=0))
 
     response_functions = dict(
-        gain = scipy.interpolate.make_interp_spline(amp_csv[:,0] * units.Hz, amp_csv[:,1], k=1),
-        phase = get_phase
+        gain = interp_amp,
+        phase = interp_phase
     )
 
     return response_functions
