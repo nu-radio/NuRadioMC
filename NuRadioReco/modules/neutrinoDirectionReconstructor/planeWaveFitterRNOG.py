@@ -291,8 +291,8 @@ class planeWaveFitterRNOG:
         logger.info("simulated zenith {} and reconstructed zenith {}".format(np.rad2deg(signal_zenith), np.rad2deg(rec_zenith)))
         logger.info("simulated azimuth {} and reconstructed azimuth {}".format(np.rad2deg(signal_azimuth), np.rad2deg(rec_azimuth)))
 
-        station[stnp.planewave_zenith] = rec_zenith
-        station[stnp.planewave_azimuth] = rec_azimuth
+        station[stnp.zenith] = rec_zenith
+        station[stnp.azimuth] = rec_azimuth
 
         if full_output:
             return (rec_zenith, rec_azimuth), xgrid, fgrid

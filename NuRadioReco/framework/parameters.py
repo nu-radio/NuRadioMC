@@ -35,7 +35,7 @@ class stationParameters(Enum):
     ndf_efield_time_direction_fit = 27  #: the number of degrees of freedom of the direction fitter that used the maximum pulse times of the efields
     cr_xmax = 28  #: Depth of shower maximum of the air shower
     vertex_2D_fit = 29  #: horizontal distance and z coordinate of the reconstructed vertex of the neutrino
-    distance_correlations = 30
+    distance_correlations = 30 #: Correlation vs distance for the (legacy) `neutrino3DVertexReconstructor <NuRadioReco.modules.neutrino3DVertexReconstructor_legacy>`.
     shower_energy = 31 #: the energy of the shower
     viewing_angles = 32 #: reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
     vertex_search_path = 33 #: Slope, offset and median theta used in the (legacy) `neutrino3DVertexReconstructor <NuRadioReco.modules.neutrino3DVertexReconstructor_legacy>`
@@ -48,16 +48,10 @@ class stationParameters(Enum):
     polarization = 40 #: Reconstructed polarization angle, i.e. arctan(E_phi/E_theta). Refers to the signal in the reference antenna.
     viewing_angle = 41 #: The reconstructed viewing angle, i.e. angle between the primary particle and the signal emission. Refers to the signal in the reference antenna.
     shower_type = 42 #: The shower type, i.e. "HAD" or "EM". Determined in reconstruction; in simulation/data multiple shower types may contribute.
-    first_step = 45
-    # area_sim = 43
-    # area_rec = 44
-    channels_pulses = 45 #:
-    planewave_zenith = 46
-    planewave_azimuth = 47
-    raytype_sim = 48
-    pulse_position_sim = 49
+    channels_pulses = 45 #: List of channels with pulses in them
+    raytype_sim = 46 #: Same as `raytype`, except determined using a simulated vertex instead of a reconstructed one
+    pulse_position_sim = 49 #: Same as `pulse_position`, except determined using a simulated vertex instead of a reconstructed one
     vertex_correlation_sums = 50 #: (fit, simulated, max pairwise, max DNR correlation) for the vertex reconstruction
-    # direction_fit_pulses = 51 #: a dictionary that specifies for each channel which pulses were used in the fit.
 
     flagged_channels = 60  #: a defaultdict of flagged NRR channel ids with as value a list of the reason(s) for flagging (used in readLOFARData, stationRFIFilter)
     cr_dominant_polarisation = 61  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
@@ -68,19 +62,23 @@ class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction
     azimuth = 2  #: azimuth angle of the incoming signal direction
     maximum_amplitude = 4  #: the maximum ampliude of the magnitude of the trace
-    SNR = 5  #: a dictionary with the following signal-to-noise ratio definitions:
-    # 'integrated_power':
-        # Difference of the sum of the squared amplitudes in the signal window and in the noise window
-        # SNR = sum_sig(V_i^2) - sum_noise(V_i^2)
-    # 'peak_amplitude':
-        # Maximum amplitude of the absolute signal trace divided by the rms of the noise window
-        # SNR = max(abs(V_sig))/V_rms_noise
-    # 'peak_2_peak_amplitude':
-        # Difference between max and min of the signal trace divided by twice the rms value in the noise window
-        # SNR = (max(V_sig)-min(V_sig))/2*V_rms_noise
-    # 'peak_2_peak_amplitude_split_noise_rms':
-        # Peak to peak amplitude in the trace divided by twice the noise rms value, where the latter is calculated by splitting the trace into segments and taking the mean of the lowest few segment rms values
-        # SNR = V_p2p/2*V_rms_noise
+    SNR = 5
+    """
+    a dictionary with the following signal-to-noise ratio definitions:
+
+    - 'integrated_power':
+        Difference of the sum of the squared amplitudes in the signal window and in the noise window
+        SNR = sum_sig(V_i^2) - sum_noise(V_i^2)
+    - 'peak_amplitude':
+        Maximum amplitude of the absolute signal trace divided by the rms of the noise window
+        SNR = max(abs(V_sig))/V_rms_noise
+    - 'peak_2_peak_amplitude':
+        Difference between max and min of the signal trace divided by twice the rms value in the noise window
+        SNR = (max(V_sig)-min(V_sig))/2*V_rms_noise
+    - 'peak_2_peak_amplitude_split_noise_rms':
+        Peak to peak amplitude in the trace divided by twice the noise rms value, where the latter is calculated by splitting the trace into segments and taking the mean of the lowest few segment rms values
+        SNR = V_p2p/2*V_rms_noise
+    """
     maximum_amplitude_envelope = 6  #: the maximum ampliude of the hilbert envelope of the trace
     P2P_amplitude = 7  #: the peak to peak amplitude
     cr_xcorrelations = 8  #: dict of result of crosscorrelations with cr templates
@@ -102,11 +100,7 @@ class channelParameters(Enum):
     entropy = 24  #: Shannon entropy of a waveform
     kurtosis = 25  #: kurtosis of a waveform
 
-    pulse_times = 31            #: list of times where the waveform contains radio pulses
-    signal_region_snrs = 32
-    receive_zenith_vertex = 33
-    receive_azimuth_vertex = 34
-
+    pulse_times = 31 #: list of times where the waveform contains radio pulses
 
 class channelParametersRNOG(Enum):
     # RNO-G specific channel parameters

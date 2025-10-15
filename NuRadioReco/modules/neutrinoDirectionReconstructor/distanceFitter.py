@@ -271,7 +271,7 @@ class distanceFitter:
                     self.__correlation[ich, i_shift] = np.max(corr_1 * np.roll(corr_2, shift_sample))
 
         #### get receive zenith from planewave
-        receive_zenith = station[stnp.planewave_zenith]
+        receive_zenith = station[stnp.zenith]
 	#### translate receive zenith to launch vector
         zenith_vertex = zenith_vertex_pickle[np.argmin(abs(np.rad2deg(receive_pickle) - np.rad2deg(receive_zenith)))] ## deze aanpassen aan diepte #full distance inladen.
 
@@ -285,8 +285,8 @@ class distanceFitter:
             print("	zenith from pkl file:", zenith_vertex)
 
 
-        print("		reconstructed planewave azimuth:", np.rad2deg(station[stnp.planewave_azimuth]))
-        print("		reconstructed planewave zenith:", np.rad2deg(station[stnp.planewave_zenith]))
+        print("		reconstructed planewave azimuth:", np.rad2deg(station[stnp.azimuth]))
+        print("		reconstructed planewave zenith:", np.rad2deg(station[stnp.zenith]))
 
         print("		fixed depth", fixed_depth)
         
@@ -296,7 +296,7 @@ class distanceFitter:
         diff_angle = .2
         diff_depth = 10
         zen_start, zen_end = zenith_vertex - delta_angle, zenith_vertex + delta_angle 
-        az_start, az_end = np.rad2deg(station[stnp.planewave_azimuth]) - delta_angle, np.rad2deg(station[stnp.planewave_azimuth]) + delta_angle
+        az_start, az_end = np.rad2deg(station[stnp.azimuth]) - delta_angle, np.rad2deg(station[stnp.azimuth]) + delta_angle
         depth_start = 200#200
         depth_end = 2500
 
