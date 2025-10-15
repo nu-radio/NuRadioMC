@@ -9,10 +9,10 @@ logger = logging.getLogger('NuRadioReco.beamformedPowerIntegrationTrigger')
 
 class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
     """
-    Calculates the trigger for a phased array with a primary beam.
-
-    The channels that participate in both beams and the pointing angle for each
-    subbeam can be specified.
+    Calculates the trigger for a phased array with primary beam locations
+    using a power integrated envelope. This module allows access to lower level options
+    used during trigger calculations that allow for realistic models of firmware, such as 
+    upsampling with FIR filters and integer math specifics like rounding and saturation.
 
     See https://arxiv.org/pdf/1809.04573.pdf
     """
@@ -155,7 +155,6 @@ class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
                     step=step,
                     window=window,
                     averaging_divisor=averaging_divisor,
-                    ideal_transformer=False,
                     mode="power_sum",
             )
 
