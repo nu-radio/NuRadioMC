@@ -9,7 +9,7 @@ c = scipy_constants.c * units.m / units.s
 epsilon_0 = scipy_constants.epsilon_0 * (units.coulomb / units.V / units.m)
 
 # Boltzmann constant
-k_B = scipy_constants.k * units.joule / units.K
+k_B = scipy_constants.k * units.joule / units.kelvin
 
 e_mass = scipy_constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
 mu_mass = scipy_constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV
