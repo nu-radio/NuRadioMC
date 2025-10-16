@@ -14,20 +14,22 @@ logger = logging.getLogger("NuRadioReco.eventWriter")
 def get_header(evt):
     header = {'stations': {}, 'showers': {}}
 
-    for iS, station in enumerate(evt.get_stations()):
-        header['stations'][station.get_id()] = station.get_parameters().copy()
-        header['stations'][station.get_id()][stnp.station_time] = io_utilities._astropy_to_dict(station.get_station_time())
+    for station in evt.get_stations():
+        st_id = station.get_id()
+        header['stations'][st_id] = station.get_parameters().copy()
+        header['stations'][st_id][stnp.station_time] = io_utilities._astropy_to_dict(station.get_station_time())
 
         if station.has_sim_station():
             header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters().copy()
 
-    for iSh, shower in enumerate(evt.get_showers()):
-        header['showers'][iSh] = shower.get_parameters().copy()
+    for shower in evt.get_showers():
+        sh_id = shower.get_id()
+        header['showers'][sh_id] = shower.get_parameters().copy()
 
         if hasattr(shower, "has_sim_shower") and shower.has_sim_shower():
             sim_shower = shower.get_sim_shower()
             if sim_shower is not None:
-                header['showers'][iSh]['sim_shower'] = sim_shower.get_parameters().copy()
+                header['showers'][sh_id]['sim_shower'] = sim_shower.get_parameters().copy()
 
     header['event_id'] = (evt.get_run_number(), evt.get_id())
     return header
