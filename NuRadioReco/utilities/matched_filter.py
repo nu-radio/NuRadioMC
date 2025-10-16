@@ -1,63 +1,369 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import fft
 
-def matched_filter(data, template, noise_power_spectral_density, t_array, frequencies, n_antennas, sampling_rate, threshold = 0.01, plot = False):
+# def matched_filter(data, template, noise_power_spectral_density, t_array, frequencies, n_antennas, sampling_rate, threshold = 0.01, plot = False):
+#     """
+#     data = [n_antennas, n_samples]
+#     template = [n_antennas, n_samples]
+#     noise_power_spectral_density = [n_antennas, n_samples/2+1]
+#     t_array = [n_t]
+#     frequencies = [n_samples/2+1]
+#     n_antennas = int
+#     """
+#     s = fft.time2freq(data, sampling_rate).flatten()
+#     h = fft.time2freq(template, sampling_rate).flatten()
+#     noise_psd = noise_power_spectral_density.flatten()
+#     frequencies_flattened = np.tile(frequencies, n_antennas)
+#     n_t = len(t_array)
+#     output = np.zeros(n_t)
+
+#     for i in range(n_t):
+#         integrand = s * h.conj() / noise_psd * np.exp(1j*2*np.pi*frequencies_flattened*t_array[i])
+#         output[i] = 4 * np.real(np.sum(integrand[noise_psd > np.max(noise_psd) * threshold**2] * (frequencies_flattened[1] - frequencies_flattened[0])))
+
+#     if plot:
+#         plt.figure(figsize=[20,3])
+#         plt.plot(t_array, output)
+#         plt.xlabel("Time [ns]")
+#         plt.ylabel("Matched filter output")
+#         plt.tight_layout()
+
+#     return t_array[np.argmax(output)], np.max(output)
+
+# def matched_filter_to_llh(matched_filter_output, data, template, noise_power_spectral_density, frequencies, n_antennas, sampling_rate, threshold = 0.01, fast=False):
+#     if not fast:
+#         s = fft.time2freq(data, sampling_rate)
+#     h = fft.time2freq(template, sampling_rate)
+
+#     # Calculate inverse square of sigma defined in Equation 4.3 in https://arxiv.org/pdf/gr-qc/0509116:
+#     inv_square_sigma = 0
+#     for j in range(n_antennas):
+#         integrand_sigma = h[j,:] * h[j,:].conj() / noise_power_spectral_density[j,:]
+#         inv_square_sigma += 4 * np.real(np.sum(integrand_sigma[noise_power_spectral_density[j,:] > np.max(noise_power_spectral_density) * threshold**2] * (frequencies[1] - frequencies[0])))
+
+#     # Calculate rho defined in Equation 4.4 in https://arxiv.org/pdf/gr-qc/0509116
+#     # which is the same as q defined in Eqaution 5 in https://arxiv.org/pdf/2106.03718
+#     s_est = matched_filter_output / inv_square_sigma
+#     q = s_est * np.sqrt(inv_square_sigma)
+
+#     if np.isnan(q): q=0
+
+#     # Calculate the first term in Equation 6 in https://arxiv.org/pdf/2106.03718 using Fourier transforms:
+#     # integrand_term_1 = (abs(s*s.conj())/noise_power_spectral_density)
+#     # term_1 = 4*np.trapz(integrand_term_1[noise_power_spectral_density[j,:] > np.max(noise_power_spectral_density) * threshold**2], frequencies[np.logical_and(noise_power_spectral_density>0, frequencies>0)])
+
+#     term_1 = 0
+#     for j in range(n_antennas):
+#         integrand_term_1 = s[j,:] * s[j,:].conj() / noise_power_spectral_density[j,:]
+#         term_1 += 4 * np.real(np.sum(integrand_term_1[noise_power_spectral_density[j,:] > np.max(noise_power_spectral_density) * threshold**2] * (frequencies[1] - frequencies[0])))
+
+#     # Return the log likelihood as defined in Equation 6 in https://arxiv.org/pdf/2106.03718:
+#     #return - 1/2*term_1 + 1/2 * q**2
+#     return - 1/2 * term_1 + 1/2 * matched_filter_output**2 / inv_square_sigma
+
+
+class MatchedFilter:
     """
-    data = [n_antennas, n_samples]
-    template = [n_antennas, n_samples]
-    noise_power_spectral_density = [n_antennas, n_samples/2+1]
-    t_array = [n_t]
-    frequencies = [n_samples/2+1] 
-    n_antennas = int
+    Matched filter class for multiple antennas with equal sampling rate and trace length. Calculates
+    the best matching time, matched filter SNR, and likelihood for a template [n_antennas, n_samples]
+    to a data trace [n_antennas, n_samples] using the noise power spectral density.
+
+    The class currently performs the matched filter search for one data event and one signal template
+    at a time. To repeat the search for many datasets and/or templates, the user has to set up a loop
+    and run set_data() and/or set_template() multiple times.
+
+    See https://arxiv.org/abs/... for more details.
+
+    Parameters
+    ----------
+        n_samples: int
+            Number of samples in the traces
+
+        sampling_rate: float
+            Sampling rate of the traces
+
+        n_antennas: int
+            Number of antennas (channels)
+
+        data_traces: np.ndarray, optional
+            Traces containing the data with shape [n_antennas, n_samples], or
+            optionally [n_samples] for one antenna
+
+        template_traces: np.ndarray, optional
+            Traces containing the template with shape [n_antennas, n_samples], or
+            optionally [n_samples] for one antenna
+
+        noise_power_spectral_density: np.ndarray, optional
+            Traces containing the noise power spectral density with shape [n_antennas, n_frequencies], or
+            optionally [n_frequencies] for one antenna
+
+        spectra_threshold_fraction: float, optional
+            The fraction of the maximum of the noise spectra to be used as threshold. Frequencies
+            with noise spectra below this threshold are ignored in the matched filter calculation.
     """
-    s = fft.time2freq(data, sampling_rate).flatten()
-    h = fft.time2freq(template, sampling_rate).flatten()
-    noise_psd = noise_power_spectral_density.flatten()
-    frequencies_flattened = np.tile(frequencies, n_antennas)
-    n_t = len(t_array)
-    output = np.zeros(n_t)
+    def __init__(self, n_samples, sampling_rate, n_antennas, data_traces=None, template_traces=None, noise_power_spectral_density=None, spectra_threshold_fraction=0.01, debug=False):
 
-    for i in range(n_t):
-        integrand = s * h.conj() / noise_psd * np.exp(1j*2*np.pi*frequencies_flattened*t_array[i])
-        output[i] = 4 * np.real(np.sum(integrand[noise_psd > np.max(noise_psd) * threshold**2] * (frequencies_flattened[1] - frequencies_flattened[0])))
+        self.n_samples = n_samples
+        self.sampling_rate = sampling_rate
+        self.n_antennas = n_antennas
+        self.df = 1. / n_samples * sampling_rate
+        self.dt = 1. / sampling_rate
 
-    if plot:
-        plt.figure(figsize=[20,3])
-        plt.plot(t_array, output)
-        plt.xlabel("Time [ns]")
-        plt.ylabel("Matched filter output")
-        plt.tight_layout()
-    
-    return t_array[np.argmax(output)], np.max(output)
+        frequencies = np.fft.rfftfreq(n_samples, self.dt)
+        self.n_frequencies = len(frequencies)
+        self.frequencies_flattened = np.tile(frequencies, n_antennas)
 
-def matched_filter_to_llh(matched_filter_output, data, template, noise_power_spectral_density, frequencies, n_antennas, sampling_rate, threshold = 0.01, fast=False):
-    if not fast: 
-        s = fft.time2freq(data, sampling_rate)
-    h = fft.time2freq(template, sampling_rate)
+        self.spectra_threshold_fraction = spectra_threshold_fraction
 
-    # Calculate inverse square of sigma defined in Equation 4.3 in https://arxiv.org/pdf/gr-qc/0509116:
-    inv_square_sigma = 0
-    for j in range(n_antennas):
-        integrand_sigma = h[j,:] * h[j,:].conj() / noise_power_spectral_density[j,:]
-        inv_square_sigma += 4 * np.real(np.sum(integrand_sigma[noise_power_spectral_density[j,:] > np.max(noise_power_spectral_density) * threshold**2] * (frequencies[1] - frequencies[0])))
-    
-    # Calculate rho defined in Equation 4.4 in https://arxiv.org/pdf/gr-qc/0509116 
-    # which is the same as q defined in Eqaution 5 in https://arxiv.org/pdf/2106.03718
-    s_est = matched_filter_output / inv_square_sigma
-    q = s_est * np.sqrt(inv_square_sigma)
+        self._results_valid = False
+        self.debug = debug
 
-    if np.isnan(q): q=0
+        print("Matched Filter initialized with {} antennas, {} samples, and {} Hz sampling rate".format(n_antennas, n_samples, sampling_rate))
 
-    # Calculate the first term in Equation 6 in https://arxiv.org/pdf/2106.03718 using Fourier transforms:
-    # integrand_term_1 = (abs(s*s.conj())/noise_power_spectral_density)
-    # term_1 = 4*np.trapz(integrand_term_1[noise_power_spectral_density[j,:] > np.max(noise_power_spectral_density) * threshold**2], frequencies[np.logical_and(noise_power_spectral_density>0, frequencies>0)])
+        # Set data:
+        if data_traces is not None:
+            self.set_data(data_traces)
+            print("Data traces set")
+        else:
+            print("No data traces set. Run set_data() to set data traces")
 
-    term_1 = 0
-    for j in range(n_antennas):
-        integrand_term_1 = s[j,:] * s[j,:].conj() / noise_power_spectral_density[j,:]
-        term_1 += 4 * np.real(np.sum(integrand_term_1[noise_power_spectral_density[j,:] > np.max(noise_power_spectral_density) * threshold**2] * (frequencies[1] - frequencies[0])))
+        # Set template:
+        if template_traces is not None:
+            self.set_template(template_traces)
+            print("Template traces set")
+        else:
+            print("No template traces set. Run set_template() to set template traces")
 
-    # Return the log likelihood as defined in Equation 6 in https://arxiv.org/pdf/2106.03718:
-    #return - 1/2*term_1 + 1/2 * q**2
-    return - 1/2 * term_1 + 1/2 * matched_filter_output**2 / inv_square_sigma
+        # Set noise power spectral density:
+        if noise_power_spectral_density is not None:
+            self.set_noise_psd(noise_power_spectral_density)
+            print("Noise power spectral density set")
+        else:
+            print("No noise power spectral density set. Run set_noise_psd(), set_noise_psd_from_data(), or set_noise_psd_from_spectra()")
+
+
+    def set_data(self, data_traces):
+        """
+        Set the data traces (one event) and calculate the data normalization factor
+
+        Parameters
+        ----------
+            data_traces: np.ndarray
+                Traces containing the data with shape [n_antennas, n_samples], or
+                optionally [n_samples] for one antenna
+        """
+        data_traces = np.atleast_2d(data_traces)
+        assert data_traces.shape[0] == self.n_antennas, f"Data trace shape {data_traces.shape} does not match the number of antennas, {self.n_antennas}"
+        assert data_traces.shape[1] == self.n_samples, f"Data trace shape {data_traces.shape} does not match the number of samples, {self.n_samples}"
+
+        #self.data = data_traces
+        self.data_fft = fft.time2freq(data_traces, self.sampling_rate).flatten()
+
+        integrand_data = abs(self.data_fft * self.data_fft.conj()) / self.noise_psd
+        self.data_factor = 4 * np.sum(integrand_data[self.noise_psd > self.noise_psd_threshold]) * self.df
+
+        self._results_valid = False
+
+    def set_template(self, template_traces):
+        """
+        Set the template traces (one event) and calculate the data normalization factor
+
+        Parameters
+        ----------
+            template_traces: np.ndarray
+                Traces containing the template with shape [n_antennas, n_samples], or
+                optionally [n_samples] for one antenna
+        """
+        template_traces = np.atleast_2d(template_traces)
+        assert template_traces.shape[0] == self.n_antennas, f"Template trace shape {template_traces.shape} does not match the number of antennas, {self.n_antennas}"
+        assert template_traces.shape[1] == self.n_samples, f"Template trace shape {template_traces.shape} does not match the number of samples, {self.n_samples}"
+
+        #self.template = template_traces
+        self.template_fft = fft.time2freq(template_traces, self.sampling_rate).flatten()
+
+        integrand_template = abs(self.template_fft * self.template_fft.conj()) / self.noise_psd
+        self.template_factor = 4 * np.sum(integrand_template[self.noise_psd > self.noise_psd_threshold] * self.df)
+
+        self._results_valid = False
+
+    def set_noise_psd(self, noise_power_spectral_density):
+        """
+        Set the noise power spectral density, which is here defined as 2*mean(abs(fft.time2freq(noise))^2)*df
+        and has units of V^2/GHz.
+
+        See self.set_noise_psd_from_data and self.set_noise_psd_from_spectra for alternative ways to
+        set the noise PSD.
+
+        Parameters
+        ----------
+            noise_power_spectral_density: np.ndarray
+                Traces containing the noise power spectral density with shape [n_antennas, n_frequencies], or
+                optionally [n_frequencies] for one antenna
+        """
+        if noise_power_spectral_density.ndim == 1:
+            self.noise_psd = np.tile(noise_power_spectral_density, self.n_antennas)
+        elif noise_power_spectral_density.shape[0] == self.n_antennas:
+            self.noise_psd = noise_power_spectral_density.flatten()
+        else:
+            raise ValueError("Noise power spectral density has wrong shape")
+
+        self.noise_psd_threshold = np.max(self.noise_psd) * self.spectra_threshold_fraction**2
+
+    def set_noise_psd_from_data(self, noise_traces):
+        """
+        Set the noise power spectral density using data containing purely noise.
+
+        Parameters
+        ----------
+            noise_traces: np.ndarray
+                Traces containing the noise with shape [n_events, n_antennas, n_samples]
+
+        """
+        assert noise_traces.shape[0] > 1, f"The noise PSD should be calculated using more than one noise trace"
+        assert noise_traces.shape[1] == self.n_antennas, f"Noise trace shape {noise_traces.shape} does not match the number of antennas, {self.n_antennas}"
+        assert noise_traces.shape[2] == self.n_samples, f"Noise trace shape {noise_traces.shape} does not match the number of samples, {self.n_samples}"
+
+        noise_fft = fft.time2freq(noise_traces[:,:], self.sampling_rate)
+        noise_psd = 2 * np.mean(abs( noise_fft * noise_fft.conj()), axis=0) * self.df
+
+        self.set_noise_psd(noise_psd)
+
+    def set_noise_psd_from_spectra(self, spectra, Vrms = None):
+        """
+        Calculate the noise power spectral density using the spectra of the noise defined
+        as sqrt(mean(abs(fft.time2freq(noise))^2)). By specifying Vrms, the spectra normalizations
+        of the spectra are ignored and rescale to the given Vrms values, and spectra can then be
+        the normalized noise filters.
+
+        Parameters
+        ----------
+            spectra: np.ndarray
+                Spectra or filters of the noise with shape [n_antennas, n_frequencies], or
+                optionally [n_frequencies] for one antenna
+            Vrms: float or np.ndarray, optional
+                The Vrms value(s) to which the spectra should be rescaled. If a float is given,
+                all antennas are rescaled to the same Vrms. If an array is given it should have
+                shape [n_antennas]. If None, the spectra normalizations are not changed.
+        """
+        noise_psd = np.zeros([self.n_antennas, self.n_frequencies])
+        for i in range(self.n_antennas):
+            if spectra.ndim == 1:
+                spectra = np.tile(spectra, (self.n_antennas,1))
+            noise_psd[i,:] = 2 * spectra[i,:]**2 * self.df
+
+        # Scale to Vrms:
+        if Vrms is not None:
+
+            if Vrms.ndim == 0:
+                Vrms = np.tile(Vrms, self.n_antennas)
+
+            for i in range(self.n_antennas):
+                freq_domain_power = np.sum(0.5 * noise_psd[i,:])
+                time_domain_power = Vrms[i]**2 * self.n_samples * self.dt
+                noise_psd[i,:] = noise_psd[i,:] / freq_domain_power * time_domain_power
+
+        self.set_noise_psd(noise_psd)
+
+
+    def matched_filter_search(self, time_shift_array, plot=False):
+        """
+        Perform the matched filter search for the template and the data to find the best matching time
+        and matched filter output.
+
+        The method stores the matched filter output for later calculations of the matched filter SNR and
+        likelihood.
+
+        Parameters
+        ----------
+            time_shift_array: np.ndarray
+                Array of time shifts of the template to be tested
+            plot: bool (default: False)
+                Whether to plot the matched filter output as a function of time shift
+
+        Returns
+        -------
+            t_best: float
+                The best matching time shift
+            matched_filter_output: float
+                The matched filter output at the best matching time shift
+        """
+
+        integrand = (self.data_fft * self.template_fft.conj() / self.noise_psd)[None, :] * np.exp(1j * 2*np.pi * self.frequencies_flattened[None, :] * time_shift_array[:, None])
+        output = 4 * np.real( np.sum(integrand[:, self.noise_psd > self.noise_psd_threshold], axis=1) ) * self.df
+
+        self.matched_filter_output = np.max(output)
+
+        self._results_valid = True
+
+        if plot:
+            plt.figure(figsize=[20,3])
+            plt.plot(np.arange(self.n_samples)*self.dt, output)
+            plt.xlabel("Time [ns]")
+            plt.ylabel("Matched filter output")
+            plt.tight_layout()
+            plt.show()
+
+        if self.debug:
+            plt.figure(figsize=[20,2])
+            plt.plot(self.frequencies_flattened, (self.noise_psd/2/self.df)**(0.5) )
+            plt.plot(self.frequencies_flattened, np.abs(self.data_fft), alpha = 0.5)
+            plt.plot(self.frequencies_flattened, np.abs(self.template_fft))
+            plt.xlabel("Frequency [GHz]")
+            plt.ylabel("Amplitude [V/√GHz]")
+            plt.legend(["Noise PSD", "Data spectrum", "Template spectrum"])
+            plt.tight_layout()
+            plt.show()
+
+        return np.argmax(output)*self.dt, self.matched_filter_output
+
+    def calculate_matched_filter_SNR(self):
+        """
+        Calculate the matched filter SNR (or matched filter score) using the matched filter output and
+        the template normalization factor. If SNR >> 1, the data is likely to contain the signal template.
+        The matched filter SNR can be seen as the matched filter score and is the relevant quantity to compare
+        between different templates, to find the best matching template.
+
+        Returns
+        -------
+            SNR: float
+                The matched filter SNR, i.e. the matched filter score
+        """
+        assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template and data were re-defined after the matched_filter_search method was called."
+
+        SNR = self.matched_filter_output / self.template_factor
+
+        return SNR
+
+    def calculate_matched_filter_delta_log_likelihood(self):
+        """
+        Calculate the matched filter delta log likelihood using the matched filter output, the template
+        normalization factor, and the data normalization factor. This is the likelihood marginalized over
+        the signal amplitude and time. the "delta" refers to that the constants in the log likelihood are omitted.
+
+        If the template describes the signal in the data and the noise PSD describes the noise, the delta log likelihood
+        should follow a chi2 distribution with degrees of freedom equal to two times the number of noise_psd amplitudes
+        above the threshold.
+
+        Returns
+        -------
+            delta_log_likelihood: float
+                The matched filter delta log likelihood (profiled over amplitude and time)
+        """
+
+        assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template and data were re-defined after the matched_filter_search method was called."
+
+        return  -1/2 * self.data_factor + 1/2 * self.matched_filter_output**2 / self.template_factor
+
+
+    def get_degrees_of_freedom(self):
+        """
+        Get the degrees of freedom of the matched filter delta log likelihood, which is equal to
+        two times the number of noise_psd amplitudes above the threshold.
+
+        Returns
+        -------
+            dof: int
+                The degrees of freedom of the matched filter delta log likelihood
+        """
+        return 2 * np.sum(self.noise_psd > self.noise_psd_threshold)
