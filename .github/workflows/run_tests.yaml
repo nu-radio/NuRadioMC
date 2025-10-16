@@ -207,6 +207,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
+
     - name: Setup Python Environment
       uses: ./.github/actions/setup-python-env
       with:
