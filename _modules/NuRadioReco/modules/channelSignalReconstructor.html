@@ -716,12 +716,12 @@
 <span class="sd">        ----------</span>
 <span class="sd">        station_id: int</span>
 <span class="sd">            ID of the station</span>
-<span class="sd">        channel, det</span>
-<span class="sd">            Channel, Detector</span>
-<span class="sd">        stored_noise: bool</span>
-<span class="sd">            Calculates noise from pre-computed forced triggers</span>
-<span class="sd">        rms_stage: string</span>
-<span class="sd">            See functionality of det.get_noise_RMS</span>
+<span class="sd">        channel : Channel</span>
+<span class="sd">        det : Detector</span>
+<span class="sd">        stored_noise: bool, optional</span>
+<span class="sd">            Calculates noise from pre-computed forced triggers. Default ``False``</span>
+<span class="sd">        rms_stage: string, optional</span>
+<span class="sd">            See functionality of det.get_noise_RMS. Only relevant if ``stored_noise==True``</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -852,16 +852,24 @@
 <div class="viewcode-block" id="channelSignalReconstructor.run">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">stored_noise</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">rms_stage</span> <span class="o">=</span> <span class="s1">&#39;amp&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">stored_noise</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">rms_stage</span> <span class="o">=</span> <span class="s1">&#39;amp&#39;</span><span class="p">,</span> <span class="n">snr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute signal properties for all channels in a station.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        evt, station, det</span>
-<span class="sd">            Event, Station, Detector</span>
+<span class="sd">        evt : Event</span>
+<span class="sd">        station : Station</span>
+<span class="sd">        det : Detector</span>
 <span class="sd">        stored_noise: bool</span>
 <span class="sd">            Calculates noise from pre-computed forced triggers</span>
-<span class="sd">        rms_stage: string</span>
-<span class="sd">            See functionality of det.get_noise_RMS</span>
+<span class="sd">        rms_stage: string, optional</span>
+<span class="sd">            See functionality of det.get_noise_RMS. Only relevant if ``stored_noise==True``.</span>
+<span class="sd">            Default &quot;amp&quot;, i.e. use RMS voltage after amplifier stage.</span>
+<span class="sd">        snr_only : bool, default ``False``</span>
+<span class="sd">            If ``True``, only compute SNR statistics (faster);</span>
+<span class="sd">            otherwise (default), also compute additional signal properties</span>
+<span class="sd">            such as impulsivity, kurtosis and entropy.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -885,19 +893,19 @@
             <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">maximum_amplitude_envelope</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
             <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">P2P_amplitude</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
 
-            <span class="c1"># Calculate impulsivity of the signal</span>
-            <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">impulsivity</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_impulsivity</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
-
-
             <span class="c1"># Use noise precalculated from forced triggers</span>
             <span class="n">signal_to_noise</span><span class="p">,</span> <span class="n">noise_rms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_SNR</span><span class="p">(</span>
                 <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">stored_noise</span><span class="o">=</span><span class="n">stored_noise</span><span class="p">,</span> <span class="n">rms_stage</span><span class="o">=</span><span class="n">rms_stage</span><span class="p">)</span>
 
             <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">SNR</span><span class="p">]</span> <span class="o">=</span> <span class="n">signal_to_noise</span>
             <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">noise_rms</span><span class="p">]</span> <span class="o">=</span> <span class="n">noise_rms</span>
-            <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">root_power_ratio</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_root_power_ratio</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">noise_rms</span><span class="p">)</span>
-            <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">entropy</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_entropy</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
-            <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_kurtosis</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">snr_only</span><span class="p">:</span>
+                <span class="c1"># Calculate additional properties of the signal</span>
+                <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">impulsivity</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_impulsivity</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+                <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">root_power_ratio</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_root_power_ratio</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">noise_rms</span><span class="p">)</span>
+                <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">entropy</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_entropy</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+                <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_kurtosis</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
 
         <span class="n">station</span><span class="p">[</span><span class="n">stnp</span><span class="o">.</span><span class="n">channels_max_amplitude</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_amplitude_station</span>
         <span class="n">station</span><span class="p">[</span><span class="n">stnp</span><span class="o">.</span><span class="n">channels_max_amplitude_norm</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_max_a_norm</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>

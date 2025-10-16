@@ -659,8 +659,8 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.get_max_a_norm" title="NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.get_max_a_norm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_max_a_norm</span></code></a>(station)</p></td>
 <td><p>Calculate the maximum peak to peak amplitude of the signal normalized by the noise level over all channels in a station.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run" title="NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, stored_noise, rms_stage])</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run" title="NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, stored_noise, ...])</p></td>
+<td><p>Compute signal properties for all channels in a station.</p></td>
 </tr>
 </tbody>
 </table>
@@ -705,11 +705,11 @@ If noise_window_start or noise_window_length are None, the noise window is the p
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>ID of the station</p>
 </dd>
-<dt><strong>channel, det</strong></dt><dd><p>Channel, Detector</p>
+<dt><strong>channel</strong><span class="classifier">Channel</span></dt><dd></dd>
+<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd></dd>
+<dt><strong>stored_noise: bool, optional</strong></dt><dd><p>Calculates noise from pre-computed forced triggers. Default <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
 </dd>
-<dt><strong>stored_noise: bool</strong></dt><dd><p>Calculates noise from pre-computed forced triggers</p>
-</dd>
-<dt><strong>rms_stage: string</strong></dt><dd><p>See functionality of det.get_noise_RMS</p>
+<dt><strong>rms_stage: string, optional</strong></dt><dd><p>See functionality of det.get_noise_RMS. Only relevant if <code class="docutils literal notranslate"><span class="pre">stored_noise==True</span></code></p>
 </dd>
 </dl>
 </dd>
@@ -746,15 +746,22 @@ If noise_window_start or noise_window_length are None, the noise window is the p
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stored_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rms_stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'amp'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelSignalReconstructor.html#channelSignalReconstructor.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stored_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rms_stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'amp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelSignalReconstructor.html#channelSignalReconstructor.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor.run" title="Link to this definition"></a></dt>
+<dd><p>Compute signal properties for all channels in a station.</p>
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>evt, station, det</strong></dt><dd><p>Event, Station, Detector</p>
-</dd>
+<dd class="field-odd"><dl>
+<dt><strong>evt</strong><span class="classifier">Event</span></dt><dd></dd>
+<dt><strong>station</strong><span class="classifier">Station</span></dt><dd></dd>
+<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd></dd>
 <dt><strong>stored_noise: bool</strong></dt><dd><p>Calculates noise from pre-computed forced triggers</p>
 </dd>
-<dt><strong>rms_stage: string</strong></dt><dd><p>See functionality of det.get_noise_RMS</p>
+<dt><strong>rms_stage: string, optional</strong></dt><dd><p>See functionality of det.get_noise_RMS. Only relevant if <code class="docutils literal notranslate"><span class="pre">stored_noise==True</span></code>.
+Default “amp”, i.e. use RMS voltage after amplifier stage.</p>
+</dd>
+<dt><strong>snr_only</strong><span class="classifier">bool, default <code class="docutils literal notranslate"><span class="pre">False</span></code></span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, only compute SNR statistics (faster);
+otherwise (default), also compute additional signal properties
+such as impulsivity, kurtosis and entropy.</p>
 </dd>
 </dl>
 </dd>
