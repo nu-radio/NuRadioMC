@@ -1,7 +1,8 @@
-from six import iteritems
 import pickle
 from NuRadioReco.utilities.io_utilities import _dumps
 import numpy as np
+from six import iteritems
+
 from NuRadioReco.utilities import units
 
 
@@ -9,26 +10,30 @@ def deserialize(triggers_pkl):
     triggers = {}
     for data_pkl in triggers_pkl:
         trigger_type = pickle.loads(data_pkl)['_trigger_type']
-        if(trigger_type == 'default'):
+        if trigger_type == 'default':
             trigger = Trigger(None)
-        elif(trigger_type == 'simple_threshold'):
+        elif trigger_type == 'simple_threshold':
             trigger = SimpleThresholdTrigger(None, None)
-        elif(trigger_type == 'high_low'):
+        elif trigger_type == 'high_low':
             trigger = HighLowTrigger(None, None, None, None, None)
-        elif(trigger_type == 'simple_phased'):
+        elif trigger_type == 'simple_phased':
             trigger = SimplePhasedTrigger(None, None)
-        elif(trigger_type == 'envelope_trigger'):
+        elif trigger_type == 'envelope_trigger':
             trigger = EnvelopeTrigger(None, None, None, None)
         elif trigger_type == 'int_power':
             trigger = IntegratedPowerTrigger(None, None, None)
         elif trigger_type == 'envelope_phased':
             trigger  = EnvelopePhasedTrigger(None, None, None, None)
-        elif(trigger_type == 'rnog_surface_trigger'):
+        elif trigger_type == 'digital_envelope_phased':
+            trigger  = DigitalEnvelopePhasedTrigger(None, None, None, None)
+        elif trigger_type == 'rnog_surface_trigger':
             trigger = RNOGSurfaceTrigger(None, None, None, None)
         else:
             raise ValueError("unknown trigger type")
+
         trigger.deserialize(data_pkl)
         triggers[trigger.get_name()] = trigger
+
     return triggers
 
 
@@ -231,6 +236,35 @@ class Trigger:
             output += "{}: {}\n".format(key[1:], value)
         return output
 
+    def show(self, print_stdout=True, **kwargs):
+        """
+        Print an overview of the structure of the Trigger.
+
+        Other Parameters
+        ----------------
+        print_stdout : bool, optional
+            If `True` (default), print the Trigger structure to stdout.
+            Otherwise, return the string representation
+
+        Returns
+        -------
+        str_output : str, optional
+            A string representation of the Trigger structure.
+
+        """
+        self_string = (
+            f"Trigger({self.get_name()}) ({self.get_type()}, "
+            + ('primary, ' if self.is_primary() else '')
+            + ('triggered, ' if self.has_triggered() else '')
+            + (f'channels {self.get_triggered_channels()}')
+            + ')')
+
+        if print_stdout:
+            print(self_string)
+            return
+
+        return self_string
+
     def get_trigger_settings(self):
         output = {}
         for key, value in iteritems(self.__dict__):
@@ -310,7 +344,7 @@ class EnvelopePhasedTrigger(Trigger):
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
-        Trigger.__init__(self, name, triggered_channels, 'envelope_phased', pre_trigger_times=pre_trigger_times)
+        Trigger.__init__(self, name, triggered_channels, 'analog_envelope_phased', pre_trigger_times=pre_trigger_times)
         self._triggered_channels = triggered_channels
         self._phasing_angles = phasing_angles
         self._threshold_factor = threshold_factor
@@ -318,6 +352,45 @@ class EnvelopePhasedTrigger(Trigger):
         self._power_std = power_std
         self._trigger_delays = trigger_delays
         self._output_passband = output_passband
+
+class DigitalEnvelopePhasedTrigger(Trigger):
+
+    def __init__(self, name, threshold, trigger_channels=None,
+                  phasing_angles=None, trigger_delays=None,
+                  maximum_amps=None, pre_trigger_times=55 * units.ns):
+        """
+        initialize trigger class
+
+        Parameters
+        ----------
+        name: string
+            unique name of the trigger
+        threshold: float
+            the threshold
+        power_mean: float
+            mean of the noise trace after being filtered with the diode
+        power_std: float
+            standard deviation of the noise trace after being filtered with the
+            diode. power_mean and power_std can be calculated with the function
+            calculate_noise_parameters from utilities.diodeSimulator
+        triggered_channels: array of ints or None
+            the channels that are involved in the main phased beam
+            default: None, i.e. all channels
+        phasing_angles: array of floats or None
+            the angles for each beam
+        trigger_delays: dictionary
+            the delays for the channels that have caused a trigger.
+            If there is no trigger, it's an empty dictionary
+        output_passband: (float, float) tuple
+            Frequencies for a 6th-order Butterworth filter to be applied after
+            the diode filtering.
+        """
+        Trigger.__init__(self, name, trigger_channels, 'digital_envelope_phased', pre_trigger_times=pre_trigger_times)
+        self._trigger_channels = trigger_channels
+        self._phasing_angles = phasing_angles
+        self._threshold = threshold
+        self._trigger_delays = trigger_delays
+        self._maximum_amps = maximum_amps
 
 
 class SimplePhasedTrigger(Trigger):

@@ -376,7 +376,7 @@ class ray_tracing_2D(ray_tracing_base):
                  n_frequencies_integration=None,
                  use_optimized_start_values=False,
                  overwrite_speedup=None,
-                 use_cpp=cpp_available,
+                 use_cpp=None,
                  compile_numba=False):
         """
         initialize 2D analytic ray tracing class
@@ -411,6 +411,9 @@ class ray_tracing_2D(ray_tracing_base):
         """
         self.__logger = logging.getLogger('NuRadioMC.ray_tracing_2D')
         self.__logger.setLevel(log_level)
+        if use_cpp is None:
+            use_cpp = cpp_available
+
         if cpp_available:
             if not use_cpp:
                 self.__logger.info('C++ raytracer is available, but Python raytracer was requested. Using Python raytracer')
@@ -859,7 +862,7 @@ class ray_tracing_2D(ray_tracing_base):
                         z_turn = 0
                     else:
                         gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-        #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+                        # print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
                         self.__logger.info("Analytic focusing factor not valid for refracted trajectories, use numerical one instead...")
                         return np.nan
 
@@ -1929,7 +1932,7 @@ class ray_tracing(ray_tracing_base):
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
                  detector=None, ray_tracing_2D_kwards={},
-                 use_cpp=cpp_available, compile_numba=None):
+                 use_cpp=None, compile_numba=None):
         """
         class initilization
 
@@ -2004,6 +2007,9 @@ class ray_tracing(ray_tracing_base):
                          detector=detector)
 
         self.set_config(config=config)
+
+        if use_cpp is None:
+            use_cpp = cpp_available
 
         self.use_cpp = use_cpp
         if use_cpp:
@@ -2822,6 +2828,7 @@ class ray_tracing(ray_tracing_base):
             if not hasattr(self, "_r1"):
                 self._r1 = ray_tracing(self._medium, self._attenuation_model, logging.WARNING,
                                 self._n_frequencies_integration, self._n_reflections, use_cpp=self.use_cpp)
+
             self._r1.set_start_and_end_point(vetPos, recPos1)
             self._r1.find_solutions()
             if iS < self._r1.get_number_of_solutions():
@@ -2847,6 +2854,7 @@ class ray_tracing(ray_tracing_base):
             else:
                 focusing = 1.0
                 self.__logger.warning("too few ray tracing solutions, setting focusing factor to 1")
+
             self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
             if(focusing > limit):
                 self.__logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")

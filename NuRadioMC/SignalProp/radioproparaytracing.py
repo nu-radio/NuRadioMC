@@ -313,7 +313,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
             w = (u / np.linalg.norm(u)) * 2*sphere_size
             boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(X2 + w)), radiopropa.Vector3d(*w)))
             obs2.add(boundary_behind_channel)
-            boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0, 0, 1*radiopropa.meter), radiopropa.Vector3d(0, 0, 1)))
+            max_height=np.max([self._X1[2], self._X2[2]+2*sphere_size, 1*radiopropa.meter])
+            boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0, 0, max_height), radiopropa.Vector3d(0, 0, 1)))
             obs2.add(boundary_above_surface)
             sim.add(obs2)
 

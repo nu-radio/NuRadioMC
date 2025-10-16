@@ -9,7 +9,7 @@ import sys
 try:
     reference_file = sys.argv[1]
 except:
-    reference_file = "reference_v1.pkl"
+    reference_file = "reference_v2.pkl"
 
 print('Using reference file {}'.format(reference_file))
 

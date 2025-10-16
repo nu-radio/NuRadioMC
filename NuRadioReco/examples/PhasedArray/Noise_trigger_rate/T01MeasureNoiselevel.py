@@ -5,7 +5,7 @@ from astropy.time import Time
 from multiprocessing import Pool as ThreadPool
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.phasedarray.triggerSimulator
+import NuRadioReco.modules.phasedarray.phasedArrayTrigger
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
@@ -90,7 +90,7 @@ amplitude = Vrms / Vrms_ratio
 
 pattern = f"pa_trigger_rate_{n_channels:d}channels_{upsampling_factor}xupsampling"
 
-triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
+triggerSimulator = NuRadioReco.modules.phasedarray.phasedArrayTrigger.PhasedArrayTrigger()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
 

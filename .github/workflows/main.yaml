@@ -1,0 +1,22 @@
+name: CI
+# This workflow calls the unit tests & documentation workflows on push/pull request triggers.
+# This mainly reduced the number of 'skipped' jobs showing up on pull requests from the base repo.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+
+  unit-tests:
+    # Only run if the pull request does not originate from the base repo (= from a fork);
+    # if it originates from a fork the tests will already be triggered by the 'push' event
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name }}
+    uses: ./.github/workflows/run_tests.yaml
+    with:
+      python_version: "3.10"
+      os: ubuntu-latest
+
+  docs:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name }}
+    uses: ./.github/workflows/deploy_documentation.yaml

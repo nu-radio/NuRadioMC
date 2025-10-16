@@ -15,3 +15,4 @@ weights:
   #layer earth model, which considers the different densities of the
   #core, mantle and crust. simple: use the simple earth model, which
   #apply a constant earth density
+seed: 10 # Fixed seed to ensure simulation triggers for CI test 
