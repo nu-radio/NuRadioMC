@@ -4,6 +4,7 @@ import argparse
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelBandPassFilter
+
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 
@@ -61,11 +62,11 @@ parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=No
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    sim = mySimulation(inputfilename=args.inputfilename,
-                                outputfilename=args.outputfilename,
-                                detectorfile=args.detectordescription,
-                                outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                                config_file=args.config,
-                                file_overwrite=True)
+    sim = mySimulation(
+        inputfilename=args.inputfilename,
+        outputfilename=args.outputfilename,
+        detectorfile=args.detectordescription,
+        outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
+        config_file=args.config,
+        file_overwrite=True)
     sim.run()
-

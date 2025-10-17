@@ -1,19 +1,18 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.parameters as parameters
-import NuRadioReco.framework.parameter_serialization
+import NuRadioReco.framework.parameter_storage
 import radiotools.coordinatesystems
 from NuRadioReco.utilities.trace_utilities import get_stokes
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+
+import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 import logging
 logger = logging.getLogger('NuRadioReco.ElectricField')
 
 
-class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
-
+class ElectricField(NuRadioReco.framework.base_trace.BaseTrace,
+                    NuRadioReco.framework.parameter_storage.ParameterStorage):
     def __init__(self, channel_ids, position=None,
                  shower_id=None, ray_tracing_id=None):
         """
@@ -23,7 +22,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
 
         Parameters
         ----------
-        channel_ids: array of ints
+        channel_ids: list of ints
             the channels ids this electric field is valid for.
             (For cosmic rays one electric field is typically valid
             for several channels. For neutrino simulations, we typically
@@ -37,10 +36,10 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
             the id of the corresponding ray tracing solution
         """
         NuRadioReco.framework.base_trace.BaseTrace.__init__(self)
-        self._channel_ids = channel_ids
-        self._parameters = {}
-        self._parameter_covariances = {}
+        NuRadioReco.framework.parameter_storage.ParameterStorage.__init__(
+            self, parameters.electricFieldParameters)
 
+        self._channel_ids = channel_ids
         self._position = position
         if position is None:
             self._position = [0, 0, 0]
@@ -52,52 +51,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         """
         returns a unique identifier consisting of the tuple channel_ids, shower_id and ray_tracing_id
         """
-        return (self._channel_ids, self._shower_id, self._ray_tracing_id)
-
-    def get_parameter(self, key):
-        if not isinstance(key, parameters.electricFieldParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-        return self._parameters[key]
-
-    def get_parameters(self):
-        return self._parameters
-
-    def set_parameter(self, key, value):
-        if not isinstance(key, parameters.electricFieldParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-        self._parameters[key] = value
-
-    def has_parameter(self, key):
-        if not isinstance(key, parameters.electricFieldParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-        return key in self._parameters
-
-    def has_parameter_error(self, key):
-        if not isinstance(key, parameters.electricFieldParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-        return (key, key) in self._parameter_covariances
-
-    def set_parameter_error(self, key, value):
-        if not isinstance(key, parameters.electricFieldParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-        self._parameter_covariances[(key, key)] = value ** 2
-
-    def get_parameter_error(self, key):
-        if not isinstance(key, parameters.electricFieldParameters):
-            logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-            raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.electricFieldParameters")
-        return self._parameter_covariances[(key, key)] ** 0.5
-
-    def __setitem__(self, key, value):
-        self.set_parameter(key, value)
-
-    def __getitem__(self, key):
-        return self.get_parameter(key)
+        return (tuple(self._channel_ids), self._shower_id, self._ray_tracing_id)
 
     def set_channel_ids(self, channel_ids):
         self._channel_ids = channel_ids
@@ -200,36 +154,31 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
 
 
     def serialize(self, save_trace):
+        base_trace_pkl = None
         if save_trace:
             base_trace_pkl = NuRadioReco.framework.base_trace.BaseTrace.serialize(self)
-        else:
-            base_trace_pkl = None
 
-        data = {'parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
-                'parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(
-                    self._parameter_covariances),
-                'channel_ids': self._channel_ids,
-                '_shower_id': self._shower_id,
-                '_ray_tracing_id': self._ray_tracing_id,
-                'position': self._position,
-                'base_trace': base_trace_pkl}
+        data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
 
-        return pickle.dumps(data, protocol=4)
+        data.update({
+            'channel_ids': self._channel_ids,
+            '_shower_id': self._shower_id,
+            '_ray_tracing_id': self._ray_tracing_id,
+            'position': self._position,
+            'base_trace': base_trace_pkl
+        })
+
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
         if data['base_trace'] is not None:
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
 
+        NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
+
         if 'position' in data:  # for backward compatibility
             self._position = data['position']
-
-        self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(
-            data['parameters'], parameters.electricFieldParameters)
-
-        if 'parameter_covariances' in data:
-            self._parameter_covariances = NuRadioReco.framework.parameter_serialization.deserialize_covariances(
-                data['parameter_covariances'], parameters.electricFieldParameters)
 
         self._channel_ids = data['channel_ids']
         self._shower_id = data.get('_shower_id', None)

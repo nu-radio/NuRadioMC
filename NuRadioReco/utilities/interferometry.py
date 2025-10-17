@@ -1,21 +1,32 @@
+"""
+This module contains helper functions for beam-forming. Originally for the module(s) in
+modules/efieldRadioInterferometricReconstruction.py. The functions with the abbriviation
+"rit" or "RIT" in their name refer to the "Radio Interferometric Technique" [1, 2].
+
+[1]: H. Schoorlemmer, W. R. Carvalho Jr., arXiv:2006.10348
+[2]: F. Schlueter, T. Huege, doi:10.1088/1748-0221/16/07/P07048
+"""
+
 import numpy as np
 import sys
 from scipy import signal, constants
 from radiotools import helper as hp
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.geometryUtilities import get_time_delay_from_direction
+import warnings
+
 
 # to convert V**2/m**2 * ns -> V**2/m**2 * s -> J/m**2 -> eV/m**2
 conversion_factor_integrated_signal = 1 / units.s * \
     constants.c * constants.epsilon_0 / units.eSI
 
 
-def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
+def get_signal(sum_trace, tstep=None, window_width=100 * units.ns, kind="power"):
     """
     Calculates signal quantity from beam-formed waveform
 
     Parameters
     ----------
-
     sum_trace : np.array(m,)
         beam-formed waveform with m samples
 
@@ -30,7 +41,6 @@ def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
 
     Returns
     -------
-
     signal : double
         Signal calculated according to the specified metric
     """
@@ -43,6 +53,7 @@ def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
         return hilbenv[peak_idx]
 
     elif kind == "power" or kind == "hilbert_sum":
+        assert tstep is not None, "Pass `tstep`"
         trace_length = len(sum_trace)
         # shift peak in middle of trace
         sum_trace = np.roll(sum_trace, trace_length // 2 - peak_idx)
@@ -69,15 +80,12 @@ def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
         sys.exit("get_signal(), kind = '{}' not supported".format(kind))
 
 
-def interfere_traces_interpolation(target_pos, positions, traces, times, tab):
+def interfere_traces_rit(target_pos, positions, traces, times, tab):
     """
-    Calculate sum of time shifted waveforms.
-
-    Performs a linear interpolation between samples.
+    Shifts the waveforms of observers to the source location and sums them up.
 
     Parameters
     ----------
-
     target_pos : np.array(3,)
         source/traget location
 
@@ -95,25 +103,72 @@ def interfere_traces_interpolation(target_pos, positions, traces, times, tab):
 
     Returns
     -------
-
     sum_trace : np.array(n, m)
         Summed trace
+    """
+    tshifts = get_time_shifts_rit(target_pos, positions, tab)
+    times_new = times - tshifts[:, None]
+    return interfere_traces_interpolation(traces, times_new)
 
+
+def interfere_traces_plane(positions, traces, times, zenith, azimuth, n0=1.000292):
+    """
+    Shifts the waveforms of observers onto a plane wave.
+
+    Parameters
+    ----------
+    positions : np.array(n, 3)
+        Observer positions at observation height
+
+    traces : np.array(n, m)
+        waveforms of n observers with m samples
+
+    times : np.array(n, m)
+        time stampes of the waveforms of each observer
+
+    zenith : float
+        Zenith angle of the plane wavefront
+
+    azimuth : float
+        Azimuth angle of the plane wavefront
+
+    n0 : float (default: 1.000292)
+        Refractivity at observation level
+
+    Returns
+    -------
+    sum_trace : np.array(n, m)
+        Summed trace
+    """
+    tshifts = get_time_delay_from_direction(zenith, azimuth, positions, n0)
+    times_new = times - tshifts[:, None]
+    return interfere_traces_interpolation(traces, times_new)
+
+def interfere_traces_interpolation(traces, times):
+    """
+    Calculate sum of time shifted waveforms. Performs a linear interpolation between samples.
+
+    Parameters
+    ----------
+    traces : np.array(n, m)
+        waveforms of n observers with m samples
+
+    times : np.array(n, m)
+        (Shifted) time stampes of the waveforms of each observer
+
+    Returns
+    -------
+    sum_trace : np.array(n, m)
+        Summed trace
     """
 
-    # positions all have to be in sea level plane coordinates!
-    times = times
     tstep = times[0, 1] - times[0, 0]
-
-    tshifts = get_time_shifts(target_pos, positions, tab)
-
-    times_new = times - tshifts[:, None]
-    first_time = np.amin(times_new)
-    last_time = np.amax(times_new)
+    first_time = np.amin(times)
+    last_time = np.amax(times)
 
     time_sum = np.arange(first_time, last_time + tstep, tstep)
     sum_trace = np.zeros(len(time_sum))
-    for trace, time in zip(traces, times_new):
+    for trace, time in zip(traces, times):
 
         fidx = np.around((time[1:] - time_sum[0]) / tstep, 4)  # TODO: check if that makes sense
         idx = np.array(fidx, dtype=int)
@@ -131,14 +186,13 @@ def interfere_traces_interpolation(target_pos, positions, traces, times, tab):
     return sum_trace
 
 
-def get_time_shifts(target_pos, positions, tab):
+def get_time_shifts_rit(target_pos, positions, tab):
     """
     Calculates the time delay of an electromagnetic wave along a straight trajectories between
     a source/traget location and several observers.
 
     Parameters
     ----------
-
     target_pos : np.array(3,)
         source/traget location
 
@@ -150,10 +204,8 @@ def get_time_shifts(target_pos, positions, tab):
 
     Returns
     -------
-
     tshifts : np.array(n,)
         Time delay in sec
-
     """
 
     tshifts = np.zeros(len(positions))
@@ -168,6 +220,34 @@ def get_time_shifts(target_pos, positions, tab):
     return tshifts * units.s
 
 
+def get_time_shifts_plane(positions, zenith, azimuth, n0):
+    """
+    Calculate time shifts for a plane wavefront for a given set of observers.
+
+    Parameters
+    ----------
+    positions : np.array(n, 3)
+        observer positions (n observers)
+
+    zenith : float
+        Zenith angle of the plane wavefront
+
+    azimuth : float
+        Azimuth angle of the plane wavefront
+
+    n0 : float
+        Refractivity at observation level
+
+    Returns
+    -------
+    tshifts : np.array(n,)
+        Time delay for n observers
+    """
+    warnings.warn(
+        "get_time_shifts_plane() is deprecated. Use `geometryUtilities.get_time_delay_from_direction()` instead.", DeprecationWarning)
+    return get_time_delay_from_direction(zenith=zenith, azimuth=azimuth, positions=positions, n=n0)
+
+
 def fit_axis(z, theta, phi, coreX, coreY):
     """
     Predicts the intersetction of an axis/line with horizontal layers at different heights.
@@ -180,7 +260,6 @@ def fit_axis(z, theta, phi, coreX, coreY):
 
     Parameters
     ----------
-
     z : array
         The height(s) for which the position on the defined axis should be evaluated.
 
@@ -198,7 +277,6 @@ def fit_axis(z, theta, phi, coreX, coreY):
 
     Returns
     -------
-
     points : array
         The flatten array of the positions on along the defined axis at heights given by "z"
     """
@@ -235,10 +313,8 @@ def get_intersection_between_line_and_plane(plane_normal, plane_anchor, line_dir
 
     Returns
     -------
-
     psi : array(3,)
         Position of the intersection between plane and line
-
     """
     ndotu = plane_normal.dot(line_direction)
     if abs(ndotu) < epsilon:

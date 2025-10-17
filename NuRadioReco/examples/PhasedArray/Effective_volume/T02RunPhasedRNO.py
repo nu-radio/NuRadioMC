@@ -24,10 +24,11 @@ from NuRadioMC.simulation import simulation
 import NuRadioReco
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
-import NuRadioReco.modules.phasedarray.triggerSimulator
+import NuRadioReco.modules.phasedarray.phasedArrayTrigger
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
+
 from NuRadioReco.utilities import units
 
 # 4 channel, 2x sampling, fft upsampling, 16 ns window
@@ -40,7 +41,7 @@ from NuRadioReco.utilities import units
 # 10 Hz -> 69.06
 # 1 Hz -> 75.75
 
-triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
+triggerSimulator = NuRadioReco.modules.phasedarray.phasedArrayTrigger.PhasedArrayTrigger()
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
@@ -59,7 +60,6 @@ step_8ant = int(8 * units.ns * 0.5 * 4.0)
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
-
         channelBandPassFilter.run(evt, station, det, passband=[0.0 * units.MHz, 220.0 * units.MHz],
                                   filter_type='cheby1', order=7, rp=.1)
         channelBandPassFilter.run(evt, station, det, passband=[96.0 * units.MHz, 100.0 * units.GHz],

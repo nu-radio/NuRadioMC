@@ -50,7 +50,8 @@ class triggerSimulator:
             number_concidences=1,
             triggered_channels=None,
             coinc_window=200 * units.ns,
-            trigger_name='default_simple_threshold'):
+            trigger_name='default_simple_threshold',
+            pre_trigger_time=None):
         """
         Simulate simple trigger logic, no time window, just threshold in all channels
 
@@ -73,22 +74,29 @@ class triggerSimulator:
             time window in which number_concidences channels need to trigger
         trigger_name: string
             a unique name of this particular trigger
+        pre_trigger_time: float or dict of floats
+            Defines the amount of trace recorded before the trigger time. This module does not cut the traces,
+            but this trigger property is later used to trim traces accordingly.
+            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
+            start of the trace and the trigger time.
+            if only a float is given, the same pre_trigger_time is used for all channels
+            If none, the default value of the Trigger class is used, which is currently 55ns.
         """
         t = time.time()
 
-        sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
-        dt = 1. / sampling_rate
-
         if triggered_channels is None:
-            for channel in station.iter_channels():
-                channel_trace_start_time = channel.get_trace_start_time()
-                break
+            tmp_channel = station.get_trigger_channel(station.get_channel_ids()[0])
         else:
-            channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+            tmp_channel = station.get_trigger_channel(triggered_channels[0])
+
+        channel_trace_start_time = tmp_channel.get_trace_start_time()
+        sampling_rate = tmp_channel.get_sampling_rate()
+
+        dt = 1. / sampling_rate
 
         triggerd_bins_channels = []
         channels_that_passed_trigger = []
-        for channel in station.iter_channels():
+        for channel in station.iter_trigger_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 self.logger.debug("skipping channel {}".format(channel_id))
@@ -116,11 +124,15 @@ class triggerSimulator:
         # set maximum signal aplitude
         max_signal = 0
         if has_triggered:
-            for channel in station.iter_channels():
+            for channel in station.iter_trigger_channels():
                 max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
             station.set_parameter(stnp.channels_max_amplitude, max_signal)
 
-        trigger = SimpleThresholdTrigger(trigger_name, threshold, triggered_channels, number_concidences)
+        kwargs = {}
+        if pre_trigger_time is not None:
+            kwargs['pre_trigger_times'] = pre_trigger_time
+        trigger = SimpleThresholdTrigger(trigger_name, threshold, triggered_channels, number_concidences,
+                                         **kwargs)
         trigger.set_triggered_channels(channels_that_passed_trigger)
 
         if has_triggered:

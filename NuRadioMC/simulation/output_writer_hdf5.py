@@ -108,17 +108,20 @@ class outputWriterHDF5:
 
                 # save event attributes
                 for enum_entry in genattrs:
-                    if evt.has_generator_info(enum_entry):
+                    if evt.has_parameter(enum_entry):
                         if enum_entry.name not in self._mout_attributes:
-                            self._mout_attributes[enum_entry.name] = evt.get_generator_info(enum_entry)
+                            self._mout_attributes[enum_entry.name] = evt.get_parameter(enum_entry)
                         else:  # if the attribute is already present, we need to check if it is the same for all events
-                            assert all(np.atleast_1d(self._mout_attributes[enum_entry.name] == evt.get_generator_info(enum_entry)))
+                            assert all(np.atleast_1d(self._mout_attributes[enum_entry.name] == evt.get_parameter(enum_entry)))
 
                 # save station attributes
                 for stn in evt.get_stations():
-                    station_key_pairs = [[chp.Vrms_NuRadioMC_simulation, "Vrms"], [chp.bandwidth_NuRadioMC_simulation, "bandwidth"]]
+                    station_key_pairs = [[chp.Vrms_NuRadioMC_simulation, "Vrms"], [chp.bandwidth_NuRadioMC_simulation, "bandwidth"],
+                        [chp.Vrms_trigger_NuRadioMC_simulation, "Vrms_trigger"]]
+
+
                     for (key_cp, key_hdf5) in station_key_pairs:
-                        channel_values = [channel[key_cp] for channel in stn.iter_channels(sorted=True)]
+                        channel_values = [channel[key_cp] for channel in stn.iter_channels(sorted=True) if channel.has_parameter(key_cp)]
 
                         if key_hdf5 not in self._mout_groups_attributes[sid]:
                             self._mout_groups_attributes[sid][key_hdf5] = np.array(channel_values)
@@ -381,7 +384,8 @@ class outputWriterHDF5:
             # we also want to save the first interaction even if it didn't contribute to any trigger
             # this is important to know the initial neutrino properties (only relevant for the simulation of
             # secondary interactions)
-            stn_buffer = event_buffer[self._station_ids[0]]
+            # We will get this from the first non-empty station in event_buffer
+            stn_buffer = [b for b in event_buffer.values() if b][0] # `if b` ensures we don't get a non-triggered station (with no buffer)
             evt = stn_buffer[list(stn_buffer.keys())[0]]
             particle = evt.get_primary()
             if(particle[pap.shower_id] not in shower_ids):
@@ -528,17 +532,23 @@ class outputWriterHDF5:
         Returns:
             float: The calculated effective volume (Veff)
         """
-        # calculate effective
-        try: # sometimes not all relevant attributes are set, e.g. for emitter simulations.
-            triggered = remove_duplicate_triggers(self._mout['triggered'], self._mout['event_group_ids'])
-            n_triggered = np.sum(triggered)
-            n_triggered_weighted = np.sum(np.array(self._mout['weights'])[triggered])
-            n_events = self._mout_attributes['n_events']
-            logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} (sum of weights = {n_triggered_weighted:.2f})')
+        if not self._mout: # if no events triggered, this is an empty dict
+            return None
 
+        triggered = remove_duplicate_triggers(self._mout['triggered'], self._mout['event_group_ids'])
+        n_triggered = np.sum(triggered)
+        try:
+            n_triggered_weighted = np.sum(np.array(self._mout['weights'])[triggered])
+        except KeyError:
+            logger.debug("No 'weights' present in HDF5 output, assuming all weights are unity.")
+            n_triggered_weighted = n_triggered
+        n_events = self._mout_attributes['n_events']
+        logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} (sum of weights = {n_triggered_weighted:.2f})')
+
+        if 'volume' in self._mout_attributes: # this key is not present for e.g. emitter simulations
             V = self._mout_attributes['volume']
             Veff = V * n_triggered_weighted / n_events
             logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
             return Veff
-        except:
+        else:
             return None

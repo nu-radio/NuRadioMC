@@ -1,12 +1,9 @@
-import logging
-import numpy as np
-import time
-
-from NuRadioReco.detector.RNO_G import analog_components
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units
 
+import numpy as np
+import logging
 logger = logging.getLogger("NuRadioReco.triggerBoardResponse")
 
 
@@ -21,16 +18,13 @@ class triggerBoardResponse:
 
     def __init__(self, log_level=logging.WARNING):
         logger.setLevel(log_level)
-        self.logger = logger
-        self.__t = 0
+        self._log_level = log_level
         self.begin()
 
-    def begin(self, adc_input_range=2 * units.volt, clock_offset=0.0, adc_output="voltage"):
+    def begin(self, clock_offset=0.0, adc_output="voltage"):
         """
         Parameters
         ----------
-        adc_input_range : float (default: 2V)
-            the voltage range of the ADC (should be given in units of volts)
         clock_offset: bool
             If True, a random clock offset between -1 and 1 clock cycles is added
         adc_output: string
@@ -40,17 +34,14 @@ class triggerBoardResponse:
             * 'counts' to store the ADC output in ADC counts
 
         """
-
-        self._adc = analogToDigitalConverter()
+        self._adc = analogToDigitalConverter(log_level=self._log_level)
         self._clock_offset = clock_offset
-        self._adc_output = adc_output
-
-        # the fields that need to exist in the detector description for this module to work
-        self._mandatory_fields = ["trigger_amp_type", "trigger_adc_nbits", "trigger_adc_noise_nbits"]
+        self.adc_output = adc_output
 
         # Table 21 in https://www.analog.com/media/en/technical-documentation/data-sheets/hmcad1511.pdf
         self._triggerBoardAmplifications = np.array([1, 1.25, 2, 2.5, 4, 5, 8, 10, 12.5, 16, 20, 25, 32, 50])
-        self._adc_input_range = adc_input_range
+        self._adc_input_range = None
+        self._nbits = None
 
     def apply_trigger_filter(self, station, trigger_channels, trigger_filter):
         """
@@ -69,17 +60,17 @@ class triggerBoardResponse:
         """
 
         for channel_id in trigger_channels:
-            channel = station.get_channel(channel_id)
+            channel = station.get_trigger_channel(channel_id)
 
             # calculate and apply trigger filters
             freqs = channel.get_frequencies()
             filt = trigger_filter(freqs)
             channel.set_frequency_spectrum(channel.get_frequency_spectrum() * filt, channel.get_sampling_rate())
 
-    def get_avg_vrms(self, station, trigger_channels, trace_split=20):
+    def get_noise_vrms_per_trigger_channel(self, station, trigger_channels, trace_split=20):
         """
         Estimates the RMS voltage of the triggering antennas by splitting the waveforms
-        into chunks and taking the median of standard deviation of the chunks
+        into chunks and taking the median of standard deviation of the chunks.
 
         Parameters
         ----------
@@ -87,31 +78,30 @@ class triggerBoardResponse:
             Station to use
         trigger_channels : list
             Channels that this function should be applied to
-        trace_split : int (default: 9)
+        trace_split : int (default: 20)
             How many chunks each of the waveforms will be split into before calculating
             the standard deviation
 
         Returns
         -------
-        approx_vrms : float
-            the median RMS voltage of the waveforms
-
+        vrms : list of floats
+            RMS voltage of the waveforms
         """
+        vrms = np.zeros(len(trigger_channels))
+        for idx, channel_id in enumerate(trigger_channels):
+            channel = station.get_trigger_channel(channel_id)
+            trace = channel.get_trace()
 
-        avg_vrms = 0
-        for channel_id in trigger_channels:
-            channel = station.get_channel(channel_id)
-            trace = np.array(channel.get_trace())
-            trace = trace[: int(trace_split * int(len(trace) / trace_split))].reshape((trace_split, -1))
+            n_samples_to_split = trace_split * (len(trace) // trace_split)
+            trace = trace[:n_samples_to_split].reshape((trace_split, -1))
             approx_vrms = np.median(np.std(trace, axis=1))
-            logger.debug(f"    Ch: {channel_id}\tObser Vrms: {approx_vrms / units.mV:0.3f} mV")
-            avg_vrms += approx_vrms
 
-        avg_vrms /= len(trigger_channels)
-        self.logger.debug(f"Average Vrms: {avg_vrms / units.mV:0.3f} mV")
-        return approx_vrms
+            vrms[idx] = approx_vrms
 
-    def apply_adc_gain(self, station, det, trigger_channels, avg_vrms=None):
+        logger.debug("obs. Vrms {} mV".format(np.around(vrms / units.mV, 3)))
+        return vrms
+
+    def apply_adc_gain(self, station, det, trigger_channels, vrms_noise=None):
         """
         Calculates and applies the gain adjustment such that the correct number
         of "noise bits" are realized. The ADC has fixed possible gain values and
@@ -125,9 +115,9 @@ class triggerBoardResponse:
             The detector description
         trigger_channels : list
             Channels that this function should be applied to
-        avg_rms : float (default: None)
-            The Vrms of the trigger channels including the trigger board filters
-            If set to `None`, this will be estimated using the waveforms
+        vrms_noise : float (default: None)
+            The (noise) Vrms of the trigger channels including the trigger board filters
+            If set to `None`, this will be estimated using the waveforms.
 
         Returns
         -------
@@ -139,26 +129,35 @@ class triggerBoardResponse:
 
         """
 
-        if avg_vrms is None:
-            avg_vrms = self.get_avg_vrms(station, trigger_channels)
+        if vrms_noise is None:
+            vrms_noise = self.get_noise_vrms_per_trigger_channel(station, trigger_channels)
+            logger.debug("obs. Vrms {} mV".format(np.around(vrms_noise / units.mV, 3)))
 
-        self.logger.debug("Applying gain at ADC level")
+        logger.debug("Applying gain at ADC level")
 
-        if not hasattr(avg_vrms, "__len__"):
-            avg_vrms = np.full_like(trigger_channels, avg_vrms, dtype=float)
+        if not hasattr(vrms_noise, "__len__"):
+            vrms_noise = np.full_like(trigger_channels, vrms_noise, dtype=float)
 
+        dbg_str = "\n\tChannel | std(channel) / mV | vrms_after_gain | gain factor | eff. noise count"
         vrms_after_gain = []
-        for channel_id, vrms in zip(trigger_channels, avg_vrms):
+        for channel_id, vrms in zip(trigger_channels, vrms_noise):
             det_channel = det.get_channel(station.get_id(), channel_id)
-
-            noise_bits = det_channel["trigger_adc_noise_nbits"]
+            noise_count = det_channel["trigger_adc_noise_count"]
             total_bits = det_channel["trigger_adc_nbits"]
-            volts_per_adc = self._adc_input_range / 2 ** total_bits
-            ideal_vrms = volts_per_adc * (2 ** (noise_bits - 1) - 1)
+            adc_input_range = det_channel["trigger_adc_max_voltage"] - det_channel["trigger_adc_min_voltage"]
 
-            msg = f"\t Ch: {channel_id}\t Target Vrms: {ideal_vrms / units.mV:0.3f} mV"
-            msg += f"\t V/ADC: {volts_per_adc / units.mV:0.3f} mV"
-            self.logger.debug(msg)
+            volts_per_adc = adc_input_range / (2 ** total_bits - 1)
+            ideal_vrms = volts_per_adc * noise_count
+
+            if self._adc_input_range is None:
+                self._adc_input_range = adc_input_range
+            else:
+                assert self._adc_input_range == adc_input_range, "ADC input range is not consistent across channels"
+
+            if self._nbits is None:
+                self._nbits = total_bits
+            else:
+                assert self._nbits == total_bits, "ADC bits are not consistent across channels"
 
             # find the ADC gain from the possible values that makes the realized
             # vrms closest-to-but-greater-than the ideal value
@@ -171,18 +170,28 @@ class triggerBoardResponse:
                 gain_to_use = self._triggerBoardAmplifications[-1]
                 vrms_after_gain.append(amplified_vrms_values[-1])
 
-            channel = station.get_channel(channel_id)
-            self.logger.debug(f"\t Ch: {channel_id}\t Actuall Vrms: {np.std(channel.get_trace() * gain_to_use) / units.mV:0.3f} mV")
+            # Apply gain
+            channel = station.get_trigger_channel(channel_id)
             channel.set_trace(channel.get_trace() * gain_to_use, channel.get_sampling_rate())
-            self.logger.debug(f"\t Used Vrms: {vrms_after_gain[-1] / units.mV:0.3f} mV" + f"\tADC Gain {gain_to_use}")
-            eff_noise_bits = np.log2(vrms_after_gain[-1] / volts_per_adc) + 1
-            self.logger.debug(f"\t Eff noise bits: {eff_noise_bits:0.2f}\tRequested: {noise_bits}")
+
+            # Calculate the effective number of noise bits
+            eff_noise_count = vrms_after_gain[-1] / volts_per_adc
+
+            dbg_str += ("\n\t {: 4d}   |     {: 4.3f}      |     {: 4.3f}     |     {}    |  {:0.2f}".format(
+                channel_id, np.std(channel.get_trace()) / units.mV, vrms_after_gain[-1] / units.mV, gain_to_use, eff_noise_count))
+
+        logger.debug("Target Vrms: {:0.3f} mV; Target noise count: {}{}".format(ideal_vrms / units.mV, noise_count, dbg_str))
 
         return np.array(vrms_after_gain), ideal_vrms
 
-    def get_trigger_values(self, station, det, requested_channels=[]):
+
+    def digitize_trace(self, station, det, trigger_channels, vrms):
         """
-        Extracts information about the trigger channels from the detector description
+        Digitizes the traces of the trigger channels.
+
+        This function uses the `NuRadioReco.modules.analogToDigitalConverter` module to digitize the traces.
+        The resulting digitized traces are either in discrete voltage values or in ADC counts
+        (depeding on the argument `adc_output`).
 
         Parameters
         ----------
@@ -190,82 +199,14 @@ class triggerBoardResponse:
             Station to use
         det : Detector
             The detector description
-        requested_channels : list (default: [])
-            Channels that this function should consider when extracting data
-
-        Returns
-        -------
-        found_trigger_channels : list
-            channel ids for the trigger channels
-
-        trigger_filter : function
-            set of interpolations describing the `gain` and `phase` of the filter
-            (see function `load_amp_response` in file `./detector/RNO_G/analog_components.py`)
-
+        trigger_channels : list
+            Channels that this function should be applied to
+        vrms : float
+            The (noise) RMS voltage of the trigger channels including the trigger board filters.
+            This can be used to simulate a dynamic range of the ADC which depends on the noise level.
         """
-
-        station_id = station.get_id()
-
-        found_trigger_channels = []
-        trigger_amp_response = None
-        trigger_amp_response_name = None
-
-        for det_channel in station.iter_channels():
-            channel_id = det_channel.get_id()
-
-            # If specifying the exact channels to consider, demand
-            # that this ID is in the list
-            if len(requested_channels) and channel_id not in requested_channels:
-                continue
-
-            det_channel = det.get_channel(station_id, channel_id)
-
-            keep = True
-            for field in self._mandatory_fields:
-                if field not in det_channel:
-                    keep = False
-                    break
-
-            if not keep:
-                continue
-
-            found_trigger_channels.append(channel_id)
-
-            # Check for mixed amplifiers (required for get_avg_vrms to work correctly)
-            if trigger_amp_response_name is not None and trigger_amp_response_name != det_channel["trigger_amp_type"]:
-                name = det_channel["trigger_amp_type"]
-                msg = f'Channel {channel_id} has `trigger_amp_type` of "{name}", but a `trigger_amp_type` of'
-                msg += f' "{trigger_amp_response_name}" was already found in the detector file. This module is not meant'
-                msg += " to work with mixed values of `trigger_amp_type`. Either unify the `trigger_amp_type` or supply"
-                msg += ' a group of channels to consider using the "requested_channels" option of this module'
-                raise RuntimeError(msg)
-
-            trigger_amp_response_name = det_channel["trigger_amp_type"]
-            trigger_amp_response = analog_components.load_amp_response(trigger_amp_response_name)
-
-        if not len(found_trigger_channels):
-            msg = f"No triggering channels found in station {station_id}. Make sure that trigger channels have the following"
-            msg += f" fields defined {self._mandatory_fields}"
-            raise RuntimeError(msg)
-
-        # Sanity check for the expected channels
-        for channel_id in requested_channels:
-            if channel_id not in found_trigger_channels:
-                msg = f"Channel {channel_id} was requested to participlate in the trigger but was not found with the proper the mandatory"
-                msg += f" fields set. Ensure that the following settings are in your Detector configuration {self._mandatory_fields}"
-                self.logger.warn(msg)
-
-        self.logger.debug(f"Found trigger channels {found_trigger_channels}")
-        self.logger.debug(f"Found trigger amps {trigger_amp_response_name}")
-
-        def trigger_filter(freqs):
-            return trigger_amp_response["gain"](freqs) * trigger_amp_response["phase"](freqs)
-
-        return found_trigger_channels, trigger_filter
-
-    def digitize_trace(self, station, det, trigger_channels, vrms):
         for channel_id in trigger_channels:
-            channel = station.get_channel(channel_id)
+            channel = station.get_trigger_channel(channel_id)
 
             digitized_trace, adc_sampling_frequency = self._adc.get_digital_trace(
                 station,
@@ -276,22 +217,18 @@ class triggerBoardResponse:
                 adc_type="perfect_floor_comparator",
                 trigger_filter=None,  # Applied already
                 clock_offset=self._clock_offset,
-                adc_output=self._adc_output,
+                adc_output=self.adc_output,
                 return_sampling_frequency=True,
-                channel_id=channel_id,
             )
 
             channel.set_trace(digitized_trace, adc_sampling_frequency)
 
     @register_run()
-    def run(self, evt, station, det, requested_channels=[], vrms=None, apply_adc_gain=True,
-            digitize_trace=True, do_apply_trigger_filter=True):
+    def run(self, evt, station, det, trigger_channels, vrms=None, apply_adc_gain=True,
+            digitize_trace=True):
         """
         Applies the additional filters on the trigger board and performs a gain amplification
         to get the correct number of trigger bits.
-        This module expects that all of the trigger channels (either defined by the existance of
-        `trigger_XXX` fields in the detector .json file or via the `requested_channels`
-        argument) are identical.
 
         Parameters
         ----------
@@ -301,8 +238,8 @@ class triggerBoardResponse:
             Station to run the module on
         det : Detector
             The detector description
-        requested_channels : list (default: [])
-            Channels that this module should consider when applying the filter
+        trigger_channels : list
+            Channels that this module should consider applying the filter/board response
         vrms : float (default: None)
             The Vrms of the trigger channels including the trigger board filters
             If set to `None`, this will be estimated using the waveforms
@@ -310,42 +247,32 @@ class triggerBoardResponse:
             Apply the gain shift to achieve the specified level of noise bits
         digitize_trace : bool (default: True)
             Apply the quantization to the voltages (uses `NuRadioReco.modules.analogToDigitalConverter` to do so)
-        do_apply_trigger_filter : bool (default: True)
-            Apply the trigger filter to the waveforms. The response might already be ablied as part of the
-            detector simulation, in which case this should be set to `False`.
 
         Returns
         -------
         trigger_board_vrms : float
             the RMS voltage of the waveforms on the trigger board after applying the ADC gain
-
         """
-        self.logger.debug("Applying the RNO-G trigger board response")
-
-        if do_apply_trigger_filter:
-            trigger_channels, trigger_amp_response = self.get_trigger_values(station, det, requested_channels)
-            self.apply_trigger_filter(station, trigger_channels, trigger_amp_response)
-        else:
-            trigger_channels = requested_channels
+        logger.debug("Applying the RNO-G trigger board response")
 
         if vrms is None:
-            vrms = self.get_avg_vrms(station, trigger_channels)
+            vrms = self.get_noise_vrms_per_trigger_channel(station, trigger_channels)
 
         if apply_adc_gain:
-            trigger_board_vrms, ideal_vrms = self.apply_adc_gain(station, det, trigger_channels, vrms)
+            equalized_vrms, ideal_vrms = self.apply_adc_gain(station, det, trigger_channels, vrms)
         else:
-            trigger_board_vrms = vrms
+            equalized_vrms = vrms
             ideal_vrms = vrms
 
         if digitize_trace:
             self.digitize_trace(station, det, trigger_channels, ideal_vrms)
+            if self.adc_output == "counts":
+                lsb_voltage = self._adc_input_range / (2 ** self._nbits - 1)
+                # We do not floor/convert the vrms to integers here. But this has to happen before the trigger.
+                equalized_vrms = equalized_vrms / lsb_voltage
+                logger.debug("obs. Vrms {} ADC".format(equalized_vrms))
 
-        return trigger_board_vrms
+        return equalized_vrms
 
     def end(self):
-        from datetime import timedelta
-
-        self.logger.setLevel(logging.INFO)
-        dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass

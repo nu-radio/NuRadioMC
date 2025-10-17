@@ -13,7 +13,10 @@ from datetime import datetime
 from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
 import warnings
-from erfa import ErfaWarning
+try:
+    from erfa import ErfaWarning
+except ImportError: # users with astropy < 4.2 may not have pyerfa installed
+    from astropy.utils.exceptions import ErfaWarning
 import NuRadioReco.utilities.metaclasses
 
 logger = logging.getLogger('NuRadioReco.detector')
@@ -136,6 +139,7 @@ class DetectorBase(object):
                  dictionary=None, assume_inf=True, antenna_by_depth=True):
         """
         Initialize the stations detector properties.
+
         By default, a new detector instance is only created of none exists yet, otherwise the existing instance
         is returned. To force the creation of a new detector instance, pass the additional keyword parameter
         `create_new=True` to this function. For more details, check the documentation for the
@@ -159,8 +163,8 @@ class DetectorBase(object):
             if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
             appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
-        create_new: bool (default:False)
-            Can be used to force the creation of a new detector object. By default, the __init__ will only create a new
+        create_new: bool (default: None)
+            Set to ``True`` to force the creation of a new detector object. By default, the __init__ will only create a new
             object if none already exists.
         """
         self._serialization = SerializationMiddleware()
@@ -172,10 +176,10 @@ class DetectorBase(object):
             self._db.truncate()
             stations_table = self._db.table('stations', cache_size=1000)
             for station in dictionary['stations'].values():
-                stations_table.insert(station)
+                stations_table.insert({**station})
             channels_table = self._db.table('channels', cache_size=1000)
             for channel in dictionary['channels'].values():
-                channels_table.insert(channel)
+                channels_table.insert({**channel})
         else:
             self._db = TinyDB(
                 json_filename,
@@ -240,7 +244,7 @@ class DetectorBase(object):
         the value to the attribute.
         """
         if isinstance(value, bool):
-            self.__assume_inf = value
+            self._antenna_by_depth = value
         else:
             raise ValueError(f"Value for antenna_by_depth should be boolean, not {type(value)}")
 
@@ -974,6 +978,32 @@ class DetectorBase(object):
             return channel_id
         else:
             return res['channel_group_id']
+        
+    def get_antenna_mode(self, station_id, channel_id):
+        """
+        returns the antenna mode of a given channel - this is specific to LOFAR antennas, as they operate in either inner or outer mode.
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns
+        -------
+        ant_mode : str
+            the antenna mode (LBA inner/outer)
+        """
+
+        res = self.__get_channel(station_id, channel_id)
+        if 'ant_mode' not in res.keys():
+            logger.warning(
+                'Antenna mode not set for channel {} in station {}, returning None'.format(
+                    channel_id, station_id))
+            return None
+        else:
+            return res['ant_mode']
 
     def get_noise_RMS(self, station_id, channel_id, stage='amp'):
         """

@@ -1,10 +1,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-import pickle
+
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.io.NuRadioRecoio import VERSION, VERSION_MINOR
-import logging
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.detector import generic_detector
+from NuRadioReco.utilities import io_utilities
+
+import pickle
+import logging
 logger = logging.getLogger("NuRadioReco.eventWriter")
 
 
@@ -12,12 +15,11 @@ def get_header(evt):
     header = {'stations': {}}
     for iS, station in enumerate(evt.get_stations()):
         header['stations'][station.get_id()] = station.get_parameters().copy()
-        header['stations'][station.get_id()][stnp.station_time] = station.get_station_time_dict()
+        header['stations'][station.get_id()][stnp.station_time] = io_utilities._astropy_to_dict(station.get_station_time())
 
         if station.has_sim_station():
             header['stations'][station.get_id()]['sim_station'] = {}
             header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters().copy()
-    
     header['event_id'] = (evt.get_run_number(), evt.get_id())
     return header
 
@@ -79,10 +81,10 @@ class eventWriter:
             self.__filename = filename[:-4]
         else:
             self.__filename = filename
-        
+
         if filename.endswith('.ari'):
             logger.warning('The file ending .ari for NuRadioReco files is deprecated. Please use .nur instead.')
-        
+
         self.__check_for_duplicates = check_for_duplicates
         self.__number_of_events = 0
         self.__current_file_size = 0
@@ -105,7 +107,7 @@ class eventWriter:
         det: detector object
             If a detector object is passed, the detector description for the
             events is written in the file as well
-        mode: dictionary, optional 
+        mode: dictionary, optional
             Specifies what will be saved into the `*.nur` output file.
             Can contain the following keys:
 
@@ -210,7 +212,7 @@ class eventWriter:
                     self.__stored_stations.append({
                         'station_id': station.get_id()
                     })
-                det_dict['stations'][str(i_station)] = station_description
+                det_dict['stations'][str(i_station)] = {**station_description}
                 i_station += 1
             for channel in station.iter_channels():
                 if not self.__is_channel_already_in_file(
@@ -232,7 +234,7 @@ class eventWriter:
                           'station_id': station.get_id(),
                           'channel_id': channel.get_id()
                         })
-                    det_dict['channels'][str(i_channel)] = channel_description
+                    det_dict['channels'][str(i_channel)] = {**channel_description}
                     i_channel += 1
             # If we have a genericDetector, the default station may not be in the event.
             # In that case, we have to add it manually to make sure it ends up in the file
@@ -243,12 +245,12 @@ class eventWriter:
                         self.__stored_stations.append({
                             'station_id': reference_station_id
                         })
-                        det_dict['stations'][str(i_station)] = station_description
+                        det_dict['stations'][str(i_station)] = {**station_description}
                         i_station += 1
                         for channel_id in det.get_channel_ids(reference_station_id):
                             if not self.__is_channel_already_in_file(reference_station_id, channel_id, None):
                                 channel_description = det.get_raw_channel(reference_station_id, channel_id)
-                                det_dict['channels'][str(i_channel)] = channel_description
+                                det_dict['channels'][str(i_channel)] = {**channel_description}
                                 self.__stored_channels.append({
                                     'station_id': reference_station_id,
                                     'channel_id': channel_id
