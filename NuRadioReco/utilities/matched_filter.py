@@ -22,6 +22,7 @@ logger = logging.getLogger("NuRadioReco.utilities.matched_filter")
 #     n_t = len(t_array)
 #     output = np.zeros(n_t)
 
+
 #     for i in range(n_t):
 #         integrand = s * h.conj() / noise_psd * np.exp(1j*2*np.pi*frequencies_flattened*t_array[i])
 #         output[i] = 4 * np.real(np.sum(integrand[noise_psd > np.max(noise_psd) * threshold**2] * (frequencies_flattened[1] - frequencies_flattened[0])))
@@ -289,7 +290,7 @@ class MatchedFilter:
         """
 
         integrand = (self.data_fft * self.template_fft.conj() / self.noise_psd)[None, :] * np.exp(1j * 2*np.pi * self.frequencies_flattened[None, :] * time_shift_array[:, None])
-        output = 4 * np.real( np.sum(integrand[:, self.noise_psd > self.noise_psd_threshold], axis=1) ) * self.df
+        output = 4 * np.real( np.sum(integrand[:, self.noise_psd > self.noise_psd_threshold], axis=-1) ) * self.df
 
         self.matched_filter_output = np.max(output)
 
@@ -308,13 +309,14 @@ class MatchedFilter:
             plt.plot(self.frequencies_flattened, (self.noise_psd/2/self.df)**(0.5) )
             plt.plot(self.frequencies_flattened, np.abs(self.data_fft), alpha = 0.5)
             plt.plot(self.frequencies_flattened, np.abs(self.template_fft))
+            plt.hlines((self.noise_psd_threshold/2/self.df)**0.5, 0, np.max(self.frequencies_flattened), colors='gray', linestyles='dashed')
             plt.xlabel("Frequency [GHz]")
             plt.ylabel("Amplitude [V/√GHz]")
             plt.legend(["Noise PSD", "Data spectrum", "Template spectrum"])
             plt.tight_layout()
             plt.show()
 
-        return np.argmax(output)*self.dt, self.matched_filter_output
+        return time_shift_array[np.argmax(output)], self.matched_filter_output
 
     def calculate_matched_filter_SNR(self):
         """
