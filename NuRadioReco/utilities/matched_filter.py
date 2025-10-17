@@ -2,6 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import fft
 
+import logging
+logger = logging.getLogger("NuRadioReco.utilities.matched_filter")
+
+
 # def matched_filter(data, template, noise_power_spectral_density, t_array, frequencies, n_antennas, sampling_rate, threshold = 0.01, plot = False):
 #     """
 #     data = [n_antennas, n_samples]
@@ -119,28 +123,22 @@ class MatchedFilter:
         self._results_valid = False
         self.debug = debug
 
-        print("Matched Filter initialized with {} antennas, {} samples, and {} Hz sampling rate".format(n_antennas, n_samples, sampling_rate))
+        logger.info("Matched Filter initialized with {} antennas, {} samples, and {} Hz sampling rate".format(n_antennas, n_samples, sampling_rate))
 
-        # Set data:
-        if data_traces is not None:
-            self.set_data(data_traces)
-            print("Data traces set")
-        else:
-            print("No data traces set. Run set_data() to set data traces")
-
-        # Set template:
-        if template_traces is not None:
-            self.set_template(template_traces)
-            print("Template traces set")
-        else:
-            print("No template traces set. Run set_template() to set template traces")
-
-        # Set noise power spectral density:
         if noise_power_spectral_density is not None:
             self.set_noise_psd(noise_power_spectral_density)
-            print("Noise power spectral density set")
         else:
-            print("No noise power spectral density set. Run set_noise_psd(), set_noise_psd_from_data(), or set_noise_psd_from_spectra()")
+            logger.info("No noise power spectral density set. Run set_noise_psd(), set_noise_psd_from_data(), or set_noise_psd_from_spectra()")
+
+        if data_traces is not None:
+            self.set_data(data_traces)
+        else:
+            logger.info("No data traces set. Run set_data() to set data traces")
+
+        if template_traces is not None:
+            self.set_template(template_traces)
+        else:
+            logger.info("No template traces set. Run set_template() to set template traces")
 
 
     def set_data(self, data_traces):
@@ -277,7 +275,8 @@ class MatchedFilter:
         Parameters
         ----------
             time_shift_array: np.ndarray
-                Array of time shifts of the template to be tested
+                Array of time shifts of the template to be tested. Note that often a grid with finer
+                spacing than the sampling rate is needed.
             plot: bool (default: False)
                 Whether to plot the matched filter output as a function of time shift
 
@@ -335,15 +334,20 @@ class MatchedFilter:
 
         return SNR
 
-    def calculate_matched_filter_delta_log_likelihood(self):
+    def calculate_matched_filter_delta_log_likelihood(self, relative_to = None):
         """
-        Calculate the matched filter delta log likelihood using the matched filter output, the template
-        normalization factor, and the data normalization factor. This is the likelihood marginalized over
-        the signal amplitude and time. the "delta" refers to that the constants in the log likelihood are omitted.
+        Calculate the matched filter delta log likelihood  of the tempalte given the data using the matched
+        filter output, the template normalization factor, and the data normalization factor. This is the 
+        likelihood marginalized over the signal amplitude and time. 
 
-        If the template describes the signal in the data and the noise PSD describes the noise, the delta log likelihood
-        should follow a chi2 distribution with degrees of freedom equal to two times the number of noise_psd amplitudes
-        above the threshold.
+        If relative_to is None, the the "delta" refers to that the constants in the log likelihood are
+        omitted, and it can be seen as the log likelihood relative to the most probable template (the data
+        itself). In this case, if the template describes the signal in the data and the noise PSD describes
+        the noise, the delta log likelihood should follow a chi2 distribution with degrees of freedom equal
+        to two times the number of noise_psd amplitudes above the threshold (see self.get_degrees_of_freedom()).
+
+        If relative_to is "zeros", the delta log likelihood is calculated relative to a template with zeros, i.e.
+        no signal. In this case, the delta log likelihood can be used to test the significance of the detected signal.
 
         Returns
         -------
@@ -353,8 +357,26 @@ class MatchedFilter:
 
         assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template and data were re-defined after the matched_filter_search method was called."
 
-        return  -1/2 * self.data_factor + 1/2 * self.matched_filter_output**2 / self.template_factor
+        if relative_to is None:
+            return  -1/2 * self.data_factor + 1/2 * self.matched_filter_output**2 / self.template_factor
+        elif relative_to == "zeros":
+            return  1/2 * self.matched_filter_output**2 / self.template_factor
 
+    def calculate_matched_filter_amplitude_estimate(self):
+        """
+        Calculate the matched filter amplitude estimate using the matched filter output and the template
+        normalization factor. This is the maximum likelihood estimate of the signal amplitude in the data,
+        profiled over the signal time.
+
+        Returns
+        -------
+            amplitude_estimate: float
+                The matched filter amplitude estimate (profiled over time)
+        """
+
+        assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template and data were re-defined after the matched_filter_search method was called."
+
+        return self.matched_filter_output / self.template_factor
 
     def get_degrees_of_freedom(self):
         """
