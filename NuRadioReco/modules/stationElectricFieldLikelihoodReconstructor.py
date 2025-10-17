@@ -106,9 +106,24 @@ class StationElectricLikelhihoodFieldReconstructor:
         self.frequencies = np.fft.rfftfreq(self.n_samples, 1. / self.sampling_rate)
 
         # initialize noise model:
-        self.noise_model = noise_model.NoiseModel(n_antennas=self.n_channels, n_samples=self.n_samples, sampling_rate=self.sampling_rate, matrix_inversion_method="pseudo_inv", threshold_amplitude=0.1)
+        self.noise_model = noise_model.NoiseModel(
+            n_antennas = self.n_channels,
+            n_samples = self.n_samples,
+            sampling_rate = self.sampling_rate,
+            matrix_inversion_method = "pseudo_inv",
+            threshold_amplitude = 0.1
+        )
         self.noise_model.initialize_with_spectra(noise_spectra, self.Vrms)
         self.noise_psd = self.noise_model.noise_psd
+
+        # initialize matched filter:
+        self.matched_filter = matched_filter.MatchedFilter(
+            n_samples = self.n_samples,
+            sampling_rate = self.sampling_rate,
+            n_antennas = self.n_channels,
+            noise_power_spectral_density = self.noise_psd,
+            spectra_threshold_fraction = 0.1
+        )
 
     @register_run()
     def run(self, evt, station, det, use_channels=None, signal_search_window=None, use_MC_direction=False):
@@ -163,6 +178,8 @@ class StationElectricLikelhihoodFieldReconstructor:
 
         def signal_function(parameters):
             return self._get_signal(parameters, det, station.get_id(), use_channels, trace_start_times)
+
+        self.matched_filter.set_data(traces)
 
         minus_two_llh_best = None
         f_theta_f_phi_initial = [[0.5, 1], [0.5, -1], [-0.5, 1], [-0.5, -1]]
@@ -238,11 +255,11 @@ class StationElectricLikelhihoodFieldReconstructor:
 
         if not self.use_chi2:
             # Matched filter:
-            t, x = matched_filter.matched_filter(data, signal, self.noise_psd, self.t_array_matched_filter, self.frequencies, self.n_channels)
+            self.matched_filter.set_template(signal)
+            t_best, x_best = self.matched_filter_search(time_shift_array=self.t_array_matched_filter)
+            llh_mf = self.matched_filter.calculate_matched_filter_delta_log_likelihood()
 
-            # Convert to llh:
-            minus_two_llh = - matched_filter.matched_filter_to_llh(x, data, signal, self.noise_psd, self.frequencies, self.n_channels)
-            return minus_two_llh
+            return -2 * llh_mf
 
         elif self.use_chi2:
             i_max, cross = self._cross_correlation(data, signal, shift_array=self.i_shift_cc)
