@@ -27,5 +27,3 @@ tau_rest_lifetime = 290.3 * units.fs
 density_ice = 0.9167 * units.g / units.cm ** 3
 density_water = 997 * units.kg / units.m ** 3
 
-# convert CoREAS traces [cgs units] to SI units [V/m]
-conversion_fieldstrength_cgs_to_SI = c / (units.cm / units.s) * units.micro * units.volt / units.meter
