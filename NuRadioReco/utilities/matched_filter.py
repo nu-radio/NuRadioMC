@@ -108,7 +108,6 @@ class MatchedFilter:
             with noise spectra below this threshold are ignored in the matched filter calculation.
     """
     def __init__(self, n_samples, sampling_rate, n_antennas, data_traces=None, template_traces=None, noise_power_spectral_density=None, spectra_threshold_fraction=0.01, debug=False):
-
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
         self.n_antennas = n_antennas
@@ -288,7 +287,6 @@ class MatchedFilter:
             matched_filter_output: float
                 The matched filter output at the best matching time shift
         """
-
         integrand = (self.data_fft * self.template_fft.conj() / self.noise_psd)[None, :] * np.exp(1j * 2*np.pi * self.frequencies_flattened[None, :] * time_shift_array[:, None])
         output = 4 * np.real( np.sum(integrand[:, self.noise_psd > self.noise_psd_threshold], axis=-1) ) * self.df
 
@@ -332,7 +330,7 @@ class MatchedFilter:
         """
         assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template and data were re-defined after the matched_filter_search method was called."
 
-        SNR = self.matched_filter_output / self.template_factor
+        SNR = self.matched_filter_output / np.sqrt(self.template_factor)
 
         return SNR
 
@@ -356,7 +354,6 @@ class MatchedFilter:
             delta_log_likelihood: float
                 The matched filter delta log likelihood (profiled over amplitude and time)
         """
-
         assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template and data were re-defined after the matched_filter_search method was called."
 
         if relative_to is None:
@@ -366,16 +363,14 @@ class MatchedFilter:
 
     def calculate_matched_filter_amplitude_estimate(self):
         """
-        Calculate the matched filter amplitude estimate using the matched filter output and the template
-        normalization factor. This is the maximum likelihood estimate of the signal amplitude in the data,
-        profiled over the signal time.
+        Calculate the matched filter estimate of the amplitude, i.e., the factor the template
+        has to be multiplied with to best match the data.
 
         Returns
         -------
             amplitude_estimate: float
-                The matched filter amplitude estimate (profiled over time)
+                The matched filter amplitude estimate
         """
-
         assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template and data were re-defined after the matched_filter_search method was called."
 
         return self.matched_filter_output / self.template_factor
