@@ -806,28 +806,28 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
 
     return resp_f
 
-def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, fmin=100*units.MHz, fmax=300*units.MHz, max_delay_time=20*units.ns, atol=0.1, time_shift=None, debug_plots=False):
+def impulse_response_using_hilbert_phase(response, frequencies, fmin=100*units.MHz, fmax=300*units.MHz, max_delay_time=20*units.ns, atol=0.1, time_shift=10*units.ns, show_debug=False):
     """
     Calculates a causal impulse response using a Hilbert derived phase. The theory can be found in chapter 8 of
     'Advanced Signal Integrity for High-Speed Digitial Designs' by Hall and Heck. The Hilbert derived phased is defined by
     the Kramers Kronig relations where the imaginary component of a response can be computed by the Hilbert tranformation of the real
     component. Since causality cannot be immediately enforced, this function will compare the imaginary component of channel_response
     to the Hilbert derived imaginary component with some difference error (atol*amplitude(phase)) at discrete time shifts to see when the majority
-    of the pulse is causal. This functions assumes the pulse is well defined (single pulse with no large pre-pulse signals, v(t) -> 0 over time, no aliasing)
+    of the pulse is causal or will just apply an optional time shift. This functions assumes the pulse/spectrum is well defined (single pulse with no large
+    pre-pulse signals, v(t) -> 0 over time, no aliasing)
 
     There is overlap with the functionality of window_response_in_time_domain, but this function does not filter the impulse response
     which 'should' keep the impulse shape at t>0 intact.
 
     Warning: function may not converge if error is too small and acausal FFT artifacts may be present if f_sampling > 2*f_cutoff of the filter
+    So it may be useful to use a large time shift that moves the entire pulse into t>0, since the returned frequency response is shifted back.
 
     Parameters
     ----------
-    channel_response: NuRadioReco.detector.response.Response class
-        Response class for the signal chain
-    f_sampling: float
-        Desired sampling rate of impulse response (2 * max of frequency bins)
-    n_bins: int
-        Number of frequency bins in spectrum. Creates 2(n-1) time bins
+    response: array of complex
+        Signal chain response as a frequency spectrum
+    frequencies: array of float
+        Frequency bins used for channel_response. Assumes np.rfft standard of odd number of frequencies from 0 to sampling_rate/2
     fmin: float
         minimum frequency in range to compare phases, lower end of the bandpass with good gain
     fmax: float
@@ -841,18 +841,20 @@ def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, f
 
     Returns
     -------
+    causal_response: array of complex
+        Original response with acausal part removed
     impulse_response: array of float
-        Hilbert derived impulse response (V). Can still contain acausal FFT artifacts
+        Hilbert derived impulse response v(t). May contain acausal parts from error or FFT artifacts
     times: array of float
         Time bins of impulse response
     time_delay: float
-        The time shift (ns) needed to compute a mostly causal impulse response
+        The time shift (ns) needed to compute a mostly causal impulse response. Equal to time_shift if given
     """
-    frequencies = np.linspace(0, f_sampling/2, n_bins)
+    n_bins = len(frequencies)
+    f_sampling = np.max(frequencies)*2
     times = np.linspace(-(n_bins-1), n_bins-1, 2*(n_bins-1)) / f_sampling
-    response = channel_response(frequencies)
     mask = np.logical_and(frequencies>fmin, frequencies<fmax)
-    min_err = atol * (np.max(np.imag(response[mask])) - np.min(np.imag(response[mask])))
+    target_err = atol * (np.max(np.imag(response[mask])) - np.min(np.imag(response[mask])))
     
     shifted_response = response
     hilbert_phase = -np.imag(signal.hilbert(np.real(response)))
@@ -864,29 +866,45 @@ def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, f
         min_computed_err = np.max(np.abs(np.imag(shifted_response[mask]) - hilbert_phase[mask]))
 
     else:
-        shift = 0*units.ns
+        # The current optimization loop can introduce artificial acausal ringing when the sampling rate is larger
+        # than the bandwidth, as in if it's larger than Nyquist. It may be better to define a time shift large enough to
+        # cover all reponses since they 'should' be close to causal already
 
-        while(shift<max_delay_time and not np.allclose(np.imag(shifted_response[mask]), hilbert_phase[mask], atol=min_err)):
+        shift = 0*units.ns
+        min_error = np.inf
+        while(shift<max_delay_time and not np.allclose(np.imag(shifted_response[mask]), hilbert_phase[mask], atol=target_err)):
             shift += 0.1 * units.ns
             shifted_response = response * np.exp(-2j*np.pi*frequencies*shift)
             hilbert_phase = -np.imag(signal.hilbert(np.real(shifted_response)))
             min_computed_err = np.max(np.abs(np.imag(shifted_response[mask]) - hilbert_phase[mask]))
-        
-        if shift>=max_delay_time:
-            raise RuntimeError(f"Causal response not found, try increasing error fraction, time range, or specify a time delay, loop min err {min_computed_err:.2f} > set err {min_err:.2f}")
-        
-    impulse_response = fft.freq2time(np.real(shifted_response)+1j*hilbert_phase, f_sampling)
-    impulse_response = np.roll(impulse_response, len(impulse_response)//2)
+            if min_computed_err < min_error:
+                min_error = min_computed_err
 
-    if debug_plots:
+            logger.debug(f"Current error {min_computed_err*atol/target_err}")
+
+        if shift>=max_delay_time:
+            msg=f"Causal response not found, try increasing error fraction, time range, or specify a time delay, loop min err {min_error*atol/target_err:.2f} > set err {target_err:.2f}"
+            logger.error(msg)
+            raise RuntimeError(msg)
+
+        logger.debug(f"Shifte the reponsed by {shift/units.ns} ns to become causal")
+
+    shifted_causal_response = np.real(shifted_response)+1j*hilbert_phase
+    impulse_response = fft.freq2time(shifted_causal_response, f_sampling)
+    impulse_response = np.roll(impulse_response, len(impulse_response)//2)
+    causal_response = shifted_causal_response * np.exp(+2j*np.pi*frequencies*shift)
+
+    if show_debug:
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots(1,1)
-        ax.plot(frequencies, np.imag(shifted_response), label="Imag(Shifted original)")
-        ax.plot(frequencies, hilbert_phase, label="Imag(Hilbert derived)")
+        ax.plot(frequencies, np.imag(response), label="Imag(Original)")
+        ax.plot(frequencies, np.imag(shifted_response), linestyle="dashed", label="Imag(Shifted original)")
+        ax.plot(frequencies, hilbert_phase, linestyle="dashed", label="Imag(Hilbert derived)")
+        ax.plot(frequencies, np.imag(causal_response), label="Imag(Acausal Removed)")
         ax.legend()
         ax.set_xlabel("Frequencies [GHz]")
-        ax.set_ylabel(f"Amplitude of Imag(Response) [V/GHz] - max_err={min_computed_err*atol/min_err:.2f}*amp")
+        ax.set_ylabel(f"Amplitude of Imag(Response) [V/GHz] - max_err={min_computed_err*atol/target_err:.2f}*amp")
 
         original_impulse = fft.freq2time(response, f_sampling)
         original_impulse = np.roll(original_impulse,len(times)//2)
@@ -894,13 +912,13 @@ def impulse_response_using_hilbert_phase(channel_response, f_sampling, n_bins, f
         ax_impulse.plot(times,original_impulse, label="Original Impulse")
         ax_impulse.plot(times, impulse_response, label="Hilbert Derived Impulse")
         ax_impulse.legend()
-        ax_impulse.set_xlabel(f"Time [ns] - Opt. Shift = {shift:.1f} ns")
+        ax_impulse.set_xlabel(f"Time [ns] - Time Shift = {shift:.1f} ns")
         ax_impulse.set_ylabel("Impulse Response [V]")
-        ax_impulse.set_xlim(left=-50, right=100)
+        ax_impulse.set_xlim(left=-60, right=100)
 
         plt.show()
 
-    return impulse_response, times, shift
+    return causal_response, impulse_response, times, shift
 
 
 

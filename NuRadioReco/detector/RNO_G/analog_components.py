@@ -72,6 +72,8 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         ph = os.path.join(path, 'HardwareResponses/ULP-216+_Plus25DegC.s2p')
         ff, S11gain, S11deg, S21gain, S21deg, S12gain, S12deg, S22gain, S22deg = np.loadtxt(ph, comments=['#', '!'], unpack=True)
         ff *= units.MHz
+
+        # Convert gain in dB power to linear in voltage
         amp_gain_discrete = 10**(S21gain / 20)
         amp_phase_discrete = S21deg * units.deg
     else:
