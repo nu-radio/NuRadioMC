@@ -207,6 +207,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
+
     - name: Setup Python Environment
       uses: ./.github/actions/setup-python-env
       with:
@@ -228,6 +231,11 @@ jobs:
       run: |
         pip install git+https://github.com/RNO-G/mattak.git
         NuRadioReco/test/RNO_G/test_read_rnog_data.sh
+
+    - name: "RNO-G simulation example"
+      if: always()
+      run: |
+        python3 NuRadioMC/examples/RNO_G_trigger_simulation/simulate.py --station_id 11 -e 1e19 -n 2000
 
   other-tests:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
