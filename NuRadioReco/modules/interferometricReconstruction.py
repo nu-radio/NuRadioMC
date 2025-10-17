@@ -11,6 +11,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 from matplotlib.colors import TwoSlopeNorm
 from NuRadioReco.utilities.signal_processing import resample
+from NuRadioReco.utilities import units
 import os 
 
 class InterferometricReco:
@@ -41,7 +42,29 @@ class InterferometricReco:
         #origin
         self.origin = detector.get_relative_position(station_id, 0)
         
-        #load travel time maps
+        #load travel time maps 
+        
+        self.__tt_map = self.load_tt_maps(tt_paths) 
+
+        #detector 
+        self.detector = detector
+
+        #taking the hilbert envelope of traces for reconstruction, default = True
+        self.do_envelope = True
+    
+    def load_tt_maps(self, tt_paths):
+        """
+        Loads the travel time maps 
+
+        Parameters
+
+        ----------
+        
+        tt_paths: dictionary of npz file paths
+            contains an array of travel times for each channel in station alongside metadata
+            metadata: r_range, z_range, antenna_z and ice_model
+
+        """
         tt_map = {}
         for ch in tt_paths:
             path = tt_paths[ch]
@@ -49,19 +72,16 @@ class InterferometricReco:
                 raise FileNotFoundError(f"Path does not exist: {path}")
             else:
                 try:
-                    tt_map[ch] = np.load(path)
+                    with np.load(path) as npz:
+                        tt_map[ch] = {
+                                "r_range": npz["r_range"].copy(),
+                                "z_range": npz["z_range"].copy(),
+                                "data": npz["data"].copy()}
+                        #tt_map[ch] = np.load(path)
                 except (OSError, ValueError, EOFError) as e:
                     raise RuntimeError(f"Failed to load file at {path}: {e}")
-    
-        self.__tt_map = tt_map 
 
-        #detector 
-        self.detector = detector
-
-        #taking the hilbert envelope of traces for reconstruction, default = True
-        self.do_envelope = True
-
-
+        return tt_map
 
     #Basic helper functions for unit conversions and queuing channel positions
 
@@ -223,7 +243,6 @@ class InterferometricReco:
             run number for saving plots, default = None
 
         """
-
         fs = 13
         plot_axes = []
         plot_axes_ind = []
@@ -376,7 +395,7 @@ class InterferometricReco:
                 all channel pairs from channels_to_include
 
             cores: int
-                number of threads to be used to run tasks concurrently, default = 2
+                number of threads to be used to run tasks concurrently, default = 40
             
             upsample: int 
                 upsampling factor for traces, default = 10 
@@ -529,7 +548,7 @@ class InterferometricReco:
             calculate correlation score
 
         cores: int
-            number of threads to be used to run tasks concurrently, default = 2
+            number of threads to be used to run tasks concurrently, default = 40
 
         """
         corrs = csp.corrs
@@ -657,7 +676,7 @@ class InterferometricReco:
             calculate correlation score
 
         cores: int
-            number of threads to be used to run tasks concurrently, default = 2
+            number of threads to be used to run tasks concurrently, default = 40
 
         """
         elevation_vals, azimuth_vals, intmap, score, t_ab = self.build_interferometric_map_ang(channel_signals, channel_times, channel_pairs_to_include,
@@ -722,7 +741,7 @@ class InterferometricReco:
             calculate correlation score 
 
         cores: int
-            number of threads to be used to run tasks concurrently, default = 2
+            number of threads to be used to run tasks concurrently, default = 40
             
         """
         z_vals, r_vals, intmap, score, t_ab = self.build_interferometric_map_rz(channel_signals, channel_times, channel_pairs_to_include,
@@ -738,8 +757,8 @@ class InterferometricReco:
         }
 
         return reco_event, score, t_ab
-    
-    def run(self, event, station, channels_to_include, azimuth_range, elevation_range, radius, z_range, r_range, num_pts_r, num_pts_z, num_pts_elev, num_pts_az, output_path, cores = 2, plotting = True, run_no = None):
+
+    def run(self, event, station, channels_to_include, azimuth_range, elevation_range, radius, z_range, r_range, num_pts_r, num_pts_z, num_pts_elev, num_pts_az, output_path, cores = 2, plotting = True, run_no = None, return_reco = False, return_score = False, return_delays = False, return_maps = False):
         
         """
         Runs reconstruction 
@@ -792,7 +811,7 @@ class InterferometricReco:
             path to folder where angular and RZ correlation maps are saved
         
         cores: int
-            number of threads to be used to run tasks concurrently, default = 2
+            number of threads to be used to run tasks concurrently, default = 40
 
         plotting: boolean 
             plot angular and RZ correlation maps, default = True
@@ -804,19 +823,45 @@ class InterferometricReco:
 
         run_no: int
             run number for saving plots, default = None
-
-        Returns
         
+        return_reco: boolean 
+            if set to True, returns dictionary containing correlation map (numpy array), z_vals, r_vals, and azimuth 
+            z_vals, r_vals: z and r values for RZ reconstruction in meters where r = x^2 + y^2
+            azimuth: azimuth associated with max correlation point from angular reconstruction in radians
+            *necessary for surface correlation ratio (SCR) calculation
+            default = False
+
+        return_score = boolean
+            if set to True, return a numpy array of the average correlation score over all channel pairs at each delay time 
+            *necessary for coherently summed waveform (CSW) calculation 
+            default = False 
+
+        return_delays = boolean 
+            if set to True, returns a numpy array of the delay times corresponding to each correlation value 
+            *necessary for coherently summed waveform (CSW) calculation
+            default = False
+
+        return_maps = boolean
+            if set to True, returns the dictionary of travel time maps (numpy arrays) for each channel and metadata
+            metadata: r_range (cylindrical) and z_range over which maps were generated in meters  
+            *necessary for coherently summed waveform (CSW) calculation
+            default = False
+        
+        Returns 
+
         -------
-        
-        score_rz, t_ab_rz : numpy arrays
-            can be used to rebuild correlation map for later usage 
 
-        maxcorr_point_all: dictionary 
-            coordinates of maximum correlation (r,z,azimuth and elevation)
-        
-        maxcorr_rz: float
-            maximum correlation value across rz correlation map 
+        results: dictionary
+            results["maxcorr_coord"] = dictionary of the coordinate (z, r, azimuth and elevation) of max correlation 
+            results["maxcorr"] = maximum correlation value from rz reconstruction 
+            if return_reco is set to True
+                results["reco"] = *see return_reco parameter description above 
+            if return_score is set to True
+                results["score"] = *see return_score parameter description above 
+            if return_delays is set to True 
+                results["delays"] = *see return_delays parameter description above 
+            if return_maps is set to True 
+                results["maps"] = *see return_maps parameter description above 
 
         """
         
@@ -901,10 +946,361 @@ class InterferometricReco:
                 self.plot(reco_rz, maxcorr_point_all, "rz", azimuth_range, elevation_range, z_range, r_range, num_pts_z, num_pts_r, output_path, event.get_id(), run_no)
             else:
                 raise FileNotFoundError(f"Path does not exist: {output_path}")
+        
+        results = {}
+        if (return_reco == True):
+            results["reco"] = reco_rz 
+        if (return_score == True):
+            results["score"] = score_rz 
+        if (return_delays == True):
+            results["delays"] = t_ab_rz 
+        if (return_maps == True):
+            results["maps"] = self.__tt_map 
+        
+        results["maxcorr_coord"] = maxcorr_point_all
+        results["maxcorr"] = maxcorr_rz 
+
+        return results 
 
 
-        return score_rz, t_ab_rz, maxcorr_point_all, maxcorr_rz
+class CSW(InterferometricReco):
+    def __init__(self, station_id, detector):
+        """
+        Initialize CSW class
+
+        Parameters
+
+        ----------
+
+        station_id: int
+
+        detector
+        """
+
+        #window around reconstructed delay times to find final delay time values
+        self.__zoom_window = 40 * units.ns
+
+        #detector
+        self.det = detector
+
+        #origin
+        self.origin = detector.get_relative_position(station_id, 0)
+
+    def get_arrival_delays_reco(self, reco_results, channels_to_include, channel_positions, reference_ch, ttcs):
+        """
+        Obtain difference between travel time at the maximum correlation point for each channel in channels_to_include and reference channel 
+
+        Parameters
+
+        ----------
+        reco_results: dictionary
+            maximum correlation point in r, z, azimuth and elevation as obtained from reconstruction
+
+        channels_to_include: list or numpy array
+            list of channels used to make the CSW
+    
+        channel_positions: dictionary
+            x,y,z positions of each channel in channels_to_include 
+
+        reference_ch: int
+            channel with the maximum voltage in its trace (highest peak)
+
+        ttcs: dictionary
+            dictionary of travel time maps (numpy arrays) for each channel and metadata
+            metadata: r_range (cylindrical) and z_range over which maps were generated in meters
+        """
+
+        z, r = np.meshgrid(reco_results["z"], reco_results["r"])
+        src_pos = self.rz_to_cart(z.flatten(), r.flatten(), reco_results["azimuth"], self.origin)
+
+        arrival_times = {}
+
+        #obtain travel time for each channel at coordinate of maximum correlation 
+        for ch in channels_to_include:
+            arrival_times[ch] = self.get_travel_time(ttcs, ch, self.to_antenna_rz_coordinates(src_pos, channel_positions[ch]))
+
+        reference_arrival_time = arrival_times[reference_ch]
+        arrival_delays = {}
+
+        #obtain difference with respect to reference channel arrival time
+        for ch in channels_to_include:
+            arrival_delays[ch] = arrival_times[ch] - reference_arrival_time
 
 
+        return arrival_delays
+    
+    def get_arrival_delays_xcorr(
+        self, channel_signals, channel_times, channels_to_include, reference_ch, reco_delays,channel_positions, score, t_ab
+    ):
+        """
+        Obtain delay time within a window (self.window) around the reconstructed delay time from get_arrival_delays_reco
+        
+        Parameters
+
+        ----------
+        channel_signals: dictionary
+            event traces (numpy arrays) for each channel
+
+        channel_times: dictionary
+            event times for each channel (numpy arrays) 
+        
+        channels_to_include: list or numpy array
+            list of channels used to make the CSW
+
+        reference_ch: int
+            channel with the maximum voltage in its trace (highest peak)
+
+        reco_delays: dictionary
+            difference between travel time at the maximum correlation point for each channel in channels_to_include and reference channel
+
+        channel_positions: dictionary
+            x,y,z positions of each channel in channels_to_include
+        
+        score: array
+            average correlation score over all channel pairs at each delay time as obtained from reconstruction
+
+        t_ab: array
+            delay times corresponding to each correlation value as obtained from reconstruction
+        """
+        delays = {}
+
+        for ch_ID in channels_to_include:
+
+            #delay of reference_ch with respect to reference_ch is 0
+
+            if ch_ID == reference_ch:
+                delay = 0
+            else:
+                #account for the fact that delay times (t_ab) are calculated as t_a - t_b 
+                if (ch_ID > reference_ch):
+                    channel_pair = (reference_ch, ch_ID)
+                    xcorr_times, xcorr_volts = t_ab[channel_pair], score[channel_pair]
+                    xcorr_times *= -1
+                else:
+                    channel_pair = (ch_ID, reference_ch)
+                    xcorr_times, xcorr_volts = t_ab[channel_pair], score[channel_pair]
+
+                #look at window around delay time
+
+                zoomed_indices = np.where(
+                    (np.abs( xcorr_times - reco_delays[ch_ID] )) < self.__zoom_window // 2
+                )[0]
+
+                #if nothing is in the window, keep delay as is 
+                if len(zoomed_indices) == 0:
+                    delay = xcorr_times[ np.argmax(xcorr_volts) ]
+
+                #else find the delay associated with maximum correlation in zoomed array
+                else:
+                    zoomed_indices_filled = np.arange(min(zoomed_indices), max(zoomed_indices), 1)
 
 
+                    delay = xcorr_times[
+                        np.argmax(xcorr_volts[zoomed_indices])
+                        + zoomed_indices[0]
+                    ]
+
+
+            delays[ch_ID] = delay
+
+        return delays
+
+    def run(self, event, station, channels_to_include, ttcs, reco_results, score, t_ab):
+        """
+        Finding the coherently summed waveform (CSW) using results of event reconstruction 
+
+        Parameters 
+
+        ----------
+
+        event 
+
+        station 
+
+        channels_to_include: list or numpy array
+            list of channels used to make the CSW
+
+        ttcs: dictionary 
+            dictionary of travel time maps (numpy arrays) for each channel and metadata
+            metadata: r_range (cylindrical) and z_range over which maps were generated in meters 
+
+        reco_results: dictionary
+            maximum correlation point in r, z, azimuth and elevation as obtained from reconstruction 
+
+        score: array
+            average correlation score over all channel pairs at each delay time as obtained from reconstruction 
+
+        t_ab: array
+            delay times corresponding to each correlation value as obtained from reconstruction 
+
+        """
+
+        #get channel positions 
+
+        channel_positions = self.get_channel_positions(self.det, station_id = station.get_id(), channels = channels_to_include)
+
+        #obtain traces and times for each channel
+        channel_times = {}
+        channel_signals = {}
+
+        for channel in station.iter_channels():
+            if (channel.get_id() in channels_to_include):
+                volts = channel.get_trace()
+                times = channel.get_times()
+                channel_times[channel.get_id()] = times
+                channel_signals[channel.get_id()] = volts
+
+        #set the reference channel as the channel with the maximum voltage in its trace
+        reference_ch = -123456
+        reference_ch_max_voltage = -1
+        for ch_ID in channels_to_include:
+            this_max_voltage = np.max(channel_signals[ch_ID])
+            if this_max_voltage > reference_ch_max_voltage:
+                reference_ch_max_voltage = this_max_voltage
+                reference_ch = ch_ID
+        
+        #obtain arrival delays at reconstructed maximum correlation point 
+        arrival_delays_reco = self.get_arrival_delays_reco(reco_results, channels_to_include, channel_positions, reference_ch, ttcs)
+
+        #obtain delay times within a window (self.window) around arrival_delays_reco
+        arrival_delays = self.get_arrival_delays_xcorr(channel_signals, channel_times, channels_to_include, reference_ch, arrival_delays_reco, channel_positions, score, t_ab)
+
+        #time associated with maximum voltage in reference channel trace
+        expected_signal_time = np.asarray(channel_times[reference_ch])[
+            np.argmax( np.asarray(channel_signals[reference_ch]) )
+        ]
+
+        #find channel_id and length of shortest waveform
+        shortest_wf_ch = 123456
+        shortest_wf_length = np.inf
+        for ch_ID in channels_to_include:
+            if len(channel_signals[ch_ID]) < shortest_wf_length:
+                shortest_wf_length = len(channel_signals[ch_ID])
+                shortest_wf_ch = ch_ID
+
+        #define csw time and voltage arrays with lengths equal to shortest waveform length
+        csw_values = np.zeros((1, shortest_wf_length))
+        csw_times = np.asarray(
+            channel_times[reference_ch])[:shortest_wf_length]
+
+        csw_dt = csw_times[1] - csw_times[0]
+
+        for ch_ID in channels_to_include:
+            values = np.asarray(channel_signals[ch_ID])
+
+            #offset the channel time array by the delay time
+            times = np.asarray(channel_times[ch_ID]) - (arrival_delays[ch_ID]//csw_dt)*csw_dt
+
+            #initial time shift needed to align this channel's trace with the CSW
+            rebinning_shift = (
+                (csw_times[0] - times[0])
+                % csw_dt)
+
+            #If the channel trace is longer than the CSW, it needs to be trimmed
+            if len(times) > len(csw_times):
+                trim_ammount = len(times) - len(csw_times)
+                if (
+                    ( times[0] - csw_times[0] < 0 ) # this wf has an earlier start time than the CSW
+                    and ( times[-1] - csw_times[-1] <= csw_dt/2) # this wf has a earlier or equal end time than the CSW
+                ): # trim from the beginning of the waveform
+                    times  = times [trim_ammount:]
+                    values = values[trim_ammount:]
+                elif (
+                    ( times[0] - csw_times[0] > -csw_dt/2) # this wf has a later or equal start time than the CSW
+                    and (times[-1] - csw_times[-1] > 0) # this wf has a later end time than the CSW
+                ): # trim from the end of the waveform
+                    times  = times [:-trim_ammount]
+                    values = values[:-trim_ammount]
+                elif (
+                    ( times[0] - csw_times[0] < 0 ) # this wf starts earlier than the CSW
+                    and ( times[-1] - csw_times[-1] > 0 ) # this wf ends later than the CSW
+                ): # trim from both ends of the waveform
+                    leading_trimmable = np.argwhere(
+                        np.round(times,5) < np.round(csw_times[0], 5) )
+                    trailing_trimmable = np.argwhere(np.round(times, 5) > np.round(csw_times[-1], 5) )
+                    times  = times [ len(leading_trimmable) : -len(trailing_trimmable) ]
+                    values = values[ len(leading_trimmable) : -len(trailing_trimmable) ]
+
+            # Calculate the number of bins to roll the channel trace so that it aligns with the CSW
+            roll_shift_bins = (csw_times[0] - times[0]) / csw_dt
+            roll_shift_time = roll_shift_bins*(times[1] - times[0])
+            roll_shift_bins = int(roll_shift_bins)
+
+            # Roll trace to align with CSW and adjust the time array accordingly 
+            rolled_wf = np.roll( values, -roll_shift_bins )
+            rolled_times = np.linspace(
+                times[0] + roll_shift_time,
+                times[-1] + roll_shift_time,
+                len(times)
+            )
+
+            # Add this channel's waveform to the CSW
+            csw_values = np.sum( np.dstack( (csw_values[0], rolled_wf) ), axis=2)
+
+        csw_values = np.squeeze(csw_values)
+
+        return (csw_times, csw_values)
+
+class SurfaceCorr:
+
+    def __init__(self, station_id, detector):
+        """
+        Initializes surface correlation class 
+
+        Parameters
+        
+        ----------
+        detector
+
+        station_id: int
+        """
+        #threshold = +/- z_thresh within which the maximum surface correlation is looked for in meters
+        self.z_thresh = -10
+
+        #detector
+        self.detector = detector
+
+        #origin 
+        self.origin = detector.get_relative_position(station_id, 0)
+
+    def run(self, intmap, maxcorr):
+        """
+        Calculate surface correlation ratio (SCR) i.e. ratio between maximum correlation in a +/- self.z_thresh band around the surface to maximum correlation across whole range (maxcorr)
+
+        Parameters
+
+        ----------
+        intmap: dictionary 
+            returned by rz reconstruction containing correlation map (numpy array), z_vals, r_vals, and azimuth 
+            z_vals, r_vals: z and r values for RZ reconstruction in meters where r = x^2 + y^2
+            azimuth: azimuth associated with max correlation point from angular reconstruction in radians
+
+        maxcorr: float 
+            maximum correlation in the correlation map obtained from RZ reconstruction
+
+        """
+        _, _, avg_z = self.origin
+
+        #threshold around surface accounting for the origin offset
+        z_thresh = (abs(avg_z) + self.z_thresh)
+        z_thresh_up = (abs(avg_z) - self.z_thresh)
+
+        #maximum correlation within surface region along with r,z coordinate 
+        row, col = intmap["map"].shape
+        cols = np.where(np.logical_and(intmap["z"].flatten() >= z_thresh, intmap["z"].flatten() <= z_thresh_up))
+        surf_array = (intmap["map"])[:row, min(cols[0]):max(cols[0])+1]
+        max_surf_corr = np.max(surf_array)
+
+        maxind = np.unravel_index(np.argmax(surf_array), surf_array.shape)
+        max_z = intmap["z"].flatten()[min(cols[0]):max(cols[0])+1][maxind[1]]
+        max_r = intmap["r"].flatten()[:row][maxind[0]]
+
+        #ratio of maximum surface correlation to maxcorr
+        if (maxcorr != 0):
+            surf_corr_ratio = max_surf_corr / maxcorr
+        else:
+            surf_corr_ratio = np.inf
+
+        return surf_corr_ratio, max_surf_corr, max_r, max_r
+
+    
