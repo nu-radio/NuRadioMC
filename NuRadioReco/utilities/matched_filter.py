@@ -297,7 +297,7 @@ class MatchedFilter:
 
         if plot:
             plt.figure(figsize=[20,3])
-            plt.plot(np.arange(self.n_samples)*self.dt, output)
+            plt.plot(time_shift_array, output)
             plt.xlabel("Time [ns]")
             plt.ylabel("Matched filter output")
             plt.tight_layout()

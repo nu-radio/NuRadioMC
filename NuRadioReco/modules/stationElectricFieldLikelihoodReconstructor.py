@@ -256,7 +256,7 @@ class StationElectricLikelhihoodFieldReconstructor:
         if not self.use_chi2:
             # Matched filter:
             self.matched_filter.set_template(signal)
-            t_best, x_best = self.matched_filter_search(time_shift_array=self.t_array_matched_filter)
+            t_best, x_best = self.matched_filter.matched_filter_search(time_shift_array=self.t_array_matched_filter)
             llh_mf = self.matched_filter.calculate_matched_filter_delta_log_likelihood()
 
             return -2 * llh_mf
@@ -560,7 +560,8 @@ class StationElectricLikelhihoodFieldReconstructor:
 
         # get time:
         if not self.use_chi2:
-            t_offset, x = matched_filter.matched_filter(data, signal_fit, self.noise_psd, self.t_array_matched_filter, self.frequencies, self.n_channels)
+            self.matched_filter.set_template(signal_fit)
+            t_offset, x = self.matched_filter.matched_filter_search(time_shift_array=self.t_array_matched_filter)
         else:
             i_max, cross = self.cross_correlation(data, signal_fit, shift_array=self.i_shift_cc)
             t_offset = i_max / self.sampling_rate
