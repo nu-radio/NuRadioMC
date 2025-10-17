@@ -707,6 +707,12 @@ to NuRadioMC <a class="reference internal" href="NuRadioReco.framework.event.htm
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_events_information</span></code></a>([keys])</p></td>
 <td><p>Return information of events from the EventInfo.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_run_numbers" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_run_numbers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_run_numbers</span></code></a>()</p></td>
+<td><p>Get run numbers of the datasets which are read in</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_station_id" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_station_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_id</span></code></a>([except_multiple_stations])</p></td>
+<td><p>Get station ids of the datasets which are read in</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_waveforms</span></code></a>([apply_baseline_correction, ...])</p></td>
 <td><p>Return waveforms of events passing the selectors which may have been specified</p></td>
 </tr>
@@ -806,6 +812,35 @@ NOTE: This is only relevant for the mattak uproot backend</p>
 <dt><strong>use_fallback_time: bool</strong></dt><dd><p>If True and if the trigger time is infinity, the readout time will be used instead of the trigger time.
 Otherwise, the event will be skipped in the case of infinite trigger times.
 (Default=True)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_run_numbers">
+<span class="sig-name descname"><span class="pre">get_run_numbers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_run_numbers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_run_numbers" title="Link to this definition"></a></dt>
+<dd><p>Get run numbers of the datasets which are read in</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_station_id">
+<span class="sig-name descname"><span class="pre">get_station_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">except_multiple_stations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_station_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_station_id" title="Link to this definition"></a></dt>
+<dd><p>Get station ids of the datasets which are read in</p>
+<p>By default returns a single unique station id. If multiple stations are found an error is raised.
+If except_multiple_stations is set to True, all station ids are returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>except_multiple_stations: bool</strong></dt><dd><p>If True, return all station ids (as np.array). If False (default), raise an error if multiple
+stations are found.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>station_id: int or np.array</dt><dd><p>Station id(s) of the datasets which are read in.</p>
 </dd>
 </dl>
 </dd>

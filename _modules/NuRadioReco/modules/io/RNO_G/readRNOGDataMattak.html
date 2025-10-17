@@ -982,8 +982,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_events_information</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_events_per_dataset</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_runs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dirs_files</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
             <span class="n">dirs_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">dirs_files</span><span class="p">]</span>
@@ -994,7 +996,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_runs</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="c1"># Set verbose for mattak</span>
-        <span class="n">verbose</span> <span class="o">=</span> <span class="n">mattak_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">&lt;=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span> <span class="o">=</span> <span class="n">mattak_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">&lt;=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mattak_kwargs</span> <span class="o">=</span> <span class="n">mattak_kwargs</span>
 
         <span class="k">for</span> <span class="n">dir_file</span> <span class="ow">in</span> <span class="n">dirs_files</span><span class="p">:</span>
 
@@ -1009,7 +1012,7 @@
                     <span class="k">continue</span>
 
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">dataset</span> <span class="o">=</span> <span class="n">mattak</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">station</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">run</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">data_path</span><span class="o">=</span><span class="n">dir_file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">mattak_kwargs</span><span class="p">)</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset</span><span class="p">(</span><span class="n">dir_file</span><span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="ne">ReferenceError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The following exeption was raised reading in the run: </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2">. Skip that run ...:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
                 <span class="k">continue</span>
@@ -1020,10 +1023,12 @@
                 <span class="k">continue</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">__n_runs</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dir_file</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__n_events_per_dataset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">N</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">run</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">station</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="p">):</span>
             <span class="n">err</span> <span class="o">=</span> <span class="s2">&quot;Found no valid datasets. Stop!&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
@@ -1033,8 +1038,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_events_per_dataset</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_time_begin</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2"> events in </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">)</span><span class="si">}</span><span class="s2"> runs/datasets &quot;</span>
-                         <span class="sa">f</span><span class="s2">&quot;have been found using the </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">backend</span><span class="si">}</span><span class="s2"> Mattak backend.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2"> events in </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="p">)</span><span class="si">}</span><span class="s2"> runs/datasets &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;have been found using the </span><span class="si">{</span><span class="n">dataset</span><span class="o">.</span><span class="n">backend</span><span class="si">}</span><span class="s2"> Mattak backend.&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="p">:</span>
             <span class="n">err</span> <span class="o">=</span> <span class="s2">&quot;No runs have been selected. Abort ...&quot;</span>
@@ -1042,6 +1047,44 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="readRNOGData.get_run_numbers">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_run_numbers">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_run_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get run numbers of the datasets which are read in &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_runs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="readRNOGData.get_station_id">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_station_id">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">except_multiple_stations</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get station ids of the datasets which are read in</span>
+
+<span class="sd">        By default returns a single unique station id. If multiple stations are found an error is raised.</span>
+<span class="sd">        If except_multiple_stations is set to True, all station ids are returned.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        except_multiple_stations: bool</span>
+<span class="sd">            If True, return all station ids (as np.array). If False (default), raise an error if multiple</span>
+<span class="sd">            stations are found.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        station_id: int or np.array</span>
+<span class="sd">            Station id(s) of the datasets which are read in.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">station_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">except_multiple_stations</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Multiple stations found. Use get_station_id(except_multiple_stations=False) to get all station ids.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">station_ids</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">station_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return a mattak.Dataset.Dataset object for a given path &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">mattak</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">station</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">run</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">data_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_mattak_kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="readRNOGData.add_selectors">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.add_selectors">[docs]</a>
@@ -1152,7 +1195,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># find correct dataset</span>
         <span class="n">dataset_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">event_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_idxs_datasets</span><span class="p">)</span>
-        <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">[</span><span class="n">dataset_idx</span><span class="p">]</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="p">[</span><span class="n">dataset_idx</span><span class="p">])</span>
 
         <span class="n">event_idx_in_dataset</span> <span class="o">=</span> <span class="n">event_idx</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_n_events_of_prev_datasets</span><span class="p">(</span><span class="n">dataset_idx</span><span class="p">)</span>
         <span class="n">dataset</span><span class="o">.</span><span class="n">setEntries</span><span class="p">(</span><span class="n">event_idx_in_dataset</span><span class="p">)</span>  <span class="c1"># increment iterator -&gt; point to new event</span>
@@ -1234,7 +1277,8 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_events_information</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">n_prev</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="p">:</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
                 <span class="n">dataset</span><span class="o">.</span><span class="n">setEntries</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">N</span><span class="p">()))</span>
 
                 <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">evtinfo</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">eventInfo</span><span class="p">()):</span>  <span class="c1"># returns a list</span>
@@ -1280,7 +1324,9 @@
 
         <span class="n">events_waveforms</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
             <span class="n">dataset</span><span class="o">.</span><span class="n">setEntries</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">N</span><span class="p">()))</span>
             <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span> <span class="c1"># we need the sampling rate</span>
                 <span class="k">try</span><span class="p">:</span>
@@ -1430,7 +1476,8 @@
 <span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
             <span class="n">dataset</span><span class="o">.</span><span class="n">setEntries</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">N</span><span class="p">()))</span>
 
             <span class="c1"># read all event infos of the entire dataset (= run)</span>
