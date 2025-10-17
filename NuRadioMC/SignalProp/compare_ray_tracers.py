@@ -15,20 +15,18 @@ n_output_parameters = int(2*4)
 
 n_frequencies = 10
 max_frequency = 1 * units.GHz
-d_t = 0.5*1/max_frequency
-frequencies = np.fft.rfftfreq(int(2*n_frequencies), d=d_t)
 
-ice = medium.get_ice_model('southpole_2015')
+ice = medium.get_ice_model("greenland_simple") # 'southpole_2015')
 #ice = medium.get_ice_model('uniform_ice')
 
 from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
 propagator_1 = ray_tracing(ice,
-                        n_reflections=1,
+                        n_reflections=0, # This refers to reflection at the bottom
                         use_cpp=False)
 
 from NuRadioMC.SignalProp.c8_ray_tracer import C8RayTracerIndividual
 propagator_2 = C8RayTracerIndividual(ice,
-                        n_reflections = 1,
+                        n_reflections = 1, # This refers to all reflections, including surface reflections
                         min_step = 0.0001,
                         max_step = 1.0,
                         tolerance = 1e-8)
