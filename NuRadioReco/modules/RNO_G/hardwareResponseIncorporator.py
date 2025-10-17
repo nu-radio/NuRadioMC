@@ -2,7 +2,7 @@ import NuRadioReco.modules.channelAddCableDelay
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft
 import NuRadioReco.framework.station
-
+from NuRadioReco.utilities.signal_processing import impulse_response_using_hilbert_phase
 from NuRadioReco.detector.RNO_G import analog_components
 from NuRadioReco.detector import detector
 
@@ -36,10 +36,10 @@ class hardwareResponseIncorporator:
         """
         self.trigger_channels = trigger_channels
 
-
     def get_filter(self, frequencies, station_id, channel_id, det,
                    temp=293.15, sim_to_data=False, phase_only=False,
-                   mode=None, mingainlin=None, is_trigger=False):
+                   mode=None, mingainlin=None, is_trigger=False,
+                   enforce_causality=False):
         """
         Helper function to return the filter that the module applies.
 
@@ -128,13 +128,18 @@ class hardwareResponseIncorporator:
         else:
             raise NotImplementedError(f"Operating mode \"{mode}\" has not been implemented.")
 
+        signal_chain_response = amp_response * cable_response
+
         if sim_to_data:
-            return amp_response * cable_response
+            if enforce_causality:
+                signal_chain_response, _, _, _ = impulse_response_using_hilbert_phase(signal_chain_response, frequencies, time_shift=10*units.ns)
+
+            return signal_chain_response
         else:
-            return 1. / (amp_response * cable_response)
+            return 1. / signal_chain_response
 
     @register_run()
-    def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
+    def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None, enforce_causality=False):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
         The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.
@@ -178,6 +183,10 @@ class hardwareResponseIncorporator:
 
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
             ``analog_components.get_amplifier_response()``
+
+        enforce_causality: bool
+            If true, the acausal part of the signal chain response will be removed before applying the response, hopefully reducing
+            pre-pulse noise from signal chain measurements
         """
 
         self.__mingainlin = mingainlin
@@ -197,7 +206,7 @@ class hardwareResponseIncorporator:
             trace_fft = channel.get_frequency_spectrum()
 
             filter = self.get_filter(
-                frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin)
+                frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin, enforce_causality=enforce_causality)
 
             if (self.trigger_channels is not None and
                 channel.get_id() in self.trigger_channels and
@@ -214,7 +223,7 @@ class hardwareResponseIncorporator:
                 """
                 trig_filter = self.get_filter(
                     frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data,
-                    phase_only, mode, mingainlin, is_trigger=True)
+                    phase_only, mode, mingainlin, is_trigger=True, enforce_causality=enforce_causality)
 
                 trig_trace_fft = trace_fft * trig_filter
                 # zero first bins to avoid DC offset
