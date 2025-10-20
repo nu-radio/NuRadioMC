@@ -886,6 +886,7 @@ class readRNOGData:
                 f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s")
+        self._blockoffsetfitter.end()
 
     def get_n_events(self):
         return self._n_events_total
