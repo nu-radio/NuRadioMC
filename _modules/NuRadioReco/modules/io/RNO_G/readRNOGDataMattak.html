@@ -793,9 +793,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.RNOG.readRNOGData&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span> <span class="o">=</span> <span class="n">channelBlockOffsets</span><span class="p">()</span>
-
-        <span class="c1"># Initialize run table for run selection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__run_table</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">load_run_table</span><span class="p">:</span>
@@ -940,6 +938,9 @@
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="o">=</span> <span class="n">apply_baseline_correction</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_voltage</span> <span class="o">=</span> <span class="n">convert_to_voltage</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="o">!=</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span> <span class="o">=</span> <span class="n">channelBlockOffsets</span><span class="p">()</span>
 
         <span class="c1"># Temporary solution hard-coded values from Cosmin. Only used when uncalibrated data</span>
         <span class="c1"># is read and convert_to_voltage is True.</span>
@@ -1597,7 +1598,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> events   (skipped </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped</span><span class="si">}</span><span class="s2"> events, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span><span class="si">}</span><span class="s2"> invalid events)&quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Time to initialize data sets  : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_begin</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Time to read all events       : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span></div>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Time to read all events       : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="readRNOGData.get_n_events">
