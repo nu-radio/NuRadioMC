@@ -760,7 +760,7 @@ class readRNOGData:
         evt.set_station(station)
         if self._apply_baseline_correction in ['auto', 'fit', 'approximate', 'median']:
             self._blockoffsetfitter.remove_offsets(evt, station, mode=self._apply_baseline_correction)
-
+            self._blockoffsetfitter.end()
         return evt
 
 
@@ -886,7 +886,6 @@ class readRNOGData:
                 f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s")
-        self._blockoffsetfitter.end()
 
     def get_n_events(self):
         return self._n_events_total
