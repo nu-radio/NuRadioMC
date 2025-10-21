@@ -245,7 +245,7 @@ class channelBlockOffsets:
     def end(self):
         n_events = self._counter.pop("n_events", 0)
         if n_events > 0:
-            msg = (f"Processed {n_events} events with channelBlockOffsetFitter. "
+            msg = (f"Processed {n_events} events. "
                 f"This took {self._time:.2f} seconds ({(self._time / n_events) * 1e3:.2f} ms/event)."
                 f"Removed {np.sum(list(self._counter.values()))} large block offsets "
                 f"(>50% of Vrms) from {len(self._counter)} channels:")
@@ -313,7 +313,6 @@ def fit_block_offsets(
         Class that uses this function to automatically remove the block offsets for all
         channels in a station.
     """
-    start_time = time.perf_counter()
     dt = 1. / sampling_rate
     spectrum = fft.time2freq(trace, sampling_rate)
     frequencies = np.fft.rfftfreq(len(trace), dt)
@@ -389,8 +388,6 @@ def fit_block_offsets(
     if return_trace:
         output_trace = trace - np.repeat(block_offsets, block_size)
         return block_offsets, output_trace
-    end_time = time.perf_counter()
-    logger.info(f"Fitted block offsets in {end_time - start_time:.2f} seconds for a voltage trace using fit_block_offsets.")
 
     return block_offsets
 
@@ -426,7 +423,6 @@ def _calculate_block_offsets(traces, block_size=128, func=np.median, return_trac
         Function that uses an FFT to do an out-of-band removal of block offsets.
         This is generally much more accurate than this function.
     """
-    start_time = time.perf_counter()
     num_samples = traces.shape[-1]
     n_cuncks = num_samples // block_size
 
@@ -440,8 +436,5 @@ def _calculate_block_offsets(traces, block_size=128, func=np.median, return_trac
     if return_trace:
         output_traces = traces - np.repeat(block_offsets, block_size, axis=-1)
         return block_offsets, output_traces
-    
-    end_time = time.perf_counter()
-    logger.info(f"Fitted block offsets in {end_time - start_time:.2f} seconds for {num_samples} voltage traces using _calculate_block_offsets.")
 
     return block_offsets
