@@ -151,9 +151,7 @@ class readRNOGData:
         self.logger = logging.getLogger('NuRadioReco.RNOG.readRNOGData')
         self.logger.setLevel(log_level)
 
-        self._blockoffsetfitter = channelBlockOffsets()
-
-        # Initialize run table for run selection
+        self._blockoffsetfitter = None
         self.__run_table = None
 
         if load_run_table:
@@ -296,6 +294,9 @@ class readRNOGData:
             )
         self._apply_baseline_correction = apply_baseline_correction.lower()
         self._convert_to_voltage = convert_to_voltage
+
+        if self._apply_baseline_correction != 'none':
+            self._blockoffsetfitter = channelBlockOffsets()
 
         # Temporary solution hard-coded values from Cosmin. Only used when uncalibrated data
         # is read and convert_to_voltage is True.
@@ -927,6 +928,9 @@ class readRNOGData:
                 f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s")
+
+        if self._blockoffsetfitter is not None:
+            self._blockoffsetfitter.end()
 
     def get_n_events(self):
         return self._n_events_total
