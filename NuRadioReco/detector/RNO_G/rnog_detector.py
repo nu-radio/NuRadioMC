@@ -640,7 +640,7 @@ class Detector():
                 position_id=position_id, component="channel")
             self.__buffered_stations[station_id]["channels"][channel_id]['channel_position'] = channel_position_dict
 
-        if with_signal_chain and _keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "signal_chain"]):
+        if with_signal_chain and (_keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "signal_chain"]) or self.__signal_chain_measurement_name):
 
             if _keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "id_signal"]):
                 raise KeyError(
