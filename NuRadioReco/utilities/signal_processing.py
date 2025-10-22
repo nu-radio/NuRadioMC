@@ -23,17 +23,18 @@ See Also
     Contains functions to calculate observables from traces.
 """
 
-from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft, trace_utilities
+from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft, trace_utilities, constants
 
 from NuRadioReco.detector import filterresponse
 import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
-from scipy import signal, constants, interpolate
+from scipy import signal, interpolate
 import numpy as np
 import fractions
 import decimal
 import copy
+
 from matplotlib import pyplot as plt  # for debugging plots
 
 import logging
@@ -511,26 +512,23 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     efield_amplitude: array of floats
         The electric field amplitude at each frequency
     """
-    # Get constants in correct units
-    boltzmann = constants.Boltzmann * units.joule / units.kelvin
-    epsilon_0 = constants.epsilon_0 * (units.coulomb / units.V / units.m)
-    c_vac = constants.c * units.m / units.s
+    c_vac = constants.c  # already in NuRadioReco units
 
     # Calculate frequency spacing
     d_f = frequencies[2] - frequencies[1]
 
     # Calculate spectral radiance of radio signal using Rayleigh-Jeans law
     spectral_radiance = (
-        2.0 * boltzmann * frequencies**2 * noise_temperature * solid_angle / c_vac**2
+        2.0 * constants.k * frequencies**2 * noise_temperature / c_vac**2
     )
     spectral_radiance[np.isnan(spectral_radiance)] = 0
 
-    # calculate radiance per energy bin
-    spectral_radiance_per_bin = spectral_radiance * d_f
+    # calculate radiance per energy bin, e.g., multiplying with the frequency spacing and solid angle
+    radiance_per_bin = spectral_radiance * d_f * solid_angle
 
     # calculate electric field per energy bin from the radiance per bin
-    # 1 / (c_vac * epsilon_0) = Z_0 the vaccum impedance
-    efield_amplitude = np.sqrt(spectral_radiance_per_bin / (c_vac * epsilon_0)) / d_f
+    # 1 / (c_vac * epsilon_0) = Z_0 the vaccum impedance, d_f term due to our fft definition
+    efield_amplitude = np.sqrt(radiance_per_bin / (c_vac * constants.epsilon_0)) / d_f
 
     return efield_amplitude
 
@@ -577,7 +575,7 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
         freqs = freqs or np.arange(0, 2500, 0.1) * units.MHz
         bandwidth = np.trapz(np.abs(response(freqs)) ** 2, freqs)
 
-    return (temperature * impedance * bandwidth * constants.k * units.joule / units.kelvin) ** 0.5
+    return (temperature * impedance * bandwidth * constants.k) ** 0.5
 
 
 def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=False):
