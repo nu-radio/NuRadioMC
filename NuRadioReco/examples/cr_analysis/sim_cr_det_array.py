@@ -132,7 +132,11 @@ for evt in readCoREASDetector.run(det, NuRadioReco.modules.io.coreas.readCoREASD
                 })
 nevents = eventWriter.end()
 
+# Export every simulated event to CoREAS HDF5 if requested
 if args.export_corsika:
-    corsika_output = os.path.splitext(outputfilename)[0] + "_converted_back.hdf5"
-    print(f"Exporting to CORSIKA/CoREAS HDF5 format: {corsika_output}")
-    NuRadioReco.modules.io.coreas.coreas.write_CORSIKA7(evt, corsika_output)
+    
+    import os
+    for idx, evt in enumerate(readCoREASDetector.run(det, NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions(-300, 0, 1600, 1800, 3))):
+        run_number = evt.get_run_number() if hasattr(evt, "get_run_number") else idx
+        corsika_output = f"SIM{run_number:06d}_{idx}.hdf5"
+        NuRadioReco.modules.io.coreas.coreas.write_CORSIKA7(evt, corsika_output)
