@@ -924,7 +924,7 @@ class Detector():
         if response_key not in signal_chain_dict or signal_chain_dict[response_key] is None:
             measurement_components_list = signal_chain_dict[response_chain_key]
 
-            #### This HACK was introduced to handle NuRadio placeholder measurements. It has been commented out for archival purposes. ####
+            #### This HACK was introduced to handle the NuRadio placeholder measurements, which are not needed anymore. It has been commented out for archival purposes. ####
             # Here comes a HACK
             # components = [entry["collection"] for entry in measurement_components_list]
             # is_equal = False
