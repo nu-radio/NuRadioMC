@@ -21,12 +21,9 @@ def get_header(evt):
             header['stations'][station.get_id()]['sim_station'] = {}
             header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters().copy()
 
-    print(f"evt.get_showers(): {evt.get_showers()}")
     for shower in evt.get_showers():
         sh_id = shower.get_id()
-        print(f"sh_id: {sh_id}")
         header['showers'][sh_id] = shower.get_parameters().copy()
-        print(f"header['showers'][sh_id]: {header['showers'][sh_id]}")
         if hasattr(shower, "has_sim_shower") and shower.has_sim_shower():
             sim_shower = shower.get_sim_shower()
             if sim_shower is not None:

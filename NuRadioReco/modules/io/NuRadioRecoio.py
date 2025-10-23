@@ -209,9 +209,8 @@ class NuRadioRecoio(object):
         if 'showers' in evt_header:
             if not hasattr(self, '_event_showers'):
                 self._event_showers = {}
-            print(f"evt_header['showers']: {evt_header['showers']}")
+
             for shower_id, shower in evt_header['showers'].items():
-                print(f"shower: {shower}")
                 if shower_id not in self._event_showers:
                     self._event_showers[shower_id] = {}
     
