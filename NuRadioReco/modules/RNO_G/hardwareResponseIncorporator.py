@@ -2,9 +2,9 @@ import NuRadioReco.modules.channelAddCableDelay
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft
 import NuRadioReco.framework.station
-from NuRadioReco.utilities.signal_processing import impulse_response_using_hilbert_phase
+from NuRadioReco.utilities.signal_processing import window_response_in_time_domain
 from NuRadioReco.detector.RNO_G import analog_components
-from NuRadioReco.detector import detector
+from NuRadioReco.detector import detector, response
 
 import numpy as np
 import copy
@@ -39,7 +39,7 @@ class hardwareResponseIncorporator:
     def get_filter(self, frequencies, station_id, channel_id, det,
                    temp=293.15, sim_to_data=False, phase_only=False,
                    mode=None, mingainlin=None, is_trigger=False,
-                   enforce_causality=False):
+                   window_response=False):
         """
         Helper function to return the filter that the module applies.
 
@@ -90,6 +90,10 @@ class hardwareResponseIncorporator:
         is_trigger: bool
             Use trigger channel response instead. Only relevant for RNO-G. (Default: False)
 
+        window_response: bool (default False)
+            Window the signal chain impulse response to keep it and resulting signal traces finite in time and causal.
+            Useful with measured signal chains which carry noise.
+
         Returns
         -------
         array of complex floats
@@ -97,16 +101,20 @@ class hardwareResponseIncorporator:
         """
 
         if isinstance(det, detector.rnog_detector.Detector):
-            resp = det.get_signal_chain_response(station_id, channel_id, is_trigger)
-            amp_response = resp(frequencies)
+            amp_response = det.get_signal_chain_response(station_id, channel_id, is_trigger)
         elif isinstance(det, detector.detector_base.DetectorBase):
             amp_type = det.get_amplifier_type(station_id, channel_id)
             # it reads the log file. change this to load_amp_measurement if you want the RI file
             amp_response = analog_components.load_amp_response(amp_type)
-            amp_response = amp_response['gain'](
-                frequencies, temp) * amp_response['phase'](frequencies)
+            response_list = [amp_response['gain'](frequencies, temp), np.angle(amp_response['phase'](frequencies))]
+            amp_response = response.Response(frequencies, response_list, ["mag", "rad"])
         else:
             raise NotImplementedError("Detector type not implemented")
+
+        if window_response:
+            amp_response = window_response_in_time_domain(amp_response)
+
+        amp_response = amp_response(frequencies)
 
         if mingainlin is not None:
             mingainlin = float(mingainlin)
@@ -131,18 +139,14 @@ class hardwareResponseIncorporator:
         signal_chain_response = amp_response * cable_response
 
         if sim_to_data:
-            if enforce_causality:
-                signal_chain_response, _, _, _ = impulse_response_using_hilbert_phase(signal_chain_response, frequencies, time_shift=10*units.ns)
-
             return signal_chain_response
         else:
             return 1. / signal_chain_response
 
     @register_run()
-    def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None, enforce_causality=False):
+    def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None, window_response=False):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
-        The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.
 
         Parameters
         ----------
@@ -184,9 +188,10 @@ class hardwareResponseIncorporator:
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
             ``analog_components.get_amplifier_response()``
 
-        enforce_causality: bool
-            If true, the acausal part of the signal chain response will be removed before applying the response, hopefully reducing
-            pre-pulse noise from signal chain measurements
+        window_response: bool (default False)
+            Window the signal chain impulse response to keep it and resulting signal traces finite in time and causal.
+            Useful with measured signal chains which carry noise.
+
         """
 
         self.__mingainlin = mingainlin
@@ -206,7 +211,7 @@ class hardwareResponseIncorporator:
             trace_fft = channel.get_frequency_spectrum()
 
             filter = self.get_filter(
-                frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin, enforce_causality=enforce_causality)
+                frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin, window_response=window_response)
 
             if (self.trigger_channels is not None and
                 channel.get_id() in self.trigger_channels and
@@ -223,7 +228,7 @@ class hardwareResponseIncorporator:
                 """
                 trig_filter = self.get_filter(
                     frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data,
-                    phase_only, mode, mingainlin, is_trigger=True, enforce_causality=enforce_causality)
+                    phase_only, mode, mingainlin, is_trigger=True, window_response=window_response)
 
                 trig_trace_fft = trace_fft * trig_filter
                 # zero first bins to avoid DC offset
