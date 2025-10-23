@@ -12,20 +12,21 @@ logger = logging.getLogger("NuRadioReco.eventWriter")
 
 
 def get_header(evt):
-    header = {'stations': {}, 'showers': {}}
-
-    for station in evt.get_stations():
-        st_id = station.get_id()
-        header['stations'][st_id] = station.get_parameters().copy()
-        header['stations'][st_id][stnp.station_time] = io_utilities._astropy_to_dict(station.get_station_time())
+    header = {'stations': {}}
+    for iS, station in enumerate(evt.get_stations()):
+        header['stations'][station.get_id()] = station.get_parameters().copy()
+        header['stations'][station.get_id()][stnp.station_time] = io_utilities._astropy_to_dict(station.get_station_time())
 
         if station.has_sim_station():
+            header['stations'][station.get_id()]['sim_station'] = {}
             header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters().copy()
 
+    print(f"evt.get_showers(): {evt.get_showers()}")
     for shower in evt.get_showers():
         sh_id = shower.get_id()
+        print(f"sh_id: {sh_id}")
         header['showers'][sh_id] = shower.get_parameters().copy()
-
+        print(f"header['showers'][sh_id]: {header['showers'][sh_id]}")
         if hasattr(shower, "has_sim_shower") and shower.has_sim_shower():
             sim_shower = shower.get_sim_shower()
             if sim_shower is not None:
