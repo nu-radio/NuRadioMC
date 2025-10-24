@@ -4,6 +4,7 @@ import os
 import yaml
 import logging
 from functools import lru_cache
+from scipy.signal import windows
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
@@ -11,7 +12,7 @@ from NuRadioReco.utilities import caching_utilities
 from NuRadioReco.detector.detector import Detector
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
-from scipy.signal import correlate, correlation_lags
+from scipy.signal import correlate, correlation_lags, hilbert
 from scipy.interpolate import RegularGridInterpolator
 from NuRadioReco.utilities.interferometry_io_utilities import save_correlation_map
 
@@ -44,7 +45,7 @@ class interferometricDirectionReconstruction():
         z_range = file['z_range_vals']
 
         interpolator = RegularGridInterpolator(
-            (r_range, z_range), travel_time_table, method="linear", bounds_error=False, fill_value=-np.inf
+            (r_range, z_range), travel_time_table, method="nearest", bounds_error=False, fill_value=-np.inf
         )
         return interpolator
     
@@ -59,7 +60,7 @@ class interferometricDirectionReconstruction():
 
         interpolators = {}
         for ch in set(itertools.chain(*ch_pairs)):
-            table_file = f"{outdir}ch{ch}_rz_table_rel_ant.npz"
+            table_file = f"{outdir}st{station}_ch{ch}_rz_table_proper_z_extratest.npz"
             interpolators[ch] = interferometricDirectionReconstruction._load_rz_interpolator(table_file)
 
         for ch1, ch2 in ch_pairs:
@@ -79,9 +80,7 @@ class interferometricDirectionReconstruction():
             travel_times_to_ch1 = interp1(coords_rel_ch1)
             travel_times_to_ch2 = interp2(coords_rel_ch2)
             
-            cable_delay_diff = cable_delays[ch1] - cable_delays[ch2]
-            time_delay_matrix = travel_times_to_ch1 - travel_times_to_ch2 + cable_delay_diff
-
+            time_delay_matrix = travel_times_to_ch1 - travel_times_to_ch2
             time_delay_matrices.append(time_delay_matrix)
 
         return time_delay_matrices
@@ -89,72 +88,103 @@ class interferometricDirectionReconstruction():
     @staticmethod
     def _correlator(times, v_array_pairs, delay_matrices, apply_hann_window=False, use_hilbert=False):
         """Compute correlation between channel pairs given time delay matrices."""
+        logger.debug("Entering _correlator: %d channel pairs, %d delay matrices", len(v_array_pairs), len(delay_matrices))
         volt_corrs = []
         time_lags_list = []
-        
+
         channels = list(range(len(times)))
         channel_pairs = list(itertools.combinations(channels, 2))
-        
+
         overlap_norms = {}
-        
+
         for pair_idx, (v1, v2) in enumerate(v_array_pairs):
             len1, len2 = len(v1), len(v2)
             len_key = (len1, len2)
-            
+
             ch1_idx, ch2_idx = channel_pairs[pair_idx]
             t1, t2 = times[ch1_idx], times[ch2_idx]
-            
+
             dt1 = t1[1] - t1[0] if len(t1) > 1 else 1.0
             dt2 = t2[1] - t2[0] if len(t2) > 1 else 1.0
             dt = min(dt1, dt2)
-            
+            #print(f"dt: {dt}")
+
             if len_key not in overlap_norms:
                 overlap_norms[len_key] = correlate(np.ones(len1), np.ones(len2), mode='full')
-            
-            if use_hilbert:
-                from scipy.signal import hilbert
-                v1_processed = np.abs(hilbert(v1))
-                v2_processed = np.abs(hilbert(v2))
+
+            # if use_hilbert:
+            #     from scipy.signal import hilbert
+            #     v1_processed = np.abs(hilbert(v1))
+            #     v2_processed = np.abs(hilbert(v2))
+            # else:
+            #     v1_processed = v1
+            #     v2_processed = v2
+
+            v1_processed = v1
+            v2_processed = v2
+
+            # normalize (defensive: avoid division by zero)
+            std1 = np.std(v1_processed)
+            std2 = np.std(v2_processed)
+            if std1 == 0 or std2 == 0:
+                logger.warning("Zero std encountered in channel pair %d: std1=%s, std2=%s", pair_idx, std1, std2)
+                v1n = v1_processed - np.mean(v1_processed)
+                v2n = v2_processed - np.mean(v2_processed)
             else:
-                v1_processed = v1
-                v2_processed = v2
+                v1n = (v1_processed - np.mean(v1_processed)) / std1
+                v2n = (v2_processed - np.mean(v2_processed)) / std2
+        
+            if use_hilbert:
+                corr = np.abs(hilbert(correlate(v1n, v2n, mode='full', method='auto')))
+            else:
+                corr = correlate(v1n, v2n, mode='full', method='auto')
+                
+            corr = correlate(v1n, v2n, mode='full', method='auto')
             
-            if apply_hann_window:
-                window1 = np.hanning(len(v1_processed))
-                window2 = np.hanning(len(v2_processed))
-                v1_processed = v1_processed * window1
-                v2_processed = v2_processed * window2
-            
-            v1_processed = (v1_processed - np.mean(v1_processed)) / np.std(v1_processed)
-            v2_processed = (v2_processed - np.mean(v2_processed)) / np.std(v2_processed)
-            
-            corr = correlate(v1_processed, v2_processed, mode='full', method='auto')
             corr_normalized = corr / overlap_norms[len_key]
-            
+
+            if apply_hann_window:
+                hann_window = windows.hann(len(corr_normalized))
+                corr_normalized *= hann_window
+
             volt_corrs.append(corr_normalized)
-            
+
             lags = correlation_lags(len(v1), len(v2), mode="full")
-            time_lags = lags * dt
+            time_lags = lags * dt + t1[0] - t2[0]
             time_lags_list.append(time_lags)
 
         pair_corr_matrices = []
 
         for pair_idx, (volt_corr, time_lags, time_delay) in enumerate(zip(volt_corrs, time_lags_list, delay_matrices)):
             valid_mask = ~np.isnan(time_delay)
-            
+            n_valid = np.count_nonzero(valid_mask)
+            n_total = valid_mask.size
+            logger.debug("Pair %d: delay matrix shape %s, valid samples %d/%d", pair_idx, np.shape(time_delay), n_valid, n_total)
+
             pair_corr_matrix = np.full_like(time_delay, np.nan)
-            
+
             if np.any(valid_mask):
                 valid_delays = time_delay[valid_mask].flatten()
                 interp_corr = np.interp(valid_delays, time_lags, volt_corr)
                 pair_corr_matrix[valid_mask] = interp_corr
-            
-            pair_corr_matrices.append(pair_corr_matrix)    
 
-        mean_corr_matrix = np.nanmean(pair_corr_matrices, axis=0)
-        max_corr = np.nanmax(mean_corr_matrix)
+            pair_corr_matrices.append(pair_corr_matrix)
 
-        return mean_corr_matrix, max_corr
+        # Aggregate across pairs
+        # Use nansum divided by total number of pairs to treat NaNs as zeros
+        # This prevents artificially inflated correlations in regions with partial coverage
+        pair_corr_array = np.array(pair_corr_matrices)
+        mean_corr_matrix = np.nansum(pair_corr_array, axis=0) / len(pair_corr_matrices)
+        # Defensive: check for all-NaN matrix before calling nanmax
+        if np.all(np.isnan(mean_corr_matrix)):
+            logger.warning("Mean correlation matrix is all NaN (no valid pair contributions)")
+            max_corr = np.nan
+        else:
+            max_corr = np.nanmax(mean_corr_matrix)
+
+        logger.debug("Exiting _correlator: mean_corr_matrix shape=%s, max_corr=%s", np.shape(mean_corr_matrix), str(max_corr))
+
+        return pair_corr_matrices, mean_corr_matrix, max_corr
 
     def begin(self, station_id=None, config=None, det=None):
         """
@@ -170,6 +200,7 @@ class interferometricDirectionReconstruction():
         det : detector.Detector, optional
             Detector object for precomputing positions and delay matrices.
         """
+        
         if station_id is not None and config is not None:
             if isinstance(config, str):
                 with open(config, "r") as f:
@@ -226,12 +257,15 @@ class interferometricDirectionReconstruction():
                 "delay_matrices",
                 f"station{station_id}_delays_{cache_key}.pkl"
             )
+            logger.debug("Cache key: %s -> cache_path: %s", cache_key, cache_path)
             delay_matrices = caching_utilities.load_from_cache(cache_path)
             
             if delay_matrices is None:
+                logger.info("No cached delay matrices found for key %s; computing new delay matrices", cache_key)
                 src_posn_enu_matrix, [coord0_vec, coord1_vec], grid_tuple = self._get_source_enu_matrix(
                     station_id, det, limits, step_sizes, coord_system, fixed_coord, rec_type
                 )
+                
                 delay_matrices = self._get_t_delay_matrices(
                     station_id, config, src_posn_enu_matrix, self.ant_locs, cable_delays
                 )
@@ -246,10 +280,12 @@ class interferometricDirectionReconstruction():
                     'fixed_coord': fixed_coord
                 }
                 caching_utilities.save_to_cache(delay_matrices, cache_path, metadata)
+                logger.debug("Saved delay matrices to cache: %s (shape summary: %s)", cache_path, [np.shape(m) for m in delay_matrices])
             
             self._delay_matrix_cache[cache_key] = delay_matrices
 
         coord0_vec, coord1_vec = self._generate_coord_arrays(limits, step_sizes, coord_system, rec_type)
+        logger.debug("Generated coord arrays: coord0 length=%d, coord1 length=%d", len(coord0_vec), len(coord1_vec))
         
 
         self._station_delay_matrices[station_id] = {
@@ -262,7 +298,7 @@ class interferometricDirectionReconstruction():
         }
 
     @register_run()
-    def run(self, evt, station, det, config, save_maps=False, save_maps_to=None):
+    def run(self, evt, station, det, config, save_maps=False, save_pair_maps=False, save_maps_to=None):
         """
         args:
             evt: NuRadioReco.framework.event.Event
@@ -283,33 +319,81 @@ class interferometricDirectionReconstruction():
             config = self.load_config(config)
 
         station_id = station.get_id()
+        logger.info("Running interferometricDirectionReconstruction for station %s, event %s", station_id, evt.get_id())
         
-        # Retrieve cached data directly by station_id
-        cached_data = self._station_delay_matrices[station_id]
-        coord0_vec = cached_data['coord0_vec']
-        coord1_vec = cached_data['coord1_vec']
-        coord_system = cached_data['coord_system']
-        rec_type = cached_data['rec_type']
-        delay_matrices = cached_data['delay_matrices']
+        # Handle cable delays (needed for both cached and on-the-fly computation)
+        channels = config['channels']
+        if config.get('apply_cable_delays', True):
+            if station_id not in self._cable_delay_cache:
+                self._cable_delay_cache[station_id] = {
+                    ch: det.get_cable_delay(station_id, ch) / units.ns
+                    for ch in range(24)
+                }
+            cable_delays = {ch: self._cable_delay_cache[station_id][ch] for ch in channels}
+        else:
+            cable_delays = {ch: 0.0 for ch in channels}
+        
+        # Check if cached data exists, otherwise compute on-the-fly
+        if station_id in self._station_delay_matrices:
+            # Use cached data
+            cached_data = self._station_delay_matrices[station_id]
+            coord0_vec = cached_data['coord0_vec']
+            coord1_vec = cached_data['coord1_vec']
+            coord_system = cached_data['coord_system']
+            rec_type = cached_data['rec_type']
+            delay_matrices = cached_data['delay_matrices']
+            logger.debug("Using cached station delay matrices: coord shapes %s, delay_matrices count=%d", (len(coord0_vec), len(coord1_vec)), len(delay_matrices))
+            # Ensure antenna locations are available on the instance. Cached delay matrices
+            # may have been loaded from disk or created earlier without attaching ant_locs
+            # to this instance, so compute them here if missing.
+            if not hasattr(self, 'ant_locs') or self.ant_locs is None:
+                try:
+                    self.ant_locs = self._get_ant_locs(station_id, det)
+                except Exception as e:
+                    logger.error("Could not compute ant_locs for station %s: %s", station_id, e)
+                    raise
+        else:
+            # Compute delay matrices on-the-fly (e.g., when using per-event fixed_coord)
+            coord0_vec, coord1_vec = self._generate_coord_arrays(
+                config['limits'], config['step_sizes'], config['coord_system'], config['rec_type']
+            )
+            coord_system = config['coord_system']
+            rec_type = config['rec_type']
+            
+            # Get required data for delay matrix computation
+            # Compute and store antenna locations with absolute Z on the instance
+            # so that _get_source_enu_matrix / _get_enu_coordinates can access them.
+            self.ant_locs = self._get_ant_locs(station_id, det)
+            
+            # Compute source ENU matrix and delay matrices
+            src_posn_enu_matrix, _, _ = self._get_source_enu_matrix(
+                station_id, det, config['limits'], config['step_sizes'], 
+                config['coord_system'], config['fixed_coord'], config['rec_type'],
+            )
+            delay_matrices = self._get_t_delay_matrices(
+                station_id, config, src_posn_enu_matrix, self.ant_locs, cable_delays
+            )
+            logger.debug("Computed delay_matrices count=%d for station %s (on-the-fly)", len(delay_matrices), station_id)
 
+        # Get voltage and time arrays for correlation
         channels = config['channels']
         volt_arrays = []
         time_arrays = []
         
         for ch in channels:
             channel = station.get_channel(ch)
-            trace = channel.get_trace()
-
-            volt_arrays.append(trace)
+            volt_arrays.append(channel.get_trace())
             time_arrays.append(channel.get_times())
 
         v_array_pairs = list(itertools.combinations(volt_arrays, 2))
+        logger.debug("Prepared %d voltage arrays and %d pairs for correlation", len(volt_arrays), len(v_array_pairs))
 
-        corr_matrix, max_corr = self._correlator(
+        pair_corr_matrices, corr_matrix, max_corr = self._correlator(
             time_arrays, v_array_pairs, delay_matrices,
             apply_hann_window=config.get('apply_hann_window', False),
             use_hilbert=config.get('use_hilbert_envelope', False)
         )
+        logger.debug("Correlation matrix shape: %s, max_corr: %s", np.shape(corr_matrix), str(max_corr))
         
         rec_coord0, rec_coord1 = self._get_rec_locs_from_corr_map(
             corr_matrix, coord0_vec, coord1_vec
@@ -323,7 +407,13 @@ class interferometricDirectionReconstruction():
                 coord0_alt, coord1_alt, alt_indices, exclusion_bounds = result
         
         # Handle correlation map visualization and saving
-        if save_maps:
+        if save_maps or save_pair_maps:
+            # Determine save directory: use provided path, else config, else default
+            if save_maps_to is not None:
+                save_dir = save_maps_to
+            else:
+                save_dir = config.get('save_maps_to', config.get('save_plots_to', './correlation_maps/'))
+            
             map_kwargs = {}
             if coord0_alt is not None and coord1_alt is not None:
                 map_kwargs['coord0_alt'] = coord0_alt
@@ -332,11 +422,6 @@ class interferometricDirectionReconstruction():
             if exclusion_bounds is not None:
                 map_kwargs['exclusion_bounds'] = exclusion_bounds
             
-            if save_maps_to is not None:
-                save_dir = save_maps_to
-            else:
-                save_dir = config.get('save_maps_to', config.get('save_plots_to', './correlation_maps/'))
-            
             # Create a simple dict to pass position info to save function
             position_dict = {
                 'coord0_vec': coord0_vec,
@@ -344,7 +429,51 @@ class interferometricDirectionReconstruction():
                 'coord_system': coord_system,
                 'rec_type': rec_type
             }
-            save_correlation_map(corr_matrix, position_dict, evt=evt, config=config, save_dir=save_dir, **map_kwargs)
+            # Provide the reconstructed coordinates and max corr so the plotter doesn't need to recompute
+            map_kwargs['rec_coord0'] = rec_coord0
+            map_kwargs['rec_coord1'] = rec_coord1
+            map_kwargs['rec_max_corr'] = max_corr
+            full_corr_map_save_path = save_correlation_map(corr_matrix, position_dict, evt=evt, config=config, save_dir=save_dir, **map_kwargs)
+            logger.info("Saved full correlation map to %s (event %s)", save_dir, evt.get_id())
+
+            logger.debug("save_pair_maps flag = %s", save_pair_maps)
+            if save_pair_maps:
+                pair_save_dir = os.path.join(save_dir, "pairwise_maps")
+                logger.info("Saving pair map data to: %s", pair_save_dir)
+                os.makedirs(pair_save_dir, exist_ok=True)
+                for idx, pair_corr in enumerate(pair_corr_matrices):
+                    ch1, ch2 = list(itertools.combinations(channels, 2))[idx]
+                    pair_map_kwargs = map_kwargs.copy()
+                    pair_map_kwargs['filename_suffix'] = f"_ch{ch1}-ch{ch2}"
+                    pair_map_kwargs['title_suffix'] = f" (Ch {ch1} & Ch {ch2})"
+                    pair_map_kwargs['pair_channels'] = [ch1, ch2]  # Store channel pair info in map data
+                    # Include recon info for pair maps as well (use same rec coords/max)
+                    pair_map_kwargs['rec_coord0'] = rec_coord0
+                    pair_map_kwargs['rec_coord1'] = rec_coord1
+                    pair_map_kwargs['rec_max_corr'] = max_corr
+                    _ = save_correlation_map(pair_corr, position_dict, evt=evt, config=config, save_dir=pair_save_dir, **pair_map_kwargs)
+                    logger.debug("Saved pair map for channels %s-%s to %s", ch1, ch2, pair_save_dir)
+        else:
+            full_corr_map_save_path = None
+
+        # Optional: Save delay matrices for debugging comparison with multitable reconstruction
+        if config.get('save_delay_matrices', False):
+            import pickle
+            delay_save_path = config.get('delay_matrices_save_path', './debug_delay_matrices_singletable.pkl')
+            debug_data = {
+                'delay_matrices': delay_matrices,
+                'coord0_vec': coord0_vec,
+                'coord1_vec': coord1_vec,
+                'config': config,
+                'station_id': station_id,
+                'event_id': evt.get_id(),
+                'run_number': evt.get_run_number(),
+                'channels': channels,
+                'cable_delays': cable_delays
+            }
+            with open(delay_save_path, 'wb') as f:
+                pickle.dump(debug_data, f)
+            logger.info("Saved delay matrices to %s for debugging (singletable method)", delay_save_path)
 
         step_sizes = config['step_sizes']
         
@@ -382,6 +511,8 @@ class interferometricDirectionReconstruction():
             # For spherical: coord0 = φ (azimuth), coord1 = θ (zenith)
             station.set_parameter(stnp.rec_azimuth, rec_coord0)
             station.set_parameter(stnp.rec_zenith, rec_coord1)
+            
+        return full_corr_map_save_path
     
     @staticmethod
     def _get_max_val_indices(matrix):
@@ -407,7 +538,7 @@ class interferometricDirectionReconstruction():
         coord_system : str
             Coordinate system ('cylindrical' or 'spherical')
         rec_type : str
-            Reconstruction type ('phiz', 'rhoz', etc.)
+            Reconstruction type ('phiz', 'rhoz', 'phitheta', etc.)
         exclude_radius_deg : float
             Radius in degrees around primary maximum to exclude when finding alternate
             
@@ -415,29 +546,43 @@ class interferometricDirectionReconstruction():
         -------
         tuple : (coord0_alt, coord1_alt, alt_indices, exclusion_bounds) or (None, None, None, None) if no alternate found
         """
-        if coord_system != "cylindrical" or rec_type != "phiz":
+        # Only works for reconstructions where coord0 is azimuth (φ)
+        # This includes: cylindrical phiz and spherical phitheta
+        if not ((coord_system == "cylindrical" and rec_type == "phiz") or 
+                (coord_system == "spherical" and rec_type == "phitheta")):
             return None, None, None, None
         
         primary_max_idx = np.unravel_index(np.nanargmax(corr_matrix), corr_matrix.shape)
         primary_coord0_idx = primary_max_idx[1]
         primary_coord1_idx = primary_max_idx[0]
         
+        # coord0 is always azimuth (φ) in degrees for both phiz and phitheta
         coord0_deg = np.array([c / units.deg for c in coord0_vec])
-        coord1_m = np.array([c / units.m for c in coord1_vec])
+        
+        # coord1 is depth (z) for phiz or zenith angle (θ) for phitheta
+        if coord_system == "cylindrical" and rec_type == "phiz":
+            coord1_values = np.array([c / units.m for c in coord1_vec])
+        elif coord_system == "spherical" and rec_type == "phitheta":
+            coord1_values = np.array([c / units.deg for c in coord1_vec])
         
         primary_azimuth = coord0_deg[primary_coord0_idx]
-        primary_depth = coord1_m[primary_coord1_idx]
+        primary_coord1 = coord1_values[primary_coord1_idx]
         
         mask = np.ones_like(corr_matrix, dtype=bool)
         
+        # Store actual azimuth bounds (in degrees), not column indices
+        exclusion_azimuth_min = primary_azimuth - exclude_radius_deg
+        exclusion_azimuth_max = primary_azimuth + exclude_radius_deg
+        
         exclusion_col_start = None
         exclusion_col_end = None
-        
+                
         for i in range(corr_matrix.shape[0]):
             for j in range(corr_matrix.shape[1]):
                 azimuth = coord0_deg[j]
-                depth = coord1_m[i]
+                coord1_val = coord1_values[i]
                 
+                # Exclude based on azimuth difference (wraps around at 360°)
                 azimuth_diff = abs(azimuth - primary_azimuth)
                 azimuth_diff = min(azimuth_diff, 360 - azimuth_diff)
                 
@@ -459,26 +604,45 @@ class interferometricDirectionReconstruction():
         
         coord0_alt = coord0_vec[alternate_coord0_idx]
         coord1_alt = coord1_vec[alternate_coord1_idx]
-        
-        exclusion_bounds = None
-        if exclusion_col_start is not None and exclusion_col_end is not None:
-            exclusion_bounds = {
-                'type': 'phi',
-                'col_start': exclusion_col_start,
-                'col_end': exclusion_col_end
-            }
-        
+                
+        # Store exclusion bounds in actual azimuth degrees (wrapping handled in plotting)
+        exclusion_bounds = {
+            'type': 'phi',
+            'azimuth_center': primary_azimuth,
+            'azimuth_min': exclusion_azimuth_min,
+            'azimuth_max': exclusion_azimuth_max,
+            'radius_deg': exclude_radius_deg
+        }
+                
         return coord0_alt, coord1_alt, (alternate_coord0_idx, alternate_coord1_idx), exclusion_bounds
     
 
     def _get_ant_locs(self, station_id, det):
-        """Get antenna locations in ENU coordinates for a station."""
+        """
+        Get antenna locations with absolute Z coordinates.
+        
+        For time delay table lookups, we need:
+        - x, y: Can be relative to station center (only used for computing R distances)
+        - z: MUST be absolute depth (same reference frame as the Z values in time delay tables)
+        
+        The time delay tables are indexed by (R, Z_absolute), where:
+        - R is computed from antenna x,y position
+        - Z_absolute is the absolute depth below surface
+        """
         all_ch_ids = range(0, 24)
         all_xyz_ant_locs = {}
+        
+        # Get station's absolute position to extract absolute Z offset
+        station_abs_pos = det.get_absolute_position(int(station_id))
+        station_abs_z = station_abs_pos[2]
+        
         for ch in all_ch_ids:
-            all_xyz_ant_locs[ch] = np.array(
-                det.get_relative_position(int(station_id), int(ch))
-            )
+            ant_rel_pos = np.array(det.get_relative_position(int(station_id), int(ch)))
+            # Keep x,y relative (only used for computing R distances)
+            # But convert z to absolute by adding station's absolute z
+            all_xyz_ant_locs[ch] = ant_rel_pos.copy()
+            all_xyz_ant_locs[ch][2] = ant_rel_pos[2] + station_abs_z
+             
         return all_xyz_ant_locs
 
     def _generate_coord_arrays(self, limits, step_sizes, coord_system, rec_type):
@@ -526,25 +690,40 @@ class interferometricDirectionReconstruction():
             raise ValueError(f"Unsupported coordinate system: {coord_system}")
 
     def _get_enu_coordinates(self, coords, coord_system):
+        """
+        Convert coordinate grids to ENU coordinates.
+        
+        For cylindrical coordinates (rho, phi, z):
+        - x, y are relative to PA center (arbitrary reference, only used for R calculation)
+        - z is absolute depth (used directly for table lookup)
+        
+        For spherical coordinates (r, phi, theta):
+        - x, y are computed relative to PA center
+        - z is computed as absolute depth (PA absolute z + radial component)
+        """
         
         ch_1_loc = self.ant_locs[1]
         ch_2_loc = self.ant_locs[2]
         center_of_PA = (ch_1_loc + ch_2_loc) / 2.0
-                
-        """Convert coordinate grids to ENU coordinates."""
+                        
         if coord_system == "cylindrical":
             rhos = coords[0]
             phis = coords[1]
             zs = coords[2]
+            # x,y relative to PA (arbitrary, only for computing R)
             eastings = rhos * np.cos(phis)
             northings = rhos * np.sin(phis)
+            # z is already absolute from config (e.g., -200m to 0m below surface)
             elevations = zs
+            
         elif coord_system == "spherical":
             rs = coords[0]
             phis = coords[1]
             thetas = coords[2]
+            # x,y computed relative to PA center (arbitrary reference)
             eastings = rs * np.sin(thetas) * np.cos(phis) + center_of_PA[0]
             northings = rs * np.sin(thetas) * np.sin(phis) + center_of_PA[1]
+            # z is absolute: PA absolute z + radial component in z direction
             elevations = rs * np.cos(thetas) + center_of_PA[2]
             
         return eastings, northings, elevations
@@ -553,6 +732,7 @@ class interferometricDirectionReconstruction():
         """Get matrix of potential source locations in ENU coordinates."""
         coord0_vec, coord1_vec = self._generate_coord_arrays(limits, step_sizes, coord_system, rec_type)
         coord_grids = self._get_coord_grids(coord0_vec, coord1_vec, coord_system, rec_type, fixed_coord)
+            
         x_grid, y_grid, z_grid = self._get_enu_coordinates(coord_grids, coord_system)
         src_xyz_loc_matrix = np.stack((x_grid, y_grid, z_grid), axis=-1)
         return src_xyz_loc_matrix, [coord0_vec, coord1_vec], coord_grids
@@ -562,7 +742,6 @@ class interferometricDirectionReconstruction():
         rec_pulser_loc0_idx, rec_pulser_loc1_idx = self._get_max_val_indices(corr_matrix)
         coord0_best = coord0_vec[rec_pulser_loc0_idx]
         coord1_best = coord1_vec[rec_pulser_loc1_idx]
-                
         return coord0_best, coord1_best
     
     def end(self):
