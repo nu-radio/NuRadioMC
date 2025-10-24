@@ -853,7 +853,7 @@ def impulse_response_using_hilbert_phase(response, frequencies, left_time_shift=
     rev_resp = np.conjugate(response)
     rev_shifted = rev_resp * np.exp(-2j*np.pi*frequencies*right_time_shift)
     rev_phase = -np.imag(signal.hilbert(np.real(rev_shifted)))
-    rev_causal = np.real(rev_shifted)+1j*rev_phase
+    rev_causal = np.real(rev_shifted) + 1j*rev_phase
     rev_causal = rev_causal * np.exp(2j*np.pi*frequencies*right_time_shift)
     rev_causal = np.conjugate(rev_causal)
     rev_impulse = fft.freq2time(rev_causal, f_sampling)
@@ -876,14 +876,13 @@ def impulse_response_using_hilbert_phase(response, frequencies, left_time_shift=
         ax.set_ylabel(f"Amplitude of Imag(Response) [V/GHz]")
 
         original_impulse = fft.freq2time(response, f_sampling)
-        original_impulse = np.roll(original_impulse,len(times)//2)
+        original_impulse = np.roll(original_impulse, len(times)//2)
 
         fig_impulse, ax_impulse = plt.subplots(1,1)
-        ax_impulse.plot(times,original_impulse, label="Original Impulse")
-        #ax_impulse.plot(times, impulse_response, label="Hilbert Derived Impulse")
+        ax_impulse.plot(times, original_impulse, label="Original Impulse")
         ax_impulse.plot(times, causal_impulse, label="Acausal Removed Impulse")
-        ax_impulse.plot(times,rev_impulse,label="Reverse Acausal Removed Impulse")
-        ax_impulse.plot(times,combo,label="Spliced Impulse Response")
+        ax_impulse.plot(times, rev_impulse, label="Reverse Acausal Removed Impulse")
+        ax_impulse.plot(times, combo, label="Spliced Impulse Response")
 
         ax_impulse.legend()
         ax_impulse.set_xlabel(f"Time [ns]")
