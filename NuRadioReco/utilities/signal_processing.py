@@ -519,7 +519,7 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
 
     # Calculate spectral radiance of radio signal using Rayleigh-Jeans law
     spectral_radiance = (
-        2.0 * constants.k * frequencies**2 * noise_temperature / c_vac**2
+        2.0 * constants.k_B * frequencies**2 * noise_temperature / c_vac**2
     )
     spectral_radiance[np.isnan(spectral_radiance)] = 0
 
@@ -575,7 +575,7 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
         freqs = freqs or np.arange(0, 2500, 0.1) * units.MHz
         bandwidth = np.trapz(np.abs(response(freqs)) ** 2, freqs)
 
-    return (temperature * impedance * bandwidth * constants.k) ** 0.5
+    return (temperature * impedance * bandwidth * constants.k_B) ** 0.5
 
 
 def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=False):
