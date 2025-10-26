@@ -144,7 +144,7 @@ class hardwareResponseIncorporator:
             return 1. / signal_chain_response
 
     @register_run()
-    def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None, window_response=False):
+    def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None, window_response=True):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
 
@@ -188,7 +188,7 @@ class hardwareResponseIncorporator:
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
             ``analog_components.get_amplifier_response()``
 
-        window_response: bool (default False)
+        window_response: bool (default True)
             Window the signal chain impulse response to keep it and resulting signal traces finite in time and causal.
             Useful with measured signal chains which carry noise.
 
