@@ -37,7 +37,7 @@ class interferometricDirectionReconstruction():
     
     @staticmethod
     @lru_cache(maxsize=128)
-    def _load_rz_interpolator(table_filename):
+    def _load_rz_interpolator(table_filename, interpolation_method):
         """Load R-Z interpolator from time delay table file."""
         file = np.load(table_filename)
         travel_time_table = file['data']
@@ -45,7 +45,7 @@ class interferometricDirectionReconstruction():
         z_range = file['z_range_vals']
 
         interpolator = RegularGridInterpolator(
-            (r_range, z_range), travel_time_table, method="nearest", bounds_error=False, fill_value=-np.inf
+            (r_range, z_range), travel_time_table, method=interpolation_method, bounds_error=False, fill_value=-np.inf
         )
         return interpolator
     
@@ -61,7 +61,7 @@ class interferometricDirectionReconstruction():
         interpolators = {}
         for ch in set(itertools.chain(*ch_pairs)):
             table_file = f"{outdir}st{station}_ch{ch}_rz_table_proper_z_extratest.npz"
-            interpolators[ch] = interferometricDirectionReconstruction._load_rz_interpolator(table_file)
+            interpolators[ch] = interferometricDirectionReconstruction._load_rz_interpolator(table_file, config.get('interp_method', 'linear'))
 
         for ch1, ch2 in ch_pairs:
             pos1 = ant_locs[ch1]
@@ -112,16 +112,16 @@ class interferometricDirectionReconstruction():
             if len_key not in overlap_norms:
                 overlap_norms[len_key] = correlate(np.ones(len1), np.ones(len2), mode='full')
 
-            # if use_hilbert:
-            #     from scipy.signal import hilbert
-            #     v1_processed = np.abs(hilbert(v1))
-            #     v2_processed = np.abs(hilbert(v2))
-            # else:
-            #     v1_processed = v1
-            #     v2_processed = v2
+            if use_hilbert:
+                from scipy.signal import hilbert
+                v1_processed = np.abs(hilbert(v1))
+                v2_processed = np.abs(hilbert(v2))
+            else:
+                v1_processed = v1
+                v2_processed = v2
 
-            v1_processed = v1
-            v2_processed = v2
+            # v1_processed = v1
+            # v2_processed = v2
 
             # normalize (defensive: avoid division by zero)
             std1 = np.std(v1_processed)
@@ -134,10 +134,10 @@ class interferometricDirectionReconstruction():
                 v1n = (v1_processed - np.mean(v1_processed)) / std1
                 v2n = (v2_processed - np.mean(v2_processed)) / std2
         
-            if use_hilbert:
-                corr = np.abs(hilbert(correlate(v1n, v2n, mode='full', method='auto')))
-            else:
-                corr = correlate(v1n, v2n, mode='full', method='auto')
+            # if use_hilbert:
+            #     corr = np.abs(hilbert(correlate(v1n, v2n, mode='full', method='auto')))
+            # else:
+            #     corr = correlate(v1n, v2n, mode='full', method='auto')
                 
             corr = correlate(v1n, v2n, mode='full', method='auto')
             
