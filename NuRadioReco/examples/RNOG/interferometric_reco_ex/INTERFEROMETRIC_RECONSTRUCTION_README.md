@@ -77,7 +77,7 @@ You **must** have pre-calculated time delay tables for your station and channels
 
 ### 0. Try the Example First
 
-To quickly see the reconstruction in action, before even looking at setting it up yourself in the next steps, you can use the provided example file (combined.root in the /data/reconstruction/ directory on the Chicago server) and pre-generated tables (in /data/reconstruction/travel_times_analytic/) after downloading them to this directory like so:
+To quickly see the reconstruction in action, before even looking at setting it up yourself in the next steps, first download the provided calibration pulser root file at /data/reconstruction/validation_sets/cal_pulsers/station21/run476/combined.root and the pre-generated time tables (at least for station 21 since this pulser run is from it) from /data/reconstruction/travel_times_analytic/ from the Chicago server. Once you've downloaded the root file and time tables, you can run the example script like so (make sure if you download the tables to any location other than a tables/ dir in this directory to change the default time_delay_tables setting in the example_config.yaml to the new location; same for specifying the inputfile for combined.root below):
 
 ```bash
 # Run reconstruction with example config and data
@@ -94,7 +94,7 @@ python correlation_map_plotter.py \
     --minimaps
 ```
 
-This should reproduce the example figure shown at `/data/reconstruction/example_station21_run476_evt7_corrmap.png` at "./figures/station21/run476/". The "combined.root" file used to reproduce this is from a calibration pulsing run with pulser on helper string C, which is near Vpol channels 22 and 23, so we exclude those channels due to saturation.
+This should reproduce the example figure shown at `/data/reconstruction/example_plots/station21_run476_evt7_corrmap.png` on the Chicago server. The "combined.root" file used to reproduce this is from a calibration pulsing run with pulser on helper string C, which is near Vpol channels 22 and 23, so we exclude those channels due to saturation.
 
 ### 1. Create a Configuration File
 
@@ -144,6 +144,9 @@ save_results_to: "./results/"    # Base directory for all reconstruction data (d
                                  #           {base}/station{ID}/run{NUM}/corr_map_data/ (correlation maps)
 
 # Signal processing options
+apply_cable_delay: true          # Apply cable delay correction (default: true)
+                                 # WARNING: Only set to false if using preprocessed data 
+                                 # that already has cable delays removed!
 apply_upsampling: true           # Upsample waveforms to 5 GHz
 apply_bandpass: false             # Apply bandpass filter
 apply_cw_removal: false           # Remove CW interference
@@ -246,6 +249,7 @@ The `--comprehensive` option creates a multi-panel visualization including:
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
+| `apply_cable_delay` | bool | `true` | Apply cable delay correction. **WARNING:** Only disable if using preprocessed data with cable delays already removed! |
 | `apply_upsampling` | bool | `false` | Upsample to 5 GHz |
 | `apply_bandpass` | bool | `false` | Apply 100-600 MHz bandpass filter |
 | `apply_cw_removal` | bool | `false` | Remove CW interference |
@@ -700,6 +704,19 @@ The cache is particularly beneficial when:
 - Processing multiple events from the same station/run
 - Testing different preprocessing options with the same reconstruction grid
 
+**Bypassing the cache for debugging:**
+
+If you need to force recalculation of delay matrices (e.g., after updating time delay tables or for debugging), use the `--ignore_cache` flag:
+
+```bash
+python interferometric_reco_example.py \
+    --config config.yaml \
+    --inputfile data.root \
+    --ignore_cache
+```
+
+This will recompute delay matrices from scratch even if cached versions exist. The newly computed matrices will still be saved to cache for future use.
+
 ### Parallel Processing
 
 For processing many files, use job arrays:
@@ -759,8 +776,13 @@ Required:
 
 Optional:
   --output_type {hdf5,nur}     Output format (default: hdf5)
+  --outputfile FILE            Manually specify output file path (overrides organized structure)
   --events N [N ...]           Specific event IDs/indices to process
-  --save_maps                  Save correlation map data to pickle files
+  --runs N [N ...]             Specific run numbers to process (NUR files only)
+  --sim_truth_fixed_coord      Use simulation truth for fixed coordinate (NUR files only)
+  --ignore_cache               Force recalculation of delay matrices (ignore cached data)
+  --save-maps                  Save correlation map data to pickle files
+  --save-pair-maps             Save individual channel pair correlation maps
   --verbose                    Print reconstruction results for each event
 ```
 
