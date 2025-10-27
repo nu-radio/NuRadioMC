@@ -241,6 +241,9 @@ class interferometricDirectionReconstruction():
         else:
             cable_delays = {ch: 0.0 for ch in channels}
 
+        # Get interpolation method from config (defaults to 'linear')
+        interp_method = config.get('interp_method', 'linear')
+
         cache_key = caching_utilities.generate_cache_key(
             station_id,
             tuple(sorted(channels)),
@@ -249,6 +252,7 @@ class interferometricDirectionReconstruction():
             coord_system,
             fixed_coord,
             rec_type,
+            interp_method,
             tuple(sorted((ch, round(delay, 6)) for ch, delay in cable_delays.items()))
         )
         
@@ -277,7 +281,8 @@ class interferometricDirectionReconstruction():
                     'limits': limits,
                     'coord_system': coord_system,
                     'rec_type': rec_type,
-                    'fixed_coord': fixed_coord
+                    'fixed_coord': fixed_coord,
+                    'interp_method': interp_method
                 }
                 caching_utilities.save_to_cache(delay_matrices, cache_path, metadata)
                 logger.debug("Saved delay matrices to cache: %s (shape summary: %s)", cache_path, [np.shape(m) for m in delay_matrices])
