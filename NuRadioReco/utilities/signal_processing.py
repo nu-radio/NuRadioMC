@@ -782,7 +782,15 @@ def window_response_in_time_domain(resp, freqs=None, sampling_rate=5 * units.GHz
     # Connect selected islands
     sample_padding = 3  # padding because we apply a window
     selected_range = [selected_islands[0, 0] - sample_padding, selected_islands[-1, 1] + sample_padding]
-    window = half_hann_window(selected_range[1] - selected_range[0], 0.01)
+
+    try:
+        window = half_hann_window(selected_range[1] - selected_range[0], 0.01)
+    except:
+        logger.warning("Zero length window. Returning original response.")
+        if input_response:
+            return resp
+        else:
+            return spec
 
     # Windowing: Outside of the selected range, set the response to 0, inside the selected range, apply a hann window
     time_response[:selected_range[0]] = 0
