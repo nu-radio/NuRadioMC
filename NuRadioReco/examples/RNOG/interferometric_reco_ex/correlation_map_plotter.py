@@ -25,17 +25,6 @@ from NuRadioReco.utilities.interferometry_io_utilities import (
     load_correlation_map,
     determine_plot_output_path
 )
-from NuRadioReco.modules.io.NuRadioRecoio import NuRadioRecoio
-from NuRadioReco.modules.io.eventReader import eventReader
-from NuRadioReco.modules.channelResampler import channelResampler
-from NuRadioReco.modules.channelBandPassFilter import channelBandPassFilter
-from NuRadioReco.modules.channelSinewaveSubtraction import channelSinewaveSubtraction
-from NuRadioReco.modules.channelAddCableDelay import channelAddCableDelay
-from NuRadioReco.detector.RNO_G import rnog_detector
-from NuRadioReco.framework.parameters import particleParameters
-from NuRadioReco.framework.parameters import showerParameters
-from NuRadioReco.framework.parameters import generatorAttributes
-from ray_path import plot_ray_paths
 
 plt.rcParams.update({
     'font.size': 18,
@@ -1492,6 +1481,17 @@ def main():
             )
             
             if args.comprehensive:
+                from ray_path import plot_ray_paths
+                from NuRadioReco.modules.io.eventReader import eventReader
+                from NuRadioReco.modules.channelResampler import channelResampler
+                from NuRadioReco.modules.channelBandPassFilter import channelBandPassFilter
+                from NuRadioReco.modules.channelSinewaveSubtraction import channelSinewaveSubtraction
+                from NuRadioReco.modules.channelAddCableDelay import channelAddCableDelay
+                from NuRadioReco.detector.RNO_G import rnog_detector
+                from NuRadioReco.framework.parameters import particleParameters
+                from NuRadioReco.framework.parameters import showerParameters
+                from NuRadioReco.framework.parameters import generatorAttributes
+                
                 # Create comprehensive plot with waveforms
                 saved_path = plotter.plot_comprehensive(args.comprehensive)
                 if args.verbose and saved_path:
