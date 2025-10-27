@@ -676,7 +676,7 @@ def get_channel_voltage_from_efield(
 
 
 
-def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * units.microsecond, min_diff=0.005, max_t_diff=5 * units.ns, min_island_length=1 * units.ns, show_debug=False):
+def window_response_in_time_domain(resp, freqs=None, sampling_rate=5 * units.GHz, t0=2 * units.microsecond, min_diff=0.005, max_t_diff=5 * units.ns, min_island_length=1 * units.ns, show_debug=False):
     """ Windows a response in the time domain (i.e., sets the response to 0 outside a window).
 
     This function takes the reponse in the time domain, identifies the relevant region of the response,
@@ -690,8 +690,10 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
 
     Parameters
     ----------
-    resp: NuRadioReco.detector.response.Response or callable(freqs) -> complex response
-        The response function to be windowed.
+    resp: NuRadioReco.detector.response.Response or callable(freqs) or spectrum -> complex response
+        The response function or spectrum to be windowed. If spectrum, freqs must be supplied.
+    freqs: array of float (default: None)
+        The array of frequencies used to generate the spectrum of resp.
     sampling_rate: float (default: 5 * units.GHz)
         For conversion in time domain, i.e., the sampling rate to evaluate the response in the time domain.
     t0: float (default: 2 * units.microsecond)
@@ -708,16 +710,23 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
 
     Returns
     -------
-    resp_f: callable(freqs) -> complex response
-        The windowed response function.
+    resp_f: callable(freqs) or spectrum -> complex response
+        The windowed response function or spectrum.
     """
 
-    num_samples = int(t0 * sampling_rate)
+    if isinstance(resp, NuRadioReco.detector.response.Response):
+        spec = resp(freqs)
+        input_response = True
+        num_samples = int(t0 * sampling_rate)
+        freqs = fft.freqs(num_samples=num_samples, sampling_rate=sampling_rate)
+    else:
+        assert freqs is not None, "freqs MUST be passed when not using the response class"
+        spec = resp
+        input_response = False
+        num_samples = 2 * (len(spec) - 1)
+        sampling_rate = freqs[-1] * 2
 
-    freqs = fft.freqs(num_samples=num_samples, sampling_rate=sampling_rate)
     times = np.arange(num_samples) / sampling_rate
-    spec = resp(freqs)
-
     time_response = fft.freq2time(spec, sampling_rate=sampling_rate)
 
     # Roll the maximum of the time response to the center
@@ -804,7 +813,10 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
     response_freq = fft.time2freq(time_response, sampling_rate=sampling_rate)
     resp_f = interpolate.interp1d(freqs, response_freq, kind='linear', bounds_error=False, fill_value=0 + 0j)
 
-    return resp_f
+    if input_response:
+        return resp_f
+    else:
+        return response_freq
 
 def impulse_response_using_hilbert_phase(response, frequencies, left_time_shift=10*units.ns, right_time_shift=100*units.ns, show_debug=False):
     """

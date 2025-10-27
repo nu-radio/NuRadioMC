@@ -2,7 +2,6 @@ import NuRadioReco.modules.channelAddCableDelay
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft
 import NuRadioReco.framework.station
-from NuRadioReco.utilities.signal_processing import window_response_in_time_domain
 from NuRadioReco.detector.RNO_G import analog_components
 from NuRadioReco.detector import detector, response
 
@@ -38,8 +37,7 @@ class hardwareResponseIncorporator:
 
     def get_filter(self, frequencies, station_id, channel_id, det,
                    temp=293.15, sim_to_data=False, phase_only=False,
-                   mode=None, mingainlin=None, is_trigger=False,
-                   window_response=False):
+                   mode=None, mingainlin=None, is_trigger=False):
         """
         Helper function to return the filter that the module applies.
 
@@ -90,10 +88,6 @@ class hardwareResponseIncorporator:
         is_trigger: bool
             Use trigger channel response instead. Only relevant for RNO-G. (Default: False)
 
-        window_response: bool (default False)
-            Window the signal chain impulse response to keep it and resulting signal traces finite in time and causal.
-            Useful with measured signal chains which carry noise.
-
         Returns
         -------
         array of complex floats
@@ -110,9 +104,6 @@ class hardwareResponseIncorporator:
             amp_response = response.Response(frequencies, response_list, ["mag", "rad"])
         else:
             raise NotImplementedError("Detector type not implemented")
-
-        if window_response:
-            amp_response = window_response_in_time_domain(amp_response)
 
         amp_response = amp_response(frequencies)
 
@@ -144,7 +135,7 @@ class hardwareResponseIncorporator:
             return 1. / signal_chain_response
 
     @register_run()
-    def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None, window_response=True):
+    def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
 
@@ -188,10 +179,6 @@ class hardwareResponseIncorporator:
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
             ``analog_components.get_amplifier_response()``
 
-        window_response: bool (default True)
-            Window the signal chain impulse response to keep it and resulting signal traces finite in time and causal.
-            Useful with measured signal chains which carry noise.
-
         """
 
         self.__mingainlin = mingainlin
@@ -211,7 +198,7 @@ class hardwareResponseIncorporator:
             trace_fft = channel.get_frequency_spectrum()
 
             filter = self.get_filter(
-                frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin, window_response=window_response)
+                frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data, phase_only, mode, mingainlin)
 
             if (self.trigger_channels is not None and
                 channel.get_id() in self.trigger_channels and
@@ -228,7 +215,7 @@ class hardwareResponseIncorporator:
                 """
                 trig_filter = self.get_filter(
                     frequencies, station.get_id(), channel.get_id(), det, temp, sim_to_data,
-                    phase_only, mode, mingainlin, is_trigger=True, window_response=window_response)
+                    phase_only, mode, mingainlin, is_trigger=True)
 
                 trig_trace_fft = trace_fft * trig_filter
                 # zero first bins to avoid DC offset
