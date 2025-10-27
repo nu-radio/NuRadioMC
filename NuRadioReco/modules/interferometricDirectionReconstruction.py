@@ -29,7 +29,6 @@ class interferometricDirectionReconstruction():
     This module performs directional reconstruction by fitting time delays between channels to pre-defined time delay maps.
     """
     def __init__(self):
-        self._cable_delay_cache = {}
         self._delay_matrix_cache = {}
         self._positions_cache = {}
         self._station_delay_matrices = {}
@@ -50,7 +49,7 @@ class interferometricDirectionReconstruction():
         return interpolator
     
     @staticmethod
-    def _get_t_delay_matrices(station, config, src_posn_enu_matrix, ant_locs, cable_delays):
+    def _get_t_delay_matrices(station, config, src_posn_enu_matrix, ant_locs):
         """Compute time delay matrices for all channel pairs."""
         ch_pairs = list(itertools.combinations(config['channels'], 2))
         time_delay_matrices = []
@@ -60,7 +59,7 @@ class interferometricDirectionReconstruction():
 
         interpolators = {}
         for ch in set(itertools.chain(*ch_pairs)):
-            table_file = f"{outdir}st{station}_ch{ch}_rz_table_proper_z_extratest.npz"
+            table_file = f"{outdir}st{station}_ch{ch}_rz_table.npz"
             interpolators[ch] = interferometricDirectionReconstruction._load_rz_interpolator(table_file, config.get('interp_method', 'linear'))
 
         for ch1, ch2 in ch_pairs:
@@ -231,16 +230,6 @@ class interferometricDirectionReconstruction():
 
         self.ant_locs = self._get_ant_locs(station_id, det)
 
-        if config.get('apply_cable_delays', True):
-            if station_id not in self._cable_delay_cache:
-                self._cable_delay_cache[station_id] = {
-                    ch: det.get_cable_delay(station_id, ch) / units.ns
-                    for ch in range(24)
-                }
-            cable_delays = {ch: self._cable_delay_cache[station_id][ch] for ch in channels}
-        else:
-            cable_delays = {ch: 0.0 for ch in channels}
-
         # Get interpolation method from config (defaults to 'linear')
         interp_method = config.get('interp_method', 'linear')
 
@@ -253,7 +242,6 @@ class interferometricDirectionReconstruction():
             fixed_coord,
             rec_type,
             interp_method,
-            tuple(sorted((ch, round(delay, 6)) for ch, delay in cable_delays.items()))
         )
         
         if cache_key not in self._delay_matrix_cache:
@@ -271,7 +259,7 @@ class interferometricDirectionReconstruction():
                 )
                 
                 delay_matrices = self._get_t_delay_matrices(
-                    station_id, config, src_posn_enu_matrix, self.ant_locs, cable_delays
+                    station_id, config, src_posn_enu_matrix, self.ant_locs,
                 )
                 
                 metadata = {
@@ -326,18 +314,6 @@ class interferometricDirectionReconstruction():
         station_id = station.get_id()
         logger.info("Running interferometricDirectionReconstruction for station %s, event %s", station_id, evt.get_id())
         
-        # Handle cable delays (needed for both cached and on-the-fly computation)
-        channels = config['channels']
-        if config.get('apply_cable_delays', True):
-            if station_id not in self._cable_delay_cache:
-                self._cable_delay_cache[station_id] = {
-                    ch: det.get_cable_delay(station_id, ch) / units.ns
-                    for ch in range(24)
-                }
-            cable_delays = {ch: self._cable_delay_cache[station_id][ch] for ch in channels}
-        else:
-            cable_delays = {ch: 0.0 for ch in channels}
-        
         # Check if cached data exists, otherwise compute on-the-fly
         if station_id in self._station_delay_matrices:
             # Use cached data
@@ -376,7 +352,7 @@ class interferometricDirectionReconstruction():
                 config['coord_system'], config['fixed_coord'], config['rec_type'],
             )
             delay_matrices = self._get_t_delay_matrices(
-                station_id, config, src_posn_enu_matrix, self.ant_locs, cable_delays
+                station_id, config, src_posn_enu_matrix, self.ant_locs
             )
             logger.debug("Computed delay_matrices count=%d for station %s (on-the-fly)", len(delay_matrices), station_id)
 
@@ -474,7 +450,6 @@ class interferometricDirectionReconstruction():
                 'event_id': evt.get_id(),
                 'run_number': evt.get_run_number(),
                 'channels': channels,
-                'cable_delays': cable_delays
             }
             with open(delay_save_path, 'wb') as f:
                 pickle.dump(debug_data, f)
