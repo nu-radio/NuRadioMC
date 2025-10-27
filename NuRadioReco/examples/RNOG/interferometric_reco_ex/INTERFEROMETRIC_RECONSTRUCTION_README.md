@@ -5,7 +5,7 @@ This module performs directional reconstruction of radio signals by fitting time
 ## Files in this Directory
 
 - **`interferometric_reco_example.py`**: Main reconstruction script with preprocessing options
-- **`correlation_map_plotter.py`**: Standalone script for plotting saved correlation maps
+- **`correlation_map_plotter.py`**: Standalone script for plotting saved correlation maps with comprehensive visualization options
 - **`example_config.yaml`**: Example configuration file with all available options
 - **`INTERFEROMETRIC_RECONSTRUCTION_README.md`**: This documentation file
 
@@ -22,7 +22,7 @@ The reconstruction uses several NuRadioReco utility modules:
 
 - **`NuRadioReco.utilities.caching_utilities`**: Caching system for delay matrices
   - Automatically caches computed delay matrices in `~/.cache/nuradio_delay_matrices/`
-  - Cache key based on station, channels, grid parameters, and cable delays
+  - Cache key based on station, channels, grid parameters, and interpolation method
   - Significantly speeds up repeated runs with same configuration
 
 ## Overview
@@ -77,7 +77,7 @@ You **must** have pre-calculated time delay tables for your station and channels
 
 ### 0. Try the Example First
 
-To quickly see the reconstruction in action, before even looking at setting it up yourself in the next steps, you can use the provided example files like so:
+To quickly see the reconstruction in action, before even looking at setting it up yourself in the next steps, you can use the provided example file (combined.root in the /data/reconstruction/ directory on the Chicago server) and pre-generated tables (in /data/reconstruction/travel_times_analytic/) after downloading them to this directory like so:
 
 ```bash
 # Run reconstruction with example config and data
@@ -94,7 +94,7 @@ python correlation_map_plotter.py \
     --minimaps
 ```
 
-This should reproduce the example figure shown in `example_station21_run476_evt7_corrmap.png` at "./figures/station21/run476/". The "combined.root" file used to reproduce this is from a calibration pulsing run with pulser on helper string C, which is near Vpol channels 22 and 23, so we exclude those channels due to saturation.
+This should reproduce the example figure shown at `/data/reconstruction/example_station21_run476_evt7_corrmap.png` at "./figures/station21/run476/". The "combined.root" file used to reproduce this is from a calibration pulsing run with pulser on helper string C, which is near Vpol channels 22 and 23, so we exclude those channels due to saturation.
 
 ### 1. Create a Configuration File
 
@@ -135,13 +135,15 @@ station_id: 21
 # Path to time delay tables directory
 time_delay_tables: "/path/to/time_delay_tables/"
 
+# Interpolation method for time delay tables (optional - defaults to 'linear')
+interp_method: "linear"          # Options: 'linear' or 'nearest'
+
 # Output directory settings (optional - will use defaults if not specified)
 save_results_to: "./results/"    # Base directory for all reconstruction data (default: "./results/")
                                  # Structure: {base}/station{ID}/run{NUM}/reco_data/ (results)
                                  #           {base}/station{ID}/run{NUM}/corr_map_data/ (correlation maps)
 
 # Signal processing options
-apply_cable_delays: true          # Apply cable delay corrections
 apply_upsampling: true           # Upsample waveforms to 5 GHz
 apply_bandpass: false             # Apply bandpass filter
 apply_cw_removal: false           # Remove CW interference
@@ -201,7 +203,19 @@ python correlation_map_plotter.py --input results/station21/run476/corr_map_data
 
 # Custom output directory
 python correlation_map_plotter.py --input map.pkl --output custom_figures/
+
+# Create comprehensive plot with waveforms and event information
+python correlation_map_plotter.py \
+    --input results/station21/run476/corr_map_data/station21_run476_evt7_corrmap.pkl \
+    --comprehensive results/station21/run476/reco_data/station21_run476_reco_results.h5 \
+    --minimaps
 ```
+
+The `--comprehensive` option creates a multi-panel visualization including:
+- Correlation map with reconstruction results
+- Ray path visualization showing signal propagation
+- Event information table with reconstruction parameters
+- Waveform grid showing all channels used in reconstruction
 
 ---
 
@@ -232,7 +246,6 @@ python correlation_map_plotter.py --input map.pkl --output custom_figures/
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `apply_cable_delays` | bool | `true` | Apply cable delay corrections |
 | `apply_upsampling` | bool | `false` | Upsample to 5 GHz |
 | `apply_bandpass` | bool | `false` | Apply 100-600 MHz bandpass filter |
 | `apply_cw_removal` | bool | `false` | Remove CW interference |
@@ -243,6 +256,7 @@ python correlation_map_plotter.py --input map.pkl --output custom_figures/
 | `save_results_to` | string | `"./results/"` | Base directory for organized output structure |
 | `cw_freq_band` | list[float] | `[0.1, 0.7]` | CW removal frequency band (GHz) |
 | `cw_peak_prominence` | float | `4.0` | CW peak detection threshold |
+| `interp_method` | string | `"linear"` | Interpolation method: 'linear' or 'nearest' |
 
 ---
 
@@ -262,7 +276,6 @@ step_sizes: [0.5, 0.5]           # 0.5° in φ, 0.5m in z
 fixed_coord: 125.0               # ρ = 125m
 station_id: 23
 time_delay_tables: "/path/to/tables/"
-apply_cable_delays: true
 ```
 
 ```bash
@@ -318,7 +331,6 @@ fixed_coord: 125.0
 station_id: 23
 time_delay_tables: "/path/to/tables/"
 
-apply_cable_delays: true
 apply_upsampling: true           # Upsample to 5 GHz
 apply_cw_removal: true           # Remove CW interference
 apply_hann_window: false         # Apply Hann window to correlations
@@ -326,6 +338,59 @@ use_hilbert_envelope: false      # Use Hilbert envelope for correlations
 find_alternate_reco: true        # Find alternate reconstruction coordinates
 alternate_exclude_radius_deg: 5.0 # Exclusion radius around primary (degrees)
 ```
+
+---
+
+## Visualizing Results
+
+### Basic Correlation Map Plots
+
+The `correlation_map_plotter.py` script can create standalone correlation map visualizations:
+
+```bash
+# Plot a single correlation map
+python correlation_map_plotter.py --input station21_run476_evt7_corrmap.pkl
+
+# Plot all maps in a directory
+python correlation_map_plotter.py --input results/station21/run476/corr_map_data/
+
+# Enable minimap insets (zoomed views around peaks)
+python correlation_map_plotter.py --input map.pkl --minimaps
+
+# Plot specific pattern
+python correlation_map_plotter.py --input results/ --pattern "*run476*" --minimaps
+```
+
+### Comprehensive Event Visualization
+
+For detailed event analysis, use the `--comprehensive` flag to create multi-panel plots combining:
+- **Correlation map** with reconstruction results including alternate coordinates if enabled during the reconstruction
+- **Ray path visualization** showing signal propagation from vertex to antennas
+- **Event information table** with truth values from simulations
+- **Waveform grid** displaying all channels used in reconstruction
+
+```bash
+python correlation_map_plotter.py \
+    --input results/station21/run476/corr_map_data/station21_run476_evt7_corrmap.pkl \
+    --comprehensive results/station21/run476/reco_data/station21_run476_reco_results.h5 \
+    --minimaps
+```
+
+**Requirements for comprehensive plots:**
+- Correlation map pickle file (saved with `--save_maps`)
+- Reconstruction results HDF5 file (contains event metadata and data filename)
+- Access to original data file (for waveform extraction)
+
+### Channel Pair Correlation Grids
+
+If you saved pairwise correlation maps with `--save_pair_maps`, you can visualize all channel pair correlations:
+
+```bash
+python correlation_map_plotter.py \
+    --pair-grid results/station21/run476/corr_map_data/pairwise_maps/
+```
+
+This creates a grid showing individual correlation maps for each antenna pair.
 
 ---
 
@@ -576,6 +641,43 @@ alternate_exclude_radius_deg: 5.0 # Exclusion radius around primary maximum
 
 When enabled, alternate coordinates are saved in the HDF5 output as `phi_alt`, `z_alt`, etc., and displayed in plots.
 
+### Simulation Truth Fixed Coordinate (for NUR simulation files only)
+
+When processing NUR simulation files, you can use the `--sim_truth_fixed_coord` flag to automatically set the fixed coordinate to the true simulation value for each event. This is useful for validation and debugging reconstruction performance:
+
+```bash
+python interferometric_reco_example.py \
+    --config config.yaml \
+    --inputfile simulation.nur \
+    --sim_truth_fixed_coord \
+    --verbose
+```
+
+**How it works:**
+- For **phiz** reconstruction (fixed ρ): Uses true perpendicular distance from simulation vertex to PA center
+- For **rhoz** reconstruction (fixed φ): Uses true azimuth from PA center to simulation vertex
+- For **spherical** reconstruction (fixed r): Uses true radial distance from PA center to simulation vertex
+
+**Important notes:**
+- Only works with NUR simulation files that contain shower information (`event.get_sim_showers()`)
+- The fixed coordinate is calculated **per-event** from the true interaction vertex
+- Delay matrix caching is disabled when using this flag (since fixed_coord varies per event)
+- This mode is primarily for validation - it tells you "if I knew the correct fixed coordinate, how well could I reconstruct the other coordinates?"
+
+**Example use case:**
+To test if your phiz reconstruction can accurately find azimuth and depth when given the true radius:
+
+```bash
+python interferometric_reco_example.py \
+    --config phiz_config.yaml \
+    --inputfile some_sim_file.nur \
+    --sim_truth_fixed_coord \
+    --save-maps \
+    --verbose
+```
+
+This will reconstruct φ and z for each event using the true ρ value, allowing you to isolate reconstruction errors in the free parameters.
+
 ### Signal Processing Options
 
 Additional correlation analysis options:
@@ -589,7 +691,7 @@ use_hilbert_envelope: true       # Use envelope correlation for better SNR
 
 The module uses `NuRadioReco.utilities.caching_utilities` to automatically cache delay matrices:
 - **Cache location:** `~/.cache/nuradio_delay_matrices/`
-- **Cache key:** Generated from station ID, channels, grid parameters, and cable delay settings
+- **Cache key:** Generated from station ID, channels, grid parameters, and interpolation method
 - **Behavior:** Automatically loads from cache if available, significantly speeding up repeated runs
 - **Cache management:** To force regeneration, delete the cache directory or specific cache files
 
