@@ -15,7 +15,7 @@ Example:
 
 import argparse
 from datetime import datetime
-import os
+import os, sys
 import yaml
 import gc
 import time
@@ -110,6 +110,7 @@ def main():
                        help="Specific run numbers to process.")
 
     parser.add_argument("--sim_truth_fixed_coord", action="store_true")
+    parser.add_argument("--ignore_cache", action="store_true")
     parser.add_argument("--save-maps", action="store_true",
                        help="Save correlation map data to pickle files for later plotting")
     parser.add_argument("--save-pair-maps", action="store_true",
@@ -133,6 +134,10 @@ def main():
 
     input_files = args.inputfile if isinstance(args.inputfile, list) else [args.inputfile]
     is_nur_file = input_files[0].endswith('.nur')
+    
+    if args.sim_truth_fixed_coord and not is_nur_file:
+        logging.error("Wrong file type! Expected a .nur file when sim_truth_fixed_coord passed.")
+        sys.exit(1)
     
     # Warn if --runs is used with ROOT files
     if args.runs is not None and not is_nur_file:
@@ -169,10 +174,10 @@ def main():
     # Pre-compute and cache delay matrices for this station/config combination
     # This significantly speeds up processing by loading cached data if available
     # Skip precomputation if using per-event fixed_coord (since it varies per event)
-    if not args.sim_truth_fixed_coord:
-        reco.begin(station_id=station_id, config=config, det=det)
+    if args.sim_truth_fixed_coord or args.ignore_cache:
+        print("Skipping delay matrix precomputation (using per-event fixed_coord)") if args.sim_truth_fixed_coord else print("Skipping delay matrix precomputation (ignore_cache arg passed)")
     else:
-        print("Skipping delay matrix precomputation (using per-event fixed_coord)")
+        reco.begin(station_id=station_id, config=config, det=det)
     
     # Handle both --events and --runs flags
     # For NUR files with --runs, we'll check run_number
@@ -255,7 +260,8 @@ def main():
                 event_station.remove_channel(ch_id)
             
             # Apply cable delay correction (subtract cable delays)
-            channel_add_cable_delay.run(event, event_station, det, mode='subtract')
+            if config.get('apply_cable_delay', True):
+                channel_add_cable_delay.run(event, event_station, det, mode='subtract')
             
             # # Apply optional preprocessing steps based on config
             # # Upsampling improves time resolution for correlation analysis
@@ -277,7 +283,7 @@ def main():
             event_config = config.copy()  
             if args.sim_truth_fixed_coord:
                 event_config['fixed_coord'] = get_sim_truth_fixed_coord(event_config, event, det)
-
+                    
             # Run interferometric direction reconstruction
             # Results are stored in station parameters (accessed below via get_parameter)
             corr_map_path = reco.run(event, event_station, det, event_config, 
@@ -436,7 +442,7 @@ def main():
     print(f"{'='*50}\n")
 
     if corr_map_path is not None:
-        print(f"To plot, do:\npython correlation_map_plotter.py --input {corr_map_path} --comprehensive {reco_results_path}")
+        print(f"To plot, do:\npython correlation_map_plotter.py --input {corr_map_path} --comprehensive {reco_results_path}") if is_nur_file else print(f"To plot, do:\npython correlation_map_plotter.py --input {corr_map_path}")
 
 if __name__ == "__main__":
     main()
