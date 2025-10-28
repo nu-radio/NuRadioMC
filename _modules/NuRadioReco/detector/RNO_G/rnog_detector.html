@@ -1607,26 +1607,27 @@
         <span class="k">if</span> <span class="n">response_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">signal_chain_dict</span> <span class="ow">or</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_key</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">measurement_components_list</span> <span class="o">=</span> <span class="n">signal_chain_dict</span><span class="p">[</span><span class="n">response_chain_key</span><span class="p">]</span>
 
+            <span class="c1">#### This HACK was introduced to handle the NuRadio placeholder measurements, which are not needed anymore. It has been commented out for archival purposes. ####</span>
             <span class="c1"># Here comes a HACK</span>
-            <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;collection&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">measurement_components_list</span><span class="p">]</span>
-            <span class="n">is_equal</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="s2">&quot;drab_board&quot;</span> <span class="ow">in</span> <span class="n">components</span> <span class="ow">and</span> <span class="s2">&quot;iglu_board&quot;</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
-                <span class="n">is_equal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
-                    <span class="n">measurement_components_list</span><span class="p">[</span><span class="n">components</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;drab_board&quot;</span><span class="p">)][</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span>
-                    <span class="n">measurement_components_list</span><span class="p">[</span><span class="n">components</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;iglu_board&quot;</span><span class="p">)][</span><span class="s2">&quot;mag&quot;</span><span class="p">])</span>
+            <span class="c1"># components = [entry[&quot;collection&quot;] for entry in measurement_components_list]</span>
+            <span class="c1"># is_equal = False</span>
+            <span class="c1"># if &quot;drab_board&quot; in components and &quot;iglu_board&quot; in components:</span>
+            <span class="c1">#     is_equal = np.allclose(</span>
+            <span class="c1">#         measurement_components_list[components.index(&quot;drab_board&quot;)][&quot;mag&quot;],</span>
+            <span class="c1">#         measurement_components_list[components.index(&quot;iglu_board&quot;)][&quot;mag&quot;])</span>
 
-                <span class="k">if</span> <span class="n">is_equal</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Station.channel </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">: Currently both, &quot;</span>
-                        <span class="s2">&quot;iglu and drab board are configured in the signal chain but their &quot;</span>
-                        <span class="s2">&quot;responses are the same (because we measure them together in the lab). &quot;</span>
-                        <span class="s2">&quot;Skip the drab board response.&quot;</span><span class="p">)</span>
+            <span class="c1">#     if is_equal:</span>
+            <span class="c1">#         self.logger.warning(</span>
+            <span class="c1">#             f&quot;Station.channel {station_id}.{channel_id}: Currently both, &quot;</span>
+            <span class="c1">#             &quot;iglu and drab board are configured in the signal chain but their &quot;</span>
+            <span class="c1">#             &quot;responses are the same (because we measure them together in the lab). &quot;</span>
+            <span class="c1">#             &quot;Skip the drab board response.&quot;)</span>
 
             <span class="n">responses</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">component_entry</span> <span class="ow">in</span> <span class="n">measurement_components_list</span><span class="p">:</span>
                 <span class="c1"># Skip drab_board if its equal with iglu (see warning above)</span>
-                <span class="k">if</span> <span class="n">is_equal</span> <span class="ow">and</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;collection&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;drab_board&quot;</span><span class="p">:</span>
-                    <span class="k">continue</span>
+                <span class="c1"># if is_equal and component_entry[&quot;collection&quot;] == &quot;drab_board&quot;:</span>
+                <span class="c1">#     continue</span>
 
                 <span class="k">if</span> <span class="n">component_entry</span><span class="p">[</span><span class="s1">&#39;collection&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;gain_calibration&quot;</span><span class="p">:</span>
                     <span class="n">ydata</span> <span class="o">=</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;gain_factor&quot;</span><span class="p">]</span>
