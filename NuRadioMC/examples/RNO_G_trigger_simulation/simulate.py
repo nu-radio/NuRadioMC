@@ -367,7 +367,6 @@ if __name__ == "__main__":
             write_events=False,
             seed=root_seed + args.index,
             interaction_type=args.interaction_type,
-            cross_sections_model='ctw'
         )
     else:
         input_data = args.neutrino_file
