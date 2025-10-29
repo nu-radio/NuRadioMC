@@ -924,26 +924,27 @@ class Detector():
         if response_key not in signal_chain_dict or signal_chain_dict[response_key] is None:
             measurement_components_list = signal_chain_dict[response_chain_key]
 
+            #### This HACK was introduced to handle the NuRadio placeholder measurements, which are not needed anymore. It has been commented out for archival purposes. ####
             # Here comes a HACK
-            components = [entry["collection"] for entry in measurement_components_list]
-            is_equal = False
-            if "drab_board" in components and "iglu_board" in components:
-                is_equal = np.allclose(
-                    measurement_components_list[components.index("drab_board")]["mag"],
-                    measurement_components_list[components.index("iglu_board")]["mag"])
+            # components = [entry["collection"] for entry in measurement_components_list]
+            # is_equal = False
+            # if "drab_board" in components and "iglu_board" in components:
+            #     is_equal = np.allclose(
+            #         measurement_components_list[components.index("drab_board")]["mag"],
+            #         measurement_components_list[components.index("iglu_board")]["mag"])
 
-                if is_equal:
-                    self.logger.warning(
-                        f"Station.channel {station_id}.{channel_id}: Currently both, "
-                        "iglu and drab board are configured in the signal chain but their "
-                        "responses are the same (because we measure them together in the lab). "
-                        "Skip the drab board response.")
+            #     if is_equal:
+            #         self.logger.warning(
+            #             f"Station.channel {station_id}.{channel_id}: Currently both, "
+            #             "iglu and drab board are configured in the signal chain but their "
+            #             "responses are the same (because we measure them together in the lab). "
+            #             "Skip the drab board response.")
 
             responses = []
             for component_entry in measurement_components_list:
                 # Skip drab_board if its equal with iglu (see warning above)
-                if is_equal and component_entry["collection"] == "drab_board":
-                    continue
+                # if is_equal and component_entry["collection"] == "drab_board":
+                #     continue
 
                 if component_entry['collection'] == "gain_calibration":
                     ydata = component_entry["gain_factor"]
