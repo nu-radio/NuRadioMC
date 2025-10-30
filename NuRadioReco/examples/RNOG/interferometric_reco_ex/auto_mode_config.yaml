@@ -1,0 +1,35 @@
+# AUTO MODE CONFIGURATION
+# This config uses automatic two-stage reconstruction:
+# Stage 1: rhoz reconstruction to find optimal radial distance and depth
+# Stage 2: spherical reconstruction using the distance from stage 1
+
+# FOR ADDITIONAL DETAILS ABOUT CONFIG SETTINGS, SEE THE README
+time_delay_tables: "tables/"  # tables for particular station must be at time_delay_tables path followed by station{station_id}
+
+station_id: 21
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
+
+# AUTO MODE: Two-stage reconstruction
+mode: "auto"
+
+# Stage 2 configuration
+# coord_system and rec_type will be set automatically for stage 1
+coord_system: "spherical"
+rec_type: "phitheta"
+
+limits: [0, 360, 0, 180]     # Stage 1: [rho_min, rho_max, z_min, z_max] in meters
+step_sizes: [0.5, 0.5]      # Stage 1 step sizes (rho, z) in meters
+
+# Signal processing options (apply to both stages)
+apply_upsampling: true
+apply_cw_removal: true
+use_hilbert_envelope: true
+apply_bandpass: false
+apply_hann_window: false
+interp_method: "linear"
+
+find_alternate_reco: true
+alternate_exclude_radius_deg: 20.0
+
+# Output directory settings
+save_results_to: "results/"
