@@ -82,7 +82,7 @@ The core reconstruction functionality is implemented in the NuRadioReco module:
 ### Pre-calculated Time Delay Tables
 You **must** have pre-calculated time delay tables for your station and channels. These are `.npz` files containing travel time information for each channel.
 
-**Location:** Tables should be in: `{time_delay_tables}/station{station_id}/ch{channel}_rz_table_rel_ant.npz`
+**Location:** Tables should be in: `{time_delay_tables}/station{station_id}/st{station}_ch{channel}_rz_table.npz`
 
 **Format:** Each table is a 2D grid of travel times as a function of (r, z) coordinates:
 - **r**: perpendicular distance from the antenna (relative)
@@ -122,7 +122,7 @@ python correlation_map_plotter.py \
     --minimaps
 ```
 
-This should reproduce the example figure shown at `/data/reconstruction/example_plots/station21_run476_evt7_corrmap.png` on the Chicago server. The "combined.root" file used to reproduce this is from a calibration pulsing run with pulser on helper string C, which is near Vpol channels 22 and 23, so we exclude those channels due to saturation.
+This should reproduce the example figure shown at `/data/reconstruction/example_plots/station21_run476_evt7_corrmap_phiz.png` on the Chicago server. The "combined.root" file used to reproduce this is from a calibration pulsing run with pulser on helper string C.
 
 ### 1. Create a Configuration File
 

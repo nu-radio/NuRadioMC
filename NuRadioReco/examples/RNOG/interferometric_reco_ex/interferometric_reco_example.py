@@ -131,13 +131,14 @@ def main():
     
     # Pre-load cable delays for all channels
     # This triggers the detector's internal buffering/caching mechanism
-    print("Pre-loading cable delays for station", station_id)
+    print("Pre-loading cable delays for station...", station_id)
     for ch in range(24):  # RNO-G has 24 channels per station
         try:
             _ = det.get_cable_delay(station_id, ch)
         except:
             pass  # Some channels may not exist in detector description
-        
+    print("Done!\n")
+    
     reco.begin(station_id=station_id, config=config, det=det, use_cache=args.use_cache)
     
     events_to_process = set(args.events) if args.events is not None else None

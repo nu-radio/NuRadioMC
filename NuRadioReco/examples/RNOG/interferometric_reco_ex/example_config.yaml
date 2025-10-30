@@ -9,7 +9,7 @@ rec_type: "phiz"
 
 limits: [0, 360, -200, 0]
 step_sizes: [0.5, 0.5]
-fixed_coord: 0
+fixed_coord: 34
 
 # Additional OPTIONAL arguments (block offsets and voltage calibration automatically handled by ReadRNOGDataMattak)
 apply_upsampling: true
