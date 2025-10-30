@@ -25,6 +25,18 @@ from NuRadioReco.utilities.interferometry_io_utilities import (
     load_correlation_map,
     determine_plot_output_path
 )
+from NuRadioReco.modules.io.eventReader import eventReader
+from NuRadioReco.detector.RNO_G import rnog_detector
+from NuRadioReco.modules.channelResampler import channelResampler
+from NuRadioReco.modules.channelBandPassFilter import channelBandPassFilter
+from NuRadioReco.modules.channelSinewaveSubtraction import channelSinewaveSubtraction
+from NuRadioReco.modules.channelAddCableDelay import channelAddCableDelay
+from NuRadioReco.framework.parameters import particleParameters
+from NuRadioReco.framework.parameters import showerParameters
+from NuRadioReco.framework.parameters import generatorAttributes
+
+import h5py
+from ray_path import plot_ray_paths
 
 plt.rcParams.update({
     'font.size': 18,
@@ -243,7 +255,7 @@ class CorrelationMapPlotter:
                     f"St: {station_id}, run(s) {run_number}, "
                     + f"event: {event_number}, "
                     + f"ch(s): {channels}\n"
-                    + f"r $\\equiv$ {fixed_coord}m"
+                    + f"r $\\equiv$ {fixed_coord:.2f}m"
                 ),
             )
         else:
@@ -253,7 +265,7 @@ class CorrelationMapPlotter:
                         f"St: {station_id}, run(s): {run_number}, "
                         + f"event: {event_number}, "
                         + f"ch(s): {channels}\n"
-                        + f"$\\rho\\equiv$ {fixed_coord}m"
+                        + f"$\\rho\\equiv$ {fixed_coord:.2f}m"
                     ),
                 )
             else:  # rhoz
@@ -262,7 +274,7 @@ class CorrelationMapPlotter:
                         f"Station: {station_id}, run(s): {run_number}, "
                         + f"event: {event_number}, "
                         + f"ch's: {channels}, "
-                        + f"$\\phi\\equiv$ {fixed_coord}°"
+                        + f"$\\phi\\equiv$ {fixed_coord:.2f}°"
                     ),
                 )
         
@@ -479,7 +491,6 @@ class CorrelationMapPlotter:
             print("Error: No correlation map data loaded")
             return None
         
-        import h5py
         
         map_data = self.map_data
         station_id = map_data['station_id']
@@ -555,18 +566,33 @@ class CorrelationMapPlotter:
         vertex_position_3d = None  # Will hold 3D vertex position for ray tracing
         
         # Read event and extract both waveforms and metadata in one pass
-        if data_filename is not None and data_filename.endswith('.nur'):
+        is_nur_file = data_filename.endswith('.nur')
+        is_root_file = data_filename.endswith('.root')
+        
+        if data_filename is not None and (is_nur_file or is_root_file):
             try:
-                # Use eventReader to properly read NUR files
-                reader = eventReader()
-                reader.begin(data_filename)
+                # Use appropriate reader for file type
+                if is_nur_file:
+                    reader = eventReader()
+                    reader.begin(data_filename)
+                elif is_root_file:
+                    from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
+                    reader = readRNOGData()
+                    reader.begin(data_filename, mattak_kwargs={'backend': 'uproot'})
                 
                 # Find the matching event
                 evt = None
                 for event_candidate in reader.run():
-                    if event_candidate.get_run_number() == run_number:
-                        evt = event_candidate
-                        break
+                    if is_nur_file:
+                        # For NUR files, match by run number
+                        if event_candidate.get_run_number() == run_number:
+                            evt = event_candidate
+                            break
+                    elif is_root_file:
+                        # For ROOT files, match by event number (event ID)
+                        if event_candidate.get_id() == event_number:
+                            evt = event_candidate
+                            break
                 
                 if evt is not None:
                     # Initialize detector
@@ -575,8 +601,8 @@ class CorrelationMapPlotter:
                     
                     station = evt.get_station(station_id)
                     
-                    # Extract simulation metadata for info panel
-                    if station.has_sim_station():
+                    # Extract simulation metadata for info panel (only for NUR files)
+                    if is_nur_file and station.has_sim_station():
                         for sim_shower, particle in zip(evt.get_sim_showers(), evt.get_particles()):
                             try:
                                 lgE = sim_shower.get_parameter(showerParameters.energy)
@@ -638,6 +664,17 @@ class CorrelationMapPlotter:
                                 print(f"Warning: Could not extract shower parameters: {e}")
                                 table_data = [['Error', 'Could not extract parameters']]
                             break
+                    elif is_root_file:
+                        # For ROOT files (real data), create minimal table with file info
+                        table_header = os.path.basename(data_filename)
+                        table_data = [
+                            ['File Type', 'Station', 'Run', 'Event'],
+                            ['ROOT (Real Data)', f'{station_id}', f'{run_number}', f'{event_number}']
+                        ]
+                        # No simulation truth for ROOT files
+                        vertex_extra_points = []
+                        vertex_position_3d = None
+                        vertex_position_2d = None
                     
                     # Apply processing modules (same as interferometric_reco_example.py)
                     # Get config from correlation map for processing settings
@@ -718,16 +755,18 @@ class CorrelationMapPlotter:
                             ax_wf.grid(True, alpha=0.3)
                     
                 else:
-                    print(f"Warning: Could not find event with run_number {run_number}")
+                    file_type_msg = "NUR" if is_nur_file else "ROOT"
+                    print(f"Warning: Could not find event {event_number} (run {run_number}) in {file_type_msg} file")
                     ax_wf = fig.add_subplot(gs[2, :])
-                    ax_wf.text(0.5, 0.5, f'Event not found in NUR file', 
+                    ax_wf.text(0.5, 0.5, f'Event not found in {file_type_msg} file', 
                             ha='center', va='center', transform=ax_wf.transAxes)
                     ax_wf.axis('off')
                 
                 reader.end()
             
             except Exception as e:
-                print(f"Warning: Could not process NUR file: {e}")
+                file_type_msg = "NUR" if is_nur_file else "ROOT"
+                print(f"Warning: Could not process {file_type_msg} file: {e}")
                 import traceback
                 traceback.print_exc()
                 ax_wf = fig.add_subplot(gs[2, :])
@@ -735,10 +774,14 @@ class CorrelationMapPlotter:
                         ha='center', va='center', transform=ax_wf.transAxes)
                 ax_wf.axis('off')
         else:
-            # No NUR file provided or file is HDF5, show placeholder
+            # No data file provided or unsupported file type, show placeholder
             ax_wf = fig.add_subplot(gs[2, :])
-            ax_wf.text(0.5, 0.5, 'Waveforms unavailable (NUR file required)', 
-                    ha='center', va='center', transform=ax_wf.transAxes)
+            if data_filename is None:
+                ax_wf.text(0.5, 0.5, 'No data file available for waveform display', 
+                        ha='center', va='center', transform=ax_wf.transAxes)
+            else:
+                ax_wf.text(0.5, 0.5, f'Unsupported file type: {os.path.splitext(data_filename)[1]}\n(Only .nur and .root files supported)', 
+                        ha='center', va='center', transform=ax_wf.transAxes)
             ax_wf.axis('off')
         
         # Now plot correlation map with true vertex location
@@ -820,14 +863,14 @@ class CorrelationMapPlotter:
                     f"St: {station_id}, run(s): {run_number}, "
                     f"event: {event_number}, "
                     f"ch(s): {channels}\n"
-                    f"$\\rho\\equiv$ {fixed_coord}m"
+                    f"$\\rho\\equiv$ {fixed_coord:.2f}m"
                 )
             else:  # rhoz
                 title_text = (
                     f"Station: {station_id}, run(s): {run_number}, "
                     f"event: {event_number}, "
                     f"ch's: {channels}, "
-                    f"$\\phi\\equiv$ {fixed_coord}°"
+                    f"$\\phi\\equiv$ {fixed_coord:.2f}°"
                 )
         
         fig.suptitle(title_text, fontweight='bold', y=0.99)
@@ -918,7 +961,7 @@ class CorrelationMapPlotter:
             Path to save the output plot
         waveform_data : dict, optional
             Dictionary mapping channel IDs to (times, voltages) tuples
-        """
+        """        
         # Determine if we're plotting waveforms
         plot_waveforms = waveform_data is not None and len(waveform_data) > 0
         
@@ -1117,7 +1160,6 @@ class CorrelationMapPlotter:
         str
             Path to saved plot file
         """
-        import glob
         
         # Find all pair correlation map files
         pair_files = glob.glob(os.path.join(pair_map_dir, "*.pkl"))
@@ -1481,17 +1523,6 @@ def main():
             )
             
             if args.comprehensive:
-                from ray_path import plot_ray_paths
-                from NuRadioReco.modules.io.eventReader import eventReader
-                from NuRadioReco.modules.channelResampler import channelResampler
-                from NuRadioReco.modules.channelBandPassFilter import channelBandPassFilter
-                from NuRadioReco.modules.channelSinewaveSubtraction import channelSinewaveSubtraction
-                from NuRadioReco.modules.channelAddCableDelay import channelAddCableDelay
-                from NuRadioReco.detector.RNO_G import rnog_detector
-                from NuRadioReco.framework.parameters import particleParameters
-                from NuRadioReco.framework.parameters import showerParameters
-                from NuRadioReco.framework.parameters import generatorAttributes
-                
                 # Create comprehensive plot with waveforms
                 saved_path = plotter.plot_comprehensive(args.comprehensive)
                 if args.verbose and saved_path:
