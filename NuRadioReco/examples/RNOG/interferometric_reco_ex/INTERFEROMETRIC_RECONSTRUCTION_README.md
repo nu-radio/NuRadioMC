@@ -4,10 +4,32 @@ This module performs directional reconstruction of radio signals by fitting time
 
 ## Files in this Directory
 
-- **`interferometric_reco_example.py`**: Main reconstruction script with preprocessing options
+- **`interferometric_reco_example.py`**: Simple reconstruction script with core functionality (recommended starting point)
+- **`interferometric_reco_example_advanced.py`**: Advanced reconstruction script with additional features:
+  - SNR-based channel filtering (`--snr-threshold`)
+  - Edge signal detection (`--edge-sigma`)
+  - Two-stage automatic reconstruction (`mode: 'auto'` in config)
+  - Helper channel validation for quality control
 - **`correlation_map_plotter.py`**: Standalone script for plotting saved correlation maps with comprehensive visualization options
 - **`example_config.yaml`**: Example configuration file with all available options
 - **`INTERFEROMETRIC_RECONSTRUCTION_README.md`**: This documentation file
+
+### Which Script Should I Use?
+
+**Use `interferometric_reco_example.py` (simple version) if:**
+- You're new to the reconstruction module
+- You want straightforward event processing
+- Your data is clean and doesn't need quality filtering
+- You're processing calibration pulser data or high-quality events
+
+**Use `interferometric_reco_example_advanced.py` (advanced version) if:**
+- You need automatic channel quality filtering based on SNR
+- You want to detect and exclude channels with cut-off signals at trace edges
+- You want fully automatic two-stage reconstruction (finds distance first, then direction)
+- You're processing noisy data or need robust event-level quality cuts
+- You want to skip events where no helper channels pass quality thresholds
+
+Both scripts share the same configuration file format and output structures. The simple version is documented in the Quick Start section below, while the advanced features are detailed in the [Advanced Options](#advanced-options) section.
 
 ## Supporting Modules
 
@@ -45,6 +67,12 @@ The core reconstruction functionality is implemented in the NuRadioReco module:
 - [Coordinate Systems](#coordinate-systems)
 - [Time Delay Tables](#time-delay-tables)
 - [Advanced Options](#advanced-options)
+  - [SNR-Based Channel Filtering](#snr-based-channel-filtering)
+  - [Edge Signal Detection](#edge-signal-detection)
+  - [Two-Stage Automatic Reconstruction](#two-stage-automatic-reconstruction)
+  - [Alternate Reconstruction](#alternate-reconstruction)
+  - [Signal Processing Options](#signal-processing-options)
+  - [Caching](#caching)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -233,7 +261,7 @@ The `--comprehensive` option creates a multi-panel visualization including:
 | `channels` | list[int] | Antenna channels to use | `[0, 1, 2, 3]` |
 | `limits` | list[float] | Search grid bounds [min0, max0, min1, max1] | `[0, 360, -200, 0]` |
 | `step_sizes` | list[float] | Grid step sizes [step0, step1] | `[5, 5]` |
-| `fixed_coord` | float | Value of fixed coordinate | `125.0` |
+| `fixed_coord` | float | Value of fixed coordinate (not needed if `mode: 'auto'`) | `125.0` |
 | `time_delay_tables` | string | Path to time delay tables directory | `"/path/to/tables/"` |
 | `station_id` | int | Station ID for processing | `21` |
 
@@ -249,6 +277,7 @@ The `--comprehensive` option creates a multi-panel visualization including:
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
+| `mode` | string | `"manual"` | **Advanced script only.** Reconstruction mode: `"manual"` (standard single-stage) or `"auto"` (two-stage automatic). See [Two-Stage Automatic Reconstruction](#two-stage-automatic-reconstruction) |
 | `apply_cable_delay` | bool | `true` | Apply cable delay correction. **WARNING:** Only disable if using preprocessed data with cable delays already removed! |
 | `apply_upsampling` | bool | `false` | Upsample to 5 GHz |
 | `apply_bandpass` | bool | `false` | Apply 100-600 MHz bandpass filter |
@@ -634,7 +663,174 @@ travel_time = raytracer.get_travel_time(src_position, antenna_position)
 
 ## Advanced Options
 
+### SNR-Based Channel Filtering
+
+**Available in:** `interferometric_reco_example_advanced.py` only
+
+The advanced script can automatically filter out low-SNR channels and skip events with insufficient signal quality.
+
+**Usage:**
+```bash
+python interferometric_reco_example_advanced.py \
+    --config config.yaml \
+    --inputfile data.root \
+    --snr-threshold 2.0 \
+    --verbose
+```
+
+**How it works:**
+1. Calculates SNR for each channel
+2. Drops channels below the specified threshold
+3. Checks if at least one "helper channel" (channels 9, 10, 22, or 23) passes the threshold
+4. Skips the entire event if no helper channels pass (indicates poor event quality)
+
+**Helper channels:** Channels 9, 10, 22, 23 are on the so-called 'Helper' strings that are separate from the primary 'Power' string that the phased array antennas that are responsible for our trigger are on. At least one must have good SNR for reliable azimuthal reconstruction.
+
+**Example output:**
+```
+Processing event 42:
+  Channel SNRs: {0: 1.2, 1: 5.1, 2: 4.8, 3: 1.9, 9: 6.2, 10: 5.5}
+    Channel 0 DROPPED: SNR too low (SNR=1.20 < threshold=2.00)
+    Channel 3 DROPPED: SNR too low (SNR=1.90 < threshold=4.00)
+  Summary: 4 channel(s) passed SNR threshold: [1, 2, 9, 10]
+  Helper channels passing: [9, 10]
+  Running reconstruction with 4 channels...
+```
+
+---
+### Edge Signal Detection
+
+**Available in:** `interferometric_reco_example_advanced.py` only
+
+Detects and filters out channels where signals are cut off at the edges of the trace window. This can happen when very early/late arriving signals are partially outside the readout window.
+
+**Usage:**
+```bash
+python interferometric_reco_example_advanced.py \
+    --config config.yaml \
+    --inputfile data.root \
+    --edge-sigma 3.0 \
+    --verbose
+```
+
+**How it works:**
+1. Divides each trace into chunks (default: 10 chunks)
+2. Calculates RMS for each chunk
+3. Compares edge chunk RMS to statistics from middle chunks
+4. Flags channel as edge signal if edge RMS > median(middle) + N×std(middle)
+5. Drops flagged channels from reconstruction
+6. Similar to the SNR threshold, skips event if no helper channels remain
+
+
+**Example output:**
+```
+Processing event 15:
+  Edge detection for channel 2:
+    First edge RMS: 12.3 mV, Last edge RMS: 45.8 mV
+    Middle chunks: median=8.2 mV, std=2.1 mV
+    Threshold: 14.5 mV
+    EDGE DETECTED (last edge high)
+  Summary: 1 channel(s) dropped due to edge signals: [2]
+  Summary: 3 channel(s) passed edge detection: [0, 1, 3]
+```
+
+**Combining with SNR filtering:**
+```bash
+python interferometric_reco_example_advanced.py \
+    --config config.yaml \
+    --inputfile data.root \
+    --snr-threshold 2.0 \
+    --edge-sigma 3.0 \
+    --verbose
+```
+
+Both filters are applied sequentially: first edge detection, then SNR filtering. This ensures only clean, high-quality channels are used for reconstruction.
+
+---
+
+### Two-Stage Automatic Reconstruction
+
+**Available in:** `interferometric_reco_example_advanced.py` only
+
+The two-stage automatic mode performs a fully automatic reconstruction without needing to specify a fixed coordinate. It works in two stages:
+
+1. **Stage 1 (rhoz mode):** Reconstruct perpendicular distance (ρ) and depth (z).
+2. **Stage 2 (spherical mode):** Using the radial distance calculated from stage 1's ρ and z value, reconstruct azimuth (φ) and zenith (θ) to find the direction.
+
+**Configuration:**
+```yaml
+# example_auto_config.yaml
+mode: "auto"  # Enable two-stage automatic reconstruction
+
+coord_system: "spherical"  # Final output will be in spherical coordinates
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10]
+step_sizes: [0.5, 0.5]  # Used in both stages
+station_id: 23
+time_delay_tables: "/path/to/tables/"
+
+# Note: fixed_coord is NOT needed in auto mode
+# limits will be set automatically for each stage
+```
+
+**Usage:**
+```bash
+python interferometric_reco_example_advanced.py \
+    --config example_auto_config.yaml \
+    --inputfile data.root \
+    --save-maps \
+    --verbose
+```
+
+**How it works:**
+
+**Stage 1 (rhoz reconstruction):**
+- Searches over: ρ = [0, 200] m, z = [-200, 0] m using power string antennas [0, 1, 2, 3, 5, 6, 7]
+- Fixed: φ = 0° (doesn't matter when using antennas on only 1 string like we are here)
+- Finds: Best-fit perpendicular distance and depth
+- Calculates: Radial distance r = √(ρ² + z²) from phased array center
+
+**Stage 2 (spherical reconstruction):**
+- Searches over: φ = [0, 360]°, θ = [0, 180]°
+- Fixed: r = result from stage 1
+- Finds: Best-fit azimuth and zenith angles
+- This is the final reconstruction output
+
+**Example output:**
+```
+[AUTO MODE] Stage 1: Running rhoz reconstruction to find optimal distance...
+[AUTO MODE] Stage 1 results: rho=125.3m, z_abs=-87.2m, z_rel_PA=-89.5m, r=153.7m, maxCorr=0.847
+[AUTO MODE] Stage 2: Running spherical reconstruction with fixed r=153.7m...
+[AUTO MODE] Stage 2 results: phi=182.4°, theta=54.2°, maxCorr=0.863
+
+=== Reconstruction Results ===
+Station: 23
+phi: 182.400°
+theta: 54.200°
+maxCorr: 0.863
+surfCorr: 0.145
+===============================
+```
+
+**When to use auto mode:**
+- You don't know the approximate source distance
+- You want fully automatic processing without parameter tuning
+- You're scanning large datasets and want consistent methodology
+
+**When to use manual mode:**
+- You know the approximate source distance (e.g., calibration pulsers)
+- You want to test specific geometric hypotheses
+- You need to scan a specific region in detail
+- You want to avoid the computational cost of two-stage reconstruction
+
+**Performance notes:**
+- Stage 1 uses a fixed grid (ρ: 0-200m, z: -200-0m) with power string channels [0, 1, 2, 3, 5, 6, 7]
+- Correlation maps saved with `--save-maps` are from the final stage only (spherical)
+
+---
+
 ### Alternate Reconstruction
+
+**Available in:** Both simple and advanced scripts
 
 The module can find alternate reconstruction coordinates by excluding regions around the primary maximum:
 
@@ -643,17 +839,70 @@ find_alternate_reco: true        # Enable alternate coordinate finding
 alternate_exclude_radius_deg: 5.0 # Exclusion radius around primary maximum
 ```
 
-When enabled, alternate coordinates are saved in the HDF5 output as `phi_alt`, `z_alt`, etc., and displayed in plots.
+When enabled, alternate coordinates are saved in the HDF5 output as `phi_alt`, `z_alt`, etc., and displayed in plots. This is useful for:
+- Identifying ambiguous reconstructions with multiple correlation peaks
+- Understanding reconstruction uncertainties
+- Detecting multi-path propagation scenarios
 
-### Simulation Truth Fixed Coordinate (for NUR simulation files only)
+---
 
-When processing NUR simulation files, you can use the `--sim_truth_fixed_coord` flag to automatically set the fixed coordinate to the true simulation value for each event. This is useful for validation and debugging reconstruction performance:
+### Signal Processing Options
+
+**Available in:** Both simple and advanced scripts
+
+Additional correlation analysis options:
+
+```yaml
+apply_hann_window: true          # Apply Hann window to reduce spectral leakage
+use_hilbert_envelope: true       # Use envelope correlation for better SNR
+```
+
+**Hann window:** Reduces edge effects in correlation by tapering the trace edges.
+
+**Hilbert envelope:** Uses signal envelope instead of raw waveform for correlation. Can improve reconstruction when:
+- SNR is low
+- Phase information is unreliable
+
+---
+
+### Caching
+
+**Available in:** Both simple and advanced scripts
+
+The module uses `NuRadioReco.utilities.caching_utilities` to automatically cache delay matrices:
+- **Cache location:** `~/.cache/nuradio_delay_matrices/`
+- **Cache key:** Generated from station ID, channels, grid parameters, and interpolation method
+- **Behavior:** Automatically loads from cache if available, significantly speeding up repeated runs
+- **Cache management:** To force regeneration, delete the cache directory (by default at ~/.cache/nuradio) or specific cache files
+
+The cache is particularly beneficial when:
+- Running the same configuration multiple times with a single fixed coordinate
+- Testing different preprocessing options with the same reconstruction grid
+
+**Enabling the time delay matrices cache:**
+
+Use the `--use-cache` flag to enable caching (both scripts default to no cache):
 
 ```bash
 python interferometric_reco_example.py \
     --config config.yaml \
+    --inputfile data.root \
+    --use-cache 1
+```
+
+---
+
+### Simulation Truth Fixed Coordinate (NUR files only)
+
+**Available in:** `interferometric_reco_example_advanced.py` only
+
+When processing NUR simulation files, you can use the `--sim-truth-fixed-coord` flag to automatically set the fixed coordinate to the true simulation value for each event. This is useful for validation and debugging reconstruction performance:
+
+```bash
+python interferometric_reco_example_advanced.py \
+    --config config.yaml \
     --inputfile simulation.nur \
-    --sim_truth_fixed_coord \
+    --sim-truth-fixed-coord \
     --verbose
 ```
 
@@ -672,50 +921,66 @@ python interferometric_reco_example.py \
 To test if your phiz reconstruction can accurately find azimuth and depth when given the true radius:
 
 ```bash
-python interferometric_reco_example.py \
+python interferometric_reco_example_advanced.py \
     --config phiz_config.yaml \
     --inputfile some_sim_file.nur \
-    --sim_truth_fixed_coord \
+    --sim-truth-fixed-coord \
     --save-maps \
     --verbose
 ```
 
 This will reconstruct φ and z for each event using the true ρ value, allowing you to isolate reconstruction errors in the free parameters.
 
-### Signal Processing Options
+---
 
-Additional correlation analysis options:
+### Combining Advanced Features
 
-```yaml
-apply_hann_window: true          # Apply Hann window to reduce spectral leakage
-use_hilbert_envelope: true       # Use envelope correlation for better SNR
-```
+**Available in:** `interferometric_reco_example_advanced.py` only
 
-### Caching
-
-The module uses `NuRadioReco.utilities.caching_utilities` to automatically cache delay matrices:
-- **Cache location:** `~/.cache/nuradio_delay_matrices/`
-- **Cache key:** Generated from station ID, channels, grid parameters, and interpolation method
-- **Behavior:** Automatically loads from cache if available, significantly speeding up repeated runs
-- **Cache management:** To force regeneration, delete the cache directory or specific cache files
-
-The cache is particularly beneficial when:
-- Running the same configuration multiple times
-- Processing multiple events from the same station/run
-- Testing different preprocessing options with the same reconstruction grid
-
-**Bypassing the cache for debugging:**
-
-If you need to force recalculation of delay matrices (e.g., after updating time delay tables or for debugging), use the `--ignore_cache` flag:
+All advanced features can be combined for robust, fully automatic processing:
 
 ```bash
-python interferometric_reco_example.py \
-    --config config.yaml \
+# Fully automatic processing with quality filters
+python interferometric_reco_example_advanced.py \
+    --config auto_config.yaml \
     --inputfile data.root \
-    --ignore_cache
+    --snr-threshold 2.0 \
+    --edge-sigma 3.0 \
+    --save-maps \
+    --verbose
 ```
 
-This will recompute delay matrices from scratch even if cached versions exist. The newly computed matrices will still be saved to cache for future use.
+**Configuration file (auto_config.yaml):**
+```yaml
+mode: "auto"                     # Two-stage automatic reconstruction
+coord_system: "spherical"        # Final output coordinate system
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]  # Include helper channels
+step_sizes: [0.5, 0.5]
+station_id: 23
+time_delay_tables: "/path/to/tables/"
+
+# Signal processing
+apply_upsampling: true
+apply_cw_removal: true
+apply_hilbert_envelope: true
+apply_bandpass: false
+interp_method: "linear"
+
+# Alternate reconstruction
+find_alternate_reco: true
+alternate_exclude_radius_deg: 20.0
+```
+
+**Processing flow:**
+1. Load event and apply signal processing (upsampling, CW removal, etc.)
+2. **Edge detection:** Drop channels with signals at trace edges
+3. **SNR filtering:** Drop low-SNR channels, check helper channel requirement
+4. If quality checks pass:
+   - **Stage 1 (rhoz):** Find optimal perpendicular distance and depth
+   - **Stage 2 (spherical):** Find direction using perpendicular distance and depth from stage 1
+   - **Alternate reco:** Find second-best correlation peak in case of azimuthal degeneracy from only 2/3 strings seeing signals
+5. Save results and correlation maps
+```
 
 ### Parallel Processing
 
@@ -743,29 +1008,53 @@ python interferometric_reco_example.py \
 - Check that event IDs exist in input file
 - For `.nur` files, use run numbers (not event IDs)
 - Remove `--events` flag to process all events
+- If using `--snr-threshold` or `--edge-sigma`, try lowering thresholds or disabling filters
+- Check if all events are being skipped due to failed helper channel criteria
 
 ### No clear maximum correlation
 **Cause:** Poor signal quality, wrong channels, or incorrect grid.
 
 **Solutions:**
-- Check SNR of event (use quality cuts)
+- Check SNR of event (use quality cuts with `--snr-threshold` in advanced script)
 - Verify channel selection
 - Adjust search grid (`limits`, `step_sizes`)
-- Try different `fixed_coord` value
+- Try different `fixed_coord` value, or use `mode: 'auto'` (advanced script)
 - Consider using `use_hilbert_envelope: true` for better correlation
+- Check for edge signals with `--edge-sigma` (advanced script)
 
 ### Slow performance
 **Cause:** Large search grids or missing cache.
 
 **Solutions:**
 - Use coarser grid (`step_sizes`)
+- Enable caching with `--use-cache` if you're repeating the reconstruction with the same config many times
 - Let cache build (first run is slower)
 - Process fewer events at once
-- Check cache is being used: look for "Loaded delay matrices from cache" message
+- For advanced script in auto mode: expect ~2× slower than manual mode
+
+### "Invalid mode" or "mode must be 'manual' or 'auto'"
+**Cause:** (Advanced script only) Config file has invalid `mode` parameter.
+
+**Solutions:**
+- Set `mode: "manual"` for standard single-stage reconstruction
+- Set `mode: "auto"` for two-stage automatic reconstruction
+- If omitted, defaults to `"manual"`
+- Only advanced script supports auto mode
+
+### Reconstruction fails with auto mode
+**Cause:** (Advanced script only) Stage 1 or stage 2 reconstruction failed.
+
+**Solutions:**
+- Check verbose output to see which stage failed
+- Verify time delay tables exist for all channels
+- Ensure channels list includes sufficient coverage (recommend: [0,1,2,3,5,6,7,9,10,22,23])
+- Try manual mode first to verify basic functionality
 
 ---
 
 ## Command-Line Arguments Reference
+
+### Simple Script (`interferometric_reco_example.py`)
 
 ```bash
 python interferometric_reco_example.py [OPTIONS]
@@ -776,14 +1065,43 @@ Required:
 
 Optional:
   --output_type {hdf5,nur}     Output format (default: hdf5)
-  --outputfile FILE            Manually specify output file path (overrides organized structure)
-  --events N [N ...]           Specific event IDs/indices to process
-  --runs N [N ...]             Specific run numbers to process (NUR files only)
-  --sim_truth_fixed_coord      Use simulation truth for fixed coordinate (NUR files only)
-  --ignore_cache               Force recalculation of delay matrices (ignore cached data)
-  --save-maps                  Save correlation map data to pickle files
-  --save-pair-maps             Save individual channel pair correlation maps
-  --verbose                    Print reconstruction results for each event
+  --outputfile FILE            Manually specify output file path
+  --events N [N ...]           Specific event IDs to process
+  --runs N [N ...]             Specific run numbers (NUR files only)
+  --use-cache                  Enable delay matrix caching
+  --save-maps                  Save correlation map data
+  --save-pair-maps             Save channel pair correlation maps
+  --verbose                    Print results for each event
+```
+
+### Advanced Script (`interferometric_reco_example_advanced.py`)
+
+```bash
+python interferometric_reco_example_advanced.py [OPTIONS]
+
+Required:
+  --config CONFIG              Path to YAML configuration file
+  --inputfile FILE [FILE ...]  Input data file(s) (.root or .nur)
+
+Optional:
+  --output_type {hdf5,nur}     Output format (default: hdf5)
+  --outputfile FILE            Manually specify output file path
+  --events N [N ...]           Specific event IDs to process
+  --runs N [N ...]             Specific run numbers (NUR files only)
+  --use-cache                  Enable delay matrix caching
+  --save-maps                  Save correlation map data
+  --save-pair-maps             Save channel pair correlation maps
+  --verbose                    Print results for each event
+
+Advanced Options:
+  --snr-threshold FLOAT        SNR threshold for channel filtering
+                               Drops channels below threshold
+                               Skips event if no helper channels [9,10,22,23] pass
+  --edge-sigma FLOAT           Edge signal detection threshold (in std devs)
+                               Drops channels with signals at trace edges
+                               Skips event if no helper channels remain
+  --sim-truth-fixed-coord      Use simulation truth for fixed coordinate
+                               (NUR simulation files only, for validation)
 ```
 
 ---
