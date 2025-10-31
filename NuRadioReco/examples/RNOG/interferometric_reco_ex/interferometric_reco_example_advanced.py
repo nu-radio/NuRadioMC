@@ -23,9 +23,12 @@ import numpy as np
 import logging
 
 from NuRadioReco.utilities.logging import set_general_log_level
-# Set NuRadioReco logging level (INFO=20, DEBUG=10)
+# Set general logging to WARNING to suppress noisy packages
 set_general_log_level(logging.WARNING)
+# But set INFO level for the specific modules we want to see
+logging.getLogger("NuRadioReco.utilities.interferometry_io_utilities").setLevel(logging.INFO)
 logger = logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction")
+logger.setLevel(logging.INFO)
 
 from NuRadioReco.utilities import units
 from NuRadioReco.modules.channelResampler import channelResampler
@@ -326,6 +329,67 @@ def filter_channels_by_snr(event_station, channels, snr_threshold, helper_channe
             print(f"  WARNING: No helper channels [{','.join(map(str, helper_channels))}] passed SNR threshold")
     
     return passing_channels, should_skip_event
+
+def run_plane_wave_fallback(reco, event, event_station, det, config, save_maps, save_pair_maps, save_maps_to):
+    """
+    Run plane wave fallback reconstruction when only one string has signal.
+    
+    Uses only channels [0, 1, 2, 3] with spherical coordinates, fixed radius of 10m,
+    and sweeps zenith from 0-180° at azimuth=0° (1D correlation map).
+    
+    Parameters
+    ----------
+    reco : interferometricDirectionReconstruction
+        Reconstruction module instance
+    event : Event
+        NuRadioReco Event object
+    event_station : Station
+        Station object from event
+    det : Detector
+        Detector object
+    config : dict
+        Configuration dictionary
+    save_maps : bool
+        Whether to save correlation maps
+    save_pair_maps : bool
+        Whether to save pair correlation maps
+    save_maps_to : str
+        Directory to save maps
+        
+    Returns
+    -------
+    corr_map_path : str
+        Path to saved correlation map
+    """
+    
+    logger.info("[PLANE WAVE FALLBACK] Using channels [0,1,2,3] with fixed r=10m, azimuth=0°, scanning zenith 0-180°")
+    
+    # Create fallback config: spherical, channels 0-3, fixed r=10m, azimuth=0°, sweep zenith
+    fallback_config = config.copy()
+    fallback_config['channels'] = [0, 1, 2, 3]
+    fallback_config['coord_system'] = 'spherical'
+    fallback_config['rec_type'] = 'phitheta'
+    fallback_config['fixed_coord'] = 10.0  # 10 meter radius (encompasses all 4 channels)
+    fallback_config['limits'] = [0, 0, 0, 180]  # Azimuth fixed at 0°, zenith 0-180°
+    # Keep step_sizes from original config (only zenith step matters)
+    fallback_config['find_alternate_reco'] = False  # No alternate for 1D scan
+        
+    # Run reconstruction
+    corr_map_path = reco.run(event, event_station, det, fallback_config,
+                             save_maps=save_maps, save_pair_maps=save_pair_maps,
+                             save_maps_to=save_maps_to)
+    
+    # Extract results
+    zenith_best = event_station.get_parameter(stnp.rec_coord1) / units.deg
+    final_max_corr = event_station.get_parameter(stnp.rec_max_correlation)
+    
+    logger.info(f"[PLANE WAVE FALLBACK] Results: zenith={zenith_best:.1f}°, maxCorr={final_max_corr:.3f}")
+    
+    # Override azimuth to NaN to mark this as a plane wave reconstruction
+    event_station.set_parameter(stnp.rec_azimuth, np.nan * units.deg)
+    event_station.set_parameter(stnp.rec_coord0, np.nan * units.deg)
+    
+    return corr_map_path
 
 def run_two_stage_reconstruction(reco, event, event_station, det, config, pa_pos_abs, save_maps, save_pair_maps, save_maps_to):
     """
@@ -649,9 +713,13 @@ def main():
                 )
                 
                 if len(channels_to_use) < 2:
-                    print(f"  Skipping event {event_id} (run {run_number}): Fewer than 2 channels after edge filtering ({len(channels_to_use)} channels)")
-                    n_skipped += 1
-                    continue
+                    # Check if plane wave fallback is enabled before skipping
+                    if not config.get('plane_wave_fallback', False):
+                        print(f"  Skipping event {event_id} (run {run_number}): Fewer than 2 channels after edge filtering ({len(channels_to_use)} channels)")
+                        n_skipped += 1
+                        continue
+                    else:
+                        print(f"  Only {len(channels_to_use)} channel(s) after edge filtering - will attempt plane wave fallback")
 
             # Apply SNR filtering if threshold is specified
             if args.snr_threshold is not None:
@@ -666,29 +734,40 @@ def main():
                     verbose=args.verbose
                 )
                 
+                # Check skip conditions - either no helper channels or too few channels total
+                skip_reason = None
                 if should_skip:
-                    print(f"  Skipping event {event_id} (run {run_number}): No helper channels passed SNR threshold")
-                    n_skipped += 1
-                    continue
+                    skip_reason = "No helper channels passed SNR threshold"
+                elif len(passing_channels) < 2:
+                    skip_reason = f"Fewer than 2 channels passed SNR threshold ({len(passing_channels)} channels)"
                 
-                if len(passing_channels) < 2:
-                    print(f"  Skipping event {event_id} (run {run_number}): Fewer than 2 channels passed SNR threshold ({len(passing_channels)} channels)")
-                    n_skipped += 1
-                    continue
+                if skip_reason:
+                    if not config.get('plane_wave_fallback', False):
+                        print(f"  Skipping event {event_id} (run {run_number}): {skip_reason}")
+                        n_skipped += 1
+                        continue
+                    else:
+                        print(f"  {skip_reason} - will attempt plane wave fallback")
                 
                 channels_to_use = passing_channels
             
             # Check if we have at least one helper channel after all filtering
+            use_plane_wave_fallback = False
             if args.edge_sigma is not None or args.snr_threshold is not None:
                 helper_channels = [9, 10, 22, 23]
                 helper_channels_remaining = [ch for ch in helper_channels if ch in channels_to_use]
                 
                 if len(helper_channels_remaining) == 0:
-                    print(f"  Skipping event {event_id} (run {run_number}): No helper channels [{','.join(map(str, helper_channels))}] remaining after filtering")
-                    n_skipped += 1
-                    continue
+                    # Check if plane wave fallback is enabled
+                    if config.get('plane_wave_fallback', False):
+                        print(f"  [PLANE WAVE FALLBACK] No helper channels remaining - triggering fallback mode")
+                        use_plane_wave_fallback = True
+                    else:
+                        print(f"  Skipping event {event_id} (run {run_number}): No helper channels [{','.join(map(str, helper_channels))}] remaining after filtering")
+                        n_skipped += 1
+                        continue
                 
-                if args.verbose:
+                if args.verbose and not use_plane_wave_fallback:
                     print(f"  Using {len(channels_to_use)} channels for reconstruction: {channels_to_use}")
             
             # Create event-specific config with filtered channels
@@ -700,9 +779,15 @@ def main():
                 event_config['fixed_coord'] = get_sim_truth_fixed_coord(event_config, event, pa_pos_abs)
                     
             # Run interferometric direction reconstruction
-            # For auto mode: two-stage reconstruction (rhoz then spherical)
-            # For manual mode: single-stage with config parameters
-            if reco_mode == 'auto':
+            # Priority: plane wave fallback > auto mode > manual mode
+            if use_plane_wave_fallback:
+                corr_map_path = run_plane_wave_fallback(
+                    reco, event, event_station, det, event_config,
+                    save_maps=args.save_maps,
+                    save_pair_maps=args.save_pair_maps,
+                    save_maps_to=maps_dir if (args.save_maps or args.save_pair_maps) else None
+                )
+            elif reco_mode == 'auto':
                 corr_map_path = run_two_stage_reconstruction(
                     reco, event, event_station, det, event_config, pa_pos_abs,
                     save_maps=args.save_maps,
@@ -744,8 +829,9 @@ def main():
                 }
                 
                 # Determine which coordinate system the final results are in
-                # Auto mode always produces spherical results
-                final_coord_system = 'spherical' if reco_mode == 'auto' else config["coord_system"]
+                # Auto mode and plane wave fallback always produce spherical results
+                # Plane wave fallback: phi (azimuth) will be NaN, only theta (zenith) is meaningful
+                final_coord_system = 'spherical' if (reco_mode == 'auto' or use_plane_wave_fallback) else config["coord_system"]
                 
                 # Map generic coordinates to physical quantities based on coordinate system
                 if final_coord_system == "cylindrical":
