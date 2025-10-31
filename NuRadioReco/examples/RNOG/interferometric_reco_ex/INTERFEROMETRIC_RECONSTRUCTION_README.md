@@ -71,8 +71,10 @@ The core reconstruction functionality is implemented in the NuRadioReco module:
   - [Edge Signal Detection](#edge-signal-detection)
   - [Two-Stage Automatic Reconstruction](#two-stage-automatic-reconstruction)
   - [Alternate Reconstruction](#alternate-reconstruction)
+  - [Plane Wave Fallback](#plane-wave-fallback)
   - [Signal Processing Options](#signal-processing-options)
   - [Caching](#caching)
+- [Logging Configuration](#logging-configuration)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -278,6 +280,7 @@ The `--comprehensive` option creates a multi-panel visualization including:
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `mode` | string | `"manual"` | **Advanced script only.** Reconstruction mode: `"manual"` (standard single-stage) or `"auto"` (two-stage automatic). See [Two-Stage Automatic Reconstruction](#two-stage-automatic-reconstruction) |
+| `plane_wave_fallback` | bool | `false` | **Advanced script only.** Enable plane wave fallback reconstruction when only one string has signal. See [Plane Wave Fallback](#plane-wave-fallback) |
 | `apply_cable_delay` | bool | `true` | Apply cable delay correction. **WARNING:** Only disable if using preprocessed data with cable delays already removed! |
 | `apply_upsampling` | bool | `false` | Upsample to 5 GHz |
 | `apply_bandpass` | bool | `false` | Apply 100-600 MHz bandpass filter |
@@ -846,6 +849,63 @@ When enabled, alternate coordinates are saved in the HDF5 output as `phi_alt`, `
 
 ---
 
+### Plane Wave Fallback
+
+**Available in:** `interferometric_reco_example_advanced.py` only
+
+When processing cosmic ray or neutrino events, you may encounter cases where only the antennas on one string (the power string with channels 0-3) detect a signal, while helper string antennas see only noise. In these cases, standard multi-string reconstruction fails because it requires signals on multiple strings for accurate azimuthal reconstruction.
+
+The plane wave fallback mode provides a backup reconstruction strategy for these single-string events by:
+1. Using only power string channels [0, 1, 2, 3]
+2. Performing a 1D zenith angle scan (0° to 180°) with azimuth fixed at 0°
+3. Assuming a plane wave approximation with fixed radius of 10m (encompassing all 4 antennas)
+
+**Configuration:**
+```yaml
+plane_wave_fallback: true    # Enable plane wave fallback mode (default: false)
+```
+
+**Triggering conditions:**
+
+Plane wave fallback is automatically triggered when:
+- SNR filtering is enabled (`--snr-threshold`) AND no helper channels [9, 10, 22, 23] pass the threshold
+- Edge filtering is enabled (`--edge-sigma`) AND no helper channels remain after filtering
+- Both conditions apply if using both filters
+
+**Example:**
+```bash
+python interferometric_reco_example_advanced.py \
+    --config config_with_fallback.yaml \
+    --inputfile data.root \
+    --snr-threshold 2.0 \
+    --verbose
+```
+
+**Output characteristics:**
+- **Azimuth (φ)**: Set to `NaN` to mark fallback reconstructions
+- **Zenith (θ)**: Reconstructed value from 1D scan
+- **Filtering in analysis**: Easy to identify fallback events with `df[np.isnan(df['phi'])]`
+
+**Example output:**
+```
+Processing event 42:
+  Channel SNRs: {0: 3.2, 1: 4.1, 2: 3.8, 3: 2.9, 9: 1.5, 10: 1.3, 22: 1.7, 23: 1.4}
+    Channel 9 DROPPED: SNR too low (SNR=1.50 < threshold=2.00)
+    Channel 10 DROPPED: SNR too low (SNR=1.30 < threshold=2.00)
+    Channel 22 DROPPED: SNR too low (SNR=1.70 < threshold=2.00)
+    Channel 23 DROPPED: SNR too low (SNR=1.40 < threshold=2.00)
+  No helper channels passed SNR threshold - will attempt plane wave fallback
+  [PLANE WAVE FALLBACK] No helper channels remaining - triggering fallback mode
+[PLANE WAVE FALLBACK] Using channels [0,1,2,3] with fixed r=10m, azimuth=0°, scanning zenith 0-180°
+[PLANE WAVE FALLBACK] Results: zenith=52.5°, maxCorr=0.783
+```
+
+**Analysis considerations:**
+- Fallback reconstructions have `phi=NaN` for easy filtering
+- Zenith angles are still meaningful and can provide useful directional information
+
+---
+
 ### Signal Processing Options
 
 **Available in:** Both simple and advanced scripts
@@ -999,7 +1059,88 @@ python interferometric_reco_example.py \
     --output_type hdf5
 ```
 
+---
+
+## Logging Configuration
+
+**Available in:** Both simple and advanced scripts
+
+By default, the scripts are configured to show only WARNING level messages from most packages, but INFO level messages from the reconstruction modules. This reduces clutter from detector loading, MongoDB connections, and other imported packages while keeping reconstruction progress visible. To reduce clutter even further, you can restrict the INFO level from the reconstruction modules to WARNING instead as well.
+
+**Current logging configuration** (in both scripts):
+```python
+from NuRadioReco.utilities.logging import set_general_log_level
+
+# Set general logging to WARNING to suppress noisy packages
+set_general_log_level(logging.WARNING)
+
+# But set INFO level for the specific modules we want to see
+logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction").setLevel(logging.INFO)
+logging.getLogger("NuRadioReco.utilities.interferometry_io_utilities").setLevel(logging.INFO)
+```
+
+**Logging Levels:**
+
+| Level | Code | What you see |
+|-------|------|--------------|
+| **DEBUG** | `logging.DEBUG` or `10` | Everything: detailed algorithm steps, intermediate values, cache hits |
+| **INFO** | `logging.INFO` or `20` | **Default for reconstruction:** Progress messages, stage results, fallback triggers |
+| **WARNING** | `logging.WARNING` or `30` | **Default for other packages:** Only warnings and errors |
+| **ERROR** | `logging.ERROR` or `40` | Only errors |
+
+**To see MORE detail** (e.g., for debugging):
+
+Edit the script to set DEBUG level for reconstruction:
+```python
+set_general_log_level(logging.WARNING)
+logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction").setLevel(logging.DEBUG)
+```
+
+You'll see additional messages like:
+```
+[DEBUG] Entering _correlator: 6 channel pairs, 6 delay matrices
+[DEBUG] Correlation matrix shape: (400, 721), max_corr: 0.863
+[DEBUG] Found delay matrices in memory cache for key abc123
+```
+
+**To see EVERYTHING** (very verbose, not recommended):
+
+```python
+set_general_log_level(logging.INFO)  # Show INFO from all packages
+```
+
+This will flood your output with detector queries, MongoDB connections, etc.:
+```
+[INFO] Query information for station 11 at 2022-10-01 00:00:00
+[INFO] Query information for station 12 at 2022-10-01 00:00:00
+[INFO] Query information for station 13 at 2022-10-01 00:00:00
+... (many lines)
+[INFO] Attempting to connect to the database ...
+[INFO] ... connection to RNOG_hardware_v0 established
+```
+
+**To see LESS** (only errors):
+
+```python
+set_general_log_level(logging.ERROR)
+logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction").setLevel(logging.ERROR)
+```
+
+**Recommended settings by use case:**
+
+| Use Case | General Level | Reconstruction Level | Notes |
+|----------|---------------|----------------------|-------|
+| **Normal processing** | WARNING | INFO | **Default** - balanced output |
+| **Debugging reconstruction** | WARNING | DEBUG | See detailed algorithm steps |
+| **Silent batch jobs** | ERROR | WARNING | Only critical messages |
+| **First-time users** | WARNING | INFO | Best for learning |
+| **Development** | WARNING | DEBUG | Understand internal behavior |
+
+---
+
 ## Troubleshooting
+
+**General debugging tip:** If you're having issues, try enabling DEBUG logging to see detailed information about what the reconstruction is doing. See the [Logging Configuration](#logging-configuration) section for details.
 
 ### "No results to save"
 **Cause:** No events matched the selection criteria or all events failed processing.
@@ -1010,11 +1151,13 @@ python interferometric_reco_example.py \
 - Remove `--events` flag to process all events
 - If using `--snr-threshold` or `--edge-sigma`, try lowering thresholds or disabling filters
 - Check if all events are being skipped due to failed helper channel criteria
+- **Advanced script only:** Enable `plane_wave_fallback: true` to recover single-string events instead of skipping them
 
 ### No clear maximum correlation
 **Cause:** Poor signal quality, wrong channels, or incorrect grid.
 
 **Solutions:**
+- **Enable DEBUG logging** to see correlation matrix details and intermediate values
 - Check SNR of event (use quality cuts with `--snr-threshold` in advanced script)
 - Verify channel selection
 - Adjust search grid (`limits`, `step_sizes`)
@@ -1029,6 +1172,7 @@ python interferometric_reco_example.py \
 - Use coarser grid (`step_sizes`)
 - Enable caching with `--use-cache` if you're repeating the reconstruction with the same config many times
 - Let cache build (first run is slower)
+- **Check DEBUG logging** to see if delay matrices are being computed or loaded from cache
 - Process fewer events at once
 - For advanced script in auto mode: expect ~2× slower than manual mode
 
@@ -1045,10 +1189,29 @@ python interferometric_reco_example.py \
 **Cause:** (Advanced script only) Stage 1 or stage 2 reconstruction failed.
 
 **Solutions:**
+- **Enable DEBUG logging** to see which stage failed and why
 - Check verbose output to see which stage failed
 - Verify time delay tables exist for all channels
 - Ensure channels list includes sufficient coverage (recommend: [0,1,2,3,5,6,7,9,10,22,23])
 - Try manual mode first to verify basic functionality
+
+### Too much logging output / Can't find my messages
+**Cause:** INFO level enabled for all packages, flooding output with detector queries and database connections.
+
+**Solutions:**
+- Check logging configuration at top of script
+- Default should be: `set_general_log_level(logging.WARNING)` with specific modules at INFO - set other modules to WARNING as well to restrict output
+- See [Logging Configuration](#logging-configuration) section for details
+- Don't set general level to INFO unless you need to debug package imports
+
+### Events being skipped that should have signal
+**Cause:** (Advanced script only) SNR or edge filtering too aggressive, no fallback enabled.
+
+**Solutions:**
+- Lower `--snr-threshold` or `--edge-sigma` values
+- Enable `plane_wave_fallback: true` in config to recover single-string events
+- Check helper channel SNRs with `--verbose` flag
+- Verify that at least one helper channel [9, 10, 22, 23] has good signal
 
 ---
 
