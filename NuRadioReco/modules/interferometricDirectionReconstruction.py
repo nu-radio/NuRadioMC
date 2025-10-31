@@ -96,7 +96,7 @@ class interferometricDirectionReconstruction():
     @staticmethod
     def _correlator(times, v_array_pairs, delay_matrices, apply_hann_window=False, use_hilbert=False):
         """Compute correlation between channel pairs given time delay matrices."""
-        logger.info("Entering _correlator: %d channel pairs, %d delay matrices", len(v_array_pairs), len(delay_matrices))
+        logger.debug("Entering _correlator: %d channel pairs, %d delay matrices", len(v_array_pairs), len(delay_matrices))
         volt_corrs = []
         time_lags_list = []
 
@@ -158,7 +158,7 @@ class interferometricDirectionReconstruction():
             valid_mask = ~np.isnan(time_delay)
             n_valid = np.count_nonzero(valid_mask)
             n_total = valid_mask.size
-            logger.info("Pair %d: delay matrix shape %s, valid samples %d/%d", pair_idx, np.shape(time_delay), n_valid, n_total)
+            logger.debug("Pair %d: delay matrix shape %s, valid samples %d/%d", pair_idx, np.shape(time_delay), n_valid, n_total)
 
             pair_corr_matrix = np.full_like(time_delay, np.nan)
 
@@ -181,7 +181,7 @@ class interferometricDirectionReconstruction():
         else:
             max_corr = np.nanmax(mean_corr_matrix)
 
-        logger.info("Exiting _correlator: mean_corr_matrix shape=%s, max_corr=%s", np.shape(mean_corr_matrix), str(max_corr))
+        logger.debug("Exiting _correlator: mean_corr_matrix shape=%s, max_corr=%s", np.shape(mean_corr_matrix), str(max_corr))
 
         return pair_corr_matrices, mean_corr_matrix, max_corr
 
@@ -315,7 +315,7 @@ class interferometricDirectionReconstruction():
             self._delay_matrix_cache[cache_key] = delay_matrices
 
         coord0_vec, coord1_vec = self._generate_coord_arrays(limits, step_sizes, coord_system, rec_type)        
-        logger.info("Generated coord arrays: coord0 length=%d, coord1 length=%d", len(coord0_vec), len(coord1_vec))
+        logger.debug("Generated coord arrays: coord0 length=%d, coord1 length=%d", len(coord0_vec), len(coord1_vec))
 
         self._station_delay_matrices[station_id] = {
             'coord0_vec': coord0_vec,
@@ -348,7 +348,7 @@ class interferometricDirectionReconstruction():
             config = self.load_config(config)
 
         station_id = station.get_id()
-        logger.info("Running interferometricDirectionReconstruction for station %s, event %s", station_id, evt.get_id())
+        logger.debug("Running interferometricDirectionReconstruction for station %s, event %s", station_id, evt.get_id())
         
         # Check if cached data exists, otherwise compute on-the-fly
         if station_id in self._station_delay_matrices:
@@ -376,7 +376,7 @@ class interferometricDirectionReconstruction():
             delay_matrices = self._get_t_delay_matrices(
                 station_id, config, src_posn_enu_matrix, self.ant_locs, interpolators=self._interpolators
             )
-            logger.info("Computed delay_matrices count=%d for station %s (on-the-fly)", len(delay_matrices), station_id)
+            logger.debug("Computed delay_matrices count=%d for station %s (on-the-fly)", len(delay_matrices), station_id)
 
         channels = config['channels']
         volt_arrays = []
@@ -388,14 +388,14 @@ class interferometricDirectionReconstruction():
             time_arrays.append(channel.get_times())
             
         v_array_pairs = list(itertools.combinations(volt_arrays, 2))
-        logger.info("Prepared %d voltage arrays and %d pairs for correlation", len(volt_arrays), len(v_array_pairs))
+        logger.debug("Prepared %d voltage arrays and %d pairs for correlation", len(volt_arrays), len(v_array_pairs))
 
         pair_corr_matrices, corr_matrix, max_corr = self._correlator(
             time_arrays, v_array_pairs, delay_matrices,
             apply_hann_window=config.get('apply_hann_window', False),
             use_hilbert=config.get('use_hilbert_envelope', False)
         )
-        logger.info("Correlation matrix shape: %s, max_corr: %s", np.shape(corr_matrix), str(max_corr))
+        logger.debug("Correlation matrix shape: %s, max_corr: %s", np.shape(corr_matrix), str(max_corr))
         
         
         rec_coord0, rec_coord1 = self._get_rec_locs_from_corr_map(
@@ -440,9 +440,9 @@ class interferometricDirectionReconstruction():
             print(f"rec type: {rec_type}")
             full_corr_map_save_path = save_correlation_map(corr_matrix, position_dict, evt=evt, config=config, save_dir=save_dir, **map_kwargs)
             print(f"full corr map save path: {full_corr_map_save_path}")
-            logger.info("Saved full correlation map to %s (event %s)", save_dir, evt.get_id())
+            logger.debug("Saved full correlation map to %s (event %s)", save_dir, evt.get_id())
 
-            logger.info("save_pair_maps flag = %s", save_pair_maps)
+            logger.debug("save_pair_maps flag = %s", save_pair_maps)
             if save_pair_maps:
                 pair_save_dir = os.path.join(save_dir, "pairwise_maps")
                 logger.info("Saving pair map data to: %s", pair_save_dir)
