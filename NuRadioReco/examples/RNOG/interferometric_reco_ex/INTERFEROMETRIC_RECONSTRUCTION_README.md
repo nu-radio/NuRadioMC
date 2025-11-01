@@ -523,6 +523,32 @@ Each `.pkl` file contains:
 
 These files can be visualized using `correlation_map_plotter.py` (see next section).
 
+**Retrieving the configuration from saved maps:**
+
+If you need to check what configuration was used to generate a correlation map (useful if you've forgotten your settings), you can load it back:
+
+```python
+from NuRadioReco.utilities.interferometry_io_utilities import load_correlation_map
+
+# Load the saved correlation map
+map_data = load_correlation_map('path/to/corrmap.pkl')
+
+# Extract the full config dictionary
+config = map_data['config']
+
+# Access any config parameter
+print(f"Coordinate system: {config['coord_system']}")
+print(f"Reconstruction type: {config['rec_type']}")
+print(f"Channels used: {config['channels']}")
+print(f"Grid limits: {config['limits']}")
+print(f"Step sizes: {config['step_sizes']}")
+print(f"Fixed coordinate: {config['fixed_coord']}")
+# ... and all other config parameters
+
+# or just list them all like so:
+print(config)
+```
+
 ---
 
 ## Visualizing Results
