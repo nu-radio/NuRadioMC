@@ -1,5 +1,5 @@
 from NuRadioReco.utilities import units, geometryUtilities
-from NuRadioMC.utilities import attenuation as attenuation_util, medium as ice_models
+from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
 
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
@@ -430,7 +430,7 @@ class ray_tracing_2D(ray_tracing_base):
                 self.__logger.warning('C++ raytracer is not available. Using Python raytracer.')
                 self.__logger.warning("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
 
-        if isinstance(medium, ice_models.uniform_ice):
+        if isinstance(medium, medium_util.uniform_ice):
             msg = ('Analytic raytracer does not work with a uniform ice model. '
                     'Abort.... ! Use direct raytracing or a non-uniform ice model instead.')
             self.__logger.error(msg)
@@ -2396,7 +2396,7 @@ class ray_tracing(ray_tracing_base):
         t_fast = base_trace.BaseTrace()
 
         ice_n = self._medium
-        ice_birefringence = ice_models.get_ice_model('birefringence_medium')
+        ice_birefringence = medium_util.get_ice_model('birefringence_medium')
         ice_birefringence.__init__(bire_model)
 
         acc = int(self.get_path_length(i_solution) / units.m)
@@ -2480,7 +2480,7 @@ class ray_tracing(ray_tracing_base):
         """
 
         ice_n = self._medium
-        ice_birefringence = ice_models.get_ice_model('birefringence_medium')
+        ice_birefringence = medium_util.get_ice_model('birefringence_medium')
         ice_birefringence.__init__(bire_model)
 
         acc = int(self.get_path_length(i_solution) / units.m)
