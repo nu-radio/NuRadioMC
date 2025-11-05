@@ -151,9 +151,7 @@ class readRNOGData:
         self.logger = logging.getLogger('NuRadioReco.RNOG.readRNOGData')
         self.logger.setLevel(log_level)
 
-        self._blockoffsetfitter = channelBlockOffsets()
-
-        # Initialize run table for run selection
+        self._blockoffsetfitter = None
         self.__run_table = None
 
         if load_run_table:
@@ -297,6 +295,9 @@ class readRNOGData:
         self._apply_baseline_correction = apply_baseline_correction.lower()
         self._convert_to_voltage = convert_to_voltage
 
+        if self._apply_baseline_correction != 'none':
+            self._blockoffsetfitter = channelBlockOffsets()
+
         # Temporary solution hard-coded values from Cosmin. Only used when uncalibrated data
         # is read and convert_to_voltage is True.
         self._adc_ref_voltage_range = 2.5 * units.volt
@@ -338,8 +339,10 @@ class readRNOGData:
         self.__invalid = 0
 
         self._events_information = None
-        self._datasets = []
+        self._datasets_paths = []
         self.__n_events_per_dataset = []
+        self._runs = []
+        self._stations = []
 
         if not isinstance(dirs_files, (list, np.ndarray)):
             dirs_files = [dirs_files]
@@ -350,7 +353,8 @@ class readRNOGData:
         self.__n_runs = 0
 
         # Set verbose for mattak
-        verbose = mattak_kwargs.pop("verbose", self.logger.level <= logging.DEBUG)
+        self._verbose = mattak_kwargs.pop("verbose", self.logger.level <= logging.DEBUG)
+        self._mattak_kwargs = mattak_kwargs
 
         for dir_file in dirs_files:
 
@@ -365,7 +369,7 @@ class readRNOGData:
                     continue
 
             try:
-                dataset = mattak.Dataset.Dataset(station=0, run=0, data_path=dir_file, verbose=verbose, **mattak_kwargs)
+                dataset = self.__get_dataset(dir_file)
             except (ReferenceError, KeyError) as e:
                 self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n", exc_info=e)
                 continue
@@ -376,10 +380,12 @@ class readRNOGData:
                 continue
 
             self.__n_runs += 1
-            self._datasets.append(dataset)
+            self._datasets_paths.append(dir_file)
             self.__n_events_per_dataset.append(dataset.N())
+            self._runs.append(dataset.run)
+            self._stations.append(dataset.station)
 
-        if not len(self._datasets):
+        if not len(self._datasets_paths):
             err = "Found no valid datasets. Stop!"
             self.logger.error(err)
             raise FileNotFoundError(err)
@@ -389,14 +395,46 @@ class readRNOGData:
         self._n_events_total = np.sum(self.__n_events_per_dataset)
         self._time_begin = time.time() - t0
 
-        self.logger.info(f"{self._n_events_total} events in {len(self._datasets)} runs/datasets "
-                         f"have been found using the {self._datasets[0].backend} Mattak backend.")
+        self.logger.info(f"{self._n_events_total} events in {len(self._datasets_paths)} runs/datasets "
+                         f"have been found using the {dataset.backend} Mattak backend.")
 
         if not self._n_events_total:
             err = "No runs have been selected. Abort ..."
             self.logger.error(err)
             raise ValueError(err)
 
+    def get_run_numbers(self):
+        """ Get run numbers of the datasets which are read in """
+        return np.array(self._runs)
+
+    def get_station_id(self, except_multiple_stations=False):
+        """ Get station ids of the datasets which are read in
+
+        By default returns a single unique station id. If multiple stations are found an error is raised.
+        If except_multiple_stations is set to True, all station ids are returned.
+
+        Parameters
+        ----------
+        except_multiple_stations: bool
+            If True, return all station ids (as np.array). If False (default), raise an error if multiple
+            stations are found.
+
+        Returns
+        -------
+        station_id: int or np.array
+            Station id(s) of the datasets which are read in.
+        """
+        station_ids = np.unique(self._stations)
+        if len(station_ids) > 1:
+            if not except_multiple_stations:
+                raise ValueError("Multiple stations found. Use get_station_id(except_multiple_stations=False) to get all station ids.")
+            return np.array(station_ids)
+        else:
+            return station_ids[0]
+
+    def __get_dataset(self, path):
+        """ Return a mattak.Dataset.Dataset object for a given path """
+        return mattak.Dataset.Dataset(station=0, run=0, data_path=path, verbose=self._verbose, **self._mattak_kwargs)
 
     def add_selectors(self, selectors, select_triggers=None):
         """
@@ -504,7 +542,7 @@ class readRNOGData:
         """
         # find correct dataset
         dataset_idx = np.digitize(event_idx, self._event_idxs_datasets)
-        dataset = self._datasets[dataset_idx]
+        dataset = self.__get_dataset(self._datasets_paths[dataset_idx])
 
         event_idx_in_dataset = event_idx - self.__get_n_events_of_prev_datasets(dataset_idx)
         dataset.setEntries(event_idx_in_dataset)  # increment iterator -> point to new event
@@ -584,7 +622,8 @@ class readRNOGData:
 
             self._events_information = {}
             n_prev = 0
-            for dataset in self._datasets:
+            for path in self._datasets_paths:
+                dataset = self.__get_dataset(path)
                 dataset.setEntries((0, dataset.N()))
 
                 for idx, evtinfo in enumerate(dataset.eventInfo()):  # returns a list
@@ -627,7 +666,9 @@ class readRNOGData:
 
         events_waveforms = []
 
-        for dataset in self._datasets:
+        for path in self._datasets_paths:
+            dataset = self.__get_dataset(path)
+
             dataset.setEntries((0, dataset.N()))
             if apply_baseline_correction in ['auto', 'fit', 'approximate']: # we need the sampling rate
                 try:
@@ -774,7 +815,8 @@ class readRNOGData:
         evt: `NuRadioReco.framework.event.Event`
         """
 
-        for dataset in self._datasets:
+        for path in self._datasets_paths:
+            dataset = self.__get_dataset(path)
             dataset.setEntries((0, dataset.N()))
 
             # read all event infos of the entire dataset (= run)
@@ -886,6 +928,9 @@ class readRNOGData:
                 f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s")
+
+        if self._blockoffsetfitter is not None:
+            self._blockoffsetfitter.end()
 
     def get_n_events(self):
         return self._n_events_total
