@@ -101,22 +101,53 @@ You **must** have pre-calculated time delay tables for your station and channels
 
 **Note:** The detector configuration is automatically loaded from the RNO-G MongoDB database. No detector JSON file is needed.
 
+### Optional: C++ Extension for Faster Performance
+
+The reconstruction can optionally use a C++ extension to compute delay matrices ~2x faster. This is **highly recommended** for processing large datasets.
+
+**Setup (one-time):**
+
+```bash
+# Navigate to the interferometric_reco_ex directory
+cd /path/to/NuRadioReco/examples/RNOG/interferometric_reco_ex/
+
+# Install pybind11 if not already installed
+pip install pybind11
+
+# Compile the C++ extension
+python setup.py build_ext --inplace
+```
+
+That's it! The module will automatically detect and use the C++ extension when available.
+
+**Verification:**
+
+Run any reconstruction - you should see this message:
+```
+WARNING - C++ extension loaded successfully - will use fast C++ implementation for building time delay matrices
+```
+
+If you see "C++ extension not found - using Python implementation" instead, the compilation failed.
+
+**Cluster Usage Note:**
+
+If you're using a SLURM cluster with different CPU types across nodes, the compiled binary should still work on all nodes without recompilation. The `setup.py` is configured to use generic x86-64 instructions that are compatible with all modern processors.
+
 ---
 
 ## Quick Start
 
 ### 0. Try the Example First
 
-To quickly see the reconstruction in action, before even looking at setting it up yourself in the next steps, first download the provided calibration pulser root file at /data/reconstruction/validation_sets/cal_pulsers/station21/run476/combined.root and the pre-generated time tables (at least for station 21 since this pulser run is from it) from /data/reconstruction/travel_times_analytic/ from the Chicago server. Once you've downloaded the root file and time tables, you can run the example script like so (make sure if you download the tables to any location other than a tables/ dir in this directory to change the default time_delay_tables setting in the example_config.yaml to the new location; same for specifying the inputfile for combined.root below):
+To quickly see the reconstruction in action, before even looking at setting it up yourself in the next steps, first download the provided calibration pulser root file at /data/reconstruction/validation_sets/cal_pulsers/station21/run476/combined.root and the pre-generated time tables (at least for station 21 since this pulser run is from it) from /data/reconstruction/travel_times_analytic/ from the Chicago server. Once you've downloaded the root file and time tables, you can run the example script like so (make sure if you download the tables to any location other than a tables/ dir in this directory to change the default time_delay_tables setting in the example_config.yaml to the new location; same for specifying the input for combined.root below):
 
 ```bash
 # Run reconstruction with example config and data
 python interferometric_reco_example.py \
     --config example_config.yaml \
-    --inputfile combined.root \
+    --input combined.root \
     --events 7 \
     --save_maps \
-    --verbose
 
 # Plot the correlation map
 python correlation_map_plotter.py \
@@ -140,7 +171,7 @@ coord_system: "cylindrical"
 rec_type: "phiz"
 
 # Channels to use for reconstruction (list of antenna channel IDs)
-channels: [0, 1, 2, 3]
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
 
 # Search grid limits: [coord0_min, coord0_max, coord1_min, coord1_max]
 # Units depend on coordinate system:
@@ -198,7 +229,7 @@ cw_peak_prominence: 4.0          # Peak prominence threshold
 ```bash
 python interferometric_reco_example.py \
     --config reco_config.yaml \
-    --inputfile /path/to/data.root \
+    --input /path/to/data.root \
     --output_type hdf5
 ```
 
@@ -206,17 +237,16 @@ python interferometric_reco_example.py \
 ```bash
 python interferometric_reco_example.py \
     --config reco_config.yaml \
-    --inputfile /path/to/data.root \
+    --input /path/to/data.root \
     --events 7 10 15 \
     --save_maps \
-    --verbose
 ```
 
 **Multiple input files (same station):**
 ```bash
 python interferometric_reco_example.py \
     --config reco_config.yaml \
-    --inputfile file1.root file2.root file3.root \
+    --input file1.root file2.root file3.root \
     --output_type hdf5
 ```
 
@@ -300,16 +330,16 @@ The `--comprehensive` option creates a multi-panel visualization including:
 
 ### Example 1: Azimuth Reconstruction (phiz)
 
-Reconstruct azimuth and depth with fixed perpendicular distance of 125m:
+Reconstruct azimuth and depth with fixed perpendicular distance of 30m:
 
 ```yaml
 # config_phiz.yaml
 coord_system: "cylindrical"
 rec_type: "phiz"
-channels: [0, 1, 2, 3]
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
 limits: [0, 360, -200, 0]        # φ: 0-360°, z: 0 to -200m
 step_sizes: [0.5, 0.5]           # 0.5° in φ, 0.5m in z
-fixed_coord: 125.0               # ρ = 125m
+fixed_coord: 30.0               # ρ = 30m
 station_id: 23
 time_delay_tables: "/path/to/tables/"
 ```
@@ -317,7 +347,7 @@ time_delay_tables: "/path/to/tables/"
 ```bash
 python interferometric_reco_example.py \
     --config config_phiz.yaml \
-    --inputfile station23_run1234.root \
+    --input station23_run1234.root \
     --output_type hdf5
 ```
 
@@ -329,7 +359,7 @@ Reconstruct radius and depth with fixed azimuth:
 # config_rhoz.yaml
 coord_system: "cylindrical"
 rec_type: "rhoz"
-channels: [0, 1, 2, 3]
+channels: [0, 1, 2, 3, 5, 6, 7]
 limits: [0, 200, -200, 0]        # ρ: 0-200m, z: 0 to -200m
 step_sizes: [0.5, 0.5]           # 0.5m in both
 fixed_coord: 0.0                 # φ = 0° (east) - doesn't matter if only using antennas on power string
@@ -345,7 +375,7 @@ Reconstruct both azimuth and zenith with fixed distance:
 # config_spherical.yaml
 coord_system: "spherical"
 # rec_type not needed for spherical
-channels: [0, 1, 2, 3]
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
 limits: [0, 360, 0, 180]         # φ: 0-360°, θ: 0° (up) to 180° (down)
 step_sizes: [0.5, 0.2]           # 0.5° in φ, 0.2° in θ
 fixed_coord: 50.0               # r = 50m
@@ -358,21 +388,21 @@ time_delay_tables: "/path/to/tables/"
 Apply upsampling and CW removal:
 
 ```yaml
-coord_system: "cylindrical"
-rec_type: "phiz"
-channels: [0, 1, 2, 3]
-limits: [0, 360, -200, 0]
-step_sizes: [5, 5]
-fixed_coord: 125.0
+mode: "auto"
+coord_system: "spherical"
+rec_type: "phitheta"
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
+limits: [0, 360, 0, 180]
+step_sizes: [0.5, 0.5]
 station_id: 23
 time_delay_tables: "/path/to/tables/"
 
 apply_upsampling: true           # Upsample to 5 GHz
 apply_cw_removal: true           # Remove CW interference
 apply_hann_window: false         # Apply Hann window to correlations
-use_hilbert_envelope: false      # Use Hilbert envelope for correlations
+use_hilbert_envelope: true      # Use Hilbert envelope for correlations
 find_alternate_reco: true        # Find alternate reconstruction coordinates
-alternate_exclude_radius_deg: 5.0 # Exclusion radius around primary (degrees)
+alternate_exclude_radius_deg: 20.0 # Exclusion radius around primary (degrees)
 ```
 
 ---
@@ -419,7 +449,7 @@ python correlation_map_plotter.py \
 
 ### Channel Pair Correlation Grids
 
-If you saved pairwise correlation maps with `--save_pair_maps`, you can visualize all channel pair correlations:
+If you saved pairwise correlation maps with `--save-pair-maps`, you can visualize all channel pair correlations:
 
 ```bash
 python correlation_map_plotter.py \
@@ -427,6 +457,31 @@ python correlation_map_plotter.py \
 ```
 
 This creates a grid showing individual correlation maps for each antenna pair.
+
+### Visualizing Multi-Stage Reconstructions
+
+When using `--save-maps both` with auto mode reconstruction, you can visualize both stages side-by-side:
+
+```bash
+# First, run reconstruction with multi-stage map saving
+python interferometric_reco_example_advanced.py \
+    --config auto_config.yaml \
+    --input data.root \
+    --save-maps both
+
+# Then plot the multi-stage correlation maps (note: --multistage flag is required!)
+python correlation_map_plotter.py \
+    --input results/station23/run100/corr_map_data/station23_run100_evt5_corrmap_multistage.pkl \
+    --multistage
+```
+
+**Important:** The `--multistage` flag is required when plotting multi-stage correlation maps. Without it, the plotter will not recognize the multi-stage file format.
+
+This creates a two-panel plot showing:
+- **Left panel:** Stage 1 (rhoz) correlation map showing the distance and depth finding
+- **Right panel:** Stage 2 (spherical) correlation map showing the azimuth and zenith finding
+
+The plot titles show which channels and fixed coordinates were used in each stage.
 
 ---
 
@@ -702,9 +757,8 @@ The advanced script can automatically filter out low-SNR channels and skip event
 ```bash
 python interferometric_reco_example_advanced.py \
     --config config.yaml \
-    --inputfile data.root \
+    --input data.root \
     --snr-threshold 2.0 \
-    --verbose
 ```
 
 **How it works:**
@@ -737,9 +791,8 @@ Detects and filters out channels where signals are cut off at the edges of the t
 ```bash
 python interferometric_reco_example_advanced.py \
     --config config.yaml \
-    --inputfile data.root \
+    --input data.root \
     --edge-sigma 3.0 \
-    --verbose
 ```
 
 **How it works:**
@@ -767,10 +820,9 @@ Processing event 15:
 ```bash
 python interferometric_reco_example_advanced.py \
     --config config.yaml \
-    --inputfile data.root \
+    --input data.root \
     --snr-threshold 2.0 \
     --edge-sigma 3.0 \
-    --verbose
 ```
 
 Both filters are applied sequentially: first edge detection, then SNR filtering. This ensures only clean, high-quality channels are used for reconstruction.
@@ -805,10 +857,32 @@ time_delay_tables: "/path/to/tables/"
 ```bash
 python interferometric_reco_example_advanced.py \
     --config example_auto_config.yaml \
-    --inputfile data.root \
-    --save-maps \
-    --verbose
+    --input data.root \
+    --save-maps
 ```
+
+**Saving Multi-Stage Correlation Maps:**
+
+When using auto mode, you can save correlation maps from both stages in a single file for side-by-side visualization when plotting:
+
+```bash
+python interferometric_reco_example_advanced.py \
+    --config example_auto_config.yaml \
+    --input data.root \
+    --save-maps both
+```
+
+Using `--save-maps both` creates files like `station{ID}_run{NUM}_evt{N}_corrmap_multistage.pkl` containing both stage 1 and stage 2 correlation maps. These can be visualized side-by-side using:
+
+```bash
+python correlation_map_plotter.py \
+    --input results/station23/run100/corr_map_data/station23_run100_evt5_corrmap_multistage.pkl \
+    --multistage
+```
+
+This creates a two-panel plot showing the coarse distance finding (stage 1 rhoz) and fine direction finding (stage 2 spherical) correlation maps together. See [Visualizing Multi-Stage Reconstructions](#visualizing-multi-stage-reconstructions) for more details.
+
+**Note:** Using `--save-maps` (without `both`) in auto mode will only save the final stage 2 correlation map.
 
 **How it works:**
 
@@ -902,9 +976,8 @@ Plane wave fallback is automatically triggered when:
 ```bash
 python interferometric_reco_example_advanced.py \
     --config config_with_fallback.yaml \
-    --inputfile data.root \
+    --input data.root \
     --snr-threshold 2.0 \
-    --verbose
 ```
 
 **Output characteristics:**
@@ -955,28 +1028,23 @@ use_hilbert_envelope: true       # Use envelope correlation for better SNR
 
 **Available in:** Both simple and advanced scripts
 
-The module uses `NuRadioReco.utilities.caching_utilities` to automatically cache delay matrices:
+The module can use `NuRadioReco.utilities.caching_utilities` to cache delay matrices if you use the --use-cache argument like so:
+```bash
+python interferometric_reco_example.py \
+    --config config.yaml \
+    --input data.root \
+    --use-cache 1
+```
+
+Cache details:
 - **Cache location:** `~/.cache/nuradio_delay_matrices/`
 - **Cache key:** Generated from station ID, channels, grid parameters, and interpolation method
 - **Behavior:** Automatically loads from cache if available, significantly speeding up repeated runs
 - **Cache management:** To force regeneration, delete the cache directory (by default at ~/.cache/nuradio) or specific cache files
 
-The cache is particularly beneficial when:
+The cache is usable when:
 - Running the same configuration multiple times with a single fixed coordinate
 - Testing different preprocessing options with the same reconstruction grid
-
-**Enabling the time delay matrices cache:**
-
-Use the `--use-cache` flag to enable caching (both scripts default to no cache):
-
-```bash
-python interferometric_reco_example.py \
-    --config config.yaml \
-    --inputfile data.root \
-    --use-cache 1
-```
-
----
 
 ### Simulation Truth Fixed Coordinate (NUR files only)
 
@@ -987,9 +1055,8 @@ When processing NUR simulation files, you can use the `--sim-truth-fixed-coord` 
 ```bash
 python interferometric_reco_example_advanced.py \
     --config config.yaml \
-    --inputfile simulation.nur \
+    --input simulation.nur \
     --sim-truth-fixed-coord \
-    --verbose
 ```
 
 **How it works:**
@@ -1009,10 +1076,9 @@ To test if your phiz reconstruction can accurately find azimuth and depth when g
 ```bash
 python interferometric_reco_example_advanced.py \
     --config phiz_config.yaml \
-    --inputfile some_sim_file.nur \
+    --input some_sim_file.nur \
     --sim-truth-fixed-coord \
     --save-maps \
-    --verbose
 ```
 
 This will reconstruct φ and z for each event using the true ρ value, allowing you to isolate reconstruction errors in the free parameters.
@@ -1029,11 +1095,10 @@ All advanced features can be combined for robust, fully automatic processing:
 # Fully automatic processing with quality filters
 python interferometric_reco_example_advanced.py \
     --config auto_config.yaml \
-    --inputfile data.root \
+    --input data.root \
     --snr-threshold 2.0 \
     --edge-sigma 3.0 \
     --save-maps \
-    --verbose
 ```
 
 **Configuration file (auto_config.yaml):**
@@ -1081,7 +1146,7 @@ FILE=${FILES[$SLURM_ARRAY_TASK_ID]}
 
 python interferometric_reco_example.py \
     --config config.yaml \
-    --inputfile $FILE \
+    --input $FILE \
     --output_type hdf5
 ```
 
@@ -1151,18 +1216,6 @@ This will flood your output with detector queries, MongoDB connections, etc.:
 set_general_log_level(logging.ERROR)
 logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction").setLevel(logging.ERROR)
 ```
-
-**Recommended settings by use case:**
-
-| Use Case | General Level | Reconstruction Level | Notes |
-|----------|---------------|----------------------|-------|
-| **Normal processing** | WARNING | INFO | **Default** - balanced output |
-| **Debugging reconstruction** | WARNING | DEBUG | See detailed algorithm steps |
-| **Silent batch jobs** | ERROR | WARNING | Only critical messages |
-| **First-time users** | WARNING | INFO | Best for learning |
-| **Development** | WARNING | DEBUG | Understand internal behavior |
-
----
 
 ## Troubleshooting
 
@@ -1236,7 +1289,6 @@ logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction").
 **Solutions:**
 - Lower `--snr-threshold` or `--edge-sigma` values
 - Enable `plane_wave_fallback: true` in config to recover single-string events
-- Check helper channel SNRs with `--verbose` flag
 - Verify that at least one helper channel [9, 10, 22, 23] has good signal
 
 ---
@@ -1250,7 +1302,7 @@ python interferometric_reco_example.py [OPTIONS]
 
 Required:
   --config CONFIG              Path to YAML configuration file
-  --inputfile FILE [FILE ...]  Input data file(s) (.root or .nur)
+  --input FILE [FILE ...]  Input data file(s) (.root or .nur)
 
 Optional:
   --output_type {hdf5,nur}     Output format (default: hdf5)
@@ -1260,7 +1312,6 @@ Optional:
   --use-cache                  Enable delay matrix caching
   --save-maps                  Save correlation map data
   --save-pair-maps             Save channel pair correlation maps
-  --verbose                    Print results for each event
 ```
 
 ### Advanced Script (`interferometric_reco_example_advanced.py`)
@@ -1270,7 +1321,7 @@ python interferometric_reco_example_advanced.py [OPTIONS]
 
 Required:
   --config CONFIG              Path to YAML configuration file
-  --inputfile FILE [FILE ...]  Input data file(s) (.root or .nur)
+  --input FILE [FILE ...]  Input data file(s) (.root or .nur)
 
 Optional:
   --output_type {hdf5,nur}     Output format (default: hdf5)
@@ -1280,7 +1331,6 @@ Optional:
   --use-cache                  Enable delay matrix caching
   --save-maps                  Save correlation map data
   --save-pair-maps             Save channel pair correlation maps
-  --verbose                    Print results for each event
 
 Advanced Options:
   --snr-threshold FLOAT        SNR threshold for channel filtering
