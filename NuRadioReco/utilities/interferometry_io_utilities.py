@@ -17,7 +17,7 @@ import numpy as np
 logger = logging.getLogger('NuRadioReco.utilities.interferometry_io_utilities')
 
 
-def create_organized_paths(config, run_number, output_type, event_number=None, ray_type_mode=None):
+def create_organized_paths(config, run_number, output_type, event_number=None, ray_type_mode=None, use_run_in_path=True):
     """
     Create organized directory structure and file paths for results and maps.
     
@@ -25,15 +25,17 @@ def create_organized_paths(config, run_number, output_type, event_number=None, r
     ----------
     config : dict
         Configuration dictionary
-    run_number : int
-        Run number
+    run_number : int or None
+        Run number (can be None if processing multiple runs)
     output_type : str
         Output file type ('hdf5' or 'nur')
     event_number : int, optional
-        Event number (added to filename for NUR files)
+        Event number (added to filename)
     ray_type_mode : str, optional
         Ray type mode used for reconstruction (e.g., 'auto', 'direct', 'viscosity').
         If provided, adds mode subdirectory to paths.
+    use_run_in_path : bool, optional
+        If True, use 'run{number}' in path. If False, use 'multirun' (default: True)
     
     Returns
     -------
@@ -45,9 +47,13 @@ def create_organized_paths(config, run_number, output_type, event_number=None, r
     coord_system = config.get('coord_system', 'cylindrical')
     rec_type = config.get('rec_type', 'phiz')
     
-    dir_identifier = run_number
+    # Determine directory identifier based on whether we're processing a single run or multiple
+    if use_run_in_path and run_number is not None:
+        dir_identifier = f"run{run_number}"
+    else:
+        dir_identifier = "multirun"
     
-    station_dir = os.path.join(results_base, f"station{station_id}", f"run{dir_identifier}")
+    station_dir = os.path.join(results_base, f"station{station_id}", dir_identifier)
     
     # Add coordinate system and reconstruction type subdirectories
     coord_subdir = os.path.join(station_dir, coord_system, rec_type)
@@ -65,11 +71,16 @@ def create_organized_paths(config, run_number, output_type, event_number=None, r
     
     extension = 'h5' if output_type == 'hdf5' else 'nur'
     
-    # For NUR files, include event number in filename if provided
-    if event_number is not None:
+    # Build filename based on what information we have
+    if event_number is not None and run_number is not None:
+        # Both run and event specified
         results_filename = f"station{station_id}_run{run_number}_evt{event_number}_reco_results.{extension}"
-    else:
+    elif run_number is not None:
+        # Only run specified (multiple events)
         results_filename = f"station{station_id}_run{run_number}_reco_results.{extension}"
+    else:
+        # Neither run nor event specified (multirun scenario)
+        results_filename = f"station{station_id}_reco_results.{extension}"
     
     results_path = os.path.join(reco_data_dir, results_filename)
     
@@ -302,6 +313,15 @@ def save_correlation_map(corr_matrix, positions, evt, config, save_dir, **kwargs
         map_data['coord0'] = rec0
         map_data['coord1'] = rec1
         map_data['max_corr'] = float(rec_max) if rec_max is not None else None
+    
+    # If pairwise reconstruction coordinates are provided, save them too
+    pair_rec0 = kwargs.get('pair_rec_coord0', None)
+    pair_rec1 = kwargs.get('pair_rec_coord1', None)
+    pair_rec_max = kwargs.get('pair_rec_max_corr', None)
+    if pair_rec0 is not None and pair_rec1 is not None:
+        map_data['pair_rec_coord0'] = pair_rec0
+        map_data['pair_rec_coord1'] = pair_rec1
+        map_data['pair_rec_max_corr'] = float(pair_rec_max) if pair_rec_max is not None else None
     
     # Store ray_type_mode if provided (for reference, not for path organization)
     ray_type_mode = kwargs.get('ray_type_mode', None)
