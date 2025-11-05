@@ -15,6 +15,7 @@ import argparse
 import os
 import glob
 import re
+import pickle
 import datetime
 import numpy as np
 import pandas as pd
@@ -55,7 +56,7 @@ class CorrelationMapPlotter:
     combining correlation maps, waveforms, and event metadata.
     """
     
-    def __init__(self, map_data_path=None, output_arg=None, show_minimaps=False, extra_points=None):
+    def __init__(self, map_data_path=None, map_data=None, output_arg=None, show_minimaps=False, extra_points=None):
         """
         Initialize the plotter with common settings.
         
@@ -63,6 +64,8 @@ class CorrelationMapPlotter:
         ----------
         map_data_path : str, optional
             Path to correlation map pickle file
+        map_data : dict, optional
+            Pre-loaded correlation map data dictionary (alternative to map_data_path)
         output_arg : str, optional
             Output directory or file path
         show_minimaps : bool, optional
@@ -76,7 +79,11 @@ class CorrelationMapPlotter:
         self.extra_points = extra_points if extra_points is not None else []
         
         # Load the correlation map data once
-        if self.map_data_path is not None:
+        if map_data is not None:
+            # Use pre-loaded data
+            self.map_data = map_data
+        elif self.map_data_path is not None:
+            # Load from file
             self.map_data = load_correlation_map(self.map_data_path)
         else:
             self.map_data = None
@@ -629,7 +636,6 @@ class CorrelationMapPlotter:
                                 az_deg = np.degrees(az_rad) % 360
                                 
                                 # Store 3D vertex position for ray path plotting
-                                print(f"vertex: {np.array(vertex)}")
                                 vertex_position_3d = np.array(vertex) - station_pos_abs
                                 vertex_position_3d[2] = np.array(vertex)[2] # correct for station offset issue
                                 
@@ -1139,6 +1145,114 @@ class CorrelationMapPlotter:
         
         return output_path
 
+    def plot_multistage(self, multistage_data, output_path=None):
+        """
+        Plot multi-stage reconstruction correlation maps side-by-side.
+        
+        Creates a side-by-side visualization showing correlation maps from both stages
+        of a multi-stage reconstruction (e.g., auto mode with stage 1 rhoz and stage 2 spherical).
+        
+        Parameters
+        ----------
+        multistage_data : dict
+            Dictionary containing multi-stage correlation map data with structure:
+            {
+                'multistage': True,
+                'n_stages': 2,
+                'stage1': {...},  # First stage correlation map data
+                'stage2': {...}   # Second stage correlation map data
+            }
+        output_path : str, optional
+            Custom output path for the plot. If None, generates automatic name.
+        
+        Returns
+        -------
+        str
+            Path to saved plot file
+        """
+        
+        if not multistage_data.get('multistage', False):
+            print("Error: Provided data is not a multi-stage reconstruction file")
+            return None
+        
+        n_stages = multistage_data.get('n_stages', 2)
+        if n_stages != 2:
+            print(f"Warning: Expected 2 stages, found {n_stages}. Plotting first two stages only.")
+        
+        stage1_data = multistage_data.get('stage1')
+        stage2_data = multistage_data.get('stage2')
+        
+        if stage1_data is None or stage2_data is None:
+            print("Error: Multi-stage data missing stage1 or stage2 information")
+            return None
+        
+        # Extract metadata from stage1 (should be same for both)
+        station_id = stage1_data.get('station_id')
+        run_number = stage1_data.get('run_number')
+        event_number = stage1_data.get('event_number')
+        
+        # Create figure with two subplots side-by-side
+        fig = plt.figure(figsize=(20, 9))
+        gs = GridSpec(1, 2, figure=fig, wspace=0.3)
+        
+        # Stage 1: r-z coordinate system (coarse distance finding)
+        ax1 = fig.add_subplot(gs[0, 0])
+        plotter1 = CorrelationMapPlotter(map_data=stage1_data)
+        plotter1.plot_correlation_map(ax=ax1, fig=fig, standalone=False)
+        
+        # Build stage 1 title with fixed coordinate info (like regular correlation maps)
+        stage1_coord = stage1_data.get('coord_system', 'rhoz')
+        stage1_rec_type = stage1_data.get('rec_type')
+        stage1_fixed = stage1_data.get('fixed_coord')
+        stage1_channels = stage1_data.get('channels', [])
+        
+        if stage1_coord == "spherical":
+            stage1_title = f"Stage 1: Channels {stage1_channels}, r = {stage1_fixed:.1f} m"
+        else:
+            if stage1_rec_type == "phiz":
+                stage1_title = f"Stage 1: Channels {stage1_channels}, ρ = {stage1_fixed:.1f} m"
+            elif stage1_rec_type == "rhoz":
+                stage1_title = f"Stage 1: Channels {stage1_channels}, φ = {stage1_fixed:.1f}°"
+        
+        ax1.set_title(stage1_title, fontsize=16, fontweight='bold', pad=15)
+        
+        # Stage 2: Spherical coordinate system (fine direction finding)
+        ax2 = fig.add_subplot(gs[0, 1])
+        plotter2 = CorrelationMapPlotter(map_data=stage2_data)
+        plotter2.plot_correlation_map(ax=ax2, fig=fig, standalone=False)
+        
+        # Build stage 2 title with fixed coordinate info
+        stage2_coord = stage2_data.get('coord_system', 'spherical')
+        stage2_rec_type = stage2_data.get('rec_type')
+        stage2_fixed = stage2_data.get('fixed_coord')
+        stage2_channels = stage2_data.get('channels', [])
+        
+        if stage2_coord == "spherical":
+            stage2_title = f"Stage 2: Ch: {stage2_channels}, r = {stage2_fixed:.1f} m"
+        else:
+            if stage2_rec_type == "phiz":
+                stage2_title = f"Stage 2: Ch: {stage2_channels}, ρ = {stage2_fixed:.1f} m"
+            elif stage2_rec_type == "rhoz":
+                stage2_title = f"Stage 2: Ch: {stage2_channels}, φ = {stage2_fixed:.1f}°"
+        
+        ax2.set_title(stage2_title, fontsize=16, fontweight='bold', pad=15)
+        
+        # Overall title
+        suptitle = f'Multi-Stage Interferometric Reconstruction\n'
+        suptitle += f'Station {station_id}, Run {run_number}, Event {event_number}'
+        fig.suptitle(suptitle, fontsize=18, fontweight='bold', y=0.98)
+        
+        # Generate output path if not provided
+        if output_path is None:
+            base_name = f'station{station_id}_run{run_number}_evt{event_number}'
+            output_path = f'{base_name}_multistage_corrmap.png'
+        
+        plt.savefig(output_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        
+        print(f"Multi-stage correlation map saved to: {output_path}")
+        return output_path
+
     def plot_pair_correlation_grid(self, pair_map_dir, output_path=None):
         """
         Create a triangular grid plot of individual channel pair correlation maps.
@@ -1225,50 +1339,7 @@ class CorrelationMapPlotter:
         limits = first_map['limits']
         step_sizes = first_map['step_sizes']
         
-        # Split into multiple grids if more than 8 channels (to keep max 8x8 = 64 subplots)
-        max_channels_per_grid = 8
-        if n_channels > max_channels_per_grid:
-            print(f"Splitting {n_channels} channels into multiple {max_channels_per_grid}x{max_channels_per_grid} grids")
-            n_grids = int(np.ceil(n_channels / max_channels_per_grid))
-            output_paths = []
-            
-            for grid_idx in range(n_grids):
-                start_idx = grid_idx * max_channels_per_grid
-                end_idx = min((grid_idx + 1) * max_channels_per_grid, n_channels)
-                grid_channels = channels[start_idx:end_idx]
-                
-                # Create subset of pair_data for this grid
-                grid_pair_data = [pd for pd in pair_data if pd['ch1'] in grid_channels and pd['ch2'] in grid_channels]
-                
-                # Generate grid-specific output path
-                if output_path is None:
-                    output_dir = os.path.join("figures", f"station{station_id}", f"run{run_number}")
-                    if coord_system and rec_type:
-                        output_dir = os.path.join(output_dir, coord_system, rec_type)
-                    
-                    # Add ray_type_mode subdirectory if available
-                    ray_type_mode = first_map.get('ray_type_mode')
-                    if ray_type_mode is not None:
-                        output_dir = os.path.join(output_dir, ray_type_mode)
-                    
-                    os.makedirs(output_dir, exist_ok=True)
-                    grid_output_path = os.path.join(output_dir, 
-                                          f"station{station_id}_run{run_number}_evt{event_number}_pair_grid_{grid_idx+1}of{n_grids}.png")
-                else:
-                    # User specified output path - add grid index
-                    base, ext = os.path.splitext(output_path)
-                    grid_output_path = f"{base}_{grid_idx+1}of{n_grids}{ext}"
-                
-                # Plot this grid
-                self._plot_single_pair_grid(grid_channels, grid_pair_data, station_id, run_number, event_number,
-                                           coord_system, rec_type, limits, step_sizes, grid_output_path,
-                                           grid_label=f" (Grid {grid_idx+1}/{n_grids})")
-                output_paths.append(grid_output_path)
-            
-            print(f"Created {len(output_paths)} pair correlation grids")
-            return output_paths
-        
-        # Single grid case (≤6 channels)
+        # Generate output path
         if output_path is None:
             output_dir = os.path.join("figures", f"station{station_id}", f"run{run_number}")
             if coord_system and rec_type:
@@ -1287,15 +1358,19 @@ class CorrelationMapPlotter:
                                           coord_system, rec_type, limits, step_sizes, output_path)
     
     def _plot_single_pair_grid(self, channels, pair_data, station_id, run_number, event_number,
-                              coord_system, rec_type, limits, step_sizes, output_path, grid_label=""):
-        
+                              coord_system, rec_type, limits, step_sizes, output_path):
         """
-        Plot a single pair correlation grid for a subset of channels.
+        Plot a single pair correlation grid for all channels.
+        All channel pairs are shown in one complete N×N grid.
         """
         n_channels = len(channels)
         
+        # Adjust figure size based on number of channels
+        # Use 2.5 inches per channel as base, with minimum of 12 inches
+        subplot_size = 2.5
+        fig_size = max(subplot_size * n_channels, 12)
+        
         # Create figure with grid of subplots
-        fig_size = max(3 * n_channels, 12)
         fig, axes = plt.subplots(n_channels, n_channels, figsize=(fig_size, fig_size))
         
         # Handle cases with few channels
@@ -1349,19 +1424,39 @@ class CorrelationMapPlotter:
                             rasterized=True,
                         )
 
-                        max_corr_x = pd['map_data']['coord0']
-                        max_corr_y = pd['map_data']['coord1']
+                        # Combined map maximum (shown in all pair plots for reference)
+                        combined_max_x = pd['map_data']['coord0']
+                        combined_max_y = pd['map_data']['coord1']
                         max_corr_value = pd['map_data'].get('max_corr', np.nan)
+                        
+                        # This pair's individual maximum
+                        pair_max_x = pd['map_data'].get('pair_rec_coord0')
+                        pair_max_y = pd['map_data'].get('pair_rec_coord1')
+                        pair_max_corr_value = pd['map_data'].get('pair_rec_max_corr')
                         
                         # Convert to plotting units if needed
                         if coord_system == "cylindrical" and rec_type == "phiz":
-                            max_corr_x = np.degrees(max_corr_x)
+                            combined_max_x = np.degrees(combined_max_x)
+                            if pair_max_x is not None:
+                                pair_max_x = np.degrees(pair_max_x)
                         elif coord_system == "spherical":
-                            max_corr_x = np.degrees(max_corr_x)
-                            max_corr_y = np.degrees(max_corr_y)
+                            combined_max_x = np.degrees(combined_max_x)
+                            combined_max_y = np.degrees(combined_max_y)
+                            if pair_max_x is not None:
+                                pair_max_x = np.degrees(pair_max_x)
+                            if pair_max_y is not None:
+                                pair_max_y = np.degrees(pair_max_y)
                         
-                        ax.plot(max_corr_x, max_corr_y, 'o', markersize=4, 
-                               color='lime', markeredgecolor='black', markeredgewidth=0.5)
+                        # Plot combined maximum (lime/green - what the combined map found)
+                        ax.plot(combined_max_x, combined_max_y, 'o', markersize=5, 
+                               color='lime', markeredgecolor='black', markeredgewidth=0.5,
+                               label=f'Mean max {max_corr_value:.2f}: ({combined_max_x:.2f}, {combined_max_y:.2f})', zorder=10)
+                        
+                        # Plot this pair's individual maximum (magenta/pink - what this pair alone found)
+                        if pair_max_x is not None and pair_max_y is not None:
+                            ax.plot(pair_max_x, pair_max_y, 's', markersize=5,
+                                   color='magenta', markeredgecolor='black', markeredgewidth=0.5,
+                                   label=f'Pair max {pair_max_corr_value:.2f}: ({pair_max_x:.2f}, {pair_max_y:.2f})', zorder=11)
                         
                         # Add colorbar for this subplot
                         cbar = plt.colorbar(c, ax=ax, fraction=0.046, pad=0.04)
@@ -1369,6 +1464,7 @@ class CorrelationMapPlotter:
                         
                         # Set title with channel pair and max correlation
                         ax.set_title(f'Ch {ch_j}-{ch_i}\nMax: {max_corr_value:.2f}')
+                        ax.legend(fontsize=5)
                         
                         # Set axis labels based on position in grid
                         ax.tick_params(labelsize=8)
@@ -1404,9 +1500,24 @@ class CorrelationMapPlotter:
                         ax.set_ylim(0, 1)
                         ax.axis('off')
         
+        # Add legend in upper-right empty subplot (if grid is large enough)
+        if n_channels >= 3:
+            legend_ax = axes[0, -1]
+            legend_ax.axis('off')
+            # Create dummy artists for legend
+            from matplotlib.lines import Line2D
+            legend_elements = [
+                Line2D([0], [0], marker='o', color='w', markerfacecolor='lime', 
+                      markeredgecolor='black', markersize=8, label='Combined max'),
+                Line2D([0], [0], marker='s', color='w', markerfacecolor='magenta',
+                      markeredgecolor='black', markersize=8, label='Pair max')
+            ]
+            legend_ax.legend(handles=legend_elements, loc='center', frameon=True, 
+                           fontsize=10, title='Markers', title_fontsize=11)
+        
         # Overall title
-        fig.suptitle(f'Channel Pair Correlation Grid{grid_label} - Station {station_id}, Run {run_number}, Event {event_number}',
-                    fontweight='bold', y=0.995)
+        fig.suptitle(f'Channel Pair Correlation Grid - Station {station_id}, Run {run_number}, Event {event_number}',
+                    fontweight='bold', fontsize=max(14, int(fig_size * 0.8)), y=0.995)
         
         plt.tight_layout()
         plt.savefig(output_path, dpi=150, bbox_inches='tight')
@@ -1451,6 +1562,8 @@ def main():
                        help="File pattern to match when input is directory (default: *.pkl)")
     parser.add_argument("--minimaps", action="store_true",
                        help="Create minimap insets showing zoomed-in views around correlation peaks")
+    parser.add_argument("--multistage", action="store_true",
+                       help="Plot multi-stage reconstruction (e.g., auto mode with both stage 1 and stage 2)")
     parser.add_argument("--comprehensive", type=str, default=None,
                        help="Path to reconstruction HDF5 file to create comprehensive plots with waveforms")
     parser.add_argument("--pair-grid", type=str, default=None,
@@ -1514,24 +1627,57 @@ def main():
                     except Exception:
                         continue
             
-            # Create plotter instance
-            plotter = CorrelationMapPlotter(
-                map_data_path=file_path,
-                output_arg=args.output,
-                show_minimaps=args.minimaps,
-                extra_points=extra_points
-            )
+            # Load the pickle file first to check if it's multi-stage
+            with open(file_path, 'rb') as f:
+                loaded_data = pickle.load(f)
             
-            if args.comprehensive:
-                # Create comprehensive plot with waveforms
-                saved_path = plotter.plot_comprehensive(args.comprehensive)
+            # Check if this is a multi-stage file
+            is_multistage = loaded_data.get('multistage', False)
+            
+            if args.multistage and not is_multistage:
+                print(f"Warning: --multistage flag provided but {file_path} is not a multi-stage file")
+                print("  Use --multistage only with files created using --save-maps both in auto mode")
+                continue
+            
+            if is_multistage and not args.multistage:
+                print(f"Note: {file_path} is a multi-stage file. Use --multistage flag to plot both stages")
+                print("  Example: python correlation_map_plotter.py --input {file_path} --multistage")
+                continue
+            
+            if args.multistage and is_multistage:
+                # Create plotter with stage1 data for detector/antenna setup
+                stage1_data = loaded_data.get('stage1')
+                plotter = CorrelationMapPlotter(
+                    map_data=stage1_data,
+                    output_arg=args.output,
+                    show_minimaps=args.minimaps,
+                    extra_points=extra_points
+                )
+                
+                # Plot multi-stage
+                saved_path = plotter.plot_multistage(loaded_data, output_path=args.output)
                 if args.verbose and saved_path:
-                    print(f"  Saved comprehensive plot to: {saved_path}")
+                    print(f"  Saved multi-stage plot to: {saved_path}")
             else:
-                # Create simple correlation map plot
-                saved_path = plotter.plot_correlation_map()
-                if args.verbose and saved_path:
-                    print(f"  Saved correlation map plot to: {saved_path}")
+                # Normal single-stage plotting
+                # Create plotter instance
+                plotter = CorrelationMapPlotter(
+                    map_data=loaded_data,
+                    output_arg=args.output,
+                    show_minimaps=args.minimaps,
+                    extra_points=extra_points
+                )
+                
+                if args.comprehensive:
+                    # Create comprehensive plot with waveforms
+                    saved_path = plotter.plot_comprehensive(args.comprehensive)
+                    if args.verbose and saved_path:
+                        print(f"  Saved comprehensive plot to: {saved_path}")
+                else:
+                    # Create simple correlation map plot
+                    saved_path = plotter.plot_correlation_map()
+                    if args.verbose and saved_path:
+                        print(f"  Saved correlation map plot to: {saved_path}")
             
             if args.verbose and plotter.map_data:
                 station_id = plotter.map_data['station_id']
