@@ -579,6 +579,9 @@ class readRNOGData:
 
         return True
 
+    def get_event_ids(self):
+        event_infos = self.get_events_information()
+        return np.array([(i['run'], i['eventNumber']) for i in event_infos.values()])
 
     def get_events_information(self, keys=["station", "run", "eventNumber"]):
         """ Return information of events from the EventInfo. Only information of events passing the
