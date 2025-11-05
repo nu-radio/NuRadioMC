@@ -7,12 +7,12 @@ For advanced features (SNR filtering, edge detection, two-stage reconstruction),
 see interferometric_reco_example_advanced.py
 
 Usage:
-    python interferometric_reco_simple_example.py --config config.yaml --inputfile data.root
+    python interferometric_reco_simple_example.py --config config.yaml --input data.root
 
 Example:
     python interferometric_reco_simple_example.py \
         --config example_config.yaml \
-        --inputfile /path/to/station21_run476.root \
+        --input /path/to/station21_run476.root \
         --outputfile reconstruction_results.h5
 """
 
@@ -28,8 +28,9 @@ import numpy as np
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.logging import set_general_log_level
 # Set NuRadioReco logging level (INFO=20, DEBUG=10)
-set_general_log_level(logging.WARNING)
+set_general_log_level(logging.ERROR)
 logger = logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction")
+logger.setLevel(logging.WARNING)
 
 from NuRadioReco.modules.channelResampler import channelResampler
 from NuRadioReco.modules.channelBandPassFilter import channelBandPassFilter
@@ -56,33 +57,30 @@ def main():
         epilog="""
             Examples:
             # Basic reconstruction
-            python interferometric_reco_simple_example.py --config example_config.yaml --inputfile data.root
+            python interferometric_reco_simple_example.py --config example_config.yaml --input data.root
 
             # Save correlation maps
-            python interferometric_reco_simple_example.py --config example_config.yaml --inputfile data.root --save_maps
+            python interferometric_reco_simple_example.py --config example_config.yaml --input data.root --save_maps
         """
     )
     
     parser.add_argument("--config", type=str, required=True, 
                        help="Path to YAML configuration file")
-    parser.add_argument("--inputfile", type=str, nargs="+", required=True,
+    parser.add_argument("-i", "--input", type=str, nargs="+", required=True,
                        help="Path(s) to input data file(s) (ROOT or NUR). Can specify multiple files for same station.")
     parser.add_argument("--output_type", type=str, choices=['hdf5', 'nur'], default='hdf5',
                        help="Output file format: 'hdf5' for HDF5 tables or 'nur' for NuRadioReco format (default: hdf5)")
-    parser.add_argument("--outputfile", type=str, default=None,
+    parser.add_argument("-o", "--outputfile", type=str, default=None,
                        help="Optional: manually specify output file path. If not set, uses organized default path.")
     parser.add_argument("--events", type=int, nargs="*", default=None, 
                        help="Specific event IDs to process. If not provided, processes all events in given file.")
     parser.add_argument("--runs", type=int, nargs="*", default=None,
                        help="Specific run numbers to process.")
 
-    parser.add_argument("--use-cache", required=False, default=False)
     parser.add_argument("--save-maps", action="store_true",
                        help="Save correlation map data to pickle files for later plotting")
     parser.add_argument("--save-pair-maps", action="store_true",
                        help="Save individual channel pair correlation maps (requires --save_maps)")
-    parser.add_argument("--verbose", action="store_true", 
-                       help="Print reconstruction results for each event")
 
     args = parser.parse_args()
         
@@ -97,7 +95,7 @@ def main():
         if param not in config:
             raise ValueError(f"Required parameter '{param}' not found in config file")
 
-    input_files = args.inputfile if isinstance(args.inputfile, list) else [args.inputfile]
+    input_files = args.input if isinstance(args.input, list) else [args.input]
     is_nur_file = input_files[0].endswith('.nur')
     
     # Warn if --runs is used with ROOT files
@@ -131,7 +129,7 @@ def main():
     
     # Pre-load cable delays for all channels
     # This triggers the detector's internal buffering/caching mechanism
-    print("Pre-loading cable delays for station...", station_id)
+    print(f"Pre-loading cable delays for station {station_id}...")
     for ch in range(24):  # RNO-G has 24 channels per station
         try:
             _ = det.get_cable_delay(station_id, ch)
@@ -139,7 +137,7 @@ def main():
             pass  # Some channels may not exist in detector description
     print("Done!\n")
     
-    reco.begin(station_id=station_id, config=config, det=det, use_cache=args.use_cache)
+    reco.begin(station_id=station_id, config=config, det=det)
     
     events_to_process = set(args.events) if args.events is not None else None
     runs_to_process = set(args.runs) if args.runs is not None else None
@@ -161,7 +159,7 @@ def main():
     corr_map_path = None
     
     n_processed, n_skipped = 0, 0
-    found_event_ids, found_run_numbers = [], [] 
+    found_event_numbers, found_run_numbers = [], [] 
     
     t_total = 0
     
@@ -172,30 +170,62 @@ def main():
         
         print(f"Processing file {file_idx}/{len(input_files)}: {input_file}", flush=True)
         
+        reader.begin(input_file)
+
+        # Get event IDs differently based on file type
         if is_nur_file:
-            reader.begin(input_file, read_detector=True)
+            # For NUR files, use the underlying NuRadioRecoio object to get event IDs
+            event_ids = reader._eventReader__fin.get_event_ids()
         else:
-            reader.begin(input_file, mattak_kwargs={'backend': 'uproot'})
-                
-        for event in reader.run():
+            # For ROOT files, readRNOGData has get_event_ids() method
+            event_ids = reader.get_event_ids()
+        
+        # Store all available run/event numbers for error reporting
+        all_runs = [eid[0] for eid in event_ids]
+        all_events = [eid[1] for eid in event_ids]
+        
+        # Filter event IDs based on user request
+        if runs_to_process or events_to_process:
+            filtered_ids = []
+            for event_id in event_ids:
+                run_num, evt_num = event_id
+                if runs_to_process and run_num not in runs_to_process:
+                    continue
+                if events_to_process and evt_num not in events_to_process:
+                    continue
+                filtered_ids.append(event_id)
+            event_ids = filtered_ids
+
+        print(f"Found {len(event_ids)} event(s) to process")
+        if len(event_ids) == 0 and (runs_to_process or events_to_process):
+            print(f"WARNING: No events match the requested criteria!")
+            if runs_to_process:
+                available_runs = sorted(set(all_runs))
+                print(f"  Requested run(s): {sorted(runs_to_process)}")
+                print(f"  Available run(s): {available_runs[:20]}")
+                if len(available_runs) > 20:
+                    print(f"  ... and {len(available_runs) - 20} more")
+            if events_to_process:
+                available_events = sorted(set(all_events))
+                print(f"  Requested event(s): {sorted(events_to_process)}")
+                print(f"  Available event(s): {available_events[:20]}")
+                if len(available_events) > 20:
+                    print(f"  ... and {len(available_events) - 20} more")
+            
+        for event_id in event_ids:
             
             t0 = time.time()
             
-            event_id = event.get_id()
-            run_number = event.get_run_number()
+            # Get event differently based on file type
+            if is_nur_file:
+                run_number, event_number = event_id
+                event = reader._eventReader__fin.get_event(event_id)
+            else:
+                run_number, event_number = event_id
+                event = reader.get_event(run_number, event_number)
             
-            found_event_ids.append(event_id)
+            found_event_numbers.append(event_number)
             found_run_numbers.append(run_number)
-                        
-            if runs_to_process is not None:
-                if run_number not in runs_to_process:
-                    n_skipped += 1
-                    continue
-            
-            if events_to_process is not None:
-                if event_id not in events_to_process:
-                    n_skipped += 1
-                    continue
 
             if results_path is None:
                 if args.outputfile is not None:
@@ -205,7 +235,7 @@ def main():
                 else:
                     results_path, maps_dir = create_organized_paths(
                         config, run_number, args.output_type, 
-                        event_number=event_id
+                        event_number=event_number
                     )
                     if results is not None or events_for_nur is not None:
                         print(f"Will save reconstruction results to: {results_path}")
@@ -221,7 +251,7 @@ def main():
             # Apply optional preprocessing steps based on config
             # Upsampling improves time resolution for correlation analysis
             if config.get('apply_upsampling', False):
-                channel_resampler.run(event, event_station, det, sampling_rate=5 * units.GHz)
+                channel_resampler.run(event, event_station, det, sampling_rate=10 * units.GHz)
 
             # Bandpass filter reduces noise outside antenna sensitivity range
             if config.get('apply_bandpass', False):
@@ -259,7 +289,7 @@ def main():
                 result_row = {
                     "filename": input_file,
                     "runNum": run_number,
-                    "eventNum": event_id,
+                    "eventNum": event_number,
                     "maxCorr": max_corr,
                     "surfCorr": surf_corr,
                 }
@@ -279,19 +309,23 @@ def main():
             if events_for_nur is not None:
                 events_for_nur.append(event)
             
-            if args.verbose:
-                print(f"\n=== Reconstruction Results ===")
-                print(f"Station: {station_id}")
-                if results is not None:
-                    # Print the result row which already has properly named columns
-                    for key, value in result_row.items():
-                        if key not in ['filename', 'runNum', 'eventNum']:  # Skip metadata
-                            print(f"{key}: {value:.3f}" if not np.isnan(value) else f"{key}: nan")
-                else:
-                    # For NUR output, print basic info
-                    print(f"Max correlation: {max_corr:.3f}")
-                    print(f"Surface correlation: {surf_corr:.3f}")
-                print(f"===============================\n")
+            summary = [
+                "\n=== Reconstruction Results ===",
+                f"Station: {station_id}",
+            ]
+            if results is not None:
+                summary.extend(
+                    f"{key}: {value:.3f}" if not np.isnan(value) else f"{key}: nan"
+                    for key, value in result_row.items()
+                    if key not in ['filename', 'runNum', 'eventNum']
+                )
+            else:
+                summary.extend([
+                    f"Max correlation: {max_corr:.3f}",
+                    f"Surface correlation: {surf_corr:.3f}",
+                ])
+            summary.append("===============================")
+            logger.info("\n".join(summary))
             
             n_processed += 1
             file_events_processed += 1
@@ -308,25 +342,8 @@ def main():
 
     reco.end()
     
-    # Check if any requested events/runs were not found
-    for requested, found_list, label, id_label in [
-        (events_to_process, found_event_ids, "event(s)", "event IDs"),
-        (runs_to_process, found_run_numbers, "run(s)", "run numbers")
-    ]:
-        if requested is not None:
-            missing = requested - set(found_list)
-            if missing:
-                print(f"\nWARNING: {len(missing)} requested {label} were not found in input files:")
-                print(f"  Missing {id_label}: {sorted(missing)}")
-                
-                # If none were processed, show available IDs to help user
-                if n_processed == 0:
-                    unique_ids = sorted(set(found_list))
-                    print(f"  Available {id_label} in file: {unique_ids[:20]}")
-                    if len(unique_ids) > 20:
-                        print(f"  ... and {len(unique_ids) - 20} more")
-    
-    if results_path:
+    # Save results if we processed any events
+    if results_path and n_processed > 0:
         if results:
             reco_results_path = save_results_to_hdf5(results, results_path, config)
         elif events_for_nur:
@@ -338,11 +355,9 @@ def main():
     if n_processed > 0:
         print(f"Total time: {t_total:.2f}s")
         print(f"Time per event: {t_total / n_processed:.2f}s")
-    if events_to_process is not None or runs_to_process is not None:
-        print(f"Skipped: {n_skipped} events")
     print(f"{'='*50}\n")
 
-    if corr_map_path is not None:
+    if n_processed > 0 and corr_map_path is not None:
         print(f"To plot, do:\npython correlation_map_plotter.py --input {corr_map_path} --comprehensive {reco_results_path}") if is_nur_file else print(f"To plot, do:\npython correlation_map_plotter.py --input {corr_map_path}")
 
 if __name__ == "__main__":
