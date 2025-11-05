@@ -4,12 +4,12 @@ This script provides a command-line interface for running interferometric direct
 reconstruction using pre-calculated time delay tables.
 
 Usage:
-    python interferometric_reco_example.py --config config.yaml --inputfile data.root --outputfile output.h5
+    python interferometric_reco_example.py --config config.yaml --input data.root --outputfile output.h5
 
 Example:
     python interferometric_reco_example.py \
         --config example_config.yaml \
-        --inputfile /path/to/station21_run476.root \
+        --input /path/to/station21_run476.root \
         --outputfile reconstruction_results.h5 \
 """
 
@@ -26,9 +26,8 @@ from NuRadioReco.utilities.logging import set_general_log_level
 # Set general logging to WARNING to suppress noisy packages
 set_general_log_level(logging.WARNING)
 # But set INFO level for the specific modules we want to see
-logging.getLogger("NuRadioReco.utilities.interferometry_io_utilities").setLevel(logging.INFO)
 logger = logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction")
-logger.setLevel(logging.INFO)
+#logger.setLevel(logging.INFO)
 
 from NuRadioReco.utilities import units
 from NuRadioReco.modules.channelResampler import channelResampler
@@ -215,7 +214,7 @@ def detect_edge_signal(trace, n_chunks=10, edge_threshold_sigma=3.0):
     
     return is_edge, debug_info
 
-def filter_channels_by_edge_signal(event_station, channels, edge_threshold_sigma=3.0, n_chunks=10, verbose=False):
+def filter_channels_by_edge_signal(event_station, channels, edge_threshold_sigma=3.0, n_chunks=10):
     """
     Filter out channels with signals at trace edges.
     
@@ -229,8 +228,6 @@ def filter_channels_by_edge_signal(event_station, channels, edge_threshold_sigma
         Number of standard deviations above median to flag as edge (default: 3.0)
     n_chunks : int, optional
         Number of chunks to divide trace into (default: 10)
-    verbose : bool, optional
-        Print edge detection information (default: False)
     
     Returns
     -------
@@ -258,21 +255,20 @@ def filter_channels_by_edge_signal(event_station, channels, edge_threshold_sigma
                 if debug_info.get('last_edge_high', False):
                     edge_location.append(f"END (RMS={debug_info['last_rms']:.2f} > {debug_info['threshold']:.2f})")
                 
-                print(f"    Channel {ch} DROPPED: Edge signal detected at {' and '.join(edge_location)}")
+                logger.info(f"    Channel {ch} DROPPED: Edge signal detected at {' and '.join(edge_location)}")
                 
         except Exception as e:
-            if verbose:
-                print(f"  Warning: Could not check edge signal for channel {ch}: {e}")
+            logger.warning(f"  Warning: Could not check edge signal for channel {ch}: {e}")
             # If we can't check, assume it's okay
             passing_channels.append(ch)
     
-    if verbose and len(edge_channels) > 0:
-        print(f"  Summary: {len(edge_channels)} channel(s) dropped due to edge signals: {edge_channels}")
-        print(f"  Summary: {len(passing_channels)} channel(s) passed edge detection: {passing_channels}")
+    if len(edge_channels) > 0:
+        logger.info(f"  Summary: {len(edge_channels)} channel(s) dropped due to edge signals: {edge_channels}")
+        logger.info(f"  Summary: {len(passing_channels)} channel(s) passed edge detection: {passing_channels}")
     
     return passing_channels
 
-def filter_channels_by_snr(event_station, channels, snr_threshold, helper_channels=[9, 10, 22, 23], verbose=False):
+def filter_channels_by_snr(event_station, channels, snr_threshold, helper_channels=[9, 10, 22, 23]):
     """
     Filter channels based on SNR threshold and check if helper channels pass.
     
@@ -286,8 +282,6 @@ def filter_channels_by_snr(event_station, channels, snr_threshold, helper_channe
         Minimum SNR required
     helper_channels : list, optional
         List of helper channel IDs that must have at least one passing (default: [9, 10, 22, 23])
-    verbose : bool, optional
-        Print SNR information (default: False)
     
     Returns
     -------
@@ -310,23 +304,22 @@ def filter_channels_by_snr(event_station, channels, snr_threshold, helper_channe
                 passing_channels.append(ch)
             else:
                 failed_channels.append(ch)
-                print(f"    Channel {ch} DROPPED: SNR too low (SNR={snr:.2f} < threshold={snr_threshold:.2f})")
+                logger.info(f"    Channel {ch} DROPPED: SNR too low (SNR={snr:.2f} < threshold={snr_threshold:.2f})")
         except Exception as e:
-            print(f"    Channel {ch} DROPPED: Could not calculate SNR ({e})")
+            logger.warning(f"    Channel {ch} DROPPED: Could not calculate SNR ({e})")
             continue
     
     # Check if at least one helper channel passed
     helper_channels_passing = [ch for ch in helper_channels if ch in passing_channels]
     should_skip_event = len(helper_channels_passing) == 0
     
-    if verbose:
-        print(f"  Channel SNRs: {channel_snrs}")
-        if len(failed_channels) > 0:
-            print(f"  Summary: {len(failed_channels)} channel(s) dropped due to low SNR: {failed_channels}")
-        print(f"  Summary: {len(passing_channels)} channel(s) passed SNR threshold: {passing_channels}")
-        print(f"  Helper channels passing: {helper_channels_passing}")
-        if should_skip_event:
-            print(f"  WARNING: No helper channels [{','.join(map(str, helper_channels))}] passed SNR threshold")
+    logger.debug(f"  Channel SNRs: {channel_snrs}")
+    if len(failed_channels) > 0:
+        logger.info(f"  Summary: {len(failed_channels)} channel(s) dropped due to low SNR: {failed_channels}")
+    logger.info(f"  Summary: {len(passing_channels)} channel(s) passed SNR threshold: {passing_channels}")
+    logger.info(f"  Helper channels passing: {helper_channels_passing}")
+    if should_skip_event:
+        logger.info(f"  No helper channels [{','.join(map(str, helper_channels))}] passed SNR threshold")
     
     return passing_channels, should_skip_event
 
@@ -411,8 +404,8 @@ def run_two_stage_reconstruction(reco, event, event_station, det, config, pa_pos
         Configuration dictionary (should have mode='auto')
     pa_pos_abs : np.ndarray
         Absolute position of PA center [x, y, z]
-    save_maps : bool
-        Whether to save correlation maps
+    save_maps : bool or str
+        Whether to save correlation maps. Can be True, False, or 'both' (for multi-stage)
     save_pair_maps : bool
         Whether to save pair correlation maps
     save_maps_to : str
@@ -421,14 +414,16 @@ def run_two_stage_reconstruction(reco, event, event_station, det, config, pa_pos
     Returns
     -------
     corr_map_path : str
-        Path to saved correlation map (from final stage)
+        Path to saved correlation map (from final stage, or multi-stage file if save_maps='both')
     """
     
     # Stage 1: rhoz reconstruction to find optimal distance and depth
     # Keep existing limits and step_sizes for stage 1 (should be in config)
     stage1_config = config.copy()
     stage1_config['limits'] = [0, 200, -200, 0]
-    stage1_config['channels'] = [0, 1, 2, 3, 5, 6, 7] # [0, 1, 2, 3, 5, 6, 7]
+    #stage1_config['limits'] = [0, 1000, -900, 200]
+    stage1_config['channels'] = [0, 1, 2, 3, 5, 6, 7]
+    #stage1_config['step_sizes'] = [2, 2]
     stage1_config['fixed_coord'] = 0
     stage1_config['coord_system'] = 'cylindrical'
     stage1_config['rec_type'] = 'rhoz'
@@ -436,9 +431,15 @@ def run_two_stage_reconstruction(reco, event, event_station, det, config, pa_pos
     
     logger.info(f"[AUTO MODE] Stage 1: Running rhoz reconstruction to find optimal distance...")
     
-    # Run stage 1 reconstruction (don't save maps from this stage)
-    reco.run(event, event_station, det, stage1_config, 
-             save_maps=False, save_pair_maps=False, save_maps_to=None)
+    # Determine if we need to save stage 1 maps
+    save_stage1 = (save_maps == 'both')
+    
+    # Run stage 1 reconstruction
+    stage1_save_maps_to = None
+    if save_maps_to is not None:
+        stage1_save_maps_to = save_maps_to.replace('spherical', 'cylindrical').replace('phitheta', 'rhoz')
+    stage1_corr_path = reco.run(event, event_station, det, stage1_config, 
+                                save_maps=save_stage1, save_pair_maps=False, save_maps_to=stage1_save_maps_to)
     
     # Extract stage 1 results
     rho_best = event_station.get_parameter(stnp.rec_coord0)  # In internal units (meters)
@@ -447,14 +448,7 @@ def run_two_stage_reconstruction(reco, event, event_station, det, config, pa_pos
     
     rho_best_m = rho_best / units.m
     z_best_abs_m = z_best_abs / units.m
-    
-    # Convert z from absolute depth to PA-relative depth
-    # z_best_abs is absolute depth (negative below surface)
-    # pa_pos_abs[2] is PA absolute z position
-    # z_rel_PA is depth relative to PA
     z_rel_PA_m = z_best_abs_m - pa_pos_abs[2]
-    
-    # Calculate radial distance from PA center using PA-relative coordinates
     r_best_m = np.sqrt(rho_best_m**2 + z_rel_PA_m**2)
     
     logger.info(f"[AUTO MODE] Stage 1 results: rho={rho_best_m:.1f}m, z_abs={z_best_abs_m:.1f}m, z_rel_PA={z_rel_PA_m:.1f}m, r={r_best_m:.1f}m, maxCorr={stage1_max_corr:.3f}")
@@ -469,48 +463,92 @@ def run_two_stage_reconstruction(reco, event, event_station, det, config, pa_pos
     
     logger.info(f"[AUTO MODE] Stage 2: Running spherical reconstruction with fixed r={r_best_m:.1f}m...")
     
-    # Run stage 2 reconstruction (save maps from this final stage if requested)
-    corr_map_path = reco.run(event, event_station, det, stage2_config,
-                             save_maps=save_maps, save_pair_maps=save_pair_maps, 
-                             save_maps_to=save_maps_to)
+    # Determine if we need to save stage 2 maps
+    save_stage2 = bool(save_maps)  # Save if True or 'both'
+    # Run stage 2 reconstruction
+    stage2_corr_path = reco.run(event, event_station, det, stage2_config,
+                                save_maps=save_stage2, save_pair_maps=save_pair_maps, 
+                                save_maps_to=save_maps_to)
     
     # Final results are now in station parameters (overwritten by stage 2)
     final_max_corr = event_station.get_parameter(stnp.rec_max_correlation)
     phi_best = event_station.get_parameter(stnp.rec_coord0) / units.deg
     theta_best = event_station.get_parameter(stnp.rec_coord1) / units.deg
     
-    #print(f"[AUTO MODE] Stage 2 results: phi={phi_best:.1f}°, theta={theta_best:.1f}°, maxCorr={final_max_corr:.3f}")
+    logger.info(f"[AUTO MODE] Stage 2 results: phi={phi_best:.1f}°, theta={theta_best:.1f}°, maxCorr={final_max_corr:.3f}")
     
-    return corr_map_path
+    # If both stages were saved, combine them into a single multi-stage file
+    if save_maps == 'both' and stage1_corr_path and stage2_corr_path:
+        import pickle
+        from NuRadioReco.utilities.interferometry_io_utilities import load_correlation_map
+        
+        logger.info(f"[AUTO MODE] Loading stage 1 from: {stage1_corr_path}")
+        logger.info(f"[AUTO MODE] Loading stage 2 from: {stage2_corr_path}")
+        
+        # Load both correlation maps
+        stage1_data = load_correlation_map(stage1_corr_path)
+        stage2_data = load_correlation_map(stage2_corr_path)
+        
+        logger.info(f"[AUTO MODE] Stage 1 loaded: {stage1_data['coord_system']}/{stage1_data.get('rec_type')}, limits={stage1_data['limits']}")
+        logger.info(f"[AUTO MODE] Stage 2 loaded: {stage2_data['coord_system']}/{stage2_data.get('rec_type')}, limits={stage2_data['limits']}")
+        
+        # Create multi-stage data structure
+        multistage_data = {
+            'multistage': True,
+            'n_stages': 2,
+            'stage1': stage1_data,
+            'stage2': stage2_data,
+            'station_id': stage2_data['station_id'],
+            'run_number': stage2_data['run_number'],
+            'event_number': stage2_data['event_number']
+        }
+        
+        # Save to new file with _multistage suffix
+        multistage_path = stage2_corr_path.replace('_corrmap.pkl', '_multistage_corrmap.pkl')
+        with open(multistage_path, 'wb') as f:
+            pickle.dump(multistage_data, f)
+        
+        logger.info(f"[AUTO MODE] Saved multi-stage correlation map to {multistage_path}")
+        
+        # Delete individual stage files to avoid confusion
+        if os.path.exists(stage1_corr_path):
+            os.remove(stage1_corr_path)
+        if os.path.exists(stage2_corr_path):
+            os.remove(stage2_corr_path)
+        
+        return multistage_path
+    
+    # Return stage 2 path for normal case
+    return stage2_corr_path
 
 def main():    
     parser = argparse.ArgumentParser(
-        prog="interferometric_reco_example.py", 
+        prog="interferometric_reco_example_advanced.py", 
         description="Run interferometric direction reconstruction on RNO-G data",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
             Examples:
             # Basic reconstruction (saves to ./results/station{ID}/run{NUM}/)
-            python interferometric_reco_example.py --config example_config.yaml --inputfile data.root
+            python interferometric_reco_example_advanced.py --config example_config.yaml --input data.root
 
             # Process specific events with map data saving
-            python interferometric_reco_example.py --config example_config.yaml --inputfile data.root --events 1 5 10 --save_maps --verbose
+            python interferometric_reco_example_advanced.py --config example_config.yaml --input data.root --events 1 5 10 --save_maps
 
             # Process specific runs from NUR simulation file
-            python interferometric_reco_example.py --config example_config.yaml --inputfile simulation.nur --runs 0 5 10 --save_maps
+            python interferometric_reco_example_advanced.py --config example_config.yaml --input simulation.nur --runs 0 5 10 --save_maps
 
             # Use NUR output format instead of HDF5
-            python interferometric_reco_example.py --config example_config.yaml --inputfile file1.root --output_type nur
+            python interferometric_reco_example_advanced.py --config example_config.yaml --input file1.root --output_type nur
         """
     )
     
     parser.add_argument("--config", type=str, required=True, 
                        help="Path to YAML configuration file")
-    parser.add_argument("--inputfile", type=str, nargs="+", required=True,
+    parser.add_argument("-i", "--input", type=str, nargs="+", required=True,
                        help="Path(s) to input data file(s) (ROOT or NUR). Can specify multiple files for same station.")
     parser.add_argument("--output_type", type=str, choices=['hdf5', 'nur'], default='hdf5',
                        help="Output file format: 'hdf5' for HDF5 tables or 'nur' for NuRadioReco format (default: hdf5)")
-    parser.add_argument("--outputfile", type=str, default=None,
+    parser.add_argument("-o", "--outputfile", type=str, default=None,
                        help="Optional: manually specify output file path. If not set, uses organized default path.")
     parser.add_argument("--events", type=int, nargs="*", default=None, 
                        help="Specific event IDs to process. If not provided, processes all events in given file.")
@@ -518,17 +556,14 @@ def main():
                        help="Specific run numbers to process.")
 
     parser.add_argument("--sim-truth-fixed-coord", action="store_true")
-    parser.add_argument("--use-cache", required=False, default=False)
-    parser.add_argument("--save-maps", action="store_true",
-                       help="Save correlation map data to pickle files for later plotting")
+    parser.add_argument("--save-maps", nargs='?', const=True, default=False,
+                       help="Save correlation map data to pickle files for later plotting. For auto mode, pass 'both' to save both stage 1 and stage 2 maps in a single file.")
     parser.add_argument("--save-pair-maps", action="store_true",
                        help="Save individual channel pair correlation maps (requires --save-maps)")
     parser.add_argument("--snr-threshold", type=float, default=None,
                        help="SNR threshold for channel filtering. Channels below threshold are dropped. If no helper channels [9,10,22,23] pass threshold, event is skipped.")
     parser.add_argument("--edge-sigma", type=float, default=None,
                        help="Edge signal detection threshold in standard deviations. Channels with signals at trace edges exceeding this threshold are dropped. If no helper channels [9,10,22,23] remain, event is skipped.")
-    parser.add_argument("--verbose", action="store_true", 
-                       help="Print reconstruction results for each event")
 
     args = parser.parse_args()
         
@@ -554,7 +589,7 @@ def main():
         if param not in config:
             raise ValueError(f"Required parameter '{param}' not found in config file")
 
-    input_files = args.inputfile if isinstance(args.inputfile, list) else [args.inputfile]
+    input_files = args.input if isinstance(args.input, list) else [args.input]
     is_nur_file = input_files[0].endswith('.nur')
     
     if args.sim_truth_fixed_coord and not is_nur_file:
@@ -563,9 +598,9 @@ def main():
     
     # Warn if --runs is used with ROOT files
     if args.runs is not None and not is_nur_file:
-        print("WARNING: --runs flag is not supported for ROOT files (real data).")
-        print("    ROOT files contain data from a single run. Use --events instead.")
-        print("    Ignoring --runs flag and processing all events.")
+        logger.warning("WARNING: --runs flag is not supported for ROOT files (real data).")
+        logger.warning("    ROOT files contain data from a single run. Use --events instead.")
+        logger.warning("    Ignoring --runs flag and processing all events.")
         args.runs = None
         
     channel_add_cable_delay = channelAddCableDelay()
@@ -589,8 +624,11 @@ def main():
     # Option 1: Load from JSON file (uncomment if using local detector file)
     #det = detector.Detector(json_filename=config['detector_json'])
     # Option 2: Load from MongoDB (default for RNO-G)
+    
+    #detectorpath = "/storage/group/szw5718/default/rno-g/data/calibrated_stations/station11/station_11.json"
+    #det = NuRadioReco.detector.RNO_G.rnog_detector.Detector(detector_file = detectorpath)
     det = detector.Detector(source="rnog_mongo")
-    det.update(datetime(2022, 10, 1))
+    det.update(datetime(2024, 3, 1))
     station_id = config.get('station_id')
     
     # Pre-calculate PA position once (it's constant per station)
@@ -598,16 +636,16 @@ def main():
     pa_pos_rel_station, pa_pos_abs = get_PA_position(station_id, det)
     
     # Pre-load cable delays for all channels
-    # This triggers the detector's internal buffering/caching mechanism
-    print("Pre-loading cable delays for station...", station_id)
-    for ch in range(24):  # RNO-G has 24 channels per station
+    # This triggers the detector's internal buffering/caching mechanism 
+    print(f"[INFO] Preloading cable delays for station {station_id}...", end="", flush=True)
+    for ch in range(24):
         try:
             _ = det.get_cable_delay(station_id, ch)
-        except:
-            pass  # Some channels may not exist in detector description
-    print("Done!\n")    
+        except KeyError:
+            continue
+    print(" done.", flush=True)
     
-    reco.begin(station_id=station_id, config=config, det=det, use_cache=args.use_cache)
+    reco.begin(station_id=station_id, config=config, det=det)
     
     # Handle both --events and --runs flags
     # For NUR files with --runs, we'll check run_number
@@ -623,7 +661,7 @@ def main():
     corr_map_path = None
     
     n_processed, n_skipped = 0, 0
-    found_event_ids, found_run_numbers = [], []
+    found_event_numbers, found_run_numbers = [], []
     
     t_total = 0
     
@@ -632,47 +670,100 @@ def main():
     for file_idx, input_file in enumerate(input_files, 1):
         file_events_processed = 0
         
-        print(f"Processing file {file_idx}/{len(input_files)}: {input_file}", flush=True)
+        logger.info(f"Processing file {file_idx}/{len(input_files)}: {input_file}")
         
+        reader.begin(input_file)
+
+        # Get event IDs differently based on file type
         if is_nur_file:
-            reader.begin(input_file, read_detector=True)
+            # For NUR files, use the underlying NuRadioRecoio object to get event IDs
+            event_ids = reader._eventReader__fin.get_event_ids()
         else:
-            reader.begin(input_file, mattak_kwargs={'backend': 'uproot'})
+            # For ROOT files, readRNOGData has get_event_ids() method
+            event_ids = reader.get_event_ids()
+        
+        # Store all available run/event numbers for error reporting
+        # Convert to int to avoid numpy float types
+        all_runs = [int(eid[0]) for eid in event_ids]
+        all_events = [int(eid[1]) for eid in event_ids]
+        
+        # CRITICAL: If --events is specified without --runs, we must have exactly one run in the file
+        # This prevents ambiguity when multiple runs share the same event numbers
+        if events_to_process and not runs_to_process:
+            unique_runs = set(all_runs)
+            if len(unique_runs) > 1:
+                logger.error(f"ERROR: --events specified without --runs, but input file contains {len(unique_runs)} runs: {sorted(unique_runs)}")
+                logger.error(f"       Cannot uniquely identify events because multiple runs may share the same event numbers.")
+                logger.error(f"       Please either:")
+                logger.error(f"         1. Specify --runs along with --events to uniquely identify events, OR")
+                logger.error(f"         2. Use an input file containing only one run")
+                sys.exit(1)
+        
+        # Filter event IDs based on user request
+        if runs_to_process or events_to_process:
+            filtered_ids = []
+            for event_id in event_ids:
+                run_num, evt_num = int(event_id[0]), int(event_id[1])
+                if runs_to_process and run_num not in runs_to_process:
+                    continue
+                if events_to_process and evt_num not in events_to_process:
+                    continue
+                filtered_ids.append((run_num, evt_num))
+            event_ids = filtered_ids
+
+        logger.info(f"Found {len(event_ids)} event(s) to process")
+        if len(event_ids) == 0 and (runs_to_process or events_to_process):
+            logger.warning(f"WARNING: No events match the requested criteria!")
+            if runs_to_process:
+                available_runs = sorted(set(all_runs))
+                logger.info(f"  Requested run(s): {sorted(runs_to_process)}")
+                logger.info(f"  Available run(s): {available_runs[:20]}")
+                if len(available_runs) > 20:
+                    logger.info(f"  ... and {len(available_runs) - 20} more")
+            if events_to_process:
+                available_events = sorted(set(all_events))
+                logger.info(f"  Requested event(s): {sorted(events_to_process)}")
+                logger.info(f"  Available event(s): {available_events[:20]}")
+                if len(available_events) > 20:
+                    logger.info(f"  ... and {len(available_events) - 20} more")
                 
-        for event in reader.run():
+        for event_id in event_ids:
             
             t0 = time.time()
             
-            event_id = event.get_id()
-            run_number = event.get_run_number()
+            # Get event differently based on file type
+            # Convert to int to ensure proper types
+            run_number = int(event_id[0])
+            event_number = int(event_id[1])
             
-            found_event_ids.append(event_id)
+            if is_nur_file:
+                event = reader._eventReader__fin.get_event(event_id)
+            else:
+                event = reader.get_event(run_number, event_number)
+            
+            found_event_numbers.append(event_number)
             found_run_numbers.append(run_number)
             
-            if runs_to_process is not None:
-                if run_number not in runs_to_process:
-                    n_skipped += 1
-                    continue
-            
-            if events_to_process is not None:
-                if event_id not in events_to_process:
-                    n_skipped += 1
-                    continue
-
             if results_path is None:
                 if args.outputfile is not None:
                     results_path = args.outputfile
                     maps_dir = None
-                    print(f"Will save reconstruction results to: {results_path}")
-                else:
+                    logger.info(f"Will save reconstruction results to: {results_path}")
+                else:                    
+                    include_event_in_path = (args.events is not None or args.output_type == 'nur')
+                    use_run_in_path = (args.runs is not None or args.events is not None or args.output_type == 'nur')
+                    
                     results_path, maps_dir = create_organized_paths(
-                        config, run_number, args.output_type, 
-                        event_number=event_id
+                        config, 
+                        run_number if use_run_in_path else None,
+                        args.output_type, 
+                        event_number=event_number if include_event_in_path else None,
+                        use_run_in_path=use_run_in_path
                     )
                     if results is not None or events_for_nur is not None:
-                        print(f"Will save reconstruction results to: {results_path}")
+                        logger.info(f"Will save reconstruction results to: {results_path}")
                     if args.save_maps:
-                        print(f"Will save correlation map data to: {maps_dir}")
+                        logger.info(f"Will save correlation map data to: {maps_dir}")
             
             event_station = event.get_station(station_id)
             # Apply optional preprocessing steps based on config
@@ -683,7 +774,7 @@ def main():
             
             # Upsampling improves time resolution for correlation analysis
             if config.get('apply_upsampling', False):
-                channel_resampler.run(event, event_station, det, sampling_rate=5 * units.GHz)
+                channel_resampler.run(event, event_station, det, sampling_rate=10 * units.GHz)
             
             # Bandpass filter reduces noise outside antenna sensitivity range
             if config.get('apply_bandpass', False):
@@ -701,37 +792,33 @@ def main():
             
             # Apply edge signal filtering if threshold is specified
             if args.edge_sigma is not None:
-                if args.verbose:
-                    print(f"\n  Applying edge signal detection (threshold: {args.edge_sigma} sigma)")
+                logger.info(f"\n  Applying edge signal detection (threshold: {args.edge_sigma} sigma)")
                 
                 channels_to_use = filter_channels_by_edge_signal(
                     event_station,
                     channels_to_use,
                     edge_threshold_sigma=args.edge_sigma,
                     n_chunks=10,
-                    verbose=args.verbose
                 )
                 
                 if len(channels_to_use) < 2:
                     # Check if plane wave fallback is enabled before skipping
                     if not config.get('plane_wave_fallback', False):
-                        print(f"  Skipping event {event_id} (run {run_number}): Fewer than 2 channels after edge filtering ({len(channels_to_use)} channels)")
+                        logger.info(f"  Skipping event {event_id} (run {run_number}): Fewer than 2 channels after edge filtering ({len(channels_to_use)} channels)")
                         n_skipped += 1
                         continue
                     else:
-                        print(f"  Only {len(channels_to_use)} channel(s) after edge filtering - will attempt plane wave fallback")
+                        logger.info(f"  Only {len(channels_to_use)} channel(s) after edge filtering - will attempt plane wave fallback")
 
             # Apply SNR filtering if threshold is specified
             if args.snr_threshold is not None:
-                if args.verbose:
-                    print(f"\n  Applying SNR threshold: {args.snr_threshold}")
+                logger.info(f"\n  Applying SNR threshold: {args.snr_threshold}")
                 
                 passing_channels, should_skip = filter_channels_by_snr(
                     event_station, 
                     channels_to_use,  # Use channels that already passed edge filter
                     args.snr_threshold,
-                    helper_channels=[9, 10, 22, 23],
-                    verbose=args.verbose
+                    helper_channels=[9, 10, 22, 23]
                 )
                 
                 # Check skip conditions - either no helper channels or too few channels total
@@ -743,11 +830,11 @@ def main():
                 
                 if skip_reason:
                     if not config.get('plane_wave_fallback', False):
-                        print(f"  Skipping event {event_id} (run {run_number}): {skip_reason}")
+                        logger.info(f"  Skipping event {event_id} (run {run_number}): {skip_reason}")
                         n_skipped += 1
                         continue
                     else:
-                        print(f"  {skip_reason} - will attempt plane wave fallback")
+                        logger.info(f"  {skip_reason} - will attempt plane wave fallback")
                 
                 channels_to_use = passing_channels
             
@@ -760,15 +847,15 @@ def main():
                 if len(helper_channels_remaining) == 0:
                     # Check if plane wave fallback is enabled
                     if config.get('plane_wave_fallback', False):
-                        print(f"  [PLANE WAVE FALLBACK] No helper channels remaining - triggering fallback mode")
+                        logger.info(f"  [PLANE WAVE FALLBACK] No helper channels remaining - triggering fallback mode")
                         use_plane_wave_fallback = True
                     else:
-                        print(f"  Skipping event {event_id} (run {run_number}): No helper channels [{','.join(map(str, helper_channels))}] remaining after filtering")
+                        logger.info(f"  Skipping event {event_id} (run {run_number}): No helper channels [{','.join(map(str, helper_channels))}] remaining after filtering")
                         n_skipped += 1
                         continue
                 
-                if args.verbose and not use_plane_wave_fallback:
-                    print(f"  Using {len(channels_to_use)} channels for reconstruction: {channels_to_use}")
+                if not use_plane_wave_fallback:
+                    logger.info(f"  Using {len(channels_to_use)} channels for reconstruction: {channels_to_use}")
             
             # Create event-specific config with filtered channels
             event_config = config.copy()
@@ -874,19 +961,24 @@ def main():
             if events_for_nur is not None:
                 events_for_nur.append(event)
             
-            if args.verbose:
-                print(f"\n=== Reconstruction Results ===")
-                print(f"Station: {station_id}")
-                if results is not None:
-                    # Print the result row which already has properly named columns
-                    for key, value in result_row.items():
-                        if key not in ['filename', 'runNum', 'eventNum']:  # Skip metadata
-                            print(f"{key}: {value:.3f}" if not np.isnan(value) else f"{key}: nan")
-                else:
-                    # For NUR output, print basic info
-                    print(f"Max correlation: {max_corr:.3f}")
-                    print(f"Surface correlation: {surf_corr:.3f}")
-                print(f"===============================\n")
+            summary = [
+                "\n=== Reconstruction Results ===",
+                f"Station: {station_id}",
+            ]
+            if results is not None:
+                summary.extend(
+                    f"{key}: {value:.3f}" if not np.isnan(value) else f"{key}: nan"
+                    for key, value in result_row.items()
+                    if key not in ['filename', 'runNum', 'eventNum']
+                )
+            else:
+                summary.extend([
+                    f"Max correlation: {max_corr:.3f}",
+                    f"Surface correlation: {surf_corr:.3f}",
+                ])
+            summary.append("===============================")
+            logger.info("\n".join(summary))
+
             
             n_processed += 1
             file_events_processed += 1
@@ -905,25 +997,8 @@ def main():
 
     reco.end()
     
-    # Check if any requested events/runs were not found
-    for requested, found_list, label, id_label in [
-        (events_to_process, found_event_ids, "event(s)", "event IDs"),
-        (runs_to_process, found_run_numbers, "run(s)", "run numbers")
-    ]:
-        if requested is not None:
-            missing = requested - set(found_list)
-            if missing:
-                print(f"\nWARNING: {len(missing)} requested {label} were not found in input files:")
-                print(f"  Missing {id_label}: {sorted(missing)}")
-                
-                # If none were processed, show available IDs to help user
-                if n_processed == 0:
-                    unique_ids = sorted(set(found_list))
-                    print(f"  Available {id_label} in file: {unique_ids[:20]}")
-                    if len(unique_ids) > 20:
-                        print(f"  ... and {len(unique_ids) - 20} more")
-    
-    if results_path:
+    # Save results if we processed any events
+    if results_path and n_processed > 0:
         if results:
             reco_results_path = save_results_to_hdf5(results, results_path, config)
         elif events_for_nur:
@@ -935,12 +1010,21 @@ def main():
     if n_processed > 0:
         print(f"Total time: {t_total:.2f}s")
         print(f"Time per event: {t_total / n_processed:.2f}s")
-    if events_to_process is not None or runs_to_process is not None:
-        print(f"Skipped: {n_skipped} events")
     print(f"{'='*50}\n")
 
-    if corr_map_path is not None:
-        print(f"To plot, do:\npython correlation_map_plotter.py --input {corr_map_path} --comprehensive {reco_results_path}") if is_nur_file else print(f"To plot, do:\npython correlation_map_plotter.py --input {corr_map_path}")
+    if n_processed > 0 and corr_map_path is not None:
+        # Check if this is a multi-stage file
+        if '_multistage_' in corr_map_path:
+            print(f"To plot multi-stage reconstruction:")
+            print(f"  python correlation_map_plotter.py --input {corr_map_path} --multistage")
+            if is_nur_file:
+                print(f"  python correlation_map_plotter.py --input {corr_map_path} --multistage --comprehensive {reco_results_path}")
+        else:
+            print(f"To plot, do:")
+            if is_nur_file:
+                print(f"  python correlation_map_plotter.py --input {corr_map_path} --comprehensive {reco_results_path}")
+            else:
+                print(f"  python correlation_map_plotter.py --input {corr_map_path}")
 
 if __name__ == "__main__":
     main()
