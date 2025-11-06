@@ -380,7 +380,7 @@ class SimplePhasedTrigger(Trigger):
 class HighLowTrigger(Trigger):
 
     def __init__(self, name, threshold_high, threshold_low, high_low_window,
-                 channel_coincidence_window, channels=None, number_of_coincidences=1, pre_trigger_times=55 * units.ns):
+                 channel_coincidence_window, channels=None, number_of_coincidences=1, pre_trigger_times=255 * units.ns):
         """
         initialize trigger class
 
@@ -409,6 +409,8 @@ class HighLowTrigger(Trigger):
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
+        print("Initializing HighLowTrigger: {}".format(name))
+        print("pre_trigger_times:", pre_trigger_times)
         Trigger.__init__(self, name, channels, 'high_low', pre_trigger_times=pre_trigger_times)
         self._number_of_coincidences = number_of_coincidences
         self._threshold_high = threshold_high

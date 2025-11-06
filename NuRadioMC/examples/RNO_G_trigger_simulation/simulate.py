@@ -159,7 +159,6 @@ def rnog_flower_board_high_low_trigger_simulations(evt, station, det, trigger_ch
             number_concidences=2,
             triggered_channels=trigger_channels,
             trigger_name=f"deep_high_low_{thresh_key}",
-            pre_trigger_time = 255*units.ns
         )
 
     return vrms_after_gain
