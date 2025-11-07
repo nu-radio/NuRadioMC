@@ -1610,7 +1610,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             if cutoff_freq is not None:
                 self._cutoff_freq = cutoff_freq
             else:
-                self._cutoff_freq = 200 * units.MHz
+                self._cutoff_freq = 220 * units.MHz
 
         if self._model == 'analytic_HPol':
             # HPol dummy model points towards z direction
@@ -1622,7 +1622,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             if cutoff_freq is not None:
                 self._cutoff_freq = cutoff_freq
             else:
-                self._cutoff_freq = 300 * units.MHz
+                self._cutoff_freq = 500 * units.MHz
 
     def parametric_phase(self, freq, phase_type='theoretical'):
         """
@@ -1643,9 +1643,9 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             f = 1000. * units.MHz
             a = np.pi / np.log(tau) * np.log(freq / f) - 60
         if phase_type == 'VPol_simple':
-            a = 44.16 * freq
+            a = -100.0 * freq
         if phase_type == 'HPol_simple':
-            a = -55.0 * (freq - 0 * units.MHz)
+            a = -4.5 * (freq - 0 * units.MHz)
 
         return a
 
@@ -1655,7 +1655,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
         """
         if self._model == 'analytic_LPDA':
             """
-            Dummy LPDA model.
+            Dummy LPDA model. Approximates createLPDA_100MHz_InfFirn_n1.4
             Flat gain as function of frequency, no group delay.
             Can be used instead of __get_antenna_response_vectorized_raw
             """
@@ -1702,9 +1702,9 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
         elif self._model == 'analytic_VPol':
             """
-            Dummy VPol model.
+            Dummy VPol model. Approximates RNOG_vpol_v3_5inch_center_n1.74
             """
-            max_gain = 2.2
+            max_gain = 1.90
 
             index = np.argmax(freq > self._cutoff_freq)
             Gain = np.ones_like(freq)
@@ -1718,7 +1718,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             # Assuming simple cosine, sine falls-off for dummy module
             H_eff_t = np.zeros_like(Gain)
             fmask = freq > 0
-            H_eff_t[fmask] = Gain[fmask] * max_gain * 1 / freq[fmask]
+            H_eff_t[fmask] = Gain[fmask] * max_gain * 1 / (freq[fmask])**1.2
             H_eff_t *= np.sin(theta)
             H_eff_t *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
 
@@ -1734,7 +1734,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             
         elif self._model == 'analytic_HPol':
             """
-            Dummy VPol model.
+            Dummy HPol model. Approximates RNOG_hpol_v4_8inch_center_n1.74
             """
             max_gain = 4.5
 
@@ -1749,7 +1749,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             fmask = freq > 0
             H_eff_p[fmask] = Gain[fmask] * max_gain * 1 * np.sin(freq[fmask] / peak_freq * np.pi/2)**2
             H_eff_p[freq > peak_freq * 2] *= 0
-            H_eff_p *= np.sin(theta)
+            H_eff_p *= np.sin(theta)**2
             H_eff_p *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
 
             H_eff_t = np.zeros_like(Gain)
