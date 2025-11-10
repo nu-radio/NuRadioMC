@@ -316,9 +316,14 @@ class voltageToAnalyticEfieldConverter:
             azimuth = station[stnp.azimuth]
             sim_present = False
 
-        efield_antenna_factor, V, V_timedomain = get_array_of_channels(station, use_channels,
-                                                                       det, zenith, azimuth, self.antenna_provider,
-                                                                       time_domain=True)
+        efield_position = np.mean([
+            det.get_relative_position(station.get_id(), channel_id)
+            for channel_id in use_channels], axis=0)
+
+        times, efield_antenna_factor, V, V_timedomain = get_array_of_channels(
+            station, use_channels, det, zenith, azimuth, self.antenna_provider,
+            time_domain=True, efield_position=efield_position)
+
         sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate()
         n_samples_time = V_timedomain.shape[1]
 
@@ -393,6 +398,7 @@ class voltageToAnalyticEfieldConverter:
                 fig.suptitle("amp phi = {:.4g}, amp theta = {:.4g} , chi2 = {:.2g}".format(ampPhi, ampTheta, chi2))
                 fig.tight_layout()
                 plt.show()
+
             return chi2
 
         def obj_amplitude_slope(params, phase, pos, compare='hilbert', debug_obj=0):
