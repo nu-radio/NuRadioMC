@@ -343,6 +343,7 @@ class TraceMinimizer:
         best_result = None
         best_parameters = None
         best_call = None
+        result = np.inf
 
         for call in range(max_calls):
 
