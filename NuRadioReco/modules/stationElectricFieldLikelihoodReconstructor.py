@@ -26,10 +26,10 @@ electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.el
 channelLengthAdjuster = NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster()
 
 import logging
-logger = logging.getLogger('NuRadioReco.StationElectricLikelhihoodFieldReconstructor')
+logger = logging.getLogger('NuRadioReco.stationElectricFieldLikelihoodReconstructor')
 
 
-class StationElectricLikelhihoodFieldReconstructor:
+class stationElectricFieldLikelihoodReconstructor:
     """
     Class for reconstructing electric fields in a station, e.g., a dual polarized antenna or the
     upwardfacing LPDAs in an RNO-G shallow station. This class forward fold an analytical electric
