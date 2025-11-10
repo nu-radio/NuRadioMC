@@ -188,6 +188,7 @@ class NoiseModel:
         ----------
             data : numpy.ndarray
                 Array containing data with dimensions [n_datasets,n_antennas,n_samples]
+
         Returns
         -------
             numpy.ndarray
@@ -434,7 +435,7 @@ class NoiseModel:
         """
         return -2*self.calculate_delta_llh(data, signal=signal, frequency_domain=frequency_domain)
 
-    def calculate_minus_two_delta_llh_station(self, station, sim_station, time_grid=None, use_channels = None, frequency_domain=False, plot=True, return_traces=False):
+    def calculate_minus_two_delta_llh_station(self, station, sim_station, time_grid=None, use_channels=None, frequency_domain=False, plot=True, return_traces=False):
         """
         Calculates the minus two delta log likelihood with a NuRadioReco station containing the data channels, i.e., with noise, and a sim station that contains the noiseless traces.
         This function should correctly loop over the antennas and add together different ray-tracing solutions in the readout window of the data with the desired time offset between the
@@ -450,13 +451,16 @@ class NoiseModel:
                 List of channel ids of station to use in the calculation
             time_grid : numpy.ndarray
                 Array (or single number) containing time offsets between the data and the signal to calculate the likelihood for. The time offset is
-                the time between the start of the data cahannel of the first antenna and the start of the signal/sim channel (first solution) of the
+                the time between the start of the data channel of the first antenna and the start of the signal/sim channel (first solution) of the
                 first antenna. If the time_grid is not provided, the function will calculate the likelihood for a coarse time grid and then refine the
                 time grid around the best time offset.
             frequency_domain : bool, optional
                 If True, calculate the delta log likelihood in the frequency domain, which is faster.
             plot : bool, optional
                 If True, plot the data and signal for each time offset in the time_grid.
+            return_traces : bool, optional
+                If True, return the data traces and the signal traces for the best time offset.
+
         Returns
         -------
             float
@@ -493,12 +497,14 @@ class NoiseModel:
         referece_time_offset = t_0_sim - t_0_data
 
         trace_start_times = np.zeros(self.n_antennas)
+        n_skipped = 0
         for i_ant, channel in enumerate(station.iter_channels()):
             if not channel.get_id() in use_channels:
+                n_skipped += 1
                 continue
             assert channel.get_number_of_samples() == self.n_samples, f"Number of samples in data channel {i_ant} ({channel.get_number_of_samples()}) does not match the number of samples in the noise model ({self.n_samples})"
-            data_array[i_ant, :] = channel.get_trace()
-            trace_start_times[i_ant]  = channel.get_trace_start_time()
+            data_array[i_ant-n_skipped, :] = channel.get_trace()
+            trace_start_times[i_ant-n_skipped]  = channel.get_trace_start_time()
 
         # Loop over the times in the time_grid:
         LLH_array = np.zeros(len(np.atleast_1d(time_grid)))
@@ -596,7 +602,7 @@ class NoiseModel:
 
         def minus_two_delta_llh_func(params):
             signal = signal_function(params)
-            LLH_signal = self.calculate_delta_llh(signal, data_to_fit, frequency_domain=frequency_domain)
+            LLH_signal = self.calculate_delta_llh(data_to_fit, signal, frequency_domain=frequency_domain)
             minus_two_delta_llh_signal = -2 * LLH_signal
             return minus_two_delta_llh_signal
 
