@@ -15,7 +15,7 @@ class MatchedFilter:
     at a time. To repeat the search for many datasets and/or templates, the user has to set up a loop
     and run set_data() and/or set_template() multiple times.
 
-    See https://arxiv.org/abs/... for more details.
+    See Appendix B in https://arxiv.org/abs/2510.21925 for more details.
 
     Parameters
     ----------

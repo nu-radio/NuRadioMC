@@ -39,11 +39,13 @@ class StationElectricLikelhihoodFieldReconstructor:
     the reconstructed parameters. The likelihood is calculated using the spectrum of the noise, which
     enables correct error estimates of reconstructed parameters.
 
-    This method is similar to voltageToAnalyticEfieldConverter, but uses a likelihood based on the
+    This class is similar to voltageToAnalyticEfieldConverter, but uses a likelihood based on the
     noise spectrum instead of a chi-square and has an improved minimization strategy.
 
-    This class assumes that the hardware response is subtracted from the data, e.g.,
+    The class assumes that the hardware response is subtracted from the data, e.g.,
     hardwareResponseIncorporator.run(event, station, det, sim_to_data=False, mingainlin=0.001) has been run.
+
+    For a full description of the method, see Section III.C in https://arxiv.org/abs/2510.21925.
     """
 
     def __init__(self):
@@ -126,7 +128,7 @@ class StationElectricLikelhihoodFieldReconstructor:
         )
 
     @register_run()
-    def run(self, evt, station, det, use_channels=None, signal_search_window=None, use_MC_direction=False):
+    def run(self, evt, station, det, use_channels=None, signal_search_window=None, use_MC_direction=False, return_signal=False):
         """
         Run the likelihood reconstruction of electric field.
 
@@ -199,7 +201,6 @@ class StationElectricLikelhihoodFieldReconstructor:
                 fitted_params_best = np.copy(fitted_params)
                 fitted_params_uncertainties_best = np.copy(fitted_params_uncertainties)
 
-        initial_signal = signal_function(parameters_initial)
         fitted_signal = signal_function(fitted_params_best)
 
         # save results to station object:
@@ -226,27 +227,8 @@ class StationElectricLikelhihoodFieldReconstructor:
 
         station.add_electric_field(electric_field)
 
-        # Delete this code below for NuRadioReco PR:
-        results_method = dict(
-            method_name="LLH",
-            polarization_reco=polarization_reco_best / units.deg,
-            fluence_reco=fluence_reco_best,
-            f_theta_reco=np.abs(fitted_params_best[0]),
-            f_phi_reco=np.abs(fitted_params_best[1]),
-            llh=minus_two_llh_best,
-            error_fit=fitted_params_uncertainties_best,
-            error_polarization=polarization_uncertainty_best / units.deg,
-            error_fluence=fluence_uncertainty_best,
-            params=fitted_params_best,
-            signal_search_window=signal_search_window,
-            n_dof = np.sum(np.linalg.matrix_rank(self.noise_model.cov_inv)),
-            zenith_reco=fitted_params_best[6] if self.zenith_azimuth_free else None,
-            azimuth_reco=fitted_params_best[7] if self.zenith_azimuth_free else None,
-            A_theta=np.sign(fitted_params_best[0]) * np.abs(fitted_params_best[0])**0.5,
-            A_phi=np.sign(fitted_params_best[1]) * np.abs(fitted_params_best[1])**0.5,
-        )
-
-        return results_method, fitted_signal, initial_signal
+        if return_signal:
+            return fitted_signal
 
     def _function_to_minimize_1(self, data, signal):
         """
@@ -270,7 +252,7 @@ class StationElectricLikelhihoodFieldReconstructor:
         Calculate the log-likelihood objective function of the 2nd minimization
         """
         if not self.use_chi2:
-            minus_two_llh =  self.noise_model.calculate_minus_two_delta_llh(data, signal)
+            minus_two_llh = self.noise_model.calculate_minus_two_delta_llh(data, signal)
             return minus_two_llh
         elif self.use_chi2:
             return self._chi2(data, signal)
@@ -315,7 +297,7 @@ class StationElectricLikelhihoodFieldReconstructor:
 
     def _get_efield(self, parameters, zenith_arrival, azimuth_arrival, use_channels, apply_filter=False):
         """
-        Get the electric field in the two antennas for the given parameters.
+        Get the electric field for the given parameters.
 
         Parameters
         ----------
@@ -390,7 +372,7 @@ class StationElectricLikelhihoodFieldReconstructor:
 
     def _get_signal(self, parameters, det, station_id, use_channels, trace_start_times, filter_before_det_resp=True):
         """
-        Get the signal in the two antennas for the given parameters.
+        Get the signal in the antennas for the given parameters.
 
         Parameters
         ----------

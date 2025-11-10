@@ -16,7 +16,7 @@ class TraceMinimizer:
     output and compares it and returns a number. When a minimization is run, the
     objective function is minimized with respect to the parameters of the
     signal_function. This class implements additional functionality, such as
-    user defined scaling of the parameters, which can improve the stability
+    user-defined scaling of the parameters, which can improve the stability
     of the minimization process.
 
     Parameters
@@ -72,7 +72,7 @@ class TraceMinimizer:
         if self.debug:
             print(f"Function call {self.n_function_calls}: parameters={parameters}, result={result}")
 
-        return result #result[0]
+        return result
 
     def fix_parameters(self, fixed):
         assert len(fixed) == self.n_parameters, "Fixed parameters should match number of parameters"
@@ -104,15 +104,15 @@ class TraceMinimizer:
         self.data = data
 
         if method == "scipy":
-            result_object = self.scipy_minimization(**method_kwargs)
+            result_object = self._scipy_minimization(**method_kwargs)
         if method == "minuit":
-            result_object = self.minuit_minimization(**method_kwargs)
+            result_object = self._minuit_minimization(**method_kwargs)
         if method == "noisyopt":
-            result_object = self.noisyopt_minimization(**method_kwargs)
+            result_object = self._noisyopt_minimization(**method_kwargs)
         if method == "skopt":
-            result_object = self.skopt_minimization(**method_kwargs)
-        if method == "my_minimizer":
-            result_object = self.my_minimizer(**method_kwargs)
+            result_object = self._skopt_minimization(**method_kwargs)
+        if method == "simple_minimizer":
+            result_object = self._simple_minimizer(**method_kwargs)
 
         return result_object
 
@@ -236,7 +236,7 @@ class TraceMinimizer:
 
     ### Methods: ###
     
-    def scipy_minimization(self, tol = 1e-3, scipy_method = "L-BFGS-B", options={}):
+    def _scipy_minimization(self, tol = 1e-3, scipy_method = "L-BFGS-B", options={}):
         import scipy.optimize as opt
         
         # Fix parameters:
@@ -261,7 +261,7 @@ class TraceMinimizer:
 
         return result
 
-    def minuit_minimization(self, tolerance = 1e-3, minuit_method = "migrad"):
+    def _minuit_minimization(self, tolerance = 1e-3, minuit_method = "migrad"):
         from iminuit import Minuit
         
         # Initialze minimizer:
@@ -288,7 +288,7 @@ class TraceMinimizer:
 
         return m
     
-    def noisyopt_minimization(self, deltatol = 0.1, paired = False):
+    def _noisyopt_minimization(self, deltatol = 0.1, paired = False):
         from noisyopt import minimizeCompass
 
         res = minimizeCompass(
@@ -304,7 +304,7 @@ class TraceMinimizer:
 
         return res
 
-    def skopt_minimization(self, n_calls = 1000, n_initial_points = 20, random_state = None):
+    def _skopt_minimization(self, n_calls = 1000, n_initial_points = 20, random_state = None):
         from skopt import gp_minimize
 
         # Convert bounds to list of tuples
@@ -329,7 +329,10 @@ class TraceMinimizer:
 
         return res
 
-    def my_minimizer(self, initial_step_size, decrease_rate, max_calls, epsilon):
+    def _simple_minimizer(self, initial_step_size, decrease_rate, max_calls, epsilon, tolerance=None):
+        """
+        This is a very simple minimizer, which has not been thoroughly tested. It can be used for debugging.
+        """
         import scipy.optimize as opt
 
         # Initialize variables
@@ -344,9 +347,9 @@ class TraceMinimizer:
         for call in range(max_calls):
 
             # Check for convergence
-            # if call > 0 and abs(result - old_result) < 0.001:
-            #     self.success = True
-            #     break
+            if tolerance is not None and call > 0 and abs(result - old_result) < tolerance:
+                self.success = True
+                break
 
             # Get gradient
             gradient = opt.approx_fprime(current_parameters, self._function_to_minimize, epsilon=epsilon * self.scaling)

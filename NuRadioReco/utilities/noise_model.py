@@ -12,9 +12,13 @@ logger = logging.getLogger('NuRadioReco.utilities.noise_model')
 
 class NoiseModel:
     """
-    Probabilistic description of thermal noise in radio detectors. The noise is assumed to be a multivariate gaussian of
-    dimension n_samples. The covariance matrix of the distribution can be calculated from the spectrum of the noise or
+    Probabilistic description of band-limited noise in radio detectors. The noise is assumed to be a multivariate gaussian
+    of dimension n_samples. The covariance matrix of the distribution can be calculated from the spectrum of the noise or
     directly from datasets containing only noise.
+
+    The main purpose of this class is to calculate the likelihood of a signal  given a measured trace, which can be used
+    for likelihood reconstruction as described in https://arxiv.org/abs/2510.21925. Additionally, the class can be used
+    to estimate the Fisher information matrix for a parameterized signal model.
 
     Parameters
     ----------
@@ -360,11 +364,11 @@ class NoiseModel:
         """
         # Handle different shapes of data and signal:
         if self.n_antennas == 1 and len(data.shape) == 2:
-            data = data[:,np.newaxis,:]
-        if self.n_antennas != 1 and len(data.shape) == 2:
-            data = data[np.newaxis,:,:]
+            data = data[:, np.newaxis, :]
+        if self.n_antennas > 1 and len(data.shape) == 2:
+            data = data[np.newaxis, :, :]
         if self.n_antennas == 1 and len(data.shape) == 1:
-            data = data[np.newaxis,np.newaxis,:]
+            data = data[np.newaxis, np.newaxis, :]
 
         if signal is None:
             means = np.zeros([self.n_antennas, self.n_samples])
@@ -407,7 +411,7 @@ class NoiseModel:
                                f"Max ratio: {np.max(np.abs(fft.time2freq(data[i_data, i_ant,:], self.sampling_rate))[self.spectra[i_ant, :] > np.max(self.spectra[i_ant,:]) * self.threshold_amplitude] / self.spectra[i_ant, :][self.spectra[i_ant, :] > np.max(self.spectra[i_ant, :]) * self.threshold_amplitude])}")
                         logger.warning(msg)
 
-        return LLH_array - LLH_best
+        return np.squeeze(LLH_array - LLH_best)
 
     def calculate_minus_two_delta_llh(self, data, signal=None, frequency_domain=False):
         """
