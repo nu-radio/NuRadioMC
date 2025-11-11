@@ -682,7 +682,7 @@
 <span class="sd">    how to install it can be found at https://github.com/nu-radio/RadioPropa&quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
-                 <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_cpp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        class initilization</span>
@@ -724,6 +724,8 @@
 <span class="sd">                config[&#39;propagation&#39;][&#39;radiopropa&#39;][&#39;auto_step_size&#39;] = False</span>
 <span class="sd">                config[&#39;propagation&#39;][&#39;radiopropa&#39;][&#39;iter_steps_zenith&#39;] = [.5, .05, .005]</span>
 <span class="sd">        detector: detector object</span>
+<span class="sd">        use_cpp: bool</span>
+<span class="sd">            Not used here. For compatibility with analytic ray tracer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.SignalProp.radiopropa_ray_tracing&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
