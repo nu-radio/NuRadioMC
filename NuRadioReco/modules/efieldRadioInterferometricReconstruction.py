@@ -28,6 +28,10 @@ The implementation here is based on work published in [2].
 [2]: F. Schlueter, T. Huege, doi:10.1088/1748-0221/16/07/P07048
 
 """
+def normal(x, A, x0, sigma):
+    """ Gauss curve """
+    return A / np.sqrt(2 * np.pi * sigma ** 2) \
+        * np.exp(-1 / 2 * ((x - x0) / sigma) ** 2)
 
 class efieldInterferometricDepthReco:
     """
@@ -72,6 +76,7 @@ class efieldInterferometricDepthReco:
         self._signal_kind = signal_kind
 
         self._data = defaultdict(list)
+        self._long_profile_plot = None
         pass
 
 
@@ -116,7 +121,7 @@ class efieldInterferometricDepthReco:
 
         zenith = hp.get_angle(np.array([0, 0, 1]), shower_axis)
         tstep = times[0, 1] - times[0, 0]
-
+        sum_traces = []
         if depths is not None:
             signals = np.zeros(len(depths))
             depths_or_distances = depths
@@ -126,6 +131,8 @@ class efieldInterferometricDepthReco:
             signals = np.zeros(len(distances))
             depths_or_distances = distances
 
+        fig, ax = plt.subplots()
+        
         for idx, dod in enumerate(depths_or_distances):
             if depths is not None:
                 try:
@@ -150,20 +157,22 @@ class efieldInterferometricDepthReco:
                 # sum_trace = interferometry.interfere_traces_padding(
                 #     point_on_axis, station_positions, core, traces, times, tab=self._tab)
                 sys.exit("Not implemented")
-
-            # plt.title(dod)
-            # plt.plot(sum_trace)
-            # plt.show()
+            
+            ax.plot(sum_trace, label=f"{dod}")
+            sum_traces.append(sum_trace)
 
             signal = interferometry.get_signal(sum_trace, tstep, kind=self._signal_kind)
             signals[idx] = signal
+        
 
-        return signals
+        fig.suptitle("Sum_trace at different depths")
+        
+        return signals, fig
 
 
     def reconstruct_interferometric_depth(
             self, traces, times, station_positions, shower_axis, core,
-            lower_depth=400, upper_depth=800, bin_size=100, return_profile=False):
+            lower_depth=400, upper_depth=1000, bin_size=50, return_profile=False):
         """
         Returns Gauss-parameters fitted to the "peak" of the interferometic
         longitudinal profile along the shower axis.
@@ -232,15 +241,16 @@ class efieldInterferometricDepthReco:
         """
 
         depths = np.arange(lower_depth, upper_depth, bin_size)
-        signals_tmp = self.sample_longitudinal_profile(
+        signals_tmp, self._initial_sum_trace = self.sample_longitudinal_profile(
             traces, times, station_positions, shower_axis, core, depths=depths)
 
         # if max signal is at the upper edge add points there
         if np.argmax(signals_tmp) == len(depths) - 1:
             while True:
                 depth_add = np.amax(depths) + bin_size
-                signal_add = self.sample_longitudinal_profile(
+                signal_add, _ = self.sample_longitudinal_profile(
                     traces, times, station_positions, shower_axis, core, depths=[depth_add])
+                plt.close(_)  # close unneccesary plot
                 depths = np.append(depths, depth_add)
                 signals_tmp = np.append(signals_tmp, signal_add)
 
@@ -251,8 +261,9 @@ class efieldInterferometricDepthReco:
         elif np.argmax(signals_tmp) == 0:
             while True:
                 depth_add = np.amin(depths) - bin_size
-                signal_add = self.sample_longitudinal_profile(
+                signal_add, _ = self.sample_longitudinal_profile(
                     traces, times, station_positions, shower_axis, core, depths=[depth_add])
+                plt.close(_)  # close unneccesary plot
                 depths = np.append(depth_add, depths)
                 signals_tmp = np.append(signal_add, signals_tmp)
 
@@ -261,18 +272,13 @@ class efieldInterferometricDepthReco:
 
         idx_max = np.argmax(signals_tmp)
         depths_final = np.linspace(
-            depths[idx_max - 1], depths[idx_max + 1], 20)  # 10 g/cm2 bins
-        signals_final = self.sample_longitudinal_profile(
+            depths[idx_max - 1], depths[idx_max + 1], 26)  # 4 g/cm2 bins
+        signals_final, self._final_sum_trace = self.sample_longitudinal_profile(
             traces, times, station_positions, shower_axis, core, depths=depths_final)
-
-        def normal(x, A, x0, sigma):
-            """ Gauss curve """
-            return A / np.sqrt(2 * np.pi * sigma ** 2) \
-                * np.exp(-1 / 2 * ((x - x0) / sigma) ** 2)
 
         popt, pkov = curve_fit(normal, depths_final, signals_final, p0=[np.amax(
             signals_final), depths_final[np.argmax(signals_final)], 100], maxfev=1000)
-
+        
         if return_profile:
             return depths, depths_final, signals_tmp, signals_final, popt
 
@@ -308,7 +314,7 @@ class efieldInterferometricDepthReco:
 
 
     @register_run()
-    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True):
+    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, long_plot=True, rit_plot=True):
         """
         Run interferometric reconstruction of depth of coherent signal.
 
@@ -341,20 +347,20 @@ class efieldInterferometricDepthReco:
         core, shower_axis, cs = get_geometry_and_transformation(shower)
 
         traces_vxB, times, pos = get_station_data(
-            evt, det, cs, use_MC_pulses, n_sampling=256)
+            evt, det, cs, use_MC_pulses, n_sampling=None)
 
-        if self._debug:
+        if long_plot:
             depths, depths_final, signals_tmp, signals_final, rit_parameters = \
                 self.reconstruct_interferometric_depth(
                     traces_vxB, times, pos, shower_axis, core, return_profile=True)
 
             fig, ax = plt.subplots(1)
-            ax.plot(depths, signals_tmp, "o")
-            ax.plot(depths_final, signals_final, "o")
-            ax.plot(depths_final, interferometry.gaus(
-                depths_final, *rit_parameters[:-1]))
+            ax.plot(depths, signals_tmp, ".")
+            ax.plot(depths_final, signals_final, ".")
+            ax.plot(depths_final, normal(
+                depths_final, *rit_parameters))
             ax.axvline(rit_parameters[1])
-            plt.show()
+            self._long_profile_plot = fig
         else:
             rit_parameters = self.reconstruct_interferometric_depth(
                 traces_vxB, times, pos, shower_axis, core)
@@ -365,9 +371,10 @@ class efieldInterferometricDepthReco:
         #TODO: Add calibration Xmax(Xrit, theta, ...)?
 
         # for plotting
-        self._data["xrit"].append(xrit)
-        self._data["xmax"].append(shower[shp.shower_maximum] / (units.g / units.cm2))
-        self._data["zenith"].append(shower[shp.zenith])
+        if rit_plot:
+            self._data["xrit"].append(xrit)
+            self._data["xmax"].append(shower[shp.shower_maximum] / (units.g / units.cm2))
+            self._data["zenith"].append(shower[shp.zenith])
 
     def end(self):
         """
@@ -784,7 +791,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         core, shower_axis, cs = get_geometry_and_transformation(shower)
 
         traces_vxB, times, pos = get_station_data(
-            evt, det, cs, use_MC_pulses, n_sampling=256)
+            evt, det, cs, use_MC_pulses)
 
         direction_rec, core_rec = self.reconstruct_shower_axis(
             traces_vxB, times, pos, shower_axis, core, is_mc=True, magnetic_field_vector=shower[shp.magnetic_field_vector])
@@ -886,9 +893,16 @@ def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
 
             traces_vxB.append(trace_vxB)
             times.append(time)
-            break  # just take the first efield. TODO: Improve this
+            """
+            Break is used for the neutrino detection, which uses a different
+            definition of a station, for LOFAR data where station consist of 
+            multiple antannae where we want the efield from, remove it. From this
+            adjustments are also made for the station positions.
+            """
+            pos.append(electric_field.get_position() + det.get_absolute_position(station.get_id()))
+            # break  # just take the first efield. TODO: Improve this
 
-        pos.append(det.get_absolute_position(station.get_id()))
+       # pos.append(det.get_absolute_position(station.get_id()))
 
     traces_vxB = np.array(traces_vxB)
     times = np.array(times)
