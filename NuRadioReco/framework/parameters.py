@@ -161,6 +161,7 @@ class showerParameters(Enum):
     interferometric_shower_axis = 121  #: shower axis (direction) derived from beam-formed signal
     interferometric_core = 122  #: core (intersection of shower axis with obs plane) derived from beam-formed signal
 
+    fail_mode = 130  #: Type of fail during processing (interpolator, interferometry, etc.)
 
 class emitterParameters(Enum):
     position = 1  #: the interaction vertex (for air showers this corresponds to the point of X0)
