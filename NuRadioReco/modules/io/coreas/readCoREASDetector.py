@@ -125,7 +125,7 @@ class readCoREASDetector:
 
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
-    def begin(self, input_file, interp_lowfreq=30 * units.MHz, interp_highfreq=1000 * units.MHz,
+    def begin(self, input_file, interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz,
               site=None, declination=None, log_level=logging.NOTSET):
         """
         Begin method to initialize readCoREASDetector module.
@@ -167,7 +167,10 @@ class readCoREASDetector:
             f"zenith angle = {self.__corsika_evt.get_first_sim_shower().get_parameter(shp.zenith) / units.deg:.2f}deg and "
             f"azimuth angle = {self.__corsika_evt.get_first_sim_shower().get_parameter(shp.azimuth) / units.deg:.2f}deg"
         )
-
+        self.__corsika_evt.get_first_sim_shower(
+            ).set_parameter(shp.core, np.array([0,0,self.__corsika_evt.get_first_sim_shower(
+                ).get_parameter(shp.observation_level)
+        ]))
         self.coreas_interpolator = coreasInterpolator.coreasInterpolator(self.__corsika_evt)
         self.coreas_interpolator.initialize_efield_interpolator(interp_lowfreq, interp_highfreq)
 
