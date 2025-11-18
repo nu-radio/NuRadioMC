@@ -306,7 +306,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     stn.set_sim_station(sim_station)
     evt.set_station(stn)
 
-    sim_shower = create_sim_shower_from_hdf5(corsika)
+    sim_shower = create_sim_shower_from_hdf5(corsika, declination=declination)
     evt.add_sim_shower(sim_shower)
 
     corsika.close()
