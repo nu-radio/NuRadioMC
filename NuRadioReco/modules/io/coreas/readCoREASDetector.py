@@ -285,7 +285,7 @@ class readCoREASDetector:
 
                     # Get the interpolated electric field and smooth it
                     res_efield, res_trace_start_time = self.coreas_interpolator.get_interp_efield_value(
-                        antenna_position - new_core
+                        antenna_position
                     )
                     smooth_res_efield = apply_hanning(res_efield)
 
