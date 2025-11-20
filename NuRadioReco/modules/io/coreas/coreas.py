@@ -93,7 +93,7 @@ def get_angles(corsika, declination):
     """
     zenith = corsika['inputs'].attrs["THETAP"][0] * units.deg
     azimuth = hp.get_normalized_angle(
-        3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]) + declination / units.rad
+        3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]) - declination / units.rad
     ) * units.rad
 
     # in CORSIKA convention, the first component points North (y in NRR) and the second component points down (minus z)
