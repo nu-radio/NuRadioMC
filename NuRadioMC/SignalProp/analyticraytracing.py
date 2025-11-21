@@ -11,7 +11,6 @@ from operator import itemgetter
 from functools import lru_cache
 import numpy as np
 import copy
-import NuRadioReco.utilities.geometryUtilities
 import logging
 logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 
@@ -211,6 +210,44 @@ def get_C_1(x1, C_0, n_ice, b, delta_n, z_0):
 
 def get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0,
                       medium_reflection, reflection=0, reflection_case=1):
+    
+    """
+    Calculates the different segments of the path that makes up the full ray tracing path
+    One segment per bottom reflection.
+
+    Parameters
+    ----------
+    x1: tuple
+        (y, z) coordinate of start value
+    x2: tuple
+        (y, z) coordinate of stop value
+    C_0: float
+        C_0 parameter of analytic ray path function
+    reflection: int (default 0)
+        the number of bottom reflections to consider
+    reflection_case: int (default 1)
+        only relevant if `reflection` is larger than 0
+
+        * 1: rays start upwards
+        * 2: rays start downwards
+
+    Returns
+    -------
+    segments: ndarray
+        array of segments, each segment is a array with the following elements:
+            [y1_orig, z1_orig,
+            cur_y, cur_z,
+            y2_orig, z2_orig,
+            next_y, next_z,
+            C_0, C_1]
+        where:
+            * (y1_orig, z1_orig): original x1
+            * (cur_y, cur_z): x1 of path segment
+            * (y2_orig, z2_orig): original x2
+            * (next_y, next_z): x2 of path segment
+            * C_0: C_0 of path segment
+            * C_1: C_1 of path segment
+    """
 
     y1_orig, z1_orig = x1
     y2_orig, z2_orig = x2
@@ -354,7 +391,6 @@ def get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection,
 
     c = n_ice ** 2 - C_0 ** -2
     segments = get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case)
-
     
     nseg = segments.shape[0]
     out = np.empty(nseg, dtype=np.float64)
@@ -381,6 +417,9 @@ def get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection,
     return out
 
 def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.0):
+    """
+    calculates the refracted angle using Snell's law
+    """
     t = n_1 / n_2 * np.sin(zenith_incoming)
 
     # Total internal reflection → no refracted ray
@@ -469,7 +508,6 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
             
             if zenith_air is None or np.isnan(zenith_air):
                 diff = x2[1]
-                #self.__logger.debug(f"not refracting into air")
                 return diff
             z = (x2[0] - y_turn) / np.tan(zenith_air)
             diff = x2[1] - z
