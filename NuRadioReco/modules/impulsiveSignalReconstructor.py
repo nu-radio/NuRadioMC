@@ -538,7 +538,7 @@ class ImpulsiveSignalReconstructor():
         if method == 'stft':
             if not 'max_delta_t' in kwargs: # use a simple estimate
                 max_delta_t = np.max([
-                    np.linalg.norm(pi-pj) * ice.get_refractive_index(min(pi[2], pj[2]), det.get_site())
+                    np.linalg.norm(pi-pj) * ice.get_refractive_index(min(pi[2], pj[2]), det.get_site(station.get_id()))
                     for pi in pos for pj in pos]) / SPEED_OF_LIGHT
                 dt = find_threshold_crossing_from_stft(
                     channels, max_delta_t=max_delta_t, **kwargs
@@ -549,11 +549,9 @@ class ImpulsiveSignalReconstructor():
             dt = get_dt_correlation(channels, pos, **kwargs)
         elif method == 'simple_threshold':
             dt = find_threshold_crossing(channels, **kwargs)
-
         zenith, azimuth = geometryUtilities.analytic_plane_wave_fit(dt, pos)
 
         if np.isnan(zenith):
-            logger.error(f'No valid analytic solution, direction reconstruction failed')
             return
 
         station[stationParameters.zenith] = zenith
