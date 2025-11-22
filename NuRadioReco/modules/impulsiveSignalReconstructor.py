@@ -549,9 +549,11 @@ class ImpulsiveSignalReconstructor():
             dt = get_dt_correlation(channels, pos, **kwargs)
         elif method == 'simple_threshold':
             dt = find_threshold_crossing(channels, **kwargs)
+            
         zenith, azimuth = geometryUtilities.analytic_plane_wave_fit(dt, pos)
 
         if np.isnan(zenith):
+            logger.error(f'No valid analytic solution, direction reconstruction failed')
             return
 
         station[stationParameters.zenith] = zenith
