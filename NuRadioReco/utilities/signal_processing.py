@@ -572,9 +572,11 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
         if not isinstance(bandwidth, (float, int)):
             bandwidth = bandwidth[1] - bandwidth[0]
     else:
-        freqs = freqs or np.arange(0, 2500, 0.1) * units.MHz
+        #freqs = freqs or np.arange(0, 2500, 0.1) * units.MHz
+        if freqs is None:
+            freqs = np.arange(0, 2500, 0.1) * units.MHz
+        #bandwidth = np.trapezoid(np.abs(response(freqs)) ** 2, freqs)
         bandwidth = np.trapz(np.abs(response(freqs)) ** 2, freqs)
-
     return (temperature * impedance * bandwidth * constants.k_B) ** 0.5
 
 
