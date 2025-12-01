@@ -1662,7 +1662,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             VEL_theta          = np.zeros_like(gain)
             VEL_theta[fmask]   = np.sqrt(gain[fmask]) / freq[fmask]            # Gain to VEL conversion
             VEL_theta[:index] *= gain_filter[:index]                           # Low frequency cutoff
-            VEL_theta[fmask]  *= self._max_VEL / max(VEL_theta[fmask])               # Normalize to requested max VEL
+            VEL_theta[fmask]  *= self._max_VEL / max(VEL_theta[fmask])         # Normalize to requested max VEL
             VEL_theta         *= np.cos(theta) * np.cos(phi) * np.cos(theta/2) # Directional dependency of response
 
             # Phi component:
@@ -1673,7 +1673,6 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             VEL_phi         *= np.cos(theta/2) * np.sin(phi)
 
             if group_delay:
-                # add here antenna model with analytic description of typical group delay
                 if theta <= 45 * units.deg:
                     phase_type = "frontlobe_lpda"
                 elif theta > 45 * units.deg and theta <= 90 * units.deg:
@@ -1700,16 +1699,15 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
             # Theta component:
             VEL_theta         = np.zeros_like(gain)
-            VEL_theta[fmask]  = np.sqrt(gain[fmask]) / freq[fmask] # Gain to VEL conversion
-            VEL_theta[:index] *= gain_filter[:index]               # Low frequency cutoff
+            VEL_theta[fmask]  = np.sqrt(gain[fmask]) / freq[fmask]       # Gain to VEL conversion
+            VEL_theta[:index] *= gain_filter[:index]                     # Low frequency cutoff
             VEL_theta[fmask]  *= self._max_VEL / max(VEL_theta[fmask])   # Normalize to requested max VEL
-            VEL_theta         *= np.sin(theta)                     # Directional dependency of response
+            VEL_theta         *= np.sin(theta)                           # Directional dependency of response
 
             # Phi component:
             VEL_phi = np.zeros_like(gain)
 
             if group_delay:
-                # add here antenna model with analytic description of typical group delay
                 phase = self.parametric_phase(freq, phase_type = "VPol_simple")
 
                 VEL_theta = VEL_theta.astype(complex)
@@ -1719,7 +1717,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
         elif self._model == 'analytic_HPol':
             """
             Dummy HPol model. Approximates RNOG_hpol_v4_8inch_center_n1.74 with the default values of cutoff_freq and max_VEL.
-            In this model cutoff_freq controls where the gain peaks.
+            In this model, cutoff_freq controls where the gain peaks.
             """
             fmask = freq > 0
             peak_freq = np.copy(self._cutoff_freq)
@@ -1736,7 +1734,6 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             VEL_phi                       *= np.sin(theta)**2
 
             if group_delay:
-                # add here antenna model with analytic description of typical group delay
                 phase = self.parametric_phase(freq, phase_type = "HPol_simple")
 
                 VEL_phi = VEL_phi.astype(complex)
