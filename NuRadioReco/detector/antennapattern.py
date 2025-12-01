@@ -2,6 +2,7 @@ from NuRadioReco.utilities import units, io_utilities
 from radiotools import helper as hp, coordinatesystems as cs
 
 from scipy import constants
+from scipy.signal.windows import hann
 from time import time
 import numpy as np
 import logging
@@ -1659,30 +1660,25 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             Flat gain as function of frequency, no group delay.
             Can be used instead of __get_antenna_response_vectorized_raw
             """
-            max_gain = 4
-
-            index = np.argmax(freq > self._cutoff_freq)
-            Gain = np.ones_like(freq)
-            from scipy.signal.windows import hann
-            gain_filter = hann(2 * index)
-            Gain[:index] = gain_filter[:index]
-
-            # at WIPL-D (1,0,0) Gain max for e_theta (?? I hope)
-            # Standard units, deliver H_eff in meters
-            Z_0 = constants.physical_constants['characteristic impedance of vacuum'][0] * units.ohm
-            Z_ant = 50 * units.ohm
-
-            # Assuming simple cosine, sine falls-off for dummy module
-            H_eff_t = np.zeros_like(Gain)
+            max_VEL = 0.55 * units.m
             fmask = freq > 0
-            H_eff_t[fmask] = Gain[fmask] * max_gain * 1 / freq[fmask]
-            H_eff_t *= np.cos(theta) * np.cos(phi) * np.cos(theta/2)
-            H_eff_t *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
+            index = np.argmax(freq > self._cutoff_freq)
+            gain_filter = hann(2 * index)
+            gain = np.ones_like(freq)
 
-            H_eff_p = np.zeros_like(Gain)
-            H_eff_p[fmask] = Gain[fmask] * max_gain * 1 / freq[fmask]
-            H_eff_p *= np.cos(theta/2) * np.sin(phi)
-            H_eff_p *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
+            # Theta component:
+            VEL_theta          = np.zeros_like(gain)
+            VEL_theta[fmask]   = np.sqrt(gain[fmask]) / freq[fmask]            # Gain to VEL conversion
+            VEL_theta[:index] *= gain_filter[:index]                           # Low frequency cutoff
+            VEL_theta[fmask]  *= max_VEL / max(VEL_theta[fmask])               # Normalize to requested max VEL
+            VEL_theta         *= np.cos(theta) * np.cos(phi) * np.cos(theta/2) # Directional dependency of response
+
+            # Phi component:
+            VEL_phi          = np.zeros_like(gain)
+            VEL_phi[fmask]   = np.sqrt(gain[fmask]) / freq[fmask]
+            VEL_phi[:index] *= gain_filter[:index]
+            VEL_phi[fmask]  *= max_VEL / max(VEL_phi[fmask])
+            VEL_phi         *= np.cos(theta/2) * np.sin(phi)
 
             if group_delay:
                 # add here antenna model with analytic description of typical group delay
@@ -1694,11 +1690,11 @@ class AntennaPatternAnalytic(AntennaPatternBase):
                     phase_type = "back_lpda"
                 phase = self.parametric_phase(freq, phase_type=phase_type)
 
-                H_eff_p = H_eff_p.astype(complex)
-                H_eff_t = H_eff_t.astype(complex)
+                VEL_phi = VEL_phi.astype(complex)
+                VEL_theta = VEL_theta.astype(complex)
 
-                H_eff_p *= np.exp(1j * phase)
-                H_eff_t *= np.exp(1j * phase)
+                VEL_phi *= np.exp(1j * phase)
+                VEL_theta *= np.exp(1j * phase)
 
         elif self._model == 'analytic_VPol':
             """
@@ -1708,7 +1704,6 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
             index = np.argmax(freq > self._cutoff_freq)
             Gain = np.ones_like(freq)
-            from scipy.signal.windows import hann
             gain_filter = hann(2 * index)
             Gain[:index] = gain_filter[:index]
 
@@ -1716,21 +1711,21 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             Z_ant = 50 * units.ohm
 
             # Assuming simple cosine, sine falls-off for dummy module
-            H_eff_t = np.zeros_like(Gain)
+            VEL_theta = np.zeros_like(Gain)
             fmask = freq > 0
-            H_eff_t[fmask] = Gain[fmask] * max_gain * 1 / (freq[fmask])**1.2
-            H_eff_t *= np.sin(theta)
-            H_eff_t *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
+            VEL_theta[fmask] = Gain[fmask] * max_gain * 1 / (freq[fmask])**1.2
+            VEL_theta *= np.sin(theta)
+            VEL_theta *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
 
-            H_eff_p = np.zeros_like(Gain)
+            VEL_phi = np.zeros_like(Gain)
 
             if group_delay:
                 # add here antenna model with analytic description of typical group delay
                 phase = self.parametric_phase(freq, phase_type = "VPol_simple")
 
-                H_eff_t = H_eff_t.astype(complex)
+                VEL_theta = VEL_theta.astype(complex)
 
-                H_eff_t *= np.exp(1j * phase)
+                VEL_theta *= np.exp(1j * phase)
             
         elif self._model == 'analytic_HPol':
             """
@@ -1745,24 +1740,24 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             Z_ant = 50 * units.ohm
 
             # Assuming simple cosine squared frequency dependency and sine theta dependency
-            H_eff_p = np.zeros_like(Gain)
+            VEL_phi = np.zeros_like(Gain)
             fmask = freq > 0
-            H_eff_p[fmask] = Gain[fmask] * max_gain * 1 * np.sin(freq[fmask] / peak_freq * np.pi/2)**2
-            H_eff_p[freq > peak_freq * 2] *= 0
-            H_eff_p *= np.sin(theta)**2
-            H_eff_p *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
+            VEL_phi[fmask] = Gain[fmask] * max_gain * 1 * np.sin(freq[fmask] / peak_freq * np.pi/2)**2
+            VEL_phi[freq > peak_freq * 2] *= 0
+            VEL_phi *= np.sin(theta)**2
+            VEL_phi *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
 
-            H_eff_t = np.zeros_like(Gain)
+            VEL_theta = np.zeros_like(Gain)
 
             if group_delay:
                 # add here antenna model with analytic description of typical group delay
                 phase = self.parametric_phase(freq, phase_type = "HPol_simple")
 
-                H_eff_p = H_eff_p.astype(complex)
+                VEL_phi = VEL_phi.astype(complex)
 
-                H_eff_p *= np.exp(1j * phase)
+                VEL_phi *= np.exp(1j * phase)
         
-        return H_eff_t, H_eff_p
+        return VEL_theta, VEL_phi
 
 
 class AntennaPatternProvider(object):
