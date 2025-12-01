@@ -1700,24 +1700,22 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             """
             Dummy VPol model. Approximates RNOG_vpol_v3_5inch_center_n1.74
             """
-            max_gain = 1.90
-
-            index = np.argmax(freq > self._cutoff_freq)
-            Gain = np.ones_like(freq)
-            gain_filter = hann(2 * index)
-            Gain[:index] = gain_filter[:index]
-
-            Z_0 = constants.physical_constants['characteristic impedance of vacuum'][0] * units.ohm
-            Z_ant = 50 * units.ohm
-
-            # Assuming simple cosine, sine falls-off for dummy module
-            VEL_theta = np.zeros_like(Gain)
+            max_VEL = 0.18
             fmask = freq > 0
-            VEL_theta[fmask] = Gain[fmask] * max_gain * 1 / (freq[fmask])**1.2
-            VEL_theta *= np.sin(theta)
-            VEL_theta *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
+            index = np.argmax(freq > self._cutoff_freq)
+            gain_filter = hann(2 * index)
+            gain = np.ones_like(freq)
+            gain[fmask] /= np.sqrt(freq[fmask])  # frequency dependent gain fall-off
 
-            VEL_phi = np.zeros_like(Gain)
+            # Theta component:
+            VEL_theta         = np.zeros_like(gain)
+            VEL_theta[fmask]  = np.sqrt(gain[fmask]) / freq[fmask] # Gain to VEL conversion
+            VEL_theta[:index] *= gain_filter[:index]               # Low frequency cutoff
+            VEL_theta[fmask]  *= max_VEL / max(VEL_theta[fmask])   # Normalize to requested max VEL
+            VEL_theta         *= np.sin(theta)                     # Directional dependency of response
+
+            # Phi component:
+            VEL_phi = np.zeros_like(gain)
 
             if group_delay:
                 # add here antenna model with analytic description of typical group delay
