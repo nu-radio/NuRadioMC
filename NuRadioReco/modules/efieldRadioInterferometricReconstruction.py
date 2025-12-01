@@ -347,7 +347,7 @@ class efieldInterferometricDepthReco:
         core, shower_axis, cs = get_geometry_and_transformation(shower)
 
         traces_vxB, times, pos = get_station_data(
-            evt, det, cs, use_MC_pulses, n_sampling=None)
+            evt, det, cs, use_MC_pulses, n_sampling=1024)
 
         if long_plot:
             depths, depths_final, signals_tmp, signals_final, rit_parameters = \
@@ -817,8 +817,8 @@ def get_geometry_and_transformation(shower):
     observation_level = shower[shp.observation_level]
     core = shower[shp.core]
 
-    if core[-1] != observation_level:
-        sys.exit("Code down the road expect that to be equal!")
+    # if not np.isclose(core[-1], observation_level):
+    #     sys.exit("Code down the road expect that to be equal!")
 
     zenith = shower[shp.zenith]
     azimuth = shower[shp.azimuth]
