@@ -135,6 +135,7 @@ def read_event(
     output_dir: Path,
     event_id: int,
     sim_id: int,
+    percent_cut: float=0.05
 ) -> Tuple[
     NuRadioReco.framework.event.Event,
     NuRadioReco.detector.detector_base.DetectorBase
@@ -152,6 +153,7 @@ def read_event(
         output_dir (Path): path to output directory
         event_id (int): id of event
         sim_id (int): id of simulation of event
+        percent_cut (float): Percentage for where to cut antenna responses
 
     Returns:
         NuRadioReco.framework.event.Event: NRR event
@@ -205,7 +207,7 @@ def read_event(
             station.set_station_time(event_time)
 
         # --- Step 3: Apply physics cuts and generate plots ---
-        event_after_cut = apply_cut(event, det, "Cherenkov")
+        event_after_cut = apply_cut(event, det, "Percent", percent_cut)
 
         make_detector_fluence_plot(event, det, output_dir, detector, event_id, sim_id)
 
@@ -282,6 +284,7 @@ def calc_interferometetric_depth(
     """
     # detector.update(Time(LOFAR_event_id_to_unix(event_id), format="unix"))
     diagnostic_dir = output_dir.parents[1] / "diagnostic_plots"
+    event.get_first_sim_shower().set_parameter(shp.core, [0, 0, 0])
     try:
         reconstructor.run(event, detector, use_MC_geometry=True, use_MC_pulses=True)
     except RuntimeError:
@@ -314,6 +317,7 @@ def calc_interferometetric_depth(
         plt.close(long_profile_plot)
         plt.close(init_sum_trace)
         plt.close(final_sum_trace)
+
     except AttributeError:
         logger.error(
             f"Was not able to save reconstrucor profile plots of {event_id} {sim_id}"
@@ -451,6 +455,7 @@ def generate_data(
     station_ids: list,
     core_position: List[float] = [0, 0],
     debug: bool = False,
+    percent_cut: float=0.05,
 ) -> None:
     """Generates all data for single event by filepath. Data including, event
     x_rit, longitudonal profiles and footprints. This is done in the directory
@@ -494,6 +499,7 @@ def generate_data(
                 output_dir,
                 event_id,
                 sim_id,
+                percent_cut
             )
             event_lofar, det_lofar, lofar_interpolator = read_event(
                 event_file,
@@ -503,6 +509,7 @@ def generate_data(
                 output_dir,
                 event_id,
                 sim_id,
+                percent_cut
             )
 
         except Exception as err:
@@ -605,6 +612,7 @@ def apply_cut(
     event: NuRadioReco.framework.event.Event,
     detector: NuRadioReco.detector.detector_base.DetectorBase,
     cut_type: Literal["Cherenkov", "Percent"],
+    percent_cut: float=0.05,
 ) -> NuRadioReco.framework.event.Event:
     """Applies a fluence cut on detectors containing a certain
     amount of the maximum fluence. Either cherenkov-cone based or
@@ -615,6 +623,8 @@ def apply_cut(
         detector (NuRadioReco.detector.detector_base.DetectorBase): NRR detector description
         cut_type (Literal["Cherenkov", "Percent"]): Cut type; either by Cherenkov
            radius or by percentage of the maximum fluence.
+        percent_cut (float): Percentage for where to cut an antenna's signal as percentage
+           of the maximum amplitude of the signal.
 
     Returns:
         NuRadioReco.framework.event.Event: NRR event with specified cut applied
@@ -694,7 +704,7 @@ def apply_cut(
                 fluences.append(fluence)
 
         fluences = np.array(fluences)
-        antennas_to_cut = fluences < (0.05 * fluences.max())
+        antennas_to_cut = fluences < (percent_cut * fluences.max())
 
         for i, efield in enumerate(efields):
             if antennas_to_cut[i]:
@@ -702,7 +712,7 @@ def apply_cut(
                     np.zeros_like(efield.get_trace()), efield.get_sampling_rate()
                 )
 
-        logger.info(f"  - Finshed: Zeroed E-field for {fluences.sum()} antennas")
+        logger.info(f"  - Finshed: Zeroed E-field for {antennas_to_cut.sum()} antennas")
 
     return event
 
