@@ -1582,7 +1582,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
     utility class that handles access and buffering to analytic antenna pattern
     """
 
-    def __init__(self, antenna_model, cutoff_freq=None):
+    def __init__(self, antenna_model, cutoff_freq=None, max_VEL=None):
         """
 
         """
@@ -1596,10 +1596,8 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             self._orientation_phi = 0 * units.deg
             self._rotation_theta = 90 * units.deg
             self._rotation_phi = 0 * units.deg
-            if cutoff_freq is not None:
-                self._cutoff_freq = cutoff_freq
-            else:
-                self._cutoff_freq = 110 * units.MHz
+            self._cutoff_freq = 110 * units.MHz if cutoff_freq is None else cutoff_freq
+            self._max_VEL = 0.55 * units.m if max_VEL is None else max_VEL
 
         if self._model == 'analytic_VPol':
             # VPol dummy model points towards z direction
@@ -1608,10 +1606,8 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             self._orientation_phi = 0 * units.deg
             self._rotation_theta = 90 * units.deg
             self._rotation_phi = 90 * units.deg
-            if cutoff_freq is not None:
-                self._cutoff_freq = cutoff_freq
-            else:
-                self._cutoff_freq = 220 * units.MHz
+            self._cutoff_freq = 220 * units.MHz if cutoff_freq is None else cutoff_freq
+            self._max_VEL = 0.18 * units.m if max_VEL is None else max_VEL
 
         if self._model == 'analytic_HPol':
             # HPol dummy model points towards z direction
@@ -1620,10 +1616,8 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             self._orientation_phi = 0 * units.deg
             self._rotation_theta = 90 * units.deg
             self._rotation_phi = 90 * units.deg
-            if cutoff_freq is not None:
-                self._cutoff_freq = cutoff_freq
-            else:
-                self._cutoff_freq = 500 * units.MHz
+            self._cutoff_freq = 500 * units.MHz if cutoff_freq is None else cutoff_freq
+            self._max_VEL = 0.055 * units.m if max_VEL is None else max_VEL
 
     def parametric_phase(self, freq, phase_type='theoretical'):
         """
@@ -1656,11 +1650,9 @@ class AntennaPatternAnalytic(AntennaPatternBase):
         """
         if self._model == 'analytic_LPDA':
             """
-            Dummy LPDA model. Approximates createLPDA_100MHz_InfFirn_n1.4
-            Flat gain as function of frequency, no group delay.
-            Can be used instead of __get_antenna_response_vectorized_raw
+            Dummy LPDA model. Approximates createLPDA_100MHz_InfFirn_n1.4 with the default values of cutoff_freq and max_VEL.
+            Flat gain as function of frequency.
             """
-            max_VEL = 0.55 * units.m
             fmask = freq > 0
             index = np.argmax(freq > self._cutoff_freq)
             gain_filter = hann(2 * index)
@@ -1670,14 +1662,14 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             VEL_theta          = np.zeros_like(gain)
             VEL_theta[fmask]   = np.sqrt(gain[fmask]) / freq[fmask]            # Gain to VEL conversion
             VEL_theta[:index] *= gain_filter[:index]                           # Low frequency cutoff
-            VEL_theta[fmask]  *= max_VEL / max(VEL_theta[fmask])               # Normalize to requested max VEL
+            VEL_theta[fmask]  *= self._max_VEL / max(VEL_theta[fmask])               # Normalize to requested max VEL
             VEL_theta         *= np.cos(theta) * np.cos(phi) * np.cos(theta/2) # Directional dependency of response
 
             # Phi component:
             VEL_phi          = np.zeros_like(gain)
             VEL_phi[fmask]   = np.sqrt(gain[fmask]) / freq[fmask]
             VEL_phi[:index] *= gain_filter[:index]
-            VEL_phi[fmask]  *= max_VEL / max(VEL_phi[fmask])
+            VEL_phi[fmask]  *= self._max_VEL / max(VEL_phi[fmask])
             VEL_phi         *= np.cos(theta/2) * np.sin(phi)
 
             if group_delay:
@@ -1698,9 +1690,8 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
         elif self._model == 'analytic_VPol':
             """
-            Dummy VPol model. Approximates RNOG_vpol_v3_5inch_center_n1.74
+            Dummy VPol model. Approximates RNOG_vpol_v3_5inch_center_n1.74 with the default values of cutoff_freq and max_VEL.
             """
-            max_VEL = 0.18
             fmask = freq > 0
             index = np.argmax(freq > self._cutoff_freq)
             gain_filter = hann(2 * index)
@@ -1711,7 +1702,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             VEL_theta         = np.zeros_like(gain)
             VEL_theta[fmask]  = np.sqrt(gain[fmask]) / freq[fmask] # Gain to VEL conversion
             VEL_theta[:index] *= gain_filter[:index]               # Low frequency cutoff
-            VEL_theta[fmask]  *= max_VEL / max(VEL_theta[fmask])   # Normalize to requested max VEL
+            VEL_theta[fmask]  *= self._max_VEL / max(VEL_theta[fmask])   # Normalize to requested max VEL
             VEL_theta         *= np.sin(theta)                     # Directional dependency of response
 
             # Phi component:
@@ -1727,9 +1718,9 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             
         elif self._model == 'analytic_HPol':
             """
-            Dummy HPol model. Approximates RNOG_hpol_v4_8inch_center_n1.74
+            Dummy HPol model. Approximates RNOG_hpol_v4_8inch_center_n1.74 with the default values of cutoff_freq and max_VEL.
+            In this model cutoff_freq controls where the gain peaks.
             """
-            max_VEL = 0.055
             fmask = freq > 0
             peak_freq = np.copy(self._cutoff_freq)
             gain = np.ones_like(freq)
@@ -1741,7 +1732,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             VEL_phi                        = np.zeros_like(gain)
             VEL_phi[fmask]                 = np.sqrt(gain[fmask]) * np.sin(freq[fmask] / peak_freq * np.pi/2)**2
             VEL_phi[freq > peak_freq * 2]  = 0
-            VEL_phi[fmask]                *= max_VEL / max(VEL_phi[fmask])
+            VEL_phi[fmask]                *= self._max_VEL / max(VEL_phi[fmask])
             VEL_phi                       *= np.sin(theta)**2
 
             if group_delay:
