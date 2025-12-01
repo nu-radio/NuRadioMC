@@ -1729,23 +1729,20 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             """
             Dummy HPol model. Approximates RNOG_hpol_v4_8inch_center_n1.74
             """
-            max_gain = 4.5
-
-            Gain = np.ones_like(freq)
-            peak_freq = np.copy(self._cutoff_freq)
-
-            Z_0 = constants.physical_constants['characteristic impedance of vacuum'][0] * units.ohm
-            Z_ant = 50 * units.ohm
-
-            # Assuming simple cosine squared frequency dependency and sine theta dependency
-            VEL_phi = np.zeros_like(Gain)
+            max_VEL = 0.055
             fmask = freq > 0
-            VEL_phi[fmask] = Gain[fmask] * max_gain * 1 * np.sin(freq[fmask] / peak_freq * np.pi/2)**2
-            VEL_phi[freq > peak_freq * 2] *= 0
-            VEL_phi *= np.sin(theta)**2
-            VEL_phi *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
+            peak_freq = np.copy(self._cutoff_freq)
+            gain = np.ones_like(freq)
 
-            VEL_theta = np.zeros_like(Gain)
+            # Theta component:
+            VEL_theta = np.zeros_like(gain)
+
+            # Phi component: Assuming cos^2 squared frequency dependency and sin^2(theta) direction dependency
+            VEL_phi                        = np.zeros_like(gain)
+            VEL_phi[fmask]                 = np.sqrt(gain[fmask]) * np.sin(freq[fmask] / peak_freq * np.pi/2)**2
+            VEL_phi[freq > peak_freq * 2]  = 0
+            VEL_phi[fmask]                *= max_VEL / max(VEL_phi[fmask])
+            VEL_phi                       *= np.sin(theta)**2
 
             if group_delay:
                 # add here antenna model with analytic description of typical group delay
