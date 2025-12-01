@@ -12,7 +12,7 @@ class ray_tracing_base:
     """
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
-                 detector=None, ray_tracing_2D_kwards={}):
+                 detector=None, ray_tracing_2D_kwards={}, use_cpp=None):
         """
         class initilization
 
@@ -51,6 +51,8 @@ class ray_tracing_base:
         detector: detector object
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
+        use_cpp: bool
+            Not used here. For compatibility with analytic ray tracer.
         """
         self.__logger = logging.getLogger('NuRadioMC.SignalProp.ray_tracing_base')
         self.__logger.setLevel(log_level)
