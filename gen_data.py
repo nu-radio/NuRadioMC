@@ -18,7 +18,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 mlogger = multiprocessing.log_to_stderr(level=logging.INFO)
 # CONSTANTS, DON'T FORGET TO CHANGE THEM TO RELEVANT RUN
-TITLE = "reset_core_for_interf_0.20"
+TITLE = "reset_core_for_interf_cher_1"
+logging.info(f"Starting {TITLE}")
 STATIONS = [1, 2, 3, 4, 5, 6, 7]
 NUM_THREADS = 14
 
