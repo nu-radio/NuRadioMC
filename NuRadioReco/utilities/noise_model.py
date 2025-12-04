@@ -86,10 +86,11 @@ class NoiseModel:
                 the normalization of the spectra is used. Default value is None. If only one value is given, all antennas
                 are assumed to have the same Vrms.
         """
+        assert spectra.dtype != complex, "Provided spectra are complex. Please provide the magnitude of the spectra/filter(s) instead."
         assert np.atleast_2d(spectra).shape[1] == self.n_frequencies, "The shape of the provided spectra does not match the number of samples per trace"
         if len(spectra.shape) == 1:
             spectra = np.tile(spectra,[self.n_antennas, 1])
-        if Vrms is not None and len(np.atleast_2d(Vrms)) == 1:
+        if Vrms is not None and len(np.atleast_1d(Vrms)) == 1:
             Vrms = np.tile(Vrms, self.n_antennas)
         self.Vrms = Vrms
 
@@ -747,6 +748,15 @@ class NoiseModel:
 
         return fisher_information_matrix
 
+    def get_dof(self):
+        """
+        Get number of degrees of freedom based on the noise spectra and threshold amplitude.
+        """
+        dof = 0
+        for i_ant in range(self.n_antennas):
+            dof += 2 * sum(self.spectra[i_ant] > np.max(self.spectra[i_ant, :]) * self.threshold_amplitude)
+        return dof
+
     ### Plotting: ###
 
     def plot_data(self, data, plot_range=None, linestyle_and_color = "auto", make_new_figure=True):
@@ -878,7 +888,7 @@ class NoiseModel:
 
         n_datasets = len(data)
         if n_dof is None:
-            n_dof = int(self.n_antennas * self.n_samples)
+            n_dof = self.get_dof()
 
         if make_new_figure:
             plt.figure(figsize=[4.2,3])
