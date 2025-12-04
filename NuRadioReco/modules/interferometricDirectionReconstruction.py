@@ -128,9 +128,9 @@ class interferometricDirectionReconstruction():
         travel_time_table = file['data']
         r_range = file['r_range_vals']
         z_range = file['z_range_vals']
-
+        # pick the map with fastest rays out of (0,1,2,3), there 0-2 solution types and 3 is fastest rays
         interpolator = RegularGridInterpolator(
-            (r_range, z_range), travel_time_table, method=interpolation_method, bounds_error=False, fill_value=-np.inf
+            (r_range, z_range), travel_time_table[3], method=interpolation_method, bounds_error=False, fill_value=-np.inf
         )
         return interpolator
 
@@ -390,7 +390,7 @@ class interferometricDirectionReconstruction():
             table_file = os.path.join(
                 f"{config['time_delay_tables']}", 
                 f"station{station_id}", 
-                f"st{station_id}_ch{ch}_rz_table.npz"
+                f"ch{ch}_rz_table_rel_ant_allRays_fixed_withFastest.npz"
             )
             self._interpolators[ch] = self._load_rz_interpolator(table_file, interp_method)
         
