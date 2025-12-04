@@ -95,8 +95,8 @@ class MatchedFilter:
         #self.data = data_traces
         self.data_fft = fft.time2freq(data_traces, self.sampling_rate).flatten()
 
-        integrand_data = abs(self.data_fft * self.data_fft.conj()) / self.noise_psd
-        self.data_factor = 4 * np.sum(integrand_data[self.noise_psd > self.noise_psd_threshold]) * self.df
+        integrand_data = abs(self.data_fft[self.fmask] * self.data_fft[self.fmask].conj()) / self.noise_psd[self.fmask]
+        self.data_factor = 4 * np.sum(integrand_data) * self.df
 
         self._results_valid = False
 
@@ -117,8 +117,8 @@ class MatchedFilter:
         #self.template = template_traces
         self.template_fft = fft.time2freq(template_traces, self.sampling_rate).flatten()
 
-        integrand_template = abs(self.template_fft * self.template_fft.conj()) / self.noise_psd
-        self.template_factor = 4 * np.sum(integrand_template[self.noise_psd > self.noise_psd_threshold] * self.df)
+        integrand_template = abs(self.template_fft[self.fmask] * self.template_fft[self.fmask].conj()) / self.noise_psd[self.fmask]
+        self.template_factor = 4 * np.sum(integrand_template * self.df)
 
         self._results_valid = False
 
@@ -144,6 +144,7 @@ class MatchedFilter:
             raise ValueError("Noise power spectral density has wrong shape")
 
         self.noise_psd_threshold = np.max(self.noise_psd) * self.spectra_threshold_fraction**2
+        self.fmask = self.noise_psd > self.noise_psd_threshold
 
     def set_noise_psd_from_data(self, noise_traces):
         """
@@ -181,6 +182,7 @@ class MatchedFilter:
                 all antennas are rescaled to the same Vrms. If an array is given it should have
                 shape [n_antennas]. If None, the spectra normalizations are not changed.
         """
+        assert spectra.dtype != complex, "Provided spectra are complex. Please provide the magnitude of the spectra/filter(s) instead."
         noise_psd = np.zeros([self.n_antennas, self.n_frequencies])
         for i in range(self.n_antennas):
             if spectra.ndim == 1:
@@ -190,7 +192,7 @@ class MatchedFilter:
         # Scale to Vrms:
         if Vrms is not None:
 
-            if Vrms.ndim == 0:
+            if len(np.atleast_1d(Vrms)) == 1:
                 Vrms = np.tile(Vrms, self.n_antennas)
 
             for i in range(self.n_antennas):
@@ -224,8 +226,8 @@ class MatchedFilter:
             matched_filter_output: float
                 The matched filter output at the best matching time shift
         """
-        integrand = (self.data_fft * self.template_fft.conj() / self.noise_psd)[None, :] * np.exp(1j * 2*np.pi * self.frequencies_flattened[None, :] * time_shift_array[:, None])
-        output = 4 * np.real( np.sum(integrand[:, self.noise_psd > self.noise_psd_threshold], axis=-1) ) * self.df
+        integrand = (self.data_fft[self.fmask] * self.template_fft[self.fmask].conj() / self.noise_psd[self.fmask])[None, :] * np.exp(1j * 2*np.pi * self.frequencies_flattened[None, self.fmask] * time_shift_array[:, None])
+        output = 4 * np.real( np.sum(integrand[:, :], axis=-1) ) * self.df
 
         self.matched_filter_output = np.max(output)
 
@@ -322,4 +324,4 @@ class MatchedFilter:
             dof: int
                 The degrees of freedom of the matched filter delta log likelihood
         """
-        return 2 * np.sum(self.noise_psd > self.noise_psd_threshold)
+        return 2 * np.sum(self.fmask)
