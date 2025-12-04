@@ -37,7 +37,7 @@ class TraceMinimizer:
 
     """
 
-    def __init__(self, signal_function, objective_function, parameters_initial = None, parameters_bounds = None, save_history=False, debug=False):
+    def __init__(self, signal_function, objective_function, parameters_initial, parameters_bounds, save_history=False, debug=False):
         self.data = None
         self.signal_function = signal_function
         self.objective_function = objective_function
