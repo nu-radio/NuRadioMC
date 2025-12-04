@@ -8,6 +8,8 @@ from NuRadioReco.utilities import units
 
 c = scipy_constants.c * units.m / units.s  #: Vacuum speed of light
 
+epsilon_0 = scipy_constants.epsilon_0 * (units.coulomb / units.V / units.m)  #: Vacuum permittivity in NuRadioReco units
+
 k_B = scipy_constants.k * units.joule / units.kelvin  #: Boltzman constant
 
 e_mass = scipy_constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
@@ -24,3 +26,4 @@ tau_rest_lifetime = 290.3 * units.fs
 
 density_ice = 0.9167 * units.g / units.cm ** 3
 density_water = 997 * units.kg / units.m ** 3
+

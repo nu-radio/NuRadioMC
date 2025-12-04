@@ -17,10 +17,53 @@ logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
-                          antenna_pattern_provider, time_domain=False):
-    time_shifts = np.zeros(len(use_channels))
-    t_cables = np.zeros(len(use_channels))
-    t_geos = np.zeros(len(use_channels))
+                          antenna_pattern_provider, time_domain=False, efield_position=None):
+    """ Get the voltage traces and antenna factors for the electric field reconstruction.
+
+    Parameters
+    ----------
+    station : `NuRadioReco.framework.station.Station`
+        The station object containing the channels and their parameters.
+    use_channels : list of int
+        The channel ids to use for the electric field reconstruction.
+    det : `NuRadioReco.detector.Detector`
+        The detector object containing the site and antenna information.
+    zenith : float
+        The zenith angle of the incoming signal in radians.
+    azimuth : float
+        The azimuth angle of the incoming signal in radians.
+    antenna_pattern_provider : `NuRadioReco.detector.antennapattern.AntennaPatternProvider`
+        The antenna pattern provider to get the antenna response functions.
+    efield_position : numpy array, optional
+        The position where the electric field is calculated - determines time shift of the voltage traces.
+        If None, it raises an error.
+    time_domain : bool, optional
+        If True, returns the time domain traces as well. Default is False.
+
+    Returns
+    -------
+    times : numpy array
+        The time array of the traces.
+    efield_antenna_factor : numpy array
+        The antenna factor for the electric field at the given position.
+    V : numpy array
+        The frequency spectrum of the voltage traces for the selected channels.
+    V_timedomain : numpy array, optional
+        The time domain traces for the selected channels, if `time_domain` is True.
+    """
+
+
+    if efield_position is None:
+        raise ValueError(
+            "Function signiture changed. Please provide `efield_position`. "
+            "To retain old behavior, use `efield_position=np.array([0, 0, 0])`. "
+            "The return signature has also changed. Additionally the time vector "
+            "of the deconvolved electric field traces is returned as first "
+            "argument (see documentation)!")
+
+    t_mins = []
+    t_maxs = []
+    t_shifts = []
 
     station_id = station.get_id()
     site = det.get_site(station_id)
@@ -31,65 +74,59 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         # determine refractive index of signal propagation speed between antennas
         refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
         if station.is_cosmic_ray():
-            if(zenith > 0.5 * np.pi):
+            if zenith > 0.5 * np.pi:
                 refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
+
         if station.is_neutrino():
             refractive_index = ice.get_refractive_index(antenna_position[2], site)
-        time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
-        t_geos[iCh] = time_shift
-        t_cables[iCh] = channel.get_trace_start_time()
-        logger.debug("time shift channel {}: {:.2f}ns (signal prop), {:.2f}ns (trace start time)".format(channel.get_id(), time_shift, channel.get_trace_start_time()))
-        time_shift += channel.get_trace_start_time()
-        time_shifts[iCh] = time_shift
 
-    delta_t = time_shifts.max() - time_shifts.min()
-    tmin = time_shifts.min()
-    tmax = time_shifts.max()
-    logger.debug("adding relative station time = {:.0f}ns".format((t_cables.min() + t_geos.max()) / units.ns))
-    logger.debug("delta t is {:.2f}".format(delta_t / units.ns))
-    trace_length = station.get_channel(use_channels[0]).get_times()[-1] - station.get_channel(use_channels[0]).get_times()[0]
-    debug_cut = 0
-    if(debug_cut):
-        fig, ax = plt.subplots(len(use_channels), 1)
+        time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
+
+        t_shifts.append(time_shift)
+        t_min = channel.get_trace_start_time() + time_shift
+        t_mins.append(t_min)
+        t_max = t_min + channel.get_number_of_samples() / channel.get_sampling_rate()
+        t_maxs.append(t_max)
+
+    # take the intersection of all channels
+    t_min = np.max(t_mins)
+    t_max = np.min(t_maxs)
+
+    n_samples = int((t_max - t_min) * channel.get_sampling_rate())
+    if n_samples % 2:
+        n_samples -= 1
+
+    electric_field_window = NuRadioReco.framework.base_trace.BaseTrace()  # create base trace class to do the fft with correct normalization etc.
+    electric_field_window.set_trace(np.zeros(n_samples), channel.get_sampling_rate(), t_min)
 
     traces = []
-    n_samples = None
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
-        tstart = delta_t - (time_shifts[iCh] - tmin)
-        tstop = tmax - time_shifts[iCh] - delta_t + trace_length
-        iStart = int(round(tstart * channel.get_sampling_rate()))
-        iStop = int(round(tstop * channel.get_sampling_rate()))
-        if(n_samples is None):
-            n_samples = iStop - iStart
-            if(n_samples % 2):
-                n_samples -= 1
+        channel_copy = copy.copy(channel)  # copy to not modify data structure
+        channel_copy.add_trace_start_time(t_shifts[iCh])
 
-        trace = copy.copy(channel.get_trace())  # copy to not modify data structure
-        trace = trace[iStart:(iStart + n_samples)]
-        if(debug_cut):
-            ax[iCh].plot(trace)
-        base_trace = NuRadioReco.framework.base_trace.BaseTrace()  # create base trace class to do the fft with correct normalization etc.
-        base_trace.set_trace(trace, channel.get_sampling_rate())
-        traces.append(base_trace)
+        channel_in_window = copy.copy(electric_field_window)
+        channel_in_window.add_to_trace(channel_copy)
+        traces.append(channel_in_window)
+
+
     times = traces[0].get_times()  # assumes that all channels have the same sampling rate
-    if(time_domain):  # save time domain traces first to avoid extra fft
+    if time_domain:  # save time domain traces first to avoid extra fft
         V_timedomain = np.zeros((len(use_channels), len(times)))
         for iCh, trace in enumerate(traces):
             V_timedomain[iCh] = trace.get_trace()
+
     frequencies = traces[0].get_frequencies()  # assumes that all channels have the same sampling rate
     V = np.zeros((len(use_channels), len(frequencies)), dtype=complex)
     for iCh, trace in enumerate(traces):
         V[iCh] = trace.get_frequency_spectrum()
 
-    efield_antenna_factor = signal_processing.get_efield_antenna_factor(station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
+    efield_antenna_factor = signal_processing.get_efield_antenna_factor(
+        station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
 
-    if(debug_cut):
-        plt.show()
+    if time_domain:
+        return times, efield_antenna_factor, V, V_timedomain
 
-    if(time_domain):
-        return efield_antenna_factor, V, V_timedomain
-
-    return efield_antenna_factor, V
+    return times, efield_antenna_factor, V
 
 
 def stacked_lstsq(L, b, rcond=1e-10):
@@ -164,7 +201,6 @@ class voltageToEfieldConverter:
         """
         if use_channels is None:
             use_channels = [0, 1, 2, 3]
-        station_id = station.get_id()
 
         if use_MC_direction:
             zenith = station.get_sim_station()[stnp.zenith]
@@ -174,9 +210,16 @@ class voltageToEfieldConverter:
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
 
-        efield_antenna_factor, V = get_array_of_channels(station, use_channels, det, zenith, azimuth, self.antenna_provider)
+        efield_position = np.mean([
+            det.get_relative_position(station.get_id(), channel_id)
+            for channel_id in use_channels], axis=0)
+
+        times, efield_antenna_factor, V = get_array_of_channels(
+            station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position=efield_position)
+
         n_frequencies = len(V[0])
-        denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] - efield_antenna_factor[0][1] * efield_antenna_factor[-1][0])
+        denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] -
+                 efield_antenna_factor[0][1] * efield_antenna_factor[-1][0])
         mask = np.abs(denom) != 0
 
         # solve it in a vectorized way
@@ -188,27 +231,11 @@ class voltageToEfieldConverter:
         else:
             efield3_f[1:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
 
-        efield_position = np.mean([
-            det.get_relative_position(station.get_id(), channel_id)
-            for channel_id in use_channels], axis=0)
-
         electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, efield_position)
         electric_field.set_frequency_spectrum(efield3_f, station.get_channel(use_channels[0]).get_sampling_rate())
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)
-        # figure out the timing of the E-field
-        t_shifts = np.zeros(V.shape[0])
-        site = det.get_site(station_id)
-        if(zenith > 0.5 * np.pi):
-            logger.warning("Module has not been optimized for neutrino reconstruction yet. Results may be nonsense.")
-            refractive_index = ice.get_refractive_index(-1, site)  # if signal comes from below, use refractivity at antenna position
-        else:
-            refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
-        for i_ch, channel_id in enumerate(use_channels):
-            antenna_position = det.get_relative_position(station.get_id(), channel_id)
-            t_shifts[i_ch] = station.get_channel(channel_id).get_trace_start_time() - geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
-
-        electric_field.set_trace_start_time(t_shifts.max())
+        electric_field.set_trace_start_time(times[0])
         station.add_electric_field(electric_field)
 
     def end(self):

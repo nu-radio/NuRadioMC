@@ -6,6 +6,11 @@ import logging
 
 try:
     import radiopropa as RP
+    # nu2rp_meter = RP.meter / units.meter
+    # The line above gives 1. The reason why we are not using it is that it gives an error when building the docs:
+    # TypeError: unsupported operand type(s) for /: 'meter' and 'int'
+    # I do not understand why... Therefore we define it manually here
+    nu2rp_meter = 1
     radiopropa_is_imported = True
 except ImportError:
     radiopropa_is_imported = False
@@ -268,7 +273,7 @@ class IceModelSimple(IceModel):
                 return 1
         else:
             ior = self.n_ice - self.delta_n * np.exp((position[:, 2] - self.z_shift) / self.z_0)
-            ior[position[:, 2] >= 0] = 1.
+            ior[position[:, 2] - self.z_air_boundary > 0] = 1.
             return ior
 
     def get_average_index_of_refraction(self, position1, position2):
@@ -337,7 +342,7 @@ class IceModelSimple(IceModel):
                 gradient[2] = gradient_z(position[2])
         else:
             gradient = gradient_z(position[:,2])
-            gradient[position[:, 2] >= 0] = 0
+            gradient[position[:, 2] - self.z_air_boundary > 0] = 0
             gradient = np.stack((np.zeros_like(gradient),np.zeros_like(gradient),gradient),axis=1)
 
         return gradient
@@ -361,10 +366,12 @@ class IceModelSimple(IceModel):
             raise ImportError('RadioPropa could not be imported')
 
         scalar_field = RP.IceModel_Simple(
-            z_surface=self.z_air_boundary*RP.meter/units.meter,
+            z_surface=self.z_air_boundary * nu2rp_meter,
             n_ice=self.n_ice, delta_n=self.delta_n,
-            z_0=self.z_0 * RP.meter / units.meter,
-            z_shift=self.z_shift * RP.meter / units.meter)
+            z_0=self.z_0 * nu2rp_meter,
+            z_shift=self.z_shift * nu2rp_meter
+        )
+
         return RadioPropaIceWrapper(self, scalar_field)
 
 
@@ -490,7 +497,7 @@ class IceModelExponentialPolynomial(IceModel):
                 return 1.
         else:
             ior = ior(position[:,2])
-            ior[position[:, 2] > 0] = 1.
+            ior[position[:, 2] - self.z_air_boundary > 0] = 1.
             return ior
 
     def get_average_index_of_refraction(self, position1, position2):
@@ -571,7 +578,7 @@ class IceModelExponentialPolynomial(IceModel):
                 return np.array([0, 0, 0])
         else:
             dior = dior_dz(position[:,2])
-            dior[position[:, 2] > 0] = 0
+            dior[position[:, 2] - self.z_air_boundary > 0] = 0
             return np.stack((np.zeros_like(dior),np.zeros_like(dior),dior),axis=1)
 
 
@@ -591,23 +598,24 @@ class IceModelExponentialPolynomial(IceModel):
         ice: RadioPropaIceWrapper
             object holding the radiopropa scalarfield and modules
         """
-        if radiopropa_is_imported:
-            coeff = RP.DoubleVector_1D()
-            for ai in self._a:
-                coeff.push_back(ai / (units.kg / units.meter**3) * (RP.kilogram / RP.meter**3))
-
-            scalar_field = RP.IceModel_Polynomial(
-                coeff,
-                self._z_0 * RP.meter / units.meter,
-                self.z_air_boundary * RP.meter / units.meter,
-                self._z_shift * RP.meter / units.meter,
-                self._density_factor / (units.meter**3 / units.kilogram) * (RP.meter**3 / RP.kilogram))
-
-            return RadioPropaIceWrapper(self, scalar_field)
-        else:
+        if not radiopropa_is_imported:
             logger.error('The radiopropa dependency was not import and can therefore not be used.'
                          '\nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
+
+        coeff = RP.DoubleVector_1D()
+        for ai in self._a:
+            coeff.push_back(ai)
+
+        scalar_field = RP.IceModel_Polynomial(
+            coeff,
+            self._z_0 * nu2rp_meter,
+            self.z_air_boundary * nu2rp_meter,
+            self._z_shift * nu2rp_meter,
+            self._density_factor)
+
+        return RadioPropaIceWrapper(self, scalar_field)
+
 
     def set_density_factor(self, density_factor):
         """
@@ -642,6 +650,8 @@ if radiopropa_is_imported:
         --> this converts the distance from SI unit meter into NuRadio units
     """
 
+    z_unit = RP.Vector3d(0, 0, 1)
+
     class RadioPropaIceWrapper():
         """
         This class holds all the necessary variables for the radiopropa raytracer to work.
@@ -658,45 +668,30 @@ if radiopropa_is_imported:
             # layers, observers to confine the model in a certain space ...
             self.__modules = {}
 
-            step = np.array([0, 0, 1])*units.centimeter
+            step = np.array([0, 0, 1]) * units.centimeter
             air_boundary_pos = np.array([0, 0, self.__ice_model_nuradio.z_air_boundary])
-            air_boundary = RP.Discontinuity(RP.Plane(RP.Vector3d(*(air_boundary_pos*(RP.meter/units.meter))),
-                                                     RP.Vector3d(0,0,1),
-                                                    ),
-                                            self.__ice_model_nuradio.get_index_of_refraction(air_boundary_pos-step),
-                                            self.__ice_model_nuradio.get_index_of_refraction(air_boundary_pos+step),
-                                           )
-            self.__modules["air boundary"]=air_boundary
 
-            boundary_above_surface = RP.ObserverSurface(RP.Plane(RP.Vector3d(*((air_boundary_pos+100*step)
-                                                                             *(RP.meter/units.meter)),
-                                                                            ),
-                                                                 RP.Vector3d(0,0,1)),
-                                                                )
-            air_observer = RP.Observer()
-            air_observer.setDeactivateOnDetection(True)
-            air_observer.add(boundary_above_surface)
-            self.__modules["air observer"] = air_observer
+            air_boundary = RP.Discontinuity(
+                RP.Plane(RP.Vector3d(0, 0, self.__ice_model_nuradio.z_air_boundary * nu2rp_meter), z_unit),
+                self.__ice_model_nuradio.get_index_of_refraction(air_boundary_pos - step),
+                self.__ice_model_nuradio.get_index_of_refraction(air_boundary_pos + step),
+            )
+            self.__modules["air boundary"] = air_boundary
 
-            bottom_boundary_pos = np.array([0, 0, self.__ice_model_nuradio.z_bottom])
-            boundary_bottom = RP.ObserverSurface(RP.Plane(RP.Vector3d(*((bottom_boundary_pos)
-                                                                      *(RP.meter/units.meter)),
-                                                                     ),
-                                                          RP.Vector3d(0,0,1)),
-                                                         )
+            boundary_bottom = RP.ObserverSurface(
+                RP.Plane(RP.Vector3d(0, 0, self.__ice_model_nuradio.z_bottom * nu2rp_meter), z_unit))
+
             bottom_observer = RP.Observer()
             bottom_observer.setDeactivateOnDetection(True)
             bottom_observer.add(boundary_bottom)
             self.__modules["bottom observer"] = bottom_observer
 
             if hasattr(self.__ice_model_nuradio, 'reflection') and self.__ice_model_nuradio.reflection is not None:
-                reflection_pos = np.array([0, 0, self.__ice_model_nuradio.reflection])
-                bottom_reflection = RP.ReflectiveLayer(RP.Plane(RP.Vector3d(*(reflection_pos*(RP.meter/units.meter))),
-                                                                RP.Vector3d(0,0,1),
-                                                                ),
-                                                       self.__ice_model_nuradio.reflection_coefficient,
-                                                      )
-                self.__modules["bottom reflection"]=bottom_reflection
+                bottom_reflection = RP.ReflectiveLayer(
+                    RP.Plane(RP.Vector3d(0, 0, self.__ice_model_nuradio.reflection * nu2rp_meter), z_unit),
+                    self.__ice_model_nuradio.reflection_coefficient,
+                )
+                self.__modules["bottom reflection"] = bottom_reflection
 
         def get_modules(self):
             """
@@ -815,7 +810,7 @@ if radiopropa_is_imported:
             n: float
                 index of refraction
             """
-            pos = np.array([position.x, position.y, position.z])*(units.meter/RP.meter)
+            pos = np.array([position.x, position.y, position.z]) / nu2rp_meter
             return self.__ice_model_nuradio.get_index_of_refraction(pos)
 
         def getGradient(self, position): #name may not be changed because linked to c++ radiopropa module
@@ -832,6 +827,6 @@ if radiopropa_is_imported:
             n_nabla: radiopropa.Vector3d
                 gradient of index of refraction at the point
             """
-            pos = np.array([position.x, position.y, position.z])*(units.meter/RP.meter)
-            gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos)*(1 / (RP.meter/units.meter))
+            pos = np.array([position.x, position.y, position.z]) / nu2rp_meter
+            gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos) / nu2rp_meter
             return RP.Vector3d(*gradient)

@@ -72,12 +72,12 @@ class channelSignalReconstructor:
         ----------
         station_id: int
             ID of the station
-        channel, det
-            Channel, Detector
-        stored_noise: bool
-            Calculates noise from pre-computed forced triggers
-        rms_stage: string
-            See functionality of det.get_noise_RMS
+        channel : Channel
+        det : Detector
+        stored_noise: bool, optional
+            Calculates noise from pre-computed forced triggers. Default ``False``
+        rms_stage: string, optional
+            See functionality of det.get_noise_RMS. Only relevant if ``stored_noise==True``
 
         Returns
         -------
@@ -202,16 +202,24 @@ class channelSignalReconstructor:
 
 
     @register_run()
-    def run(self, evt, station, det, stored_noise = False, rms_stage = 'amp'):
+    def run(self, evt, station, det, stored_noise = False, rms_stage = 'amp', snr_only=False):
         """
+        Compute signal properties for all channels in a station.
+
         Parameters
         ----------
-        evt, station, det
-            Event, Station, Detector
+        evt : Event
+        station : Station
+        det : Detector
         stored_noise: bool
             Calculates noise from pre-computed forced triggers
-        rms_stage: string
-            See functionality of det.get_noise_RMS
+        rms_stage: string, optional
+            See functionality of det.get_noise_RMS. Only relevant if ``stored_noise==True``.
+            Default "amp", i.e. use RMS voltage after amplifier stage.
+        snr_only : bool, default ``False``
+            If ``True``, only compute SNR statistics (faster);
+            otherwise (default), also compute additional signal properties
+            such as impulsivity, kurtosis and entropy.
         """
 
         t = time.time()
@@ -235,19 +243,19 @@ class channelSignalReconstructor:
             channel[chp.maximum_amplitude_envelope] = h.max()
             channel[chp.P2P_amplitude] = np.max(trace) - np.min(trace)
 
-            # Calculate impulsivity of the signal
-            channel[chp.impulsivity] = trace_utilities.get_impulsivity(trace)
-
-
             # Use noise precalculated from forced triggers
             signal_to_noise, noise_rms = self.get_SNR(
                 station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
 
             channel[chp.SNR] = signal_to_noise
             channel[chp.noise_rms] = noise_rms
-            channel[chp.root_power_ratio] = trace_utilities.get_root_power_ratio(trace, times, noise_rms)
-            channel[chp.entropy] = trace_utilities.get_entropy(trace)
-            channel[chp.kurtosis] = trace_utilities.get_kurtosis(trace)
+
+            if not snr_only:
+                # Calculate additional properties of the signal
+                channel[chp.impulsivity] = trace_utilities.get_impulsivity(trace)
+                channel[chp.root_power_ratio] = trace_utilities.get_root_power_ratio(trace, times, noise_rms)
+                channel[chp.entropy] = trace_utilities.get_entropy(trace)
+                channel[chp.kurtosis] = trace_utilities.get_kurtosis(trace)
 
         station[stnp.channels_max_amplitude] = max_amplitude_station
         station[stnp.channels_max_amplitude_norm] = self.get_max_a_norm(station)
