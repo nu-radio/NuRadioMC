@@ -26,7 +26,7 @@ import argparse
 import copy
 
 
-def pad_traces(event, det, pad_before=2 * units.ns, pad_after=1000 * units.ns,trigger_channels=[0]):
+def pad_traces(event, det, pad_before=200 * units.ns, pad_after=400 * units.ns,trigger_channels=[0]):
     """ Makes sure all traces have the same length and starting time. """
     sim_station = event.get_station().get_sim_station()
 
@@ -55,15 +55,15 @@ def pad_traces(event, det, pad_before=2 * units.ns, pad_after=1000 * units.ns,tr
         tstart = 0 * units.ns
         tend = 0 * units.ns
     else:
-        tstart = np.min(tstarts) + pad_before
+        tstart = np.min(tstarts) - pad_before
         tend = np.max(tends) + pad_after
         pulse_time = np.min(pulse_times)
-    if tstart > pulse_time - 20 * units.ns:
-        ## front padding too large, use the pulse time minus 20 ns
-        print("\ttrace tstart (ns):", f"{tstart/units.ns:.1f}")
-        print("\tpulse time  (ns):", f"{pulse_time/units.ns:.1f}")
-        print( f"front padding [{pad_before/units.ns:.2f}] is too large, use the pulse time minus 20 ns")
-        tstart = pulse_time - 20 * units.ns
+    # if tstart > pulse_time - 20 * units.ns:
+    #     ## front padding too large, use the pulse time minus 20 ns
+    #     print("\ttrace tstart (ns):", f"{tstart/units.ns:.1f}")
+    #     print("\tpulse time  (ns):", f"{pulse_time/units.ns:.1f}")
+    #     print( f"front padding [{pad_before/units.ns:.2f}] is too large, use the pulse time minus 20 ns")
+    #     tstart = pulse_time - 20 * units.ns
 
     t_readout_window = det.get_number_of_samples(sim_station.get_id(), 0) / \
         det.get_sampling_frequency(sim_station.get_id(), 0)
@@ -81,17 +81,17 @@ def pad_traces(event, det, pad_before=2 * units.ns, pad_after=1000 * units.ns,tr
         readout.set_trace(np.zeros((3, n_samples)), electric_field.get_sampling_rate(), tstart)
 
         # if len(electric_field.get_trace()) > 100: ## assumes short traces are not useful
-        new_efield = readout + electric_field ##
+        # new_efield = readout + electric_field ##
         # readout.add_to_trace(new_efield)
-        try:
-            readout.add_to_trace(new_efield)
+        # try:
+        readout.add_to_trace(electric_field,raise_error=False)
             # readout.add_to_trace(electric_field)
-        except:
-            ## typically fail when efield has too few samples or outside readout window (surface channel)
-            # print(f"!!!!!!!!!!!!!! Warning couldn't add_to_trace, use zero trace !!!!!!!!!!!!!!")
-            # print("Event ID:", event.get_id(), "Station ID:", sim_station.get_id(),"ch",electric_field.get_channel_ids())
-            # print("E-field shape",electric_field.get_trace().shape,"\nmin/max:", electric_field.get_trace().min(), electric_field.get_trace().max())
-            pass
+        # except:
+        #     ## typically fail when efield has too few samples or outside readout window (surface channel)
+        #     # print(f"!!!!!!!!!!!!!! Warning couldn't add_to_trace, use zero trace !!!!!!!!!!!!!!")
+        #     # print("Event ID:", event.get_id(), "Station ID:", sim_station.get_id(),"ch",electric_field.get_channel_ids())
+        #     # print("E-field shape",electric_field.get_trace().shape,"\nmin/max:", electric_field.get_trace().min(), electric_field.get_trace().max())
+        #     pass
         electric_field.set_trace(readout.get_trace(), "same", tstart)
 
 
@@ -262,7 +262,7 @@ if __name__ == "__main__":
 
     efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
     # efieldToVoltageConverter.begin(post_pulse_time=100 * units.ns, pre_pulse_time=100 * units.ns)
-    efieldToVoltageConverter.begin(post_pulse_time=1000 * units.ns, pre_pulse_time=10  * units.ns)
+    efieldToVoltageConverter.begin(post_pulse_time=400 * units.ns, pre_pulse_time=200  * units.ns)
 
     efieldToVoltageConverterPerEfield = NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
 
@@ -289,7 +289,9 @@ if __name__ == "__main__":
 
             shower = event.get_first_sim_shower()
             for sdx, station in enumerate(event.get_stations()):
+                print("Printing triggers before setting pre_trigger_times:")
                 for trigger in station.get_triggers().values():
+                    print("trigger from station.get_triggers():", trigger)
                     trigger.set_pre_trigger_times(250 * units.ns)
                     station.set_trigger(trigger)
                 sim_station = station.get_sim_station()
@@ -330,7 +332,6 @@ if __name__ == "__main__":
                     event, station, det_rnog, trigger_channels=trigger_channels,
                     trigger_channel_noise_vrms=None,
                     high_low_trigger_thresholds=thresholds)
-
                 channelReadoutWindowCutter.run(event, station, det_rnog)
                 channelResampler.run(event, station, det_rnog)
             # print("running eventWriter with mode",mode)
