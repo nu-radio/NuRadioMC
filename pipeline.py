@@ -59,11 +59,20 @@ import NuRadioReco.detector
 import NuRadioReco.detector.generic_detector
 import NuRadioReco.detector.detector_base
 import NuRadioReco.modules.io.coreas.coreasInterpolator
+import NuRadioReco.modules.LOFAR.hardwareResponseIncorporator
+import NuRadioReco.modules.channelGalacticNoiseAdder
+import NuRadioReco.modules.channelGenericNoiseAdder
 
 from NuRadioReco.modules.io.LOFAR.readLOFARData import LOFAR_event_id_to_unix
 from NuRadioReco.modules.efieldRadioInterferometricReconstruction import (
     efieldInterferometricDepthReco,
 )
+from NuRadioReco.modules.efieldToVoltageConverter import efieldToVoltageConverter
+from NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup import (
+    voltageToEfieldConverterPerChannelGroup,
+)
+from NuRadioReco.modules.eventTypeIdentifier import eventTypeIdentifier
+from NuRadioReco.modules.channelResampler import channelResampler
 
 # Used to read and interpolate CoREAS simulation files to detector positions
 from NuRadioReco.modules.io.coreas.readCoREASDetector import readCoREASDetector
@@ -99,7 +108,7 @@ LOFAR_PATH = (
     "/vol/astro5/lofar/tgottmer/NuRadioMC/NuRadioReco/detector/LOFAR/LOFAR.json"
 )
 STAR_PATH = "/vol/astro5/lofar/tgottmer/simfiles/sim-detector.json"
-
+NOISE_ARR = np.load("/vol/astro5/lofar/tgottmer/simfiles/lofar_real_noise_library.npy")
 
 def set_fluence_of_efields(
     function, sim_station, quantity=efp.signal_energy_fluence
@@ -135,7 +144,8 @@ def read_event(
     output_dir: Path,
     event_id: int,
     sim_id: int,
-    percent_cut: float=0.05
+    percent_cut: float = 0.05,
+    snr_cut: float = 5,
 ) -> Tuple[
     NuRadioReco.framework.event.Event,
     NuRadioReco.detector.detector_base.DetectorBase
@@ -154,6 +164,7 @@ def read_event(
         event_id (int): id of event
         sim_id (int): id of simulation of event
         percent_cut (float): Percentage for where to cut antenna responses
+        snr_cut (float): SNR cutoff
 
     Returns:
         NuRadioReco.framework.event.Event: NRR event
@@ -193,6 +204,7 @@ def read_event(
         station_channel_map = {sid: None for sid in station_ids}
 
         # The .run() method performs the interpolation and returns an event generator
+        logging.info("Interpolating...")
         event_generator = readCoREASDetector_inst.run(
             det, [core_position], selected_station_channel_ids=station_channel_map
         )
@@ -203,11 +215,34 @@ def read_event(
 
         # --- Step 2: Update event object with correct time information ---
         # Set the correct time for each station in the newly created event
+        identifier = eventTypeIdentifier()
+        identifier.begin()
+
+        convert = efieldToVoltageConverter()
+        convert.begin()
+
+        resampler = channelResampler()
+        # v_to_e_converter = voltageToEfieldConverterPerChannelGroup()
+        # v_to_e_converter.begin(use_MC_direction=True)
+
         for station in event.get_stations():
             station.set_station_time(event_time)
+            resampler.run(event, station, det, 200 * units.MHz)
+            identifier.run(event, station, "forced", "cosmic_ray")
+            logger.info(f"Converting station {station.get_id()}")
+            convert.run(event, station, det)
+
+            logging.info("Adding noise...")
+            for channel in station.iter_channels():
+                trace = channel.get_trace()
+                if len(trace) <= len(NOISE_ARR):
+                    start_index = np.random.randint(0, len(NOISE_ARR) - len(trace) + 1)
+                    channel.set_trace(trace + NOISE_ARR[start_index:start_index+len(trace)], sampling_rate=channel.get_sampling_rate())
+            
+            # v_to_e_converter.run(event, station, det)
 
         # --- Step 3: Apply physics cuts and generate plots ---
-        event_after_cut = apply_cut(event, det, "Percent", percent_cut)
+        event_after_cut = apply_cut(event, det, "SNR", snr_cut)
 
         make_detector_fluence_plot(event, det, output_dir, detector, event_id, sim_id)
 
@@ -286,7 +321,7 @@ def calc_interferometetric_depth(
     diagnostic_dir = output_dir.parents[1] / "diagnostic_plots"
     event.get_first_sim_shower().set_parameter(shp.core, [0, 0, 0])
     try:
-        reconstructor.run(event, detector, use_MC_geometry=True, use_MC_pulses=True)
+        reconstructor.run(event, detector, use_MC_geometry=True, use_MC_pulses=False, use_voltage_traces=True, n_samples=1024)
     except RuntimeError:
         logger.error(
             f"RuntimeError while fitting {event_id}_{sim_id}, skipping and plotting traces"
@@ -455,7 +490,7 @@ def generate_data(
     station_ids: list,
     core_position: List[float] = [0, 0],
     debug: bool = False,
-    percent_cut: float=0.05,
+    percent_cut: float = 0.05,
 ) -> None:
     """Generates all data for single event by filepath. Data including, event
     x_rit, longitudonal profiles and footprints. This is done in the directory
@@ -499,7 +534,7 @@ def generate_data(
                 output_dir,
                 event_id,
                 sim_id,
-                percent_cut
+                percent_cut,
             )
             event_lofar, det_lofar, lofar_interpolator = read_event(
                 event_file,
@@ -509,7 +544,7 @@ def generate_data(
                 output_dir,
                 event_id,
                 sim_id,
-                percent_cut
+                percent_cut,
             )
 
         except Exception as err:
@@ -611,12 +646,13 @@ def generate_data(
 def apply_cut(
     event: NuRadioReco.framework.event.Event,
     detector: NuRadioReco.detector.detector_base.DetectorBase,
-    cut_type: Literal["Cherenkov", "Percent"],
-    percent_cut: float=0.05,
+    cut_type: Literal["Cherenkov", "Percent", "SNR"],
+    percent_cut: float = 0.05,
+    snr_cut: float = 5
 ) -> NuRadioReco.framework.event.Event:
     """Applies a fluence cut on detectors containing a certain
-    amount of the maximum fluence. Either cherenkov-cone based or
-    percentage of maximum fluence based (5%)
+    amount of the maximum fluence. Cherenkov-cone based,
+    percentage of maximum fluence based (5%) or SNR based.
 
     Args:
         event (NuRadioReco.framework.event.Event): NRR-event to cut
@@ -625,6 +661,7 @@ def apply_cut(
            radius or by percentage of the maximum fluence.
         percent_cut (float): Percentage for where to cut an antenna's signal as percentage
            of the maximum amplitude of the signal.
+        snr_cut (float): SNR cutoff for antennas on voltage traces
 
     Returns:
         NuRadioReco.framework.event.Event: NRR event with specified cut applied
@@ -665,7 +702,7 @@ def apply_cut(
         )
 
         # 4. Define the cutoff radius
-        cutoff_radius = 3.0 * cherenkov_radius_m
+        cutoff_radius = 1.0 * cherenkov_radius_m
         logger.info(f"  - Applying signal cut at 3 * R_c = {cutoff_radius:.2f} m")
 
         zeroed_antennas_count = 0
@@ -688,7 +725,9 @@ def apply_cut(
             f"  - Finished: Zeroed out the E-field traces for {zeroed_antennas_count} antennas beyond the cutoff radius."
         )
     elif cut_type == "Percent":
-        logger.info("Calculating maximum flux and cutting antannae at <5%")
+        logger.info(
+            f"Calculating maximum flux and cutting antannae at <{percent_cut*100}%"
+        )
         efields, fluences = [], []
 
         for station in event.get_stations():
@@ -712,7 +751,27 @@ def apply_cut(
                     np.zeros_like(efield.get_trace()), efield.get_sampling_rate()
                 )
 
-        logger.info(f"  - Finshed: Zeroed E-field for {antennas_to_cut.sum()} antennas")
+        logger.info(f"Finshed: Zeroed E-field for {antennas_to_cut.sum()} antennas")
+    
+    elif cut_type == "SNR":
+        noise_power = 0.0001276411170139778  # pre-calculated noise V_RMS
+        cut_antennas = 0
+        logger.info(f"Cutting at an SNR of {snr_cut}")
+        for station in event.get_stations():
+            for channel in station.iter_channels():
+                trace = channel.get_trace()
+                max_signal = np.max(np.abs(trace))
+                snr = max_signal / noise_power
+
+                if snr < snr_cut:
+                    channel.set_trace(
+                        np.zeros_like(trace), channel.get_sampling_rate()
+                    )
+                    cut_antennas += 1
+
+        logger.info(f"Cut voltage traces for {cut_antennas} antennas")
+
+
 
     return event
 

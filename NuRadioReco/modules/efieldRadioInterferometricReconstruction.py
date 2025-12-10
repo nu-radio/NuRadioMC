@@ -314,7 +314,7 @@ class efieldInterferometricDepthReco:
 
 
     @register_run()
-    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, long_plot=True, rit_plot=True):
+    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, use_voltage_traces=True, long_plot=True, rit_plot=True, n_samples=None):
         """
         Run interferometric reconstruction of depth of coherent signal.
 
@@ -332,6 +332,18 @@ class efieldInterferometricDepthReco:
 
         use_MC_pulses : bool
             if true, take electric field trace from sim_station
+
+        use_voltage_traces : bool
+            if True, use the maximum voltage trace for each antenna pair instead of efield trace
+        
+        long_plot : bool
+            if True, generate longitudonal development plots for each shower analysed
+            
+        rit_plot: bool
+            if True, plot the results of the rit
+
+        n_samples: int
+            Take specified number of samples around peak, if None use full trace
         """
 
         # TODO: Mimic imperfect time syncronasation by adding a time jitter here?
@@ -347,7 +359,7 @@ class efieldInterferometricDepthReco:
         core, shower_axis, cs = get_geometry_and_transformation(shower)
 
         traces_vxB, times, pos = get_station_data(
-            evt, det, cs, use_MC_pulses, n_sampling=1024)
+            evt, det, cs, use_MC_pulses, use_voltage_traces, n_sampling=n_samples)
 
         if long_plot:
             depths, depths_final, signals_tmp, signals_final, rit_parameters = \
@@ -758,7 +770,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         return direction_rec, core_rec
 
     @register_run()
-    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True):
+    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, use_voltage_traces=True, n_samples=None):
         """
         Run interferometric reconstruction of depth of coherent signal.
 
@@ -776,6 +788,12 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         use_MC_pulses : bool
             if true, take electric field trace from sim_station
+
+        use_voltage_traces : bool
+            if True, use the maximum voltage trace for each antenna pair instead of efield trace
+
+        n_samples: int
+            Take specified number of samples around peak, if None use full trace
         """
 
         # TODO: Mimic imperfect time syncronasation by adding a time jitter here?
@@ -791,7 +809,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         core, shower_axis, cs = get_geometry_and_transformation(shower)
 
         traces_vxB, times, pos = get_station_data(
-            evt, det, cs, use_MC_pulses)
+            evt, det, cs, use_MC_pulses, use_voltage_traces, n_samples)
 
         direction_rec, core_rec = self.reconstruct_shower_axis(
             traces_vxB, times, pos, shower_axis, core, is_mc=True, magnetic_field_vector=shower[shp.magnetic_field_vector])
@@ -832,7 +850,7 @@ def get_geometry_and_transformation(shower):
     return core, shower_axis, cs
 
 
-def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
+def get_station_data(evt, det, cs, use_MC_pulses, use_voltage_trace: bool=False, n_sampling=None):
     """
     Returns station data in a proper format
 
@@ -848,23 +866,28 @@ def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
     use_MC_pulses : bool
         if true take electric field trace from sim_station
 
+    use_voltage_trace : bool, default False
+        if true use the voltage traces
+
     n_sampling : int
         if not None clip trace with n_sampling // 2 around np.argmax(np.abs(trace))
 
     Returns
     -------
 
-    traces_vxB : np.array
-        The electric field traces in the vxB polarisation (takes first electric field stored in a station) for all stations/observers.
+    final_traces : np.array
+        If use_voltage_trace=False: the electric field traces in the vxB polarisation (takes first 
+        electric field stored in a station) for all stations/observers. Else: the maximum voltage
+        trace per each observer.        
 
-    times : mp.array
-        The electric field traces time series for all stations/observers.
+    times : np.array
+        The electric field or voltage traces time series for all stations/observers.
 
     pos : np.array
         Positions for all stations/observers.
     """
 
-    traces_vxB = []
+    final_traces = []
     times = []
     pos = []
 
@@ -873,42 +896,93 @@ def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
         if use_MC_pulses:
             station = station.get_sim_station()
 
-        for electric_field in station.get_electric_fields():
-            traces = cs.transform_to_vxB_vxvxB(
-                cs.transform_from_onsky_to_ground(electric_field.get_trace()))
-            trace_vxB = traces[0]
-            time = copy.copy(electric_field.get_times())
+        if use_voltage_trace:
+            channels_in_station = det.get_channel_ids(station.get_id())
+            
+            for i in range(0, len(channels_in_station), 2):
+                y_id = channels_in_station[i]
+                x_id = channels_in_station[i+1]
+                channel_y = evt.get_station(station.get_id()).get_channel(y_id)
+                channel_x = evt.get_station(station.get_id()).get_channel(x_id)
+                trace_y = channel_y.get_trace()
+                trace_x = channel_x.get_trace()
 
-            if n_sampling is not None:
-                hw = n_sampling // 2
-                m = np.argmax(np.abs(trace_vxB))
+                if trace_y.max() > trace_x.max():
+                    trace_to_keep = trace_y
+                    time = channel_y.get_times()
+                    kept_id = y_id
+                else:
+                    trace_to_keep = trace_x
+                    time = channel_x.get_times()
+                    kept_id = x_id
 
-                if m < hw:
-                    m = hw
-                if m > len(trace_vxB) - hw:
-                    m = len(trace_vxB) - hw
+                if n_sampling is not None:
+                    trace_to_keep, time = window_trace(trace_to_keep, time, n_sampling)
+                
+                final_traces.append(trace_to_keep)
+                times.append(time)
 
-                trace_vxB = trace_vxB[m-hw:m+hw]
-                time = time[m-hw:m+hw]
+                channel_pos = np.array([det.get_channel(station.get_id(), kept_id)["ant_position_x"],
+                                        det.get_channel(station.get_id(), kept_id)["ant_position_y"],
+                                        det.get_channel(station.get_id(), kept_id)["ant_position_z"]])
+                pos.append(channel_pos + det.get_absolute_position(station.get_id()))
+        
+        else:
+            for electric_field in station.get_electric_fields():
+                traces = cs.transform_to_vxB_vxvxB(
+                    cs.transform_from_onsky_to_ground(electric_field.get_trace()))
+                trace_vxB = traces[0]
+                time = copy.copy(electric_field.get_times())
+                
+                
+                if n_sampling is not None:
+                    trace_vxB, time = window_trace(trace_vxB, time, n_sampling)
 
-            traces_vxB.append(trace_vxB)
-            times.append(time)
-            """
-            Break is used for the neutrino detection, which uses a different
-            definition of a station, for LOFAR data where station consist of 
-            multiple antannae where we want the efield from, remove it. From this
-            adjustments are also made for the station positions.
-            """
-            pos.append(electric_field.get_position() + det.get_absolute_position(station.get_id()))
-            # break  # just take the first efield. TODO: Improve this
+                final_traces.append(trace_vxB)
+                times.append(time)
+                """
+                Break is used for the neutrino detection, which uses a different
+                definition of a station, for LOFAR data where station consist of 
+                multiple antannae where we want the efield from, remove it. From this
+                adjustments are also made for the station positions.
+                """
+                pos.append(electric_field.get_position() + det.get_absolute_position(station.get_id()))
+                # break  # just take the first efield. TODO: Improve this
 
        # pos.append(det.get_absolute_position(station.get_id()))
 
-    traces_vxB = np.array(traces_vxB)
+    final_traces = np.array(final_traces)
     times = np.array(times)
     pos = np.array(pos)
 
-    return traces_vxB, times, pos
+    return final_traces, times, pos
+
+
+def window_trace(trace: np.ndarray, time: np.ndarray, n_sampling: int):
+    """Samples trace around its peak with n_samples corresponding
+    to n_sampling
+
+    Args:
+        trace (np.ndarray): trace to window
+        time (np.ndarray): timeseries to window
+        n_sampling (int): n_samples to window with
+
+    Returns:
+        trace: windowed trace
+        time: windowed timeseries
+    """    
+    hw = n_sampling // 2
+    m = np.argmax(np.abs(trace))
+
+    if m < hw:
+        m = hw
+    if m > len(trace) - hw:
+        m = len(trace) - hw
+
+    trace = trace[m-hw:m+hw]
+    time = time[m-hw:m+hw]
+
+    return trace, time
 
 
 def plot_lateral_cross_section(xs, ys, signals, mc_pos=None, fname=None, title=None):
