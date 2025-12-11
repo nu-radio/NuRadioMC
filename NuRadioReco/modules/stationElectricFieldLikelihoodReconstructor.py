@@ -128,7 +128,7 @@ class stationElectricFieldLikelihoodReconstructor:
         )
 
     @register_run()
-    def run(self, evt, station, det, use_channels=None, signal_search_window=None, use_MC_direction=False, return_signal=False):
+    def run(self, evt, station, det, use_channels=None, signal_search_window=None, use_MC_direction=False, return_signal=False, second_order=False):
         """
         Run the likelihood reconstruction of electric field.
 
@@ -187,10 +187,10 @@ class stationElectricFieldLikelihoodReconstructor:
         f_theta_f_phi_initial = [[0.5, 1], [0.5, -1], [-0.5, 1], [-0.5, -1]]
         for i_fit in range(4):
 
-            parameters_initial = np.array([f_theta_f_phi_initial[i_fit][0], f_theta_f_phi_initial[i_fit][1], -1, np.pi/2, 300, -10, zenith, azimuth])
+            parameters_initial = np.array([f_theta_f_phi_initial[i_fit][0], f_theta_f_phi_initial[i_fit][1], -1, np.pi/2, 300, -10 if second_order else 0, zenith, azimuth])
 
             minus_two_llh, polarization_reco, polarization_uncertainty, fluence_reco, fluence_uncertainty, fitted_params, fitted_params_uncertainties = self._reconstruct_signal(
-                traces, signal_function, parameters_initial, trace_start_times, second_order=True, signal_search_window=signal_search_window)
+                traces, signal_function, parameters_initial, trace_start_times, second_order=second_order, signal_search_window=signal_search_window)
 
             if minus_two_llh_best is None or minus_two_llh < minus_two_llh_best:
                 minus_two_llh_best = np.copy(minus_two_llh)
@@ -448,7 +448,7 @@ class stationElectricFieldLikelihoodReconstructor:
 
         return np.array(traces)
 
-    def _reconstruct_signal(self, data, signal_function, parameters_initial, trace_start_times, second_order=True, signal_search_window=None):
+    def _reconstruct_signal(self, data, signal_function, parameters_initial, trace_start_times, second_order=False, signal_search_window=None):
         """
         Reconstruct the signal from the given data.
 
