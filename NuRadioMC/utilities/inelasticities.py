@@ -81,10 +81,12 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
                     inccc = np.argwhere(ncccs_ref == nccc)[0][0]
                     iE = np.argmin(np.abs(energy - nu_energies_ref))
 
-                    cdf_interp = _get_inverse_cdf_interpolation(iF, inccc, iE)
+                    cdf, y = _get_inverse_cdf_interpolation(iF, inccc, iE)
 
                     randoms = rnd.uniform(0, 1, size=size)
-                    yy[mask] = cdf_interp(randoms)
+                    # np.interp is the quickest interpolation, and linear interpolation differs from
+                    # log interpolation by less than 1 per mille for the stored spacing in y
+                    yy[mask] = np.interp(randoms, cdf, y)
 
         return yy
 
@@ -92,20 +94,13 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
         raise AttributeError(f"inelasticity model {model} is not implemented.")
 
 
-@functools.lru_cache(maxsize=int(2**(int(np.log2(100 * 6 * 2) + 1))))
+@functools.lru_cache(maxsize=int(2**(int(np.log2(200 * 6 * 2) + 1))))
 def _get_inverse_cdf_interpolation(iF, inccc, iE):
     nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
-    
-    log10_dsigma_dy_interp = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]),
-                                            fill_value="extrapolate", kind="linear")
+    xsec_int, (integrand, y) = cross_sections.integrate_pwpl(dsigma_dy_ref, yy_ref, low=0, high=1, full_output=True)
+    cdf = np.insert(np.cumsum(integrand[iF, inccc, iE]) / xsec_int, 0, 0, axis=-1)
 
-    yyy = np.logspace(-8, 0, 1000, endpoint=True)
-    dsigma_dy = 10 ** log10_dsigma_dy_interp(np.log10(yyy))
-    probability_mass = dsigma_dy * 0.5 * np.append(np.diff(yyy), yyy[-1] - yyy[-2])
-    probability_mass /= np.sum(probability_mass)
-    cdf = np.cumsum(probability_mass)
-
-    return intp.interp1d(cdf, yyy, fill_value="extrapolate", kind="linear")
+    return cdf, y
 
 
 def get_ccnc(n_events, rnd=None, model="hedis_bgr18", energy=None, flavors=12):
