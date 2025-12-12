@@ -1,6 +1,7 @@
 import os
 import itertools
 import functools
+import warnings
 import numpy as np
 from scipy import constants
 from scipy.interpolate import interp1d
@@ -473,22 +474,25 @@ def integrate_pwpl(y, x, low=None, high=None, full_output=False):
     .. math:: Y_i = \\frac{A_i}{b_i+1} [x_{i+1}^{b_i+1} - x_i^{b_i+1}]
 
     """
-    logy = np.log(y)
+
+    ## Calling np.log when y=0 results in a bunch of RuntimeWarnings.
+    ## Therefore, we manually mask out these values and set them to np.nan,
+    ## and just manually set the integrand to zero afterwards
+    nanmask = y==0
+    binmask = nanmask[...,1:] | nanmask[..., :-1] # we mask bins if either edge is 'invalid'
+
+    logy = np.nan * np.zeros_like(y)
+    logy[~nanmask] = np.log(y[~nanmask])
     logx = np.log(x)
     slope = np.diff(logy) / np.diff(logx)
     lognorm = logy[...,:-1] - slope * logx[...,:-1]
-
-    # if y=0 anywhere, we get nans;
-    # in those areas we manually set the integrand to 0
-    mask = (y[...,1:] == 0) | (y[...,:-1] == 0)
 
     integrand = np.exp(
         lognorm
         + np.log((x[1:]**(slope + 1) - x[:-1]**(slope + 1)) / (slope + 1))
     )
-    integrand[mask] = 0
-    lognorm[mask] = 0
-    slope[mask] = 0
+
+    integrand[binmask] = 0
 
     if low is not None:
         if low < 0:
@@ -501,8 +505,8 @@ def integrate_pwpl(y, x, low=None, high=None, full_output=False):
                 (x[0]**(slope[...,0] + 1) - low**(slope[...,0] + 1))
                 / (slope[...,0] + 1))
         )
-        # set integrand to 0 where the (second-)lowest value of y is zero
-        int_low = np.where((y[...,0] == 0) | (y[...,1] == 0), 0, int_low)
+        # set integrand to 0 if the first or second value of y (used for the extrapolation) is zero
+        int_low = np.where(binmask[...,0], 0, int_low)
         integrand = np.concatenate([np.asarray(int_low)[...,None], integrand], axis=-1)
         x = np.concatenate([np.atleast_1d(low), x], axis=-1)
 
@@ -513,8 +517,8 @@ def integrate_pwpl(y, x, low=None, high=None, full_output=False):
                 (high**(slope[...,-1] + 1) - x[-1]**(slope[...,-1] + 1))
                 / (slope[...,-1] + 1))
         )
-        # set integrand to 0 where the (second-)highest value of y is zero
-        int_high = np.where((y[...,-1]==0) | (y[..., -2]==0), 0, int_high)
+        # set integrand to 0 if the (second-to-)last value of y (used for the extrapolation) is zero
+        int_high = np.where(binmask[...,-1], 0, int_high)
         integrand = np.concatenate([integrand, np.asarray(int_high)[...,None]], axis=-1)
         x = np.concatenate([x, np.atleast_1d(high)], axis=-1)
 
