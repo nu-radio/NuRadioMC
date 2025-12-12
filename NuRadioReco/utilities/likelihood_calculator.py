@@ -7,10 +7,10 @@ import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 
 import logging
-logger = logging.getLogger('NuRadioReco.utilities.noise_model')
+logger = logging.getLogger('NuRadioReco.utilities.likelihood_calculator')
 
 
-class NoiseModel:
+class LikelihoodCalculator:
     """
     Probabilistic description of band-limited noise in radio detectors. The noise is assumed to be a multivariate gaussian
     of dimension n_samples. The covariance matrix of the distribution can be calculated from the spectrum of the noise or
@@ -69,12 +69,12 @@ class NoiseModel:
         self.t_array = np.arange(n_samples) * 1.0 / sampling_rate
         self.data_saved = None
 
-        logger.info("NoiseModel initialized with {} antennas, {} samples, and {} Hz sampling rate".format(n_antennas, n_samples, sampling_rate))
+        logger.info("LikelihoodCalculator initialized with {} antennas, {} samples, and {} Hz sampling rate".format(n_antennas, n_samples, sampling_rate))
         logger.info("To set the covariance matrices/spectra for the likelihood calculation run either initialize_with_spectra() or initialize_with_data()")
 
     def initialize_with_spectra(self, spectra, Vrms=None):
         """
-        Initialize the noise model using spectra
+        Initialize the likelihood calculator using the spectra/filters of the noise
 
         Parameters
         ----------
@@ -106,7 +106,7 @@ class NoiseModel:
 
     def initialize_with_data(self, data, method="using_spectra"):
         """
-        Initialize the noise model using traces containing noise
+        Initialize the likelihood calculator using traces containing noise
 
         Parameters
         ----------
@@ -408,8 +408,8 @@ class NoiseModel:
                 for i_ant in range(self.n_antennas):
                     if any(np.abs(fft.time2freq(data[i_data, i_ant, :], self.sampling_rate))[self.spectra[i_ant, :] > np.max(self.spectra[i_ant, :]) * self.threshold_amplitude] / self.spectra[i_ant, :][self.spectra[i_ant, :] > np.max(self.spectra[i_ant, :]) * self.threshold_amplitude] > 100):
                         msg = (f"Warning: The ratio of the Fourier transform of the data and the"
-                               f"spectra of the noise model is larger than 100. This indicates that"
-                               f"the noise model is initialized with a wrong spectrum. "
+                               f"spectra of the noise is larger than 100. This indicates that"
+                               f"the likelihood calculator is initialized with a wrong spectrum. "
                                f"Max ratio: {np.max(np.abs(fft.time2freq(data[i_data, i_ant,:], self.sampling_rate))[self.spectra[i_ant, :] > np.max(self.spectra[i_ant,:]) * self.threshold_amplitude] / self.spectra[i_ant, :][self.spectra[i_ant, :] > np.max(self.spectra[i_ant, :]) * self.threshold_amplitude])}")
                         logger.warning(msg)
 
@@ -432,7 +432,7 @@ class NoiseModel:
         Returns
         -------
             np.array
-                Minus two delta log likelihood for the data given the noise model
+                Minus two delta log likelihood for the data given the noise spectra
         """
         return -2*self.calculate_delta_llh(data, signal=signal, frequency_domain=frequency_domain)
 
@@ -478,7 +478,7 @@ class NoiseModel:
 
         if use_channels is None:
             use_channels = station.get_channel_ids()
-        assert len(use_channels) == self.n_antennas, f"Number of channels to use ({len(use_channels)}) does not match the number of antennas ({self.n_antennas}) in the noise model"
+        assert len(use_channels) == self.n_antennas, f"Number of channels to use ({len(use_channels)}) does not match the number of antennas ({self.n_antennas}) in the likelihood calculator"
 
         if time_grid is None:
             data_times = list(station.iter_channels())[0].get_times()
@@ -503,7 +503,7 @@ class NoiseModel:
             if not channel.get_id() in use_channels:
                 n_skipped += 1
                 continue
-            assert channel.get_number_of_samples() == self.n_samples, f"Number of samples in data channel {i_ant} ({channel.get_number_of_samples()}) does not match the number of samples in the noise model ({self.n_samples})"
+            assert channel.get_number_of_samples() == self.n_samples, f"Number of samples in data channel {i_ant} ({channel.get_number_of_samples()}) does not match the number of samples in the likelihood calculator ({self.n_samples})"
             data_array[i_ant-n_skipped, :] = channel.get_trace()
             trace_start_times[i_ant-n_skipped]  = channel.get_trace_start_time()
 
@@ -598,7 +598,7 @@ class NoiseModel:
         Returns
         -------
             minus_two_delta_llh_func : function
-                Function that returns a minus two delta log likelihood for a set of parameters given a data realization and the noise model
+                Function that returns a minus two delta log likelihood for a set of parameters given a data realization and the noise spectra
         """
 
         def minus_two_delta_llh_func(params):
@@ -716,7 +716,7 @@ class NoiseModel:
         Returns
         -------
             fisher_information_matrix : numpy.array
-                Fisher information matrix for the parameters given the noise model
+                Fisher information matrix for the parameters given the noise spectra
 
         """
         n_parameters = len(paramters_x0) - len(ignore_parameters)

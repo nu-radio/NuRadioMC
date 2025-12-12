@@ -3,14 +3,12 @@ import matplotlib.pyplot as plt
 import copy
 import datetime
 
-from NuRadioReco.utilities import units, fft, signal_processing, noise_model, trace_minimizer, matched_filter, analytic_pulse, trace_utilities
+from NuRadioReco.utilities import units, analytic_pulse, trace_utilities
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.event import Event
-from NuRadioReco.framework.station import Station
 from NuRadioReco.framework.sim_station import SimStation
 from NuRadioReco.framework.electric_field import ElectricField
-from NuRadioReco.framework.channel import Channel
 from NuRadioReco.detector import detector
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.electricFieldBandPassFilter

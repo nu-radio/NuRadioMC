@@ -2,8 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from NuRadioReco.utilities import units, fft, signal_processing, noise_model, trace_minimizer, matched_filter
-from NuRadioReco.framework.channel import Channel
+from NuRadioReco.utilities import units, fft, signal_processing, likelihood_calculator, trace_minimizer, matched_filter
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
 
 channelGenericNoiseAdder = channelGenericNoiseAdder()
@@ -65,29 +64,29 @@ plt.tight_layout()
 plt.show()
 
 
-# Initialize noise model:
-noise_model = noise_model.NoiseModel(n_antennas, n_samples, sampling_rate)
-noise_model.initialize_with_spectra(abs(filter), noise_amplitude)
+# Initialize likelihood calculator:
+likelihood_calculator = likelihood_calculator.LikelihoodCalculator(n_antennas, n_samples, sampling_rate)
+likelihood_calculator.initialize_with_spectra(abs(filter), noise_amplitude)
 
 # Calculate likelihood for true signal for all datasets:
-minus_two_llh_array = noise_model.calculate_minus_two_delta_llh(data_traces, signal_true)
+minus_two_llh_array = likelihood_calculator.calculate_minus_two_delta_llh(data_traces, signal_true)
 
 # Plot distribution alongside chi2 distribution:
-noise_model.plot_llh_distribution(data_traces, signal=signal_true)
+likelihood_calculator.plot_llh_distribution(data_traces, signal=signal_true)
 plt.show()
 
 factor = 1.1
 ### Fit signal to data trace ###
 minimizer = trace_minimizer.TraceMinimizer(
     signal_function = signal_model,
-    objective_function = noise_model.calculate_minus_two_delta_llh,
+    objective_function = likelihood_calculator.calculate_minus_two_delta_llh,
     parameters_initial = [8*units.mV, 105*units.MHz, 5.5*units.ns, t0_true+0.05], # assuming that we have good guesses for the paramters
     parameters_bounds = [[0, 10*units.mV], [10*units.MHz, 10000*units.MHz], [1*units.ns, 100*units.ns], [0, max(t_array)]]
 )
 minimizer.set_scaling(np.array([1/units.mV, 1/units.mHz, 1/units.ns, 1/units.ns]))
 m = minimizer.run_minimization(data_traces[i_data], method="minuit")
 
-print("Minus two delta LLH (true):", noise_model.calculate_minus_two_delta_llh(data_traces[i_data], signal_true))
+print("Minus two delta LLH (true):", likelihood_calculator.calculate_minus_two_delta_llh(data_traces[i_data], signal_true))
 print("Minus two delta LLH (fit):", minimizer.result)
 print("The fitted minus two delta LLH should be slightly smaller that the minus two delta LLH of the true signal if the fit was succesful.")
 print("True parameters:", [amplitude_true, osc_freq_true, width_true, t0_true])

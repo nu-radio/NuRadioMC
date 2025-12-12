@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import copy
 
 from NuRadioReco.utilities.analytic_pulse import get_analytic_pulse_freq
-from NuRadioReco.utilities import units, noise_model, fft, trace_minimizer, matched_filter, trace_utilities
+from NuRadioReco.utilities import units, likelihood_calculator, fft, trace_minimizer, matched_filter, trace_utilities
 from NuRadioReco.framework.electric_field import ElectricField
 from NuRadioReco.framework.sim_station import SimStation
 from NuRadioReco.framework.event import Event
@@ -107,16 +107,16 @@ class stationElectricFieldLikelihoodReconstructor:
         self.i_shift_cc = np.arange(0, self.n_samples)
         self.frequencies = np.fft.rfftfreq(self.n_samples, 1. / self.sampling_rate)
 
-        # initialize noise model:
-        self.noise_model = noise_model.NoiseModel(
+        # initialize likelihood calculator:
+        self.likelihood_calculator = likelihood_calculator.LikelihoodCalculator(
             n_antennas = self.n_channels,
             n_samples = self.n_samples,
             sampling_rate = self.sampling_rate,
             matrix_inversion_method = "pseudo_inv",
             threshold_amplitude = 0.1
         )
-        self.noise_model.initialize_with_spectra(noise_spectra, self.Vrms)
-        self.noise_psd = self.noise_model.noise_psd
+        self.likelihood_calculator.initialize_with_spectra(noise_spectra, self.Vrms)
+        self.noise_psd = self.likelihood_calculator.noise_psd
 
         # initialize matched filter:
         self.matched_filter = matched_filter.MatchedFilter(
@@ -252,7 +252,7 @@ class stationElectricFieldLikelihoodReconstructor:
         Calculate the log-likelihood objective function of the 2nd minimization
         """
         if not self.use_chi2:
-            minus_two_llh = self.noise_model.calculate_minus_two_delta_llh(data, signal)
+            minus_two_llh = self.likelihood_calculator.calculate_minus_two_delta_llh(data, signal)
             return minus_two_llh
         elif self.use_chi2:
             return self._chi2(data, signal)
@@ -499,7 +499,7 @@ class stationElectricFieldLikelihoodReconstructor:
         """
 
         dx_array = np.array([1e-3, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6])
-        fisher_information_matrix = self.noise_model.calculate_fisher_information_matrix(signal_function, parameters_initial, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
+        fisher_information_matrix = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, parameters_initial, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
         f_i = np.linalg.pinv(fisher_information_matrix)
         uncertainties_1 = np.sqrt(np.diag(f_i))
         scaling = np.append(uncertainties_1, [1, 1]) if not self.zenith_azimuth_free else uncertainties_1
@@ -575,7 +575,7 @@ class stationElectricFieldLikelihoodReconstructor:
         else:
             reconstructor_2.fix_parameters([False, False, False, False, False, not(second_order), True, True])
 
-        fisher_information_matrix2 = self.noise_model.calculate_fisher_information_matrix(signal_function, fitted_params_1, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
+        fisher_information_matrix2 = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, fitted_params_1, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
         f_i_2 = np.linalg.pinv(fisher_information_matrix2)
         errors_2 = np.sqrt(np.diag(f_i_2))
         scaling_2 = np.append(errors_2, [1, 1]) if not self.zenith_azimuth_free else errors_2
@@ -593,7 +593,7 @@ class stationElectricFieldLikelihoodReconstructor:
         A_phi = np.sign(fitted_params_2[1]) * f_phi**0.5
         polarization = np.arctan2(A_phi, A_theta)
 
-        fisher_information_matrix_fit = self.noise_model.calculate_fisher_information_matrix(signal_function, fitted_params_2, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
+        fisher_information_matrix_fit = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, fitted_params_2, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
         f_i_fit = np.linalg.pinv(fisher_information_matrix_fit)
         uncertainties_fit = np.sqrt(np.diag(f_i_fit))
         f_theta_uncertainty = uncertainties_fit[0]
@@ -648,11 +648,11 @@ class stationElectricFieldLikelihoodReconstructor:
             # Plot spectra of (assumed) noise and data:
             fig, ax = plt.subplots(self.n_channels, 1, figsize=(10, self.n_channels*3))
             for i_ch in range(self.n_channels):
-                ax[i_ch].plot(self.frequencies, self.noise_model.spectra[i_ch], "k-", label="noise model")
+                ax[i_ch].plot(self.frequencies, self.likelihood_calculator.spectra[i_ch], "k-", label="Likelihood noise spectrum")
                 ax[i_ch].plot(self.frequencies, np.abs(fft.time2freq(data[i_ch], sampling_rate=self.sampling_rate)), "b-", label="data")
                 ax[i_ch].plot(self.frequencies, np.abs(fft.time2freq(signal_initial[i_ch], sampling_rate=self.sampling_rate)), "r-", label="initial")
                 ax[i_ch].plot(self.frequencies, np.abs(fft.time2freq(signal_fit_2[i_ch], sampling_rate=self.sampling_rate)), "g-", label="fit")
-                ax[i_ch].hlines( np.max(self.noise_model.spectra[i_ch])/100, 0, max(self.frequencies), "m", "--", label="threshold")
+                ax[i_ch].hlines( np.max(self.likelihood_calculator.spectra[i_ch])/100, 0, max(self.frequencies), "m", "--", label="threshold")
                 ax[i_ch].set_ylabel("Amplitude [V/GHz]")
                 #ax[i].set_yscale("log")
             ax[0].legend()
