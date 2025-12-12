@@ -572,7 +572,10 @@ class interferometricDirectionReconstruction():
             surface_corr= self.get_surf_corr(corr_matrix, num_rows_to_10m)
             station.set_parameter(stnp.rec_surf_corr, surface_corr)
         else:
-            station.set_parameter(stnp.rec_surf_corr, np.nan)
+            TIR = 35 # degrees
+            num_rows_to_TIR = int(np.ceil(TIR / abs(step_sizes[1])))
+            surface_corr= self.get_surf_corr(corr_matrix, num_rows_to_TIR)
+            station.set_parameter(stnp.rec_surf_corr, surface_corr)
 
         station.set_parameter(stnp.rec_max_correlation, max_corr)
 
