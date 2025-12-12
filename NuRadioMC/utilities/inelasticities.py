@@ -97,8 +97,9 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
 @functools.lru_cache(maxsize=int(2**(int(np.log2(200 * 6 * 2) + 1))))
 def _get_inverse_cdf_interpolation(iF, inccc, iE):
     nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
-    xsec_int, (integrand, y) = cross_sections.integrate_pwpl(dsigma_dy_ref, yy_ref, low=0, high=1, full_output=True)
-    cdf = np.insert(np.cumsum(integrand[iF, inccc, iE]) / xsec_int, 0, 0, axis=-1)
+    xsec_int, (integrand, y) = cross_sections.integrate_pwpl(
+        dsigma_dy_ref[iF, inccc, iE], yy_ref, low=0, high=1, full_output=True)
+    cdf = np.insert(np.cumsum(integrand) / xsec_int, 0, 0, axis=-1)
 
     return cdf, y
 
