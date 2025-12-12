@@ -21,7 +21,8 @@ import gc
 import time
 import numpy as np
 import logging
-
+import itertools
+from scipy.signal import correlate, correlation_lags
 from NuRadioReco.utilities.logging import set_general_log_level
 # Set general logging to WARNING to suppress noisy packages
 set_general_log_level(logging.WARNING)
@@ -48,6 +49,64 @@ from NuRadioReco.utilities.interferometry_io_utilities import (
     create_organized_paths
 )
 
+class PlaneWave:
+    @staticmethod
+    def get_time_lag(station, ch_pairs):
+        # lag is given with respect to v1, t1; if signal in v2 is behind 50 ns, lag is = -50 ns
+        channel1 = station.get_channel(ch_pairs[0])
+        channel2 = station.get_channel(ch_pairs[1])
+
+        v1, v2 = channel1.get_trace(), channel2.get_trace()
+        t1, t2 = channel1.get_times(), channel2.get_times()
+
+        delta_t_start = t1[0] - t2[0]
+        #print("Start time difference (ns): ", delta_t_start)
+
+        dt = t1[1] - t1[0]
+
+        v1 = (v1 - np.mean(v1)) / np.std(v1)
+        v2 = (v2 - np.mean(v2)) / np.std(v2)
+
+        corr = correlate(v1, v2, mode='full', method='auto')
+        norm = np.sqrt(np.sum(v1**2) * np.sum(v2**2))
+
+        corr_norm = corr / norm
+
+        lags = correlation_lags(len(v1), len(v2), mode='full')
+
+        t_lags = lags * dt + delta_t_start
+        lag_idx = np.argmax(corr_norm)
+
+        lag_ns=t_lags[lag_idx]
+        return lag_ns, corr_norm, t_lags
+    @staticmethod
+    def get_dz(det, station_id, ch_pair):
+        ch1_pos_rel = np.array(det.get_relative_position(station_id, ch_pair[0]))
+        ch2_pos_rel = np.array(det.get_relative_position(station_id, ch_pair[1]))
+        dz = ch2_pos_rel[2] - ch1_pos_rel[2]
+        return dz
+
+    @staticmethod
+    def get_angle(dz, dt, n=1.74):
+        dt = dt
+        c_ice = 2.998e+8 *1e-9 / n 
+        dS = dt * c_ice
+        cosTheta = dS / dz
+        theta_calc = np.degrees(np.arccos(cosTheta))
+
+        return theta_calc
+    
+        
+    #@staticmethod
+    def get_arrival_angle(self, station, det, ch_pair):
+        dt, _, _ = self.get_time_lag(station, ch_pair)
+        #print(f"Measured time delay: {dt:.2f} ns")
+        dz = self.get_dz(det, station.get_id(), ch_pair)
+        
+        angle = self.get_angle(dz, dt)
+
+        return angle
+    
 def get_PA_position(station_id, det):
     """
     Calculate phased array (PA) center position.
@@ -148,7 +207,7 @@ def calculate_channel_snr(trace):
     """
     
     noise_rms = trace_utils.get_split_trace_noise_RMS(trace)
-    snr = trace_utils.get_signal_to_noise_ratio(trace, noise_rms)
+    snr = trace_utils.get_signal_to_noise_ratio(trace, noise_rms, window_size=50)
     
     return snr
 
@@ -384,6 +443,25 @@ def run_plane_wave_fallback(reco, event, event_station, det, config, save_maps, 
     
     return corr_map_path
 
+def run_plane_wave_analytic(event, event_station, det):
+    
+    pw = PlaneWave()
+
+    phased_array_channels=[0,1,2,3]
+    ch_pairs = list(itertools.combinations(phased_array_channels, 2))
+    valid_pairs = [pair for pair in ch_pairs if abs(pair[0] - pair[1]) > 1]
+
+    zeniths = [pw.get_arrival_angle(event_station, det, ch_pair) for ch_pair in valid_pairs]
+    zenith_average = np.nanmean(zeniths) if np.any(~np.isnan(zeniths)) else np.nan
+    #print(f"Analytic plane wave zenith: {zenith_average:.2f} deg")
+    event_station.set_parameter(stnp.rec_coord1, zenith_average) 
+
+    event_station.set_parameter(stnp.rec_azimuth, np.nan * units.deg)
+    event_station.set_parameter(stnp.rec_coord0, np.nan * units.deg)
+    event_station.set_parameter(stnp.rec_max_correlation, np.nan)
+    event_station.set_parameter(stnp.rec_surf_corr, np.nan) 
+
+
 def run_two_stage_reconstruction(reco, event, event_station, det, config, pa_pos_abs, save_maps, save_pair_maps, save_maps_to):
     """
     Run two-stage automatic reconstruction:
@@ -615,7 +693,7 @@ def main():
     cw_filter = channelSinewaveSubtraction()
     cw_filter.begin(
         save_filtered_freqs=False,
-        freq_band=tuple(config.get('cw_freq_band', [0.1, 0.7]))
+        freq_band=tuple(config.get('cw_freq_band', [0.1, 0.6]))
     )
 
     reco = interferometricDirectionReconstruction()
@@ -775,17 +853,18 @@ def main():
             # Upsampling improves time resolution for correlation analysis
             if config.get('apply_upsampling', False):
                 channel_resampler.run(event, event_station, det, sampling_rate=10 * units.GHz)
-            
+                        # Remove continuous wave interference
+
+            if config.get('apply_cw_removal', False):
+                peak_prominence = config.get('cw_peak_prominence', 4.0)
+                cw_filter.run(event, event_station, det, peak_prominence=peak_prominence)
+
             # Bandpass filter reduces noise outside antenna sensitivity range
             if config.get('apply_bandpass', False):
                 channel_bandpass_filter.run(event, event_station, det, 
                     passband=[0.1 * units.GHz, 0.6 * units.GHz],
                     filter_type='butter', order=10)
                             
-            # Remove continuous wave interference
-            if config.get('apply_cw_removal', False):
-                peak_prominence = config.get('cw_peak_prominence', 4.0)
-                cw_filter.run(event, event_station, det, peak_prominence=peak_prominence)
 
             # Start with all configured channels
             channels_to_use = config['channels'].copy()
@@ -844,7 +923,7 @@ def main():
                 helper_channels = [9, 10, 22, 23]
                 helper_channels_remaining = [ch for ch in helper_channels if ch in channels_to_use]
                 
-                if len(helper_channels_remaining) == 0:
+                if len(helper_channels_remaining) == 0 or len(channels_to_use) < 2:
                     # Check if plane wave fallback is enabled
                     if config.get('plane_wave_fallback', False):
                         logger.info(f"  [PLANE WAVE FALLBACK] No helper channels remaining - triggering fallback mode")
@@ -868,12 +947,21 @@ def main():
             # Run interferometric direction reconstruction
             # Priority: plane wave fallback > auto mode > manual mode
             if use_plane_wave_fallback:
-                corr_map_path = run_plane_wave_fallback(
-                    reco, event, event_station, det, event_config,
-                    save_maps=args.save_maps,
-                    save_pair_maps=args.save_pair_maps,
-                    save_maps_to=maps_dir if (args.save_maps or args.save_pair_maps) else None
-                )
+                # Default to 'fallback' if key is missing
+                plane_wave_algo = config.get('plane_wave_algo', 'fallback')
+
+                if plane_wave_algo == 'fallback':
+                    corr_map_path = run_plane_wave_fallback(
+                        reco, event, event_station, det, event_config,
+                        save_maps=args.save_maps,
+                        save_pair_maps=args.save_pair_maps,
+                        save_maps_to=maps_dir if (args.save_maps or args.save_pair_maps) else None
+                    )
+
+                elif plane_wave_algo == 'analytic':
+                    corr_map_path = None
+                    run_plane_wave_analytic(event, event_station, det)
+                    
             elif reco_mode == 'auto':
                 corr_map_path = run_two_stage_reconstruction(
                     reco, event, event_station, det, event_config, pa_pos_abs,
