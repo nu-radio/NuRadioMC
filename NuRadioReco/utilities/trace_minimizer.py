@@ -224,7 +224,7 @@ class TraceMinimizer:
 
             # Contour labels:
             fmt = {}
-            strs = ['$1\sigma$', '$2\sigma$', '$3\sigma$']
+            strs = [r'$1\sigma$', r'$2\sigma$', r'$3\sigma$']
             for l, s in zip(CS.levels, strs):
                 fmt[l] = s
 

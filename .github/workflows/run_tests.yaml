@@ -286,7 +286,7 @@ jobs:
     - name: "Test likelihood reconstruction example"
       if: always()
       run: |
-        python NuRadioReco/test/examples/likelihood_reconstruction/test_efield_reconstruction.py
+        python NuRadioReco/test/likelihood_reconstruction/test_efield_reconstruction.py
 
   examples:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}

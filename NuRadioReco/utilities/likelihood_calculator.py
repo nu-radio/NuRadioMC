@@ -863,8 +863,8 @@ class LikelihoodCalculator:
             plt.axis([0, max(self.t_array), axis[2], axis[3]])
         else:
             plt.axis([plot_range[0], plot_range[1], axis[2], axis[3]])
-        plt.xlabel(f"$\Delta t$ [ns]")
-        plt.ylabel(f"Cov$(\Delta t)$")
+        plt.xlabel(r"$\Delta t$ [ns]")
+        plt.ylabel(r"Cov$(\Delta t)$")
         plt.tight_layout()
 
     def plot_llh_distribution(self, data, n_dof=None, signal=None, frequency_domain=False, make_new_figure=True):
@@ -903,7 +903,7 @@ class LikelihoodCalculator:
 
         plt.axis([np.min([axis[0], n_dof * 0.9]), np.max([axis[1], n_dof * 1.2]), axis[2], axis[3]])
 
-        plt.xlabel(f"$-2\Delta LLH$")
+        plt.xlabel(r"$-2\Delta LLH$")
         plt.ylabel("Counts")
         plt.legend(loc=1)
         plt.tight_layout()
