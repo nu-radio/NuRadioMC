@@ -131,7 +131,7 @@ class Minimizer:
 
         return result_object
 
-    def run_many_minimizations(self, datasets, method, signal_true = None, **method_kwargs):
+    def run_many_minimizations(self, datasets, method, signal_true=None, **method_kwargs):
         """
         Run minimization algorithm for many datasets containing a signal. Can be used for bootstrapping of one true signal with many different realizations of noise.
         Only works if a signal_function is provided.
@@ -176,73 +176,91 @@ class Minimizer:
 
         return parameters_array, results_array, results_true_array
 
-    def profile_likelihood_1D(self, method, parameter_x, parameter_grid_x, data=None, true_value = None, plot = True, **method_kwargs):
+    def profile_scan_1D(self, method, i_parameter_scan, parameter_grid_x, data=None, profile=True,true_value=None, plot=True, **method_kwargs):
+        """
+        Perform minimization and a 1D profile (likelihood) scan around the minimum of the i_parameter_scan'th parameter by fixing it to different values on a grid
+        and optimizing the objective function with respect to the other parameters.
+        """
         
         n_x = len(parameter_grid_x)
 
-        llh_values = np.zeros(n_x)
+        objective_values = np.zeros(n_x)
+
+        parameters_initial_copy = np.copy(self.parameters_initial)
 
         # Get best fit point:
         self.run_minimization(method=method, data=data, **method_kwargs)
-        best_fit_x = self.parameters[parameter_x]
-        best_fit_llh = self.result
+        best_fit_x = self.parameters[i_parameter_scan]
+        best_fit_value = self.result
 
         # Now fix parameters which are being scanned:
-        fixed = np.zeros(self.n_parameters, dtype=bool)
-        fixed[parameter_x] = True
-        self.fix_parameters(fixed)
+        fixed_copy = np.copy(self.fixed)
+        self.fixed[i_parameter_scan] = True
+        if not profile: self.fixed[:] = True
 
-        for i in range(n_x):
-            self.parameters_initial[parameter_x] = parameter_grid_x[i]
+        for i_x in range(n_x):
+            self.parameters_initial[i_parameter_scan] = parameter_grid_x[i_x]
             self.run_minimization(method=method, data=data, **method_kwargs)
-            llh_values[i] = self.result
+            objective_values[i_x] = self.result
 
         if plot:
             plt.figure(figsize=[4,3])
-            plt.plot(parameter_grid_x, llh_values-best_fit_llh, "b-", label=r"$-2 \Delta LLH$")
+            plt.plot(parameter_grid_x, objective_values-best_fit_value, "b-", label=r"$-2 \Delta LLH$")
             axis = plt.axis()
-            plt.plot([min(parameter_grid_x),max(parameter_grid_x)], [2,2], ":", label=r"$1\sigma$")
-            plt.plot([min(parameter_grid_x),max(parameter_grid_x)], [4,4], ":", label=r"$2\sigma$")
-            plt.plot([min(parameter_grid_x),max(parameter_grid_x)], [6,6], ":", label=r"$3\sigma$")
-            plt.plot([best_fit_x,best_fit_x],[0,100],"y--", label="Fit")
-            if true_value is not None: plt.plot([true_value,true_value],[0,100],"r--", label="True")
-            plt.axis([parameter_grid_x[0],parameter_grid_x[-1],0,axis[3]*1.2])
+            plt.plot([min(parameter_grid_x), max(parameter_grid_x)], [2,2], ":", label=r"$1\sigma$")
+            plt.plot([min(parameter_grid_x), max(parameter_grid_x)], [4,4], ":", label=r"$2\sigma$")
+            plt.plot([min(parameter_grid_x), max(parameter_grid_x)], [6,6], ":", label=r"$3\sigma$")
+            plt.plot([best_fit_x,best_fit_x], [0,100], "y--", label="Fit")
+            if true_value is not None: plt.plot([true_value, true_value],[0, 100],"r--", label="True")
+            plt.axis([parameter_grid_x[0], parameter_grid_x[-1], 0, axis[3]*1.2])
             plt.xlabel(r"Parameter [au]")
-            plt.ylabel(r"Result")
+            plt.ylabel(r"Objective value")
             plt.legend()
             plt.tight_layout()
 
-    def profile_likelihood_2D(self, method, parameter_x, parameter_y, parameter_grid_x, parameter_grid_y, data=None, profile = True, true_values = None, plot = True, cmap="Blues_r", vmax=60, **method_kwargs):
+        # Set initial and fixed parameters back to initial:
+        self.parameters_initial = parameters_initial_copy
+        self.fixed = fixed_copy
+
+        return objective_values
+
+    def profile_scan_2D(self, method, i_parameter_x, i_parameter_y, parameter_grid_x, parameter_grid_y, data=None, profile=True, true_values=None, plot=True, cmap="Blues_r", vmax=60, **method_kwargs):
+        """
+        Perform minimization and a 2D profile (likelihood) scan around the minimum of the i_parameter_x'th and i_parameter_y'th parameters by fixing them to different values on a grid
+        and optimizing the objective function with respect to the other parameters.
+        """
         
         n_x = len(parameter_grid_x)
         n_y = len(parameter_grid_y)
 
-        llh_values = np.zeros([n_x,n_y])
+        objective_values = np.zeros([n_x,n_y])
+
+        parameters_initial_copy = np.copy(self.parameters_initial)
 
         # Get best fit point:
         self.run_minimization(method=method, data=data, **method_kwargs)
-        best_fit_x = self.parameters[parameter_x]
-        best_fit_y = self.parameters[parameter_y]
-        best_fit_llh = self.result
+        best_fit_x = self.parameters[i_parameter_x]
+        best_fit_y = self.parameters[i_parameter_y]
+        best_fit_value = self.result
 
         # Now fix parameters which are being scanned:
-        fixed_initial = np.copy(self.fixed)
-        self.fixed[parameter_x] = True
-        self.fixed[parameter_y] = True
+        fixed_copy = np.copy(self.fixed)
+        self.fixed[i_parameter_x] = True
+        self.fixed[i_parameter_y] = True
         if not profile: self.fixed[:] = True
 
         for i in range(n_x):
             for j in range(n_y):
-                self.parameters_initial[parameter_x] = parameter_grid_x[i]
-                self.parameters_initial[parameter_y] = parameter_grid_y[j]
+                self.parameters_initial[i_parameter_x] = parameter_grid_x[i]
+                self.parameters_initial[i_parameter_y] = parameter_grid_y[j]
                 self.run_minimization(method=method, data=data, **method_kwargs)
-                llh_values[i,j] = self.result
+                objective_values[i,j] = self.result
 
         if plot:
             plt.figure(figsize=[4.2,3])
-            plt.pcolormesh(parameter_grid_x, parameter_grid_y, llh_values.T-best_fit_llh, cmap=cmap, vmax=vmax)
-            plt.colorbar(label=r"$-2\Delta LLH$")
-            CS = plt.contour(parameter_grid_x, parameter_grid_y, llh_values.T-best_fit_llh, levels=[1.15*2,3.09*2,5.91*2])
+            plt.pcolormesh(parameter_grid_x, parameter_grid_y, objective_values.T-best_fit_value, cmap=cmap, vmax=vmax)
+            plt.colorbar(label=r"Objective value")
+            CS = plt.contour(parameter_grid_x, parameter_grid_y, objective_values.T-best_fit_value, levels=[1.15*2, 3.09*2, 5.91*2])
             if true_values is not None: plt.plot(true_values[0], true_values[1], "r*",label="True")
             plt.plot(best_fit_x, best_fit_y, "g*", label="Fit")
             plt.legend()
@@ -259,12 +277,15 @@ class Minimizer:
             # Label every other level using strings
             plt.clabel(CS, CS.levels[::2], inline=True, fmt=fmt, fontsize=10)
 
-        # Set fixed parameters back to initial:
-        self.fixed = fixed_initial
+        # Set initial and fixed parameters back to initial:
+        self.parameters_initial = parameters_initial_copy
+        self.fixed = fixed_copy
+
+        return objective_values
 
     ### Minimization methods: ###
     
-    def _scipy_minimization(self, tol = 1e-3, scipy_method = "L-BFGS-B", options={}):
+    def _scipy_minimization(self, tol=1e-3, scipy_method="L-BFGS-B", options={}):
         import scipy.optimize as opt
         
         # Fix parameters:
@@ -321,7 +342,7 @@ class Minimizer:
 
         return m
     
-    def _noisyopt_minimization(self, deltatol = 0.1, paired = False):
+    def _noisyopt_minimization(self, deltatol=0.1, paired=False):
         from noisyopt import minimizeCompass
 
         res = minimizeCompass(
@@ -337,7 +358,7 @@ class Minimizer:
 
         return res
 
-    def _skopt_minimization(self, n_calls = 1000, n_initial_points = 20, random_state = None):
+    def _skopt_minimization(self, n_calls=1000, n_initial_points=20, random_state=None):
         from skopt import gp_minimize
 
         # Convert bounds to list of tuples
