@@ -15,6 +15,8 @@ new features:
 - Refactor phased array trigger modules and expands to three trigger modules, phasedArrayTrigger is the legacy trigger with a simple
   interface, beamformedPowerIntegrationTrigger performs the same function as phasedArrayTrigger but access to lower level options to mimic firmware,
   digitalBeamformedEnvelopeTrigger instead computes the Hilbert envelope of the beamformed traces and allows access to lower level options.
+- Added elevation to detector sites, and a corresponding `get_site_elevation` method to the `Detector` class. Altitudes were obtained
+  from the NOAA ETOPO1 dataset via www.opentopodata.org.
 
 bugfixes:
 - Fixed the core parameter in Events created by the readCoREASDetector module not being 3-dimensional
