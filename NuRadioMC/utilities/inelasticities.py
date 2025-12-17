@@ -56,10 +56,11 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
 
         nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
 
-        if np.any(nu_energies > 10 * units.EeV):
-                logger.warning(
-                    "You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
-                    f"You requested maximum energy {max(np.atleast_1d(nu_energies)) / units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
+        if np.any(nu_energies > max(nu_energies_ref)):
+            logger.warning(
+                "You are requesting inelasticities for energies outside of the validity of the BGR18 model. "
+                f"You requested maximum energy {max(np.atleast_1d(nu_energies)) / units.eV:.2g} eV. "
+                f"Largest available energy is {max(nu_energies_ref)/units.eV:.2g}, returning result for {max(nu_energies_ref)/units.eV:.2g}.")
 
         energy_indicies = np.digitize(nu_energies, nu_energies_ref)
         energy_indicies = np.clip(energy_indicies, 0, len(nu_energies_ref) - 1)
@@ -97,9 +98,9 @@ def get_neutrino_inelasticity(n_events, model="hedis_bgr18", rnd=None,
 @functools.lru_cache(maxsize=int(2**(int(np.log2(200 * 6 * 2) + 1))))
 def _get_inverse_cdf_interpolation(iF, inccc, iE):
     nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = cross_sections._read_differential_cross_section_BGR18()
-    xsec_int, (integrand, y) = cross_sections.integrate_pwpl(
+    xsec_int, (xsec_int_full, y) = cross_sections.integrate_pwpl(
         dsigma_dy_ref[iF, inccc, iE], yy_ref, low=0, high=1, full_output=True)
-    cdf = np.insert(np.cumsum(integrand) / xsec_int, 0, 0, axis=-1)
+    cdf = xsec_int_full / xsec_int
 
     return cdf, y
 
