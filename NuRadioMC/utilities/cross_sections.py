@@ -456,14 +456,16 @@ def integrate_pwpl(y, x, low=None, high=None, full_output=False):
     -------
     res : float | array of floats
         The result of the integration over the last axis of ``y``.
-    (integrand, x) : tuple of arrays, optional
+    (integral, x) : tuple of arrays, optional
         (Only if ``full_output==True``)
-        The integrand and the (optionally extended) array ``x``.
-        The length of the integrand will be one fewer than the
-        length of x. Note that ``res = np.sum(integrand, axis=-1)``.
+        A tuple with the integral ``Y(x)`` and the (optionally extended
+        to include ``low`` and ``high``) array ``x``. ``Y(x)`` is the
+        value of the integral integrated from ``low`` to ``x``, and
+        will have the same length as ``x`` in the last axis.
 
-        The integrand may be useful to define e.g. a CDF from
-        integrating a PDF.
+        The integral ``Y(x)`` may be useful if e.g. ``y(x)`` describes
+        a probability distribution function (PDF), in which case ``Y(x)``
+        is the cumulative distribution function (CDF).
 
     Notes
     -----
@@ -525,7 +527,9 @@ def integrate_pwpl(y, x, low=None, high=None, full_output=False):
     res = np.sum(integrand, axis=-1)
 
     if full_output:
-        return res, (integrand, x)
+        integral = np.cumsum(integrand, axis=-1)
+
+        return res, (np.insert(integral, 0, 0, axis=-1), x)
 
     return res
 
