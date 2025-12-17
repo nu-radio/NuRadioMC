@@ -117,10 +117,10 @@ signal_fit = reco.run(evt, station, det, use_MC_direction=True, return_signal=Tr
 
 efield_reco = station.get_electric_fields()[0]
 
-reference_fluence = 0.869
+reference_fluence = 0.8686
 reference_fluence_error = 0.148
-reference_polarization = 65.392
-reference_polarization_error = 9.969
+reference_polarization = 65.416
+reference_polarization_error = 9.973
 
 np.testing.assert_almost_equal(efield_reco[efp.signal_energy_fluence], reference_fluence, decimal=2)
 np.testing.assert_almost_equal(efield_reco.get_parameter_error(efp.signal_energy_fluence), reference_fluence_error, decimal=2)

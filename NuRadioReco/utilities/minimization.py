@@ -4,40 +4,49 @@ from multiprocessing import Pool
 from multiprocessing.dummy import Pool as ThreadPool
 
 
-class TraceMinimizer:
+class Minimizer:
     """
-    Class for radio signal reconstruction.
+    Class for radio signal reconstruction and general minimization tasks.
 
     This class unifies the interfaces of different minimization algorithms
-    like SciPy and Minuit, specifically for the task of fitting radio signals
-    to traces. The class needs a signal_function, which takes a number of
-    parameters and returns the expected signal in a number of channels, and an
-    objective function which takes an array of data traces and the signal_function
-    output and compares it and returns a number. When a minimization is run, the
-    objective function is minimized with respect to the parameters of the
-    signal_function. This class implements additional functionality, such as
-    user-defined scaling of the parameters, which can improve the stability
-    of the minimization process.
+    like SciPy and Minuit. The class has two "modes". If no signal_function
+    is provided, it behaves like a standard minimizer, which minimizes an
+    objective function with respect to its parameters. If a signal_function
+    is provided, the class behaves like a minimizer specialized for fitting
+    radio signals to traces. In this case, the signal_function should take
+    the parameters as input and return the expected signal in a number of
+    channels. This is then compared to data traces in the objective_function,
+    which should take the data traces and the signal traces as input. When a
+    minimization is run, the objective function is then minimized with respect
+    to the parameters of the signal_function.
+
+    This class implements additional functionality, such as user-defined scaling
+    of the parameters, which can improve the stabilityof the minimization process.
 
     Parameters
     ----------
-        signal_function : function
-            Function which takes a list of parameter values as input and returns a signal in a number of antennas with dimensions [n_antennas, n_samples]
         objective_function : function
-            Function which takes the data and the signal as input and returns the objective value to minimize, e.g., a minus two log likelihood or chi-square
+            If no signal_function is provided, this is a function which takes a number of parameters (as a numpy.ndarray)
+            as input and returns the objective value to minimize, e.g., a minus two log likelihood or chi-square, i.e.,
+            objective_function(parameters).
+            If a signal_function is provided, the objective_function takes the the output of the signal_function and the
+            data as input and returns the objective value to minimize, i.e., objective_function(data, signal).
         parameters_initial : numpy.ndarray
             Values of parameters for initialization of the minimization with dimensions [n_parameters]
         parameters_bounds : numpy.ndarray
             Upper and lower bounds on parameters in the minimization. Should have dimensions [2,n_parameters]
-        save_history : bool
+        signal_function : function (optional)
+            Function which takes a list of parameter values as input and returns a signal. The type and shape of the output
+            depends on what happens in the user-defined objective_function, but it could be a numpy array with shape
+            [n_antennas, n_samples] containing a radio signal in a number channels, or a list of channels.
+        save_history : bool (optional)
             Whether to save the history the parameters in the minimization process. This should only be used for debugging as it can create very large arrays
             and make the minimization slow.
-        debug : bool
+        debug : bool (optional)
             Whether to print debug information during the minimization process.
-
     """
 
-    def __init__(self, signal_function, objective_function, parameters_initial, parameters_bounds, save_history=False, debug=False):
+    def __init__(self, objective_function, parameters_initial, parameters_bounds, signal_function=None, save_history=False, debug=False):
         self.data = None
         self.signal_function = signal_function
         self.objective_function = objective_function
@@ -57,20 +66,22 @@ class TraceMinimizer:
         self.covariance_matrix = None
         self.history = np.array([parameters_initial])
         self.success = None
-        self.parameters_array = None
-        self.results_array = None
 
-    def _function_to_minimize(self, parameters):
+    def _function_to_minimize(self, parameters_scaled):
 
-        signal = self.signal_function(parameters * self.scaling**-1)
-        self.n_function_calls += 1
-        result = self.objective_function(self.data, signal)
+        if self.signal_function is not None:
+            signal = self.signal_function(parameters_scaled * self.scaling**-1)
+            self.n_function_calls += 1
+            result = self.objective_function(self.data, signal)
+        else:
+            self.n_function_calls += 1
+            result = self.objective_function(parameters_scaled * self.scaling**-1)
 
         if self.save_history:
-            self.history = np.append(self.history, [parameters], axis = 0)
+            self.history = np.append(self.history, [parameters_scaled * self.scaling**-1], axis = 0)
 
         if self.debug:
-            print(f"Function call {self.n_function_calls}: parameters={parameters}, result={result}")
+            print(f"Function call {self.n_function_calls}: parameters={parameters_scaled * self.scaling**-1}, result={result}")
 
         return result
 
@@ -86,22 +97,26 @@ class TraceMinimizer:
         ----------
             scaling : numpy.ndarray
                 Factors to scale each parameter with. Should be a numpy array with length n_parameters.
-
         """
         self.scaling = scaling
         
-    def run_minimization(self, data, method, **method_kwargs):
+    def run_minimization(self, method, data=None, **method_kwargs):
         """
-        Run minimization algorithm for a dataset containing a neutrino signal
+        Run minimization algorithm for the objective function. If a signal_function is provided,
+        a data array must be provided which the signal is fitted using the objective_function.
 
         Parameters
         ----------
-            data : numpy.ndarray
-                Array containing data with neutrino signal to reconstruct. Has dimensions [n_Antennas,n_samples]
             method : str
                 Name of the method used to run the minimization
+            data : numpy.ndarray, any (optional)
+                Should only be provided if a signal_function is set. The type and shape depends on the objective_function,
+                but it could be a numpy array with shape [n_antennas, n_samples] containing data traces to fit the signal to,
+                or a list of channels.
         """
-        self.data = data
+        if self.signal_function is not None:
+            assert data is not None, "Data must be provided for minimization if a signal_function is set"
+            self.data = data
 
         if method == "scipy":
             result_object = self._scipy_minimization(**method_kwargs)
@@ -119,6 +134,7 @@ class TraceMinimizer:
     def run_many_minimizations(self, datasets, method, signal_true = None, **method_kwargs):
         """
         Run minimization algorithm for many datasets containing a signal. Can be used for bootstrapping of one true signal with many different realizations of noise.
+        Only works if a signal_function is provided.
 
         Parameters
         ----------
@@ -126,36 +142,48 @@ class TraceMinimizer:
                 Array containing many datasets with signals to reconstruct. Has dimensions [n_events,n_Antennas,n_samples]
             method : str
                 Name of the method used to run the minimization
-            signal_true : numpy.ndarray, optional
-                For simulated data, the likelihood for the true signal (without noise) can be calculated. This can later be used to plot the llh distribution.
+            signal_true : numpy.ndarray (optional)
+                For simulated data, the likelihood for the true signal (without noise) can be calculated. This can later be
+                used to plot the likelihood or chi-square distribution.
 
+        Returns
+        -------
+            parameters_array : numpy.ndarray
+                Array containing the best fit parameters for each event. Has dimensions [n_events,n_parameters]
+            results_array : numpy.ndarray
+                Array containing the best fit objective function value for each event. Has dimensions [n_events]
+            results_true_array : numpy.ndarray
+                If signal_true is provided, this array contains the objective function value for the true signal
+                (without noise) for each event. Has dimensions [n_events]
         """
         n_events = len(datasets)
 
         # Initialize arrays:
-        self.parameters_array = np.zeros([n_events, self.n_parameters])
-        self.results_array = np.zeros([n_events])
-        self.results_true_array = np.zeros([n_events])
+        parameters_array = np.zeros([n_events, self.n_parameters])
+        results_array = np.zeros([n_events])
+        results_true_array = np.zeros([n_events])
 
         # Loop over events:
-        for i in range(n_events):
+        for i_event in range(n_events):
             try:
-                self.run_minimization(data = datasets[i, :, :], method=method, **method_kwargs)
+                self.run_minimization(method=method, data=datasets[i_event, :, :], **method_kwargs)
             except:
                 pass
-            self.parameters_array[i, :] = self.parameters
-            self.results_array[i] = self.result
+            parameters_array[i_event, :] = self.parameters
+            results_array[i_event] = self.result
             if signal_true is not None:
-                self.results_true_array[i] = self.objective_function(datasets[i, :, :], signal_true)
+                results_true_array[i_event] = self.objective_function(datasets[i_event, :, :], signal_true)
 
-    def profile_likelihood_1D(self, data, method, parameter_x, parameter_grid_x, true_value = None, plot = True, **method_kwargs):
+        return parameters_array, results_array, results_true_array
+
+    def profile_likelihood_1D(self, method, parameter_x, parameter_grid_x, data=None, true_value = None, plot = True, **method_kwargs):
         
         n_x = len(parameter_grid_x)
 
         llh_values = np.zeros(n_x)
 
         # Get best fit point:
-        self.reconstruct_event(data = data, method=method, **method_kwargs)
+        self.run_minimization(method=method, data=data, **method_kwargs)
         best_fit_x = self.parameters[parameter_x]
         best_fit_llh = self.result
 
@@ -166,16 +194,16 @@ class TraceMinimizer:
 
         for i in range(n_x):
             self.parameters_initial[parameter_x] = parameter_grid_x[i]
-            self.reconstruct_event(data = data, method=method, **method_kwargs)
+            self.run_minimization(method=method, data=data, **method_kwargs)
             llh_values[i] = self.result
 
         if plot:
             plt.figure(figsize=[4,3])
             plt.plot(parameter_grid_x, llh_values-best_fit_llh, "b-", label=r"$-2 \Delta LLH$")
             axis = plt.axis()
-            plt.plot([min(parameter_grid_x),max(parameter_grid_x)], [2,2], ":", label=f"$1\sigma$")
-            plt.plot([min(parameter_grid_x),max(parameter_grid_x)], [4,4], ":", label=f"$2\sigma$")
-            plt.plot([min(parameter_grid_x),max(parameter_grid_x)], [6,6], ":", label=f"$3\sigma$")
+            plt.plot([min(parameter_grid_x),max(parameter_grid_x)], [2,2], ":", label=r"$1\sigma$")
+            plt.plot([min(parameter_grid_x),max(parameter_grid_x)], [4,4], ":", label=r"$2\sigma$")
+            plt.plot([min(parameter_grid_x),max(parameter_grid_x)], [6,6], ":", label=r"$3\sigma$")
             plt.plot([best_fit_x,best_fit_x],[0,100],"y--", label="Fit")
             if true_value is not None: plt.plot([true_value,true_value],[0,100],"r--", label="True")
             plt.axis([parameter_grid_x[0],parameter_grid_x[-1],0,axis[3]*1.2])
@@ -184,7 +212,7 @@ class TraceMinimizer:
             plt.legend()
             plt.tight_layout()
 
-    def profile_likelihood_2D(self, data, method, parameter_x, parameter_y, parameter_grid_x, parameter_grid_y, profile = True, true_values = None, plot = True, cmap="Blues_r", vmax=60, **method_kwargs):
+    def profile_likelihood_2D(self, method, parameter_x, parameter_y, parameter_grid_x, parameter_grid_y, data=None, profile = True, true_values = None, plot = True, cmap="Blues_r", vmax=60, **method_kwargs):
         
         n_x = len(parameter_grid_x)
         n_y = len(parameter_grid_y)
@@ -192,7 +220,7 @@ class TraceMinimizer:
         llh_values = np.zeros([n_x,n_y])
 
         # Get best fit point:
-        self.reconstruct_event(data = data, method=method, **method_kwargs)
+        self.run_minimization(method=method, data=data, **method_kwargs)
         best_fit_x = self.parameters[parameter_x]
         best_fit_y = self.parameters[parameter_y]
         best_fit_llh = self.result
@@ -207,13 +235,13 @@ class TraceMinimizer:
             for j in range(n_y):
                 self.parameters_initial[parameter_x] = parameter_grid_x[i]
                 self.parameters_initial[parameter_y] = parameter_grid_y[j]
-                self.reconstruct_event(data = data, method=method, **method_kwargs)
+                self.run_minimization(method=method, data=data, **method_kwargs)
                 llh_values[i,j] = self.result
 
         if plot:
             plt.figure(figsize=[4.2,3])
             plt.pcolormesh(parameter_grid_x, parameter_grid_y, llh_values.T-best_fit_llh, cmap=cmap, vmax=vmax)
-            plt.colorbar(label=f"$-2\Delta LLH$")
+            plt.colorbar(label=r"$-2\Delta LLH$")
             CS = plt.contour(parameter_grid_x, parameter_grid_y, llh_values.T-best_fit_llh, levels=[1.15*2,3.09*2,5.91*2])
             if true_values is not None: plt.plot(true_values[0], true_values[1], "r*",label="True")
             plt.plot(best_fit_x, best_fit_y, "g*", label="Fit")
@@ -234,7 +262,7 @@ class TraceMinimizer:
         # Set fixed parameters back to initial:
         self.fixed = fixed_initial
 
-    ### Methods: ###
+    ### Minimization methods: ###
     
     def _scipy_minimization(self, tol = 1e-3, scipy_method = "L-BFGS-B", options={}):
         import scipy.optimize as opt
@@ -245,7 +273,7 @@ class TraceMinimizer:
         bounds_scipy[self.fixed,1] = self.parameters_initial[self.fixed]
 
         # Perform minimization:
-        result = opt.optimize.minimize(
+        result = opt.minimize(
             self._function_to_minimize,
             x0 = self.parameters_initial * self.scaling,
             tol = tol,
@@ -255,13 +283,13 @@ class TraceMinimizer:
         )
 
         # Save results:
-        self.success = None
+        self.success = result.success
         self.result = result.fun
         self.parameters = result.x * self.scaling**-1
 
         return result
 
-    def _minuit_minimization(self, tolerance = 1e-3, minuit_method = "migrad"):
+    def _minuit_minimization(self, minuit_method = "migrad"):
         from iminuit import Minuit
         
         # Initialze minimizer:
@@ -274,15 +302,20 @@ class TraceMinimizer:
         m.limits = self.parameters_bounds * np.array([self.scaling, self.scaling]).T
         
         # Fix parameters:
-        for i in range(self.n_parameters):
-            if self.fixed[i]:
-                m.fixed[i] = True
+        for i_param in range(self.n_parameters):
+            if self.fixed[i_param]:
+                m.fixed[i_param] = True
         
         # Run minimization:
-        m.migrad()
+        if minuit_method == "migrad":
+            m.migrad()
+        elif minuit_method == "simplex":
+            m.simplex()
+        else:
+            raise ValueError(f"Minuit method {minuit_method} not recognized")
         
         # Save results:
-        self.success = None
+        self.success = m.valid
         self.result = m.fval
         self.parameters = np.array(m.values) * self.scaling**-1
 
@@ -298,7 +331,7 @@ class TraceMinimizer:
             deltatol = deltatol,
             paired = paired)
 
-        self.success = None
+        self.success = res.success
         self.result = res.fun
         self.parameters = np.array(res.x) * self.scaling**-1
 
@@ -309,7 +342,7 @@ class TraceMinimizer:
 
         # Convert bounds to list of tuples
         bounds_scaled = self.parameters_bounds * np.array([self.scaling, self.scaling]).T
-        dimensions = [(bounds_scaled[i, 0], bounds_scaled[i, 1]) for i in range(len(bounds_scaled))]
+        dimensions = [(bounds_scaled[i_param, 0], bounds_scaled[i_param, 1]) for i_param in range(len(bounds_scaled))]
 
         # Ensure x0 is a list of scalars
         x0_scaled = (self.parameters_initial * self.scaling).tolist()
@@ -329,7 +362,7 @@ class TraceMinimizer:
 
         return res
 
-    def _simple_minimizer(self, initial_step_size, decrease_rate, max_calls, epsilon, tolerance=None):
+    def _simple_minimizer(self, initial_step_size, decrease_rate, max_calls, epsilon, tolerance=None, print_steps=False):
         """
         This is a very simple minimizer, which has not been thoroughly tested. It can be used for debugging.
         """
@@ -368,7 +401,8 @@ class TraceMinimizer:
             # Calculate objective function
             result = self._function_to_minimize(current_parameters)
 
-            print(call, best_call, current_parameters, result)
+            if print_steps:
+                print(call, best_call, current_parameters, result)
 
             # Update step size
             current_step_size *= decrease_rate

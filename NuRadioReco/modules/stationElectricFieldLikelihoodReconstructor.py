@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import copy
 
 from NuRadioReco.utilities.analytic_pulse import get_analytic_pulse_freq
-from NuRadioReco.utilities import units, likelihood_calculator, fft, trace_minimizer, matched_filter, trace_utilities
+from NuRadioReco.utilities import units, likelihood_calculator, fft, minimization, matched_filter, trace_utilities
 from NuRadioReco.framework.electric_field import ElectricField
 from NuRadioReco.framework.sim_station import SimStation
 from NuRadioReco.framework.event import Event
@@ -230,7 +230,7 @@ class stationElectricFieldLikelihoodReconstructor:
         if return_signal:
             return fitted_signal
 
-    def _function_to_minimize_1(self, data, signal):
+    def _function_to_minimize_mf(self, data, signal):
         """
         Calculate the objective function for the first minimization.
         """
@@ -247,7 +247,7 @@ class stationElectricFieldLikelihoodReconstructor:
             i_max, cross = self._cross_correlation(data, signal, shift_array=self.i_shift_cc)
             return -cross
 
-    def _function_to_minimize_2(self, data, signal):
+    def _function_to_minimize_llh(self, data, signal):
         """
         Calculate the log-likelihood objective function of the 2nd minimization
         """
@@ -502,7 +502,7 @@ class stationElectricFieldLikelihoodReconstructor:
         fisher_information_matrix = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, parameters_initial, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
         f_i = np.linalg.pinv(fisher_information_matrix)
         uncertainties_1 = np.sqrt(np.diag(f_i))
-        scaling = np.append(uncertainties_1, [1, 1]) if not self.zenith_azimuth_free else uncertainties_1
+        scaling = np.append(1 / uncertainties_1, [1, 1]) if not self.zenith_azimuth_free else 1 / uncertainties_1
 
 
         bounds = np.array([
@@ -522,21 +522,21 @@ class stationElectricFieldLikelihoodReconstructor:
             self.t_array_matched_filter = np.arange(-search_window_length/2, search_window_length/2, self.delta_t/2)
             self.i_shift_cc = (self.t_array_matched_filter / self.sampling_rate).astype(int)
 
-        reconstructor_1 = trace_minimizer.TraceMinimizer(
+        minimizer_mf = minimization.Minimizer(
             signal_function = signal_function,
-            objective_function = self._function_to_minimize_1,
+            objective_function = self._function_to_minimize_mf,
             parameters_initial = parameters_initial,
             parameters_bounds = bounds,
         )
         if self.zenith_azimuth_free:
-            reconstructor_1.fix_parameters([True, False, False, False, True, not(second_order), False, False])
+            minimizer_mf.fix_parameters([True, False, False, False, True, not(second_order), False, False])
         else:
-            reconstructor_1.fix_parameters([True, False, False, False, True, not(second_order), True, True])
-        reconstructor_1.set_scaling(scaling)
+            minimizer_mf.fix_parameters([True, False, False, False, True, not(second_order), True, True])
+        minimizer_mf.set_scaling(scaling)
 
-        m = reconstructor_1.run_minimization(data=data, method="minuit")
+        m = minimizer_mf.run_minimization(data=data, method="minuit")
 
-        fitted_params_1 = reconstructor_1.parameters
+        fitted_params_1 = minimizer_mf.parameters
 
         signal_fit = signal_function(fitted_params_1)
 
@@ -563,28 +563,28 @@ class stationElectricFieldLikelihoodReconstructor:
             bounds[4][0] = bounds[4][0] - (bounds[4][1] - bounds[4][0]) / 2
             bounds[4][1] = bounds[4][1] + (bounds[4][1] - bounds[4][0]) / 2
 
-        reconstructor_2 = trace_minimizer.TraceMinimizer(
+        minimizer_llh = minimization.Minimizer(
             signal_function = signal_function,
-            objective_function = self._function_to_minimize_2,
+            objective_function = self._function_to_minimize_llh,
             parameters_initial = parameters_initial_2,
             parameters_bounds = bounds,
         )
 
         if self.zenith_azimuth_free:
-            reconstructor_2.fix_parameters([False, False, False, False, False, not(second_order), False, False])
+            minimizer_llh.fix_parameters([False, False, False, False, False, not(second_order), False, False])
         else:
-            reconstructor_2.fix_parameters([False, False, False, False, False, not(second_order), True, True])
+            minimizer_llh.fix_parameters([False, False, False, False, False, not(second_order), True, True])
 
         fisher_information_matrix2 = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, fitted_params_1, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
         f_i_2 = np.linalg.pinv(fisher_information_matrix2)
-        errors_2 = np.sqrt(np.diag(f_i_2))
-        scaling_2 = np.append(errors_2, [1, 1]) if not self.zenith_azimuth_free else errors_2
-        reconstructor_2.set_scaling(scaling_2)
+        uncertainties_2 = np.sqrt(np.diag(f_i_2))
+        scaling_2 = np.append(1 / uncertainties_2, [1, 1]) if not self.zenith_azimuth_free else 1 / uncertainties_2
+        minimizer_llh.set_scaling(scaling_2)
 
-        m = reconstructor_2.run_minimization(data=data, method="minuit")
+        m = minimizer_llh.run_minimization(data=data, method="minuit")
 
-        fitted_params_2 = reconstructor_2.parameters
-        minus_two_llh_fit_2 = reconstructor_2.result
+        fitted_params_2 = minimizer_llh.parameters
+        minus_two_llh_fit_2 = minimizer_llh.result
 
         f_theta = np.abs(fitted_params_2[0])
         f_phi = np.abs(fitted_params_2[1])
@@ -636,9 +636,9 @@ class stationElectricFieldLikelihoodReconstructor:
 
             ax[0].legend()
             if not self.use_chi2:
-                ax[0].set_title(f"$-2\Delta$LLH: {minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
+                ax[0].set_title(r"$-2\Delta$LLH: {minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
             else:
-                ax[0].set_title(f"$\chi^2$: {minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
+                ax[0].set_title(r"$\chi^2$: {minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
             ax[-1].set_xlabel("Time [s]")
             plt.tight_layout()
             plt.savefig("debug_StationElectricFieldReconstructor.png")
