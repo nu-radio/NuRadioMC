@@ -13,6 +13,7 @@ from datetime import datetime
 from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
 import warnings
+import json
 try:
     from erfa import ErfaWarning
 except ImportError: # users with astropy < 4.2 may not have pyerfa installed
@@ -22,6 +23,9 @@ import NuRadioReco.utilities.metaclasses
 logger = logging.getLogger('NuRadioReco.detector')
 warnings.filterwarnings('ignore', category=ErfaWarning)
 
+# load site coordinates / elevation from json
+with open(os.path.join(os.path.dirname(__file__), 'coordinates.json')) as f:
+    site_coordinates = json.load(f)
 
 class DateTimeSerializer(Serializer):
     """
@@ -605,19 +609,41 @@ class DetectorBase(object):
         ----------
         station_id: int
             the station ID
+
+        See Also
+        --------
+        get_site_elevation :
+            Method to obtain the elevation (altitude) of a detector site
+
         """
-        sites = {
-            'auger': (-35.10, -69.55),
-            'mooresbay': (-78.74, 165.09),
-            'southpole': (-90., 0.),
-            'summit': (72.57, -38.46),
-            'lofar': (52.92, 6.87),
-            'ska': (-26.825, 116.764),
-        }
         site = self.get_site(station_id).lower()
-        if site in sites.keys():
-            return sites[site]
-        return (None, None)
+        if site in site_coordinates:
+            coords = site_coordinates[site]
+            return coords['latitude'], coords['longitude']
+        else:
+            logger.warning(f"No coordinates known for site '{site}' ")
+            return (None, None)
+
+    def get_site_elevation(self, station_id):
+        """
+        Get the elevation of a given detector site
+
+        Parameters
+        ----------
+        station_id: int
+            the station ID
+
+        See Also
+        --------
+        get_site_coordinates :
+            Method to obtain the GPS coordinates of a detector site
+        """
+        site = self.get_site(station_id).lower()
+        if site in site_coordinates:
+            return site_coordinates[site]['elevation']
+        else:
+            logger.warning(f"No elevation known for site '{site}' ")
+            return None
 
     def get_number_of_channels(self, station_id):
         """
