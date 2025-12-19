@@ -407,7 +407,7 @@ def get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection,
 
         gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
         y_turn = get_y_turn(C_0, x1, n_ice, b, delta_n, z_0)
-        if((z_turn >= 0) and (y_turn > x11[0]) and (y_turn < x22[0])):  # for the first track segment we need to check if turning point is right of start point (otherwise we have a downward going ray that does not have a turning point), 
+        if((z_turn >= 0) and (y_turn >= x11[0]) and (y_turn < x22[0])):  # for the first track segment we need to check if turning point is right of start point (otherwise we have a downward going ray that does not have a turning point),
             #and for the last track segment we need to check that the turning point is left of the stop position.
             r = get_angle(np.array([y_turn, 0]), x1, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case, in_air)
             out[i] = r
