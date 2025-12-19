@@ -925,7 +925,7 @@ class ray_tracing_2D(ray_tracing_base):
             if(x2[1] > 0): # ice-to-air case
                 # we need to integrate only until the ray touches the surface
                 z_turn = 0
-                y_turn = get_y(get_gamma(z_turn, delta_n, z_0), C_0, self.get_C_1(x1, C_0), self.__b, z_0)
+                y_turn = get_y(get_gamma(z_turn, delta_n, z_0), C_0, self.get_C_1(x1, C_0), n_ice, self.__b, z_0)
                 d_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5
 
                 s += get_s(0) - get_s(z1) + d_air
