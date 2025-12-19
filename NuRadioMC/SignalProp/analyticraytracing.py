@@ -1070,12 +1070,12 @@ class ray_tracing_2D(ray_tracing_base):
         alpha = n_ice**2 - beta**2
 
         def gamma(z):
-            return np.max([0, self.n(z)**2 - beta**2])
+            return np.max([0, n(z, n_ice, delta_n, z_0)**2 - beta**2])
 
         def phi_focusing_width(z):
             w_phi = 1/np.sqrt(alpha) * (
                 z - z_0 * np.log(
-                    np.sqrt(alpha * gamma(z)) + n_ice*self.n(z) - beta**2
+                    np.sqrt(alpha * gamma(z)) + n_ice*n(z, n_ice, delta_n, z_0) - beta**2
                 )
             )
             return w_phi
@@ -1083,9 +1083,9 @@ class ray_tracing_2D(ray_tracing_base):
         def theta_focusing_width(z):
             w_theta = (
                 n_ice**2 * z / alpha**(3/2)
-                + z_0 * (n_ice * self.n(z) + beta**2) / (alpha * np.sqrt(gamma(z)))
+                + z_0 * (n_ice * n(z, n_ice, delta_n, z_0) + beta**2) / (alpha * np.sqrt(gamma(z)))
                 - n_ice**2 * z_0 / alpha**(3/2) * np.log(
-                    np.sqrt(alpha * gamma(z)) + n_ice*self.n(z) - beta**2
+                    np.sqrt(alpha * gamma(z)) + n_ice*n(z, n_ice, delta_n, z_0) - beta**2
                 )
             )
             return w_theta
@@ -3070,13 +3070,17 @@ class ray_tracing(ray_tracing_base):
         # do to technical reasons. Here, we want to change the receiver position slightly, so we need to check
         # is X1 and X2 was swapped and use the receiver value!
         if self._swap:
-            vetPos = copy.copy(self._X2)
-            recPos = copy.copy(self._X1)
+            vetPos = copy.copy(self._X2) # emitter
+            recPos = copy.copy(self._X1) # receiver
             recPos1 = np.array([self._X1[0], self._X1[1], self._X1[2] + dz])
+            n1 = self._medium.get_index_of_refraction(self._X2)
+            n2 = self._medium.get_index_of_refraction(self._X1)
         else:
-            vetPos = copy.copy(self._X1)
-            recPos = copy.copy(self._X2)
+            vetPos = copy.copy(self._X1) # emitter
+            recPos = copy.copy(self._X2) # receiver
             recPos1 = np.array([self._X2[0], self._X2[1], self._X2[2] + dz])
+            n1 = self._medium.get_index_of_refraction(self._X1)
+            n2 = self._medium.get_index_of_refraction(self._X2)
 
         f = np.nan
         if analytic:
@@ -3124,13 +3128,8 @@ class ray_tracing(ray_tracing_base):
                 focusing = limit
 
             # now also correct for differences in refractive index between emitter and receiver position
-            if self._swap:
-                n1 = self._medium.get_index_of_refraction(self._X2)  # emitter
-                n2 = self._medium.get_index_of_refraction(self._X1)  # receiver
-            else:
-                n1 = self._medium.get_index_of_refraction(self._X1)  # emitter
-                n2 = self._medium.get_index_of_refraction(self._X2)  # receiver
-            f =  focusing * (n1 / n2) ** 0.5
+            # (this is already included in the analytic calculation)
+            f = focusing * (n1 / n2) ** 0.5
 
         # for ice-to-air transmission, the fresnel amplitude coefficients include an impedance factor
         # as well as a correction for the focusing for a plane wave. We have already included these
