@@ -3045,7 +3045,9 @@ class ray_tracing(ray_tracing_base):
             the infinitesimal change of the depth of the receiver, 1cm by default
             Only used if ``analytic=False``
         limit: float, default: 2
-            The maximum signal focusing.
+            The maximum signal focusing. Note that this limit is applied to the
+            geometric focusing, i.e. before the impedance factor sqrt(n1/n2)
+            is applied.
         analytic : bool, default: False
             If False, solve the ray tracing equation again for a slightly
             displaced receiver and obtain the ray convergence that way.
@@ -3059,6 +3061,20 @@ class ray_tracing(ray_tracing_base):
         -------
         focusing: float
             gain of the signal at the receiver due to the focusing effect
+
+        Notes
+        -----
+        An extensive description of the focusing correction can be found in
+        appendix A of https://doi.org/10.25593/open-fau-2262. This correction
+        assumes a point source.
+
+        Note that in the case of air-to-ice transmission (or vice versa),
+        the fresnel coefficients already include both the impedance
+        and a plane-wave (geometric) focusing correction. In order to avoid
+        double-counting, this method returns the focusing factor multiplied
+        by the inverse of the 'focusing' part of the fresnel coefficients
+        for air-to-ice trajectories.
+
         """
 
         recVec = self.get_receive_vector(iS)
@@ -3122,14 +3138,15 @@ class ray_tracing(ray_tracing_base):
                 focusing = 1.0
                 self.__logger.warning("too few ray tracing solutions, setting focusing factor to 1")
 
-            self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
-            if(focusing > limit):
-                self.__logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
-                focusing = limit
-
             # now also correct for differences in refractive index between emitter and receiver position
             # (this is already included in the analytic calculation)
-            f = focusing * (n1 / n2) ** 0.5
+            impedance_factor = np.sqrt(n1 / n2)
+            f = focusing * impedance_factor
+
+        self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {f / impedance_factor:.3f}')
+        if(f/impedance_factor > limit):
+            self.__logger.info(f"amplification due to focusing is {f/impedance_factor:.1f}x -> limiting amplification factor to {limit:.1f}x")
+            f = limit * impedance_factor
 
         # for ice-to-air transmission, the fresnel amplitude coefficients include an impedance factor
         # as well as a correction for the focusing for a plane wave. We have already included these
