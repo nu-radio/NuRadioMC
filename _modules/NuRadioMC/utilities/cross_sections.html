@@ -636,15 +636,15 @@
              
   <h1>Source code for NuRadioMC.utilities.cross_sections</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">lzma</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataservers</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.cross_sections&quot;</span><span class="p">)</span>
@@ -656,49 +656,38 @@
 <span class="sd">    Read the differential cross section dsigma / dy.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-
     <span class="c1"># shape of dsigma_dy_ref (flavor, cc_nc, energy, inelaticity)</span>
-    <span class="n">nu_energies_ref</span><span class="p">,</span> <span class="n">yy_ref</span><span class="p">,</span> <span class="n">flavors_ref</span><span class="p">,</span> <span class="n">ncccs_ref</span><span class="p">,</span> <span class="n">dsigma_dy_ref</span> <span class="o">=</span> \
-        <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">lzma</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;BGR18_dsigma_dy.xz&quot;</span><span class="p">)))</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s1">&#39;BGR18_dsigma_dy_H2O.npz&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Downloading BGR18 differential cross sections (first-time setup)...&quot;</span><span class="p">)</span>
+        <span class="n">dataservers</span><span class="o">.</span><span class="n">download_from_dataserver</span><span class="p">(</span><span class="s1">&#39;cross_sections/BGR18_dsigma_dy_H2O.npz&#39;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">unpack_tarball</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
     <span class="c1"># Convert to NuRadio units. We have to divide by 18 because the differential cross section</span>
     <span class="c1"># is given for the interaction between neutrinos and ice nuclei (which carry 18 nucleons)</span>
     <span class="c1"># while in NuRadio we use the cross section per nucleon.</span>
-    <span class="n">dsigma_dy_ref</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dsigma_dy_ref</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm2</span> <span class="o">/</span> <span class="mi">18</span>
+    <span class="n">dsigma_dy_ref</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dsigma_dy_ref&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm2</span> <span class="o">/</span> <span class="mi">18</span>
 
-    <span class="n">flavors_ref</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flavors_ref</span><span class="p">)</span>
-    <span class="n">nu_energies_ref</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nu_energies_ref</span><span class="p">)</span>
-    <span class="n">yy_ref</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">yy_ref</span><span class="p">)</span>
-    <span class="n">ncccs_ref</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ncccs_ref</span><span class="p">)</span>
+    <span class="n">flavors_ref</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;flavors_ref&#39;</span><span class="p">]</span>
+    <span class="n">nu_energies_ref</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;nu_energies_ref&#39;</span><span class="p">]</span>
+    <span class="n">yy_ref</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;y_ref&#39;</span><span class="p">]</span>
+    <span class="n">ncccs_ref</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;ncccs_ref&#39;</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">nu_energies_ref</span><span class="p">,</span> <span class="n">yy_ref</span><span class="p">,</span> <span class="n">flavors_ref</span><span class="p">,</span> <span class="n">ncccs_ref</span><span class="p">,</span> <span class="n">dsigma_dy_ref</span>
 
 <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_integrate_over_differential_cross_section_BGR18</span><span class="p">(</span><span class="n">simple</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_integrate_over_differential_cross_section_BGR18</span><span class="p">(</span><span class="n">simple</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Integrate the differential cross section dsigma / dy over y.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># shape of dsigma_dy_ref (flavor, cc_nc, energy, inelaticity)</span>
+    <span class="c1"># shape of dsigma_dy_ref (flavor, cc_nc, energy, inelasticity)</span>
     <span class="n">nu_energies_ref</span><span class="p">,</span> <span class="n">yy_ref</span><span class="p">,</span> <span class="n">flavors_ref</span><span class="p">,</span> <span class="n">ncccs_ref</span><span class="p">,</span> <span class="n">dsigma_dy_ref</span> <span class="o">=</span> <span class="n">_read_differential_cross_section_BGR18</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">simple</span><span class="p">:</span>
-        <span class="n">dsigma_dy_integrated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">dsigma_dy_ref</span><span class="p">,</span> <span class="n">yy_ref</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">dsigma_dy_integrated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span><span class="n">dsigma_dy_ref</span><span class="p">,</span> <span class="n">yy_ref</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">quad</span>
-
-        <span class="n">dsigma_dy_integrated</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">dsigma_dy_ref_ele</span> <span class="ow">in</span> <span class="n">dsigma_dy_ref</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dsigma_dy_ref</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-
-            <span class="c1"># Convert dsigma_dy_ref_ele to picobarn for better numerical precision and log10</span>
-            <span class="c1"># for better interpolation</span>
-            <span class="n">func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">yy_ref</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">dsigma_dy_ref_ele</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">picobarn</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
-                            <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s2">&quot;extrapolate&quot;</span><span class="p">)</span>
-
-            <span class="n">res</span> <span class="o">=</span> <span class="n">quad</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">func</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">dsigma_dy_integrated</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">picobarn</span><span class="p">)</span>  <span class="c1"># convert back from picobarn</span>
-
-        <span class="n">dsigma_dy_integrated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dsigma_dy_integrated</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dsigma_dy_ref</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">dsigma_dy_integrated</span> <span class="o">=</span> <span class="n">integrate_pwpl</span><span class="p">(</span><span class="n">dsigma_dy_ref</span><span class="p">,</span> <span class="n">yy_ref</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># Extend the cross section to include the total cross section by summing nc and cc contributions</span>
     <span class="n">cross_section</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">flavors_ref</span><span class="p">),</span> <span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nu_energies_ref</span><span class="p">)))</span>
@@ -934,7 +923,7 @@
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">energy</span> <span class="o">&gt;</span> <span class="n">nu_energies_ref</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Exceeding energy limit of BGR18 cross-section parameterization (E_lim = </span><span class="si">{</span><span class="n">nu_energies_ref</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">eV). &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Exceeding energy limit of BGR18 cross-section parameterization (E_lim = </span><span class="si">{</span><span class="n">nu_energies_ref</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2"> eV). &quot;</span>
                 <span class="s2">&quot;Please use a different cross-section model.&quot;</span><span class="p">)</span>
 
         <span class="n">crscn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span>
@@ -1079,6 +1068,121 @@
     <span class="n">m_n</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">m_p</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">kg</span>  <span class="c1"># nucleon mass, assuming proton mass</span>
     <span class="n">L_int</span> <span class="o">=</span> <span class="n">m_n</span> <span class="o">/</span> <span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">Enu</span><span class="p">,</span> <span class="n">flavors</span><span class="o">=</span><span class="n">flavor</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="n">inttype</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="n">cross_section_type</span><span class="p">)</span> <span class="o">/</span> <span class="n">density</span>
     <span class="k">return</span> <span class="n">L_int</span></div>
+
+
+<div class="viewcode-block" id="integrate_pwpl">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html#NuRadioMC.utilities.cross_sections.integrate_pwpl">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">integrate_pwpl</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Integrate y over x, assuming y(x) is a piecewise-continuous power law.</span>
+
+<span class="sd">    Analytic integral of y(x)dx, assuming y(x) is a piecewise-continuous power law;</span>
+<span class="sd">    that is, ``y(x) = A x**b`` with different values for ``A`` and ``b`` between each</span>
+<span class="sd">    pair of subsequent values.</span>
+
+<span class="sd">    The integration is always over the last axis of ``y``, so ``x`` should either be of a compatible</span>
+<span class="sd">    shape to ``y`` or be a 1D-array with length ``y.shape[-1]``.</span>
+<span class="sd">    The integral limits are from ``x[0]`` to ``x[-1]`` unless ``low`` or ``high`` are given.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y : array of floats</span>
+<span class="sd">        The values of the function to integrate.</span>
+<span class="sd">    x : array of floats</span>
+<span class="sd">        The values of the dependent variable to integrate over. Should match the</span>
+<span class="sd">        last axis of ``y``, which is always the axis which is integrated over.</span>
+<span class="sd">        Additionally, ``x`` should be sorted.</span>
+<span class="sd">    low : float, optional</span>
+<span class="sd">        Extend the lower limit of the integral from ``x[0]`` to ``low``,</span>
+<span class="sd">        by linearly extrapolating (in log-log space).</span>
+<span class="sd">        Note that ``low`` should satisfy ``0 &lt;= low &lt; x[0]``</span>
+<span class="sd">    high : float, optional</span>
+<span class="sd">        Extend the upper limit of the integral from ``x[-1]`` to ``high``,</span>
+<span class="sd">        by linearly extrapolating (in log-log space).</span>
+<span class="sd">        Note that ``high`` should satisfy  ``high &gt; x[-1]``.</span>
+<span class="sd">    full_output : bool, optional</span>
+<span class="sd">        If True, returns additional output. Default is False.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    res : float | array of floats</span>
+<span class="sd">        The result of the integration over the last axis of ``y``.</span>
+<span class="sd">    (integral, x) : tuple of arrays, optional</span>
+<span class="sd">        (Only if ``full_output==True``)</span>
+<span class="sd">        A tuple with the integral ``Y(x)`` and the (optionally extended</span>
+<span class="sd">        to include ``low`` and ``high``) array ``x``. ``Y(x)`` is the</span>
+<span class="sd">        value of the integral integrated from ``low`` to ``x``, and</span>
+<span class="sd">        will have the same length as ``x`` in the last axis.</span>
+
+<span class="sd">        The integral ``Y(x)`` may be useful if e.g. ``y(x)`` describes</span>
+<span class="sd">        a probability distribution function (PDF), in which case ``Y(x)``</span>
+<span class="sd">        is the cumulative distribution function (CDF).</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The function ``y`` is assumed to be of the form</span>
+<span class="sd">    :math:`y_i(x) = A_i x^{b_i}` for :math:`x_i &lt;= x &lt; x_{i+1}`;</span>
+<span class="sd">    thus, the integrand :math:`Y_i = \int_{x_i}^{x_{i+1}} y(x) dx` on each interval is</span>
+
+<span class="sd">    .. math:: Y_i = \\frac{A_i}{b_i+1} [x_{i+1}^{b_i+1} - x_i^{b_i+1}]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">## Calling np.log when y=0 results in a bunch of RuntimeWarnings.</span>
+    <span class="c1">## Therefore, we manually mask out these values and set them to np.nan,</span>
+    <span class="c1">## and just manually set the integrand to zero afterwards</span>
+    <span class="n">nanmask</span> <span class="o">=</span> <span class="n">y</span><span class="o">==</span><span class="mi">0</span>
+    <span class="n">binmask</span> <span class="o">=</span> <span class="n">nanmask</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">:]</span> <span class="o">|</span> <span class="n">nanmask</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># we mask bins if either edge is &#39;invalid&#39;</span>
+
+    <span class="n">logy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">logy</span><span class="p">[</span><span class="o">~</span><span class="n">nanmask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="o">~</span><span class="n">nanmask</span><span class="p">])</span>
+    <span class="n">logx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">slope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">logy</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">logx</span><span class="p">)</span>
+    <span class="n">lognorm</span> <span class="o">=</span> <span class="n">logy</span><span class="p">[</span><span class="o">...</span><span class="p">,:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">logx</span><span class="p">[</span><span class="o">...</span><span class="p">,:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">integrand</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+        <span class="n">lognorm</span>
+        <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">**</span><span class="p">(</span><span class="n">slope</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">x</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="p">(</span><span class="n">slope</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">slope</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="p">)</span>
+
+    <span class="n">integrand</span><span class="p">[</span><span class="n">binmask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">low</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">low</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot use power-law integration for negative values.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">low</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">slope</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot integrate to x=</span><span class="si">{</span><span class="n">low</span><span class="si">}</span><span class="s2"> because min(slope) </span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="n">slope</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2"> &lt;= -1&quot;</span><span class="p">)</span>
+        <span class="n">int_low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+            <span class="n">lognorm</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="p">(</span><span class="n">slope</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">low</span><span class="o">**</span><span class="p">(</span><span class="n">slope</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="o">/</span> <span class="p">(</span><span class="n">slope</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="c1"># set integrand to 0 if the first or second value of y (used for the extrapolation) is zero</span>
+        <span class="n">int_low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">binmask</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">int_low</span><span class="p">)</span>
+        <span class="n">integrand</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">int_low</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span><span class="kc">None</span><span class="p">],</span> <span class="n">integrand</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">low</span><span class="p">),</span> <span class="n">x</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">high</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">int_high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+            <span class="n">lognorm</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">high</span><span class="o">**</span><span class="p">(</span><span class="n">slope</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="p">(</span><span class="n">slope</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="o">/</span> <span class="p">(</span><span class="n">slope</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="c1"># set integrand to 0 if the (second-to-)last value of y (used for the extrapolation) is zero</span>
+        <span class="n">int_high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">binmask</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">int_high</span><span class="p">)</span>
+        <span class="n">integrand</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">integrand</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">int_high</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span><span class="kc">None</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">high</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">integrand</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">full_output</span><span class="p">:</span>
+        <span class="n">integral</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">integrand</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">res</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">integral</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">res</span></div>
 
 
 

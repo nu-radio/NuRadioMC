@@ -17,6 +17,7 @@
       <script src="../../_static/documentation_options.js?v=69a0ff83"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -731,6 +732,61 @@ For more information see get_nu_cross_section()</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.cross_sections.integrate_pwpl">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.cross_sections.</span></span><span class="sig-name descname"><span class="pre">integrate_pwpl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/cross_sections.html#integrate_pwpl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.cross_sections.integrate_pwpl" title="Link to this definition"></a></dt>
+<dd><p>Integrate y over x, assuming y(x) is a piecewise-continuous power law.</p>
+<p>Analytic integral of y(x)dx, assuming y(x) is a piecewise-continuous power law;
+that is, <code class="docutils literal notranslate"><span class="pre">y(x)</span> <span class="pre">=</span> <span class="pre">A</span> <span class="pre">x**b</span></code> with different values for <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code> between each
+pair of subsequent values.</p>
+<p>The integration is always over the last axis of <code class="docutils literal notranslate"><span class="pre">y</span></code>, so <code class="docutils literal notranslate"><span class="pre">x</span></code> should either be of a compatible
+shape to <code class="docutils literal notranslate"><span class="pre">y</span></code> or be a 1D-array with length <code class="docutils literal notranslate"><span class="pre">y.shape[-1]</span></code>.
+The integral limits are from <code class="docutils literal notranslate"><span class="pre">x[0]</span></code> to <code class="docutils literal notranslate"><span class="pre">x[-1]</span></code> unless <code class="docutils literal notranslate"><span class="pre">low</span></code> or <code class="docutils literal notranslate"><span class="pre">high</span></code> are given.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">array of floats</span></dt><dd><p>The values of the function to integrate.</p>
+</dd>
+<dt><strong>x</strong><span class="classifier">array of floats</span></dt><dd><p>The values of the dependent variable to integrate over. Should match the
+last axis of <code class="docutils literal notranslate"><span class="pre">y</span></code>, which is always the axis which is integrated over.
+Additionally, <code class="docutils literal notranslate"><span class="pre">x</span></code> should be sorted.</p>
+</dd>
+<dt><strong>low</strong><span class="classifier">float, optional</span></dt><dd><p>Extend the lower limit of the integral from <code class="docutils literal notranslate"><span class="pre">x[0]</span></code> to <code class="docutils literal notranslate"><span class="pre">low</span></code>,
+by linearly extrapolating (in log-log space).
+Note that <code class="docutils literal notranslate"><span class="pre">low</span></code> should satisfy <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">low</span> <span class="pre">&lt;</span> <span class="pre">x[0]</span></code></p>
+</dd>
+<dt><strong>high</strong><span class="classifier">float, optional</span></dt><dd><p>Extend the upper limit of the integral from <code class="docutils literal notranslate"><span class="pre">x[-1]</span></code> to <code class="docutils literal notranslate"><span class="pre">high</span></code>,
+by linearly extrapolating (in log-log space).
+Note that <code class="docutils literal notranslate"><span class="pre">high</span></code> should satisfy  <code class="docutils literal notranslate"><span class="pre">high</span> <span class="pre">&gt;</span> <span class="pre">x[-1]</span></code>.</p>
+</dd>
+<dt><strong>full_output</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, returns additional output. Default is False.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>res</strong><span class="classifier">float | array of floats</span></dt><dd><p>The result of the integration over the last axis of <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p>
+</dd>
+<dt><strong>(integral, x)</strong><span class="classifier">tuple of arrays, optional</span></dt><dd><p>(Only if <code class="docutils literal notranslate"><span class="pre">full_output==True</span></code>)
+A tuple with the integral <code class="docutils literal notranslate"><span class="pre">Y(x)</span></code> and the (optionally extended
+to include <code class="docutils literal notranslate"><span class="pre">low</span></code> and <code class="docutils literal notranslate"><span class="pre">high</span></code>) array <code class="docutils literal notranslate"><span class="pre">x</span></code>. <code class="docutils literal notranslate"><span class="pre">Y(x)</span></code> is the
+value of the integral integrated from <code class="docutils literal notranslate"><span class="pre">low</span></code> to <code class="docutils literal notranslate"><span class="pre">x</span></code>, and
+will have the same length as <code class="docutils literal notranslate"><span class="pre">x</span></code> in the last axis.</p>
+<p>The integral <code class="docutils literal notranslate"><span class="pre">Y(x)</span></code> may be useful if e.g. <code class="docutils literal notranslate"><span class="pre">y(x)</span></code> describes
+a probability distribution function (PDF), in which case <code class="docutils literal notranslate"><span class="pre">Y(x)</span></code>
+is the cumulative distribution function (CDF).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">y</span></code> is assumed to be of the form
+<span class="math notranslate nohighlight">\(y_i(x) = A_i x^{b_i}\)</span> for <span class="math notranslate nohighlight">\(x_i &lt;= x &lt; x_{i+1}\)</span>;
+thus, the integrand <span class="math notranslate nohighlight">\(Y_i = \int_{x_i}^{x_{i+1}} y(x) dx\)</span> on each interval is</p>
+<div class="math notranslate nohighlight">
+\[Y_i = \frac{A_i}{b_i+1} [x_{i+1}^{b_i+1} - x_i^{b_i+1}]\]</div>
 </dd></dl>
 
 </section>
