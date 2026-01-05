@@ -581,7 +581,7 @@ class Detector():
             f"Query information for station {station_id} at {self.get_detector_time()}")
         if self._query_all:
             station_information = self.__db.get_complete_station_information(
-                station_id)
+                station_id, measurement_signal_chain=self.signal_chain_measurement_name)
         else:
             station_information = self.__db.get_general_station_information(
                 station_id)
@@ -640,7 +640,7 @@ class Detector():
                 position_id=position_id, component="channel")
             self.__buffered_stations[station_id]["channels"][channel_id]['channel_position'] = channel_position_dict
 
-        if with_signal_chain and (_keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "signal_chain"]) or self.__signal_chain_measurement_name):
+        if with_signal_chain and _keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "signal_chain"]):
 
             if _keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "id_signal"]):
                 raise KeyError(
