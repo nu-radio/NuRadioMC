@@ -274,7 +274,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='h
         crscn = 7.84e-36 * units.cm ** 2 * np.power(energy / units.GeV, 0.363)
 
     elif cross_section_type == 'hedis_bgr18':
-        nu_energies_ref, flavors_ref, ncccs_ref, cross_section_ref = _integrate_over_differential_cross_section_BGR18(simple=True)
+        nu_energies_ref, flavors_ref, ncccs_ref, cross_section_ref = _integrate_over_differential_cross_section_BGR18(simple=False)
 
         if np.any(energy > nu_energies_ref[-1]):
             raise ValueError(
