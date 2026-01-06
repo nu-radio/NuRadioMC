@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-from NuRadioMC.SignalGen.askaryan import get_time_trace, get_frequency_spectrum
+from NuRadioMC.SignalGen.askaryan import get_time_trace
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities import io_utilities
 import numpy as np
 from numpy import testing
 import sys
@@ -9,7 +8,7 @@ import sys
 try:
     reference_file = sys.argv[1]
 except:
-    reference_file = "reference_v2.pkl"
+    reference_file = "reference.npy"
 
 print('Using reference file {}'.format(reference_file))
 
@@ -30,7 +29,7 @@ Es = 10 ** np.linspace(15, 19, 5) * units.eV
 domegas = np.linspace(-5, 5, 10) * units.deg
 thetas = np.arccos(1. / n_index) + domegas
 
-reference = io_utilities.read_pickle(reference_file, encoding='latin1')
+reference = np.load(reference_file)
 i = -1
 for model in models:
     print(f"testing model {model}")
