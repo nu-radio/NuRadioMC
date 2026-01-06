@@ -1591,8 +1591,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
         if self._model == 'analytic_LPDA':
             # LPDA dummy model points towards z direction and has its tines in the y-z plane
-            logger.info("setting boresight direction")
-            self._orientation_theta = 180 * units.deg
+            self._orientation_theta = 0 * units.deg
             self._orientation_phi = 0 * units.deg
             self._rotation_theta = 90 * units.deg
             self._rotation_phi = 0 * units.deg
@@ -1601,21 +1600,19 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
         if self._model == 'analytic_VPol':
             # VPol dummy model points towards z direction
-            logger.info("setting vertical direction")
             self._orientation_theta = 0 * units.deg
             self._orientation_phi = 0 * units.deg
             self._rotation_theta = 90 * units.deg
-            self._rotation_phi = 90 * units.deg
+            self._rotation_phi = 0 * units.deg
             self._cutoff_freq = 220 * units.MHz if cutoff_freq is None else cutoff_freq
             self._max_VEL = 0.18 * units.m if max_VEL is None else max_VEL
 
         if self._model == 'analytic_HPol':
             # HPol dummy model points towards z direction
-            logger.info("setting vertical direction")
             self._orientation_theta = 0 * units.deg
             self._orientation_phi = 0 * units.deg
             self._rotation_theta = 90 * units.deg
-            self._rotation_phi = 90 * units.deg
+            self._rotation_phi = 0 * units.deg
             self._cutoff_freq = 500 * units.MHz if cutoff_freq is None else cutoff_freq
             self._max_VEL = 0.055 * units.m if max_VEL is None else max_VEL
 
@@ -1663,14 +1660,14 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             VEL_theta[fmask]   = np.sqrt(gain[fmask]) / freq[fmask]            # Gain to VEL conversion
             VEL_theta[:index] *= gain_filter[:index]                           # Low frequency cutoff
             VEL_theta[fmask]  *= self._max_VEL / max(VEL_theta[fmask])         # Normalize to requested max VEL
-            VEL_theta         *= np.cos(theta) * np.cos(phi) * np.cos(theta/2) # Directional dependency of response
+            VEL_theta         *= np.cos(theta) * np.sin(phi) * np.cos(theta/2) # Directional dependency of response
 
             # Phi component:
             VEL_phi          = np.zeros_like(gain)
             VEL_phi[fmask]   = np.sqrt(gain[fmask]) / freq[fmask]
             VEL_phi[:index] *= gain_filter[:index]
             VEL_phi[fmask]  *= self._max_VEL / max(VEL_phi[fmask])
-            VEL_phi         *= np.cos(theta/2) * np.sin(phi)
+            VEL_phi         *= np.cos(theta/2) * np.cos(phi)
 
             if group_delay:
                 if theta <= 45 * units.deg:
