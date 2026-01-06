@@ -1637,10 +1637,10 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             # maximum frequency
             f = 1000. * units.MHz
             a = np.pi / np.log(tau) * np.log(freq / f) - 60
-        if phase_type == 'VPol_simple':
-            a = -100.0 * freq
-        if phase_type == 'HPol_simple':
-            a = -4.5 * (freq - 0 * units.MHz)
+        if phase_type == 'VPol_third_order':
+            a = -117.91689143632604 * freq + 74.56744619835776/2 * freq ** 2 -64.34287756833945/3 * freq ** 3 + np.pi/2
+        if phase_type == 'HPol_third_order':
+            a = -11.399516173113549 * freq + 39.58971631878798/2 * freq ** 2 -38.18091213162158/3 * freq ** 3 + np.pi/2
 
         return a
 
@@ -1708,7 +1708,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             VEL_phi = np.zeros_like(gain)
 
             if group_delay:
-                phase = self.parametric_phase(freq, phase_type = "VPol_simple")
+                phase = self.parametric_phase(freq, phase_type = "VPol_third_order")
 
                 VEL_theta = VEL_theta.astype(complex)
 
@@ -1734,7 +1734,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             VEL_phi                       *= np.sin(theta)**2
 
             if group_delay:
-                phase = self.parametric_phase(freq, phase_type = "HPol_simple")
+                phase = self.parametric_phase(freq, phase_type = "HPol_third_order")
 
                 VEL_phi = VEL_phi.astype(complex)
 
