@@ -8,7 +8,7 @@ import sys
 try:
     reference_file = sys.argv[1]
 except:
-    reference_file = "reference.npy"
+    reference_file = "reference_v2.npy"
 
 print('Using reference file {}'.format(reference_file))
 
