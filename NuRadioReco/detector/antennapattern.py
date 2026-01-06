@@ -1584,7 +1584,19 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
     def __init__(self, antenna_model, cutoff_freq=None, max_VEL=None):
         """
-
+        Parameters
+        ----------
+        antenna_model: string
+            Name of antenna model. Current implemented models are 'analytic_LPDA',
+            'analytic_VPol', and 'analytic_HPol'. By using the default values of cutoff_freq
+            and max_VEL, these models approximate the createLPDA_100MHz_InfFirn_n1.4,
+            RNOG_vpol_v3_5inch_center_n1.74, and RNOG_hpol_v4_8inch_center_n1.74
+            antenna models, respectively.
+        cutoff_freq: float
+            Sets the low frequency cutoff for the LPDA and VPol models, and the peak
+            frequency for the HPol model.
+        max_VEL: float
+            Sets the maximum value of the vector effective length for the antenna models.
         """
         self._notfound = False
         self._model = antenna_model
