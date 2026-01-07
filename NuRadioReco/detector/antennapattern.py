@@ -1594,9 +1594,17 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             antenna models, respectively.
         cutoff_freq: float
             Sets the low frequency cutoff for the LPDA and VPol models, and the peak
-            frequency for the HPol model.
+            frequency for the HPol model. Setting cutoff_freq=None, the default values are
+            used:
+            'analytic_LPDA': 110 MHz,
+            'analytic_VPol': 220 MHz,
+            'analytic_HPol': 500 MHz.
         max_VEL: float
             Sets the maximum value of the vector effective length for the antenna models.
+            Setting max_VEL=None, the default values are used:
+            'analytic_LPDA': 0.55 m,
+            'analytic_VPol': 0.18 m,
+            'analytic_HPol': 0.055 m.
         """
         self._notfound = False
         self._model = antenna_model
@@ -1647,9 +1655,17 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             f = 1000. * units.MHz
             a = np.pi / np.log(tau) * np.log(freq / f) - 60
         if phase_type == 'VPol_third_order':
-            a = -117.91689143632604 * freq + 74.56744619835776/2 * freq ** 2 -64.34287756833945/3 * freq ** 3 + np.pi/2
+            # The 1st, 2nd, and 3rd order parameters are obtained from a 2nd order polynomial fit to the slope of the
+            # unwrapped complex phase of the RNOG_vpol_v3_5inch_center_n1.74 antenna pattern. The constant term is obtained
+            # by fitting the resulting analytic antenna pattern (with the offset set to 0) in the time domain to the
+            # simulated antenna pattern in the time domain.
+            a = 2.086 - 117.917 * freq + 74.567/2 * freq**2 - 64.343/3 * freq**3
         if phase_type == 'HPol_third_order':
-            a = -11.399516173113549 * freq + 39.58971631878798/2 * freq ** 2 -38.18091213162158/3 * freq ** 3 + np.pi/2
+            # The 1st, 2nd, and 3rd order parameters are obtained from a 2nd order polynomial fit to the slope of the
+            # unwrapped complex phase of the RNOG_hpol_v4_8inch_center_n1.74 antenna pattern. The constant term is obtained
+            # by fitting the resulting analytic antenna pattern (with the offset set to 0) in the time domain to the
+            # simulated antenna pattern in the time domain.
+            a = 0.321 - 11.400 * freq + 39.590/2 * freq**2 -38.181/3 * freq**3
 
         return a
 
