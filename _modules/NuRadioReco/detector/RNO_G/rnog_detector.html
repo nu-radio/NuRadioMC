@@ -1238,7 +1238,7 @@
             <span class="sa">f</span><span class="s2">&quot;Query information for station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_detector_time</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_all</span><span class="p">:</span>
             <span class="n">station_information</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__db</span><span class="o">.</span><span class="n">get_complete_station_information</span><span class="p">(</span>
-                <span class="n">station_id</span><span class="p">)</span>
+                <span class="n">station_id</span><span class="p">,</span> <span class="n">measurement_signal_chain</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">signal_chain_measurement_name</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">station_information</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__db</span><span class="o">.</span><span class="n">get_general_station_information</span><span class="p">(</span>
                 <span class="n">station_id</span><span class="p">)</span>
