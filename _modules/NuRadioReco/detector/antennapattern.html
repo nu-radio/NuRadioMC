@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.detector.antennapattern &mdash; NuRadio 3.1.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/styling.css?v=3350586d" />
 
   
@@ -639,6 +639,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span><span class="p">,</span> <span class="n">coordinatesystems</span> <span class="k">as</span> <span class="n">cs</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.signal.windows</span><span class="w"> </span><span class="kn">import</span> <span class="n">hann</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
@@ -2295,20 +2296,59 @@
 <span class="sd">    utility class that handles access and buffering to analytic antenna pattern</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">antenna_model</span><span class="p">,</span> <span class="n">cutoff_freq</span><span class="o">=</span><span class="mi">50</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">antenna_model</span><span class="p">,</span> <span class="n">cutoff_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_VEL</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        antenna_model: string</span>
+<span class="sd">            Name of antenna model. Current implemented models are &#39;analytic_LPDA&#39;,</span>
+<span class="sd">            &#39;analytic_VPol&#39;, and &#39;analytic_HPol&#39;. By using the default values of cutoff_freq</span>
+<span class="sd">            and max_VEL, these models approximate the createLPDA_100MHz_InfFirn_n1.4,</span>
+<span class="sd">            RNOG_vpol_v3_5inch_center_n1.74, and RNOG_hpol_v4_8inch_center_n1.74</span>
+<span class="sd">            antenna models, respectively.</span>
+<span class="sd">        cutoff_freq: float</span>
+<span class="sd">            Sets the low frequency cutoff for the LPDA and VPol models, and the peak</span>
+<span class="sd">            frequency for the HPol model. Setting cutoff_freq=None, the default values are</span>
+<span class="sd">            used:</span>
+<span class="sd">            &#39;analytic_LPDA&#39;: 110 MHz,</span>
+<span class="sd">            &#39;analytic_VPol&#39;: 220 MHz,</span>
+<span class="sd">            &#39;analytic_HPol&#39;: 500 MHz.</span>
+<span class="sd">        max_VEL: float</span>
+<span class="sd">            Sets the maximum value of the vector effective length for the antenna models.</span>
+<span class="sd">            Setting max_VEL=None, the default values are used:</span>
+<span class="sd">            &#39;analytic_LPDA&#39;: 0.55 m,</span>
+<span class="sd">            &#39;analytic_VPol&#39;: 0.18 m,</span>
+<span class="sd">            &#39;analytic_HPol&#39;: 0.055 m.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_notfound</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">antenna_model</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_freq</span> <span class="o">=</span> <span class="n">cutoff_freq</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">==</span> <span class="s1">&#39;analytic_LPDA&#39;</span><span class="p">:</span>
             <span class="c1"># LPDA dummy model points towards z direction and has its tines in the y-z plane</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;setting boresight direction&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_orientation_theta</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_orientation_phi</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_rotation_theta</span> <span class="o">=</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_rotation_phi</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_freq</span> <span class="o">=</span> <span class="mi">110</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span> <span class="k">if</span> <span class="n">cutoff_freq</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cutoff_freq</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_max_VEL</span> <span class="o">=</span> <span class="mf">0.55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="k">if</span> <span class="n">max_VEL</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">max_VEL</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">==</span> <span class="s1">&#39;analytic_VPol&#39;</span><span class="p">:</span>
+            <span class="c1"># VPol dummy model points towards z direction</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_orientation_theta</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_orientation_phi</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rotation_theta</span> <span class="o">=</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rotation_phi</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_freq</span> <span class="o">=</span> <span class="mi">220</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span> <span class="k">if</span> <span class="n">cutoff_freq</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cutoff_freq</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_max_VEL</span> <span class="o">=</span> <span class="mf">0.18</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="k">if</span> <span class="n">max_VEL</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">max_VEL</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">==</span> <span class="s1">&#39;analytic_HPol&#39;</span><span class="p">:</span>
+            <span class="c1"># HPol dummy model points towards z direction</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_orientation_theta</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_orientation_phi</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rotation_theta</span> <span class="o">=</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rotation_phi</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_freq</span> <span class="o">=</span> <span class="mi">500</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span> <span class="k">if</span> <span class="n">cutoff_freq</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cutoff_freq</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_max_VEL</span> <span class="o">=</span> <span class="mf">0.055</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="k">if</span> <span class="n">max_VEL</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">max_VEL</span>
 
 <div class="viewcode-block" id="AntennaPatternAnalytic.parametric_phase">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.parametric_phase">[docs]</a>
@@ -2330,57 +2370,119 @@
             <span class="c1"># maximum frequency</span>
             <span class="n">f</span> <span class="o">=</span> <span class="mf">1000.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
             <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">tau</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">freq</span> <span class="o">/</span> <span class="n">f</span><span class="p">)</span> <span class="o">-</span> <span class="mi">60</span>
+        <span class="k">if</span> <span class="n">phase_type</span> <span class="o">==</span> <span class="s1">&#39;VPol_third_order&#39;</span><span class="p">:</span>
+            <span class="c1"># The 1st, 2nd, and 3rd order parameters are obtained from a 2nd order polynomial fit to the slope of the</span>
+            <span class="c1"># unwrapped complex phase of the RNOG_vpol_v3_5inch_center_n1.74 antenna pattern. The constant term is obtained</span>
+            <span class="c1"># by fitting the resulting analytic antenna pattern (with the offset set to 0) in the time domain to the</span>
+            <span class="c1"># simulated antenna pattern in the time domain.</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="mf">2.086</span> <span class="o">-</span> <span class="mf">117.917</span> <span class="o">*</span> <span class="n">freq</span> <span class="o">+</span> <span class="mf">74.567</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">freq</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mf">64.343</span><span class="o">/</span><span class="mi">3</span> <span class="o">*</span> <span class="n">freq</span><span class="o">**</span><span class="mi">3</span>
+        <span class="k">if</span> <span class="n">phase_type</span> <span class="o">==</span> <span class="s1">&#39;HPol_third_order&#39;</span><span class="p">:</span>
+            <span class="c1"># The 1st, 2nd, and 3rd order parameters are obtained from a 2nd order polynomial fit to the slope of the</span>
+            <span class="c1"># unwrapped complex phase of the RNOG_hpol_v4_8inch_center_n1.74 antenna pattern. The constant term is obtained</span>
+            <span class="c1"># by fitting the resulting analytic antenna pattern (with the offset set to 0) in the time domain to the</span>
+            <span class="c1"># simulated antenna pattern in the time domain.</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="mf">0.321</span> <span class="o">-</span> <span class="mf">11.400</span> <span class="o">*</span> <span class="n">freq</span> <span class="o">+</span> <span class="mf">39.590</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">freq</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span><span class="mf">38.181</span><span class="o">/</span><span class="mi">3</span> <span class="o">*</span> <span class="n">freq</span><span class="o">**</span><span class="mi">3</span>
 
         <span class="k">return</span> <span class="n">a</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_get_antenna_response_vectorized_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">group_delay</span><span class="o">=</span><span class="s1">&#39;frontlobe_lpda&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_antenna_response_vectorized_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">group_delay</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">==</span> <span class="s1">&#39;analytic_LPDA&#39;</span><span class="p">:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Dummy LPDA model.</span>
-<span class="sd">            Flat gain as function of frequency, no group delay.</span>
-<span class="sd">            Can be used instead of __get_antenna_response_vectorized_raw</span>
+<span class="sd">            Dummy LPDA model. Approximates createLPDA_100MHz_InfFirn_n1.4 with the default values of cutoff_freq and max_VEL.</span>
+<span class="sd">            Flat gain as function of frequency.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">max_gain_co</span> <span class="o">=</span> <span class="mi">4</span>
-            <span class="n">max_gain_cross</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># Check whether these values are actually reasonable</span>
-
-            <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">freq</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_freq</span><span class="p">)</span>
-            <span class="n">Gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.signal.windows</span><span class="w"> </span><span class="kn">import</span> <span class="n">hann</span>
-            <span class="n">gain_filter</span> <span class="o">=</span> <span class="n">hann</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">index</span><span class="p">)</span>
-            <span class="n">Gain</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">gain_filter</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span>
-
-            <span class="c1"># at WIPL-D (1,0,0) Gain max for e_theta (?? I hope)</span>
-            <span class="c1"># Standard units, deliver H_eff in meters</span>
-            <span class="n">Z_0</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">physical_constants</span><span class="p">[</span><span class="s1">&#39;characteristic impedance of vacuum&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ohm</span>
-            <span class="n">Z_ant</span> <span class="o">=</span> <span class="mi">50</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ohm</span>
-
-            <span class="c1"># Assuming simple cosine, sine falls-off for dummy module</span>
-            <span class="n">H_eff_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Gain</span><span class="p">)</span>
             <span class="n">fmask</span> <span class="o">=</span> <span class="n">freq</span> <span class="o">&gt;</span> <span class="mi">0</span>
-            <span class="n">H_eff_t</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gain</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span> <span class="o">*</span> <span class="n">max_gain_cross</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">freq</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>
-            <span class="n">H_eff_t</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
-            <span class="n">H_eff_t</span> <span class="o">*=</span> <span class="n">constants</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span> <span class="o">*</span> <span class="n">Z_ant</span> <span class="o">/</span> <span class="n">Z_0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">freq</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_freq</span><span class="p">)</span>
+            <span class="n">gain_filter</span> <span class="o">=</span> <span class="n">hann</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">index</span><span class="p">)</span>
+            <span class="n">gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
 
-            <span class="n">H_eff_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Gain</span><span class="p">)</span>
-            <span class="n">H_eff_p</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gain</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span> <span class="o">*</span> <span class="n">max_gain_co</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">freq</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>
-            <span class="n">H_eff_p</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
-            <span class="n">H_eff_p</span> <span class="o">*=</span> <span class="n">constants</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span> <span class="o">*</span> <span class="n">Z_ant</span> <span class="o">/</span> <span class="n">Z_0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+            <span class="c1"># Theta component:</span>
+            <span class="n">VEL_theta</span>          <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gain</span><span class="p">)</span>
+            <span class="n">VEL_theta</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gain</span><span class="p">[</span><span class="n">fmask</span><span class="p">])</span> <span class="o">/</span> <span class="n">freq</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>            <span class="c1"># Gain to VEL conversion</span>
+            <span class="n">VEL_theta</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span> <span class="o">*=</span> <span class="n">gain_filter</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span>                           <span class="c1"># Low frequency cutoff</span>
+            <span class="n">VEL_theta</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>  <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_VEL</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">VEL_theta</span><span class="p">[</span><span class="n">fmask</span><span class="p">])</span>         <span class="c1"># Normalize to requested max VEL</span>
+            <span class="n">VEL_theta</span>         <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># Directional dependency of response</span>
 
-            <span class="k">if</span> <span class="n">group_delay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># add here antenna model with analytic description of typical group delay</span>
-                <span class="n">phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parametric_phase</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">group_delay</span><span class="p">)</span>
+            <span class="c1"># Phi component:</span>
+            <span class="n">VEL_phi</span>          <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gain</span><span class="p">)</span>
+            <span class="n">VEL_phi</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gain</span><span class="p">[</span><span class="n">fmask</span><span class="p">])</span> <span class="o">/</span> <span class="n">freq</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>
+            <span class="n">VEL_phi</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span> <span class="o">*=</span> <span class="n">gain_filter</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">VEL_phi</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>  <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_VEL</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">VEL_phi</span><span class="p">[</span><span class="n">fmask</span><span class="p">])</span>
+            <span class="n">VEL_phi</span>         <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
 
-                <span class="n">H_eff_p</span> <span class="o">=</span> <span class="n">H_eff_p</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">complex</span><span class="p">)</span>
-                <span class="n">H_eff_t</span> <span class="o">=</span> <span class="n">H_eff_t</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">complex</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">group_delay</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">theta</span> <span class="o">&lt;=</span> <span class="mi">45</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>
+                    <span class="n">phase_type</span> <span class="o">=</span> <span class="s2">&quot;frontlobe_lpda&quot;</span>
+                <span class="k">elif</span> <span class="n">theta</span> <span class="o">&gt;</span> <span class="mi">45</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span> <span class="ow">and</span> <span class="n">theta</span> <span class="o">&lt;=</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>
+                    <span class="n">phase_type</span> <span class="o">=</span> <span class="s2">&quot;side_lpda&quot;</span>
+                <span class="k">elif</span> <span class="n">theta</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>
+                    <span class="n">phase_type</span> <span class="o">=</span> <span class="s2">&quot;back_lpda&quot;</span>
+                <span class="n">phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parametric_phase</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">phase_type</span><span class="o">=</span><span class="n">phase_type</span><span class="p">)</span>
 
-                <span class="n">H_eff_p</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phase</span><span class="p">)</span>
-                <span class="n">H_eff_t</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phase</span><span class="p">)</span>
+                <span class="n">VEL_phi</span> <span class="o">=</span> <span class="n">VEL_phi</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">complex</span><span class="p">)</span>
+                <span class="n">VEL_theta</span> <span class="o">=</span> <span class="n">VEL_theta</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">complex</span><span class="p">)</span>
 
-            <span class="k">return</span> <span class="n">H_eff_p</span><span class="p">,</span> <span class="n">H_eff_t</span></div>
+                <span class="n">VEL_phi</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phase</span><span class="p">)</span>
+                <span class="n">VEL_theta</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phase</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">==</span> <span class="s1">&#39;analytic_VPol&#39;</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Dummy VPol model. Approximates RNOG_vpol_v3_5inch_center_n1.74 with the default values of cutoff_freq and max_VEL.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">fmask</span> <span class="o">=</span> <span class="n">freq</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">freq</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_freq</span><span class="p">)</span>
+            <span class="n">gain_filter</span> <span class="o">=</span> <span class="n">hann</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">index</span><span class="p">)</span>
+            <span class="n">gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+            <span class="n">gain</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">fmask</span><span class="p">])</span>  <span class="c1"># frequency dependent gain fall-off</span>
+
+            <span class="c1"># Theta component:</span>
+            <span class="n">VEL_theta</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gain</span><span class="p">)</span>
+            <span class="n">VEL_theta</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gain</span><span class="p">[</span><span class="n">fmask</span><span class="p">])</span> <span class="o">/</span> <span class="n">freq</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>       <span class="c1"># Gain to VEL conversion</span>
+            <span class="n">VEL_theta</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span> <span class="o">*=</span> <span class="n">gain_filter</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span>                     <span class="c1"># Low frequency cutoff</span>
+            <span class="n">VEL_theta</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>  <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_VEL</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">VEL_theta</span><span class="p">[</span><span class="n">fmask</span><span class="p">])</span>   <span class="c1"># Normalize to requested max VEL</span>
+            <span class="n">VEL_theta</span>         <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>                           <span class="c1"># Directional dependency of response</span>
+
+            <span class="c1"># Phi component:</span>
+            <span class="n">VEL_phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gain</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">group_delay</span><span class="p">:</span>
+                <span class="n">phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parametric_phase</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">phase_type</span> <span class="o">=</span> <span class="s2">&quot;VPol_third_order&quot;</span><span class="p">)</span>
+
+                <span class="n">VEL_theta</span> <span class="o">=</span> <span class="n">VEL_theta</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">complex</span><span class="p">)</span>
+
+                <span class="n">VEL_theta</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phase</span><span class="p">)</span>
+            
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">==</span> <span class="s1">&#39;analytic_HPol&#39;</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Dummy HPol model. Approximates RNOG_hpol_v4_8inch_center_n1.74 with the default values of cutoff_freq and max_VEL.</span>
+<span class="sd">            In this model, cutoff_freq controls where the gain peaks.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">fmask</span> <span class="o">=</span> <span class="n">freq</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="n">peak_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_freq</span><span class="p">)</span>
+            <span class="n">gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+
+            <span class="c1"># Theta component:</span>
+            <span class="n">VEL_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gain</span><span class="p">)</span>
+
+            <span class="c1"># Phi component: Assuming cos^2 squared frequency dependency and sin^2(theta) direction dependency</span>
+            <span class="n">VEL_phi</span>                        <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gain</span><span class="p">)</span>
+            <span class="n">VEL_phi</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>                 <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gain</span><span class="p">[</span><span class="n">fmask</span><span class="p">])</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span> <span class="o">/</span> <span class="n">peak_freq</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">VEL_phi</span><span class="p">[</span><span class="n">freq</span> <span class="o">&gt;</span> <span class="n">peak_freq</span> <span class="o">*</span> <span class="mi">2</span><span class="p">]</span>  <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">VEL_phi</span><span class="p">[</span><span class="n">fmask</span><span class="p">]</span>                <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_VEL</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">VEL_phi</span><span class="p">[</span><span class="n">fmask</span><span class="p">])</span>
+            <span class="n">VEL_phi</span>                       <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+            <span class="k">if</span> <span class="n">group_delay</span><span class="p">:</span>
+                <span class="n">phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parametric_phase</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">phase_type</span> <span class="o">=</span> <span class="s2">&quot;HPol_third_order&quot;</span><span class="p">)</span>
+
+                <span class="n">VEL_phi</span> <span class="o">=</span> <span class="n">VEL_phi</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">complex</span><span class="p">)</span>
+
+                <span class="n">VEL_phi</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phase</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">VEL_theta</span><span class="p">,</span> <span class="n">VEL_phi</span></div>
 
 
 
