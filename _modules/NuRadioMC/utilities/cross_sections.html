@@ -638,10 +638,10 @@
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">trapezoid</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataservers</span>
@@ -685,7 +685,7 @@
     <span class="n">nu_energies_ref</span><span class="p">,</span> <span class="n">yy_ref</span><span class="p">,</span> <span class="n">flavors_ref</span><span class="p">,</span> <span class="n">ncccs_ref</span><span class="p">,</span> <span class="n">dsigma_dy_ref</span> <span class="o">=</span> <span class="n">_read_differential_cross_section_BGR18</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">simple</span><span class="p">:</span>
-        <span class="n">dsigma_dy_integrated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span><span class="n">dsigma_dy_ref</span><span class="p">,</span> <span class="n">yy_ref</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">dsigma_dy_integrated</span> <span class="o">=</span> <span class="n">trapezoid</span><span class="p">(</span><span class="n">dsigma_dy_ref</span><span class="p">,</span> <span class="n">yy_ref</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">dsigma_dy_integrated</span> <span class="o">=</span> <span class="n">integrate_pwpl</span><span class="p">(</span><span class="n">dsigma_dy_ref</span><span class="p">,</span> <span class="n">yy_ref</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
@@ -919,7 +919,7 @@
         <span class="n">crscn</span> <span class="o">=</span> <span class="mf">7.84e-36</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span><span class="p">,</span> <span class="mf">0.363</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">cross_section_type</span> <span class="o">==</span> <span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">:</span>
-        <span class="n">nu_energies_ref</span><span class="p">,</span> <span class="n">flavors_ref</span><span class="p">,</span> <span class="n">ncccs_ref</span><span class="p">,</span> <span class="n">cross_section_ref</span> <span class="o">=</span> <span class="n">_integrate_over_differential_cross_section_BGR18</span><span class="p">(</span><span class="n">simple</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">nu_energies_ref</span><span class="p">,</span> <span class="n">flavors_ref</span><span class="p">,</span> <span class="n">ncccs_ref</span><span class="p">,</span> <span class="n">cross_section_ref</span> <span class="o">=</span> <span class="n">_integrate_over_differential_cross_section_BGR18</span><span class="p">(</span><span class="n">simple</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">energy</span> <span class="o">&gt;</span> <span class="n">nu_energies_ref</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
