@@ -1,10 +1,10 @@
 import os
 import itertools
 import functools
-import warnings
 import numpy as np
 from scipy import constants
 from scipy.interpolate import interp1d
+from scipy.integrate import trapezoid
 
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import dataservers
@@ -48,7 +48,7 @@ def _integrate_over_differential_cross_section_BGR18(simple=False):
     nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = _read_differential_cross_section_BGR18()
 
     if simple:
-        dsigma_dy_integrated = np.trapezoid(dsigma_dy_ref, yy_ref, axis=-1)
+        dsigma_dy_integrated = trapezoid(dsigma_dy_ref, yy_ref, axis=-1)
     else:
         dsigma_dy_integrated = integrate_pwpl(dsigma_dy_ref, yy_ref, low=0, high=1)
 
@@ -274,7 +274,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='h
         crscn = 7.84e-36 * units.cm ** 2 * np.power(energy / units.GeV, 0.363)
 
     elif cross_section_type == 'hedis_bgr18':
-        nu_energies_ref, flavors_ref, ncccs_ref, cross_section_ref = _integrate_over_differential_cross_section_BGR18(simple=True)
+        nu_energies_ref, flavors_ref, ncccs_ref, cross_section_ref = _integrate_over_differential_cross_section_BGR18(simple=False)
 
         if np.any(energy > nu_energies_ref[-1]):
             raise ValueError(
