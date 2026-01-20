@@ -20,6 +20,15 @@ def get_header(evt):
         if station.has_sim_station():
             header['stations'][station.get_id()]['sim_station'] = {}
             header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters().copy()
+
+    for shower in evt.get_showers():
+        sh_id = shower.get_id()
+        header['showers'][sh_id] = shower.get_parameters().copy()
+        if hasattr(shower, "has_sim_shower") and shower.has_sim_shower():
+            sim_shower = shower.get_sim_shower()
+            if sim_shower is not None:
+                header['showers'][sh_id]['sim_shower'] = sim_shower.get_parameters().copy()
+
     header['event_id'] = (evt.get_run_number(), evt.get_id())
     return header
 

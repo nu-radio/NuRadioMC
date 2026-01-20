@@ -171,26 +171,25 @@ class NuRadioRecoio(object):
 
     def get_filenames(self):
         return self._filenames
-
+                        
     def _parse_event_header(self, evt_header):
         from NuRadioReco.framework.parameters import stationParameters as stnp
+        from NuRadioReco.framework.parameters import showerParameters as shwp
+        from NuRadioReco.utilities import io_utilities
+        
         self.__event_ids.append(evt_header['event_id'])
-
+    
         for station_id, station in evt_header['stations'].items():
-
             if station_id not in self.__event_headers:
                 self.__event_headers[station_id] = {}
-
+    
             for key, value in station.items():
-                # treat sim_station differently
                 if key != 'sim_station':
-
                     if key not in self.__event_headers[station_id]:
                         self.__event_headers[station_id][key] = []
-
+    
                     if key == stnp.station_time:
                         station_time = io_utilities._time_object_to_astropy(value)
-
                         if station_time is not None:
                             try:
                                 station_time.format = 'isot'
@@ -201,10 +200,29 @@ class NuRadioRecoio(object):
                                 except AttributeError:
                                     self.logger.warning("setting format to 'isot' resulted in error.")
                                     pass
-
                         self.__event_headers[station_id][key].append(station_time)
                     else:
                         self.__event_headers[station_id][key].append(value)
+                else:
+                    self.__event_headers[station_id]['sim_station'] = value
+
+        if 'showers' in evt_header:
+            if not hasattr(self, '_event_showers'):
+                self._event_showers = {}
+
+            for shower_id, shower in evt_header['showers'].items():
+                if shower_id not in self._event_showers:
+                    self._event_showers[shower_id] = {}
+    
+                for key, value in shower.items():
+                    if key not in self._event_showers[shower_id]:
+                        self._event_showers[shower_id][key] = []
+    
+                    self._event_showers[shower_id][key].append(value)
+    
+        if 'showers' in evt_header:
+            self.__event_headers['showers'] = evt_header['showers']
+
 
     def __scan_files(self):
         current_byte = 12  # skip datafile header
