@@ -2,6 +2,27 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 3.1.0
+new features:
+- added rno-g cal_pulser waveform model at different temperatures in NuRadioMC/data 
+- energy-dependent inelasticity distribution (only BGR18 model) and cc / nc fraction (all models)
+- rice distribution method for estimating electric field energy fluences as proposed in S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
+- Change to default behaviour of Singleton (NuRadioReco.utilities.metaclasses.Singleton) classes.
+  Previously, any arguments passed to `__init__` would be silently ignored.
+  Now, instead a new instance of the class is generated
+  with the correct arguments if ``create_new==None`` (the new default), or an error is raised if
+  ``create_new==False``.
+- Refactor phased array trigger modules and expands to three trigger modules, phasedArrayTrigger is the legacy trigger with a simple
+  interface, beamformedPowerIntegrationTrigger performs the same function as phasedArrayTrigger but access to lower level options to mimic firmware,
+  digitalBeamformedEnvelopeTrigger instead computes the Hilbert envelope of the beamformed traces and allows access to lower level options.
+- Added analytic VPol and HPol antenna model approximations
+
+bugfixes:
+- Fixed the core parameter in Events created by the readCoREASDetector module not being 3-dimensional
+- Convert list of channel ids to tuple in efield.get_unique_identifier() to make it hashable
+- Fixed discrepancy in index of refraction (NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction) when calling with 1D vs. 2D array
+- Improved analytic LPDA antenna response which did not resemble the simulated RNO-G LPDAs
+
 version 3.0.3
 bugfixes:
 - Fixed a bug which caused interpolator options explicitly passed to the coreasInterpolator to be overwritten
@@ -99,6 +120,8 @@ new features:
 - Updated IC limit
 - added 2024 detector decription file in NuRadioReco/detector/RNO_G/RNO_season_2024.json
 - added module to add Galactic noise to electric fields traces
+- Added module doc-strings in NuRadioReco.utilities.
+- Added a fifth-degree exponential polynomial ice model for Summit, Greenland
 
 bugfixes:
 - Fixed bug in get_travel_time in directRayTracing propagation module
