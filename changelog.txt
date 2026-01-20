@@ -2,7 +2,15 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
-version 3.1.0-dev
+version 3.2.0-dev
+new features:
+- Added elevation to detector sites, and a corresponding `get_site_elevation` method to the `Detector` class. Altitudes were obtained
+from the NOAA ETOPO1 dataset via www.opentopodata.org.
+
+bugfixes:
+
+
+version 3.1.0
 new features:
 - added rno-g cal_pulser waveform model at different temperatures in NuRadioMC/data 
 - energy-dependent inelasticity distribution (only BGR18 model) and cc / nc fraction (all models)
@@ -15,13 +23,13 @@ new features:
 - Refactor phased array trigger modules and expands to three trigger modules, phasedArrayTrigger is the legacy trigger with a simple
   interface, beamformedPowerIntegrationTrigger performs the same function as phasedArrayTrigger but access to lower level options to mimic firmware,
   digitalBeamformedEnvelopeTrigger instead computes the Hilbert envelope of the beamformed traces and allows access to lower level options.
-- Added elevation to detector sites, and a corresponding `get_site_elevation` method to the `Detector` class. Altitudes were obtained
-  from the NOAA ETOPO1 dataset via www.opentopodata.org.
+- Added analytic VPol and HPol antenna model approximations
 
 bugfixes:
 - Fixed the core parameter in Events created by the readCoREASDetector module not being 3-dimensional
 - Convert list of channel ids to tuple in efield.get_unique_identifier() to make it hashable
 - Fixed discrepancy in index of refraction (NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction) when calling with 1D vs. 2D array
+- Improved analytic LPDA antenna response which did not resemble the simulated RNO-G LPDAs
 
 version 3.0.3
 bugfixes:
