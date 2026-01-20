@@ -2,9 +2,8 @@ import NuRadioReco.modules.channelAddCableDelay
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft
 import NuRadioReco.framework.station
-
 from NuRadioReco.detector.RNO_G import analog_components
-from NuRadioReco.detector import detector
+from NuRadioReco.detector import detector, response
 
 import numpy as np
 import copy
@@ -35,7 +34,6 @@ class hardwareResponseIncorporator:
             List of channels for which an extra trigger channel with a different response is used. (Default: None)
         """
         self.trigger_channels = trigger_channels
-
 
     def get_filter(self, frequencies, station_id, channel_id, det,
                    temp=293.15, sim_to_data=False, phase_only=False,
@@ -97,16 +95,17 @@ class hardwareResponseIncorporator:
         """
 
         if isinstance(det, detector.rnog_detector.Detector):
-            resp = det.get_signal_chain_response(station_id, channel_id, is_trigger)
-            amp_response = resp(frequencies)
+            amp_response = det.get_signal_chain_response(station_id, channel_id, is_trigger)
         elif isinstance(det, detector.detector_base.DetectorBase):
             amp_type = det.get_amplifier_type(station_id, channel_id)
             # it reads the log file. change this to load_amp_measurement if you want the RI file
             amp_response = analog_components.load_amp_response(amp_type)
-            amp_response = amp_response['gain'](
-                frequencies, temp) * amp_response['phase'](frequencies)
+            response_list = [amp_response['gain'](frequencies, temp), np.angle(amp_response['phase'](frequencies))]
+            amp_response = response.Response(frequencies, response_list, ["mag", "rad"])
         else:
             raise NotImplementedError("Detector type not implemented")
+
+        amp_response = amp_response(frequencies)
 
         if mingainlin is not None:
             mingainlin = float(mingainlin)
@@ -128,16 +127,17 @@ class hardwareResponseIncorporator:
         else:
             raise NotImplementedError(f"Operating mode \"{mode}\" has not been implemented.")
 
+        signal_chain_response = amp_response * cable_response
+
         if sim_to_data:
-            return amp_response * cable_response
+            return signal_chain_response
         else:
-            return 1. / (amp_response * cable_response)
+            return 1. / signal_chain_response
 
     @register_run()
     def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
-        The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.
 
         Parameters
         ----------
@@ -178,6 +178,7 @@ class hardwareResponseIncorporator:
 
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
             ``analog_components.get_amplifier_response()``
+
         """
 
         self.__mingainlin = mingainlin

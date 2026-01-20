@@ -228,7 +228,7 @@ class Response:
                         f'{datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S")}_debug.png', transparent=False)
             plt.close()
 
-    def __call__(self, freq, component_names=None, blacklist=True):
+    def __call__(self, freq, component_names=None, blacklist=True, window_response=True):
         """
         Returns the complex response for a given frequency.
 
@@ -247,6 +247,9 @@ class Response:
             If True (and `component_names is not None`), ignore components selected with `component_names`.
             If False, only consider components selected with `component_names`.
 
+        window_response: bool (Default: True)
+            Window the reponse to keep the impulse reponse causal and finite in time which keeps signal traces
+            mostly noiseless.
         Returns
         -------
 
@@ -254,7 +257,6 @@ class Response:
             The complex response at the desired frequencies
         """
         response = np.ones_like(freq, dtype=np.complex128)
-
         freq = np.asarray(freq)
 
         if component_names is not None:
@@ -292,6 +294,10 @@ class Response:
                                 f"Options are: {self.__names}")
             else:
                 self.logger.warning("Returned response is equal to 1.")
+
+        if window_response:
+            from NuRadioReco.utilities.signal_processing import window_response_in_time_domain
+            response = window_response_in_time_domain(response, freqs=freq)
 
         return response
 
