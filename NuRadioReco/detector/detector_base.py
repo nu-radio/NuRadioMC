@@ -1,4 +1,7 @@
 import numpy as np
+import glob
+from functools import lru_cache
+import scipy.interpolate
 from NuRadioReco.utilities import units
 import NuRadioReco.detector.RNO_G.analog_components
 import NuRadioReco.detector.ARIANNA.analog_components
@@ -862,11 +865,12 @@ class DetectorBase(object):
         if 'amp_type' in res.keys():
             amp_type = res['amp_type']
         if amp_type is None:
-            raise ValueError(
-                'Amplifier type for station {}, channel {} not in detector description'.format(
+            logger.error(
+                'Amplifier type for station {}, channel {} not in detector description. No amplifier response will be applied.'.format(
                     station_id,
                     channel_id
                 ))
+            return np.ones_like(frequencies, dtype=complex)
         amp_response_functions = None
         if amp_type in NuRadioReco.detector.RNO_G.analog_components.get_available_amplifiers():
             amp_response_functions = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(amp_type)
@@ -874,6 +878,12 @@ class DetectorBase(object):
             if amp_response_functions is not None:
                 raise ValueError('Amplifier name {} is not unique'.format(amp_type))
             amp_response_functions = NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response(amp_type)
+        # check for custom amplifier responses
+        if _load_custom_amp(amp_type) is not None:
+            if amp_response_functions is not None:
+                raise ValueError(f'Custom amplifier type {amp_type} is already in use. Please rename your custom amplifier.')
+            amp_response_functions = _load_custom_amp(amp_type)
+
         if amp_response_functions is None:
             raise ValueError('Amplifier of type {} not found'.format(amp_type))
         amp_gain = amp_response_functions['gain'](frequencies)
@@ -1080,3 +1090,35 @@ class DetectorBase(object):
         if 'noiseless' not in res:
             return False
         return res['noiseless']
+
+
+@lru_cache(maxsize=128)
+def _load_custom_amp(amp_type, directory=os.path.join(os.path.dirname(__file__), 'amps', 'custom')):
+    """
+    List custom amplifiers (in CSV format) available under ``directory``.
+
+    Note that this expects the amplifier response to be in a fixed format:
+    3 columns (frequency in Hz, S21 magnitude, S21 phase in radians)
+
+    """
+    custom_amp_files = glob.glob(os.path.join(directory, '*.csv'))
+    custom_amps = {os.path.basename(f).strip('.csv') : f for f in custom_amp_files}
+    if amp_type not in custom_amps:
+        return None
+
+    amp_csv = np.loadtxt(custom_amps[amp_type])
+    assert amp_csv.shape[1] == 3, "Custom amplifier response does not have expected format (frequency in Hz, S21 mag, S21 phase in rad)"
+
+    def interp_amp(freqs):
+        return np.interp(freqs, amp_csv[:,0] * units.Hz, amp_csv[:,1], left=0, right=0)
+
+    # for some reason 'phase' in response_functions is actually the magnitude-normalized complex response
+    def interp_phase(freqs):
+        return np.exp(1j * np.interp(freqs, amp_csv[:,0] * units.Hz, amp_csv[:,2], left=0, right=0))
+
+    response_functions = dict(
+        gain = interp_amp,
+        phase = interp_phase
+    )
+
+    return response_functions
