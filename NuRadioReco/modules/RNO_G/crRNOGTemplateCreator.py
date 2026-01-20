@@ -85,8 +85,8 @@ class crRNOGTemplateCreator:
         self.__template_save_path = template_save_path
 
 
-    def set_template_parameter(self, template_run_id:list[int]=[0, 0, 0], template_event_id:list[int]=[0, 1, 2], template_station_id:list[int]=[101, 101, 101], 
-                               template_channel_id:list[int]=[0, 0, 0], efield_width:list[float]=[5, 4, 2], antenna_rotation:list[float]=[160, 160, 160], 
+    def set_template_parameter(self, template_run_id:list[int]=[0, 0, 0], template_event_id:list[int]=[0, 1, 2], template_station_id:list[int]=[101, 101, 101],
+                               template_channel_id:list[int]=[0, 0, 0], efield_width:list[float]=[5, 4, 2], antenna_rotation:list[float]=[160, 160, 160],
                                efield_amplitudes:list[float]=[-0.2, 0.8], cr_zenith:list[float]=[55, 55, 55], cr_azimuth:list[float]=[0, 0, 0],
                                sampling_rate:float=3.2 * units.GHz, number_of_samples:int=2048) ->None:
         """
@@ -137,7 +137,7 @@ class crRNOGTemplateCreator:
 
 
     @register_run()
-    def run(self, template_filename:str='templates_cr_station_101.pickle', include_hardware_response:bool=True, hardware_response_source:str='json', 
+    def run(self, template_filename:str='templates_cr_station_101.pickle', include_hardware_response:bool=True, hardware_response_source:str='json',
             return_templates:bool=False, bandpass_filter:None|dict[str,Any]=None) -> None|list[Event]:
         """
         run method
@@ -156,7 +156,7 @@ class crRNOGTemplateCreator:
             if true, the template traces are returned in an addition to saving them in a pickle file
         bandpass_filter: dict, optional
             If a dictionary is given, a bandpass filter will be applied to the templates. The dictionary should hold all arguments that are needed for the channelBandPassFilter.
-        
+
         Returns
         -------
         template_event: list of `NuRadioReco.framework.event.Event` or None
@@ -178,7 +178,7 @@ class crRNOGTemplateCreator:
                 for rid, eid, sid, cid, e_width, antrot, cr_zen, cr_az in zip(self.__template_run_id, self.__template_event_id, self.__template_station_id, self.__template_channel_id, self.__efield_width, self.__antenna_rotation, self.__cr_zenith, self.__cr_azimuth):
                     if cr_zen == crz and cr_az == cra:
                         # create the detector
-                        det_temp = detector.generic_detector.GenericDetector(json_filename=self.__detector_file, antenna_by_depth=False, create_new=True, log_level='ERROR')
+                        det_temp = detector.generic_detector.GenericDetector(json_filename=self.__detector_file, create_new=True, log_level='ERROR')
                         det_temp.update(datetime.datetime(2025, 10, 1))
                         det_temp.get_channel(sid, cid)['ant_rotation_phi'] = antrot
 
@@ -235,8 +235,8 @@ def _gaussian_func(x, A, mu, sigma):
     return A * np.exp(-(x - mu) ** 2 / (2 * sigma ** 2))
 
 
-def _create_Efield(detector:detector.generic_detector.GenericDetector, run_id:int, event_id:int, channel_id:int, station_id:int, 
-                   station_time:datetime.datetime, trace_samples:int, gaussian_width:float, e_phi:float, e_theta:float, cr_zenith:float, 
+def _create_Efield(detector:detector.generic_detector.GenericDetector, run_id:int, event_id:int, channel_id:int, station_id:int,
+                   station_time:datetime.datetime, trace_samples:int, gaussian_width:float, e_phi:float, e_theta:float, cr_zenith:float,
                    cr_azimuth:float, sampling_rate:float, debug:bool) -> Event:
     """ function that creates an event with a gaussian electric field """
     event = Event(run_id, event_id)

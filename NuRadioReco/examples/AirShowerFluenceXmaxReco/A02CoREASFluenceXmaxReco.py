@@ -12,7 +12,7 @@ The procedure is the following (following the description in S. Buitink Phys. Re
  * we loop over a set of CoREAS simulations (excluding the simulation we used to generate the data)
    of the same air-shower direction and energy and
    fit the fluence footprint to the simulated data to determine the core position and amplitude
-   normalization factor. The chi^2 of the best fit is saved. 
+   normalization factor. The chi^2 of the best fit is saved.
  * the best fit chi^2 values are plotted against the true Xmax value from the simulations
  * a parabola is fitted to determine the most likely Xmax value
 """
@@ -69,7 +69,7 @@ for i in [0,1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,2
 
 # Initialize detector
 det = detector.Detector(json_filename="grid_array_SKALA_InfFirn.json",
-                        assume_inf=False, antenna_by_depth=False)
+                        assume_inf=False)
 det.update(time.Time("2023-01-01T00:00:00", format='isot', scale='utc'))
 
 
@@ -218,8 +218,8 @@ for iE, evt in enumerate(coreas_reader.run(det, [core])):
             # read in CoREAS simulation
             evt2 = coreas.read_CORSIKA7(filename2)
             Xmax[i] = evt2.get_first_sim_shower()[shp.shower_maximum]
-            # preprocess simulation, apply the same bandpass filter 
-            # that the fake data has. This is required because the energy 
+            # preprocess simulation, apply the same bandpass filter
+            # that the fake data has. This is required because the energy
             # fluence depends on the bandwidth/choosen filter
             ss = evt2.get_station(0).get_sim_station()
             electricFieldBandPassFilter.run(evt2, ss, det, **filt_settings)

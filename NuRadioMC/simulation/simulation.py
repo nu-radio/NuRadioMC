@@ -1217,7 +1217,7 @@ class simulation:
         if det is None:
             logger.status("Detectorfile {}".format(os.path.abspath(detectorfile)))
             det_kwargs_default = dict(json_filename=detectorfile, default_station=default_detector_station,
-                              default_channel=default_detector_channel, antenna_by_depth=False)
+                              default_channel=default_detector_channel)
             det_kwargs_default.update(det_kwargs)
             self._det = detector.Detector(**det_kwargs_default)
         else:

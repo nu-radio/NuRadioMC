@@ -10,6 +10,8 @@ bugfixes:
 
 version 3.1.0
 new features:
+- Change of the default value for the detector class argument `antenna_by_depth` from `True` to `False`. Now, by default, the string passed as antenna model
+  is taken at face value an nothing is appended to it.
 - added rno-g cal_pulser waveform model at different temperatures in NuRadioMC/data 
 - energy-dependent inelasticity distribution (only BGR18 model) and cc / nc fraction (all models)
 - rice distribution method for estimating electric field energy fluences as proposed in S. Martinelli et al.: https://arxiv.org/pdf/2407.18654

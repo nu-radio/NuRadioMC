@@ -22,7 +22,7 @@ This script is an example of how to run the air shower reconstruction with a det
 
 The input file needs to be a CoREAS hdf5 file where the coreas observers follow a star shape pattern. The output is a .nur file with the reconstructed event.
 The input file is read in with readCoREASDetector module, which creates simulated events with all stations in the detector description,
-the electric field is interpolated to the positions of the antennas. The core position of the shower can be set to a list of positions, 
+the electric field is interpolated to the positions of the antennas. The core position of the shower can be set to a list of positions,
 see readCoREASDetector.run() for more details.
 
 The other modules used are necessary to simulate the detector response, add noise, trigger the event, and write the event to a .nur file.
@@ -51,7 +51,7 @@ parser.add_argument('--det_file', type=str, nargs='?', default='../../detector/R
 args = parser.parse_args()
 logger.info(f'Using detector file {args.det_file} on {args.input_file}')
 
-det = Detector(json_filename=args.det_file, antenna_by_depth=False)
+det = Detector(json_filename=args.det_file)
 det.update(astropy.time.Time('2025-1-1'))
 
 #core_positions = NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions()
@@ -100,7 +100,7 @@ eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 eventWriter.begin(f'cr_reco_array.nur')
 
 for evt in readCoREASDetector.run(det, NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions(-300, 0, 1600, 1800, 3)):
-    for sta in evt.get_stations():        
+    for sta in evt.get_stations():
         eventTypeIdentifier.run(evt, sta, "forced", 'cosmic_ray')
 
         efieldToVoltageConverter.run(evt, sta, det)
@@ -109,7 +109,7 @@ for evt in readCoREASDetector.run(det, NuRadioReco.modules.io.coreas.readCoREASD
         #channelGalacticNoiseAdder.run(evt, sta, det, passband=[0.08, 0.8])
 
         hardwareResponseIncorporator.run(evt, sta, det, sim_to_data=True)
-        
+
         triggerSimulator.run(evt, sta, det,
                                 threshold_high=5e-6,
                                 threshold_low=-5e-6,

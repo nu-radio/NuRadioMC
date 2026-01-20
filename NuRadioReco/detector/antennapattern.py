@@ -1368,8 +1368,12 @@ class AntennaPattern(AntennaPatternBase):
 
         except IOError:
             self._notfound = True
-            logger.error("antenna response for {} not found".format(antenna_model))
-            raise FileNotFoundError("antenna response for {} not found".format(antenna_model))
+            logger.error(("Antenna response for {} not found. In release v3.1.0 the default value for "
+                "the detector-class argument of `antenna_by_depth` changed. "
+                "You might want to try setting it to true.").format(antenna_model))
+            raise FileNotFoundError(("Antenna response for {} not found. In release v3.1.0 the default value for "
+                "the detector-class argument of `antenna_by_depth` changed. "
+                "You might want to try setting it to true.").format(antenna_model))
 
         self.frequencies = np.unique(ff)
         self.frequency_lower_bound = self.frequencies[0]
