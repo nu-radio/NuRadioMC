@@ -48,6 +48,8 @@ parser = argparse.ArgumentParser(description='Run air shower Reconstruction')
 
 parser.add_argument('--input_file', type=str, nargs='?', default='../example_data/greenland_starshape_32obs.hdf5', help='path to CoREAS simulation hdf5 file with star shape pattern')
 parser.add_argument('--det_file', type=str, nargs='?', default='../../detector/RNO_G/RNO_cr_array.json', help='path to json detector file')
+parser.add_argument("--export-corsika", action="store_true",
+                    help="If set, export the simulated NuRadioReco event back into CORSIKA/CoREAS HDF5 format.")
 args = parser.parse_args()
 logger.info(f'Using detector file {args.det_file} on {args.input_file}')
 
@@ -129,3 +131,12 @@ for evt in readCoREASDetector.run(det, NuRadioReco.modules.io.coreas.readCoREASD
                     'SimElectricFields': True
                 })
 nevents = eventWriter.end()
+
+# Export every simulated event to CoREAS HDF5 if requested
+if args.export_corsika:
+    
+    import os
+    for idx, evt in enumerate(readCoREASDetector.run(det, NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions(-300, 0, 1600, 1800, 3))):
+        run_number = evt.get_run_number() if hasattr(evt, "get_run_number") else idx
+        corsika_output = f"SIM{run_number:06d}_{idx}.hdf5"
+        NuRadioReco.modules.io.coreas.coreas.write_CORSIKA7(evt, corsika_output)

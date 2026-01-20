@@ -1,3 +1,4 @@
+import os
 import copy
 import h5py
 import numpy as np
@@ -6,6 +7,7 @@ from radiotools import helper as hp
 from radiotools import coordinatesystems
 
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.constants import c
 import NuRadioReco.framework.station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.event
@@ -21,7 +23,8 @@ logger = logging.getLogger('NuRadioReco.coreas')
 
 warning_printed_coreas_py = False
 
-conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
+# convert CoREAS traces [cgs units] to SI units [V/m]
+conversion_fieldstrength_cgs_to_SI = c / (units.cm / units.s) * units.micro * units.volt / units.meter
 
 
 # DEPRECATED FUNCTIONS
@@ -183,6 +186,45 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     return efield_on_sky, efield_times
 
 
+def convert_nuradio_efield_to_obs(efield_on_sky, efield_times, zenith, azimuth, magnetic_field_vector):
+    """
+    Converts electric field from NuRadioReco on-sky CS back to the CORSIKA observer format.
+    Parameters
+    ----------
+    efield_on_sky : np.ndarray
+        Electric field in NRR on-sky CS (r, theta, phi), shape (3, n_samples).
+    efield_times : np.ndarray
+        Times in seconds, shape (n_samples,).
+    zenith : float
+        Shower zenith (internal units).
+    azimuth : float
+        Shower azimuth (internal units).
+    magnetic_field_vector : np.ndarray
+        Magnetic field vector.
+    Returns
+    -------
+    observer_array : np.ndarray
+        Shape (n_samples, 4): (time, Ey, -Ex, Ez) in CORSIKA coordinates.
+    """
+    cs = coordinatesystems.cstrafo(
+        zenith / units.rad, azimuth / units.rad,
+        magnetic_field_vector
+    )
+
+    # geographic ground coordinates
+    efield_ground_geo = cs.transform_from_onsky_to_ground(efield_on_sky)
+    efield_mag = cs.transform_from_geographic_to_magnetic(efield_ground_geo)
+
+    # convert to CORSIKA axis convention and CGS units
+    times_corsika = efield_times / units.second
+
+    Ex = efield_mag[1] / conversion_fieldstrength_cgs_to_SI
+    Ey = -efield_mag[0] / conversion_fieldstrength_cgs_to_SI
+    Ez = efield_mag[2] / conversion_fieldstrength_cgs_to_SI
+
+    return np.column_stack((times_corsika, Ex, Ey, Ez))
+
+
 def convert_obs_positions_to_nuradio_on_ground(observer_pos, declination=0):
     """
     Convert observer positions from the CORSIKA CS to the NRR ground CS.
@@ -218,6 +260,38 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, declination=0):
     obs_positions = hp.rotate_vector_in_2d(obs_positions, -declination).T
 
     return np.squeeze(obs_positions)
+
+
+def convert_nuradio_positions_to_ground(geo_pos, declination=0):
+    """
+    Converts observer positions from NuRadioReco ground coordinates back to the CORSIKA CS.
+    Parameters
+    ----------
+    geo_pos : np.ndarray
+        Observer position(s) in NuRadioReco ground coordinates, shape (3,) or (n_observers, 3).
+    declination : float
+        Declination of the magnetic field (degrees).
+    Returns
+    -------
+    obs_positions_corsika : np.ndarray
+        Positions in CORSIKA coordinates (x=North, y=West, z=up), in cm.
+    """
+    # If single position is given, make sure it has the right shape (3,) -> (1, 3)
+    if geo_pos.ndim == 1:
+        geo_pos = geo_pos[np.newaxis, :]
+
+    # undo geographic rotation
+    rotated = hp.rotate_vector_in_2d(geo_pos.T, declination)
+
+    # convert from NuRadioReco to CORSIKA axes
+    corsika_positions = np.array([
+        rotated[1],         # CORSIKA x (north) from NRR y
+        -1*rotated[0],    # CORSIKA y (west) from -NRR x
+        rotated[2]         # CORSIKA z (up) same
+    ]).T / units.cm
+
+    return np.squeeze(corsika_positions)
+
 
 # READER FUNCTIONS
 def read_CORSIKA7(input_file, declination=None, site=None):
@@ -313,6 +387,136 @@ def read_CORSIKA7(input_file, declination=None, site=None):
 
     return evt
 
+
+def write_CORSIKA7(evt, output_file, declination=None, site=None):
+    """
+    Writes a NuRadioReco Event object to an HDF5 file in CORSIKA/CoREAS format,
+    reversing the operation of read_CORSIKA7().
+    Parameters
+    ----------
+    evt : NuRadioReco.framework.event.Event
+        The Event to store.
+    output_file : str
+        Path to the output HDF5 file.
+    declination : float, optional
+        Declination of the magnetic field in degrees. If None, determined from site.
+    site : str, optional
+        Name of the site, used to set default magnetic field and declination.
+    """
+    if os.path.exists(output_file):
+        raise FileExistsError(f"File '{output_file}' already exists. Aborting.")
+
+    if declination is None:
+        if site is not None:
+            try:
+                magnet = hp.get_magnetic_field_vector(site)
+                declination = hp.get_declination(magnet)
+                logger.info(
+                    f"Declination obtained from site information, is set to {declination / units.degree:.2f} deg"
+                )
+            except KeyError:
+                declination = 0
+                logger.warning(
+                    "Site is not recognised by radiotools. Defaulting to 0 degrees declination. "
+                    "This might lead to unexpected electric field polarizations."
+                )
+        else:
+            declination = 0
+            logger.warning(
+                "No declination or site given, assuming 0 degrees. "
+                "This might lead to unexpected electric field polarizations."
+            )
+
+    with h5py.File(output_file, "x") as f:
+
+        inputs_grp = f.create_group("inputs")
+        inputs_grp.attrs["RUNNR"] = evt.get_run_number()
+        inputs_grp.attrs["EVTNR"] = evt.get_id()
+
+        sim_shower = evt.get_first_sim_shower()        
+
+        inputs_grp.attrs["PRMPAR"] = sim_shower.get_parameter(shp.primary_particle)
+        inputs_grp.attrs["OBSLEV"] = sim_shower.get_parameter(shp.observation_level) / units.cm
+        energy_GeV = sim_shower.get_parameter(shp.energy) / units.GeV
+        inputs_grp.attrs["ERANGE"] = np.array([energy_GeV, energy_GeV])
+
+        def get_angles_corsika(zenith_NNR, azimuth_NNR, magnetic_field_vector_NNR, declination):
+            """
+            Converting angles in local coordinates to corsika coordinates.
+            """
+            zenith = zenith_NNR / units.deg            
+            azimuth = (azimuth_NNR - 3*np.pi / 2. - declination / units.rad) / units.deg
+
+
+            # Unit vectors in geographic CS:
+            # magnetic north unit vector in geographic coordinates (rotated from geographic north by declination)
+            y_mag = np.array([np.sin(declination), np.cos(declination), 0.0])  # azimuth = 90° - declination
+            z_hat = np.array([0.0, 0.0, 1.0])
+            By_corsika    = np.dot(magnetic_field_vector_NNR, y_mag) / (units.micro * units.tesla) # along magnetic north
+            minBz_corsika = -np.dot(magnetic_field_vector_NNR, z_hat) / (units.micro * units.tesla) # down component
+
+            # MAGNET drops the east-of-magnetic component.
+            # If your B_vec has a noticeable component along x_mag, warn about the loss.
+            x_mag = np.array([np.cos(declination), -np.sin(declination), 0.0])  # unit vector 90° left of y_mag in XY plane
+            Bx_corsika = np.dot(magnetic_field_vector_NNR, x_mag) / (units.micro * units.tesla)
+            if abs(Bx_corsika) > 1:
+                logger.warning(
+                    f"Non-zero east-of-magnetic component (Bx_mag ~ {Bx_corsika:.3g} μT). "
+                    "CORSIKA MAGNET stores only (By, -Bz); this component is implicitly assumed zero.")
+
+            magnetic_field_vector = np.array([By_corsika, minBz_corsika])
+
+            return zenith, azimuth, magnetic_field_vector
+
+        zenith_NNR = sim_shower.get_parameter(shp.zenith)
+        azimuth_NNR = sim_shower.get_parameter(shp.azimuth)
+        B_vec_NNR = sim_shower.get_parameter(shp.magnetic_field_vector)
+
+        zenith, azimuth, B_vec = get_angles_corsika(zenith_NNR, azimuth_NNR, B_vec_NNR, declination)
+
+        inputs_grp.attrs["THETAP"] = np.array([zenith, zenith])
+        inputs_grp.attrs["PHIP"] =  np.array([azimuth, azimuth])
+        inputs_grp.attrs["MAGNET"] = B_vec
+
+        if sim_shower.has_parameter(shp.atmospheric_model):
+            inputs_grp.attrs["ATMOD"] = sim_shower.get_parameter(shp.atmospheric_model)
+
+        coreas_grp = f.create_group("CoREAS")
+
+        core_x, core_y, core_z = sim_shower.get_parameter(shp.core) / units.cm
+        coreas_grp.attrs["CoreCoordinateWest"] = -core_x
+        coreas_grp.attrs["CoreCoordinateNorth"] = core_y
+        coreas_grp.attrs["CoreCoordinateVertical"] = core_z
+
+        coreas_grp.attrs["DepthOfShowerMaximum"] = sim_shower.get_parameter(shp.shower_maximum) / (units.g / units.cm2)
+        coreas_grp.attrs["DistanceOfShowerMaximum"] = sim_shower.get_parameter(shp.distance_shower_maximum_geometric) / units.cm
+        coreas_grp.attrs["GroundLevelRefractiveIndex"] = sim_shower.get_parameter(shp.refractive_index_at_ground)
+
+        observers_grp = coreas_grp.create_group("observers")
+        station = evt.get_station()
+        sim_station = station.get_sim_station()
+
+        for observer in sim_station.get_electric_fields():
+
+            dataset_name = f"station_{observer.get_unique_identifier()[0][0]}"
+
+            pos_corsika = convert_nuradio_positions_to_ground(
+                observer.get_position(),
+                declination=declination
+            )
+
+            efield_corsika = convert_nuradio_efield_to_obs(
+                observer.get_trace(),
+                observer.get_times(),
+                zenith_NNR,
+                azimuth_NNR,
+                B_vec_NNR
+            )
+
+            data_set = observers_grp.create_dataset(dataset_name, data=efield_corsika)
+            data_set.attrs["position"] = pos_corsika
+            data_set.attrs["name"] = dataset_name
+            
 
 def create_sim_shower_from_hdf5(corsika, declination=0):
     """
