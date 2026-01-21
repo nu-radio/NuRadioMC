@@ -1,5 +1,5 @@
 from NuRadioReco.utilities import units, geometryUtilities
-from NuRadioMC.utilities import attenuation as attenuation_util, medium
+from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
 
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
@@ -376,7 +376,7 @@ class ray_tracing_2D(ray_tracing_base):
                  n_frequencies_integration=None,
                  use_optimized_start_values=False,
                  overwrite_speedup=None,
-                 use_cpp=cpp_available,
+                 use_cpp=None,
                  compile_numba=False):
         """
         initialize 2D analytic ray tracing class
@@ -411,14 +411,30 @@ class ray_tracing_2D(ray_tracing_base):
         """
         self.__logger = logging.getLogger('NuRadioMC.ray_tracing_2D')
         self.__logger.setLevel(log_level)
+        if use_cpp is None:
+            use_cpp = cpp_available
+
         if cpp_available:
             if not use_cpp:
                 self.__logger.info('C++ raytracer is available, but Python raytracer was requested. Using Python raytracer')
             else:
                 self.__logger.info('Using C++ raytracer')
         else:
-            self.__logger.warning('C++ raytracer is not available. Using Python raytracer.')
-            self.__logger.warning("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
+            if use_cpp:
+                msg = ('C++ raytracer was explicitly requested, but is not available (i.e. on-the-fly compilation failed). '
+					   'Abort.... ! Either fix the compilation or set use_cpp to False. '
+					   'For compilation see NuRadioMC/SignalProp/install.sh resp. NuRadioMC/SignalProp/CPPAnalyticRayTracing.')
+                self.__logger.error(msg)
+                raise RuntimeError(msg)
+            else:
+                self.__logger.warning('C++ raytracer is not available. Using Python raytracer.')
+                self.__logger.warning("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
+
+        if isinstance(medium, medium_util.uniform_ice):
+            msg = ('Analytic raytracer does not work with a uniform ice model. '
+                    'Abort.... ! Use direct raytracing or a non-uniform ice model instead.')
+            self.__logger.error(msg)
+            raise RuntimeError(msg)
 
         self.medium = medium
         if not hasattr(self.medium, "reflection"):
@@ -852,7 +868,7 @@ class ray_tracing_2D(ray_tracing_base):
                         z_turn = 0
                     else:
                         gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-        #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+                        # print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
                         self.__logger.info("Analytic focusing factor not valid for refracted trajectories, use numerical one instead...")
                         return np.nan
 
@@ -866,18 +882,53 @@ class ray_tracing_2D(ray_tracing_base):
 
         return np.sqrt(1/f_inverse_squared)
 
-    def __get_frequencies_for_attenuation(self, frequency, max_detector_freq):
-            mask = frequency > 0
-            nfreqs = min(self.__n_frequencies_integration, np.sum(mask))
-            freqs = np.linspace(frequency[mask].min(), frequency[mask].max(), nfreqs)
-            if(nfreqs < np.sum(mask) and max_detector_freq is not None):
-                mask2 = frequency <= max_detector_freq
-                nfreqs2 = min(self.__n_frequencies_integration, np.sum(mask2 & mask))
-                freqs = np.linspace(frequency[mask2 & mask].min(), frequency[mask2 & mask].max(), nfreqs2)
-                if(np.sum(~mask2) > 1):
-                    freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs // 2))
-            self.__logger.debug(f"calculating attenuation for frequencies {freqs}")
-            return freqs
+    def __get_frequencies_for_attenuation(self, frequency, max_detector_freq=None):
+        """ Returns a frequency vector for the attenuation calculation.
+
+        It takes the frequency vector of a simulated electric field and makes it sparser.
+        This function is used to reduce the number of frequencies for which the attenuation
+        is calculated (which is time consuming). Afterwards the attenuation factors for the
+        missing frequencies can be interpolated.
+
+        If max_detector_freq is None, the function will return a frequency vector (0, f_max] with
+        self.__n_frequencies_integration frequencies (unless the original frequency vector is already sparser).
+        If max_detector_freq is not None, the function will return a frequency vector (0, max_detector_freq] + (max_detector_freq, f_max]
+        with the first part having self.__n_frequencies_integration frequencies and the second part having
+        self.__n_frequencies_integration // 2 frequencies.
+
+        Parameters
+        ----------
+        frequency: array
+            Frequency vector of the simulated electric field
+        max_detector_freq: float
+            Maximum frequency of the detector (the nyquist frequency)
+
+        Returns
+        -------
+        freqs: array
+            Sparse frequency vector for the attenuation calculation
+        """
+
+        non_null_freqs = frequency > 0
+        n_freqs = min(self.__n_frequencies_integration, np.sum(non_null_freqs))
+
+        freqs = np.linspace(frequency[non_null_freqs].min(), frequency[non_null_freqs].max(), n_freqs)
+
+        if (n_freqs < np.sum(non_null_freqs)  # original frequency vector is already sparse
+            and max_detector_freq is not None):
+
+            det_mask = frequency <= max_detector_freq
+            total_mask = det_mask & non_null_freqs
+
+            n_freqs = min(self.__n_frequencies_integration, np.sum(total_mask))
+            freqs = np.linspace(frequency[total_mask].min(), frequency[total_mask].max(), n_freqs)
+            # Append n_freqs // 2 frequencies between detector nyquist frequency and simulated nyquist frequency
+            if np.sum(~det_mask) > 1:
+                freqs = np.append(freqs, np.linspace(frequency[~det_mask].min(), frequency[~det_mask].max(), n_freqs // 2))
+
+
+        self.__logger.debug("Frequency vector for attenuation calculation: {}".format(freqs))
+        return freqs
 
     def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq,
                                    reflection=0, reflection_case=1):
@@ -1026,7 +1077,7 @@ class ray_tracing_2D(ray_tracing_base):
                 attenuation_factor_segment = np.ones_like(frequency)
                 attenuation_factor_segment[mask] = np.interp(frequency[mask], freqs, attenuation_factor_segment_tmp)
                 self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(
-                    x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation_factor_segment))
+                    x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1],  attenuation_factor_segment))
 
             iF = len(frequency) // 3
             output += "adding attenuation for path segment {:d} -> {:.2g} at {:.0f} MHz, ".format(
@@ -1887,7 +1938,7 @@ class ray_tracing(ray_tracing_base):
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
                  detector=None, ray_tracing_2D_kwards={},
-                 use_cpp=cpp_available, compile_numba=False):
+                 use_cpp=None, compile_numba=None):
         """
         class initilization
 
@@ -1942,8 +1993,10 @@ class ray_tracing(ray_tracing_base):
             if True, use CPP implementation of minimization routines
             default: True if CPP version is available
 
+        compile_numba: bool (default: None)
+            Only relevant if `use_cpp` is False. If None, the default is True (if `use_cpp` is False).
         """
-        self.__logger = logging.getLogger('NuRadioMC.ray_tracing_analytic')
+        self.__logger = logging.getLogger('NuRadioMC.ray_tracing')
         self.__logger.setLevel(log_level)
 
         from NuRadioMC.utilities.medium_base import IceModelSimple
@@ -1961,10 +2014,17 @@ class ray_tracing(ray_tracing_base):
 
         self.set_config(config=config)
 
+        if use_cpp is None:
+            use_cpp = cpp_available
+
         self.use_cpp = use_cpp
         if use_cpp:
             self.__logger.status("Using CPP version of ray tracer")
         else:
+            # If we do not want to or can not use CPP, by default we try to use numba
+            if compile_numba is None:
+                compile_numba = True
+
             if compile_numba and numba_available:
                 self.__logger.status("Using python with numba version of ray tracer")
             else:
@@ -2336,7 +2396,7 @@ class ray_tracing(ray_tracing_base):
         t_fast = base_trace.BaseTrace()
 
         ice_n = self._medium
-        ice_birefringence = medium.get_ice_model('birefringence_medium')
+        ice_birefringence = medium_util.get_ice_model('birefringence_medium')
         ice_birefringence.__init__(bire_model)
 
         acc = int(self.get_path_length(i_solution) / units.m)
@@ -2420,7 +2480,7 @@ class ray_tracing(ray_tracing_base):
         """
 
         ice_n = self._medium
-        ice_birefringence = medium.get_ice_model('birefringence_medium')
+        ice_birefringence = medium_util.get_ice_model('birefringence_medium')
         ice_birefringence.__init__(bire_model)
 
         acc = int(self.get_path_length(i_solution) / units.m)
@@ -2774,6 +2834,7 @@ class ray_tracing(ray_tracing_base):
             if not hasattr(self, "_r1"):
                 self._r1 = ray_tracing(self._medium, self._attenuation_model, logging.WARNING,
                                 self._n_frequencies_integration, self._n_reflections, use_cpp=self.use_cpp)
+
             self._r1.set_start_and_end_point(vetPos, recPos1)
             self._r1.find_solutions()
             if iS < self._r1.get_number_of_solutions():
@@ -2799,6 +2860,7 @@ class ray_tracing(ray_tracing_base):
             else:
                 focusing = 1.0
                 self.__logger.warning("too few ray tracing solutions, setting focusing factor to 1")
+
             self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
             if(focusing > limit):
                 self.__logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
@@ -2986,6 +3048,5 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['focusing_limit'] = 2
             self._config['propagation']['focusing'] = False
             self._config['propagation']['birefringence'] = False
-
         else:
             self._config = config

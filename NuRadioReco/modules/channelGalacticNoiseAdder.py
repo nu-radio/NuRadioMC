@@ -5,7 +5,6 @@ import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 import NuRadioReco.detector.antennapattern
 
-
 import warnings
 import functools
 import numpy as np
@@ -389,7 +388,7 @@ class channelGalacticNoiseAdder:
                         antenna_pattern, curr_fresnel_zenith, azimuth, *antenna_orientation)
                 else:
                     antenna_response = antenna_pattern.get_antenna_response_vectorized(
-                        freqs, curr_fresnel_zenith, azimuth, *antenna_orientation)
+                        freqs[passband_filter], curr_fresnel_zenith, azimuth, *antenna_orientation)
 
                 channel_noise_spectrum = (
                     antenna_response['theta'] * channel_noise_spec[1][passband_filter]
@@ -503,10 +502,7 @@ def get_local_coordinates(coordinates, obs_time, n_side):
     pixel_latitudes = pixel_latitudes * units.deg * astropy.units.rad
 
     galactic_coordinates = astropy.coordinates.Galactic(
-        l=pixel_longitudes,
-        b=pixel_latitudes
-    )
+        l=pixel_longitudes, b=pixel_latitudes)
 
     local_coordinates = galactic_coordinates.transform_to(local_cs)
-
     return local_coordinates

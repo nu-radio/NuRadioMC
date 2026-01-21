@@ -1,8 +1,6 @@
 name: Unit tests
 
 on:
-  push:
-  pull_request:
   workflow_dispatch:
     inputs:
       python_version:
@@ -14,6 +12,7 @@ on:
         description: OS to run tests on
         type: string
         default: ubuntu-latest
+
   workflow_call:
     inputs:
       python_version:
@@ -29,154 +28,303 @@ on:
 env: # set the python_version to 3.10 if the workflow is not triggered by workflow_call or workflow_dispatch
   PYTHON_VERSION: ${{ inputs.python_version || '3.10' }}
 
+concurrency: # run only one instance of the tests per branch
+  group: unit-tests-${{ inputs.os || 'ubuntu-latest' }}-${{ inputs.python_version || '3.10' }}-${{ github.ref }}
+  cancel-in-progress: true # cancel currently running checks on a new push
+
 jobs:
-  build:
+  setup:
+    name: Setup environment and Linting
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    outputs:
+      env-cache-key: ${{ steps.cache-keys.outputs.env-key }}
+      data-cache-key: ${{ steps.cache-keys.outputs.data-key }}
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up Python [${{ env.PYTHON_VERSION }}]
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    - name: Cache pip
+
+    - name: Generate cache keys
+      id: cache-keys
+      run: |
+        echo "env-key=${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3" >> $GITHUB_OUTPUT
+        echo "data-key=ci-data" >> $GITHUB_OUTPUT
+
+    - name: Cache Python environment
+      id: cache-env
       uses: actions/cache@v4
       with:
-        # This path is specific to Ubuntu
-        path: ~/.cache/pip
-        # Look to see if there is a cache hit for the corresponding requirements file
-        key: ${{ runner.os }}-pip-${{ hashFiles('NuRadioMC/test/requirements.txt') }}
+        path: |
+          ~/.cache/pip
+          ${{ env.pythonLocation }}
+        key: ${{ steps.cache-keys.outputs.env-key }}
         restore-keys: |
-          ${{ runner.os }}-pip-
-          ${{ runner.os }}-
-    - name: Install dependencies
+          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
+          ${{ runner.os }}-env-
+
+    - name: Install Python dependencies
       run: |
-        sudo apt-get install libgsl-dev
         python -m pip install --upgrade pip
         pip install flake8 pytest
-        export GSLDIR=$(gsl-config --prefix)
-        pip install -e .
-        pip uninstall numba -y # easiest way to test ARZ without numba
+        pip install -e .[proposal,galacticnoise,cr_interpolator]
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
+
     - name: Lint with flake8 (important)
+      if: always()
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
     - name: Lint with flake8 (unimportant)
+      if: always()
       run: |
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  --exit-zero
+
+  single-events:
+    name: Single event simulation | signal and trigger simulation validation
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
+
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
+
+    - name: "Validate separate trigger channels"
+      if: always()
+      run: |
+        NuRadioMC/test/SingleEvents/validate_separate_trigger_channels.sh
+
+    - name: "Single event test (South Pole)"
+      if: always()
+      run: |
+        NuRadioMC/test/SingleEvents/test_build.sh
+
+    - name: Single event test (Moore's Bay)
+      if: always()
+      run: |
+        NuRadioMC/test/SingleEvents/validate_MB.sh
+
+    - name: Single event test (ARZ - Numba)
+      if: always()
+      run: |
+        NuRadioMC/test/SingleEvents/validate_ARZ.sh
+
+    - name: Single event test (ARZ - Without Numba)
+      if: always()
+      run: |
+        pip uninstall numba -y # easiest way to test ARZ without numba
+        NuRadioMC/test/SingleEvents/validate_ARZ.sh
+
+  signal-processing:
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
+
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
+
+    - name: Signal generation test
+      if: always()
+      run : |
+        NuRadioMC/test/SignalGen/test_build.sh
+
+    - name: "Signal propagation tests"
+      if: always()
+      run: |
+        NuRadioMC/test/SignalProp/run_signal_test.sh
+
+    - name: "Test Birefringence"
+      if: always()
+      run: |
+        NuRadioMC/test/SignalProp/run_birefringence_tests.sh
+
+    - name: "Trigger tests"
+      if: always()
+      run: |
+        NuRadioReco/test/trigger_tests/run_trigger_test.sh
+
+  effective-volume:
+    name: Validation of effective volume and area simulation (fixed seeds)
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
+
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
+
+    - name: "Veff test"
+      if: always()
+      run: |
+        NuRadioMC/test/Veff/1e18eV/test_build.sh
+
+    - name: "Veff test with noise and phased array"
+      if: always()
+      run: |
+        NuRadioMC/test/Veff/1e18eV/test_build_noise.sh
+
+    - name: "Atmospheric Aeff test"
+      if: always()
+      run: |
+        NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
+
+  rno-g-tests:
+    name: RNO-G example scripts and code
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
+
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
+
+    - name: Cache CI Data
+      uses: ./.github/actions/cache-ci-data
+      with:
+        cache-key: ${{ needs.setup.outputs.data-cache-key }}
+
     - name: "RNO-G Detector"
       if: always()
       run: |
         python NuRadioReco/detector/test/test_rnog_detector.py
-    - name: "detector.Response"
-      if: always()
-      run: |
-        python NuRadioReco/detector/test/test_response.py
+
     - name: "RNO-G data reader"
       if: always()
       run: |
         pip install git+https://github.com/RNO-G/mattak.git
         NuRadioReco/test/RNO_G/test_read_rnog_data.sh
-    - name: "Single event test (South Pole)"
+
+    - name: "RNO-G simulation example"
       if: always()
       run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/SingleEvents/test_build.sh
-    - name: Single event test (Moore's Bay)
+        python3 NuRadioMC/examples/RNO_G_trigger_simulation/simulate.py --station_id 11 -e 1e19 -n 2000
+
+  other-tests:
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
+
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
+
+    - name: "channelGalacticNoiseAdder"
       if: always()
       run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/SingleEvents/validate_MB.sh
-    - name: Single event test (ARZ)
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/SingleEvents/validate_ARZ.sh
-    - name: Test Numba version of ARZ
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        pip install numba
-        NuRadioMC/test/SingleEvents/validate_ARZ.sh
-    - name: Signal generation test
-      if: always()
-      run : |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/SignalGen/test_build.sh
-    - name: "Validate separate trigger channels"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/SingleEvents/validate_separate_trigger_channels.sh
-    - name: "Signal propagation tests"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/SignalProp/run_signal_test.sh
-    - name: "Test Birefringence"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/SignalProp/run_birefringence_tests.sh
-    - name: "Test Veff example"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        pip install -e .[proposal]
-        NuRadioMC/test/examples/test_veff_example.sh
-    - name: "Test calibration pulser example"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/examples/test_cal_pulser_example.sh
-    - name: "Test radio emitter pulser example"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
-    - name: "Test webinar examples"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/examples/test_webinar.sh
-    - name: "Veff test"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/Veff/1e18eV/test_build.sh
-    - name: "Veff test with noise and phased array"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/Veff/1e18eV/test_build_noise.sh
-    - name: "Atmospheric Aeff test"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
-    - name: "Trigger tests"
-      if: always()
-      run: |
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioReco/test/trigger_tests/run_trigger_test.sh
-    - name: "Test channelGalacticNoiseAdder"
-      if: always()
-      run: |
-        pip install git+https://github.com/telegraphic/pygdsm pylfmap
         python NuRadioReco/examples/StandAloneScripts/B01galacticnoiseadder.py
-    - name: "Test all examples"
+
+    - name: "detector.Response"
       if: always()
       run: |
-        export GSLDIR=$(gsl-config --prefix)
-        pip install -e .[cr_interpolator]
-        NuRadioReco/test/test_examples.sh
+        python NuRadioReco/detector/test/test_response.py
+
+    - name: "Test unfolding with voltageToEfieldConverter"
+      if: always()
+      run: |
+        python NuRadioReco/test/voltageToEfieldConverter/test-unfolding.py
+
     - name: "Test module structure of all modules in NuRadioReco.modules"
       if: always()
       run: |
-        export GSLDIR=$(gsl-config --prefix)
         python NuRadioReco/test/check_modules.py -r
+
+    - name: "Test calibration pulser example"
+      if: always()
+      run: |
+        NuRadioMC/test/examples/test_cal_pulser_example.sh
+
+    - name: "Test radio emitter pulser example"
+      if: always()
+      run: |
+        NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
+
+  examples:
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    needs: setup
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
+
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache-key: ${{ needs.setup.outputs.env-cache-key }}
+
+    - name: Cache CI Data
+      uses: ./.github/actions/cache-ci-data
+      with:
+        cache-key: ${{ needs.setup.outputs.data-cache-key }}
+
+    - name: "Test Veff example"
+      if: always()
+      run: |
+        NuRadioMC/test/examples/test_veff_example.sh
+
+    - name: "Test webinar examples"
+      if: always()
+      run: |
+        NuRadioMC/test/examples/test_webinar.sh
+
+    - name: "Test all examples"
+      if: always()
+      run: |
+        NuRadioReco/test/test_examples.sh
+
+    - name: "Test interactive examples"
+      if: always()
+      run: |
+        pip install jupyter
+        pip install git+https://github.com/RNO-G/mattak.git
+        jupyter execute NuRadioMC/examples/Interactive/W01-simulate-neutrino-detector.ipynb
+        jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
+        jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
+        jupyter execute NuRadioReco/examples/Interactive/read_RNOG_data.ipynb

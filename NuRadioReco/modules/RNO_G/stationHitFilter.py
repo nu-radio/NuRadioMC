@@ -296,6 +296,10 @@ class stationHitFilter:
         # This implicitly obeys the channel mapping
         traces = np.array([np.array(channel.get_trace()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
         times = np.array([np.array(channel.get_times()) for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
+        channels = np.array([channel.get_id() for channel in station.iter_channels() if channel.get_id() in self._in_ice_channels])
+        sorted_indices = channels.argsort()
+        traces = traces[sorted_indices]
+        times = times[sorted_indices]
 
         if noise_RMS_all is not None:
             noise_RMS = noise_RMS_all[self._in_ice_channels]  # HACK: use channel IDs to index noise_RMS
@@ -321,8 +325,9 @@ class stationHitFilter:
 
         trigger_types = np.unique([key.strip("_passed") for key in self.__counting_dict.keys()])
         for trigger_type in trigger_types:
-            counts += (f"\n{trigger_type:>10} triggers: {self.__counting_dict[f'{trigger_type}_passed']:4d} / {self.__counting_dict[trigger_type]:4d} events "
-                f"({self.__counting_dict[f'{trigger_type}_passed'] / self.__counting_dict[trigger_type] * 100:.2f} %)")
+            if self.__counting_dict[trigger_type] != 0:
+                counts += (f"\n{trigger_type:>10} triggers: {self.__counting_dict[f'{trigger_type}_passed']:4d} / {self.__counting_dict[trigger_type]:4d} events "
+                    f"({self.__counting_dict[f'{trigger_type}_passed'] / self.__counting_dict[trigger_type] * 100:.2f} %)")
 
         self.logger.info(counts)
 

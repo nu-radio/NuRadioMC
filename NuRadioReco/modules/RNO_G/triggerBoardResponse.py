@@ -138,6 +138,7 @@ class triggerBoardResponse:
         if not hasattr(vrms_noise, "__len__"):
             vrms_noise = np.full_like(trigger_channels, vrms_noise, dtype=float)
 
+        dbg_str = "\n\tChannel | std(channel) / mV | vrms_after_gain | gain factor | eff. noise count"
         vrms_after_gain = []
         for channel_id, vrms in zip(trigger_channels, vrms_noise):
             det_channel = det.get_channel(station.get_id(), channel_id)
@@ -158,7 +159,6 @@ class triggerBoardResponse:
             else:
                 assert self._nbits == total_bits, "ADC bits are not consistent across channels"
 
-
             # find the ADC gain from the possible values that makes the realized
             # vrms closest-to-but-greater-than the ideal value
             amplified_vrms_values = vrms * self._triggerBoardAmplifications
@@ -177,9 +177,10 @@ class triggerBoardResponse:
             # Calculate the effective number of noise bits
             eff_noise_count = vrms_after_gain[-1] / volts_per_adc
 
-            logger.debug("\t Ch {}: ampl. Vrms {:0.3f} ({:.3f}) mV (gain: {}, eff. noise count {:0.2f})".format(
+            dbg_str += ("\n\t {: 4d}   |     {: 4.3f}      |     {: 4.3f}     |     {}    |  {:0.2f}".format(
                 channel_id, np.std(channel.get_trace()) / units.mV, vrms_after_gain[-1] / units.mV, gain_to_use, eff_noise_count))
-        logger.debug("Target Vrms: {:0.3f} mV; Target noise count: {}".format(ideal_vrms / units.mV, noise_count))
+
+        logger.debug("Target Vrms: {:0.3f} mV; Target noise count: {}{}".format(ideal_vrms / units.mV, noise_count, dbg_str))
 
         return np.array(vrms_after_gain), ideal_vrms
 

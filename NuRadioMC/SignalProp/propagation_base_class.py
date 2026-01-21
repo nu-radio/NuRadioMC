@@ -12,7 +12,7 @@ class ray_tracing_base:
     """
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
-                 detector=None, ray_tracing_2D_kwards={}):
+                 detector=None, ray_tracing_2D_kwards={}, use_cpp=None):
         """
         class initilization
 
@@ -51,6 +51,8 @@ class ray_tracing_base:
         detector: detector object
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
+        use_cpp: bool
+            Not used here. For compatibility with analytic ray tracer.
         """
         self.__logger = logging.getLogger('NuRadioMC.SignalProp.ray_tracing_base')
         self.__logger.setLevel(log_level)
@@ -65,11 +67,12 @@ class ray_tracing_base:
             for station_id in self._detector.get_station_ids():
                 channel_id_1st = self._detector.get_channel_ids(station_id)[0]
                 sampling_frequency = self._detector.get_sampling_frequency(station_id, channel_id_1st)
+
                 for channel_id in self._detector.get_channel_ids(station_id):
                     if self._detector.get_sampling_frequency(station_id, channel_id) != sampling_frequency:
                         self.__logger.warning(
                             f"Different channels have different sampling frequencies. Channel {channel_id} has sampling frequency" \
-                            f"{self._detector.get_sampling_frequency(station_id, channel_id)/units.GHz:.1f}." \
+                            f"{self._detector.get_sampling_frequency(station_id, channel_id) / units.GHz:.1f}." \
                             f"Using the sampoing frequency of the first channel with id {channel_id_1st} with {sampling_frequency/units.GHz:.1f} GHz." \
                             "to calculate the maximum relevant frequency for calculating signal attenuation.")
 
