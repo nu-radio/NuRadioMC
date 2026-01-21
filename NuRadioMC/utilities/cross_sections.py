@@ -1,13 +1,13 @@
 import os
-import lzma
-import pickle
 import itertools
 import functools
 import numpy as np
 from scipy import constants
 from scipy.interpolate import interp1d
+from scipy.integrate import trapezoid
 
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities import dataservers
 
 import logging
 logger = logging.getLogger("NuRadioMC.cross_sections")
@@ -19,49 +19,38 @@ def _read_differential_cross_section_BGR18():
     Read the differential cross section dsigma / dy.
     """
 
-
     # shape of dsigma_dy_ref (flavor, cc_nc, energy, inelaticity)
-    nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = \
-        pickle.load(lzma.open(os.path.join(os.path.dirname(__file__), "data", "BGR18_dsigma_dy.xz")))
+    filepath = os.path.join(os.path.dirname(__file__), "data", 'BGR18_dsigma_dy_H2O.npz')
+    if not os.path.exists(filepath):
+        logger.status("Downloading BGR18 differential cross sections (first-time setup)...")
+        dataservers.download_from_dataserver('cross_sections/BGR18_dsigma_dy_H2O.npz', filepath, unpack_tarball=False)
+    data = np.load(filepath)
 
     # Convert to NuRadio units. We have to divide by 18 because the differential cross section
     # is given for the interaction between neutrinos and ice nuclei (which carry 18 nucleons)
     # while in NuRadio we use the cross section per nucleon.
-    dsigma_dy_ref = np.array(dsigma_dy_ref) * units.cm2 / 18
+    dsigma_dy_ref = data['dsigma_dy_ref'] * units.cm2 / 18
 
-    flavors_ref = np.array(flavors_ref)
-    nu_energies_ref = np.array(nu_energies_ref)
-    yy_ref = np.array(yy_ref)
-    ncccs_ref = np.array(ncccs_ref)
+    flavors_ref = data['flavors_ref']
+    nu_energies_ref = data['nu_energies_ref']
+    yy_ref = data['y_ref']
+    ncccs_ref = data['ncccs_ref']
 
     return nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref
 
 @functools.lru_cache(maxsize=2)
-def _integrate_over_differential_cross_section_BGR18(simple=True):
+def _integrate_over_differential_cross_section_BGR18(simple=False):
     """
     Integrate the differential cross section dsigma / dy over y.
     """
 
-    # shape of dsigma_dy_ref (flavor, cc_nc, energy, inelaticity)
+    # shape of dsigma_dy_ref (flavor, cc_nc, energy, inelasticity)
     nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = _read_differential_cross_section_BGR18()
 
     if simple:
-        dsigma_dy_integrated = np.trapz(dsigma_dy_ref, yy_ref, axis=-1)
+        dsigma_dy_integrated = trapezoid(dsigma_dy_ref, yy_ref, axis=-1)
     else:
-        from scipy.integrate import quad
-
-        dsigma_dy_integrated = []
-        for dsigma_dy_ref_ele in dsigma_dy_ref.reshape(-1, dsigma_dy_ref.shape[-1]):
-
-            # Convert dsigma_dy_ref_ele to picobarn for better numerical precision and log10
-            # for better interpolation
-            func = interp1d(yy_ref, np.log10(dsigma_dy_ref_ele / units.picobarn), axis=-1,
-                            bounds_error=False, fill_value="extrapolate")
-
-            res = quad(lambda y: 10 ** func(y), 0, 1, limit=5000, full_output=True)
-            dsigma_dy_integrated.append(res[0] * units.picobarn)  # convert back from picobarn
-
-        dsigma_dy_integrated = np.array(dsigma_dy_integrated).reshape(dsigma_dy_ref.shape[:-1])
+        dsigma_dy_integrated = integrate_pwpl(dsigma_dy_ref, yy_ref, low=0, high=1)
 
     # Extend the cross section to include the total cross section by summing nc and cc contributions
     cross_section = np.zeros((len(flavors_ref), 3, len(nu_energies_ref)))
@@ -285,11 +274,11 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='h
         crscn = 7.84e-36 * units.cm ** 2 * np.power(energy / units.GeV, 0.363)
 
     elif cross_section_type == 'hedis_bgr18':
-        nu_energies_ref, flavors_ref, ncccs_ref, cross_section_ref = _integrate_over_differential_cross_section_BGR18(simple=True)
+        nu_energies_ref, flavors_ref, ncccs_ref, cross_section_ref = _integrate_over_differential_cross_section_BGR18(simple=False)
 
         if np.any(energy > nu_energies_ref[-1]):
             raise ValueError(
-                f"Exceeding energy limit of BGR18 cross-section parameterization (E_lim = {nu_energies_ref[-1]:.2e}eV). "
+                f"Exceeding energy limit of BGR18 cross-section parameterization (E_lim = {nu_energies_ref[-1]:.2e} eV). "
                 "Please use a different cross-section model.")
 
         crscn = np.zeros_like(energy)
@@ -431,6 +420,118 @@ def get_interaction_length(
     m_n = constants.m_p * units.kg  # nucleon mass, assuming proton mass
     L_int = m_n / get_nu_cross_section(Enu, flavors=flavor, inttype=inttype, cross_section_type=cross_section_type) / density
     return L_int
+
+def integrate_pwpl(y, x, low=None, high=None, full_output=False):
+    """
+    Integrate y over x, assuming y(x) is a piecewise-continuous power law.
+
+    Analytic integral of y(x)dx, assuming y(x) is a piecewise-continuous power law;
+    that is, ``y(x) = A x**b`` with different values for ``A`` and ``b`` between each
+    pair of subsequent values.
+
+    The integration is always over the last axis of ``y``, so ``x`` should either be of a compatible
+    shape to ``y`` or be a 1D-array with length ``y.shape[-1]``.
+    The integral limits are from ``x[0]`` to ``x[-1]`` unless ``low`` or ``high`` are given.
+
+    Parameters
+    ----------
+    y : array of floats
+        The values of the function to integrate.
+    x : array of floats
+        The values of the dependent variable to integrate over. Should match the
+        last axis of ``y``, which is always the axis which is integrated over.
+        Additionally, ``x`` should be sorted.
+    low : float, optional
+        Extend the lower limit of the integral from ``x[0]`` to ``low``,
+        by linearly extrapolating (in log-log space).
+        Note that ``low`` should satisfy ``0 <= low < x[0]``
+    high : float, optional
+        Extend the upper limit of the integral from ``x[-1]`` to ``high``,
+        by linearly extrapolating (in log-log space).
+        Note that ``high`` should satisfy  ``high > x[-1]``.
+    full_output : bool, optional
+        If True, returns additional output. Default is False.
+
+    Returns
+    -------
+    res : float | array of floats
+        The result of the integration over the last axis of ``y``.
+    (integral, x) : tuple of arrays, optional
+        (Only if ``full_output==True``)
+        A tuple with the integral ``Y(x)`` and the (optionally extended
+        to include ``low`` and ``high``) array ``x``. ``Y(x)`` is the
+        value of the integral integrated from ``low`` to ``x``, and
+        will have the same length as ``x`` in the last axis.
+
+        The integral ``Y(x)`` may be useful if e.g. ``y(x)`` describes
+        a probability distribution function (PDF), in which case ``Y(x)``
+        is the cumulative distribution function (CDF).
+
+    Notes
+    -----
+    The function ``y`` is assumed to be of the form
+    :math:`y_i(x) = A_i x^{b_i}` for :math:`x_i <= x < x_{i+1}`;
+    thus, the integrand :math:`Y_i = \int_{x_i}^{x_{i+1}} y(x) dx` on each interval is
+
+    .. math:: Y_i = \\frac{A_i}{b_i+1} [x_{i+1}^{b_i+1} - x_i^{b_i+1}]
+
+    """
+
+    ## Calling np.log when y=0 results in a bunch of RuntimeWarnings.
+    ## Therefore, we manually mask out these values and set them to np.nan,
+    ## and just manually set the integrand to zero afterwards
+    nanmask = y==0
+    binmask = nanmask[...,1:] | nanmask[..., :-1] # we mask bins if either edge is 'invalid'
+
+    logy = np.nan * np.zeros_like(y)
+    logy[~nanmask] = np.log(y[~nanmask])
+    logx = np.log(x)
+    slope = np.diff(logy) / np.diff(logx)
+    lognorm = logy[...,:-1] - slope * logx[...,:-1]
+
+    integrand = np.exp(
+        lognorm
+        + np.log((x[1:]**(slope + 1) - x[:-1]**(slope + 1)) / (slope + 1))
+    )
+
+    integrand[binmask] = 0
+
+    if low is not None:
+        if low < 0:
+            raise ValueError(f"Cannot use power-law integration for negative values.")
+        elif (low == 0) and np.any(slope[...,0] <= -1):
+            raise ValueError(f"Cannot integrate to x={low} because min(slope) {min(slope[...,0])} <= -1")
+        int_low = np.exp(
+            lognorm[...,0]
+            + np.log(
+                (x[0]**(slope[...,0] + 1) - low**(slope[...,0] + 1))
+                / (slope[...,0] + 1))
+        )
+        # set integrand to 0 if the first or second value of y (used for the extrapolation) is zero
+        int_low = np.where(binmask[...,0], 0, int_low)
+        integrand = np.concatenate([np.asarray(int_low)[...,None], integrand], axis=-1)
+        x = np.concatenate([np.atleast_1d(low), x], axis=-1)
+
+    if high is not None:
+        int_high = np.exp(
+            lognorm[...,-1]
+            + np.log(
+                (high**(slope[...,-1] + 1) - x[-1]**(slope[...,-1] + 1))
+                / (slope[...,-1] + 1))
+        )
+        # set integrand to 0 if the (second-to-)last value of y (used for the extrapolation) is zero
+        int_high = np.where(binmask[...,-1], 0, int_high)
+        integrand = np.concatenate([integrand, np.asarray(int_high)[...,None]], axis=-1)
+        x = np.concatenate([x, np.atleast_1d(high)], axis=-1)
+
+    res = np.sum(integrand, axis=-1)
+
+    if full_output:
+        integral = np.cumsum(integrand, axis=-1)
+
+        return res, (np.insert(integral, 0, 0, axis=-1), x)
+
+    return res
 
 
 if __name__ == "__main__":  # this part of the code gets only executed it the script is directly called
