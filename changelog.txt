@@ -2,6 +2,15 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 3.1.1
+new features:
+
+bugfixes:
+- Fixed the length of the top-level 'triggered' array in HDF5 output. Previously, the length
+was unintentionally ``m_showers`` (the number of showers in a single station) instead of
+``n_showers`` (the number of showers in the simulation), which could cause a crash for
+multi-station simulations.
+
 version 3.1.0
 new features:
 - added rno-g cal_pulser waveform model at different temperatures in NuRadioMC/data 
