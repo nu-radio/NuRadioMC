@@ -270,6 +270,7 @@ class voltageToAnalyticEfieldConverter:
     def run(self, evt, station, det, debug=False, debug_plotpath=None,
             use_channels=None,
             bandpass=None,
+            order=10,
             use_MC_direction=False):
         """
         run method. This function is executed for each event
@@ -291,6 +292,10 @@ class voltageToAnalyticEfieldConverter:
             the lower and upper frequecy for which the analytic pulse is calculated.
             A butterworth filter of 10th order and a rectangular filter is applied.
             default 100 - 500 MHz
+        order: int, list (default: 10)
+            the order of the butterworth filter on the analytic efield. If a list of
+            two numbers is given, the first number is the order of the highpass filter
+            and the second number is the order of the lowpass filter.
         use_MC_direction: bool
             use simulated direction instead of reconstructed direction
         """
@@ -338,8 +343,8 @@ class voltageToAnalyticEfieldConverter:
                 slope = params[0]
             phase = np.arctan(phase2)  # project -inf..+inf to -0.5 pi..0.5 pi
 
-            analytic_pulse_theta = pulse.get_analytic_pulse_freq(ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
-            analytic_pulse_phi = pulse.get_analytic_pulse_freq(1 - ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
+            analytic_pulse_theta = pulse.get_analytic_pulse_freq(ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
+            analytic_pulse_phi = pulse.get_analytic_pulse_freq(1 - ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
             chi2 = 0
 
             n_channels = len(V_timedomain)
@@ -363,8 +368,8 @@ class voltageToAnalyticEfieldConverter:
             elif(len(params) == 1):
                 ampPhi = params[0]
                 ampTheta = 0
-            analytic_pulse_theta = pulse.get_analytic_pulse_freq(ampTheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
-            analytic_pulse_phi = pulse.get_analytic_pulse_freq(ampPhi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
+            analytic_pulse_theta = pulse.get_analytic_pulse_freq(ampTheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
+            analytic_pulse_phi = pulse.get_analytic_pulse_freq(ampPhi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
             chi2 = 0
 
             if(debug_obj):
@@ -398,8 +403,8 @@ class voltageToAnalyticEfieldConverter:
 
         def obj_amplitude_slope(params, phase, pos, compare='hilbert', debug_obj=0):
             ampPhi, ampTheta, slope = params
-            analytic_pulse_theta = pulse.get_analytic_pulse_freq(ampTheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
-            analytic_pulse_phi = pulse.get_analytic_pulse_freq(ampPhi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
+            analytic_pulse_theta = pulse.get_analytic_pulse_freq(ampTheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
+            analytic_pulse_phi = pulse.get_analytic_pulse_freq(ampPhi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
             chi2 = 0
             if(debug_obj and self.i_slope_fit_iterations % 25 == 0):
                 fig, ax = plt.subplots(4, 2, sharex=False, figsize=(20, 10))
@@ -448,8 +453,8 @@ class voltageToAnalyticEfieldConverter:
 
         def obj_amplitude_second_order(params, slope, phase, pos, compare='hilbert', debug_obj=0):
             ampPhi, ampTheta, second_order = params
-            analytic_pulse_theta = pulse.get_analytic_pulse_freq(ampTheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, quadratic_term=second_order, quadratic_term_offset=bandpass[0])
-            analytic_pulse_phi = pulse.get_analytic_pulse_freq(ampPhi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, quadratic_term=second_order, quadratic_term_offset=bandpass[0])
+            analytic_pulse_theta = pulse.get_analytic_pulse_freq(ampTheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order, quadratic_term=second_order, quadratic_term_offset=bandpass[0])
+            analytic_pulse_phi = pulse.get_analytic_pulse_freq(ampPhi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order, quadratic_term=second_order, quadratic_term_offset=bandpass[0])
             chi2 = 0
             if(debug_obj and self.i_slope_fit_iterations % 50 == 0):
                 fig, ax = plt.subplots(5, 2, sharex=False, figsize=(20, 10))
@@ -490,9 +495,9 @@ class voltageToAnalyticEfieldConverter:
             if(debug_obj and self.i_slope_fit_iterations % 50 == 0):
                 sim_station = station.get_sim_station()
                 sim_channel = next(sim_station.iter_channels())
-                ax[4][0].plot(sim_channel.get_frequencies() / units.MHz, np.abs(pulse.get_analytic_pulse_freq(ampTheta, slope, phase, len(sim_channel.get_times()), sim_channel.get_sampling_rate(), bandpass=bandpass, quadratic_term=second_order)), '--', color='orange')
+                ax[4][0].plot(sim_channel.get_frequencies() / units.MHz, np.abs(pulse.get_analytic_pulse_freq(ampTheta, slope, phase, len(sim_channel.get_times()), sim_channel.get_sampling_rate(), bandpass=bandpass, order=order, quadratic_term=second_order)), '--', color='orange')
                 ax[4][0].plot(sim_channel.get_frequencies() / units.MHz, np.abs(sim_channel.get_frequency_spectrum()[1]), color='blue')
-                ax[4][1].plot(sim_channel.get_frequencies() / units.MHz, np.abs(pulse.get_analytic_pulse_freq(ampPhi, slope, phase, len(sim_channel.get_times()), sim_channel.get_sampling_rate(), bandpass=bandpass, quadratic_term=second_order)), '--', color='orange')
+                ax[4][1].plot(sim_channel.get_frequencies() / units.MHz, np.abs(pulse.get_analytic_pulse_freq(ampPhi, slope, phase, len(sim_channel.get_times()), sim_channel.get_sampling_rate(), bandpass=bandpass, order=order, quadratic_term=second_order)), '--', color='orange')
                 ax[4][1].plot(sim_channel.get_frequencies() / units.MHz, np.abs(sim_channel.get_frequency_spectrum()[2]), color='blue')
                 ax[4][0].set_xlim([20, 500])
                 ax[4][1].set_xlim([20, 500])
@@ -516,8 +521,8 @@ class voltageToAnalyticEfieldConverter:
         slope = res.x[0]
         if slope > 0 or slope < -50:  # sanity check
             slope = -1.9
-        analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
-        analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(1 - ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
+        analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
+        analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(1 - ratio, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
 
         n_channels = len(V_timedomain)
         analytic_traces = np.zeros((n_channels, n_samples_time))
@@ -585,10 +590,10 @@ class voltageToAnalyticEfieldConverter:
             fig, ax = plt.subplots(1, 1)
             ax.pcolor(X, Y, Z, cmap='viridis_r', vmin=res_amp_slope.fun, vmax=res_amp_slope.fun * 2)
 
-        analytic_pulse_theta = pulse.get_analytic_pulse(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
-        analytic_pulse_phi = pulse.get_analytic_pulse(Aphi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
-        analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
-        analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(Aphi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass)
+        analytic_pulse_theta = pulse.get_analytic_pulse(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
+        analytic_pulse_phi = pulse.get_analytic_pulse(Aphi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
+        analytic_pulse_theta_freq = pulse.get_analytic_pulse_freq(Atheta, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
+        analytic_pulse_phi_freq = pulse.get_analytic_pulse_freq(Aphi, slope, phase, n_samples_time, sampling_rate, bandpass=bandpass, order=order)
 
         analytic_pulse_theta = np.roll(analytic_pulse_theta, pos)
         analytic_pulse_phi = np.roll(analytic_pulse_phi, pos)
