@@ -14,7 +14,7 @@ from radiotools import helper as hp
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.geometryUtilities import get_time_delay_from_direction
 import warnings
-
+from numba import njit
 
 # to convert V**2/m**2 * ns -> V**2/m**2 * s -> J/m**2 -> eV/m**2
 conversion_factor_integrated_signal = 1 / units.s * \
@@ -168,15 +168,23 @@ def interfere_traces_interpolation(traces, times):
 
     time_sum = np.arange(first_time, last_time + tstep, tstep)
     sum_trace = np.zeros(len(time_sum))
-    for trace, time in zip(traces, times):
+    
+    sum_trace = loop_refactor(traces, times, tstep, time_sum, sum_trace)
 
-        fidx = np.around((time[1:] - time_sum[0]) / tstep, 4)  # TODO: check if that makes sense
-        idx = np.array(fidx, dtype=int)
+    return sum_trace
 
-        if not np.unique(idx).size == len(idx):
-            sys.exit(
-                "Index array has not unique entries. That is most probably a rounding issue!")
+@njit(parallel=True)
+def loop_refactor(traces: np.ndarray, times: np.ndarray, tstep: float, time_sum: np.ndarray, sum_trace: np.ndarray) -> np.ndarray:
+    for i in range(traces.shape[0]):
+        trace = traces[i]
+        time = times[i]
+        fidx = np.round((time[1:] - time_sum[0]) / tstep, 4)  # TODO: check if that makes sense
+        idx = fidx.astype(np.int64)
 
+        # if not np.unique(idx).size == len(idx):
+        #     sys.exit(
+        #         "Index array has not unique entries. That is most probably a rounding issue!")
+        
         f = (fidx - idx)[0]  # are all the same
 
         """ Linear interplation to match the binning of time_sum. """
