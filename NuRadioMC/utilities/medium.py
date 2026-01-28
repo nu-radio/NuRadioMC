@@ -169,52 +169,6 @@ class IceModel_Exp3(medium_base.IceModel):
 
         The z_shift is a variable introduced to be able to shift the exponential
         up or down along the z direction.
-
-        Parameters
-        ----------
-        n_snow: float
-        delta_n_snow: float 
-        z_shift_snow: float 
-
-        refractive index profile in snow 
-        n(z) = n_snow - delta_n_snow * exp(z_shift_snow * z)
-
-        n_firn: float
-        delta_n_firn: float 
-        z_shift_firn: float 
-
-        refractive index profile in firn 
-        n(z) = n_firn - delta_n_firn * exp(z_shift_firn * z)
-
-        n_bubbly: float
-        delta_n_bubbly: float
-        z_shift_bubbly: float
-
-        refractive index profile in snow
-        n(z) = n_bubbly - delta_n_bubbly * exp(z_shift_bubbly * z)
-
-        z_firn: float, meters
-            transition between snow and firn
-
-        z_bubbly: float, meters
-            transition between firn and bubbly ice
-
-        Notes
-        -----
-        The 3 part exponential ice model currently has the following default values as found here under ior_exp3 
-        https://github.com/philippwindischhofer/Reconal/blob/main/defs.py
-
-        n_snow = 1.51188 
-        delta_n_snow = 0.271579
-        z_shift_snow = 0.114553
-        n_firn = 1.89957
-        delta_n_firn = 0.529715
-        z_shift_firn = 0.0129175
-        n_bubbly = 1.77468
-        delta_n_bubbly = 1.41573
-        z_shift_bubbly = 0.0387882
-        z_firn = -14.9
-        z_bubbly = -80.5
         
         """
         if not medium_base.radiopropa_is_imported:
@@ -223,17 +177,17 @@ class IceModel_Exp3(medium_base.IceModel):
             raise ImportError('This ice model depends fully on RadioPropa, which could not be imported')
 
         super().__init__(z_bottom = -3000 * units.meter)
-        self._scalarfield = RP.IceModel_Exp3(n_snow = self.n_snow, 
-                delta_n_snow = self.delta_n_snow,
-                z_shift_snow = self.z_shift_snow,
-                n_firn = self.n_firn,
-                delta_n_firn = self.delta_n_firn,
-                z_shift_firn = self.z_shift_firn,
-                n_bubbly = self.n_bubbly,
-                delta_n_bubbly = self.delta_n_bubbly,
-                z_shift_bubbly = self.z_shift_bubbly,
-                z_firn = self.z_firn, 
-                z_bubbly = self.z_bubbly)
+        self._scalarfield = RP.IceModel_Exp3(n_snow = 1.51188, 
+                delta_n_snow = 0.271579,
+                z_shift_snow = 0.114553,
+                n_firn = 1.89957,
+                delta_n_firn = 0.529715,
+                z_shift_firn = 0.0129175,
+                n_bubbly = 1.77468,
+                delta_n_bubbly = 1.41573,
+                z_shift_bubbly = 0.0387882,
+                z_firn = -14.9, 
+                z_bubbly = -80.5)
 
     def get_index_of_refraction(self, position):
         position = RP.Vector3d(*(position / units.meter))
