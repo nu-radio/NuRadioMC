@@ -12,6 +12,7 @@ import sys
 import copy
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from numba import jit
 
 import logging
 logger = logging.getLogger('NuRadioReco.efieldRadioInterferometricReconstruction')
@@ -121,7 +122,7 @@ class efieldInterferometricDepthReco:
 
         zenith = hp.get_angle(np.array([0, 0, 1]), shower_axis)
         tstep = times[0, 1] - times[0, 0]
-        sum_traces = []
+        self.sum_traces = []
         if depths is not None:
             signals = np.zeros(len(depths))
             depths_or_distances = depths
@@ -159,7 +160,7 @@ class efieldInterferometricDepthReco:
                 sys.exit("Not implemented")
             
             ax.plot(sum_trace, label=f"{dod}")
-            sum_traces.append(sum_trace)
+            self.sum_traces.append(sum_trace)
 
             signal = interferometry.get_signal(sum_trace, tstep, kind=self._signal_kind)
             signals[idx] = signal
@@ -314,7 +315,7 @@ class efieldInterferometricDepthReco:
 
 
     @register_run()
-    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, use_voltage_traces=True, long_plot=True, rit_plot=True, n_samples=None):
+    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, use_voltage_traces=True, long_plot=True, rit_plot=True, n_samples=None, use_interferometric_axis=False):
         """
         Run interferometric reconstruction of depth of coherent signal.
 
@@ -344,6 +345,9 @@ class efieldInterferometricDepthReco:
 
         n_samples: int
             Take specified number of samples around peak, if None use full trace
+
+        use_interferometric_axis: bool
+            if True, use the interferometric axis stored in shower parameters
         """
 
         # TODO: Mimic imperfect time syncronasation by adding a time jitter here?
@@ -356,7 +360,7 @@ class efieldInterferometricDepthReco:
             shower = evt.get_first_shower()
 
         self.update_atmospheric_model_and_refractivity_table(shower)
-        core, shower_axis, cs = get_geometry_and_transformation(shower)
+        core, shower_axis, cs = get_geometry_and_transformation(shower, use_interferometric_axis)
 
         traces_vxB, times, pos = get_station_data(
             evt, det, cs, use_MC_pulses, use_voltage_traces, n_sampling=n_samples)
@@ -632,8 +636,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             shower_axis, core,
             magnetic_field_vector,
             is_mc=True,
-            initial_grid_spacing=60,
-            cross_section_size=1000):
+            initial_grid_spacing=20,
+            cross_section_size=400):
         """
         Run interferometric reconstruction of the shower axis. Find the maxima of the interferometric signals
         within 2-d plane (slices) along a given axis (initial guess). Through those maxima (their position in the
@@ -707,7 +711,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         relative = False
         centered_around_truth = True
 
-        def sample_lateral_cross_section_placeholder(dep):
+        def sample_lateral_cross_section_placeholder(dep, spacing):
             """
             Run sample_lateral_cross_section for a particular depth.
 
@@ -722,12 +726,12 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
                 traces, times, station_positions,
                 shower_axis_inital, core_inital, dep, cs,
                 shower_axis, core,
-                relative=relative, initial_grid_spacing=initial_grid_spacing,
+                relative=relative, initial_grid_spacing=spacing,
                 centered_around_truth=centered_around_truth,
                 cross_section_size=cross_section_size, deg_resolution=deg_resolution)
 
-        for depth in depths:
-            found_point, weight = sample_lateral_cross_section_placeholder(depth)
+        for depth, spacing in zip(depths, initial_grid_spacing):
+            found_point, weight = sample_lateral_cross_section_placeholder(depth, spacing)
 
             found_points.append(found_point)
             weights.append(weight)
@@ -770,7 +774,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         return direction_rec, core_rec
 
     @register_run()
-    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, use_voltage_traces=True, n_samples=None):
+    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, use_voltage_traces=True, n_samples=None, cross_section_size=1000, cross_section_spacing=60):
         """
         Run interferometric reconstruction of depth of coherent signal.
 
@@ -806,13 +810,13 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             shower = evt.get_first_shower()
 
         self.update_atmospheric_model_and_refractivity_table(shower)
-        core, shower_axis, cs = get_geometry_and_transformation(shower)
+        core, shower_axis, cs = get_geometry_and_transformation(shower, False)
 
         traces_vxB, times, pos = get_station_data(
             evt, det, cs, use_MC_pulses, use_voltage_traces, n_samples)
 
         direction_rec, core_rec = self.reconstruct_shower_axis(
-            traces_vxB, times, pos, shower_axis, core, is_mc=True, magnetic_field_vector=shower[shp.magnetic_field_vector])
+            traces_vxB, times, pos, shower_axis, core, is_mc=True, magnetic_field_vector=shower[shp.magnetic_field_vector], initial_grid_spacing=cross_section_spacing, cross_section_size=cross_section_size)
 
         shower.set_parameter(shp.interferometric_shower_axis, direction_rec)
         shower.set_parameter(shp.interferometric_core, core_rec)
@@ -821,7 +825,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         pass
 
 
-def get_geometry_and_transformation(shower):
+def get_geometry_and_transformation(shower, use_interferometric_axis):
     """
     Returns core (def. as intersection between shower axis and observation plane,
     shower axis, and radiotools.coordinatesytem for given shower.
@@ -830,19 +834,32 @@ def get_geometry_and_transformation(shower):
     ----------
 
     shower : BaseShower
+
+    use_interferometric_axis: bool
+        if True, returns the interferometric axis, if False returns the pre-calculated axis
     """
 
     observation_level = shower[shp.observation_level]
-    core = shower[shp.core]
 
     # if not np.isclose(core[-1], observation_level):
     #     sys.exit("Code down the road expect that to be equal!")
 
-    zenith = shower[shp.zenith]
-    azimuth = shower[shp.azimuth]
+    if use_interferometric_axis:
+        shower_axis = shower[shp.interferometric_shower_axis]
+        zenith = shower_axis[0]
+        azimuth = shower_axis[1]
+
+        core = shower[shp.interferometric_core]
+    else:
+        zenith = shower[shp.zenith]
+        azimuth = shower[shp.azimuth]
+        shower_axis = hp.spherical_to_cartesian(zenith, azimuth)
+        
+        core = shower[shp.core]
+    
+    
     magnetic_field_vector = shower[shp.magnetic_field_vector]
 
-    shower_axis = hp.spherical_to_cartesian(zenith, azimuth)
 
     cs = coordinatesystems.cstrafo(
         zenith, azimuth, magnetic_field_vector=magnetic_field_vector)
@@ -902,19 +919,42 @@ def get_station_data(evt, det, cs, use_MC_pulses, use_voltage_trace: bool=False,
             for i in range(0, len(channels_in_station), 2):
                 y_id = channels_in_station[i]
                 x_id = channels_in_station[i+1]
-                channel_y = evt.get_station(station.get_id()).get_channel(y_id)
-                channel_x = evt.get_station(station.get_id()).get_channel(x_id)
-                trace_y = channel_y.get_trace()
-                trace_x = channel_x.get_trace()
+                
+                try:
+                    channel_y = evt.get_station(station.get_id()).get_channel(y_id)
+                    trace_y = channel_y.get_trace()
+                except KeyError:
+                    channel_y = None
 
-                if trace_y.max() > trace_x.max():
-                    trace_to_keep = trace_y
+                try:
+                    channel_x = evt.get_station(station.get_id()).get_channel(x_id)
+                    trace_x = channel_x.get_trace()
+                except KeyError:
+                    channel_x = None
+
+
+                if channel_x is None and channel_y is None:
+                    continue
+                elif channel_x is not None and channel_y is None:
+                    trace_to_keep = channel_x
+                    time = channel_x.get_times()
+                    kept_id = x_id
+                elif channel_x is None and channel_y is not None:
+                    trace_to_keep = channel_y
                     time = channel_y.get_times()
                     kept_id = y_id
                 else:
-                    trace_to_keep = trace_x
-                    time = channel_x.get_times()
-                    kept_id = x_id
+                    if trace_y.max() > trace_x.max():
+                        trace_to_keep = trace_y
+                        time = channel_y.get_times()
+                        kept_id = y_id
+                    else:
+                        trace_to_keep = trace_x
+                        time = channel_x.get_times()
+                        kept_id = x_id
+
+                if not trace_to_keep.all():
+                    continue
 
                 if n_sampling is not None:
                     trace_to_keep, time = window_trace(trace_to_keep, time, n_sampling)
