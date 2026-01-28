@@ -145,7 +145,7 @@ def read_event(
     event_id: int,
     sim_id: int,
     percent_cut: float = 0.05,
-    snr_cut: float = 5,
+    snr_cut: float = 7,
 ) -> Tuple[
     NuRadioReco.framework.event.Event,
     NuRadioReco.detector.detector_base.DetectorBase
@@ -300,6 +300,7 @@ def calc_interferometetric_depth(
     output_dir: Path,
     event_id: int,
     sim_id: int,
+    core_position: list = [0, 0, 0]
 ) -> None:
     """Takes an event and adds X_rit to its parameters and stores the
     longitudonal depth profile of the air shower.
@@ -313,13 +314,14 @@ def calc_interferometetric_depth(
         output_dir (Path): Output directry for longitudonal profile plot
         event_id (int): id of the event
         sim_id (int): id of the simulation of the event
+        core_position (list[float]): core position of event, default to middle of detector
 
     Returns:
         None
     """
     # detector.update(Time(LOFAR_event_id_to_unix(event_id), format="unix"))
     diagnostic_dir = output_dir.parents[1] / "diagnostic_plots"
-    event.get_first_sim_shower().set_parameter(shp.core, [0, 0, 0])
+    event.get_first_sim_shower().set_parameter(shp.core, core_position)
     try:
         reconstructor.run(event, detector, use_MC_geometry=True, use_MC_pulses=False, use_voltage_traces=True, n_samples=1024)
     except RuntimeError:
@@ -530,7 +532,7 @@ def generate_data(
                 event_file,
                 "star",
                 station_ids_star,
-                core_position,
+                [0, 0],
                 output_dir,
                 event_id,
                 sim_id,
@@ -588,6 +590,7 @@ def generate_data(
                     output_dir / "long_depth_interpolated" / "LOFAR",
                     event_id,
                     sim_id,
+                    core_position + [0]  # make core 3d and set z-coord to 0 to accomadete simulation mismatch
                 )
             except Exception as err:
                 logger.exception(
@@ -1024,6 +1027,7 @@ def plot_traces_per_station(
     sim_id: str,
     output_dir: Path,
     subset_traces: int = None,
+    save_figs: bool = True,
 ) -> None:
     """Makes plots of all traces per station for event supplied over time.
     Saves these to output_dir. Useful for debugging of failed fits. Can
@@ -1036,12 +1040,11 @@ def plot_traces_per_station(
         event_id (int): id of event
         sim_id (str): simulation id of event
         output_dir (Path): path to output directory
-        subset_traces(int): number of traces to plot. Default to None for all traces.
-
+        subset_traces(int): number of traces to plot. Default to None for all traces.        
     Returns:
         None
     """
-    # Plot traces
+    # Plot traces TODO: implement voltage version
     efields_per_station = {}
     for station in event.get_stations():
         efields = station.get_sim_station().get_electric_fields()
