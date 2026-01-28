@@ -158,7 +158,25 @@ class greenland_simple(medium_base.IceModelSimple):
 class IceModel_Exp3(medium_base.IceModel):
     """
     This model can only be used with the radiopropa raytracer.
-    Therefor, the model is implemented through radiopropa.
+    Therefore, the model is implemented through radiopropa.
+
+    Notes
+    -----
+    The 3 part exponential ice model currently has the following default values as found here under ior_exp3 
+    https://github.com/philippwindischhofer/Reconal/blob/main/defs.py
+
+    n_snow = 1.51188 
+    delta_n_snow = 0.271579
+    z_shift_snow = 0.114553
+    n_firn = 1.89957
+    delta_n_firn = 0.529715
+    z_shift_firn = 0.0129175
+    n_bubbly = 1.77468
+    delta_n_bubbly = 1.41573
+    z_shift_bubbly = 0.0387882
+    z_firn = -14.9
+    z_bubbly = -80.5
+    
     """
     def __init__(self):
         """
