@@ -153,8 +153,8 @@ class channelTimeOffsetCalculator:
                     ) * amp_response * (antenna_response['theta'] + antenna_response['phi'])
                     channel_trace_template = fft.freq2time(channel_spectrum_template, sampling_rate)
                     start_bin = int(propagation_times[i_channel, i_solution] * sampling_rate)
-                    channel_templates[i_channel, 0][start_bin:start_bin + len(channel_trace_template)] += channel_trace_template
-                    channel_templates[i_channel, i_solution + 1][start_bin:start_bin + len(channel_trace_template)] = channel_trace_template
+                    channel_templates[i_channel, 0][start_bin:min(start_bin + len(channel_trace_template), channel_templates.shape[2])] += channel_trace_template
+                    channel_templates[i_channel, i_solution + 1][start_bin:min(start_bin + len(channel_trace_template), channel_templates.shape[2])] = channel_trace_template
 
             if np.max(channel_templates[i_channel, 0]) > 0:
                 correlation_sum += radiotools.helper.get_normalized_xcorr(

@@ -571,13 +571,20 @@ class neutrino3DVertexReconstructor:
         travel_times_2_2 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z_2)]
         z_slopes_1 = np.zeros_like(travel_times_1_1)
         z_slopes_2 = np.zeros_like(travel_times_1_1)
-        z_slopes_1[i_z_1 < i_z_2] = (travel_times_1_1 - travel_times_1_2)[i_z_1 < i_z_2] / (z_dist_1 - z_dist_2)[i_z_1 < i_z_2]
-        z_slopes_2[i_z_1 < i_z_2] = (travel_times_2_1 - travel_times_2_2)[i_z_1 < i_z_2] / (z_dist_1 - z_dist_2)[i_z_1 < i_z_2]
-        travel_times_1 = (z - z_dist_1) * z_slopes_1 + travel_times_1_1
-        travel_times_2 = (z - z_dist_1) * z_slopes_2 + travel_times_2_1
-        d_slope = np.zeros_like(z)
-        d_slope[i_x_2 > i_x_1] = (travel_times_1 - travel_times_2)[i_x_2 > i_x_1] / (cell_dist_1 - cell_dist_2)[i_x_2 > i_x_1]
-        travel_times = (d_hor - cell_dist_1) * d_slope + travel_times_1
+        if i_z_1 == i_z_2:
+            travel_times_1 = travel_times_1_1
+            travel_times_2 = travel_times_2_1
+        else:
+            z_slopes_1[i_z_1 < i_z_2] = (travel_times_1_1 - travel_times_1_2)[i_z_1 < i_z_2] / (z_dist_1 - z_dist_2)[i_z_1 < i_z_2]
+            z_slopes_2[i_z_1 < i_z_2] = (travel_times_2_1 - travel_times_2_2)[i_z_1 < i_z_2] / (z_dist_1 - z_dist_2)[i_z_1 < i_z_2]
+            travel_times_1 = (z - z_dist_1) * z_slopes_1 + travel_times_1_1
+            travel_times_2 = (z - z_dist_1) * z_slopes_2 + travel_times_2_1
+        if i_x_1 == i_x_2:
+            travel_times = travel_times_1
+        else:
+            d_slope = np.zeros_like(z)
+            d_slope[i_x_2 > i_x_1] = (travel_times_1 - travel_times_2)[i_x_2 > i_x_1] / (cell_dist_1 - cell_dist_2)[i_x_2 > i_x_1]
+            travel_times = (d_hor - cell_dist_1) * d_slope + travel_times_1
         travel_times[~mask] = np.nan
         return travel_times
 
