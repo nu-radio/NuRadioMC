@@ -93,7 +93,8 @@ ift_efield_reconstructor.begin(
 time_offset_calculator = NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator()
 time_offset_calculator.begin(
     electric_field_template=efield_template,
-    medium=ice
+    medium=ice,
+    use_sim=True
 )
 channel_props_from_neighbor = NuRadioReco.modules.channelSignalPropertiesFromNeighbors.channelSignalPropertiesFromNeighbors()
 for i_event, event in enumerate(event_reader.get_events()):
@@ -105,8 +106,8 @@ for i_event, event in enumerate(event_reader.get_events()):
     channel_bandpass_filter.run(event, station, det, passband=efield_reco_passband, filter_type='butter', order=10)
     channel_bandpass_filter.run(event, sim_station, det, passband=efield_reco_passband, filter_type='butter', order=10)
     efield_bandpass_filter.run(event, sim_station, det, passband=efield_reco_passband, filter_type='butter', order=10)
-    time_offset_calculator.run(event, station, det, range(6), passband=vertex_reco_passband)
-    channel_props_from_neighbor.run(event, station, det, channel_groups=[[0, 1, 2, 3, 4, 5]])
+    time_offset_calculator.run(event, station, det, [0, 1, 2, 3, 4, 8], passband=vertex_reco_passband)
+    channel_props_from_neighbor.run(event, station, det, channel_groups=[[0, 1, 2, 3, 4, 8]])
     # channel_props_from_neighbor.run(event, station, det, channel_groups=[[9, 10, 11]])
     # channel_props_from_neighbor.run(event, station, det, channel_groups=[[21, 22, 23]])
     for ray_type in range(3):
@@ -114,7 +115,7 @@ for i_event, event in enumerate(event_reader.get_events()):
             event,
             station,
             det,
-            channel_ids=[0, 1, 2, 3, 4, 5],
+            channel_ids=[0, 1, 2, 3, 4, 8],
             efield_scaling=True,
             ray_type=ray_type + 1,
             plot_title='',

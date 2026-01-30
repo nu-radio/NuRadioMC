@@ -29,7 +29,7 @@ event_reader.begin([args.input_file])
 
 ice = NuRadioMC.utilities.medium.get_ice_model('greenland_simple')
 energy_reconstructor = NuRadioReco.modules.neutrinoEnergyReconstructor.neutrinoEnergyReconstructor()
-energy_reconstructor.begin([[0, 1, 2, 3, 4, 5]], ice)
+energy_reconstructor.begin([[0, 1, 2, 3, 4, 8]], ice)
 det = NuRadioReco.detector.generic_detector.GenericDetector(
     json_filename=args.detector_file,
     antenna_by_depth=False
