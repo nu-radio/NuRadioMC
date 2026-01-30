@@ -8,6 +8,10 @@ from NuRadioMC.simulation import simulation
 import logging
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runstrawman")
+from NuRadioReco.detector.RNO_G import rnog_detector as RNO_G_detector
+
+Detector= RNO_G_detector.Detector()
+
 
 parser = argparse.ArgumentParser(
     description='We start by creating some data to do reconstruction on, but feel free to use your own simulations!'
@@ -23,12 +27,12 @@ parser.add_argument(
     default='simulated_events.nur',
     help='Name of the .nur file the simulated events will be written into.'
 )
-parser.add_argument(
-    '--detector_file',
-    type=str,
-    default='../../detector/RNO_G/RNO_single_station.json',
-    help='Path to the JSON file containing the detector description.'
-)
+# parser.add_argument(
+#     '--detector_file',
+#     type=str,
+#     default='../../detector/RNO_G/RNO_single_station.json',
+#     help='Path to the JSON file containing the detector description.'
+# )
 parser.add_argument(
     '--config_file',
     type=str,
@@ -70,7 +74,8 @@ class mySimulation(simulation.simulation):
 sim = mySimulation(
     inputfilename=args.input_file,
     outputfilename='output.hdf5',
-    detectorfile=args.detector_file,
+    # detectorfile=args.detector_file,
+    det=Detector,
     outputfilenameNuRadioReco=args.output_file,
     config_file=args.config_file,
     file_overwrite=True,

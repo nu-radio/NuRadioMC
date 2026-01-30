@@ -88,12 +88,12 @@ vertex_reconstructor.begin(
     channel_ids=vertex_channel_ids,
     detector=det,
     template=efield_template,
-    distances_2d=np.arange(100, 3600, 200),
+    distances_2d=np.arange(0, 3000, 200),                               # np.arange(100, 3600, 200),
     distance_step_3d=10,
     z_step_3d=10,
     widths_3d=np.arange(-50, 50, 10),
     passband=vertex_reco_passband,
-    z_coordinates_2d=np.arange(-3000, -100, 25),
+    z_coordinates_2d=np.arange(-3000, -100, 25),                            #np.arange(-3000, -100, 25),
     debug_folder='plots/vertex_reco'
 )
 
