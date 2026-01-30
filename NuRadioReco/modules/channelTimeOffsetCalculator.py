@@ -104,6 +104,7 @@ class channelTimeOffsetCalculator:
         if vertex_position is None:
             raise RuntimeError('Could not find vertex position')
         channel_time_ranges = np.zeros((len(channel_ids), 2))
+        print("Vertex position (m):", vertex_position)  # debug
         raytracer = NuRadioMC.SignalProp.analyticraytracing.ray_tracing(self.__medium)
         for i_channel, channel_id in enumerate(channel_ids):
             channel = station.get_channel(channel_id)
@@ -124,7 +125,9 @@ class channelTimeOffsetCalculator:
         channel_templates = np.zeros((len(channel_ids), 4, n_samples))
         correlation_sum = np.zeros(n_samples * 2 - 1)
         time_offsets = np.arange(-len(correlation_sum) // 2, len(correlation_sum) // 2) / sampling_rate
+        print("Propagation times (s):", propagation_times)  # debug
         propagation_times -= np.min(propagation_times[found_solutions])
+        print("Propagation times (s):", propagation_times)  # debug
         empty_trace = NuRadioReco.framework.base_trace.BaseTrace()
         empty_trace.set_trace(np.zeros(n_samples), sampling_rate)
         empty_trace.set_trace_start_time(np.min(channel_time_ranges))
