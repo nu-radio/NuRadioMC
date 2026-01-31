@@ -87,21 +87,31 @@ if __name__ == "__main__":
         travel_times_direct = np.zeros((len(x_pos), len(z_pos)))
         travel_times_refracted = np.zeros((len(x_pos), len(z_pos)))
         travel_times_reflected = np.zeros((len(x_pos), len(z_pos)))
-        for i_x, xx in enumerate(x_pos):
-            for i_z, zz in enumerate(z_pos):
-                solutions = ray_tracing.find_solutions([xx, zz], [0, channel_type['z']])
+        for i_z, zz in enumerate(z_pos):
+            for i_x, xx in enumerate(x_pos):
+                if zz > channel_type['z']:
+                    z1 = channel_type['z']
+                    x1 = 0
+                    z2 = zz
+                    x2 = xx
+                else:
+                    z1 = zz
+                    x1 = -xx
+                    z2 = channel_type['z']
+                    x2 = 0
+                solutions = ray_tracing.find_solutions([x1, z1], [x2, z2])
                 for solution in solutions:
                     if solution['type'] == 1:
-                        travel_times_direct[i_x][i_z] = ray_tracing.get_travel_time([xx, zz], [0, channel_type['z']], solution['C0'])
+                        travel_times_direct[i_x][i_z] = ray_tracing.get_travel_time([x1, z1], [x2, z2], solution['C0'])
                     if solution['type'] == 2:
-                        travel_times_refracted[i_x][i_z] = ray_tracing.get_travel_time([xx, zz], [0, channel_type['z']], solution['C0'])
+                        travel_times_refracted[i_x][i_z] = ray_tracing.get_travel_time([x1, z1], [x2, z2], solution['C0'])
                     if solution['type'] == 3:
-                        travel_times_reflected[i_x][i_z] = ray_tracing.get_travel_time([xx, zz], [0, channel_type['z']], solution['C0'])
+                        travel_times_reflected[i_x][i_z] = ray_tracing.get_travel_time([x1, z1], [x2, z2], solution['C0'])
         lookup_table[channel_type['name']] = {
             'direct': travel_times_direct,
             'refracted': travel_times_refracted,
             'reflected': travel_times_reflected
         }
 
-    with open('{}/lookup_table_greenland_{:.0f}.p'.format(args.output_path, args.antenna_depth), 'wb') as f:
+    with open('{}/lookup_table_{:.0f}.p'.format(args.output_path, args.antenna_depth), 'wb') as f:
         pickle.dump(lookup_table, f)
