@@ -9,8 +9,11 @@ import logging
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runstrawman")
 from NuRadioReco.detector.RNO_G import rnog_detector as RNO_G_detector
+from astropy.time import Time
 
-Detector= RNO_G_detector.Detector()
+Detector= RNO_G_detector.Detector(select_stations=11)
+# Set detector time to now
+Detector.update(time=Time.now())
 
 
 parser = argparse.ArgumentParser(
@@ -79,6 +82,7 @@ sim = mySimulation(
     outputfilenameNuRadioReco=args.output_file,
     config_file=args.config_file,
     file_overwrite=True,
-    write_detector=False
+    write_detector=False,
+    evt_time=Time.now()
 )
 sim.run()

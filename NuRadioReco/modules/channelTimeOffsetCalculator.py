@@ -190,13 +190,13 @@ class channelTimeOffsetCalculator:
                         receiving_zeniths[i_region] = receive_angles[i_channel, max_corr_ray, 0]
                         receiving_azimuths[i_region] = receive_angles[i_channel, max_corr_ray, 1]
                         ray_types[i_region] = max_corr_ray + 1
-                    channel.set_parameter(chp.signal_time_offsets, time_offsets)
-                    channel.set_parameter(chp.signal_receiving_zeniths, receiving_zeniths)
+                    channel.set_parameter(chp.signal_time_offset, time_offsets)
+                    channel.set_parameter(chp.signal_receiving_zenith, receiving_zeniths)
                     if not use_2d_vertex:
-                        channel.set_parameter(chp.signal_receiving_azimuths, receiving_azimuths)
-                        channel.set_parameter(chp.signal_ray_types, ray_types)
+                        channel.set_parameter(chp.signal_receiving_azimuth, receiving_azimuths)
+                        channel.set_parameter(chp.signal_ray_type, ray_types)
                 else:
-                    channel.set_parameter(chp.signal_ray_types, [])
-                    channel.set_parameter(chp.signal_receiving_zeniths, [])
-                    channel.set_parameter(chp.signal_receiving_azimuths, [])
+                    channel.set_parameter(chp.signal_ray_type, [])
+                    channel.set_parameter(chp.signal_receiving_zenith, [])
+                    channel.set_parameter(chp.signal_receiving_azimuth, [])
 

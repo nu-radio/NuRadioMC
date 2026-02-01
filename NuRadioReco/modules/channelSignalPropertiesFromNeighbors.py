@@ -49,11 +49,11 @@ class channelSignalPropertiesFromNeighbors:
                 if channel.has_parameter(chp.signal_regions):
                     ch_sig_regs = channel.get_parameter(chp.signal_regions)
                     if len(ch_sig_regs) > 0:
-                        ch_ray_types = channel.get_parameter(chp.signal_ray_types).astype(int)
+                        ch_ray_types = channel.get_parameter(chp.signal_ray_type).astype(int)
                         for i_region, signal_region in enumerate(ch_sig_regs):
-                            channel_signal_time_offsets[i_channel, ch_ray_types[i_region] - 1] = channel.get_parameter(chp.signal_time_offsets)[i_region]
-                            channel_signal_zeniths[i_channel, ch_ray_types[i_region] - 1] = channel.get_parameter(chp.signal_receiving_zeniths)[i_region]
-                            channel_signal_azimuths[i_channel, ch_ray_types[i_region] - 1] = channel.get_parameter(chp.signal_receiving_azimuths)[i_region]
+                            channel_signal_time_offsets[i_channel, ch_ray_types[i_region] - 1] = channel.get_parameter(chp.signal_time_offset)[i_region]
+                            channel_signal_zeniths[i_channel, ch_ray_types[i_region] - 1] = channel.get_parameter(chp.signal_receiving_zenith)[i_region]
+                            channel_signal_azimuths[i_channel, ch_ray_types[i_region] - 1] = channel.get_parameter(chp.signal_receiving_azimuth)[i_region]
                             channel_signal_regions[i_channel, ch_ray_types[i_region] - 1] = channel.get_parameter(chp.signal_regions)[i_region]
                             channel_has_region[i_channel, ch_ray_types[i_region] - 1] = True
             for i_channel, channel_id in enumerate(channel_group):
@@ -80,7 +80,7 @@ class channelSignalPropertiesFromNeighbors:
                             added_region = True
                 if added_region:
                     channel.set_parameter(chp.signal_regions, np.array(signal_regions))
-                    channel.set_parameter(chp.signal_time_offsets, channel_signal_time_offsets[i_channel][channel_has_region[i_channel]])
-                    channel.set_parameter(chp.signal_receiving_zeniths, channel_signal_zeniths[i_channel][channel_has_region[i_channel]])
-                    channel.set_parameter(chp.signal_receiving_azimuths, channel_signal_azimuths[i_channel][channel_has_region[i_channel]])
-                    channel.set_parameter(chp.signal_ray_types, np.arange(3, dtype=int)[channel_has_region[i_channel]] + 1)
+                    channel.set_parameter(chp.signal_time_offset, channel_signal_time_offsets[i_channel][channel_has_region[i_channel]])
+                    channel.set_parameter(chp.signal_receiving_zenith, channel_signal_zeniths[i_channel][channel_has_region[i_channel]])
+                    channel.set_parameter(chp.signal_receiving_azimuth, channel_signal_azimuths[i_channel][channel_has_region[i_channel]])
+                    channel.set_parameter(chp.signal_ray_type, np.arange(3, dtype=int)[channel_has_region[i_channel]] + 1)

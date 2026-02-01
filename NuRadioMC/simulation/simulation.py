@@ -1223,7 +1223,14 @@ class simulation:
         else:
             self._det = det
 
+        print("detector_ddhdhddhdhdh")
+
+        print(self._det)
+        print(self._det.get_station_ids())
+
         self._det.update(self._evt_time)
+
+        print(self._evt_time)
 
         # initialize propagation module
         if self._config['propagation']['ice_model'] == "custom":
@@ -1244,6 +1251,8 @@ class simulation:
         )
 
         self._station_ids = self._det.get_station_ids()
+        print("seconddddd")
+        print(self._station_ids)
         self._event_ids_counter = {station_id: -1 for station_id in self._station_ids} # we initialize with -1 becaue we increment the counter before we use it the first time
 
 
@@ -1287,6 +1296,8 @@ class simulation:
 
         # first create dummy event and station with channels, run the signal chain,
         # and determine the integrated channel response (to be able to normalize the noise level)
+        print("station idscjrburbvurbu")
+        print(self._station_ids)
         for station_id in self._station_ids:
 
             evt = build_dummy_event(station_id, self._det, self._config)
@@ -1297,12 +1308,15 @@ class simulation:
             self._integrated_channel_response[station_id] = {}
             self._integrated_channel_response_normalization[station_id] = {}
             self._max_amplification_per_channel[station_id] = {}
+            print("station idfhefuehfue")
+            print(self._det.get_channel_ids(station_id=11))
 
             for channel_id in self._det.get_channel_ids(station_id):
                 ff = np.linspace(0, 0.5 * self._config['sampling_rate'], 10000)
                 filt = np.ones_like(ff, dtype=complex)
                 for i, (name, instance, kwargs) in enumerate(evt.iter_modules(station_id)):
                     if hasattr(instance, "get_filter"):
+                        print("hi")
                         filt *= instance.get_filter(ff, station_id, channel_id, self._det, **kwargs)
 
                 self._max_amplification_per_channel[station_id][channel_id] = np.abs(filt).max()
@@ -1317,7 +1331,7 @@ class simulation:
                 logger.debug(f"Station.channel {station_id}.{channel_id} estimated bandwidth is "
                              f"{integrated_channel_response / mean_integrated_response / units.MHz:.1f} MHz")
         ################################
-
+        print(self._integrated_channel_response)
         self._bandwidth = next(iter(next(iter(self._integrated_channel_response.values())).values()))  # get value of first station/channel key pair
 
         noise_temp = self._config['trigger']['noise_temperature']

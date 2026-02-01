@@ -16,6 +16,15 @@ import NuRadioReco.framework.base_trace
 import argparse
 import os
 
+from NuRadioReco.detector.RNO_G import rnog_detector as RNO_G_detector
+from astropy.time import Time
+
+Detector= RNO_G_detector.Detector(select_stations=11)
+# Set detector time to now
+Detector.update(time=Time.now())
+
+
+
 parser = argparse.ArgumentParser(
     'Run the IFT electric field reconstruction.'
 )
@@ -26,13 +35,13 @@ parser.add_argument(
     help='Name of the input file. Should be output file of T02_run_vertex_reco.py'
 )
 parser.add_argument('--output_file', type=str, default='reconstructed_efield.nur', help='Filename into which results are written')
-parser.add_argument(
-    '--detector_file',
-    type=str,
-    default='../../detector/RNO_G/RNO_single_station.json',
-    help='JSON file containing the detector description. Here, we assume it is written for the GenericDetector class.'
+# parser.add_argument(
+#     '--detector_file',
+#     type=str,
+#     default='../../detector/RNO_G/RNO_single_station.json',
+#     help='JSON file containing the detector description. Here, we assume it is written for the GenericDetector class.'
 
-)
+# )
 parser.add_argument('--noise_level', type=float, default=10., help='RMS of the noise in the channel traces, in mV.')
 args = parser.parse_args()
 
@@ -46,10 +55,11 @@ channel_resampler = NuRadioReco.modules.channelResampler.channelResampler()
 efield_resampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
 event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
 event_writer.begin(args.output_file)
-det = NuRadioReco.detector.generic_detector.GenericDetector(
-    json_filename=args.detector_file,
-    antenna_by_depth=False
-)
+det=Detector
+# det = NuRadioReco.detector.generic_detector.GenericDetector(
+#     json_filename=args.detector_file,
+#     antenna_by_depth=False
+# )
 channel_bandpass_filter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 efield_bandpass_filter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
 channel_pulse_finder = NuRadioReco.modules.channelPulseFinderSimulator.channelPulseFinderSimulator()

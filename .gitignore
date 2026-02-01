@@ -153,3 +153,7 @@ NuRadioReco/examples/Interactive/data/
 
 NuRadioReco/examples/RNO_energy_reconstruction/lookup_tables*/
 NuRadioReco/examples/RNO_energy_reconstruction/lookup_tables/
+
+# Local lookup outputs and debug files
+NuRadioReco/examples/RNO_energy_reconstruction/Final_lookups/
+NuRadioReco/examples/RNO_energy_reconstruction/checking_detector.py

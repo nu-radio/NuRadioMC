@@ -163,10 +163,21 @@ class neutrino3DVertexReconstructor:
         self.__z_step_3d = z_step_3d
         for channel_id in channel_ids:
             channel_z = abs(detector.get_relative_position(station_id, channel_id)[2])
+            #channel_z_int = int(channel_z) #just to make them integers
             if channel_z not in self.__lookup_table.keys():
-                f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
+                #f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
+
+                f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, float(abs(channel_z))))
+
+                #float version
                 self.__header[int(channel_z)] = f['header']
+                print(channel_z)
                 self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
+                #integers version
+                # self.__header[channel_z_int] = f['header']
+                # antenna_key = 'antenna_{}'.format(float(channel_z_int))
+                # self.__lookup_table[channel_z_int] = f[antenna_key]
+
 
     @register_run()
     def run(

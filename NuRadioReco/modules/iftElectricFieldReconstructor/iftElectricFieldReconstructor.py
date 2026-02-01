@@ -232,8 +232,8 @@ class IftElectricFieldReconstructor:
             self.__polarization = polarization
         for channel_id in channel_ids:
             channel = station.get_channel(channel_id)
-            if channel.has_parameter(chp.signal_ray_types):
-                for signal_ray_type in channel.get_parameter(chp.signal_ray_types):
+            if channel.has_parameter(chp.signal_ray_type):
+                for signal_ray_type in channel.get_parameter(chp.signal_ray_type):
                     if signal_ray_type == ray_type:
                         self.__used_channel_ids.append(channel_id)
                         break
@@ -416,12 +416,12 @@ class IftElectricFieldReconstructor:
             else:
                 if channel.get_number_of_samples() > max_channel_length:
                     max_channel_length = channel.get_number_of_samples()
-            for i_ray_type, signal_ray_type in enumerate(channel.get_parameter(chp.signal_ray_types)):
+            for i_ray_type, signal_ray_type in enumerate(channel.get_parameter(chp.signal_ray_type)):
                 if signal_ray_type == ray_type:
-                    self.__receive_zeniths[i_channel] = channel.get_parameter(chp.signal_receiving_zeniths)[i_ray_type]
-                    self.__time_offsets[i_channel] = channel.get_parameter(chp.signal_time_offsets)[i_ray_type]
-                    if channel.has_parameter(chp.signal_receiving_azimuths):
-                        self.__receive_azimuths[i_channel] = channel.get_parameter(chp.signal_receiving_azimuths)[i_ray_type]
+                    self.__receive_zeniths[i_channel] = channel.get_parameter(chp.signal_receiving_zenith)[i_ray_type]
+                    self.__time_offsets[i_channel] = channel.get_parameter(chp.signal_time_offset)[i_ray_type]
+                    if channel.has_parameter(chp.signal_receiving_azimuth):
+                        self.__receive_azimuths[i_channel] = channel.get_parameter(chp.signal_receiving_azimuth)[i_ray_type]
         correlation_sum = np.zeros(self.__electric_field_template.get_number_of_samples() + max_channel_length)
         if self.__debug:
             plt.close('all')
@@ -457,13 +457,13 @@ class IftElectricFieldReconstructor:
                 sim_channel_traces[i_channel].apply_time_shift(-self.__time_offsets[i_channel], True)
                 channel_trace = sim_channel_traces[i_channel].get_filtered_trace(passband, filter_type='butterabs')
                 for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
-                    if channel.get_parameter(chp.signal_ray_types) == self.__ray_type:
+                    if channel.get_parameter(chp.signal_ray_type) == self.__ray_type:
                         channel_trace[sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
                         channel_trace[sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
             else:
                 channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
                 for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
-                    if channel.get_parameter(chp.signal_ray_types)[i_region] == self.__ray_type:
+                    if channel.get_parameter(chp.signal_ray_type)[i_region] == self.__ray_type:
                         channel_trace[channel.get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
                         channel_trace[channel.get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
             if self.__use_sim:
