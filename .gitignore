@@ -151,3 +151,5 @@ NuRadioReco/examples/Interactive/data/
 # zipped DB json files
 *json.xz
 
+NuRadioReco/examples/RNO_energy_reconstruction/lookup_tables*/
+NuRadioReco/examples/RNO_energy_reconstruction/lookup_tables/
