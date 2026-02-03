@@ -104,7 +104,6 @@ class channelTimeOffsetCalculator:
         if vertex_position is None:
             raise RuntimeError('Could not find vertex position')
         channel_time_ranges = np.zeros((len(channel_ids), 2))
-        print("Vertex position (m):", vertex_position)  # debug
         raytracer = NuRadioMC.SignalProp.analyticraytracing.ray_tracing(self.__medium)
         for i_channel, channel_id in enumerate(channel_ids):
             channel = station.get_channel(channel_id)
@@ -120,14 +119,12 @@ class channelTimeOffsetCalculator:
         sampling_rate = station.get_channel(channel_ids[0]).get_sampling_rate()
         if self.__electric_field_template.get_sampling_rate() != sampling_rate:
             self.__electric_field_template.resample(sampling_rate)
-        n_samples = int(np.round((np.max(channel_time_ranges) - np.min(channel_time_ranges))) * sampling_rate)
+        n_samples = int(np.round((np.max(channel_time_ranges) - np.min(channel_time_ranges))) * sampling_rate) + self.__electric_field_template.get_number_of_samples()
         n_samples += n_samples % 2
         channel_templates = np.zeros((len(channel_ids), 4, n_samples))
         correlation_sum = np.zeros(n_samples * 2 - 1)
         time_offsets = np.arange(-len(correlation_sum) // 2, len(correlation_sum) // 2) / sampling_rate
-        print("Propagation times (s):", propagation_times)  # debug
         propagation_times -= np.min(propagation_times[found_solutions])
-        print("Propagation times (s):", propagation_times)  # debug
         empty_trace = NuRadioReco.framework.base_trace.BaseTrace()
         empty_trace.set_trace(np.zeros(n_samples), sampling_rate)
         empty_trace.set_trace_start_time(np.min(channel_time_ranges))
@@ -156,8 +153,10 @@ class channelTimeOffsetCalculator:
                     ) * amp_response * (antenna_response['theta'] + antenna_response['phi'])
                     channel_trace_template = fft.freq2time(channel_spectrum_template, sampling_rate)
                     start_bin = int(propagation_times[i_channel, i_solution] * sampling_rate)
-                    channel_templates[i_channel, 0][start_bin:min(start_bin + len(channel_trace_template), channel_templates.shape[2])] += channel_trace_template
-                    channel_templates[i_channel, i_solution + 1][start_bin:min(start_bin + len(channel_trace_template), channel_templates.shape[2])] = channel_trace_template
+                    n_template_samples = min(len(channel_trace_template), channel_templates.shape[2]-start_bin)
+                    if n_template_samples > 0:
+                        channel_templates[i_channel, 0][start_bin:min(start_bin + len(channel_trace_template), channel_templates.shape[2])] += channel_trace_template[:n_template_samples]
+                        channel_templates[i_channel, i_solution + 1][start_bin:min(start_bin + len(channel_trace_template), channel_templates.shape[2])] = channel_trace_template[:n_template_samples]
 
             if np.max(channel_templates[i_channel, 0]) > 0:
                 correlation_sum += radiotools.helper.get_normalized_xcorr(

@@ -49,9 +49,9 @@ sampling_rate = 5. * units.GHz
 IDs of the channels to be used for the vertex reconstruction, assuming you used the RNO-G detector description set as
 the default. The shorter list saves time, but results may be less accurate.
 """
-# vertex_channel_ids = [0, 1, 6, 7, 8, 9, 21]
+vertex_channel_ids = [0, 1, 6, 7, 9, 21]
 #vertex_channel_ids = [0, 1, 2, 3, 6, 7, 8, 9, 10, 21, 22]
-vertex_channel_ids = [ 2, 3, 6, 7, 8, 21, 22]      #just for
+# vertex_channel_ids = [ 2, 3, 6, 7, 8, 21, 22]      #just for
 """
 Passband of the filter that is applied to the channels for the vertex reconstruction.
 """
@@ -67,10 +67,10 @@ channel_resampler = NuRadioReco.modules.channelResampler.channelResampler()
 event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
 event_writer.begin(args.output_file)
 noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-# det = NuRadioReco.detector.generic_detector.GenericDetector(
-#     json_filename=args.detector_file,
-#     antenna_by_depth=False
-# )
+det = NuRadioReco.detector.generic_detector.GenericDetector(
+    json_filename=args.detector_file,
+    antenna_by_depth=False
+)
 
 """
 We create an electric field template to be used when calculating the timing difference between channels. Pretty much any
@@ -98,18 +98,20 @@ when creating plots: A very fine grid can cause memory problems for matplotlib.
 vertex_reconstructor.begin(
     station_id=11,
     channel_ids=vertex_channel_ids,
-    detector=Detector,
+    detector=det,
     template=efield_template,
-    distances_2d=np.arange(0, 3000, 200),                               # np.arange(100, 3600, 200),
+    distances_2d=np.arange(100, 3600, 200),
     distance_step_3d=10,
     z_step_3d=10,
     widths_3d=np.arange(-50, 50, 10),
     passband=vertex_reco_passband,
-    z_coordinates_2d=np.arange(-3000, -100, 25),                            #np.arange(-3000, -100, 25),
+    z_coordinates_2d=np.arange(-2990, -100, 25),
     debug_folder='plots/vertex_reco'
 )
 
 for i_event, event in enumerate(event_reader.run()):
+    if i_event > 5:
+        continue
     print('Event {}, ID={}, Run={}'.format(i_event, event.get_id(), event.get_run_number()))
     station = event.get_station(11)
     station.set_is_neutrino()
