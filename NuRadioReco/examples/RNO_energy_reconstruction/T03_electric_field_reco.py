@@ -24,7 +24,6 @@ Detector= RNO_G_detector.Detector(select_stations=11)
 Detector.update(time=Time.now())
 
 
-
 parser = argparse.ArgumentParser(
     'Run the IFT electric field reconstruction.'
 )
@@ -77,8 +76,8 @@ efield_template = NuRadioReco.framework.base_trace.BaseTrace()
 efield_template.set_frequency_spectrum(spec, sampling_rate)
 efield_template.apply_time_shift(20. * units.ns, True)
 
-if not os.path.isdir('plots/efield_reco'):
-    os.makedirs('plots/efield_reco')
+if not os.path.isdir('plots/efield_reco_1920'):
+    os.makedirs('plots/efield_reco_1920')
 ift_efield_reconstructor = NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.IftElectricFieldReconstructor()
 ift_efield_reconstructor.begin(
     electric_field_template=efield_template,
@@ -98,7 +97,7 @@ ift_efield_reconstructor.begin(
         [[.13, .3], [.3, .5]],
     ],
     debug=True,
-    plot_folder='plots/efield_reco'
+    plot_folder='plots/efield_reco_1920'
 )
 time_offset_calculator = NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator()
 time_offset_calculator.begin(

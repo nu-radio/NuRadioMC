@@ -163,3 +163,6 @@ NuRadioReco/examples/RNO_energy_reconstruction/response.py
 NuRadioReco/examples/RNO_energy_reconstruction/script_lookup.sh
 NuRadioReco/examples/RNO_energy_reconstruction/updated_lookup_table/
 NuRadioReco/examples/RNO_energy_reconstruction/updated_lookup_table_2/
+
+NuRadioMC/utilities/data/BGR18_dsigma_dy_H2O.npz
+NuRadioMC/utilities/data/BGR18_dsigma_dy_H2O.npz.lock

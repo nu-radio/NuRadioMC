@@ -7,6 +7,15 @@ import NuRadioReco.modules.io.eventReader
 import NuRadioReco.detector.generic_detector
 import argparse
 
+from NuRadioReco.detector.RNO_G import rnog_detector as RNO_G_detector
+from astropy.time import Time
+
+Detector= RNO_G_detector.Detector(select_stations=11)
+# Set detector time to now
+Detector.update(time=Time.now())
+
+
+
 parser = argparse.ArgumentParser('Use the reconstructed vertex position and electric field to determine the shower energy.')
 parser.add_argument(
     '--input_file',
@@ -30,10 +39,12 @@ event_reader.begin([args.input_file])
 ice = NuRadioMC.utilities.medium.get_ice_model('greenland_simple')
 energy_reconstructor = NuRadioReco.modules.neutrinoEnergyReconstructor.neutrinoEnergyReconstructor()
 energy_reconstructor.begin([[0, 1, 2, 3, 4, 8]], ice)
-det = NuRadioReco.detector.generic_detector.GenericDetector(
-    json_filename=args.detector_file,
-    antenna_by_depth=False
-)
+# det = NuRadioReco.detector.generic_detector.GenericDetector(
+#     json_filename=args.detector_file,
+#     antenna_by_depth=False
+# )
+
+det=Detector
 
 sim_energies = []
 rec_energies = []
@@ -102,4 +113,4 @@ ax1_2.set_ylabel('# of events')
 ax1_2.set_xlabel('$E_{rec} / E_{sim}$')
 ax1_2.grid()
 fig1.tight_layout()
-fig1.savefig('plots/energy_reconstruction.png')
+fig1.savefig('plots/energy_reconstruction_1920.png')

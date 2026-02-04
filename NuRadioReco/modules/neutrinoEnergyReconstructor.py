@@ -71,11 +71,11 @@ class neutrinoEnergyReconstructor():
                 ray_type = efield.get_parameter(efp.ray_path_type)
                 channel = station.get_channel(channel_group[0])
                 # Check if this is the ray type with the largest SNR
-                if not channel.has_parameter(chp.signal_region_snrs) or not channel.has_parameter(chp.signal_ray_types):
+                if not channel.has_parameter(chp.signal_region_snrs) or not channel.has_parameter(chp.signal_ray_type):
                     continue
                 current_snr = 0
                 for i_region, region_snr in enumerate(channel.get_parameter(chp.signal_region_snrs)):
-                    if ray_type == channel.get_parameter(chp.signal_ray_types)[i_region]:
+                    if ray_type == channel.get_parameter(chp.signal_ray_type)[i_region]:
                         current_snr = region_snr
                 if current_snr <= max_snr_in_group:
                     continue
@@ -124,6 +124,20 @@ class neutrinoEnergyReconstructor():
                                 self.__s_parametrization[0] * log_s_parameter ** 2 + self.__s_parametrization[1] * log_s_parameter +
                                 self.__s_parametrization[2]
                         ) * units.EeV
-                    new_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=i_group, station_ids=[station.get_id()])
-                    new_shower.set_parameter(shp.energy, rec_energy)
-                    event.add_shower(new_shower)
+                    # new_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=i_group, station_ids=[station.get_id()])
+                    # new_shower.set_parameter(shp.energy, rec_energy)
+                    # event.add_shower(new_shower)
+
+                    #changed
+
+                    showers = list(event.get_showers())
+                    if len(showers) == 0:
+                        shower = NuRadioReco.framework.radio_shower.RadioShower(
+                            shower_id=0,
+                            station_ids=[station.get_id()]
+                        )
+                        event.add_shower(shower)
+                    else:
+                        shower = showers[0]
+
+                    shower.set_parameter(shp.energy, rec_energy)
