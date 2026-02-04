@@ -104,7 +104,7 @@ time_offset_calculator = NuRadioReco.modules.channelTimeOffsetCalculator.channel
 time_offset_calculator.begin(
     electric_field_template=efield_template,
     medium=ice,
-    use_sim=True
+    #use_sim=True
 )
 channel_props_from_neighbor = NuRadioReco.modules.channelSignalPropertiesFromNeighbors.channelSignalPropertiesFromNeighbors()
 for i_event, event in enumerate(event_reader.get_events()):

@@ -1,4 +1,4 @@
-# mkdir Final_lookups
+# mkdir updated_lookup_table
 
 # python create_lookup_table.py 96 --d_r 2 --d_z 2 --output_path ./lookup_tables_old_2
 
@@ -20,7 +20,7 @@
 #!/bin/bash
 
 # Create the new lookup table folder
-mkdir -p Final_lookups
+mkdir -p updated_lookup_table
 
 # Exact z-values for vertex channels
 z_values=(96.215 95.174 94.183 93.155 59.131 39.357 92.177 82.95 81.94 94.66 95.66)
@@ -28,5 +28,5 @@ z_values=(96.215 95.174 94.183 93.155 59.131 39.357 92.177 82.95 81.94 94.66 95.
 # Loop over each z-value and create lookup table
 for z in "${z_values[@]}"
 do
-    python create_lookup_table.py $z --d_r 2 --d_z 2 --output_path ./Final_lookups
+    python create_lookup_table.py $z --d_r 2 --d_z 2 --output_path ./updated_lookup_table
 done

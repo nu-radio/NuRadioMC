@@ -18,10 +18,6 @@ Detector= RNO_G_detector.Detector(select_stations=11)
 # Set detector time to now
 Detector.update(time=Time.now())
 
-
-
-
-
 parser = argparse.ArgumentParser(
     description='Run the vertex reconstruction used for the RNO-G energy reconstruction'
 )
@@ -34,12 +30,12 @@ parser.add_argument(
 )
 parser.add_argument('--input_file', type=str, default='simulated_events.nur', help='File to run the reconstruction on.')
 parser.add_argument('--output_file', type=str, default='reconstructed_vertex.nur', help='Filename into which results are written')
-parser.add_argument(
-    '--detector_file',
-    type=str,
-    default='../../detector/RNO_G/RNO_single_station.json',
-    help='JSON file containing the detector description. Here, we assume it is written for the GenericDetector class.'
-)
+# parser.add_argument(
+#     '--detector_file',
+#     type=str,
+#     default='../../detector/RNO_G/RNO_single_station.json',
+#     help='JSON file containing the detector description. Here, we assume it is written for the GenericDetector class.'
+# )
 parser.add_argument('--noise_level', type=float, default=10., help='RMS of the noise to be added, in mV.')
 args = parser.parse_args()
 noise_level = args.noise_level * units.mV
@@ -66,11 +62,11 @@ event_reader.begin([args.input_file])
 channel_resampler = NuRadioReco.modules.channelResampler.channelResampler()
 event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
 event_writer.begin(args.output_file)
-noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-det = NuRadioReco.detector.generic_detector.GenericDetector(
-    json_filename=args.detector_file,
-    antenna_by_depth=False
-)
+noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()          
+# det = NuRadioReco.detector.generic_detector.GenericDetector(
+#     json_filename=args.detector_file,
+#     antenna_by_depth=False
+# )
 
 """
 We create an electric field template to be used when calculating the timing difference between channels. Pretty much any
@@ -115,8 +111,9 @@ for i_event, event in enumerate(event_reader.run()):
     print('Event {}, ID={}, Run={}'.format(i_event, event.get_id(), event.get_run_number()))
     station = event.get_station(11)
     station.set_is_neutrino()
-    noise_adder.run(event, station, Detector, amplitude=noise_level, type='rayleigh')
     channel_resampler.run(event, station, Detector, sampling_rate=sampling_rate)
+    noise_adder.run(event, station, Detector, amplitude=noise_level, type='rayleigh')
+   #channel_resampler.run(event, station, Detector, sampling_rate=sampling_rate)
     vertex_reconstructor.run(
         event,
         station,
