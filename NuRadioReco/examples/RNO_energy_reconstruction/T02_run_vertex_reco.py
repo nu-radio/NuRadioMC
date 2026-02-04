@@ -94,7 +94,7 @@ when creating plots: A very fine grid can cause memory problems for matplotlib.
 vertex_reconstructor.begin(
     station_id=11,
     channel_ids=vertex_channel_ids,
-    detector=det,
+    detector=Detector,
     template=efield_template,
     distances_2d=np.arange(100, 3600, 200),
     distance_step_3d=10,
@@ -106,8 +106,8 @@ vertex_reconstructor.begin(
 )
 
 for i_event, event in enumerate(event_reader.run()):
-    if i_event > 5:
-        continue
+    # if i_event > 5:
+    #     continue
     print('Event {}, ID={}, Run={}'.format(i_event, event.get_id(), event.get_run_number()))
     station = event.get_station(11)
     station.set_is_neutrino()

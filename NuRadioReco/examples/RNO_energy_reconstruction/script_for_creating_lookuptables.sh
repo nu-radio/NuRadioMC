@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 # mkdir updated_lookup_table
+=======
+# mkdir Final_lookups
+>>>>>>> Stashed changes
 
 # python create_lookup_table.py 96 --d_r 2 --d_z 2 --output_path ./lookup_tables_old_2
 
