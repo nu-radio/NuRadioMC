@@ -242,6 +242,13 @@ class Detector():
             An optional comment describing this detector that will be added to the exported detector description.
         """
 
+        if not self._query_all:
+            self.logger.error(
+                "You are exporting the detector description but you have not queried the entire description at once. "
+                "This means that only the currently buffered station description is exported which is potentially "
+                "incomplete. If you want to export the entire description, set `always_query_entire_description=True` "
+                "in the constructor before exporting.")
+
         periods = {}
         for station_id in self.__buffered_stations:
 
