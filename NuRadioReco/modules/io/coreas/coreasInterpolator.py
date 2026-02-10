@@ -85,6 +85,7 @@ class coreasInterpolator:
         self.interp_highfreq = None
         self.efield_interpolator = None
         self.fluence_interpolator = None
+        self.core_for_interpolation = None
 
         self.initialize_star_shape()
 
@@ -125,6 +126,7 @@ class coreasInterpolator:
             self.obs_positions_ground, core=self.shower.get_parameter(shp.core)
         )
 
+        self.core_for_interpolation = self.shower.get_parameter(shp.core)  # to maintain backwards compatibility ...
         self.star_shape_initialized = True
 
     @property
@@ -204,6 +206,22 @@ class coreasInterpolator:
             the electric fields in the SimStation.
         """
         coreas.set_fluence_of_efields(function, self.sim_station, quantity)
+
+    def set_shower_core_for_interpolation(self, core):
+        """
+        Set the core position to be used for interpolation. This is relevant when the shower core is not at the origin,
+        which is the default assumption for the interpolation. When setting a core position, the antenna positions will
+        be adjusted accordingly when retrieving interpolated values.
+
+        Parameters
+        ----------
+        core: array(3,) of floats
+            The core position to use for interpolation (in x, y, z).
+        """
+        if len(core) != 3:
+            logger.error('The core position should be a 3D vector (x, y, z)')
+            raise ValueError('The core position should be a 3D vector (x, y, z)')
+        self.core_for_interpolation = core
 
     def __rotate_efield_polarizations(self):
         """
@@ -402,7 +420,7 @@ class coreasInterpolator:
             This value can either be a 2D array (x, y) or a 3D array (x, y, z). If the z-coordinate is missing, the
             z-coordinate is automatically set to the observation level of the simulation.
         """
-        core = self.shower.get_parameter(shp.core)
+        core = self.core_for_interpolation
 
         if len(position_on_ground) == 2:
             position_on_ground = np.append(position_on_ground, core[2])

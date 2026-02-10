@@ -255,6 +255,7 @@ class readCoREASDetector:
             new_core = sim_shower.get_parameter(shp.core)
             new_core[:len(core)] = core  # If no z coordinate is given, keep the original one
             sim_shower.set_parameter(shp.core, new_core)
+            self.coreas_interpolator.set_shower_core_for_interpolation(new_core)
             evt.add_sim_shower(sim_shower)
 
             # Loop over all selected stations
