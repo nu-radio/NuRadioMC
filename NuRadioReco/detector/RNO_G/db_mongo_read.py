@@ -26,6 +26,7 @@ from pymongo import MongoClient
 import NuRadioReco.utilities.metaclasses
 import astropy.time
 
+
 import logging
 logger = logging.getLogger("NuRadioReco.MongoDBRead")
 
@@ -158,7 +159,11 @@ class Database(object):
             logger.error("Set invalid time for database. Time has to be of type datetime.datetime")
             raise TypeError("Set invalid time for database. Time has to be of type datetime.datetime")
 
-        if time < datetime.datetime(2024, 11, 1):
+        if time.tzinfo is None:
+            logger.warning(f"No timezone information provided for the database time {time}. Assuming UTC.")
+            time = time.replace(tzinfo=datetime.timezone.utc)
+
+        if time < datetime.datetime(2024, 11, 1, tzinfo=datetime.timezone.utc):
             logger.error("Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.")
             raise ValueError("Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.")
 
