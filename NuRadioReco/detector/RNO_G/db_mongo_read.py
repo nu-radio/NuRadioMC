@@ -1083,6 +1083,7 @@ class Database(object):
             channel_signal_id=channel_signal_id, measurement_name=measurement_name, verbose=verbose)
 
         for chain_key in ['response_chain', 'trigger_response_chain']:
+            templates_to_append = []
 
             # Not every channel has a trigger response chain
             if chain_key not in channel_sig_info:
@@ -1090,23 +1091,45 @@ class Database(object):
 
             # go through the component list query the corresponing measurements from the database (s parameters)
             for ice, component_entry in enumerate(channel_sig_info[chain_key]):
-                if component_entry["collection"] in ["gain_calibration", "time_delays"]:
-                    # only load a single calibration value
+                component_data_template = None
+                if component_entry["collection"] == "gain_calibration":
                     component_data = self.get_time_dependent_factor(
                         collection=component_entry["collection"], search_id=component_entry["id"])
+                    
+                    if "time_dependent_template" in component_data.keys():
+                        template_name = component_data["time_dependent_template"]["name"]
+                        component_data_template = {"collection": "full_chain"}
+                        component_data_template["name"] = template_name
+                        component_data_template.update(self.get_component_data(
+                            collection_name="full_chain",
+                            component_name=component_data["time_dependent_template"]["name"],
+                            sparameter="S21",
+                            verbose=verbose))
+                    else:
+                        component_data_template = None
+
+                elif component_entry["collection"] == "time_delays":
+                    component_data = self.get_time_dependent_factor(
+                        collection=component_entry["collection"], search_id=component_entry["id"])
+                    
                 else:
                     # create a search dict with addtional informations
                     supp_info = {key: component_entry[key] for key in component_entry.keys() if re.search("(channel|breakout)", key)}
-
+                    
                     component_data = self.get_component_data(
                         collection_name=component_entry["collection"],
                         component_name=component_entry["name"],
                         supplementary_info=supp_info,
                         verbose=verbose,
                         sparameter='S21')
-
                 # add the component data to the channel_sig_info dict
                 channel_sig_info[chain_key][ice].update(component_data)
+                
+                if component_data_template is not None: 
+                    templates_to_append.append(component_data_template)
+            
+            channel_sig_info[chain_key].extend(templates_to_append)
+
 
         return channel_sig_info
 
