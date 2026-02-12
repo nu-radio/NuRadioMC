@@ -4,6 +4,8 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Added the option to use custom (user-specified) amplifiers. Custom amplifiers can be provided as .csv files
+  under NuRadioReco/detector/amps/custom.
 
 bugfixes:
 
