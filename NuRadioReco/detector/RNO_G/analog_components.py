@@ -1,17 +1,20 @@
 import numpy as np
+import logging
 from scipy.interpolate import interp1d
 import os
-from NuRadioReco.utilities import units
+from functools import lru_cache
+
+from NuRadioReco.utilities import units, bandpass_filter
 from radiotools import helper as hp
-import logging
 logger = logging.getLogger('NuRadioReco.analog_components')
 
-
+@lru_cache(maxsize=128)
 def load_amp_response(amp_type='rno_surface', temp=293.15,
                       path=os.path.dirname(os.path.realpath(__file__))):  # use this function to read in log data
     """
-    Read out amplifier gain and phase. Currently only examples have been implemented.
-    Needs a better structure in the future, possibly with database.
+    Read out amplifier gain and phase. 
+    
+    Currently only examples have been implemented. Needs a better structure in the future, possibly with database.
     The hardware response incorporator currently reads in the load amp response.
     If you want to read in the RI function for your reconstruction it needs to be changed
     in modules/RNO_G/hardweareResponseIncorporator.py l. 52, amp response.
@@ -24,9 +27,11 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
     Parameters
     ----------
     amp_type: string
+
         * "rno_surface": the surface signal chain
         * "iglu": the in-ice signal chain
         * "phased_array": the additional filter of the phased array channels before going into the phased array trigger. 
+
     temp: float (default 293.15K)
         the default temperature in Kelvin that the amplifier response is corrected for
     """

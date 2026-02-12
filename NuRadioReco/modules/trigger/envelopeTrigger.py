@@ -62,12 +62,12 @@ class triggerSimulator:
         order: int
             Order of the butterworth filter to apply before the trigger
         threshold: float or dict of floats
-            threshold above (or below) a trigger is issued, absolute amplitude
+            threshold above (or below) a trigger is issued, absolute amplitude.
             a dict can be used to specify a different threshold per channel where the key is the channel id
         number_coincidences: int
             number of channels that are required in coincidence to trigger a station
         triggered_channels: array of ints or None
-            channels ids that are triggered on, if None trigger will run on all channels
+            channels ids that are triggered on. if None, trigger will run on all channels
         coinc_window: float
             time window in which number_coincidences channels need to trigger
         trigger_name: string

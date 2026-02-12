@@ -1,0 +1,1228 @@
+"""
+Module to reconstruct neutrino properties through a forward-folding fit
+
+This module is designed to reconstruct neutrino properties using the 'deep' channels
+of an in-ice radio detector such as RNO-G or ARA. It uses both Vpol and Hpol antennas.
+To run the reconstruction, one needs to consecutively run:
+
+1. A neutrino vertex reconstruction (e.g. using `NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor`);
+2. A module to identify the (dominant) ray type and approximate pulse positions (e.g. using `NuRadioReco.modules.neutrinoDirectionReconstructor.rayTypeSelecter`)
+3. The `neutrinoDirectionReconstructor`
+
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import signal, constants, optimize
+from scipy.spatial.transform import Rotation
+import logging
+import pickle
+from radiotools import helper as hp
+import radiotools.coordinatesystems as cstrans
+
+from NuRadioReco.utilities import fft
+from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import showerParameters as shp
+from NuRadioReco.modules.neutrinoDirectionReconstructor import analytic_pulse
+from NuRadioReco.modules.base.module import register_run
+from NuRadioMC.utilities import medium
+from NuRadioMC.simulation.simulation import get_config
+from NuRadioReco.utilities import units, signal_processing
+
+logger = logging.getLogger("NuRadioReco.neutrinoDirectionReconstructor")
+
+class neutrinoDirectionReconstructor:
+    """
+    Class to reconstruct the arrival direction of a neutrino in a deep in-ice radio detector
+
+    This class can be used to reconstruct the arrival direction of a neutrino in an (ARA/RNO-G-style)
+    deep in-ice radio detector. To reconstruct neutrinos detected by a shallow detector (using LPDAs),
+    see :mod:`voltageToEfieldAnalyticConverterForNeutrinos <NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos>`.
+
+    The outputs of the direction reconstruction are stored as `stationParameters <NuRadioReco.framework.parameters.stationParameters>`.
+
+    For a more detailed description of this algorithm, see https://doi.org/10.1140/epjc/s10052-023-11604-w
+
+    Examples
+    --------
+    .. code-block::
+
+        from NuRadioReco.modules.io import eventReader
+        from NuRadioReco.detector import detector
+
+        from NuRadioReco.modules.neutrinoVertexReconstructor import neutrino3DVertexReconstructor
+        from NuRadioReco.modules.neutrinoDirectionReconstructor import rayTypeSelecter, neutrinoDirectionReconstructor
+
+        reader = eventReader.eventReader()
+        det = detector.Detector('path-to-detector-json')
+        vertexreconstructor = neutrino3DVertexReconstructor.neutrino3DVertexReconstructor('path-to-vertex-lookup-tables')
+        raytypeselecter = rayTypeSelecter.rayTypeSelecter()
+        directionreconstructor = neutrinoDirectionReconstructor.neutrinoDirectionReconstructor()
+
+        for evt in reader.run():
+            station = evt.get_station()
+
+            # Initialize modules with correct settings
+            # (see descriptions of each module for required / optional inputs)
+            vertexreconstructor.begin(...)
+            raytypeselecter.begin(...)
+            directionreconstructor.begin(...)
+
+            # Run the reconstruction
+            vertexreconstructor.run(evt, station, det)
+            raytypeselecter.run(evt, station, det, use_channels=...)
+            directionreconstructor.run(...)
+
+    """
+
+    def __init__(self):
+        pass
+
+    def begin(
+            self, use_channels,
+            reference_vpol, pa_cluster_channels, hpol_channels,
+            propagation_config,
+            window_vpol = [-10, +50], window_hpol = [10, 40],
+            vrms = None,
+            passband = None,
+            brute_force=False,
+            use_fallback_timing=False,
+            fit_shower_type=False,
+            grid_spacing_viewing_angle=.5*units.deg,
+            grid_spacing_polarization_angle=5*units.deg,
+            grid_spacing_energy=.2,
+            full_station=True,
+            template = False,
+            single_pulse_fit=False, restricted_input=False,
+            debug_folder='.',
+            debug_formats=['.pdf']):
+        """
+        Initialize and set parameters for the reconstruction
+
+        Parameters
+        ----------
+        use_channels: list
+            list of channel ids used for the reconstruction
+        reference_vpol: int
+            channel id of the Vpol used to determine reference timing, viewing angle etc.
+            Should be the top Vpol of the phased array.
+        pa_cluster_channels: list of ints
+            list of channel ids in the 'phased array cluster', consisting of both Vpol and adjacent Hpol antennas
+        hpol_channels: list of ints
+            list of 'hpol'-type channels; all other channels are assumed to be 'vpol'-type
+        propagation_config : dict | str
+            Settings to use for the in-ice propagation. If given as a dictionary,
+            should at least include:
+
+            - ``ice_model``: str
+                Ice model used for the propagation (e.g. 'greenland_simple').
+            - ``module`` : str
+                Method used for the raytracing (e.g. 'analytic')
+            - ``attenuation_model``: str
+                Attenuation model used for the raytracing (e.g. 'GL1')
+
+            Additionally, the setting for focussing is also taken from this config.
+            Instead of a dict, the config can also be provided as a string or Path to a simulation-style yaml config.
+
+            See :ref:`here <NuRadioMC/pages/Manuals/signal_propagation:propagation module>` for
+            details on propagation settings.
+        window_vpol : tuple of floats
+            The window around the expected pulse arrival time (from the propagation) to include in the fit
+            for Vpol antennas. Should be large enough to include most of the signal, taking into account
+            the dispersion from the antenna and amplifier responses, but small enough to avoid overlap between
+            'D' and 'R' pulses, as overlapping pulses are excluded from the fit.
+
+            Default: ``[-10*units.ns, 50*units.ns]``
+        window_hpol : tuple of floats
+            The window around the expected pulse arrival time (from the propagation) to include in the fit
+            for Hpol antennas. Should be large enough to include most of the signal, taking into account
+            the dispersion from the antenna and amplifier responses, but small enough to avoid overlap between
+            'D' and 'R' pulses, as overlapping pulses are excluded from the fit.
+
+            Default: ``[10*units.ns, 40*units.ns]``
+        vrms : None | float | dict, default: None
+            The (noise) root-mean-squared voltage that is used to normalize
+            the chi-squared difference between data and fit. Can be either a
+            float, in which case the same normalization is used for all channels,
+            or a different value for each channel
+            by passing a dictionary with the channel_ids as keys.
+
+            If not specified, estimate the vrms in each channel from the amplifier responses
+            assuming a noise temperature of 300 K
+        passband : None (default) | tuple of floats | dict
+            If not None, applies a bandpass filter before performing the fit
+            Can either be given as a [highpass, lowpass] tuple, or as a dictionary
+            where the keys are channel_ids and the values are [highpass, lowpass] tuples.
+        brute_force: bool, default False
+            If True, brute force minimization is used. If False, a scipy minimization is used.
+            The brute force minimization is naturally better at avoiding local minima, but takes
+            significantly longer to run.
+        use_fallback_timing: bool, default False
+            if True, include all Hpol channels (including those with low SNR)
+            by using the timing of adjacent Vpol channels. May improve polarization resolution,
+            assuming Hpol timing can be inferred accurately.
+        fit_shower_type: bool, default False
+            If True, perform an additional fit iteration using an electromagnetic shower as the
+            fit hypothesis. May slightly improve reconstruction performance.
+
+        Other Parameters
+        ----------------
+        full_station: bool, default: True
+            If True, all the raytypes in the list use_channels are used. If False, only the triggered pulse is used.
+        grid_spacing_viewing_angle: float, default 0.5*units.deg
+            Grid spacing in viewing angle. Only used if brute_force==True
+        grid_spacing_polarization_angle : float, default 5 * units.deg
+            Grid spacing in polarization angle. Only used if brute_force==True
+        grid_spacing_energy : float, default 0.2
+            Grid spacing in log10(energy/units.eV). Only used if brute_force==True
+        fixed_timing: bool, default: False
+            If True, the known positions of the pulses are used calculated using the vertex position.
+            Only allowed when `sim` is True. If False, an extra correlation is used to find the exact pulse position.
+        restricted_input: bool, default: False
+            If True, a reconstruction is performed a few degrees around the MC values. This is (of course) only for simulations.
+        starting_values: bool, default: False
+            if True, first the channels of the phased array are used to get starting values for the viewing angle and the energy.
+        template: bool, default: False
+            (Not currently implemented)
+            If True, ARZ templates are used for the reconstruction.
+            If False, a parametrization is used. 'Alvarez2009' and 'ARZ average' is available.
+        single_pulse_fit: bool, default: False
+            if True, the viewing angle and energy are fitted with a PA Vpol and the polarization is fitted using an Hpol.
+        debug_folder : str, default: '.'
+            Path to save debug plots to, if ``debug==True`` in the `run` method.
+        debug_formats : list of str, default : [".pdf"]
+            List of formats to save debug plots in (e.g. ``png``, ``pdf`` or ``pickle``)
+
+        """
+        if not isinstance(propagation_config, dict):
+            propagation_config = get_config(propagation_config)
+
+        # We are only interested in propagation settings;
+        # if we got a 'top-level' config file we only keep the propagation settings in it
+        if 'propagation' in propagation_config:
+            propagation_config = propagation_config['propagation']
+        self._prop_config = propagation_config
+
+        if passband is not None:
+            if not isinstance(passband, dict):
+                passband = {channel_id: passband for channel_id in use_channels}
+        self._passband = passband
+
+        # We sort the channels. This is used in the minimizer,
+        # where if the timing for a vpol/hpol channel cannot be determined,
+        # the timing of the reference vpol/nearest vpol is used, respectively, as a fallback.
+        vpol_channels = np.array([channel_id for channel_id in use_channels if channel_id not in hpol_channels])
+        hpol_channels = np.array([channel_id for channel_id in use_channels if channel_id in hpol_channels])
+        use_channels_sorted = np.concatenate([[reference_vpol], vpol_channels, hpol_channels])
+        _, idx = np.unique(use_channels_sorted, return_index=True)
+        use_channels = use_channels_sorted[np.sort(idx)]
+        self._use_channels = use_channels
+
+        self._Vrms = vrms
+        self._full_station = full_station
+        self.__minimization_grid_spacings = grid_spacing_viewing_angle, grid_spacing_polarization_angle, grid_spacing_energy
+        self._use_fallback_timing = use_fallback_timing
+        self._fit_shower_type = fit_shower_type
+        self._debug_path = debug_folder
+
+        self._single_pulse_fit = single_pulse_fit
+        self._reference_Vpol = reference_vpol
+        self._PA_cluster_channels = pa_cluster_channels
+        self._Hpol_channels = hpol_channels
+        self._window_Vpol = window_vpol
+        self._window_Hpol = window_hpol
+        self._template = template
+        self._restricted_input = restricted_input
+        self._brute_force = brute_force
+        self._debug_formats = debug_formats
+        logger.debug(f'self._brute_force={self._brute_force}')
+
+    @register_run()
+    def run(
+            self, event, station, detector,
+            debug=False, systematics = None, sim = False
+        ):
+
+        """
+        Run the direction reconstruction.
+
+        Parameters
+        ----------
+        event: Event
+            The event to reconstruct the direction
+        station: Station
+            The station used to reconstruct the direction
+        detector: Detector
+            ``Detector`` object specifying the detector layout
+        debug: bool, default: False
+            if True, debug plots are produced. Default debug_plots = False.
+        systematics: dict | None, default: None
+            if dictionary is given, sytematic uncertainties are added to the VEL.
+            The dictionary should be a nested dictionary of the following form::
+
+                {"antenna response": {
+                    "gain": (...) # array with len(use_channels) (factor to mulitply VEL with),
+                    "phase": (...) # array with shift in frequency in MHz, array of len(use_channels)
+                }}
+        sim : bool, default False
+            If True, use the simulated vertex instead of the reconstructed vertex (if available).
+            Can be useful for debugging purposes.
+        """
+
+        self._sim_vertex = sim
+        self._event = event
+        self._station = station
+        self._detector = detector
+
+        reference_vpol = self._reference_Vpol
+        use_channels = self._use_channels
+        hpol_channels = self._Hpol_channels
+        vpol_channels = np.array([
+            channel_id for channel_id in use_channels
+            if channel_id not in hpol_channels])
+        vrms = self._Vrms
+        passband = self._passband
+
+        # for the reference Hpol (hpol which is always included in fits),
+        # we pick the hpol closest to the reference Vpol
+        reference_hpol_index = np.argmin([
+            np.linalg.norm(detector.get_relative_position(station.get_id(), hpol_id) - detector.get_relative_position(station.get_id(), reference_vpol))
+            for hpol_id in hpol_channels])
+        self._reference_Hpol = hpol_channels[reference_hpol_index]
+
+        if passband is None:
+            self._data_traces_full = {
+                channel_id : station.get_channel(channel_id).get_trace()
+                for channel_id in use_channels
+            }
+        else:
+            self._data_traces_full = {
+                channel_id : station.get_channel(channel_id).get_filtered_trace(
+                    passband[channel_id], filter_type='butterabs', order=10)
+                for channel_id in use_channels
+            }
+
+        if vrms is None: # compute vrms from noise temperature
+            vrms = {}
+            ff = np.linspace(0, 5*units.GHz, 8192)
+            for channel_id in use_channels:
+                amp_response = detector.get_amplifier_response(station.get_id(), channel_id=channel_id, frequencies=ff)
+                if passband is None:
+                    filt = 1
+                else:
+                    filt = signal_processing.get_filter_response(
+                        ff, passband=passband[channel_id], filter_type='butterabs', order=10)
+                effective_bandwidth = np.trapezoid(np.abs(amp_response * filt)**2, ff)
+                vrms[channel_id] = (300 * 50 * constants.k * effective_bandwidth / units.Hz) ** 0.5
+        elif not isinstance(vrms, dict): # convert single vrms value to a dictionary
+            vrms = {ch : vrms for ch in use_channels}
+
+        self._Vrms = vrms
+
+        # get the nearest channel as a fallback option for each hpol channel
+        fallback_channels = dict()
+        station_id = station.get_id()
+        for i, hpol_id in enumerate(hpol_channels): # do we need fallback channels for vpol channels too?
+            pos = detector.get_relative_position(station_id, hpol_id)
+            fallback_channels[hpol_id] = []
+            d_pos = np.zeros_like(vpol_channels, dtype=float)
+            for ii, vpol_id in enumerate(vpol_channels):
+                d_pos[ii] = (np.linalg.norm(detector.get_relative_position(station_id, vpol_id) - pos))
+            # d_pos = d_pos
+            # idx = np.argsort(d_pos)
+            fallback_channels[hpol_id] = vpol_channels[np.argmin(d_pos)]
+        self._fallback_channels = fallback_channels
+
+        for channel in station.iter_channels():
+            self._sampling_rate = channel.get_sampling_rate()
+            break
+
+        # we try to get the simulated shower energy, and other parameters
+        simulated_energy = 0
+        shower_ids = []
+        for sim_shower in event.get_sim_showers():
+            simulated_energy += sim_shower[shp.energy]
+            shower_ids.append(sim_shower.get_id())
+
+        self._shower_ids = shower_ids
+        if len(shower_ids):
+            shower_id = shower_ids[0]
+            self._simulated_azimuth = event.get_sim_shower(shower_id)[shp.azimuth]
+            self._simulated_zenith = event.get_sim_shower(shower_id)[shp.zenith]
+
+        try:
+            if sim:
+                rt = self._station[stnp.raytype_sim]
+            else:
+                rt = self._station[stnp.raytype]
+        except KeyError as e:
+            logger.error(
+                "Station does not have the parameter 'stationParameters.raytype' is undefined. "
+                "Did you forget to run the rayTypeSelecter module?"
+                )
+            raise e
+
+        shower_ids = self._shower_ids
+        template = self._template
+        passband = self._passband
+        debug_path = self._debug_path
+
+        if self._single_pulse_fit:
+            starting_values = True
+        else:
+            starting_values = False
+
+        channel = station.get_channel(use_channels[0])
+        self._sampling_rate = channel.get_sampling_rate()
+        sampling_rate = self._sampling_rate
+
+        if self._sim_vertex:
+            shower_id = self._shower_ids
+            reconstructed_vertex = event.get_sim_shower(shower_id)[shp.vertex]
+            logger.debug(f"simulated vertex direction reco: {event.get_sim_shower(shower_id)[shp.vertex]}")
+        else:
+            reconstructed_vertex = station[stnp.nu_vertex]
+            logger.debug(f"reconstructed vertex direction reco {reconstructed_vertex}")
+
+        self._vertex_azimuth = np.arctan2(reconstructed_vertex[1], reconstructed_vertex[0])
+        ice = medium.get_ice_model(self._prop_config['ice_model'])
+
+        self._cherenkov_angle = np.arccos(1 / ice.get_index_of_refraction(reconstructed_vertex))
+
+        if self._station.has_sim_station(): # obtain some simulated values for debug plots
+            shower_id = shower_ids[0]
+            has_sim_station = True
+            simulated_zenith = event.get_sim_shower(shower_id)[shp.zenith]
+            simulated_azimuth = event.get_sim_shower(shower_id)[shp.azimuth]
+            self._simulated_azimuth = simulated_azimuth
+            simulated_energy = 0
+            for i, shower_id in enumerate(np.unique(shower_ids)):
+                if (event.get_sim_shower(shower_id)[shp.type] != "em"):
+                    simulated_energy += event.get_sim_shower(shower_id)[shp.energy]
+                    logger.debug(f"simulated energy {simulated_energy/units.eV:.4g} eV")
+            self.__simulated_energy = simulated_energy
+            simulated_vertex = event.get_sim_shower(shower_id)[shp.vertex]
+            ### values for simulated vertex and simulated direction
+            simulation = analytic_pulse.simulation(template, simulated_vertex)
+            rt = self._station[stnp.raytype_sim]
+            simulation.begin(
+                detector, station, use_channels, raytypesolution = rt,
+                reference_channel = self._reference_Vpol,
+                passband=self._passband, propagation_config=self._prop_config, systematics = systematics)
+            tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
+                detector, station, simulated_vertex,
+                simulated_zenith, simulated_azimuth, simulated_energy,
+                use_channels, first_iteration = True)
+            if pol_sim is None: # for some reason, didn't manage to obtain simulated vw / polarization angle
+                pol_sim = np.nan * np.ones(3) # we still set them, so the debug plots don't fail
+                vw_sim = np.nan
+                has_sim_station = False # skip anything involving the sim station to avoid errors
+            self._launch_vector_sim = lv_sim # not used?
+            self._viewing_angle_sim = vw_sim
+            logger.debug(
+                "Simulated viewing angle: {:.1f} deg / Polarization angle: {:.1f} deg".format(
+                    vw_sim / units.deg, np.arctan2(pol_sim[2], pol_sim[1]) / units.deg
+                )
+            )
+        else: # no sim station - set MC truth values to NaN
+            lv_sim = np.nan
+            vw_sim = np.nan
+            pol_sim = np.nan * np.ones(3)
+
+
+        simulation = analytic_pulse.simulation(template, reconstructed_vertex) ### if the templates are used, than the templates for the correct distance are loaded
+        if not self._sim_vertex:
+            rt = self._station[stnp.raytype] ## raytype from the triggered pulse
+
+        simulation.begin(
+            detector, station, use_channels, raytypesolution = rt,
+            reference_channel = self._reference_Vpol,
+            passband=self._passband, propagation_config=self._prop_config,
+            systematics = systematics)
+        self._simulation = simulation
+        self._launch_vector = simulation.simulation(
+            detector, station, reconstructed_vertex, np.pi/2, 0, 1e17,
+            use_channels, first_iteration=True)[2]
+
+        # initialize simulated ref values to avoid UnboundLocalError if no sim_station is present
+        fsim, fsimsim, all_fsim, all_fsimsim, = 4*[np.nan,]
+        if station.has_sim_station():
+            logger.debug(f"simulated vertex    : {simulated_vertex}")
+            logger.debug(f"reconstructed vertex: {reconstructed_vertex}")
+            #### values for reconstructed vertex and simulated direction
+            if has_sim_station:
+                fsimsim = self.minimizer(
+                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
+                    simulated_vertex,
+                    minimize =  True, first_iter = True, 
+                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+                    full_station = self._full_station, sim = True)
+                sim_simvertex_output = self.minimizer(
+                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
+                    simulated_vertex,
+                    minimize =  False, first_iter = True, 
+                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+                    full_station = self._full_station, sim = True)
+                
+                tracsim = sim_simvertex_output[0]
+                all_fsimsim = sim_simvertex_output[3]
+
+                fsim = self.minimizer(
+                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
+                    reconstructed_vertex,
+                    minimize =  True, first_iter = True, 
+                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+                    full_station = self._full_station, sim = True)
+                all_fsim = self.minimizer(
+                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
+                    reconstructed_vertex,
+                    minimize=False, first_iter=True, 
+                    ch_Vpol=self._reference_Vpol, ch_Hpol=self._reference_Hpol,
+                    full_station=self._full_station, sim=True)[3]
+                
+                logger.debug(
+                    "Chi2 values for simulated direction and with/out simulated vertex are {}/{}".format(fsimsim, fsim))
+
+                tracsim_recvertex = self.minimizer(
+                    [simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], 
+                    reconstructed_vertex,
+                    minimize =  False, first_iter = True,
+                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+                    full_station = self._full_station)[0]                
+
+
+        shower_type = "HAD" # by default, we assume a hadronic shower
+
+        logger.info("Starting direction reconstruction...")
+        minimizer_args = (
+            reconstructed_vertex,
+            True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
+            self._full_station)
+        if self._brute_force and not self._restricted_input: # restricted_input:
+            logger.warning("Using brute force optimization")
+            viewing_start = self._cherenkov_angle - np.deg2rad(10)
+            viewing_end = self._cherenkov_angle + np.deg2rad(10)
+            energy_start = 1e16 * units.eV
+            energy_end = 1e19 * units.eV + 1e14 * units.eV
+            theta_start = np.deg2rad(-180) #-180
+            theta_end =  np.deg2rad(180) #180
+
+            d_viewing_grid, d_theta_grid, d_log_energy = self.__minimization_grid_spacings
+
+            if starting_values:
+                results2 = optimize.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .15, np.log10(energy_start) + .15, .1)), full_output = True, finish = optimize.fmin , args = (reconstructed_vertex, True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
+                results1 = optimize.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .15, np.log10(energy_start) + .15, .1)), full_output = True, finish = optimize.fmin , args = (reconstructed_vertex, True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
+                if results2[1] < results1[1]:
+                    results = results2
+                else:
+                    results = results1
+            else:
+                results = optimize.brute(
+                    self.minimizer,
+                    ranges=(
+                        slice(viewing_start, viewing_end, d_viewing_grid),
+                        slice(theta_start, theta_end, d_theta_grid),
+                        slice(np.log10(energy_start), np.log10(energy_end), d_log_energy)
+                    ), full_output = True, finish = optimize.fmin,
+                    args = minimizer_args
+                )
+
+        elif self._restricted_input:
+            logger.warning('Using restricted input!')
+            d_angle = 5
+            zenith_start =  simulated_zenith - np.deg2rad(d_angle)
+            zenith_end = simulated_zenith +  np.deg2rad(d_angle)
+            azimuth_start =simulated_azimuth - np.deg2rad(d_angle)
+            azimuth_end = simulated_azimuth + np.deg2rad(d_angle)
+            energy_start = np.log10(simulated_energy) - .5
+            energy_end = np.log10(simulated_energy) + .5
+            results = optimize.brute(
+                self.minimizer, ranges=(
+                    slice(zenith_start, zenith_end, np.deg2rad(.5)), 
+                    slice(azimuth_start, azimuth_end, np.deg2rad(.5)), 
+                    slice(energy_start, energy_end, .05)), 
+                finish = optimize.fmin, full_output = True, args = ( ### not the same as minimizer_args!
+                    reconstructed_vertex,
+                    True, False, False, False, False, 
+                    self._reference_Vpol, self._reference_Hpol, self._full_station)
+            )
+
+        else:
+            logger.warning('Using iterative fitter')
+            chisq = np.nan * np.zeros(8)
+            results = np.nan * np.zeros((8,3))
+            is_valid = np.nan * np.zeros(8)
+            shower_type = 4*['HAD',] + 4*['EM',]
+
+            res = optimize.minimize(
+                self.minimizer, x0=[self._cherenkov_angle, 0, 18.0], 
+                args = minimizer_args, 
+                tol=1e-6
+            )
+            viewing_sign = int(np.sign(res.x[0] - self._cherenkov_angle))
+            polarization_sign = int(np.sign(res.x[1]))
+            index = 1 + viewing_sign + (polarization_sign + 1) // 2 # ranges from 0-3
+            chisq[index] = res.fun
+            results[index] = res.x
+            is_valid[index] = res.success
+            logger.debug(f'First iteration: index {index}, chisq {res.fun:.2f}, result {res.x}, message: {res.message}')
+            if not res.success:
+                logger.warning(f'Fit {index} failed with message {res.message}')
+            # to avoid local minima (wrong side of cherenkov cone, wrong polarization sign)
+            # we re-run the minimizer starting at the other minima
+            signs = [-1,1]
+            for iteration in range(2): # we do 2 iterations
+                for index in np.arange(4)[np.isnan(chisq[:4])]:
+                    viewing_sign = signs[index // 2]
+                    polarization_sign = signs[index % 2]
+                    try:
+                        old_guess = results[np.nanargmin(chisq)] 
+                    except ValueError: # sometimes, the fit gets stuck on an invalid point and only returns nans
+                        old_guess = self._cherenkov_angle + 2 * units.deg, 20*units.deg, 18 # initialize to something sensible
+
+                    # we use min/median as 'sanity checks' to avoid starting the fit at an unlikely point
+                    viewing_guess = self._cherenkov_angle + viewing_sign * np.min([7*units.deg, np.abs(old_guess[0] - self._cherenkov_angle)])
+                    polarization_guess = polarization_sign * np.min([np.pi/3,np.abs(old_guess[1])])
+                    energy_guess = np.median([16, old_guess[2],19])
+
+                    res = optimize.minimize(
+                        self.minimizer, x0=[viewing_guess, polarization_guess, energy_guess], 
+                        args = minimizer_args, 
+                        tol=1e-4,
+                    )
+                    if res.fun < chisq[index] or np.isnan(chisq[index]): # only update if chi squared improved
+                        chisq[index] = res.fun
+                        results[index] = res.x
+                        is_valid[index] = res.success
+                    if not res.success:
+                        logger.warning(f'Fit {index} failed with message: {res.message}')
+
+            # --- experimental - try to fit shower type also
+            if self._fit_shower_type:
+                for index in np.arange(4):
+                    viewing_sign = signs[index // 2]
+                    polarization_sign = signs[index % 2]
+                    try:
+                        old_guess = results[np.nanargmin(chisq)] 
+                    except ValueError: # sometimes, the fit gets stuck on an invalid point and only returns nans
+                        old_guess = self._cherenkov_angle + 2 * units.deg, 20*units.deg, 18 # initialize to something sensible
+                    # we use min/median as 'sanity checks' to avoid starting the fit at an unlikely point
+                    viewing_guess = self._cherenkov_angle + viewing_sign * np.min([7*units.deg, np.abs(old_guess[0] - self._cherenkov_angle)])
+                    polarization_guess = polarization_sign * np.min([np.pi/3,np.abs(old_guess[1])])
+                    energy_guess = np.median([16, old_guess[2],19])
+                    # logger.info(f'Iteration {index} - x0={[viewing_guess, polarization_guess, energy_guess]}, chisq={np.nanmin(chisq)}')
+
+                    res = optimize.minimize(
+                        self.minimizer, x0=[viewing_guess, polarization_guess, energy_guess], 
+                        args = minimizer_args + (False,False,False,False,False,'EM'), 
+                        #method='Nelder-Mead', options=dict(xatol=1e-4,fatol=1e-2),
+                        # method = 'trust-constr', constraints = constraint
+                        # constraints = [dict(type='ineq', fun=constr)]
+                        tol=1e-4,
+                    )
+                    chisq[index+4] = res.fun
+                    results[index+4] = res.x
+                    is_valid[index+4] = res.success
+                    if not res.success:
+                        logger.warning(f'Fit {index} failed with message: {res.message}')
+            else:
+                chisq = chisq[:4]
+            # ---
+
+            logger.status(
+                'Fitter output:\n'
+                '{:>8s} | {:>8s} {:>8s} {:>8s} {:>8s} {:>8s}\n'.format('Chisq', 'type', 'vw.ang', 'pol.ang', 'log10(E)', 'valid') +
+                '\n'.join([
+                    '{:8.1f} | {:>8s} {:8.2f} {:8.2f} {:8.2f} {:8.0f}'.format(chisq[i], shower_type[i], *(results[i,:2]/units.deg), results[i, -1], is_valid[i])
+                    for i in range(len(chisq))]
+                )
+            )
+            results = results[np.nanargmin(chisq)]
+            shower_type = shower_type[np.nanargmin(chisq)]
+
+        logger.info(f"...finished direction reconstruction.")
+        # print("cache statistics for analytic_pulse ray tracer")
+        # print(self._simulation._raytracer.cache_info())
+        vw_grid = results[-2]
+        chi2_grid = results[-1]
+        # np.save("{}/grid_{}".format(debug_path, self._event.get_run_number()), vw_grid)
+        # np.save("{}/chi2_{}".format(debug_path, self._event.get_run_number()), chi2_grid)
+        ###### GET PARAMETERS #########
+
+        if self._brute_force and not self._restricted_input:
+            # rotation_matrix = hp.get_rotation(sig_dir, np.array([0, 0,1]))
+            viewing_angle = results[0][0]
+            polarization_angle = results[0][1]
+            rec_zenith, rec_azimuth = self._transform_angles(viewing_angle, polarization_angle)
+            rec_energy = 10**results[0][2]
+        elif self._restricted_input:
+            rec_zenith = results[0][0]
+            rec_azimuth = results[0][1]
+            rec_energy = 10**results[0][2]
+        else:
+            viewing_angle = results[0]
+            polarization_angle = results[1]
+            rec_zenith, rec_azimuth = self._transform_angles(viewing_angle, polarization_angle)
+            rec_energy = 10**results[2]
+
+        ###### PRINT RESULTS ###############
+        if station.has_sim_station():
+            logger.info(f"simulated energy {simulated_energy/units.eV:.4g} eV")
+            logger.info(f"simulated zenith {simulated_zenith/units.deg:.3f} deg")
+            logger.info(f"simulated azimuth {simulated_azimuth/units.deg:.3f} deg")
+
+        logger.info(f"reconstructed energy {rec_energy/units.eV:.4g} eV")
+        logger.info(f"reconstructed zenith {rec_zenith/units.deg:.3f} deg")
+        logger.info(f"reconstructed azimuth {rec_azimuth % (2*np.pi)/units.deg:.3f} deg")
+
+        ## get the traces for the reconstructed energy and direction
+        reconstruction_output = self.minimizer(
+            [rec_zenith, rec_azimuth, np.log10(rec_energy)], 
+            reconstructed_vertex, minimize = False,
+            ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol,
+            full_station = self._full_station)
+        tracrec = reconstruction_output[0]
+        channels_overreconstructed = reconstruction_output[4]
+        extra_channel = reconstruction_output[5]
+        chi2_dict = reconstruction_output[3]
+        total_chi2 = np.sum(np.concatenate([list(i.values()) for i in chi2_dict.values()])) #np.sum([list(chi2s.values()) for chi2s in chi2_dict.values()])
+        included_channels = reconstruction_output[6]
+
+        fminfit = self.minimizer(
+            [rec_zenith, rec_azimuth, np.log10(rec_energy)],
+            reconstructed_vertex,
+            minimize =  True, 
+            ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+            full_station = self._full_station)
+
+        all_fminfit = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex, minimize =  False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)[3]
+        bounds = ((14, 20))
+        method = 'BFGS'
+        fmin_simdir_recvertex = np.nan        
+        # if station.has_sim_station():
+        #     results = optimize.minimize(self.minimizer, [14],method = method, args=(reconstructed_vertex, True, False, False,False, [simulated_zenith, simulated_azimuth], self._reference_Vpol, self._reference_Hpol, True, False), bounds= bounds)
+        #     fmin_simdir_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, results.x[0]], reconstructed_vertex, minimize = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)
+
+        ### values for reconstructed vertex and reconstructed direction
+        traces_rec, timing_rec, launch_vector_rec, viewingangle_rec, a, pol_rec = simulation.simulation(
+            detector, station, reconstructed_vertex, rec_zenith, rec_azimuth, rec_energy, use_channels, first_iteration = True)
+
+        if debug:
+            logger.warning("making debug plots....")
+            linewidth = 2
+            tracdata = reconstruction_output[1]
+            timingdata = reconstruction_output[2]
+            timingsim = self.minimizer(
+                [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)],
+                simulated_vertex,
+                first_iter = True, minimize = False, 
+                ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol,
+                full_station = self._full_station, sim=True)[2]
+
+            timingsim_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex, first_iter = True, minimize = False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)[2]
+            sim_station = station.get_sim_station()
+
+            fig, ax = plt.subplots(len(use_channels), 3, sharex=False, figsize=(16, 4*len(use_channels)))
+
+            ich = 0
+            SNRs = np.zeros((len(use_channels), 2))
+
+            for ich, channel_id in enumerate(use_channels):
+                channel = station.get_channel(channel_id)
+                sim_traces = []
+                sim_times = []
+                if sim_station:
+                    for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
+                        sim_times.append(sim_channel.get_times())
+                        if self._passband is not None:
+                            sim_traces.append(sim_channel.get_filtered_trace(self._passband[channel_id], filter_type='butterabs', order=10))
+                        else:
+                            sim_traces.append(sim_channel.get_trace())
+                handles_labels = None
+                for key in tracdata[channel_id].keys():
+                    # logger.debug("Plotting channel {}....".format(channel_id))
+                    # logger.debug("Data trace: {:.0f} - {:.0f} ns".format(channel.get_times()[0], channel.get_times()[-1]))
+                    # logger.debug("Sim trace: {:.0f} - {:.0f} ns".format(timingsim[channel_id][0][0], timingsim[channel_id][0][-1]))
+                    ax[ich][key].set_xlabel("timing [ns]", )
+                    ax[ich][key].plot(channel.get_times(), self._data_traces_full[channel_id]/units.mV, lw = linewidth, label = 'data', color = 'black')
+
+                    #ax[ich][0].fill_between(timingdata[channel_id][0], tracrec[channel_id][0] - tracrec[channel_id][0], tracrec[channel_id][0] +  tracrec[channel_id][0], color = 'green', alpha = 0.2)
+                    ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][key]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel_id][key], sampling_rate)), color = 'black', lw = linewidth)
+                    if key in tracsim[channel_id].keys():
+                        ax[ich][key].plot(timingsim[channel_id][key], tracsim[channel_id][key]/units.mV, label = 'sim (reco prediction)', color = 'orange', lw = linewidth)
+                        ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][key]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][key], sampling_rate)), lw = linewidth, color = 'orange')
+                    for sim_time, sim_trace in zip(sim_times, sim_traces):
+                        ax[ich][key].plot(sim_time, sim_trace/units.mV, label = 'sim (simulation)', color = 'red', lw = linewidth)
+
+                    if key in tracsim_recvertex[channel_id].keys():
+                        ax[ich][key].plot(timingsim_recvertex[channel_id][key], tracsim_recvertex[channel_id][key]/units.mV, label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
+
+                    # show data / simulation time windows
+                    if key in timingsim[channel_id].keys():
+                        window_sim = timingsim[channel_id][key][0], timingsim[channel_id][key][-1]
+                    else:
+                        window_sim = ()
+                    window_rec = timingdata[channel_id][key][0], timingdata[channel_id][key][-1]
+                    for t in window_sim:
+                        ax[ich][key].axvline(t, color='orange', ls=':')
+                    for t in window_rec:
+                        ax[ich][key].axvline(t, color='green', ls=':')
+                    ax[ich][key].set_xlim(np.min(window_sim+window_rec)-5, np.max(window_sim+window_rec)+5)
+
+                    ax[ich][key].plot(timingdata[channel_id][key], tracrec[channel_id][key]/units.mV, label = 'reconstruction', lw = linewidth, color = 'green')
+
+                    for sim_trace in sim_traces:
+                        ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace), 1/sampling_rate), abs(fft.time2freq(sim_trace, sampling_rate)), lw = linewidth, color = 'red')
+
+                    ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][key]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][key], sampling_rate)), color = 'green', lw = linewidth)
+
+                    if key in chi2_dict[channel_id]:
+                        chi2 = chi2_dict[channel_id][key]
+                        n_samples = int((window_rec[1] - window_rec[0]) * sampling_rate)
+                        ax[ich][key].set_title(f'$\chi^2={chi2:.2f}~/~{n_samples}$')
+                    else:
+                        ax[ich][key].set_fc('grey')
+
+                    if handles_labels is None:
+                        handles_labels = ax[ich][key].get_legend_handles_labels()
+
+                ax[ich][2].set_xlim((0, 1))
+                ax[ich][2].set_xlabel("frequency [GHz]", )
+                if not handles_labels is None:
+                    # remove duplicate labels
+                    unique_labels, idx = np.unique(handles_labels[1], return_index=True)
+                    ax[ich][0].legend(handles = [handles_labels[0][i] for i in idx], labels=list(unique_labels))
+                ax[ich][0].grid()
+                ax[ich][1].grid()
+                ax[ich][2].grid()
+                ax[ich][0].set_ylabel(f'Ch. {channel_id} {["", " (Hpol)"][channel_id in self._Hpol_channels]} [mV]')
+
+            fig.tight_layout()
+            fig_path = "{}/{}_{}_fit".format(debug_path, self._event.get_run_number(), self._event.get_id())
+            logger.debug(f"output path for stored figure: {fig_path}")
+            save_fig(fig, fig_path, self._debug_formats)
+            plt.close('all')
+
+            ### chi squared grid from optimize.brute:
+            if self._brute_force or self._restricted_input:
+                min_energy_index = np.unravel_index(np.argmin(chi2_grid), vw_grid.shape)[-1]
+                extent = (
+                    vw_grid[0,0,0,0] / units.deg,
+                    vw_grid[0,-1,0,0] / units.deg,
+                    vw_grid[1,0,0,0] / units.deg,
+                    vw_grid[1,0,-1,0] / units.deg,
+                )
+
+                fig = plt.figure(figsize=(6,6))
+                chi2_grid = chi2_grid - total_chi2
+                chi2_grid_min_energy = chi2_grid[:,:,min_energy_index]
+                try:
+                    vmax = np.percentile(chi2_grid_min_energy[np.where(chi2_grid_min_energy < np.inf)], 20)
+                except IndexError:
+                    # we probably don't have any valid results... but let's not throw an error
+                    # because of the debug plot
+                    vmax = None
+                plt.imshow(
+                    (np.nanmin(chi2_grid, axis=2).T),
+                    extent=extent,
+                    aspect='auto',
+                    vmax=vmax,
+                    origin='lower'
+                )
+                if self._restricted_input: # we did the minimization in azimuth/zenith, so should plot this
+                    x_sim, y_sim = simulated_zenith / units.deg, simulated_azimuth / units.deg % 360
+                    x_rec, y_rec = rec_zenith / units.deg, rec_azimuth / units.deg % 360
+                    xlabel, ylabel = 'zenith [deg]', 'azimuth [deg]'
+                else: # minimization in viewing angle & polarization
+                    x_sim, y_sim = vw_sim / units.deg, np.arctan2(pol_sim[2], pol_sim[1]) / units.deg
+                    x_rec, y_rec = viewingangle_rec / units.deg, np.arctan2(pol_rec[2], pol_rec[1]) / units.deg
+                    xlabel, ylabel = 'Viewing angle [deg]', 'Polarization angle [deg]'
+
+                plt.plot(
+                    x_sim, y_sim,
+                    marker='o', label='{:.1f}, {:.1f}, 1e{:.2f} (simulated)'.format(
+                        x_sim, y_sim, np.log10(simulated_energy)
+                    ), color='red', ls='none'
+                )
+                plt.plot(
+                    x_rec, y_rec,
+                    marker='x', label='{:.1f}, {:.1f}, 1e{:.2f} (reconstructed)'.format(
+                        x_rec, y_rec, np.log10(rec_energy)
+                    ), color='magenta', ms=8, mfc='magenta', ls='none'
+                )
+                plt.xlabel(xlabel)
+                plt.ylabel(ylabel)
+                plt.legend()
+                # plt.title("E=1e{:.2f} eV".format(vw_grid[2,0,0,min_energy_index]))
+                plt.title(f'$\chi^2_\mathrm{{min}} = {total_chi2:.0f} / {self.__dof}$')
+                cbar = plt.colorbar(label=r"$\chi^2-\chi^2_\mathrm{min}$")
+                # vmax = cbar.vmax
+                # vmin = cbar.vmin
+                # cbar_ticks = cbar.get_ticks()
+                # cbar_ticks = cbar_ticks[(cbar_ticks < vmax) & (cbar_ticks > vmin)]
+                # cbar_ticks[0] = vmin
+                # tick_precision = int(np.max([0, np.min([-(np.log10(vmax-vmin)-1) // 1, 2])]))
+                # cbar_ticklabels = [f'{tick:.{tick_precision}f}' for tick in cbar_ticks]
+                # cbar_ticklabels[0] = f'{vmin:.2f} / {self.__dof}'
+            #    cbar.set_ticks(cbar_ticks, labels=cbar_ticklabels)
+                plt.tight_layout()
+                save_fig(
+                    fig, "{}/{}_{}_chi_squared".format(
+                    debug_path, self._event.get_run_number(), self._event.get_id()), 
+                    self._debug_formats)
+                plt.close()
+
+
+        ###### STORE PARAMETERS AND PRINT PARAMETERS #########
+        neutrino_reconstruction_results = dict(
+            extra_channels = extra_channel,
+            overreconstructed_channels=channels_overreconstructed,
+            included_channels=included_channels,
+            chi2_sim_reconstructed_vertex = fsim,
+            chi2_sim_simulated_vertex = fsimsim,
+            viewing_angle_sim = vw_sim,
+            polarization_sim = pol_sim,
+            launch_vector_sim = lv_sim,
+        )
+
+        station.set_parameter(stnp.reference_channel, self._reference_Vpol)
+        station.set_parameter(stnp.nu_reco_additional_output, neutrino_reconstruction_results)
+        station.set_parameter(stnp.nu_zenith, rec_zenith)
+        station.set_parameter(stnp.nu_azimuth, self._transform_azimuth(rec_azimuth))
+        station.set_parameter(stnp.nu_energy, rec_energy)
+        # station.set_parameter(stnp.chi2, [fsim, fminfit, fsimsim, self.__dof, sim_reduced_chi2_Vpol, sim_reduced_chi2_Hpol, fit_reduced_chi2_Vpol, fit_reduced_chi2_Hpol, fmin_simdir_recvertex])
+        station.set_parameter(stnp.chi2, dict(chi2=fminfit, ndof=self.__dof))
+        station.set_parameter(stnp.launch_vector, launch_vector_rec)
+        station.set_parameter(stnp.polarization, pol_rec)
+        station.set_parameter(stnp.viewing_angle, viewingangle_rec)
+        station.set_parameter(stnp.shower_type, shower_type)
+
+        if station.has_sim_station(): 
+            logger.debug("chi2 for simulated rec vertex {}, simulated sim vertex {} and fit {}".format(fsim, fsimsim, fminfit))#reconstructed vertex
+            logger.debug("chi2 for all channels simulated rec vertex {}, simulated sim vertex {} and fit {}".format(all_fsim, all_fsimsim, all_fminfit))#reconstructed vertex
+            logger.warning(f"Fit chi squared: {total_chi2:.2f} / {self.__dof}")
+            logger.debug("launch vector for simulated {} and fit {}".format(lv_sim, launch_vector_rec))
+            zen_sim = hp.cartesian_to_spherical(*lv_sim)[0]
+            zen_rec = hp.cartesian_to_spherical(*launch_vector_rec)[0]
+            logger.debug("launch zenith for simulated {} and fit {}".format(np.rad2deg(zen_sim), np.rad2deg(zen_rec)))
+            logger.debug("polarization for simulated {} and fit {}".format(pol_sim, pol_rec))
+            logger.debug("polarization angle for simulated {} and fit{}".format(np.rad2deg(np.arctan2(pol_sim[2], pol_sim[1])), np.rad2deg(np.arctan2(pol_rec[2], pol_rec[1]))))
+            logger.debug("viewing angle for simulated {} and fit {}".format(np.rad2deg(vw_sim), np.rad2deg(viewingangle_rec)))
+            # logger.debug("reduced chi2 Vpol for simulated {} and fit {}".format(sim_reduced_chi2_Vpol, fit_reduced_chi2_Vpol))
+            # logger.debug("reduced chi2 Hpol for simulated {} and fit {}".format(sim_reduced_chi2_Hpol, fit_reduced_chi2_Hpol))
+            logger.debug(f"over reconstructed channels {channels_overreconstructed}")
+            logger.debug(f"extra channels {extra_channel}")
+            logger.debug(f"L for rec vertex sim direction rec energy: {fmin_simdir_recvertex}")
+            logger.debug(f"L for reconstructed vertex, direction and energy: {fminfit}")
+
+    def _transform_azimuth(self, azimuth): ## from [-180, 180] to [0, 360]
+        azimuth = np.rad2deg(azimuth)
+        if azimuth < 0:
+            azimuth = 360 + azimuth
+        return np.deg2rad(azimuth)
+
+    def _transform_angles(self, viewing_angle, polarization_angle):
+        lv = self._launch_vector
+        pol = np.array([0, np.cos(polarization_angle), np.sin(polarization_angle)])
+        cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*lv))
+        pol_cartesian = cs.transform_from_onsky_to_ground(pol)
+        rotation_axis = np.cross(lv, pol_cartesian)
+        rot = Rotation.from_rotvec(viewing_angle * rotation_axis / np.linalg.norm(rotation_axis))
+        nu_direction = -rot.apply(lv) # using the convention that nu_direction points to its origin
+        zenith, azimuth = hp.cartesian_to_spherical(*nu_direction)
+        return zenith, azimuth
+
+    #TODO: cleanup/add docstring (or just make private...)
+    def minimizer(
+            self, params, vertex, minimize = True, timing_k = False,
+            first_iter = False, banana = False,  direction = [0, 0], ch_Vpol = 6, ch_Hpol = False,
+            full_station = False, single_pulse =False, fixed_timing = False,
+            starting_values = False, penalty = False, sim = False, shower_type='HAD'
+        ):
+        """
+
+        Parameters
+        ----------
+        params: list
+            input parameters for viewing angle / direction. The interpretation depends on the number of parameters given.
+
+            * If 3 parameters, they are interpreted as viewing angle, polarization angle, and log10(energy)
+            * If 2 parameters, they are interpreted as viewing angle and log10(energy)
+            * If only one parameter is given, it is interpreted as the polarization angle.
+
+        vertex: np.ndarray of floats
+            Neutrino vertex position
+        minimize: Boolean
+            If true, minimization output is given (chi2). If False, parameters are returned. Default minimize = True.
+        first_iter: Boolean
+            If true, raytracing is performed. If false, raytracing is not performed. Default first_iter = False.
+        banana: Boolean
+            If true, input values are viewing angle and energy. If false, input values should be theta and phi. Default banana = False.
+        direction: list
+            List with phi and theta direction. This is only for determining contours. Default direction = [0,0].
+        ch_Vpol: int
+            channel id for the Vpol of the reference pulse. Must be upper Vpol in phased array. Default ch_Vpol = 6.
+        ch_Hpol: int
+            channel id for the Hpol which is closest by the ch_Vpol
+        full_station:
+            if True, all raytype solutions for all channels are used, regardless of SNR of pulse. Default full_station = True.
+        single_pulse: Boolean
+            if True, only 1 pulse is used from the reference Vpol. Default single_pulse = False.
+        fixed_timing: Boolean
+            if True, the positions of the pulses using the simulated timing is used. This only works for the simulated vertex and for Alvarez2009 reconstruction and simulation. Default fixed_timing = False.
+        starting_values: Boolean
+            if True, the phased array cluster is used to obtain starting values for the viewing angle and the energy to limit the timing for the brute force approach. Default starting_values = False.
+        penalty: Boolean
+            if True, a penalty is included such that the reconstruction is not allowed to overshoot the traces with snr< 3.5. Default penalty = False.
+
+        """
+
+
+
+        if banana: ## if input is viewing angle and energy, they need to be transformed to zenith and azimuth
+            if len(params) == 3:
+                cherenkov_angle, angle, log_energy = params
+                # print("viewing angle and energy and angle ", [np.rad2deg(cherenkov_angle), log_energy, np.rad2deg(angle)])
+            if len(params) == 2:
+                cherenkov_angle, log_energy = params
+                angle = self._angle
+                #print("viewing angle and energy and angle ", [np.rad2deg(cherenkov_angle), log_energy, np.rad2deg(angle)])
+            if len(params) == 1:
+                cherenkov_angle = self._viewing_angle
+                self._pol_angle = params
+                log_energy = self._log_energy
+                angle = self._angle
+            energy = 10**log_energy
+
+            zenith, azimuth = self._transform_angles(cherenkov_angle, angle)
+
+            if self._brute_force: # minimizers don't like this kind of behaviour, so we only use it for the brute force method
+                if np.rad2deg(zenith) > 120:
+                    return np.inf ## not in field of view
+
+        else:
+            if len(params) == 3:
+                zenith, azimuth, log_energy = params
+                energy = 10**log_energy
+            if len(params) == 1:
+                log_energy = params
+
+                energy = 10**log_energy[0]
+                zenith, azimuth = direction
+
+        azimuth = self._transform_azimuth(azimuth)
+
+        # pol_angle = 0
+        # if self._single_pulse_fit:
+        #     pol_angle = self._pol_angle
+        traces, timing, launch_vector, viewingangles, raytypes, pol = self._simulation.simulation(
+            self._detector, self._station, vertex, zenith, azimuth, energy,
+            self._use_channels, first_iteration = first_iter, starting_values = starting_values, shower_type=shower_type) ## get traces due to neutrino direction and vertex position
+        chi2 = 0
+        all_chi2 = dict()
+        over_reconstructed = [] ## list for channel ids where reconstruction is larger than data
+        # extra_channel = 0 ## count number of pulses besides triggering pulse in Vpol + Hpol
+
+        rec_traces = {} ## to store reconstructed traces
+        data_traces = {} ## to store data traces
+        data_timing = {} ## to store timing
+
+        #get timing and pulse position for raytype of triggered pulse
+        if sim or self._sim_vertex:
+            raytype = self._station[stnp.raytype_sim]
+        else:
+            raytype = self._station[stnp.raytype]
+
+        if raytype not in raytypes[ch_Vpol]:
+            logger.warning(f"No solution for reference ch_Vpol ({ch_Vpol}) with ray type {raytype}!")
+            return np.inf
+        T_ref = timing[ch_Vpol][raytype]
+        trace_start_time_ref = self._station.get_channel(ch_Vpol).get_trace_start_time()
+
+        # get pulse position for triggered pulse
+        if sim or self._sim_vertex: 
+            k_ref = self._station[stnp.pulse_position_sim]
+        else:
+            k_ref = self._station[stnp.pulse_position]
+
+        dict_dt = {}
+        dict_snr = {}
+        chi2 = 0
+
+        ### Loop over all channels. For each pulse, we first determine the arrival time,
+        ### and then compute and add the chi squared.
+        for channel_id in self._use_channels:
+            channel = self._station.get_channel(channel_id)
+            data_trace_full = self._data_traces_full[channel_id]
+            data_timing_timing = channel.get_times()
+
+            rec_traces[channel_id] = {}
+            data_traces[channel_id] = {}
+            data_timing[channel_id] = {}
+            dict_dt[channel_id] = {}
+            dict_snr[channel_id] = {}
+            all_chi2[channel_id] = {}
+            
+            keys = sorted(traces[channel_id].keys(), key=lambda iS: iS!=raytype) # start with the reference trace
+            for key in keys:
+                rec_trace = traces[channel_id][key]
+
+                delta_T =  timing[channel_id][key] - T_ref
+
+                ## before correlating, set values around maximum voltage trace data to zero
+                delta_toffset = delta_T * self._sampling_rate
+                # take into account unequal trace start times
+                delta_toffset -= (channel.get_trace_start_time() - trace_start_time_ref) * self._sampling_rate
+
+                ### figuring out the time offset for specfic trace
+                dk = int(k_ref + delta_toffset ) # where do we expect the pulse to be wrt channel 6 main pulse and rec vertex position
+
+                ## DETERMINE PULSE REGION DUE TO REFERENCE TIMING
+                if channel_id in self._Hpol_channels:
+                    window = self._window_Hpol
+                else:
+                    window = self._window_Vpol
+                
+                Vrms = self._Vrms[channel_id]
+                data_samples = np.arange(int(window[0] * self._sampling_rate), int(window[1]*self._sampling_rate)) + dk
+                mask = (data_samples > 0) & (data_samples < len(data_timing_timing))
+                if not np.any(mask):
+                    dict_snr[channel_id][key] = 0
+                    continue # pulse not inside recorded trace, skipping...
+                
+                data_samples = data_samples[mask]
+                start_index = data_samples[0] - dk # we need this to keep track of the expected pulse position in different data windows
+                data_trace = data_trace_full[data_samples]
+                data_times = data_samples / self._sampling_rate + channel.get_trace_start_time()
+                snr = (np.max(data_trace) - np.min(data_trace)) / (2 * Vrms)
+                dict_snr[channel_id][key] = snr
+
+                # decide whether to use the timing from the reference channel, or use correlation
+                dt = None
+                if fixed_timing and not (channel_id == ch_Vpol and key == raytype):
+                    dt = dict_dt[ch_Vpol][raytype]
+                elif snr < 3.5:
+                    if channel_id in self._PA_cluster_channels and key == raytype and channel_id != ch_Vpol:
+                        dt = dict_dt[ch_Vpol][raytype]
+                    elif self._use_fallback_timing and channel_id in self._fallback_channels.keys() and key == raytype:
+                        try:
+                            dt = dict_dt[self._fallback_channels[channel_id]][raytype]
+                        except KeyError: # fallback channel does not contain the relevant dt
+                            continue
+                if dt is None:
+                    corr = signal.correlate(data_trace, rec_trace)
+                    lags = signal.correlation_lags(len(data_times), len(rec_trace)) + start_index # adding start_index ensures the same lags for different data windows
+
+                    corr_window_start = int(len(rec_trace)/2) # we limit the shift to half the reconstructed trace length #int(len(corr)/2 - 30 * self._sampling_rate)
+                    corr_window_end = len(corr)#int(len(corr)/2 + 30 * self._sampling_rate)
+                    
+                    # for the PA cluster, we constrain the pulse position to be close to the
+                    # pulse position of the reference Vpol TODO - extend to other channels?
+                    if channel_id in self._PA_cluster_channels and not channel_id == ch_Vpol:
+                        if key == raytype:
+                            corr_window_start = np.max([0, dict_dt[ch_Vpol][raytype] - np.min(lags) - 5])
+                            corr_window_end = np.min([len(corr), dict_dt[ch_Vpol][raytype] - np.min(lags) + 5])
+                    # if corr_window_end - corr_window_start < 1:
+                    #     print(channel_id, key, dict_dt[ch_Vpol][solution_number], np.min(lags), corr_window_start, corr_window_end)
+                    max_cor = np.arange(corr_window_start,corr_window_end, 1)[np.argmax(corr[corr_window_start:corr_window_end])]
+                    dt = lags[max_cor] #max_cor - len(corr)
+                    # rec_trace_1 = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
+                    # chi2_dt1 = np.sum((rec_trace_1  - data_trace_timing_1)**2 )/ ((self._Vrms)**2)/len(rec_trace)
+                    # rec_trace_2 = np.roll(rec_trace, math.ceil(-dt - 1))[:len(data_trace_timing_1)]
+                    # chi2_dt2 = np.sum((rec_trace_2 - data_trace_timing_1)**2) / ((self._Vrms)**2)/len(rec_trace)
+                    # if chi2_dt2 < chi2_dt1:
+                    #     dt = dt + 1
+                    # else:
+                    #     dt = dt
+
+                    dict_dt[channel_id][key] = dt
+                    # logger.debug(f'{channel_id} / {key} / {dict_dt[channel_id][key]}')
+
+
+                
+                rec_trace = np.roll(rec_trace, dt - start_index)[:len(data_trace)]
+                rec_traces[channel_id][key] = rec_trace
+                data_traces[channel_id][key] = data_trace
+                data_timing[channel_id][key] = data_times
+
+                # TODO - REMOVE (used for debugging)
+                # if dt < -1000:
+                #     print(rec_trace)
+                #     print(corr)
+                #     fig, axs = plt.subplots(2,1,)
+                #     # fig.subplots_adjust(hspace=0)
+                #     axs[0].plot(data_times, np.roll(rec_trace, 0*math.ceil(dt-start_index)), color='g')
+                #     axs[0].plot(data_times, data_trace, color='k')
+                #     axs[1].plot(lags, corr)
+                #     axs[0].set_title(f'{channel_id} / {key} / {dt:.1f} / ') #{chi2_dt1:.2f}
+                #     plt.show()
+
+            # # TODO - REMOVE!
+            # logger.debug("time shifts (channel / trace / shift):")
+            # for ch in dict_dt.keys():
+            #     for i_trace in dict_dt[ch].keys():
+            #         logger.debug(f'{ch} / {i_trace} / {dict_dt[ch][key]}')
+
+
+                # Now we compute chi squared:
+                chi2_for_channel_and_trace = np.sum((rec_trace - data_trace)**2 / ((Vrms)**2))
+
+                # check if multiple pulses in the same channel overlap
+                pulse_overlap = np.any([
+                    np.abs(timing[channel_id][key] - timing[channel_id][other_key]) < (window[1] - window[0])
+                    for other_key in keys if other_key != key])
+
+                if pulse_overlap: # if they overlap, we exclude them from the fit, unless they are the reference pulse
+                    if (channel_id == ch_Vpol or channel_id == ch_Hpol) and key == raytype:
+                        all_chi2[channel_id][key] = chi2_for_channel_and_trace
+                elif (snr > 3.5) or (channel_id in self._PA_cluster_channels and key == raytype):
+                    all_chi2[channel_id][key] = chi2_for_channel_and_trace
+                elif channel_id in self._fallback_channels.keys() and key == raytype:
+                    if dict_snr[self._fallback_channels[channel_id]][key] > 3.5 and self._use_fallback_timing:
+                        all_chi2[channel_id][key] = chi2_for_channel_and_trace
+                elif penalty:
+                    snr_rec_trace = (np.max(rec_trace) - np.min(rec_trace)) / (2 * Vrms)
+                    if snr_rec_trace > 4.0:
+                        all_chi2[channel_id][key] = np.inf
+
+        chi2_array = np.concatenate([list(d.values()) for d in all_chi2.values()])
+        dof = np.sum(chi2_array.astype(bool)) # number of channels/traces included in the fit
+        chi2 = np.sum(chi2_array)
+        self.__dof = dof
+        if not minimize: #TODO - make this a dict?
+            full_output = [
+                rec_traces, data_traces, data_timing, all_chi2, 
+                over_reconstructed, dof, all_chi2] #all_chi2 used to be included_channels
+            return full_output
+
+        return chi2
+
+    def end(self):
+        pass
+
+
+def save_fig(fig, fname, format='.png'):
+    """
+    Save a matplotlib Figure instance
+
+    Parameters
+    ----------
+    fig : matplotlib Fig instance
+    fname : string
+        location / name
+    format : string | list (default: '.png')
+        format(s) to save to save the figure to.
+        If a list, save the figure to multiple formats.
+        Can also include '.pickle'/'.pkl' to enable the Fig to be
+        imported and edited in the future
+
+    """
+    formats = np.atleast_1d(format)
+    for fmt in formats:
+        if ('pickle' in fmt) or ('pkl' in fmt):
+            with open(fname+'.pkl', 'wb') as file:
+                pickle.dump(fig, file)
+        else:
+            if not fmt[0] == '.':
+                fmt = '.' + fmt
+            fig.savefig(fname+fmt)
