@@ -610,6 +610,13 @@ class DetectorBase(object):
         station_id: int
             the station ID
 
+        Returns
+        -------
+        tuple of float
+            The latitude and longitude of the detector site.
+
+            .. Warning:: The latitude and longitude are given in **degrees**, not radians!
+
         See Also
         --------
         get_site_elevation :
