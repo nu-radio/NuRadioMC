@@ -23,10 +23,11 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.interferometry_io_utilities import (
-    load_correlation_map,
+    load_corr_map,
     determine_plot_output_path
 )
 from NuRadioReco.modules.io.eventReader import eventReader
+from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
 from NuRadioReco.detector.RNO_G import rnog_detector
 from NuRadioReco.modules.channelResampler import channelResampler
 from NuRadioReco.modules.channelBandPassFilter import channelBandPassFilter
@@ -56,7 +57,7 @@ class CorrelationMapPlotter:
     combining correlation maps, waveforms, and event metadata.
     """
     
-    def __init__(self, map_data_path=None, map_data=None, output_arg=None, show_minimaps=False, extra_points=None):
+    def __init__(self, map_data_path=None, map_data=None, output_arg=None, show_minimaps=False, extra_points=None, alignment_channels=None):
         """
         Initialize the plotter with common settings.
         
@@ -72,11 +73,14 @@ class CorrelationMapPlotter:
             Whether to show minimap insets (default: False)
         extra_points : list, optional
             Extra points to plot on correlation map
+        alignment_channels : list, optional
+            List of channel IDs to plot in waveform alignment plots (default: None, uses all available)
         """
         self.map_data_path = map_data_path
         self.output_arg = output_arg
         self.show_minimaps = show_minimaps
         self.extra_points = extra_points if extra_points is not None else []
+        self.alignment_channels = alignment_channels
         
         # Load the correlation map data once
         if map_data is not None:
@@ -84,7 +88,7 @@ class CorrelationMapPlotter:
             self.map_data = map_data
         elif self.map_data_path is not None:
             # Load from file
-            self.map_data = load_correlation_map(self.map_data_path)
+            self.map_data = load_corr_map(self.map_data_path)
         else:
             self.map_data = None
 
@@ -148,15 +152,15 @@ class CorrelationMapPlotter:
             rasterized=True,
         )
 
-        max_corr_x = map_data.get('coord0', None)
-        max_corr_y = map_data.get('coord1', None)
+        max_corr_x = map_data.get('coord_0', None)
+        max_corr_y = map_data.get('coord_1', None)
         max_corr_value = map_data.get('max_corr', np.nan)
         
         # If coordinates not in map_data, compute from correlation matrix
         if max_corr_x is None or max_corr_y is None:
             max_idx = np.unravel_index(np.nanargmax(corr_matrix), corr_matrix.shape)
-            max_corr_x = coord0_vec[max_idx[1]]
-            max_corr_y = coord1_vec[max_idx[0]]
+            max_corr_x = coord_0_vec[max_idx[1]]
+            max_corr_y = coord_1_vec[max_idx[0]]
             max_corr_value = corr_matrix[max_idx]
         
         # Format legend label based on coordinate system
@@ -180,27 +184,27 @@ class CorrelationMapPlotter:
             label=legend_label,
         )
         
-        if 'coord0_alt' in map_data and map_data['coord0_alt'] is not None:
-            coord0_alt = map_data['coord0_alt']
-            coord1_alt = map_data['coord1_alt']
+        if 'coord_0_alt' in map_data and map_data['coord_0_alt'] is not None:
+            coord_0_alt = map_data['coord_0_alt']
+            coord_1_alt = map_data['coord_1_alt']
             
-            if not np.isnan(coord0_alt) and not np.isnan(coord1_alt):
+            if not np.isnan(coord_0_alt) and not np.isnan(coord_1_alt):
                 # Build legend label with coordinates
                 if coord_system == "cylindrical" and rec_type == "phiz":
-                    coord0_alt = np.rad2deg(coord0_alt)
-                    alt_label = f"Alt max: ({coord0_alt:.2f}°, {coord1_alt:.2f}m)"
+                    coord_0_alt = np.rad2deg(coord_0_alt)
+                    alt_label = f"Alt max: ({coord_0_alt:.2f}°, {coord_1_alt:.2f}m)"
                 elif coord_system == "cylindrical" and rec_type == "rhoz":
-                    alt_label = f"Alt max: ({coord0_alt:.2f}m, {coord1_alt:.2f}m)"
+                    alt_label = f"Alt max: ({coord_0_alt:.2f}m, {coord_1_alt:.2f}m)"
                 elif coord_system == "spherical":
-                    coord0_alt = np.rad2deg(coord0_alt)
-                    coord1_alt = np.rad2deg(coord1_alt)
-                    alt_label = f"Alt max: ({coord0_alt:.2f}°, {coord1_alt:.2f}°)"
+                    coord_0_alt = np.rad2deg(coord_0_alt)
+                    coord_1_alt = np.rad2deg(coord_1_alt)
+                    alt_label = f"Alt max: ({coord_0_alt:.2f}°, {coord_1_alt:.2f}°)"
                 else:
                     alt_label = "Alt max"
                 
                 ax.plot(
-                    coord0_alt,
-                    coord1_alt,
+                    coord_0_alt,
+                    coord_1_alt,
                     "o",
                     markersize=6,
                     color="lime",
@@ -289,13 +293,13 @@ class CorrelationMapPlotter:
             try:
                 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
                 
-                has_alt = ('coord0_alt' in map_data and map_data['coord0_alt'] is not None and 
-                        not np.isnan(map_data['coord0_alt']) and not np.isnan(map_data['coord1_alt']))
+                has_alt = ('coord_0_alt' in map_data and map_data['coord_0_alt'] is not None and 
+                        not np.isnan(map_data['coord_0_alt']) and not np.isnan(map_data['coord_1_alt']))
                 
                 if has_alt:
                     # Get alt coordinates and convert to plotting units if needed
-                    alt_x_center = map_data['coord0_alt']
-                    alt_y_center = map_data['coord1_alt']
+                    alt_x_center = map_data['coord_0_alt']
+                    alt_y_center = map_data['coord_1_alt']
                     
                     if coord_system == "cylindrical" and rec_type == "phiz":
                         alt_x_center = np.degrees(alt_x_center)
@@ -441,8 +445,8 @@ class CorrelationMapPlotter:
         # If standalone mode, save figure and return path
         if standalone:
             output_path = determine_plot_output_path(
-                self.map_data_path, self.output_arg, station_id, 
-                run_number, event_number
+                self.map_data_path, self.output_arg, station_id,
+                [run_number, event_number]
             )
             
             # Insert coordinate system, reconstruction type, and ray type mode into path
@@ -517,8 +521,8 @@ class CorrelationMapPlotter:
                 results_group = f['results']
                 
                 # Get arrays from HDF5
-                reco_run_numbers = results_group['runNum'][:]
-                reco_event_numbers = results_group['eventNum'][:]
+                reco_run_numbers = results_group['run_number'][:]
+                reco_event_numbers = results_group['event_number'][:]
                 filenames = results_group['filename'][:]
                 
                 # Find the row matching our run_number and event_number
@@ -748,6 +752,22 @@ class CorrelationMapPlotter:
                         if ch_id in waveform_data:
                             data = waveform_data[ch_id]
                             ax_wf.plot(data['times'], data['trace'], linewidth=0.7, color='blue', label=f'Ch {ch_id}')
+                            
+                            # Find and mark peak location
+                            peak_idx = np.argmax(np.abs(data['trace']))
+                            peak_time = data['times'][peak_idx]
+                            peak_voltage = data['trace'][peak_idx]
+                            
+                            # Add vertical line at peak
+                            ax_wf.axvline(peak_time, color='red', linestyle='--', linewidth=1.0, alpha=0.7)
+                            
+                            # Add text annotation with peak time
+                            ax_wf.text(0.98, 0.98, f't={peak_time:.1f} ns', 
+                                     transform=ax_wf.transAxes, 
+                                     verticalalignment='top', horizontalalignment='right',
+                                     fontsize=9, color='red',
+                                     bbox=dict(boxstyle='round', facecolor='white', alpha=0.7, edgecolor='red'))
+                            
                             #ax_wf.set_title(f'Ch {ch_id}', fontsize=10, fontweight='bold')
                             ax_wf.grid(True, alpha=0.3)
                             ax_wf.legend()
@@ -884,7 +904,7 @@ class CorrelationMapPlotter:
         # Determine output path
         output_path = determine_plot_output_path(
             self.map_data_path, self.output_arg, station_id, 
-            run_number, event_number
+            [run_number, event_number]
         )
         
         # Insert coordinate system, reconstruction type, and ray type mode into path
@@ -918,6 +938,22 @@ class CorrelationMapPlotter:
         plt.savefig(output_path, dpi=187.5)
         print(f"Saved comprehensive plot to {output_path}")
         plt.close()
+        
+        # Create waveform alignment plot if we have waveform data and time delays
+        if 'waveform_data' in locals() and waveform_data and 'best_time_delays' in map_data:
+            try:
+                wf_alignment_path = output_path.replace('_comprehensive.png', '_wf_alignment.png')
+                self._plot_waveform_alignment(
+                    waveform_data, map_data['best_time_delays'],
+                    station_id, run_number, event_number,
+                    wf_alignment_path,
+                    channels=self.alignment_channels  # Pass the alignment channels filter
+                )
+                print(f"Saved waveform alignment plot to {wf_alignment_path}")
+            except Exception as e:
+                print(f"Warning: Could not create waveform alignment plot: {e}")
+                import traceback
+                traceback.print_exc()
         
         # Create separate per-channel ray path plot if we have vertex information
         if vertex_position_3d is not None:
@@ -1145,6 +1181,104 @@ class CorrelationMapPlotter:
         
         return output_path
 
+    def _plot_waveform_alignment(self, waveform_data, time_delays_dict, 
+                                 station_id, run_number, event_number, output_path, channels=None):
+        """
+        Create waveform alignment plot showing before/after time delay correction.
+        
+        Parameters
+        ----------
+        waveform_data : dict
+            Dictionary mapping channel IDs to {'times': array, 'trace': array}
+        time_delays_dict : dict
+            Dictionary with tuple keys (ch1, ch2) -> delay_ns
+        station_id : int
+            Station ID
+        run_number : int
+            Run number
+        event_number : int
+            Event number
+        output_path : str
+            Path to save the plot
+        channels : list, optional
+            List of specific channel IDs to plot. If None, plots all channels in waveform_data
+        """
+        # If specific channels requested, filter waveform_data to only those channels
+        if channels is not None:
+            # Filter to only requested channels that exist in waveform_data
+            available_channels = [ch for ch in channels if ch in waveform_data]
+            if not available_channels:
+                print(f"Warning: None of the requested channels {channels} found in waveform data. Using all channels.")
+                channels_to_plot = sorted(waveform_data.keys())
+            else:
+                channels_to_plot = sorted(available_channels)
+        else:
+            channels_to_plot = sorted(waveform_data.keys())
+        
+        # Create figure with two subplots
+        fig, (ax_before, ax_after) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
+        
+        # Define colors for channels
+        colors = plt.cm.tab10(np.linspace(0, 0.9, len(channels_to_plot)))
+        
+        # Plot unaligned waveforms (top panel)
+        for i, ch in enumerate(channels_to_plot):
+            data = waveform_data[ch]
+            ax_before.plot(data['times'], data['trace'], 
+                         label=f'Ch {ch}', color=f'C{i}', linewidth=1.5)
+        
+        ax_before.set_xlim(-700,-600)
+        ax_before.set_ylabel('Voltage [mV]', fontsize=16)
+        ax_before.set_title('Unaligned Waveforms (Original)', fontsize=18, fontweight='bold')
+        ax_before.legend(loc='upper right', ncol=2)
+        ax_before.grid(True, alpha=0.3)
+        ax_before.axhline(0, color='k', linestyle='--', linewidth=0.5, alpha=0.5)
+        
+        # Compute time shifts to align waveforms
+        ref_ch = channels_to_plot[0]  # First channel as reference
+        time_shifts = {ref_ch: 0.0}  # Reference has zero shift
+        
+        # For each other channel, find the time delay relative to reference
+        for ch in channels_to_plot[1:]:
+            pair_key_1 = (ref_ch, ch)
+            pair_key_2 = (ch, ref_ch)
+            
+            if pair_key_1 in time_delays_dict:
+                # Delay is for ref-ch pair, so ch arrives LATER by this amount
+                time_shifts[ch] = time_delays_dict[pair_key_1]  # Shift backward to align
+            elif pair_key_2 in time_delays_dict:
+                # Delay is for ch-ref pair, so ch arrives EARLIER by this amount  
+                time_shifts[ch] = -time_delays_dict[pair_key_2]  # Shift forward to align
+            else:
+                time_shifts[ch] = 0.0
+                print(f"Warning: No time delay found for channel pair ({ref_ch}, {ch})")
+        
+        # Plot aligned waveforms (bottom panel)
+        for i, ch in enumerate(channels_to_plot):
+            data = waveform_data[ch]
+            shifted_times = data['times'] + time_shifts[ch]
+            ax_after.plot(shifted_times, data['trace'],
+                        label=f'Ch {ch} (Δt={time_shifts[ch]:.2f} ns)', 
+                        color=f'C{i}', linewidth=1.5)
+        
+        ax_after.set_xlim(-700,-600)
+        ax_after.set_xlabel('Time [ns]', fontsize=16)
+        ax_after.set_ylabel('Voltage [mV]', fontsize=16)
+        ax_after.set_title('Aligned Waveforms (After Reco Time Shifts)', fontsize=18, fontweight='bold')
+        ax_after.legend(loc='upper right', ncol=2, fontsize=12)
+        ax_after.grid(True, alpha=0.3)
+        ax_after.axhline(0, color='k', linestyle='--', linewidth=0.5, alpha=0.5)
+        
+        # Overall title
+        fig.suptitle(f'Station {station_id} | Run {run_number} | Event {event_number}', 
+                    fontsize=20, fontweight='bold', y=0.995)
+        
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        
+        return output_path
+
     def plot_multistage(self, multistage_data, output_path=None):
         """
         Plot multi-stage reconstruction correlation maps side-by-side.
@@ -1288,7 +1422,7 @@ class CorrelationMapPlotter:
         pair_data = []
         for pkl_file in pair_files:
             try:
-                map_data = load_correlation_map(pkl_file)
+                map_data = load_corr_map(pkl_file)
                 
                 # Check if this is a pairwise map (has 'pair_channels' key)
                 if 'pair_channels' in map_data and map_data['pair_channels'] is not None:
@@ -1425,13 +1559,13 @@ class CorrelationMapPlotter:
                         )
 
                         # Combined map maximum (shown in all pair plots for reference)
-                        combined_max_x = pd['map_data']['coord0']
-                        combined_max_y = pd['map_data']['coord1']
+                        combined_max_x = pd['map_data']['coord_0']
+                        combined_max_y = pd['map_data']['coord_1']
                         max_corr_value = pd['map_data'].get('max_corr', np.nan)
                         
                         # This pair's individual maximum
-                        pair_max_x = pd['map_data'].get('pair_rec_coord0')
-                        pair_max_y = pd['map_data'].get('pair_rec_coord1')
+                        pair_max_x = pd['map_data'].get('pair_rec_coord_0')
+                        pair_max_y = pd['map_data'].get('pair_rec_coord_1')
                         pair_max_corr_value = pd['map_data'].get('pair_rec_max_corr')
                         
                         # Convert to plotting units if needed
@@ -1525,6 +1659,237 @@ class CorrelationMapPlotter:
         plt.close()
         
         return output_path
+    
+    def plot_wfs(self, reco_results_file, channels=[0,1,2,3], output_path=None):
+        """
+        Plot waveform alignment before and after applying best reconstruction time delays.
+        
+        Creates a two-panel figure:
+        - Top: Original waveforms (unaligned)
+        - Bottom: Waveforms after applying time shifts from reconstruction (aligned)
+        
+        Parameters
+        ----------
+        reco_results_file : str
+            Path to reconstruction results HDF5 file containing event data filename
+        channels : list, optional
+            List of channel IDs to plot (default: [0,1,2,3])
+        output_path : str, optional
+            Output file path. If None, auto-generates path
+            
+        Returns
+        -------
+        str
+            Path to saved plot file
+        """
+        if self.map_data is None:
+            raise ValueError("No correlation map data loaded")
+        
+        map_data = self.map_data
+        station_id = map_data['station_id']
+        run_number = map_data['run_number']
+        event_number = map_data['event_number']
+        
+        # Get time delays from correlation map data (stored during reconstruction)
+        if 'best_time_delays' not in map_data:
+            raise ValueError("No time delays found in correlation map data. Was this map generated with a recent version?")
+        
+        time_delays_dict = map_data['best_time_delays']
+        
+        # Load reconstruction results to get data filename
+        if not reco_results_file.endswith(('.h5', '.hdf5')):
+            raise ValueError(f"Reco results file must be .h5 or .hdf5, got: {reco_results_file}")
+        
+        data_filename = None
+        
+        try:
+            with h5py.File(reco_results_file, 'r') as f:
+                # Find event in results - use correct field names from save_reco_results_hdf5
+                results_group = f['results']
+                event_numbers = results_group['event_number'][:]
+                run_numbers = results_group['run_number'][:]
+                
+                mask = (event_numbers == event_number) & (run_numbers == run_number)
+                if not np.any(mask):
+                    raise ValueError(f"Event {event_number} from run {run_number} not found in {reco_results_file}")
+                
+                idx = np.where(mask)[0][0]
+                
+                # Get data filename
+                if 'filename' in results_group:
+                    data_filename = results_group['filename'][idx]
+                    # Handle bytes vs string
+                    if isinstance(data_filename, bytes):
+                        data_filename = data_filename.decode('utf-8')
+        
+        except Exception as e:
+            raise RuntimeError(f"Error loading reco results: {e}")
+        
+        if data_filename is None:
+            raise ValueError(f"Could not find data filename in {reco_results_file}")
+        
+        # Read event data
+        is_nur_file = data_filename.endswith('.nur')
+        is_root_file = data_filename.endswith('.root')
+        
+        if not (is_nur_file or is_root_file):
+            raise ValueError(f"Unsupported data file format: {data_filename}")
+        
+        # Initialize detector (same way as in interferometric_reco_example_advanced.py)
+        from NuRadioReco.detector import detector
+        det = detector.Detector(source="rnog_mongo")
+        det.update(datetime.datetime(2024, 3, 1))
+        
+        # Read waveforms
+        waveforms = {}
+        times = {}
+        
+        if is_nur_file:
+            reader = eventReader()
+            reader.begin([data_filename])
+            
+            found = False
+            for event in reader.run():
+                if event.get_run_number() == run_number:
+                    for station in event.get_stations():
+                        if station.get_id() == station_id:
+                            # Apply same processing as in main analysis
+                            channelResampler().run(event, station, det, 5 * units.GHz)
+                            channelBandPassFilter().run(event, station, det, 0.08 * units.GHz, 0.8 * units.GHz, 'butter', 10)
+                            channelSinewaveSubtraction().run(event, station, det, signal_window_mask=None)
+                            channelAddCableDelay().run(event, station, det)
+                            
+                            # Extract waveforms
+                            for ch in channels:
+                                if station.has_channel(ch):
+                                    channel = station.get_channel(ch)
+                                    waveforms[ch] = channel.get_trace()
+                                    times[ch] = channel.get_times()
+                            
+                            found = True
+                            break
+                if found:
+                    break
+            
+            reader.end()
+        
+        elif is_root_file:
+            reader = readRNOGData()
+            reader.begin(data_filename, mattak_kwargs={'backend': 'uproot'})
+            
+            found = False
+            for event in reader.run():
+                if event.get_id() == event_number:
+                    for station in event.get_stations():
+                        if station.get_id() == station_id:
+                            # Apply same processing
+                            channelResampler().run(event, station, det, 5 * units.GHz)
+                            channelBandPassFilter().run(event, station, det, 0.08 * units.GHz, 0.8 * units.GHz, 'butter', 10)
+                            channelSinewaveSubtraction().run(event, station, det, signal_window_mask=None)
+                            channelAddCableDelay().run(event, station, det)
+                            
+                            # Extract waveforms
+                            for ch in channels:
+                                if station.has_channel(ch):
+                                    channel = station.get_channel(ch)
+                                    waveforms[ch] = channel.get_trace()
+                                    times[ch] = channel.get_times()
+                            
+                            found = True
+                            break
+                if found:
+                    break
+            
+            reader.end()
+        
+        if len(waveforms) == 0:
+            raise ValueError(f"No waveforms found for channels {channels}")
+        
+        # Filter to only requested channels that are available
+        available_channels = [ch for ch in channels if ch in waveforms]
+        if not available_channels:
+            raise ValueError(f"None of the requested channels {channels} were found in waveforms")
+        
+        # Create figure with two subplots
+        fig, (ax_before, ax_after) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
+        
+        # Define colors for channels
+        colors = plt.cm.tab10(np.linspace(0, 0.9, len(available_channels)))
+        
+        # Plot unaligned waveforms (top panel)
+        for i, ch in enumerate(available_channels):
+            ax_before.plot(times[ch] / units.ns, waveforms[ch] / units.mV, 
+                         label=f'Ch {ch}', color=f'C{i}', linewidth=1.5)
+        
+        ax_before.set_xlim(-700,-600)
+        ax_before.set_ylabel('Voltage [mV]', fontsize=16)
+        ax_before.set_title('Unaligned Waveforms (Original)', fontsize=18, fontweight='bold')
+        ax_before.legend(loc='upper right', ncol=2)
+        ax_before.grid(True, alpha=0.3)
+        ax_before.axhline(0, color='k', linestyle='--', linewidth=0.5, alpha=0.5)
+        
+        # Compute time shifts to align waveforms
+        ref_ch = available_channels[0]  # First available channel as reference
+        time_shifts = {ref_ch: 0.0}  # Reference has zero shift
+        
+        # For each other channel, find the time delay relative to reference
+        for ch in available_channels[1:]:
+            # Time delays are stored with tuple keys (ch1, ch2)
+            # Find the delay between reference and this channel
+            pair_key_1 = (ref_ch, ch)
+            pair_key_2 = (ch, ref_ch)
+            
+            if pair_key_1 in time_delays_dict:
+                # Delay is for ref-ch pair, so ch arrives LATER by this amount
+                time_shifts[ch] = -time_delays_dict[pair_key_1]  # Shift backward to align
+            elif pair_key_2 in time_delays_dict:
+                # Delay is for ch-ref pair, so ch arrives EARLIER by this amount  
+                time_shifts[ch] = time_delays_dict[pair_key_2]  # Shift forward to align
+            else:
+                # No direct pair found - compute from other pairs (transitivity)
+                # For now, just skip or set to zero
+                time_shifts[ch] = 0.0
+                print(f"Warning: No time delay found for channel pair involving {ref_ch} and {ch}")
+        
+        # Plot aligned waveforms (bottom panel)
+        for i, ch in enumerate(available_channels):
+            shifted_times = times[ch] + time_shifts[ch]
+            ax_after.plot(shifted_times / units.ns, waveforms[ch] / units.mV,
+                        label=f'Ch {ch} (Δt={time_shifts[ch]/units.ns:.2f} ns)', 
+                        color=f'C{i}', linewidth=1.5)
+        
+        ax_after.set_xlim(-700,-600)
+        ax_after.set_xlabel('Time [ns]', fontsize=16)
+        ax_after.set_ylabel('Voltage [mV]', fontsize=16)
+        ax_after.set_title('Aligned Waveforms (After Reco Time Shifts)', fontsize=18, fontweight='bold')
+        ax_after.legend(loc='upper right', ncol=2, fontsize=12)
+        ax_after.grid(True, alpha=0.3)
+        ax_after.axhline(0, color='k', linestyle='--', linewidth=0.5, alpha=0.5)
+        
+        # Overall title
+        fig.suptitle(f'Station {station_id} | Run {run_number} | Event {event_number}', 
+                    fontsize=20, fontweight='bold', y=0.995)
+        
+        plt.tight_layout()
+        
+        # Determine output path
+        if output_path is None:
+            # Auto-generate path based on map data location
+            if self.map_data_path:
+                base_dir = os.path.dirname(self.map_data_path)
+            elif self.output_arg:
+                base_dir = self.output_arg if os.path.isdir(self.output_arg) else os.path.dirname(self.output_arg)
+            else:
+                base_dir = f"./figures/station{station_id}/run{run_number}"
+            
+            os.makedirs(base_dir, exist_ok=True)
+            output_path = os.path.join(base_dir, f"station{station_id}_run{run_number}_evt{event_number}_wfs.png")
+        
+        plt.savefig(output_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        
+        print(f"Saved waveform alignment plot to: {output_path}")
+        return output_path
 
 
 def main():
@@ -1550,7 +1915,7 @@ def main():
             python correlation_map_plotter.py --input correlation_maps/ --pattern "*station21*" --minimaps
             
             # Create pair correlation grid from pairwise maps directory
-            python correlation_map_plotter.py --pair-grid results/station21/run476/corr_map_data/pairwise_maps/
+            python correlation_map_plotter.py --pair_grid results/station21/run476/corr_map_data/pairwise_maps/
         """
     )
     
@@ -1566,19 +1931,52 @@ def main():
                        help="Plot multi-stage reconstruction (e.g., auto mode with both stage 1 and stage 2)")
     parser.add_argument("--comprehensive", type=str, default=None,
                        help="Path to reconstruction HDF5 file to create comprehensive plots with waveforms")
-    parser.add_argument("--pair-grid", type=str, default=None,
+    parser.add_argument("--pair_grid", type=str, default=None,
                        help="Directory containing pairwise correlation maps to create a channel pair grid plot")
+    parser.add_argument("--wfs", type=str, default=None,
+                       help="Path to reconstruction HDF5 file to create waveform alignment plot (before/after time delays)")
+    parser.add_argument("--alignment_chs", type=int, nargs="+", default=[0, 1, 2, 3],
+                       help="Channels to plot in waveform alignment (default: 0 1 2 3)")
     parser.add_argument("--verbose", "-v", action="store_true",
                        help="Print detailed processing information")
-    parser.add_argument("--extra-points", type=str, nargs="*", default=[],
+    parser.add_argument("--extra_points", type=str, nargs="*", default=[],
                        help="Extra points to plot, format: x,y,label (repeat for multiple)")
     
     args = parser.parse_args()
     
+    # Handle waveform alignment plotting mode
+    if args.wfs:
+        if not args.input:
+            print("Error: --input is required with --wfs (path to correlation map pickle)")
+            return
+        
+        if not os.path.isfile(args.input):
+            print(f"Error: --input must be a single correlation map file, got: {args.input}")
+            return
+        
+        print(f"Creating waveform alignment plot from: {args.input}")
+        print(f"Using reconstruction results from: {args.wfs}")
+        print(f"Channels: {args.alignment_chs}")
+        
+        plotter = CorrelationMapPlotter(map_data_path=args.input, output_arg=args.output)
+        try:
+            output_path = plotter.plot_wfs(
+                reco_results_file=args.wfs,
+                channels=args.alignment_chs,
+                output_path=args.output
+            )
+            print(f"Waveform alignment plot saved to: {output_path}")
+        except Exception as e:
+            print(f"Error creating waveform alignment plot: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        return
+    
     # Handle pair grid plotting mode
     if args.pair_grid:
         if not os.path.isdir(args.pair_grid):
-            print(f"Error: --pair-grid path does not exist or is not a directory: {args.pair_grid}")
+            print(f"Error: --pair_grid path does not exist or is not a directory: {args.pair_grid}")
             return
         
         print(f"Creating pair correlation grid from: {args.pair_grid}")
@@ -1594,7 +1992,7 @@ def main():
     
     # Validate input argument for normal mode
     if not args.input:
-        print("Error: --input argument is required (unless using --pair-grid)")
+        print("Error: --input argument is required (unless using --pair_grid)")
         return
         
     if os.path.isfile(args.input):
@@ -1665,7 +2063,8 @@ def main():
                     map_data=loaded_data,
                     output_arg=args.output,
                     show_minimaps=args.minimaps,
-                    extra_points=extra_points
+                    extra_points=extra_points,
+                    alignment_channels=args.alignment_chs  # Pass alignment channels for comprehensive plots
                 )
                 
                 if args.comprehensive:
