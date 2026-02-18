@@ -113,7 +113,7 @@ def plot_ray_paths(initial_point, final_point, nu_zenith_deg, ax=None, ice_model
     ax.plot([point1_x, point2_x], [point1_y, point2_y], color='k')
     
     #lower_ylim = ax.get_ylim()[0]
-    lower_ylim = -100
+    lower_ylim = np.min([-100, point1_y-10, point2_y-10])
     
     ax.axhspan(lower_ylim, 0, alpha=0.15, color='lightblue', zorder=0)
     
