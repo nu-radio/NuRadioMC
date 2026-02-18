@@ -650,6 +650,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">tinydb_serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">Serializer</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">six</span>  <span class="c1"># # used for compatibility between py2 and py3</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">erfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">ErfaWarning</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span> <span class="c1"># users with astropy &lt; 4.2 may not have pyerfa installed</span>
@@ -659,6 +660,9 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.detector&#39;</span><span class="p">)</span>
 <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">ErfaWarning</span><span class="p">)</span>
 
+<span class="c1"># load site coordinates / elevation from json</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;coordinates.json&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">site_coordinates</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DateTimeSerializer">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DateTimeSerializer">[docs]</a>
@@ -1294,19 +1298,51 @@
 <span class="sd">        ----------</span>
 <span class="sd">        station_id: int</span>
 <span class="sd">            the station ID</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of float</span>
+<span class="sd">            The latitude and longitude of the detector site.</span>
+
+<span class="sd">            .. Warning:: The latitude and longitude are given in **degrees**, not radians!</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_site_elevation :</span>
+<span class="sd">            Method to obtain the elevation (altitude) of a detector site</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">sites</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;auger&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">35.10</span><span class="p">,</span> <span class="o">-</span><span class="mf">69.55</span><span class="p">),</span>
-            <span class="s1">&#39;mooresbay&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">78.74</span><span class="p">,</span> <span class="mf">165.09</span><span class="p">),</span>
-            <span class="s1">&#39;southpole&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">90.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
-            <span class="s1">&#39;summit&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">72.57</span><span class="p">,</span> <span class="o">-</span><span class="mf">38.46</span><span class="p">),</span>
-            <span class="s1">&#39;lofar&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">52.92</span><span class="p">,</span> <span class="mf">6.87</span><span class="p">),</span>
-            <span class="s1">&#39;ska&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">26.825</span><span class="p">,</span> <span class="mf">116.764</span><span class="p">),</span>
-        <span class="p">}</span>
         <span class="n">site</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">sites</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="k">return</span> <span class="n">sites</span><span class="p">[</span><span class="n">site</span><span class="p">]</span>
-        <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">site_coordinates</span><span class="p">:</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">site_coordinates</span><span class="p">[</span><span class="n">site</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">coords</span><span class="p">[</span><span class="s1">&#39;latitude&#39;</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="s1">&#39;longitude&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No coordinates known for site &#39;</span><span class="si">{</span><span class="n">site</span><span class="si">}</span><span class="s2">&#39; &quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DetectorBase.get_site_elevation">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_site_elevation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_site_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the elevation of a given detector site</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station_id: int</span>
+<span class="sd">            the station ID</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_site_coordinates :</span>
+<span class="sd">            Method to obtain the GPS coordinates of a detector site</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">site</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">site_coordinates</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">site_coordinates</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="s1">&#39;elevation&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No elevation known for site &#39;</span><span class="si">{</span><span class="n">site</span><span class="si">}</span><span class="s2">&#39; &quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
 
 
 <div class="viewcode-block" id="DetectorBase.get_number_of_channels">

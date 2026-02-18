@@ -643,13 +643,15 @@
 <h1>Some notes on conventions<a class="headerlink" href="#some-notes-on-conventions" title="Link to this heading"></a></h1>
 <section id="units">
 <h2>Units<a class="headerlink" href="#units" title="Link to this heading"></a></h2>
-<p>Physical quantities in <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> use Auger base units. To print, plot and convert dimensional quantities,
-a convenient module is included in <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html#module-NuRadioReco.utilities.units" title="NuRadioReco.utilities.units"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.utilities.units</span></code></a>. Details are given <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html#module-NuRadioReco.utilities.units" title="NuRadioReco.utilities.units"><code class="xref py py-mod docutils literal notranslate"><span class="pre">here</span></code></a>.</p>
+<p>Physical quantities in <code class="docutils literal notranslate"><span class="pre">NuRadio</span></code> use Auger base units. We highly recommend ALWAYS including the units of unitful quantities
+using the <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html#module-NuRadioReco.utilities.units" title="NuRadioReco.utilities.units"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.utilities.units</span></code></a> module. This ensures consistent unit handling,
+especially when printing, plotting or converting dimensional quantities.
+Details are given <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html#module-NuRadioReco.utilities.units" title="NuRadioReco.utilities.units"><code class="xref py py-mod docutils literal notranslate"><span class="pre">here</span></code></a>.</p>
 </section>
 <section id="fourier-transformations">
 <h2>Fourier transformations<a class="headerlink" href="#fourier-transformations" title="Link to this heading"></a></h2>
 <p>To ensure Fourier transforms have the correct units, please use the convenience functions provided
-in <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html#module-NuRadioReco.utilities.fft" title="NuRadioReco.utilities.fft"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.utilities.fft</span></code></a>.</p>
+in <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html#module-NuRadioReco.utilities.fft" title="NuRadioReco.utilities.fft"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.utilities.fft</span></code></a>. See the description of this module for details on the convention implemented in <code class="docutils literal notranslate"><span class="pre">NuRadio</span></code>.</p>
 </section>
 <section id="coordinates">
 <h2>Coordinates<a class="headerlink" href="#coordinates" title="Link to this heading"></a></h2>
@@ -690,7 +692,7 @@ is defined into the direction of propagation.</p>
 </a>
 <a class="reference internal image-reference" href="../../_images/cos_earth.png"><img alt="../../_images/cos_earth.png" src="../../_images/cos_earth.png" style="width: 45%;" />
 </a>
-<p>Left: Comparison of the coordinate systems important for the polarization of the electic fiel.
+<p>Left: Comparison of the coordinate systems important for the polarization of the electic field.
 The orange arrow indicates the shower axis, the purple circle indicates the shower plane.
 The natural coordinate system for the air shower electric field is given by <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v} \times \vec{B}}\)</span> and <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v} \times \vec{v} \times \vec{B}}\)</span>.
 On ground, a coordinate system with respect to arrival direction is useful, given by <span class="math notranslate nohighlight">\(\hat{e}_{\vec{v}}\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\theta\)</span>, <span class="math notranslate nohighlight">\(\hat{e}_\phi\)</span>.

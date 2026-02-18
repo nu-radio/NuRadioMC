@@ -807,19 +807,22 @@ if False: the mysql database will be buffered as a tiny tb object and saved in a
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_site_coordinates" title="NuRadioReco.detector.detector_base.DetectorBase.get_site_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_coordinates</span></code></a>(station_id)</p></td>
 <td><p>get the (latitude, longitude) coordinates (in degrees) for a given detector site.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_station_ids" title="NuRadioReco.detector.detector_base.DetectorBase.get_station_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_site_elevation" title="NuRadioReco.detector.detector_base.DetectorBase.get_site_elevation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_elevation</span></code></a>(station_id)</p></td>
+<td><p>Get the elevation of a given detector site</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_station_ids" title="NuRadioReco.detector.detector_base.DetectorBase.get_station_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code></a>()</p></td>
 <td><p>returns a sorted list of all station ids present in the database</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods" title="NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_time_periods</span></code></a>(station_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods" title="NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_time_periods</span></code></a>(station_id)</p></td>
 <td><p>returns the time periods in which the station configuration (including all channels) was constant</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.has_station" title="NuRadioReco.detector.detector_base.DetectorBase.has_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code></a>(station_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.has_station" title="NuRadioReco.detector.detector_base.DetectorBase.has_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code></a>(station_id)</p></td>
 <td><p>checks if a station is present in the database</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless" title="NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_channel_noiseless</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless" title="NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_channel_noiseless</span></code></a>(station_id, channel_id)</p></td>
 <td><p>returns true if the detector description has the field <em class="xref py py-obj">noiseless</em> and if this field is True.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.update" title="NuRadioReco.detector.detector_base.DetectorBase.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(time)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.update" title="NuRadioReco.detector.detector_base.DetectorBase.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(time)</p></td>
 <td><p>updates the detector description to a new time</p></td>
 </tr>
 </tbody>
@@ -956,19 +959,22 @@ object if none already exists.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_site_coordinates" title="NuRadioReco.detector.detector_base.DetectorBase.get_site_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_coordinates</span></code></a>(station_id)</p></td>
 <td><p>get the (latitude, longitude) coordinates (in degrees) for a given detector site.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_station_ids" title="NuRadioReco.detector.detector_base.DetectorBase.get_station_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_site_elevation" title="NuRadioReco.detector.detector_base.DetectorBase.get_site_elevation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_elevation</span></code></a>(station_id)</p></td>
+<td><p>Get the elevation of a given detector site</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_station_ids" title="NuRadioReco.detector.detector_base.DetectorBase.get_station_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code></a>()</p></td>
 <td><p>returns a sorted list of all station ids present in the database</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods" title="NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_time_periods</span></code></a>(station_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods" title="NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_time_periods</span></code></a>(station_id)</p></td>
 <td><p>returns the time periods in which the station configuration (including all channels) was constant</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.has_station" title="NuRadioReco.detector.detector_base.DetectorBase.has_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code></a>(station_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.has_station" title="NuRadioReco.detector.detector_base.DetectorBase.has_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code></a>(station_id)</p></td>
 <td><p>checks if a station is present in the database</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless" title="NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_channel_noiseless</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless" title="NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_channel_noiseless</span></code></a>(station_id, channel_id)</p></td>
 <td><p>returns true if the detector description has the field <em class="xref py py-obj">noiseless</em> and if this field is True.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.update" title="NuRadioReco.detector.detector_base.DetectorBase.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(time)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.update" title="NuRadioReco.detector.detector_base.DetectorBase.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(time)</p></td>
 <td><p>updates the detector description to a new time</p></td>
 </tr>
 </tbody>
@@ -1179,6 +1185,37 @@ for backward compatibility datetime is also accepted, but astropy.time is prefer
 <span class="sig-name descname"><span class="pre">get_site_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_site_coordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_site_coordinates" title="Link to this definition"></a></dt>
 <dd><p>get the (latitude, longitude) coordinates (in degrees) for a given
 detector site.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>the station ID</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt>tuple of float</dt><dd><p>The latitude and longitude of the detector site.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The latitude and longitude are given in <strong>degrees</strong>, not radians!</p>
+</div>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_site_elevation" title="NuRadioReco.detector.detector_base.DetectorBase.get_site_elevation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_elevation</span></code></a></dt><dd><p>Method to obtain the elevation (altitude) of a detector site</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_base.DetectorBase.get_site_elevation">
+<span class="sig-name descname"><span class="pre">get_site_elevation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_site_elevation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_site_elevation" title="Link to this definition"></a></dt>
+<dd><p>Get the elevation of a given detector site</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1187,6 +1224,13 @@ detector site.</p>
 </dl>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_site_coordinates" title="NuRadioReco.detector.detector_base.DetectorBase.get_site_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_coordinates</span></code></a></dt><dd><p>Method to obtain the GPS coordinates of a detector site</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py method">
