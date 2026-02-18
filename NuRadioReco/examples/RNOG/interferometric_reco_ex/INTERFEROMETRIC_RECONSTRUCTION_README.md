@@ -36,10 +36,10 @@ Both scripts share the same configuration file format and output structures. The
 The reconstruction uses several NuRadioReco utility modules:
 
 - **`NuRadioReco.utilities.interferometry_io_utilities`**: I/O functions for saving/loading results and correlation maps
-  - `save_interferometric_results_hdf5()`: Save reconstruction results to HDF5
-  - `save_interferometric_results_nur()`: Save results to NUR format
-  - `save_correlation_map()`: Save correlation map data to pickle
-  - `load_correlation_map()`: Load correlation map from pickle
+  - `save_reco_results_hdf5()`: Save reconstruction results to HDF5
+  - `save_reco_results_nur()`: Save results to NUR format
+  - `save_corr_map()`: Save correlation map data to pickle
+  - `load_corr_map()`: Load correlation map from pickle
   - `create_organized_paths()`: Create organized directory structure for outputs
 
 - **`NuRadioReco.utilities.caching_utilities`**: Caching system for delay matrices
@@ -151,11 +151,11 @@ python interferometric_reco_example.py \
 
 # Plot the correlation map
 python correlation_map_plotter.py \
-    --input results/station21/run476/corr_map_data/station21_run476_evt7_corrmap.pkl \
+    --input results/station21/run476/corr_map_data/station21_run476_event7_corrmap.pkl \
     --minimaps
 ```
 
-This should reproduce the example figure shown at `/data/reconstruction/example_plots/station21_run476_evt7_corrmap_phiz.png` on the Chicago server. The "combined.root" file used to reproduce this is from a calibration pulsing run with pulser on helper string C.
+This should reproduce the example figure shown at `/data/reconstruction/example_plots/station21_run476_event7_corrmap_phiz.png` on the Chicago server. The "combined.root" file used to reproduce this is from a calibration pulsing run with pulser on helper string C.
 
 ### 1. Create a Configuration File
 
@@ -173,14 +173,14 @@ rec_type: "phiz"
 # Channels to use for reconstruction (list of antenna channel IDs)
 channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
 
-# Search grid limits: [coord0_min, coord0_max, coord1_min, coord1_max]
+# Search grid limits: [coord_0_min, coord_0_max, coord_1_min, coord_1_max]
 # Units depend on coordinate system:
 #   phiz: [phi_min(deg), phi_max(deg), z_min(m), z_max(m)]
 #   rhoz: [rho_min(m), rho_max(m), z_min(m), z_max(m)]
 #   spherical: [phi_min(deg), phi_max(deg), theta_min(deg), theta_max(deg)]
 limits: [0, 360, -200, 0]
 
-# Step sizes for grid: [coord0_step, coord1_step]
+# Step sizes for grid: [coord_0_step, coord_1_step]
 # Same units as limits
 step_sizes: [0.5, 0.5]
 
@@ -250,13 +250,24 @@ python interferometric_reco_example.py \
     --output_type hdf5
 ```
 
+**NUR simulation files with unique file identifiers:**
+```bash
+# For simulation files where internal run numbers don't match filenames,
+# use --file-id to create unique output directories without run filtering
+python interferometric_reco_example.py \
+    --config reco_config.yaml \
+    --input simulation.nur \
+    --file-id abc123ef \
+    --output_type hdf5
+```
+
 ### 3. Visualize Correlation Maps (Optional)
 
 If you saved correlation maps with `--save_maps`, use the separate plotting script:
 
 ```bash
 # Plot a single correlation map
-python correlation_map_plotter.py --input results/station21/run476/corr_map_data/station21_run476_evt7_corrmap.pkl
+python correlation_map_plotter.py --input results/station21/run476/corr_map_data/station21_run476_event7_corrmap.pkl
 
 # Plot all maps in a directory
 python correlation_map_plotter.py --input results/station21/run476/corr_map_data/
@@ -269,7 +280,7 @@ python correlation_map_plotter.py --input map.pkl --output custom_figures/
 
 # Create comprehensive plot with waveforms and event information
 python correlation_map_plotter.py \
-    --input results/station21/run476/corr_map_data/station21_run476_evt7_corrmap.pkl \
+    --input results/station21/run476/corr_map_data/station21_run476_event7_corrmap.pkl \
     --comprehensive results/station21/run476/reco_data/station21_run476_reco_results.h5 \
     --minimaps
 ```
@@ -415,7 +426,7 @@ The `correlation_map_plotter.py` script can create standalone correlation map vi
 
 ```bash
 # Plot a single correlation map
-python correlation_map_plotter.py --input station21_run476_evt7_corrmap.pkl
+python correlation_map_plotter.py --input station21_run476_event7_corrmap.pkl
 
 # Plot all maps in a directory
 python correlation_map_plotter.py --input results/station21/run476/corr_map_data/
@@ -437,7 +448,7 @@ For detailed event analysis, use the `--comprehensive` flag to create multi-pane
 
 ```bash
 python correlation_map_plotter.py \
-    --input results/station21/run476/corr_map_data/station21_run476_evt7_corrmap.pkl \
+    --input results/station21/run476/corr_map_data/station21_run476_event7_corrmap.pkl \
     --comprehensive results/station21/run476/reco_data/station21_run476_reco_results.h5 \
     --minimaps
 ```
@@ -471,7 +482,7 @@ python interferometric_reco_example_advanced.py \
 
 # Then plot the multi-stage correlation maps (note: --multistage flag is required!)
 python correlation_map_plotter.py \
-    --input results/station23/run100/corr_map_data/station23_run100_evt5_corrmap_multistage.pkl \
+    --input results/station23/run100/corr_map_data/station23_run100_event5_corrmap_multistage.pkl \
     --multistage
 ```
 
@@ -496,7 +507,7 @@ results/
         ├── reco_data/
         │   └── station{ID}_run{NUM}_reco.h5  (or .nur)
         └── corr_map_data/  (if --save_maps used)
-            ├── station{ID}_run{NUM}_evt{N}_corrmap.pkl
+            ├── station{ID}_run{NUM}_event{N}_corrmap.pkl
             └── ...
 ```
 
@@ -553,12 +564,12 @@ for event in reader.run():
     
     max_corr = station.get_parameter(stnp.rec_max_correlation)
     surf_corr = station.get_parameter(stnp.rec_surf_corr)
-    coord0 = station.get_parameter(stnp.rec_coord0)
-    coord1 = station.get_parameter(stnp.rec_coord1)
+    coord_0 = station.get_parameter(stnp.rec_coord_0)
+    coord_1 = station.get_parameter(stnp.rec_coord_1)
     
-    # For phiz: coord0 = phi, coord1 = z
-    # For rhoz: coord0 = rho, coord1 = z
-    # For spherical: coord0 = phi, coord1 = theta
+    # For phiz: coord_0 = phi, coord_1 = z
+    # For rhoz: coord_0 = rho, coord_1 = z
+    # For spherical: coord_0 = phi, coord_1 = theta
 ```
 
 ### Correlation Map Data
@@ -573,7 +584,7 @@ Each `.pkl` file contains:
 - `limits`: Grid boundaries
 - `channels`: Channels used
 - `fixed_coord`: Fixed coordinate value
-- `coord0_alt`, `coord1_alt`: Alternate reconstruction coordinates (if enabled)
+- `coord_0_alt`, `coord_1_alt`: Alternate reconstruction coordinates (if enabled)
 - `exclusion_bounds`: Exclusion zone information (if alternate reco enabled)
 
 These files can be visualized using `correlation_map_plotter.py` (see next section).
@@ -583,10 +594,10 @@ These files can be visualized using `correlation_map_plotter.py` (see next secti
 If you need to check what configuration was used to generate a correlation map (useful if you've forgotten your settings), you can load it back:
 
 ```python
-from NuRadioReco.utilities.interferometry_io_utilities import load_correlation_map
+from NuRadioReco.utilities.interferometry_io_utilities import load_corr_map
 
 # Load the saved correlation map
-map_data = load_correlation_map('path/to/corrmap.pkl')
+map_data = load_corr_map('path/to/corrmap.pkl')
 
 # Extract the full config dictionary
 config = map_data['config']
@@ -614,7 +625,7 @@ Use the standalone `correlation_map_plotter.py` script to visualize saved correl
 
 ```bash
 # Plot a single event
-python correlation_map_plotter.py --input results/station21/run476/corr_map_data/station21_run476_evt7_corrmap.pkl
+python correlation_map_plotter.py --input results/station21/run476/corr_map_data/station21_run476_event7_corrmap.pkl
 
 # Plot all events in a run
 python correlation_map_plotter.py --input results/station21/run476/corr_map_data/
@@ -630,8 +641,8 @@ python correlation_map_plotter.py --input results/station21/run476/corr_map_data
 ```
 
 **Output:** Plots are automatically saved to an organized structure:
-- Default: `figures/station{ID}/run{NUM}/station{ID}_run{NUM}_evt{N}_corrmap.png`
-- Custom: `{output_dir}/station{ID}/run{NUM}/station{ID}_run{NUM}_evt{N}_corrmap.png`
+- Default: `figures/station{ID}/run{NUM}/station{ID}_run{NUM}_event{N}_corrmap.png`
+- Custom: `{output_dir}/station{ID}/run{NUM}/station{ID}_run{NUM}_event{N}_corrmap.png`
 
 ### Enhanced Plotting
 
@@ -872,11 +883,11 @@ python interferometric_reco_example_advanced.py \
     --save-maps both
 ```
 
-Using `--save-maps both` creates files like `station{ID}_run{NUM}_evt{N}_corrmap_multistage.pkl` containing both stage 1 and stage 2 correlation maps. These can be visualized side-by-side using:
+Using `--save-maps both` creates files like `station{ID}_run{NUM}_event{N}_corrmap_multistage.pkl` containing both stage 1 and stage 2 correlation maps. These can be visualized side-by-side using:
 
 ```bash
 python correlation_map_plotter.py \
-    --input results/station23/run100/corr_map_data/station23_run100_evt5_corrmap_multistage.pkl \
+    --input results/station23/run100/corr_map_data/station23_run100_event5_corrmap_multistage.pkl \
     --multistage
 ```
 
@@ -1309,6 +1320,8 @@ Optional:
   --outputfile FILE            Manually specify output file path
   --events N [N ...]           Specific event IDs to process
   --runs N [N ...]             Specific run numbers (NUR files only)
+  --file-id ID                 Unique identifier for output organization
+                               (useful for simulation files with internal run numbers)
   --use-cache                  Enable delay matrix caching
   --save-maps                  Save correlation map data
   --save-pair-maps             Save channel pair correlation maps
@@ -1328,6 +1341,8 @@ Optional:
   --outputfile FILE            Manually specify output file path
   --events N [N ...]           Specific event IDs to process
   --runs N [N ...]             Specific run numbers (NUR files only)
+  --file-id ID                 Unique identifier for output organization
+                               (useful for simulation files with internal run numbers)
   --use-cache                  Enable delay matrix caching
   --save-maps                  Save correlation map data
   --save-pair-maps             Save channel pair correlation maps
