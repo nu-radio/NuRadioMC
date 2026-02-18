@@ -48,10 +48,12 @@ class stationParameters(Enum):
     rec_surf_corr= 67  #: the surface correlation value from directionReconstructionDeepCRsearch
     rec_z = 69  #: reconstructed depth (z coordinate) from directionReconstructionDeepCRsearch
     rec_rho = 70  #: reconstructed radial distance (cylindrical rhoz mode) from directionReconstructionDeepCRsearch
-    rec_coord0 = 71  #: generic first coordinate from directionReconstructionDeepCRsearch (φ, ρ, or φ depending on mode)
-    rec_coord1 = 72  #: generic second coordinate from directionReconstructionDeepCRsearch (z, z, or θ depending on mode)
-    rec_coord0_alt = 73  #: alternate first coordinate from directionReconstructionDeepCRsearch (φ, ρ, or φ depending on mode)
-    rec_coord1_alt = 74  #: alternate second coordinate from directionReconstructionDeepCRsearch (z, z, or θ depending on mode)
+    rec_coord_0 = 71  #: generic first coordinate from directionReconstructionDeepCRsearch (φ, ρ, or φ depending on mode)
+    rec_coord_1 = 72  #: generic second coordinate from directionReconstructionDeepCRsearch (z, z, or θ depending on mode)
+    rec_coord_2 = 75  #: generic third coordinate from 3D interferometric reconstruction (z for cylindrical, r for spherical)
+    rec_coord_0_alt = 73  #: alternate first coordinate from directionReconstructionDeepCRsearch (φ, ρ, or φ depending on mode)
+    rec_coord_1_alt = 74  #: alternate second coordinate from directionReconstructionDeepCRsearch (z, z, or θ depending on mode)
+    rec_coord_2_alt = 76  #: alternate third coordinate from 3D interferometric reconstruction
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction
