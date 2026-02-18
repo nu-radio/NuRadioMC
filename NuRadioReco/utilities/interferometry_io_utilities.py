@@ -10,27 +10,39 @@ import os
 import re
 import pickle
 import logging
-import json
-import hashlib
 import numpy as np
+import argparse
 
 logger = logging.getLogger('NuRadioReco.utilities.interferometry_io_utilities')
 
+def parse_event_ids(s):
+    pairs = []
+    for token in s.split(","):
+        if ":" not in token:
+            raise argparse.ArgumentTypeError(f"Bad token '{token}', expected RUN:EVENT")
+        r, e = token.split(":")
+        pairs.append((int(r), int(e)))
+    return pairs
 
-def create_organized_paths(config, run_number, output_type, event_number=None, ray_type_mode=None, use_run_in_path=True):
+def create_organized_paths(config, event_id, output_type, ray_type_mode=None, use_run_in_path=True):
     """
     Create organized directory structure and file paths for results and maps.
+    
+    Directory structure:
+        base/station{id}/coord_system/rec_type/run{id}/reco_data/
+        base/station{id}/coord_system/rec_type/run{id}/corr_map_data/
+    
+    This groups runs by coordinate system for easy comparison, while keeping
+    each run's reco results and correlation maps together.
     
     Parameters
     ----------
     config : dict
         Configuration dictionary
-    run_number : int or None
-        Run number (can be None if processing multiple runs)
+    event_id : tuple
+        Tuple containing (run_number, event_number)
     output_type : str
         Output file type ('hdf5' or 'nur')
-    event_number : int, optional
-        Event number (added to filename)
     ray_type_mode : str, optional
         Ray type mode used for reconstruction (e.g., 'auto', 'direct', 'viscosity').
         If provided, adds mode subdirectory to paths.
@@ -42,44 +54,50 @@ def create_organized_paths(config, run_number, output_type, event_number=None, r
     tuple : (results_path, maps_dir)
         Full path to results file and directory for correlation maps
     """
+    run_number, event_number = event_id
+    
     results_base = config.get('save_results_to', './results/')
     station_id = config.get('station_id')
     coord_system = config.get('coord_system', 'cylindrical')
     rec_type = config.get('rec_type', 'phiz')
     
-    # Determine directory identifier based on whether we're processing a single run or multiple
+    # Determine run identifier based on whether we're processing a single run or multiple
     if use_run_in_path and run_number is not None:
-        dir_identifier = f"run{run_number}"
+        run_identifier = f"run{run_number}"
     else:
-        dir_identifier = "multirun"
+        run_identifier = "multirun"
     
-    station_dir = os.path.join(results_base, f"station{station_id}", dir_identifier)
-    
-    # Add coordinate system and reconstruction type subdirectories
+    # Structure: base/station{id}/coord_system/rec_type/run{id}/
+    # This groups all runs by coordinate system for easy comparison
+    station_dir = os.path.join(results_base, f"station{station_id}")
     coord_subdir = os.path.join(station_dir, coord_system, rec_type)
+    run_dir = os.path.join(coord_subdir, run_identifier)
     
-    reco_data_dir = os.path.join(coord_subdir, "reco_data")
-    corr_map_dir = os.path.join(coord_subdir, "corr_map_data")
+    # Keep reco_data and corr_map_data together under each run
+    reco_data_dir = os.path.join(run_dir, "reco_data")
+    corr_map_dir = os.path.join(run_dir, "corr_map_data")
     
     # Add ray type mode subdirectory if provided
     if ray_type_mode is not None:
         reco_data_dir = os.path.join(reco_data_dir, ray_type_mode)
         corr_map_dir = os.path.join(corr_map_dir, ray_type_mode)
     
+    # Only create reco_data_dir here; corr_map_dir is created by save_correlation_map when needed
     os.makedirs(reco_data_dir, exist_ok=True)
-    os.makedirs(corr_map_dir, exist_ok=True)
     
     extension = 'h5' if output_type == 'hdf5' else 'nur'
     
-    # Build filename based on what information we have
-    if event_number is not None and run_number is not None:
-        # Both run and event specified
-        results_filename = f"station{station_id}_run{run_number}_evt{event_number}_reco_results.{extension}"
-    elif run_number is not None:
-        # Only run specified (multiple events)
-        results_filename = f"station{station_id}_run{run_number}_reco_results.{extension}"
+    # Build filename based on directory structure
+    # If use_run_in_path=True (single event/run), include run and event in filename
+    # If use_run_in_path=False (multirun), just use station ID
+    if use_run_in_path and run_number is not None:
+        # Single run/event case - include full details in filename
+        if event_number is not None:
+            results_filename = f"station{station_id}_run{run_number}_event{event_number}_reco_results.{extension}"
+        else:
+            results_filename = f"station{station_id}_run{run_number}_reco_results.{extension}"
     else:
-        # Neither run nor event specified (multirun scenario)
+        # Multirun case - generic filename
         results_filename = f"station{station_id}_reco_results.{extension}"
     
     results_path = os.path.join(reco_data_dir, results_filename)
@@ -87,7 +105,7 @@ def create_organized_paths(config, run_number, output_type, event_number=None, r
     return results_path, corr_map_dir
 
 
-def determine_plot_output_path(file_path, output_arg, station_id, run_number, event_number):
+def determine_plot_output_path(file_path, output_arg, station_id, event_id):
     """
     Determine the output path for correlation map plots following the organized structure.
     
@@ -99,17 +117,17 @@ def determine_plot_output_path(file_path, output_arg, station_id, run_number, ev
         User-provided output argument
     station_id : int
         Station ID
-    run_number : int
-        Run number
-    event_number : int
-        Event number
+    event_id : tuple
+        Tuple containing (run_number, event_number)
     
     Returns
     -------
     str
         Full path for output plot file
     """
-    plot_filename = f"station{station_id}_run{run_number}_evt{event_number}_corrmap.png"
+    run_number, event_number = event_id
+    
+    plot_filename = f"station{station_id}_run{run_number}_event{event_number}_corrmap.png"
     dir_identifier = run_number
     
     if output_arg is None:
@@ -130,7 +148,7 @@ def determine_plot_output_path(file_path, output_arg, station_id, run_number, ev
         return output_arg
 
 
-def save_interferometric_results_hdf5(results, filepath, config):
+def save_reco_results_hdf5(results, filepath, config):
     """
     Save interferometric reconstruction results to HDF5 format.
     
@@ -179,7 +197,7 @@ def save_interferometric_results_hdf5(results, filepath, config):
                 data = np.array([v if v is not None else "" for v in values], dtype=dt)
                 results_group.create_dataset(key, data=data)
             
-            elif key in ['station_id', 'run_number', 'event_number', 'runNum', 'eventNum']:
+            elif key in ['station_id', 'run_number', 'event_number']:
                 data = np.array([v if v is not None else -1 for v in values], dtype=int)
                 results_group.create_dataset(key, data=data)
             
@@ -206,7 +224,7 @@ def save_interferometric_results_hdf5(results, filepath, config):
     return filepath
 
 
-def save_interferometric_results_nur(events, filepath):
+def save_reco_results_nur(events, filepath):
     """
     Save interferometric reconstruction results to NUR format.
     
@@ -224,8 +242,8 @@ def save_interferometric_results_nur(events, filepath):
     
     writer = NuRadioRecoio(filepath)
     
-    for evt in events:
-        writer.write_event(evt)
+    for event in events:
+        writer.write_event(event)
     
     writer.end()
     
@@ -234,7 +252,7 @@ def save_interferometric_results_nur(events, filepath):
     return filepath
 
 
-def save_correlation_map(corr_matrix, positions, evt, config, save_dir, **kwargs):
+def save_corr_map(corr_matrix, positions, event, config, save_dir, **kwargs):
     """
     Save correlation map data to pickle file for later plotting.
     
@@ -244,8 +262,8 @@ def save_correlation_map(corr_matrix, positions, evt, config, save_dir, **kwargs
         2D correlation matrix
     positions : dict
         Dictionary containing coordinate system info.
-        Required keys: 'coord_system', 'rec_type', 'coord0_vec', 'coord1_vec'
-    evt : NuRadio Event
+        Required keys: 'coord_system', 'rec_type', 'coord_0_vec', 'coord_1_vec'
+    event : NuRadio Event
         Event object
     config : dict
         Configuration dictionary
@@ -254,10 +272,10 @@ def save_correlation_map(corr_matrix, positions, evt, config, save_dir, **kwargs
     **kwargs : dict
         Additional data (alternate coordinates, exclusion zones, etc.)
     """
-    station = evt.get_station()
+    station = event.get_station()
     station_id = station.get_id()
-    run_number = evt.get_run_number()
-    event_number = evt.get_id()
+    run_number = event.get_run_number()
+    event_number = event.get_id()
     
     coord_system = positions['coord_system']
     rec_type = positions.get('rec_type', None)
@@ -277,25 +295,25 @@ def save_correlation_map(corr_matrix, positions, evt, config, save_dir, **kwargs
     }
 
     # Save coordinate vectors (centers) if provided in positions dict
-    if 'coord0_vec' in positions and positions['coord0_vec'] is not None:
+    if 'coord_0_vec' in positions and positions['coord_0_vec'] is not None:
         try:
-            coord0 = np.array(positions['coord0_vec'])
+            coord_0 = np.array(positions['coord_0_vec'])
             # convert to plain Python list for pickle stability
-            map_data['coord0_vec'] = coord0.tolist()
+            map_data['coord_0_vec'] = coord_0.tolist()
         except Exception:
-            map_data['coord0_vec'] = positions['coord0_vec']
+            map_data['coord_0_vec'] = positions['coord_0_vec']
 
-    if 'coord1_vec' in positions and positions['coord1_vec'] is not None:
+    if 'coord_1_vec' in positions and positions['coord_1_vec'] is not None:
         try:
-            coord1 = np.array(positions['coord1_vec'])
-            map_data['coord1_vec'] = coord1.tolist()
+            coord_1 = np.array(positions['coord_1_vec'])
+            map_data['coord_1_vec'] = coord_1.tolist()
         except Exception:
-            map_data['coord1_vec'] = positions['coord1_vec']
+            map_data['coord_1_vec'] = positions['coord_1_vec']
     
-    if 'coord0_alt' in kwargs and kwargs['coord0_alt'] is not None:
+    if 'coord_0_alt' in kwargs and kwargs['coord_0_alt'] is not None:
         # Store alternate coordinates in their original units (radians, meters)
-        map_data['coord0_alt'] = kwargs['coord0_alt']
-        map_data['coord1_alt'] = kwargs['coord1_alt']
+        map_data['coord_0_alt'] = kwargs['coord_0_alt']
+        map_data['coord_1_alt'] = kwargs['coord_1_alt']
         map_data['alt_indices'] = kwargs.get('alt_indices')
     
     if 'exclusion_bounds' in kwargs and kwargs['exclusion_bounds'] is not None:
@@ -306,21 +324,21 @@ def save_correlation_map(corr_matrix, positions, evt, config, save_dir, **kwargs
         map_data['pair_channels'] = kwargs['pair_channels']
 
     # If reconstruction coordinates and max are provided, save in original units (radians, meters)
-    rec0 = kwargs.get('rec_coord0', None)
-    rec1 = kwargs.get('rec_coord1', None)
+    rec0 = kwargs.get('rec_coord_0', None)
+    rec1 = kwargs.get('rec_coord_1', None)
     rec_max = kwargs.get('rec_max_corr', None)
     if rec0 is not None and rec1 is not None:
-        map_data['coord0'] = rec0
-        map_data['coord1'] = rec1
+        map_data['coord_0'] = rec0
+        map_data['coord_1'] = rec1
         map_data['max_corr'] = float(rec_max) if rec_max is not None else None
     
     # If pairwise reconstruction coordinates are provided, save them too
-    pair_rec0 = kwargs.get('pair_rec_coord0', None)
-    pair_rec1 = kwargs.get('pair_rec_coord1', None)
+    pair_rec0 = kwargs.get('pair_rec_coord_0', None)
+    pair_rec1 = kwargs.get('pair_rec_coord_1', None)
     pair_rec_max = kwargs.get('pair_rec_max_corr', None)
     if pair_rec0 is not None and pair_rec1 is not None:
-        map_data['pair_rec_coord0'] = pair_rec0
-        map_data['pair_rec_coord1'] = pair_rec1
+        map_data['pair_rec_coord_0'] = pair_rec0
+        map_data['pair_rec_coord_1'] = pair_rec1
         map_data['pair_rec_max_corr'] = float(pair_rec_max) if pair_rec_max is not None else None
     
     # Store ray_type_mode if provided (for reference, not for path organization)
@@ -328,10 +346,15 @@ def save_correlation_map(corr_matrix, positions, evt, config, save_dir, **kwargs
     if ray_type_mode is not None:
         map_data['ray_type_mode'] = ray_type_mode
     
+    # Store time delays at best reconstruction position (for waveform alignment visualization)
+    best_time_delays = kwargs.get('best_time_delays', None)
+    if best_time_delays is not None:
+        map_data['best_time_delays'] = best_time_delays
+    
     os.makedirs(save_dir, exist_ok=True)
     
     # Build filename with optional suffix (e.g., for channel pair info)
-    filename_base = f"station{station_id}_run{run_number}_evt{event_number}"
+    filename_base = f"station{station_id}_run{run_number}_event{event_number}"
     filename_suffix = kwargs.get('filename_suffix', '')
     if filename_suffix:
         filename = f"{filename_base}{filename_suffix}_corrmap.pkl"
@@ -346,7 +369,7 @@ def save_correlation_map(corr_matrix, positions, evt, config, save_dir, **kwargs
 
     return filepath
 
-def load_correlation_map(filepath):
+def load_corr_map(filepath):
     """
     Load correlation map data from pickle file.
     
