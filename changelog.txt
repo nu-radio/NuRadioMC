@@ -4,6 +4,8 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Added elevation to detector sites, and a corresponding `get_site_elevation` method to the `Detector` class. Altitudes were obtained
+from the NOAA ETOPO1 dataset via www.opentopodata.org.
 
 bugfixes:
 
