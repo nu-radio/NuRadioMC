@@ -15,7 +15,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 
 from scipy.signal import correlate, correlation_lags, hilbert
 from scipy.interpolate import RegularGridInterpolator
-from NuRadioReco.utilities.interferometry_io_utilities import save_correlation_map
+from NuRadioReco.utilities.interferometry_io_utilities import save_corr_map
 from NuRadioReco.utilities.caching_utilities import (
     generate_cache_key, get_cache_path, load_from_cache, save_to_cache
 )
@@ -118,6 +118,9 @@ class interferometricDirectionReconstruction():
     def __init__(self):
         # Cache coordinate vectors with config-based keys for multi-stage reconstruction
         self._coord_vec_cache = {}  # Key: (coord_system, rec_type, tuple(limits), tuple(step_sizes))
+        # Cache delay matrices to avoid recomputing for events with same config
+        # Key: (station_id, channels_tuple, limits_tuple, step_sizes_tuple, fixed_coord, coord_system, rec_type)
+        self._delay_matrix_cache = {}
         self.begin()
     
     @staticmethod
@@ -130,7 +133,7 @@ class interferometricDirectionReconstruction():
         z_range = file['z_range_vals']
         # pick the map with fastest rays out of (0,1,2,3), there 0-2 solution types and 3 is fastest rays
         interpolator = RegularGridInterpolator(
-            (r_range, z_range), travel_time_table[3], method=interpolation_method, bounds_error=False, fill_value=-np.inf
+            (r_range, z_range), travel_time_table, method=interpolation_method, bounds_error=False, fill_value=-np.inf
         )
         return interpolator
 
@@ -138,6 +141,7 @@ class interferometricDirectionReconstruction():
         """
         Compute time delay matrices using interpolators (standard tables).
         Uses C++ extension if available, otherwise Python.
+        Results are cached based on configuration to avoid recomputation for events with same config.
         
         Parameters
         ----------
@@ -152,13 +156,34 @@ class interferometricDirectionReconstruction():
         interpolators : dict
             Dictionary mapping channel_id -> interpolator
         """
+        # Generate cache key from config parameters that affect delay matrices
+        cache_key = (
+            station,
+            tuple(sorted(config['channels'])),
+            tuple(config['limits']),
+            tuple(config['step_sizes']),
+            config['fixed_coord'],
+            config['coord_system'],
+            config['rec_type']
+        )
+        
+        # Check if we have cached delay matrices for this configuration
+        if cache_key in self._delay_matrix_cache:
+            logger.debug(f"Using cached delay matrices for config: {cache_key[:2]}...")
+            return self._delay_matrix_cache[cache_key]
+        
+        logger.debug(f"Computing new delay matrices for config: {cache_key[:2]}...")
+        
         # Try C++ extension first (fastest)
         if USE_CPP_EXTENSION:
             try:
                 channels = np.array(config['channels'], dtype=np.int32)
-                return compute_delay_matrices_cpp(
+                time_delay_matrices = compute_delay_matrices_cpp(
                     channels, src_posn_enu_matrix, ant_locs, interpolators
                 )
+                # Cache and return
+                self._delay_matrix_cache[cache_key] = time_delay_matrices
+                return time_delay_matrices
             except Exception as e:
                 logger.info("C++ extension failed (%s), falling back to Python", str(e))
 
@@ -204,6 +229,9 @@ class interferometricDirectionReconstruction():
             time_delay_matrix = travel_times[ch1] - travel_times[ch2]
             time_delay_matrices.append(time_delay_matrix)
 
+        # Cache the computed delay matrices for future events with same config
+        self._delay_matrix_cache[cache_key] = time_delay_matrices
+        
         return time_delay_matrices
     
     @staticmethod
@@ -390,7 +418,8 @@ class interferometricDirectionReconstruction():
             table_file = os.path.join(
                 f"{config['time_delay_tables']}", 
                 f"station{station_id}", 
-                f"ch{ch}_rz_table_rel_ant_allRays_fixed_withFastest.npz"
+                # f"ch{ch}_rz_table_rel_ant_allRays_fixed_withFastest.npz"
+                f"st{station_id}_ch{ch}_rz_table.npz"
             )
             self._interpolators[ch] = self._load_rz_interpolator(table_file, interp_method)
         
@@ -497,26 +526,26 @@ class interferometricDirectionReconstruction():
             
             map_kwargs = {}
             if coord0_alt is not None and coord1_alt is not None:
-                map_kwargs['coord0_alt'] = coord0_alt
-                map_kwargs['coord1_alt'] = coord1_alt
+                map_kwargs['coord_0_alt'] = coord0_alt
+                map_kwargs['coord_1_alt'] = coord1_alt
                 map_kwargs['alt_indices'] = alt_indices
             if exclusion_bounds is not None:
                 map_kwargs['exclusion_bounds'] = exclusion_bounds
             
             # Create a simple dict to pass position info to save function
             position_dict = {
-                'coord0_vec': coord0_vec,
-                'coord1_vec': coord1_vec,
+                'coord_0_vec': coord0_vec,
+                'coord_1_vec': coord1_vec,
                 'coord_system': coord_system,
                 'rec_type': rec_type
             }
             # Provide the reconstructed coordinates and max corr so the plotter doesn't need to recompute
-            map_kwargs['rec_coord0'] = rec_coord0
-            map_kwargs['rec_coord1'] = rec_coord1
+            map_kwargs['rec_coord_0'] = rec_coord0
+            map_kwargs['rec_coord_1'] = rec_coord1
             map_kwargs['rec_max_corr'] = max_corr
             print(f"config rec type: {config['rec_type']}")
             print(f"rec type: {rec_type}")
-            full_corr_map_save_path = save_correlation_map(corr_matrix, position_dict, evt=evt, config=config, save_dir=save_dir, **map_kwargs)
+            full_corr_map_save_path = save_corr_map(corr_matrix, position_dict, evt=evt, config=config, save_dir=save_dir, **map_kwargs)
             print(f"full corr map save path: {full_corr_map_save_path}")
             logger.debug("Saved full correlation map to %s (event %s)", save_dir, evt.get_id())
 
@@ -532,17 +561,17 @@ class interferometricDirectionReconstruction():
                     pair_map_kwargs['title_suffix'] = f" (Ch {ch1} & Ch {ch2})"
                     pair_map_kwargs['pair_channels'] = [ch1, ch2]  # Store channel pair info in map data
                     # Include recon info for pair maps as well (use same rec coords/max from combined map)
-                    pair_map_kwargs['rec_coord0'] = rec_coord0
-                    pair_map_kwargs['rec_coord1'] = rec_coord1
+                    pair_map_kwargs['rec_coord_0'] = rec_coord0
+                    pair_map_kwargs['rec_coord_1'] = rec_coord1
                     pair_map_kwargs['rec_max_corr'] = max_corr
                     # Also extract THIS pair's individual maximum correlation point
                     pair_rec_coord0, pair_rec_coord1 = self._get_rec_locs_from_corr_map(
                         pair_corr, coord0_vec, coord1_vec
                     )
-                    pair_map_kwargs['pair_rec_coord0'] = pair_rec_coord0
-                    pair_map_kwargs['pair_rec_coord1'] = pair_rec_coord1
+                    pair_map_kwargs['pair_rec_coord_0'] = pair_rec_coord0
+                    pair_map_kwargs['pair_rec_coord_1'] = pair_rec_coord1
                     pair_map_kwargs['pair_rec_max_corr'] = np.nanmax(pair_corr)
-                    _ = save_correlation_map(pair_corr, position_dict, evt=evt, config=config, save_dir=pair_save_dir, **pair_map_kwargs)
+                    _ = save_corr_map(pair_corr, position_dict, evt=evt, config=config, save_dir=pair_save_dir, **pair_map_kwargs)
                     logger.info("Saved pair map for channels %s-%s to %s", ch1, ch2, pair_save_dir)
         else:
             full_corr_map_save_path = None
@@ -553,8 +582,8 @@ class interferometricDirectionReconstruction():
             delay_save_path = config.get('delay_matrices_save_path', './debug_delay_matrices_singletable.pkl')
             debug_data = {
                 'delay_matrices': delay_matrices,
-                'coord0_vec': coord0_vec,
-                'coord1_vec': coord1_vec,
+                'coord_0_vec': coord0_vec,
+                'coord_1_vec': coord1_vec,
                 'config': config,
                 'station_id': station_id,
                 'event_id': evt.get_id(),
@@ -579,15 +608,15 @@ class interferometricDirectionReconstruction():
 
         station.set_parameter(stnp.rec_max_correlation, max_corr)
 
-        station.set_parameter(stnp.rec_coord0, rec_coord0)
-        station.set_parameter(stnp.rec_coord1, rec_coord1)
+        station.set_parameter(stnp.rec_coord_0, rec_coord0)
+        station.set_parameter(stnp.rec_coord_1, rec_coord1)
 
         if coord0_alt is not None and coord1_alt is not None:
-            station.set_parameter(stnp.rec_coord0_alt, coord0_alt)
-            station.set_parameter(stnp.rec_coord1_alt, coord1_alt)
+            station.set_parameter(stnp.rec_coord_0_alt, coord0_alt)
+            station.set_parameter(stnp.rec_coord_1_alt, coord1_alt)
         else:
-            station.set_parameter(stnp.rec_coord0_alt, np.nan)
-            station.set_parameter(stnp.rec_coord1_alt, np.nan)
+            station.set_parameter(stnp.rec_coord_0_alt, np.nan)
+            station.set_parameter(stnp.rec_coord_1_alt, np.nan)
 
         rec_type = config['rec_type']
         
@@ -601,9 +630,14 @@ class interferometricDirectionReconstruction():
                 station.set_parameter(stnp.rec_rho, rec_coord0)
                 station.set_parameter(stnp.rec_z, rec_coord1)
         elif coord_system == "spherical":
-            # For spherical: coord0 = φ (azimuth), coord1 = θ (zenith)
-            station.set_parameter(stnp.rec_azimuth, rec_coord0)
-            station.set_parameter(stnp.rec_zenith, rec_coord1)
+            if rec_type == "phitheta":
+                # For phitheta: coord0 = φ (azimuth), coord1 = θ (zenith)
+                station.set_parameter(stnp.rec_azimuth, rec_coord0)
+                station.set_parameter(stnp.rec_zenith, rec_coord1)
+            elif rec_type == "rtheta":
+                # For rtheta: coord0 = r (radial distance), coord1 = θ (zenith)
+                station.set_parameter(stnp.rec_coord_2, rec_coord0)
+                station.set_parameter(stnp.rec_zenith, rec_coord1)
                         
         return full_corr_map_save_path
     
@@ -776,8 +810,12 @@ class interferometricDirectionReconstruction():
                 coord0_vec = [coord0 * units.m for coord0 in coord0_vec]
                 coord1_vec = [coord1 * units.m for coord1 in coord1_vec]
         elif coord_system == "spherical":
-            coord0_vec = [coord0 * units.deg for coord0 in coord0_vec]
-            coord1_vec = [coord1 * units.deg for coord1 in coord1_vec]
+            if rec_type == "phitheta":
+                coord0_vec = [coord0 * units.deg for coord0 in coord0_vec]
+                coord1_vec = [coord1 * units.deg for coord1 in coord1_vec]
+            elif rec_type == "rtheta":
+                coord0_vec = [coord0 * units.m for coord0 in coord0_vec]
+                coord1_vec = [coord1 * units.deg for coord1 in coord1_vec]
         
         # Cache for future use
         self._coord_vec_cache[cache_key] = (coord0_vec, coord1_vec)
@@ -798,9 +836,16 @@ class interferometricDirectionReconstruction():
             else:
                 raise ValueError(f"Invalid rec_type: {rec_type}")
         elif coord_system == "spherical":
-            phi_grid, theta_grid = np.meshgrid(coord0_vec, coord1_vec)
-            r_grid = np.full_like(phi_grid, fixed_coord)
-            return r_grid, phi_grid, theta_grid
+            if rec_type == "phitheta":
+                phi_grid, theta_grid = np.meshgrid(coord0_vec, coord1_vec)
+                r_grid = np.full_like(phi_grid, fixed_coord)
+                return r_grid, phi_grid, theta_grid
+            elif rec_type == "rtheta":
+                r_grid, theta_grid = np.meshgrid(coord0_vec, coord1_vec)
+                phi_grid = np.full_like(r_grid, fixed_coord)
+                return r_grid, phi_grid, theta_grid
+            else:
+                raise ValueError(f"Invalid rec_type for spherical: {rec_type}")
         else:
             raise ValueError(f"Unsupported coordinate system: {coord_system}")
 
@@ -863,7 +908,22 @@ class interferometricDirectionReconstruction():
         return coord0_best, coord1_best
     
     def end(self):
-        pass
+        """Clean up resources and clear caches."""
+        self.clear_delay_matrix_cache()
+    
+    def clear_delay_matrix_cache(self):
+        """
+        Clear the delay matrix cache.
+        
+        Call this method to free memory if processing many events with different 
+        configurations. For events with the same configuration (same station, channels, 
+        limits, step_sizes, fixed_coord, coord_system, rec_type), the delay matrices 
+        are reused from cache for significant speedup.
+        """
+        n_cached = len(self._delay_matrix_cache)
+        self._delay_matrix_cache.clear()
+        if n_cached > 0:
+            logger.debug(f"Cleared {n_cached} cached delay matrix configuration(s)")
 
     def load_config(self, config_file):
         with open(config_file, "r") as f:

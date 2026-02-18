@@ -25,10 +25,10 @@ import itertools
 from scipy.signal import correlate, correlation_lags
 from NuRadioReco.utilities.logging import set_general_log_level
 # Set general logging to WARNING to suppress noisy packages
-set_general_log_level(logging.WARNING)
+set_general_log_level(logging.ERROR)
 # But set INFO level for the specific modules we want to see
 logger = logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction")
-#logger.setLevel(logging.INFO)
+logger.setLevel(logging.ERROR)
 
 from NuRadioReco.utilities import units
 from NuRadioReco.modules.channelResampler import channelResampler
@@ -43,11 +43,75 @@ from NuRadioReco.framework.parameters import showerParameters
 import NuRadioReco.utilities.trace_utilities as trace_utils
 from NuRadioReco.modules.interferometricDirectionReconstruction import interferometricDirectionReconstruction
 from NuRadioReco.utilities.interferometry_io_utilities import (
-    save_interferometric_results_hdf5 as save_results_to_hdf5,
-    save_interferometric_results_nur as save_results_to_nur,
-    save_correlation_map,
-    create_organized_paths
+    save_reco_results_hdf5 as save_results_to_hdf5,
+    save_reco_results_nur as save_results_to_nur,
+    save_corr_map,
+    create_organized_paths,
+    parse_event_ids
 )
+from NuRadioReco.utilities.caching_utilities import (
+    get_cache_path, load_from_cache, save_to_cache
+)
+
+
+def setup_cached_cable_delays(det, station_id):
+    """
+    Load cable delays from disk cache or populate cache from detector.
+    
+    This function monkey-patches det.get_cable_delay to use cached values,
+    avoiding expensive MongoDB queries on repeated Python invocations.
+    Cable delays are station-specific and constant, so caching is safe.
+    
+    Parameters
+    ----------
+    det : Detector
+        Detector object (will be modified in-place)
+    station_id : int
+        Station ID to cache cable delays for
+        
+    Returns
+    -------
+    bool
+        True if loaded from cache, False if had to query detector
+    """
+    cache_file = get_cache_path("cable_delays", f"station{station_id}_cable_delays.pkl")
+    cable_delay_cache = load_from_cache(cache_file)
+    
+    # Store original method reference
+    original_get_cable_delay = det.get_cable_delay
+    
+    if cable_delay_cache is not None:
+        # Cache hit - use cached values
+        print(f"[INFO] Loading cable delays for station {station_id} from cache...", end="", flush=True)
+        loaded_from_cache = True
+    else:
+        # Cache miss - query detector and build cache
+        print(f"[INFO] Querying cable delays for station {station_id} (will cache for future use)...", end="", flush=True)
+        cable_delay_cache = {}
+        for ch in range(24):
+            try:
+                cable_delay_cache[ch] = original_get_cable_delay(station_id, ch)
+            except KeyError:
+                pass  # Channel doesn't exist for this station
+        
+        # Save to disk for future runs
+        save_to_cache(cable_delay_cache, cache_file, 
+                     metadata={'station_id': station_id, 'n_channels': len(cable_delay_cache)})
+        loaded_from_cache = False
+    
+    # Monkey-patch the detector's get_cable_delay method to use our cache
+    # This ensures channelAddCableDelay module also uses cached values
+    def cached_get_cable_delay(sid, ch):
+        if sid == station_id and ch in cable_delay_cache:
+            return cable_delay_cache[ch]
+        # Fallback to original for other stations (shouldn't happen in practice)
+        return original_get_cable_delay(sid, ch)
+    
+    det.get_cable_delay = cached_get_cable_delay
+    print(" done.", flush=True)
+    
+    return loaded_from_cache
+
 
 class PlaneWave:
     @staticmethod
@@ -432,14 +496,14 @@ def run_plane_wave_fallback(reco, event, event_station, det, config, save_maps, 
                              save_maps_to=save_maps_to)
     
     # Extract results
-    zenith_best = event_station.get_parameter(stnp.rec_coord1) / units.deg
+    zenith_best = event_station.get_parameter(stnp.rec_coord_1) / units.deg
     final_max_corr = event_station.get_parameter(stnp.rec_max_correlation)
     
     logger.info(f"[PLANE WAVE FALLBACK] Results: zenith={zenith_best:.1f}°, maxCorr={final_max_corr:.3f}")
     
     # Override azimuth to NaN to mark this as a plane wave reconstruction
     event_station.set_parameter(stnp.rec_azimuth, np.nan * units.deg)
-    event_station.set_parameter(stnp.rec_coord0, np.nan * units.deg)
+    event_station.set_parameter(stnp.rec_coord_0, np.nan * units.deg)
     
     return corr_map_path
 
@@ -454,10 +518,10 @@ def run_plane_wave_analytic(event, event_station, det):
     zeniths = [pw.get_arrival_angle(event_station, det, ch_pair) for ch_pair in valid_pairs]
     zenith_average = np.nanmean(zeniths) if np.any(~np.isnan(zeniths)) else np.nan
     #print(f"Analytic plane wave zenith: {zenith_average:.2f} deg")
-    event_station.set_parameter(stnp.rec_coord1, zenith_average) 
+    event_station.set_parameter(stnp.rec_coord_1, zenith_average) 
 
     event_station.set_parameter(stnp.rec_azimuth, np.nan * units.deg)
-    event_station.set_parameter(stnp.rec_coord0, np.nan * units.deg)
+    event_station.set_parameter(stnp.rec_coord_0, np.nan * units.deg)
     event_station.set_parameter(stnp.rec_max_correlation, np.nan)
     event_station.set_parameter(stnp.rec_surf_corr, np.nan) 
 
@@ -520,8 +584,8 @@ def run_two_stage_reconstruction(reco, event, event_station, det, config, pa_pos
                                 save_maps=save_stage1, save_pair_maps=False, save_maps_to=stage1_save_maps_to)
     
     # Extract stage 1 results
-    rho_best = event_station.get_parameter(stnp.rec_coord0)  # In internal units (meters)
-    z_best_abs = event_station.get_parameter(stnp.rec_coord1)  # Absolute depth in meters
+    rho_best = event_station.get_parameter(stnp.rec_coord_0)  # In internal units (meters)
+    z_best_abs = event_station.get_parameter(stnp.rec_coord_1)  # Absolute depth in meters
     stage1_max_corr = event_station.get_parameter(stnp.rec_max_correlation)
     
     rho_best_m = rho_best / units.m
@@ -550,22 +614,22 @@ def run_two_stage_reconstruction(reco, event, event_station, det, config, pa_pos
     
     # Final results are now in station parameters (overwritten by stage 2)
     final_max_corr = event_station.get_parameter(stnp.rec_max_correlation)
-    phi_best = event_station.get_parameter(stnp.rec_coord0) / units.deg
-    theta_best = event_station.get_parameter(stnp.rec_coord1) / units.deg
+    phi_best = event_station.get_parameter(stnp.rec_coord_0) / units.deg
+    theta_best = event_station.get_parameter(stnp.rec_coord_1) / units.deg
     
     logger.info(f"[AUTO MODE] Stage 2 results: phi={phi_best:.1f}°, theta={theta_best:.1f}°, maxCorr={final_max_corr:.3f}")
     
     # If both stages were saved, combine them into a single multi-stage file
     if save_maps == 'both' and stage1_corr_path and stage2_corr_path:
         import pickle
-        from NuRadioReco.utilities.interferometry_io_utilities import load_correlation_map
+        from NuRadioReco.utilities.interferometry_io_utilities import load_corr_map
         
         logger.info(f"[AUTO MODE] Loading stage 1 from: {stage1_corr_path}")
         logger.info(f"[AUTO MODE] Loading stage 2 from: {stage2_corr_path}")
         
         # Load both correlation maps
-        stage1_data = load_correlation_map(stage1_corr_path)
-        stage2_data = load_correlation_map(stage2_corr_path)
+        stage1_data = load_corr_map(stage1_corr_path)
+        stage2_data = load_corr_map(stage2_corr_path)
         
         logger.info(f"[AUTO MODE] Stage 1 loaded: {stage1_data['coord_system']}/{stage1_data.get('rec_type')}, limits={stage1_data['limits']}")
         logger.info(f"[AUTO MODE] Stage 2 loaded: {stage2_data['coord_system']}/{stage2_data.get('rec_type')}, limits={stage2_data['limits']}")
@@ -632,6 +696,8 @@ def main():
                        help="Specific event IDs to process. If not provided, processes all events in given file.")
     parser.add_argument("--runs", type=int, nargs="*", default=None,
                        help="Specific run numbers to process.")
+    parser.add_argument("--event-ids", type=parse_event_ids, default=None,
+                       help="Comma-separated run:event pairs, e.g. 476:3,476:7,476:12")
 
     parser.add_argument("--sim-truth-fixed-coord", action="store_true")
     parser.add_argument("--save-maps", nargs='?', const=True, default=False,
@@ -642,9 +708,13 @@ def main():
                        help="SNR threshold for channel filtering. Channels below threshold are dropped. If no helper channels [9,10,22,23] pass threshold, event is skipped.")
     parser.add_argument("--edge-sigma", type=float, default=None,
                        help="Edge signal detection threshold in standard deviations. Channels with signals at trace edges exceeding this threshold are dropped. If no helper channels [9,10,22,23] remain, event is skipped.")
+    parser.add_argument("--file-id", type=str, default=None,
+                       help="Unique identifier for this file (used for output filename when processing multiple files without run filtering). Typically a hash or index.")
 
     args = parser.parse_args()
-        
+
+    if args.event_ids is not None and (args.events is not None or args.runs is not None):
+        raise ValueError("Cannot use --event-ids together with --events or --runs.")
     if args.events is not None and args.runs is not None:
         raise ValueError("Cannot specify both --events and --runs. Use --events for ROOT files and --runs for NUR files.")
     
@@ -713,21 +783,17 @@ def main():
     # This avoids redundant per-event calculations
     pa_pos_rel_station, pa_pos_abs = get_PA_position(station_id, det)
     
-    # Pre-load cable delays for all channels
-    # This triggers the detector's internal buffering/caching mechanism 
-    print(f"[INFO] Preloading cable delays for station {station_id}...", end="", flush=True)
-    for ch in range(24):
-        try:
-            _ = det.get_cable_delay(station_id, ch)
-        except KeyError:
-            continue
-    print(" done.", flush=True)
+    # Setup cached cable delays - loads from disk cache if available,
+    # otherwise queries detector and saves to cache for future runs.
+    # This monkey-patches det.get_cable_delay to use cached values,
+    # so the channelAddCableDelay module will also benefit from caching.
+    setup_cached_cable_delays(det, station_id)
     
     reco.begin(station_id=station_id, config=config, det=det)
     
-    # Handle both --events and --runs flags
-    # For NUR files with --runs, we'll check run_number
-    # For ROOT files with --events (or NUR files with --events), we'll check event_id
+    # Handle --event-ids, --events, and --runs flags
+    # --event-ids provides exact (run, event) pairs and bypasses run/event filtering
+    exact_event_ids = set(args.event_ids) if args.event_ids is not None else None
     events_to_process = set(args.events) if args.events is not None else None
     runs_to_process = set(args.runs) if args.runs is not None else None
     
@@ -748,96 +814,176 @@ def main():
     for file_idx, input_file in enumerate(input_files, 1):
         file_events_processed = 0
         
+        print(f"[File {file_idx}/{len(input_files)}] {os.path.basename(input_file)}", flush=True)
         logger.info(f"Processing file {file_idx}/{len(input_files)}: {input_file}")
         
         reader.begin(input_file)
 
-        # Get event IDs differently based on file type
-        if is_nur_file:
-            # For NUR files, use the underlying NuRadioRecoio object to get event IDs
-            event_ids = reader._eventReader__fin.get_event_ids()
-        else:
-            # For ROOT files, readRNOGData has get_event_ids() method
-            event_ids = reader.get_event_ids()
-        
-        # Store all available run/event numbers for error reporting
-        # Convert to int to avoid numpy float types
-        all_runs = [int(eid[0]) for eid in event_ids]
-        all_events = [int(eid[1]) for eid in event_ids]
-        
-        # CRITICAL: If --events is specified without --runs, we must have exactly one run in the file
-        # This prevents ambiguity when multiple runs share the same event numbers
-        if events_to_process and not runs_to_process:
-            unique_runs = set(all_runs)
-            if len(unique_runs) > 1:
-                logger.error(f"ERROR: --events specified without --runs, but input file contains {len(unique_runs)} runs: {sorted(unique_runs)}")
-                logger.error(f"       Cannot uniquely identify events because multiple runs may share the same event numbers.")
-                logger.error(f"       Please either:")
-                logger.error(f"         1. Specify --runs along with --events to uniquely identify events, OR")
-                logger.error(f"         2. Use an input file containing only one run")
-                sys.exit(1)
-        
-        # Filter event IDs based on user request
-        if runs_to_process or events_to_process:
-            filtered_ids = []
-            for event_id in event_ids:
-                run_num, evt_num = int(event_id[0]), int(event_id[1])
-                if runs_to_process and run_num not in runs_to_process:
-                    continue
-                if events_to_process and evt_num not in events_to_process:
-                    continue
-                filtered_ids.append((run_num, evt_num))
-            event_ids = filtered_ids
+        # --event-ids: exact (run, event) pairs, bypass all run/event filtering
+        if exact_event_ids is not None:
+            if is_nur_file:
+                file_event_ids = reader._eventReader__fin.get_event_ids()
+            else:
+                file_event_ids = reader.get_event_ids()
+            event_ids = [(int(r), int(e)) for r, e in file_event_ids if (int(r), int(e)) in exact_event_ids]
+            if len(event_ids) == 0:
+                logger.warning(f"No matching event_ids in {os.path.basename(input_file)}")
+            else:
+                print(f"  Matched {len(event_ids)} event_ids", flush=True)
+            use_iterator_mode = False
+            event_ids_set = None
 
-        logger.info(f"Found {len(event_ids)} event(s) to process")
-        if len(event_ids) == 0 and (runs_to_process or events_to_process):
-            logger.warning(f"WARNING: No events match the requested criteria!")
-            if runs_to_process:
-                available_runs = sorted(set(all_runs))
-                logger.info(f"  Requested run(s): {sorted(runs_to_process)}")
-                logger.info(f"  Available run(s): {available_runs[:20]}")
-                if len(available_runs) > 20:
-                    logger.info(f"  ... and {len(available_runs) - 20} more")
-            if events_to_process:
-                available_events = sorted(set(all_events))
-                logger.info(f"  Requested event(s): {sorted(events_to_process)}")
-                logger.info(f"  Available event(s): {available_events[:20]}")
-                if len(available_events) > 20:
-                    logger.info(f"  ... and {len(available_events) - 20} more")
-                
-        for event_id in event_ids:
+        # Optimization for ROOT files with event filtering:
+        # Skip get_event_ids() since ROOT files are single-run and we already know what events we want.
+        # This avoids an extra file open (get_event_ids reopens the ROOT file).
+        elif not is_nur_file and events_to_process:
+            # ROOT files are single-run, so we can build event_ids directly from events_to_process
+            # The run number will be determined when we iterate
+            # Use a dummy run number (0) - we'll filter by event number only during iteration
+            event_ids = [(0, evt) for evt in events_to_process]
+            all_runs = []  # Not needed for error reporting in this path
+            all_events = list(events_to_process)
+            use_iterator_mode = True
+            # For ROOT files, filter by event number only (run number will match since it's a single-run file)
+            event_ids_set = events_to_process  # Just the event numbers
+            print(f"  Processing {len(events_to_process)} specified events...", flush=True)
+        else:
+            # Standard path: query file for event IDs
+            if is_nur_file:
+                # For NUR files, use the underlying NuRadioRecoio object to get event IDs
+                event_ids = reader._eventReader__fin.get_event_ids()
+            else:
+                # For ROOT files without filtering, need to get event IDs
+                event_ids = reader.get_event_ids()
             
+            # Store all available run/event numbers for error reporting
+            # Convert to int to avoid numpy float types
+            all_runs = [int(eid[0]) for eid in event_ids]
+            all_events = [int(eid[1]) for eid in event_ids]
+            
+            # CRITICAL: If --events is specified without --runs, we must have exactly one run in the file
+            # This prevents ambiguity when multiple runs share the same event numbers
+            if events_to_process and not runs_to_process:
+                unique_runs = set(all_runs)
+                if len(unique_runs) > 1:
+                    logger.error(f"ERROR: --events specified without --runs, but input file contains {len(unique_runs)} runs: {sorted(unique_runs)}")
+                    logger.error(f"       Cannot uniquely identify events because multiple runs may share the same event numbers.")
+                    logger.error(f"       Please either:")
+                    logger.error(f"         1. Specify --runs along with --events to uniquely identify events, OR")
+                    logger.error(f"         2. Use an input file containing only one run")
+                    sys.exit(1)
+            
+            # Filter event IDs based on user request
+            if runs_to_process or events_to_process:
+                filtered_ids = []
+                for event_id in event_ids:
+                    run_num, evt_num = int(event_id[0]), int(event_id[1])
+                    if runs_to_process and run_num not in runs_to_process:
+                        continue
+                    if events_to_process and evt_num not in events_to_process:
+                        continue
+                    filtered_ids.append((run_num, evt_num))
+                event_ids = filtered_ids
+
+            logger.info(f"Found {len(event_ids)} event(s) to process")
+            if len(event_ids) == 0 and (runs_to_process or events_to_process):
+                logger.warning(f"WARNING: No events match the requested criteria!")
+                if runs_to_process:
+                    available_runs = sorted(set(all_runs))
+                    logger.info(f"  Requested run(s): {sorted(runs_to_process)}")
+                    logger.info(f"  Available run(s): {available_runs[:20]}")
+                    if len(available_runs) > 20:
+                        logger.info(f"  ... and {len(available_runs) - 20} more")
+                if events_to_process:
+                    available_events = sorted(set(all_events))
+                    logger.info(f"  Requested event(s): {sorted(events_to_process)}")
+                    logger.info(f"  Available event(s): {available_events[:20]}")
+                    if len(available_events) > 20:
+                        logger.info(f"  ... and {len(available_events) - 20} more")
+            
+            # For ROOT files with run filtering (but not event filtering), use iteration
+            if not is_nur_file and runs_to_process:
+                event_ids_set = set((int(eid[0]), int(eid[1])) for eid in event_ids)
+                use_iterator_mode = True
+                print(f"  Using iterator mode for ROOT file (filtering to {len(event_ids_set)} events)...", flush=True)
+            else:
+                use_iterator_mode = False
+                event_ids_set = None
+        
+        # Create event source - either iterator or explicit list
+        if use_iterator_mode:
+            # Iterate through all events, yield only matching ones
+            # event_ids_set can be either:
+            #   - set of (run_num, evt_num) tuples (for run filtering)
+            #   - set of evt_num only (for fast event filtering on ROOT files)
+            filter_by_event_only = events_to_process and not runs_to_process and not is_nur_file
+            
+            def filtered_event_generator():
+                for evt in reader.run():
+                    evt_num = evt.get_id()
+                    if filter_by_event_only:
+                        # Fast path: filter by event number only
+                        if evt_num in event_ids_set:
+                            yield evt
+                    else:
+                        # Standard path: filter by (run, event) tuple
+                        run_num = evt.get_run_number()
+                        if (run_num, evt_num) in event_ids_set:
+                            yield evt
+            event_source = filtered_event_generator()
+        else:
+            # Use the original event_ids list approach
+            event_source = event_ids
+                
+        for event_or_id in event_source:
             t0 = time.time()
             
-            # Get event differently based on file type
-            # Convert to int to ensure proper types
-            run_number = int(event_id[0])
-            event_number = int(event_id[1])
-            
-            if is_nur_file:
-                event = reader._eventReader__fin.get_event(event_id)
+            if use_iterator_mode:
+                # Already have the event object from the iterator
+                event = event_or_id
+                run_number = event.get_run_number()
+                event_number = event.get_id()
             else:
-                event = reader.get_event(run_number, event_number)
+                # Get event from event_id tuple
+                event_id = event_or_id
+                run_number = int(event_id[0])
+                event_number = int(event_id[1])
+                
+                # Fetch the event object
+                if is_nur_file:
+                    event = reader._eventReader__fin.get_event(event_id)
+                else:
+                    event = reader.get_event(run_number, event_number)
             
             found_event_numbers.append(event_number)
             found_run_numbers.append(run_number)
             
             if results_path is None:
+                print(f"[DEBUG] Setting results_path for first time (run={run_number}, evt={event_number})", flush=True)
                 if args.outputfile is not None:
                     results_path = args.outputfile
                     maps_dir = None
-                    logger.info(f"Will save reconstruction results to: {results_path}")
+                    print(f"[DEBUG] Using explicit outputfile: {results_path}", flush=True)
                 else:                    
-                    include_event_in_path = (args.events is not None or args.output_type == 'nur')
-                    use_run_in_path = (args.runs is not None or args.events is not None or args.output_type == 'nur')
+                    # Only include event in path for single-event processing or NUR output
+                    # For multiple events (e.g., burn sample), save one file per run with all events
+                    single_event_mode = args.events is not None and len(args.events) == 1
+                    include_event_in_path = single_event_mode or args.output_type == 'nur'
+                    # Use run in path if filtering by run, or if file_id is not provided
+                    use_run_in_path = (args.runs is not None or args.events is not None or args.output_type == 'nur') and args.file_id is None
+                    
+                    print(f"[DEBUG] single_event_mode={single_event_mode}, include_event_in_path={include_event_in_path}", flush=True)
+                    print(f"[DEBUG] use_run_in_path={use_run_in_path}, args.file_id={args.file_id}", flush=True)
                     
                     results_path, maps_dir = create_organized_paths(
                         config, 
-                        run_number if use_run_in_path else None,
+                        run_number if use_run_in_path else args.file_id,  # Use file_id instead of run_number when available
                         args.output_type, 
                         event_number=event_number if include_event_in_path else None,
-                        use_run_in_path=use_run_in_path
+                        use_run_in_path=use_run_in_path or args.file_id is not None  # Treat file_id like run for path organization
                     )
+                    print(f"[DEBUG] results_path set to: {results_path}", flush=True)
+                    print(f"[DEBUG] maps_dir set to: {maps_dir}", flush=True)
                     if results is not None or events_for_nur is not None:
                         logger.info(f"Will save reconstruction results to: {results_path}")
                     if args.save_maps:
@@ -883,7 +1029,7 @@ def main():
                 if len(channels_to_use) < 2:
                     # Check if plane wave fallback is enabled before skipping
                     if not config.get('plane_wave_fallback', False):
-                        logger.info(f"  Skipping event {event_id} (run {run_number}): Fewer than 2 channels after edge filtering ({len(channels_to_use)} channels)")
+                        logger.info(f"  Skipping event (run {run_number}, event {event_number}): Fewer than 2 channels after edge filtering ({len(channels_to_use)} channels)")
                         n_skipped += 1
                         continue
                     else:
@@ -909,7 +1055,7 @@ def main():
                 
                 if skip_reason:
                     if not config.get('plane_wave_fallback', False):
-                        logger.info(f"  Skipping event {event_id} (run {run_number}): {skip_reason}")
+                        logger.info(f"  Skipping event (run {run_number}, event {event_number}): {skip_reason}")
                         n_skipped += 1
                         continue
                     else:
@@ -929,7 +1075,7 @@ def main():
                         logger.info(f"  [PLANE WAVE FALLBACK] No helper channels remaining - triggering fallback mode")
                         use_plane_wave_fallback = True
                     else:
-                        logger.info(f"  Skipping event {event_id} (run {run_number}): No helper channels [{','.join(map(str, helper_channels))}] remaining after filtering")
+                        logger.info(f"  Skipping event (run {run_number}, event {event_number}): No helper channels [{','.join(map(str, helper_channels))}] remaining after filtering")
                         n_skipped += 1
                         continue
                 
@@ -980,16 +1126,16 @@ def main():
             # These were set by the reconstruction module's run() method
             max_corr = event_station.get_parameter(stnp.rec_max_correlation)
             surf_corr = event_station.get_parameter(stnp.rec_surf_corr)
-            rec_coord0 = event_station.get_parameter(stnp.rec_coord0)  # Generic first coordinate
-            rec_coord1 = event_station.get_parameter(stnp.rec_coord1)  # Generic second coordinate
+            rec_coord_0 = event_station.get_parameter(stnp.rec_coord_0)  # Generic first coordinate
+            rec_coord_1 = event_station.get_parameter(stnp.rec_coord_1)  # Generic second coordinate
             
             # Try to get alternate reconstruction (second-best correlation peak)
             try:
-                rec_coord0_alt = event_station.get_parameter(stnp.rec_coord0_alt)
-                rec_coord1_alt = event_station.get_parameter(stnp.rec_coord1_alt)
+                rec_coord_0_alt = event_station.get_parameter(stnp.rec_coord_0_alt)
+                rec_coord_1_alt = event_station.get_parameter(stnp.rec_coord_1_alt)
             except:
-                rec_coord0_alt = np.nan
-                rec_coord1_alt = np.nan
+                rec_coord_0_alt = np.nan
+                rec_coord_1_alt = np.nan
             
             # Build results dictionary for HDF5 output
             # Convert generic coordinates to physically meaningful values based on coord_system
@@ -998,7 +1144,7 @@ def main():
                 result_row = {
                     "filename": input_file,  # Critical for simulation files with duplicate IDs
                     "runNum": run_number,
-                    "eventNum": event_id,
+                    "eventNum": event_number,  # Use extracted event_number, not the tuple event_id
                     "maxCorr": max_corr,
                     "surfCorr": surf_corr,
                 }
@@ -1012,8 +1158,8 @@ def main():
                 if final_coord_system == "cylindrical":
                     if config["rec_type"] == "phiz":
                         # φ-z reconstruction: azimuth and depth (radius is fixed)
-                        result_row["phi"] = rec_coord0 / units.deg
-                        result_row["z"] = rec_coord1 / units.m
+                        result_row["phi"] = rec_coord_0 / units.deg
+                        result_row["z"] = rec_coord_1 / units.m
 
                         if not np.isnan(rec_coord0_alt) and not np.isnan(rec_coord1_alt):
                             result_row["phi_alt"] = rec_coord0_alt / units.deg
@@ -1023,23 +1169,23 @@ def main():
                             result_row["z_alt"] = np.nan
                     elif config["rec_type"] == "rhoz":
                         # ρ-z reconstruction: radius and depth (azimuth is fixed)
-                        result_row["rho"] = rec_coord0 / units.m
-                        result_row["z"] = rec_coord1 / units.m
+                        result_row["rho"] = rec_coord_0 / units.m
+                        result_row["z"] = rec_coord_1 / units.m
 
-                        if not np.isnan(rec_coord0_alt) and not np.isnan(rec_coord1_alt):
-                            result_row["rho_alt"] = rec_coord0_alt / units.m
-                            result_row["z_alt"] = rec_coord1_alt / units.m
+                        if not np.isnan(rec_coord_0_alt) and not np.isnan(rec_coord_1_alt):
+                            result_row["rho_alt"] = rec_coord_0_alt / units.m
+                            result_row["z_alt"] = rec_coord_1_alt / units.m
                         else:
                             result_row["rho_alt"] = np.nan
                             result_row["z_alt"] = np.nan
                 elif final_coord_system == "spherical":
                     # Spherical reconstruction: azimuth and zenith (radius is fixed)
-                    result_row["phi"] = rec_coord0 / units.deg
-                    result_row["theta"] = rec_coord1 / units.deg
+                    result_row["phi"] = rec_coord_0 / units.deg
+                    result_row["theta"] = rec_coord_1 / units.deg
 
-                    if not np.isnan(rec_coord0_alt) and not np.isnan(rec_coord1_alt):
-                        result_row["phi_alt"] = rec_coord0_alt / units.deg
-                        result_row["theta_alt"] = rec_coord1_alt / units.deg
+                    if not np.isnan(rec_coord_0_alt) and not np.isnan(rec_coord_1_alt):
+                        result_row["phi_alt"] = rec_coord_0_alt / units.deg
+                        result_row["theta_alt"] = rec_coord_1_alt / units.deg
                     else:
                         result_row["phi_alt"] = np.nan
                         result_row["theta_alt"] = np.nan
@@ -1086,11 +1232,27 @@ def main():
     reco.end()
     
     # Save results if we processed any events
+    print(f"\n[DEBUG] === SAVE CHECK ===", flush=True)
+    print(f"[DEBUG] results_path = {results_path}", flush=True)
+    print(f"[DEBUG] n_processed = {n_processed}", flush=True)
+    print(f"[DEBUG] results list length = {len(results) if results else 'None'}", flush=True)
+    print(f"[DEBUG] events_for_nur length = {len(events_for_nur) if events_for_nur else 'None'}", flush=True)
+    print(f"[DEBUG] Condition 'results_path and n_processed > 0' = {bool(results_path and n_processed > 0)}", flush=True)
+    
     if results_path and n_processed > 0:
+        print(f"[DEBUG] Entering save block...", flush=True)
         if results:
+            print(f"[DEBUG] Calling save_results_to_hdf5 with {len(results)} results to {results_path}", flush=True)
             reco_results_path = save_results_to_hdf5(results, results_path, config)
+            print(f"[DEBUG] save_results_to_hdf5 returned: {reco_results_path}", flush=True)
         elif events_for_nur:
+            print(f"[DEBUG] Calling save_results_to_nur with {len(events_for_nur)} events", flush=True)
             reco_results_path = save_results_to_nur(events_for_nur, results_path)
+            print(f"[DEBUG] save_results_to_nur returned: {reco_results_path}", flush=True)
+        else:
+            print(f"[DEBUG] Neither results nor events_for_nur has data!", flush=True)
+    else:
+        print(f"[DEBUG] SKIPPING SAVE - condition not met!", flush=True)
     
     print(f"\n{'='*50}")
     print(f"Processing complete!")
