@@ -952,7 +952,6 @@ class Detector():
                     frequencies = None
                     time_delay = 0
                     weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
-                    attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
 
                 elif component_entry['collection'] == "time_delays":
                     ydata = 1  # Fake gain factor of 1 in magitude (does nothing)
@@ -960,7 +959,6 @@ class Detector():
                     frequencies = None
                     time_delay = component_entry["time_delay"] * getattr(units, component_entry["time_delay_unit"])
                     weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
-                    attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
 
                 else:
                     # Get the response data
