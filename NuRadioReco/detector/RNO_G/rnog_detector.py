@@ -243,11 +243,13 @@ class Detector():
         """
 
         if not self._query_all:
-            self.logger.error(
-                "You are exporting the detector description but you have not queried the entire description at once. "
-                "This means that only the currently buffered station description is exported which is potentially "
-                "incomplete. If you want to export the entire description, set `always_query_entire_description=True` "
-                "in the constructor before exporting.")
+            # When not querying the entire description at once,
+            # we need to make sure that the buffer is updated
+            # for all stations before exporting.
+            for station_id in self.__buffered_stations:
+                # remove everything (could be handled smarter ...)
+                self.__buffered_stations[station_id] = {}
+                self._query_station_information(station_id)
 
         periods = {}
         for station_id in self.__buffered_stations:
