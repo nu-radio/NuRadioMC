@@ -7,6 +7,9 @@ new features:
 
 bugfixes:
 
+deprecations:
+- Remove default values for `use_channels` and `bandpass` in voltageToAnalyticEfieldConverter.py and voltageToEfieldConverter.py which were suitable for ARIANNA.
+  Now, the arguments are required and an error is raised when they are not set.
 
 version 3.1.1
 new features:
@@ -19,7 +22,7 @@ multi-station simulations.
 
 version 3.1.0
 new features:
-- added rno-g cal_pulser waveform model at different temperatures in NuRadioMC/data 
+- added rno-g cal_pulser waveform model at different temperatures in NuRadioMC/data
 - energy-dependent inelasticity distribution (only BGR18 model) and cc / nc fraction (all models)
 - rice distribution method for estimating electric field energy fluences as proposed in S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
 - Change to default behaviour of Singleton (NuRadioReco.utilities.metaclasses.Singleton) classes.
