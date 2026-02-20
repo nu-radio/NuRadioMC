@@ -636,24 +636,25 @@
              
   <h1>Source code for NuRadioReco.detector.RNO_G.analog_components</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.analog_components&#39;</span><span class="p">)</span>
-
 
 <div class="viewcode-block" id="load_amp_response">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.analog_components.html#NuRadioReco.detector.RNO_G.analog_components.load_amp_response">[docs]</a>
+<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">load_amp_response</span><span class="p">(</span><span class="n">amp_type</span><span class="o">=</span><span class="s1">&#39;rno_surface&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mf">293.15</span><span class="p">,</span>
                       <span class="n">path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))):</span>  <span class="c1"># use this function to read in log data</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Read out amplifier gain and phase. Currently only examples have been implemented.</span>
-<span class="sd">    Needs a better structure in the future, possibly with database.</span>
-<span class="sd">    The hardware response incorporator currently reads in the load amp response.</span>
-<span class="sd">    If you want to read in the RI function for your reconstruction it needs to be changed</span>
-<span class="sd">    in modules/RNO_G/hardweareResponseIncorporator.py l. 52, amp response.</span>
+<span class="sd">    Read out amplifier gain and phase.</span>
+
+<span class="sd">    These are all &#39;placeholder&#39; measurements of a single reference amplifier/signal chain;</span>
+<span class="sd">    more up-to-date, channel-specific amplifier responses may be loaded via</span>
+<span class="sd">    the :class:`rnog_detector &lt;NuRadioReco.detector.RNO_G.rnog_detector.Detector&gt;` class.</span>
 <span class="sd">    </span>
 <span class="sd">    Temperature dependence: the function loads a reference measurement made at room temperature</span>
 <span class="sd">    and will correct it for the temperature. The correction function is obtained empirically for</span>
@@ -666,6 +667,8 @@
 <span class="sd">        * &quot;rno_surface&quot;: the surface signal chain</span>
 <span class="sd">        * &quot;iglu&quot;: the in-ice signal chain</span>
 <span class="sd">        * &quot;phased_array&quot;: the additional filter of the phased array channels before going into the phased array trigger. </span>
+<span class="sd">        * &quot;rno_surface_impulse&quot;: alternative measurement of the surface signal chain response, including the RADIANT</span>
+<span class="sd">        * &quot;deep_impulse&quot;: alternative measurement of the deep (iglu) signal chain response, including the RADIANT</span>
 <span class="sd">    temp: float (default 293.15K)</span>
 <span class="sd">        the default temperature in Kelvin that the amplifier response is corrected for</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -747,6 +750,7 @@
 <div class="viewcode-block" id="get_available_amplifiers">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.analog_components.html#NuRadioReco.detector.RNO_G.analog_components.get_available_amplifiers">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_available_amplifiers</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a list of available amplifiers&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;iglu&#39;</span><span class="p">,</span> <span class="s1">&#39;deep_impulse&#39;</span><span class="p">,</span> <span class="s1">&#39;rno_surface&#39;</span><span class="p">,</span> <span class="s1">&#39;rno_surface_impulse&#39;</span><span class="p">,</span> <span class="s1">&#39;phased_array&#39;</span><span class="p">,</span> <span class="s1">&#39;ULP_216&#39;</span><span class="p">]</span></div>
 
 </pre></div>

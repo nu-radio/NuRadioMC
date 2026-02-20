@@ -636,6 +636,9 @@
              
   <h1>Source code for NuRadioReco.detector.detector_base</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.interpolate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.RNO_G.analog_components</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.ARIANNA.analog_components</span>
@@ -1626,11 +1629,12 @@
         <span class="k">if</span> <span class="s1">&#39;amp_type&#39;</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">amp_type</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;amp_type&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">amp_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;Amplifier type for station </span><span class="si">{}</span><span class="s1">, channel </span><span class="si">{}</span><span class="s1"> not in detector description&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;Amplifier type for station </span><span class="si">{}</span><span class="s1">, channel </span><span class="si">{}</span><span class="s1"> not in detector description. No amplifier response will be applied.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">station_id</span><span class="p">,</span>
                     <span class="n">channel_id</span>
                 <span class="p">))</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
         <span class="n">amp_response_functions</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">amp_type</span> <span class="ow">in</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">RNO_G</span><span class="o">.</span><span class="n">analog_components</span><span class="o">.</span><span class="n">get_available_amplifiers</span><span class="p">():</span>
             <span class="n">amp_response_functions</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">RNO_G</span><span class="o">.</span><span class="n">analog_components</span><span class="o">.</span><span class="n">load_amp_response</span><span class="p">(</span><span class="n">amp_type</span><span class="p">)</span>
@@ -1638,6 +1642,12 @@
             <span class="k">if</span> <span class="n">amp_response_functions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Amplifier name </span><span class="si">{}</span><span class="s1"> is not unique&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amp_type</span><span class="p">))</span>
             <span class="n">amp_response_functions</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">ARIANNA</span><span class="o">.</span><span class="n">analog_components</span><span class="o">.</span><span class="n">load_amplifier_response</span><span class="p">(</span><span class="n">amp_type</span><span class="p">)</span>
+        <span class="c1"># check for custom amplifier responses</span>
+        <span class="k">if</span> <span class="n">_load_custom_amp</span><span class="p">(</span><span class="n">amp_type</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">amp_response_functions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Custom amplifier type </span><span class="si">{</span><span class="n">amp_type</span><span class="si">}</span><span class="s1"> is already in use. Please rename your custom amplifier.&#39;</span><span class="p">)</span>
+            <span class="n">amp_response_functions</span> <span class="o">=</span> <span class="n">_load_custom_amp</span><span class="p">(</span><span class="n">amp_type</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">amp_response_functions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Amplifier of type </span><span class="si">{}</span><span class="s1"> not found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amp_type</span><span class="p">))</span>
         <span class="n">amp_gain</span> <span class="o">=</span> <span class="n">amp_response_functions</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">](</span><span class="n">frequencies</span><span class="p">)</span>
@@ -1870,6 +1880,38 @@
         <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;noiseless&#39;</span><span class="p">]</span></div>
 </div>
 
+
+
+<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_custom_amp</span><span class="p">(</span><span class="n">amp_type</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;amps&#39;</span><span class="p">,</span> <span class="s1">&#39;custom&#39;</span><span class="p">)):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    List custom amplifiers (in CSV format) available under ``directory``.</span>
+
+<span class="sd">    Note that this expects the amplifier response to be in a fixed format:</span>
+<span class="sd">    3 columns (frequency in Hz, S21 magnitude, S21 phase in radians)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">custom_amp_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="s1">&#39;*.csv&#39;</span><span class="p">))</span>
+    <span class="n">custom_amps</span> <span class="o">=</span> <span class="p">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">custom_amp_files</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">amp_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">custom_amps</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">amp_csv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">custom_amps</span><span class="p">[</span><span class="n">amp_type</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">amp_csv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Custom amplifier response does not have expected format (frequency in Hz, S21 mag, S21 phase in rad)&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">interp_amp</span><span class="p">(</span><span class="n">freqs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">amp_csv</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span> <span class="n">amp_csv</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># for some reason &#39;phase&#39; in response_functions is actually the magnitude-normalized complex response</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">interp_phase</span><span class="p">(</span><span class="n">freqs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">amp_csv</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span> <span class="n">amp_csv</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span> <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+
+    <span class="n">response_functions</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">gain</span> <span class="o">=</span> <span class="n">interp_amp</span><span class="p">,</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">interp_phase</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">response_functions</span>
 </pre></div>
 
            </div>
