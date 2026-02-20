@@ -268,7 +268,7 @@ def get_vector_potential(
 #         F_p[~mask] = 1.e-30 * fc / xntot
         F_p[~mask] = 0
 
-        vp[it] = np.trapz(-v * profile_ce_interp2 * F_p / R, z)
+        vp[it] = integrate.trapezoid(-v * profile_ce_interp2 * F_p / R, z)
 
     vp *= factor
 
@@ -920,7 +920,7 @@ class ARZ(object):
     #         F_p[~mask] = 1.e-30 * fc / xntot
             F_p[~mask] = 0
 
-            vp[it] = np.trapz(-v * profile_ce_interp2 * F_p / R, z)
+            vp[it] = integrate.trapezoid(-v * profile_ce_interp2 * F_p / R, z)
             if  0:
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(1, 1)
