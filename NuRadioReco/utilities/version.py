@@ -1,3 +1,6 @@
+import NuRadioMC
+import NuRadioReco
+
 from subprocess import Popen, PIPE
 import os
 import re
@@ -18,20 +21,21 @@ def get_git_commit_hash(path):
         return "none"
     return h
 
+path = os.path.dirname(NuRadioMC.__file__)
+NuRadioMC_hash = get_git_commit_hash(path)
+
 
 def get_NuRadioMC_commit_hash():
     """
     returns the hash of the current commit of the NuRadioMC git repository
     """
-    import NuRadioMC
-    path = os.path.dirname(NuRadioMC.__file__)
-    return get_git_commit_hash(path)
+    return NuRadioMC_hash
 
+path = os.path.dirname(NuRadioReco.__file__)
+NuRadioReco_hash = get_git_commit_hash(path)
 
 def get_NuRadioReco_commit_hash():
     """
     returns the hash of the current commit of the NuRadioReco git repository
     """
-    import NuRadioReco
-    path = os.path.dirname(NuRadioReco.__file__)
-    return get_git_commit_hash(path)
+    return NuRadioReco_hash

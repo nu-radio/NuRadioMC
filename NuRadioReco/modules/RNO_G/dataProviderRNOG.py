@@ -16,10 +16,10 @@ class dataProviderRNOG:
     It does so by running a set of "processing" modules on the data.
     This module is a wrapper around the following modules (in this order):
 
-    #. `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`
-    #. `NuRadioReco.modules.RNO_G.channelGlitchDetector`
-    #. `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
-    #. `NuRadioReco.modules.channelAddCableDelay`
+    - `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`
+    - `NuRadioReco.modules.RNO_G.channelGlitchDetector`
+    - `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
+    - `NuRadioReco.modules.channelAddCableDelay`
 
     The module reads RNO-G data, applies a glitch detection algorithm (does not remove/fix them!),
     fits block offsets (and removes them!) and subtracts cable delays. The voltage calibration is applied
@@ -63,12 +63,18 @@ class dataProviderRNOG:
         det: Detector
             Detector object.
         reader_kwargs: dict (default: {})
-            Keyword arguments passed to the reader module readRNOGDataMattak.
+            Keyword arguments passed to the reader module `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`.
         """
         self.files = files
         self.detector = det
 
-        self.reader.begin(self.files, **reader_kwargs)
+        apply_baseline_correction = reader_kwargs.pop('apply_baseline_correction', None)
+        if apply_baseline_correction is not None:
+            logger.warning(
+                "The 'apply_baseline_correction' argument is kwargs will be ignored. "
+                "Instead the 'channelBlockOffsetFitter' is used explicitly in the module sequence.")
+
+        self.reader.begin(self.files, apply_baseline_correction=None, **reader_kwargs)
 
         self.channelBlockOffsetFitter.begin()
         self.channelGlitchDetector.begin()
@@ -78,6 +84,7 @@ class dataProviderRNOG:
         """ Call the end method of the modules """
         self.reader.end()
         self.channelGlitchDetector.end()
+        self.channelBlockOffsetFitter.end()
 
     @register_run()
     def run(self):
@@ -95,8 +102,8 @@ class dataProviderRNOG:
             station = event.get_station()
             self.detector.update(station.get_station_time())
 
-            self.channelGlitchDetector.run(event, station, self.detector)
             self.channelBlockOffsetFitter.run(event, station, self.detector)
+            self.channelGlitchDetector.run(event, station, self.detector)
             self.channelCableDelayAdder.run(event, station, self.detector, mode='subtract')
 
             yield event

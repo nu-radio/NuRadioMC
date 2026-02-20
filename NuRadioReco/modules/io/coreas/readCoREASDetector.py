@@ -252,7 +252,9 @@ class readCoREASDetector:
             evt = NuRadioReco.framework.event.Event(self.__corsika_evt.get_run_number(), iCore)
             corsika_sim_stn = self.__corsika_evt.get_station(0).get_sim_station()
             sim_shower = copy.deepcopy(self.__corsika_evt.get_first_sim_shower())  # Don't modify the original shower
-            sim_shower.set_parameter(shp.core, core)
+            new_core = sim_shower.get_parameter(shp.core)
+            new_core[:len(core)] = core  # If no z coordinate is given, keep the original one
+            sim_shower.set_parameter(shp.core, new_core)
             evt.add_sim_shower(sim_shower)
 
             # Loop over all selected stations

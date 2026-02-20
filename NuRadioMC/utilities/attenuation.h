@@ -47,7 +47,7 @@ const double GL3_slopes[] = {-551.69278079, -605.79514512, -636.15213299, -658.8
             -220.59107451, -229.45116954, -264.87154965, -263.31928349, -253.21821248, -253.00343357, -247.49976462,
             -230.42122847, -229.49473522, -225.24223427, -224.0148991, -220.46867297, -210.47233955, -203.57927655,
             -204.35214706, -201.44543131};
-    const double GL3_offsets[] = {793.70849244, 873.80992952, 917.83533672, 950.53274812, 976.15604571, 996.31540503,
+const double GL3_offsets[] = {793.70849244, 873.80992952, 917.83533672, 950.53274812, 976.15604571, 996.31540503,
             1012.10517972, 1024.47229945, 1034.3222566, 1042.00246523, 1048.06896605, 1053.11360075, 1057.14937049,
             1046.57512787, 1040.01098726, 1012.45039039, 1210.9578711, 1211.42014122, 961.67605517, 1103.54244724,
             1136.99133782, 1176.04094644, 1161.45073353, 1049.57448515, 1011.39082653, 1029.08797302, 1071.08817469,
@@ -92,39 +92,33 @@ const double GL3_slopes[] = {-551.69278079, -605.79514512, -636.15213299, -658.8
             321.74856769, 320.71125213,  315.0484816, 303.65293855, 295.46765261, 295.06757621, 289.04276895};
 
 double fit_GL1(double z, double frequency){
-	// Model for Greenland. Taken from DOI: https://doi.org/10.3189/2015JoG15J057
-	// Returns the attenuation length at 75 MHz as a function of depth
-	double fit_values[] = {1.16052586e+03, 6.87257150e-02, -9.82378264e-05,
-									-3.50628312e-07, -2.21040482e-10, -3.63912864e-14};
+    // Model for Greenland. Taken from DOI: https://doi.org/10.3189/2015JoG15J057
+    // Returns the attenuation length at 75 MHz as a function of depth
+    double fit_values[] = {1.16052586e+03, 6.87257150e-02, -9.82378264e-05,
+        -3.50628312e-07, -2.21040482e-10, -3.63912864e-14};
 
-	double att_length = 0;
-	for (int power = 0; power < 6; power++){
-		att_length += fit_values[power] * pow(z, power);
-	}
+    double att_length = 0;
+    for (int power = 0; power < 6; power++) {
+        att_length += fit_values[power] * pow(z, power);
+    }
 
-	double att_length_f = att_length - 0.55*utl::m * (frequency/utl::MHz - 75);
-
-	const double min_length = 1 * utl::m;
-	if ( att_length_f < min_length ){ att_length_f = min_length; }
-
-	return att_length_f;
+    return att_length - 0.55*utl::m * (frequency/utl::MHz - 75);
 }
 
 double fit_GL2(double z, double frequency){
     // Model from the 2021 measurements taken at Summit Station, Greenland: https://arxiv.org/abs/2201.07846
-    const double fit_values_GL2[] = {1.20547286e+00, 1.58815679e-05, -2.58901767e-07, -5.16435542e-10, -2.89124473e-13, -4.58987344e-17};
+    const double fit_values_GL2[] = {
+        1.20547286e+00, 1.58815679e-05, -2.58901767e-07, -5.16435542e-10, -2.89124473e-13, -4.58987344e-17};
+
     const double freq_slope = -0.54 * utl::m / utl::MHz;
     const double freq_inter = 852.0 * utl::m;
     double bulk_att_length_f = freq_inter + freq_slope * frequency;
     double att_length_f_GL2 = 0;
     for (int power = 0; power < 6; power++){
-		att_length_f_GL2 += bulk_att_length_f * fit_values_GL2[power] * pow(z, power);
-	}
-	const double min_length = 1 * utl::m;
-	if ( att_length_f_GL2 < min_length ){ att_length_f_GL2 = min_length; }
+        att_length_f_GL2 += bulk_att_length_f * fit_values_GL2[power] * pow(z, power);
+    }
 
-	return att_length_f_GL2;
-
+    return att_length_f_GL2;
 }
 
 double fit_GL3(double z, double frequency){
@@ -135,74 +129,79 @@ double fit_GL3(double z, double frequency){
         return GL3_slopes[299] * frequency + GL3_offsets[299];
     }
     if (i_row < 0) {
-    i_row = 0;
+        i_row = 0;
     }
 
     double slope_diff = GL3_slopes[i_row + 1] - GL3_slopes[i_row];
     double slope_interpolation = GL3_slopes[i_row] + slope_diff * (-z - i_row * z_step - z_start) / z_step;
     double offset_diff = GL3_offsets[i_row + 1] - GL3_offsets[i_row];
     double offset_interpolation = GL3_offsets[i_row] + offset_diff * (-z - i_row * z_step - z_start) / z_step;
+    // Restrict frequency to prevent negative attenuation lengths
+    // return min(frequency, 0.6) * slope_interpolation + offset_interpolation;
     return frequency * slope_interpolation + offset_interpolation;
-
-
-
 }
 
 double get_temperature(double z){
-	//return temperature as a function of depth
-	// from https://icecube.wisc.edu/~araproject/radio/#icetemperature
-	double z2 = abs(z/utl::m);
-	return 1.83415e-09*z2*z2*z2 + (-1.59061e-08*z2*z2) + 0.00267687*z2 + (-51.0696 );
+    //return temperature as a function of depth
+    // from https://icecube.wisc.edu/~araproject/radio/#icetemperature
+    double z2 = abs(z/utl::m);
+    return 1.83415e-09*z2*z2*z2 + (-1.59061e-08*z2*z2) + 0.00267687*z2 + (-51.0696 );
 }
 
 double get_attenuation_length(double z, double frequency, int model){
-	if (z>0) {
-		double inf = 1e130;
-		return inf;
-	}
-	if(model == 1) {
-		double t = get_temperature(z);
-		double f0 = 0.0001;
-		double f2 = 3.16;
-		double w0 = log(f0);
-		double w1 = 0.0;
-		double w2 = log(f2);
-		double w = log(frequency / utl::GHz);
-		double b0 = -6.74890 + t * (0.026709 - t * 0.000884);
-		double b1 = -6.22121 - t * (0.070927 + t * 0.001773);
-		double b2 = -4.09468 - t * (0.002213 + t * 0.000332);
-		double a, bb;
-		if(frequency<1. * utl::GHz){
-			a = (b1 * w0 - b0 * w1) / (w0 - w1);
-			bb = (b1 - b0) / (w1 - w0);
-		} else{
-			a = (b2 * w1 - b1 * w2) / (w1 - w2);
-			bb = (b2 - b1) / (w2 - w1);
-		}
-		return 1./exp(a +bb*w);
-	} else if (model == 2) {
+    const double min_length = 1 * utl::m;
+    double attenuation_length = min_length;
 
-		return fit_GL1(z, frequency);
+    if (z > 0) {
+        attenuation_length = 1e130;
+    }
 
-	} else if (model == 3) {
-		double R = 0.82;
-		double d_ice = 576 * utl::m;
-		double att_length = 460 * utl::m - 180 * utl::m /utl::GHz * frequency;
-		att_length *= 1./(1 + att_length / (2 * d_ice) * log(R));  // additional correction for reflection coefficient being less than 1.
+    if(model == 1) {
+        double t = get_temperature(z);
+        double f0 = 0.0001;
+        double f2 = 3.16;
+        double w0 = log(f0);
+        double w1 = 0.0;
+        double w2 = log(f2);
+        double w = log(frequency / utl::GHz);
+        double b0 = -6.74890 + t * (0.026709 - t * 0.000884);
+        double b1 = -6.22121 - t * (0.070927 + t * 0.001773);
+        double b2 = -4.09468 - t * (0.002213 + t * 0.000332);
+        double a, bb;
+        if(frequency<1. * utl::GHz){
+            a = (b1 * w0 - b0 * w1) / (w0 - w1);
+            bb = (b1 - b0) / (w1 - w0);
+        } else{
+            a = (b2 * w1 - b1 * w2) / (w1 - w2);
+            bb = (b2 - b1) / (w2 - w1);
+        }
+        attenuation_length = 1./exp(a + bb * w);
+    } else if (model == 2) {
+        attenuation_length = fit_GL1(z, frequency);
+    } else if (model == 3) {
+        double R = 0.82;
+        double d_ice = 576 * utl::m;
+        double att_length = 460 * utl::m - 180 * utl::m /utl::GHz * frequency;
+        att_length *= 1./(1 + att_length / (2 * d_ice) * log(R));  // additional correction for reflection coefficient being less than 1.
 
-		double d = -z * 420. * utl::m / d_ice;
+        double d = -z * 420. * utl::m / d_ice;
         double L = (1250.*0.08886 * exp(-0.048827 * (225.6746 - 86.517596 * log10(848.870 - (d)))));
         // this differs from the equation published in F. Wu PhD thesis UCI.
         // 262m is supposed to be the depth averaged attenuation length but the
         // integral (int(1/L, 420, 0)/420) ^ -1 = 231.21m and NOT 262m.
         att_length *= L / (231.21 * utl::m);
-		return att_length;
-	} else if (model == 4) {
-	    return fit_GL2(z, frequency);
-	} else if (model == 5) {
-	    return fit_GL3(z, frequency);
-	} else {
-		std::cout << "attenuation length model " << model << " unknown. Maybe you need to recompile the C++ ray tracer." << std::endl;
-		throw 0;
-	}
+        attenuation_length = att_length;
+    } else if (model == 4) {
+        attenuation_length = fit_GL2(z, frequency);
+    } else if (model == 5) {
+        attenuation_length = fit_GL3(z, frequency);
+    } else {
+        std::cout << "attenuation length model " << model << " unknown. Maybe you need to recompile the C++ ray tracer." << std::endl;
+        throw 0;
+    }
+
+    if (attenuation_length < min_length) {
+        attenuation_length = min_length;
+    }
+    return attenuation_length;
 }

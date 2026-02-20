@@ -298,7 +298,7 @@ class coreasInterpolator:
             "ignore_cutoff_freq_in_timing" : False,
             "verbose" : False
         }
-        interp_options = {**kwargs, **interp_options_default}  # merge the dicts, making sure kwargs overwrite defaults
+        interp_options = {**interp_options_default, **kwargs}  # merge the dicts, making sure kwargs overwrite defaults
 
         geomagnetic_angle = coreas.get_geomagnetic_angle(self.zenith, self.azimuth, self.magnetic_field_vector)
 
@@ -372,7 +372,7 @@ class coreasInterpolator:
             "fill_value" : None,
             "recover_concentric_rings" : False,
         }
-        interp_options = {**kwargs, **interp_options_default}
+        interp_options = {**interp_options_default, **kwargs}  # merge the dicts, making sure kwargs overwrite defaults
 
         fluence_per_position = [
             np.sum(efield[quantity]) for efield in self.sim_station.get_electric_fields()

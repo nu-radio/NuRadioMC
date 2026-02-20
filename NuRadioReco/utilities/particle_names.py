@@ -43,7 +43,7 @@ particle_names = \
 particle_ids = {}
 for key, value in particle_names.items():
     particle_ids[value] = key
-    
+
 em_primary_names = ['Gamma (photon)', 'Electron', 'Positron', 'Bremsstrahlung photon',
                     'Ionised electron', 'Electron-positron pair', 'Weak interaction', 'Compton']
 
@@ -57,11 +57,11 @@ def particle_name(id):
     if not isinstance(id, (int, np.int_)):
         logger.error("This function only takes integers.")
         raise TypeError("This function only takes integers.")
-    
-    if not id in particle_names.keys():
+
+    if id not in particle_names.keys():
         logger.error("Particle id: {:d} unknown".format(id))
         raise ValueError("Particle id: {:d} unknown".format(id))
-            
+
     return particle_names[id]
 
 
@@ -70,7 +70,7 @@ def particle_id(name):
         logger.error("This function only takes strings.")
         raise TypeError("This function only takes strings.")
 
-    if not name in particle_ids.keys():
+    if name not in particle_ids.keys():
         logger.error("Particle name: {} unknown".format(name))
         print("The following names are implemented: ",
               ", ".join(particle_ids.keys()))

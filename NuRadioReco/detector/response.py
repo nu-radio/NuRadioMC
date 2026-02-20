@@ -35,19 +35,24 @@ class Response:
             self, frequency, y, y_unit, time_delay=0, weight=1,
             name="default", station_id=None, channel_id=None,
             remove_time_delay=True, debug_plot=False,
-            log_level=logging.NOTSET, attenuator_in_dB=0):
+            log_level=logging.NOTSET, attenuator_in_dB=None):
         """
+        Specify the response of a component by either providing a frequency vector, absolute gain and phase vector
+        as well as corresponding units (`y` and `y_unit` are a list of two entried for gain (0) and phase (1)), or
+        by providing a single value for the gain (`y` is a float and `y_unit` is a string).
+
         Parameters
         ----------
 
-        frequency : list(float)
-            The frequency vector at which the response is measured. Unit has to be GHz.
+        frequency : list(float) or None
+            The frequency vector at which the response is measured. Unit has to be GHz. If `None`,
+            the response is assumed to be constant (`y` is interpreted as a scalar for the gain).
 
-        y : [list(float), list(float)]
+        y : [list(float), list(float)] or float
             The measured response. First entry is the vector of the measured amplitude, the second entry is the measured phase.
             The unit of both entries is specified with the next argument.
 
-        y_unit : [str, str]
+        y_unit : [str, str] or str
             The first entry specifies the unit of the measured amplitude. Options are "dB", "MAG" and "mag".
             The second entry specifies the unit of the measured phase. Options are "rad" and "deg".
 
@@ -74,10 +79,11 @@ class Response:
         debug_plot : bool (Default: False)
             If True, produce a debug plot
 
-        attenuator_in_dB : float (Default: 0)
-            Allows to add an additional attenuation/gain to the response. This is useful to simulate or correct of the
-            the effect of an attenuator. The value is in dB. A value of 10dB will increase the response by 10 dB.
-            (Default: 0 -> no attenuation)
+        attenuator_in_dB : float (Default: None)
+            DEPRECATED: Define a new response object with a single valued gain instead.
+            Old description: Allows to add an additional attenuation/gain to the response.
+            This is useful to simulate or correct of the the effect of an attenuator. The value is in dB.
+            A value of 10dB will increase the response by 10 dB. (Default: 0 -> no attenuation)
 
         log_level : `logging.LOG_LEVEL` (Default: logging.NOTSET)
             Overrides verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...
@@ -94,62 +100,88 @@ class Response:
         if self._station_id is None or self._channel_id is None and self._station_id != -1:
             self.logger.error(f"Station and channel id were not defined for response {name}. Please do that.")
 
-        self.__frequency = np.array(frequency) * units.GHz
+        if frequency is not None:
+            self.__frequency = np.asarray(frequency) * units.GHz
 
-        if y[0] is None or y[1] is None:
-            raise ValueError("Data for response incomplete, detected \"None\"")
+            if y[0] is None or y[1] is None:
+                raise ValueError("Data for response incomplete, detected \"None\"")
 
-        y_ampl, y_phase = np.array(y)
-        if y_unit[0] == "dB":
+            y_ampl, y_phase = np.array(y)
+            y_ampl_unit = y_unit[0]
+        else:
+            self.__frequency = None
+            y_ampl = y
+            y_phase = None
+            y_ampl_unit = y_unit
+
+        if y_ampl_unit == "dB":
             gain = 10 ** (y_ampl / 20)
-        elif y_unit[0].lower() == "mag":
+        elif y_ampl_unit.lower() == "mag":
             gain = y_ampl
         else:
             raise KeyError
 
-        if y_unit[1].lower() == "deg":
-            if np.max(np.abs(y_phase)) < 2 * np.pi:
-                self.logger.warning("Is the phase really in deg? Does not look like it... "
-                                    f"Do not convert {name} to rad: {y_phase}")
+        if attenuator_in_dB is not None:
+            self.logger.error("The `attenuator_in_dB` argument is deprecated. "
+                                "Please define a new response object with a single valued gain instead.")
+            raise NotImplementedError("The `attenuator_in_dB` argument is deprecated. "
+                                "Please define a new response object with a single valued gain instead.")
+
+        if y_phase is not None:
+            # if a full complex response is given
+
+            if y_unit[1].lower() == "deg":
+                if np.max(np.abs(y_phase)) < 2 * np.pi:
+                    self.logger.warning("Is the phase really in deg? Does not look like it... "
+                                        f"Do not convert {name} to rad: {y_phase}")
+                else:
+                    y_phase = np.deg2rad(y_phase)
+
+            elif y_unit[1].lower() == "rad":
+                # We can not make this test because the phase might be already unwrapped
+                # if np.amax(y_phase) - np.amin(y_phase) > 2 * np.pi:
+                #     self.logger.warning("Is the phase really in rad? Does not look like it... "
+                #                         f"Do convert {name} to rad: {y_phase}")
+                y_phase = y_phase
             else:
-                y_phase = np.deg2rad(y_phase)
-        elif y_unit[1].lower() == "rad":
-            # We can not make this test because the phase might be already unwrapped
-            # if np.amax(y_phase) - np.amin(y_phase) > 2 * np.pi:
-            #     self.logger.warning("Is the phase really in rad? Does not look like it... "
-            #                         f"Do convert {name} to rad: {y_phase}")
-            y_phase = y_phase
+                raise KeyError
+
+            if time_delay:
+                if abs(2 * time_delay) > 1 / np.diff(self.__frequency)[0]:
+                    self.logger.error(
+                        f"The frequency binning (resolution) of {np.diff(self.__frequency)[0] * 1e3:.2f} MHz "
+                        f"of the response function is too large/coarse to correctly remove the time delay of {time_delay} ns. "
+                        f"This is a sign of potential aliasing. You need to upsample the response function "
+                        "(zero padding in the time domain).")
+                    raise ValueError("Time delay too large for frequency resolution. Upsample the response function.")
+
+            # Remove the average group delay from response
+            if remove_time_delay and time_delay:
+                self.logger.debug(f"Remove a time delay of {time_delay:.2f} ns from {name}")
+                y_phase_orig = np.copy(np.unwrap(y_phase))
+                _response = subtract_time_delay_from_response(self.__frequency, gain, y_phase, time_delay)
+                y_phase = np.angle(_response)
+            else:
+                time_delay = 0  # set time_delay to 0 if group delay is not removed
+
+            y_phase = np.unwrap(y_phase)
+
+            self.__gains = [interpolate.interp1d(
+                self.__frequency, gain, kind="linear", bounds_error=False, fill_value=0)]
+
+            self.__phases = [interpolate.interp1d(
+                self.__frequency, y_phase, kind="linear", bounds_error=False, fill_value=0)]
         else:
-            raise KeyError
+            # if only a gain or time delay is given
+            self.__gains = [gain]
+            self.__phases = [y_phase]  # == [None]
 
-        if time_delay:
-            if abs(2 * time_delay) > 1 / np.diff(self.__frequency)[0]:
-                self.logger.error(
-                    f"The frequency binning (resolution) of {np.diff(self.__frequency)[0] * 1e3:.2f} MHz "
-                    f"of the response function is too large/coarse to correctly remove the time delay of {time_delay} ns. "
-                    f"This is a sign of potential aliasing. You need to upsample the response function "
-                    "(zero padding in the time domain).")
-                raise ValueError("Time delay too large for frequency resolution. Upsample the response function.")
-
-        # Remove the average group delay from response
-        if remove_time_delay and time_delay:
-            self.logger.debug(f"Remove a time delay of {time_delay:.2f} ns from {name}")
-            y_phase_orig = np.copy(np.unwrap(y_phase))
-            _response = subtract_time_delay_from_response(self.__frequency, gain, y_phase, time_delay)
-            y_phase = np.angle(_response)
-        else:
-            time_delay = 0  # set time_delay to 0 if group delay is not removed
-
-        y_phase = np.unwrap(y_phase)
-
-        if attenuator_in_dB:
-            gain = gain * 10 ** (attenuator_in_dB / 20)
-
-        self.__gains = [interpolate.interp1d(
-            self.__frequency, gain, kind="linear", bounds_error=False, fill_value=0)]
-
-        self.__phases = [interpolate.interp1d(
-            self.__frequency, y_phase, kind="linear", bounds_error=False, fill_value=0)]
+            # sanity check
+            if gain != 1 and time_delay != 0:
+                self.logger.error(f"Single value response {name} has a gain of {gain:.2f} and a time delay of {time_delay:.2f} ns. "
+                                    "This is not a valid response. Please check your input.")
+                raise ValueError(f"Single value response {name} has a gain of {gain:.2f} and a time delay of {time_delay:.2f} ns. "
+                                    "This is not a valid response. Please check your input.")
 
         if weight not in [-1, 1]:
             err = f"Only a response weight of [-1, 1] is allowed (value is {weight})."
@@ -239,16 +271,19 @@ class Response:
                     if name not in component_names:  # if name *not* in whitelist skip
                         continue
 
-            _gain = gain(freq / units.GHz)
+            if isinstance(gain, interpolate.interp1d):
+                _gain = gain(freq / units.GHz)
 
-            # to avoid RunTime warning and NANs in total reponse
-            if weight == -1:
-                mask = _gain > 0
-                tmp_response = np.zeros_like(freq, dtype=np.complex128)
-                tmp_response[mask] = (_gain[mask] * np.exp(1j * phase(freq[mask] / units.GHz))) ** weight
-                response *= tmp_response
+                # to avoid RunTime warning and NANs in total reponse
+                if weight == -1:
+                    mask = _gain > 0
+                    tmp_response = np.zeros_like(freq, dtype=np.complex128)
+                    tmp_response[mask] = (_gain[mask] * np.exp(1j * phase(freq[mask] / units.GHz))) ** weight
+                    response *= tmp_response
+                else:
+                    response *= (_gain * np.exp(1j * phase(freq / units.GHz))) ** weight
             else:
-                response *= (_gain * np.exp(1j * phase(freq / units.GHz))) ** weight
+                response *= gain**weight  # gain is a constant, so we can just multiply
 
         if np.allclose(response, np.ones_like(freq, dtype=np.complex128)):
             if component_names is not None:
@@ -299,8 +334,8 @@ class Response:
 
         idx = self.__names.index(name)
         single_response = copy.deepcopy(self)
-        single_response.__gains = [self.__names[idx]]
-        single_response.__names = [self.__gains[idx]]
+        single_response.__gains = [self.__gains[idx]]
+        single_response.__names = [self.__names[idx]]
         single_response.__phases = [self.__phases[idx]]
         single_response.__weights = [self.__weights[idx]]
         single_response.__time_delays = [self.__time_delays[idx]]
@@ -336,7 +371,7 @@ class Response:
             other = copy.copy(other)
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
-                time_delay = self._calculate_time_delay()
+                time_delay = self.calculate_time_delay()
                 if time_delay > trace_length / 2:
                     self.logger.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
                                         f"{time_delay:.2f} vs {trace_length:.2f}")
@@ -392,7 +427,7 @@ class Response:
             other = copy.copy(other)
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
-                time_delay = self._calculate_time_delay()
+                time_delay = self.calculate_time_delay()
                 if time_delay > trace_length / 2:
                     self.logger.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
                                         f"{time_delay:.2f} vs {trace_length:.2f}")
@@ -418,7 +453,7 @@ class Response:
         return "Response of " + ", ".join([f"{name} ({weight})" for name, weight in zip(self.get_names(), self.__weights)]) \
             + f": |R([0.15, 0.5] GHz)| = [{ampl[0]:.2f}, {ampl[1]:.2f}] dB (amplitude) ({np.sum(self.__time_delays):.2f} ns)"
 
-    def plot(self, ax1=None, show=False, in_dB=True, plt_kwargs={}):
+    def plot(self, ax1=None, show=False, in_dB=True, total_only=False, plt_kwargs={}):
         import matplotlib.pyplot as plt
 
         freqs = np.linspace(0, 1.4) * units.GHz
@@ -428,27 +463,34 @@ class Response:
         else:
             ax = ax1
 
-        for gain, weight, name, td in zip(self.__gains, self.__weights, self.__names, self.__time_delays):
-            _gain = gain(freqs)
+        if not total_only:
+            for gain, weight, name, td in zip(self.__gains, self.__weights, self.__names, self.__time_delays):
+                if isinstance(gain, interpolate.interp1d):
+                    _gain = gain(freqs)
+                else:
+                    _gain = gain * np.ones_like(freqs)
 
-            name = name.replace("_", " ")
-            ls = "-" if weight == 1 else "--"
+                name = name.replace("_", " ")
+                ls = "-" if weight == 1 else "--"
 
-            if name.startswith("golden"):
-                name = name.replace("golden downhole components", "ref. comp.")
+                if name.startswith("golden"):
+                    name = name.replace("golden downhole components", "ref. comp.")
 
-            if name.endswith(" "):
-                name = name[:-1]
+                if name.endswith(" "):
+                    name = name[:-1]
 
-            label = f"{name:<25} : {weight:<3} | {td:.1f}ns"
-            if in_dB:
-                mask = _gain > 0  # to avoid RunTime warning
-                ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), lw=1, ls=ls, label=label, **plt_kwargs)
-            else:
-                ax.plot(freqs / units.MHz, _gain, label=label, lw=1, ls=ls, **plt_kwargs)
+                label = f"{name:<25} : {weight:<3} | {td:.1f}ns"
+                if in_dB:
+                    mask = _gain > 0  # to avoid RunTime warning
+                    ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), lw=1, ls=ls, label=label, **plt_kwargs)
+                else:
+                    ax.plot(freqs / units.MHz, _gain, label=label, lw=1, ls=ls, **plt_kwargs)
 
         _gain = np.abs(self(freqs))
-        label = f"total: {np.sum(self.__time_delays):.1f}ns"
+        if "label" in plt_kwargs:
+            label = plt_kwargs.pop("label")
+        else:
+            label = f"total: {np.sum(self.__time_delays):.1f}ns"
         if in_dB:
             mask = _gain > 0  # to avoid RunTime warning
             ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), color="k", label=label, **plt_kwargs)
@@ -480,42 +522,57 @@ class Response:
         """ Get time delay from DB """
         return self.__time_delays
 
-    def _calculate_time_delay(self):
+    def calculate_time_delay(self, fmin=150*units.MHz, fmax=200*units.MHz, method="mean"):
         """
         Calculate time delay from phase of the stored complex response function.
         This is not the time delay which is stored in the DB and which is used in
         the `__init__()` to normalize the response function. Rather, its the remaining
         group delay.
 
-        The time delay is calculated as the mean between 195 and 205 MHz.
+        The time delay is calculated as the mean between fmin to fmax.
+
+        Parameters
+        ----------
+        fmin: float
+            lower frequency limit to use in the averaging of the group delay
+        fmax: float
+            upper frequency limit to use in the averaging of the group delay
+        method: str
+            Method to calculate the time delay. Options are:
+
+            - 'mean': Calculate the mean group delay over the band fmin to fmax.
+            - 'fit': Fit a linear function to the unwrapped phase and calculate the time delay
+                     from the slope of the fit. This is only meaningful if the group delay is
+                     approximately constant over the whole frequency range (which is the case for most cables).
 
         Returns
         -------
-
-        time_delay1 : float
-            The time delay at ~ 200 MHz
+        delay : float
+            The group delay over the band fmin to fmax
         """
 
-        freqs = np.arange(50, 1200, 0.5) * units.MHz
-
+        freqs = np.linspace(fmin, fmax, 1000)
         response = self(freqs)
-        delta_freq = np.diff(freqs)
-        phase = np.angle(response)
+        unwrapped_phase = np.unwrap(np.angle(response))
 
-        time_delay = -np.diff(np.unwrap(phase)) / delta_freq / 2 / np.pi
-        mask = np.all([195 * units.MHz < freqs, freqs < 250 * units.MHz], axis=0)[:-1]
-        time_delay1 = np.mean(time_delay[mask])
+        if method == "mean":
+            group_delays = -np.gradient(unwrapped_phase) / (2 * np.pi * np.gradient(freqs))
+            return np.mean(group_delays)
 
-        # This alternative calculation is only meaningful if group delay is ~ constant over the whole frequency range (which is the case for most cables)
-        # # fit the unwrapped phase with a linear function
-        # popt = np.polyfit(freqs, np.unwrap(phase), 1)
-        # time_delay2 = -popt[0] / (2 * np.pi)
+        elif method == "fit":
+            # This alternative calculation is only meaningful if group delay
+            # is ~ constant over the whole frequency range
+            # (which is the case for most cables)
 
-        # if np.abs(time_delay1 - time_delay2) > 0.1 * units.ns:
-        #     self.logger.warning("Calculation of time delay. The two methods yield different results: "
-        #                         f"{time_delay1:.1f} ns / {time_delay2:.1f} ns for {self.get_names()}. Return the former...")
+            # # fit the unwrapped phase with a linear function
+            popt = np.polyfit(freqs, unwrapped_phase, 1)
+            time_delay = -popt[0] / (2 * np.pi)
 
-        return time_delay1
+            return time_delay
+
+        else:
+            raise ValueError(f"Unknown method {method} to calculate time delay. "
+                             "Options are: 'mean', 'fit'.")
 
 
 def subtract_time_delay_from_response(frequencies, resp, phase=None, time_delay=None):

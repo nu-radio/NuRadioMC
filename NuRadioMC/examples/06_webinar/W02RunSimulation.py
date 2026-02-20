@@ -41,7 +41,7 @@ if __name__ == "__main__":
     """
 
     parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
-    parser.add_argument('--inputfilename', type=str, default='input_3.2e+19_1.0e+20.hdf5',
+    parser.add_argument('--inputfilename', type=str, default='input_3.2e+17_1.0e+19.hdf5',
                         help='path to NuRadioMC input event list')
     parser.add_argument('--detectordescription', type=str, default='detector.json',
                         help='path to file containing the detector description')

@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units, ice, geometryUtilities, trace_utilities
+from NuRadioReco.utilities import units, ice, geometryUtilities, signal_processing
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.channelGalacticNoiseAdder import channelGalacticNoiseAdder, get_local_coordinates
 import numpy as np
@@ -28,7 +28,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
     --------
     NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder
         Similar class that directly adds the noise to ``Channel`` (voltage trace) objects
-        instead of ``ElectricField``s.
+        instead of ``ElectricField``\s.
     """
 
     def __init__(self):
@@ -66,15 +66,13 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
         # check that if all channels field.get_frequencies() are identical
         last_freqs = None
         for field in station.get_electric_fields():
-            if (not last_freqs is None) and (
+            if (last_freqs is not None) and (
                     not np.allclose(last_freqs, field.get_frequencies(), rtol=0, atol=0.1 * units.MHz)):
                 logger.error("The frequencies of each field must be the same, but they are not!")
                 return
             last_freqs = field.get_frequencies()
 
         freqs = last_freqs
-        d_f = freqs[2] - freqs[1]
-
         if passband is None:
             passband = [10 * units.MHz, 1000 * units.MHz]
 
@@ -115,8 +113,8 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
                 self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
             noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
 
-            efield_amplitude = trace_utilities.get_electric_field_from_temperature(freqs[passband_filter],
-                                                                                   noise_temperature, self.solid_angle)
+            efield_amplitude = signal_processing.get_electric_field_from_temperature(
+                freqs[passband_filter], noise_temperature, self.solid_angle)
 
             # assign random phases to electric field
             noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)

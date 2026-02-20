@@ -1,13 +1,14 @@
-import numpy as np
 from NuRadioReco.utilities import units
+
+import scipy.interpolate
+import functools
+import numpy as np
+import os
+import re
 
 import logging
 logger = logging.getLogger("NuRadioMC.attenuation")
 
-import functools
-import scipy.interpolate
-import os
-import re
 
 
 model_to_int = {"SP1": 1, "GL1": 2, "MB1": 3, "GL2": 4, "GL3": 5}
@@ -16,13 +17,15 @@ gl3_parameters = np.genfromtxt(
     os.path.join(os.path.dirname(__file__), 'data/GL3_params.csv'),
     delimiter=','
 )
-gl3_slope_interpolation = scipy.interpolate.interp1d(
+
+_gl3_slope_interpolation = scipy.interpolate.interp1d(
     gl3_parameters[:, 0],
     gl3_parameters[:, 1],
     bounds_error=False,
     fill_value=(gl3_parameters[0, 1], gl3_parameters[-1, 1])
 )
-gl3_offset_interpolation = scipy.interpolate.interp1d(
+
+_gl3_offset_interpolation = scipy.interpolate.interp1d(
     gl3_parameters[:, 0],
     gl3_parameters[:, 2],
     bounds_error=False,
@@ -124,7 +127,6 @@ def fit_GL1(z):
 
     return att_length
 
-
 def get_temperature(z):
     """
     Returns the temperature in Celsius as a function of depth for South Pole
@@ -136,7 +138,7 @@ def get_temperature(z):
     """
     # from https://icecube.wisc.edu/~araproject/radio/#icetabsorption
 
-    z2 = np.abs(z / units.m)
+    z2 = np.abs(z) / units.m
     return 1.83415e-09 * z2 ** 3 + (-1.59061e-08 * z2 ** 2) + 0.00267687 * z2 + (-51.0696)
 
 
@@ -193,13 +195,6 @@ def get_attenuation_length(z, frequency, model):
         att_length_75 = fit_GL1(z / units.m)
         att_length_f = att_length_75 - 0.55 * units.m * (frequency / units.MHz - 75)
 
-        min_length = 1 * units.m
-        if not hasattr(frequency, '__len__') and not hasattr(z, '__len__'):
-            if att_length_f < min_length:
-                att_length_f = min_length
-        else:
-            att_length_f[att_length_f < min_length] = min_length
-
     elif model == 'GL2':
         fit_values_GL2 = [1.20547286e+00, 1.58815679e-05, -2.58901767e-07, -5.16435542e-10, -2.89124473e-13, -4.58987344e-17]
         freq_slope = -0.54 * units.m / units.MHz
@@ -208,16 +203,22 @@ def get_attenuation_length(z, frequency, model):
         bulk_att_length_f = freq_inter + freq_slope * frequency
         att_length_f = bulk_att_length_f * np.poly1d(np.flip(fit_values_GL2))(z)
 
-        min_length = 1 * units.m
-        if not hasattr(frequency, '__len__') and not hasattr(z, '__len__'):
-            if att_length_f < min_length:
-                att_length_f = min_length
-        else:
-            att_length_f[att_length_f < min_length] = min_length
-
     elif model == 'GL3':
-        slopes = gl3_slope_interpolation(-z)
-        offsets = gl3_offset_interpolation(-z)
+        if hasattr(z, '__len__'):
+            # If z is an array, make sure not not use the numba-compiled functions
+            slopes = _gl3_slope_interpolation(-z)
+            offsets = _gl3_offset_interpolation(-z)
+        else:
+            slopes = gl3_slope_interpolation(-z)
+            offsets = gl3_offset_interpolation(-z)
+
+        # # restric frequency to prevent negative attenuation lengths
+        # if hasattr(frequency, '__len__'):
+        #     frequency[frequency > 0.6 * units.GHz] = 0.6 * units.GHz
+        # else:
+        #     if frequency > 0.6 * units.GHz:
+        #         frequency = 0.6 * units.GHz
+
         att_length_f = slopes * frequency + offsets
 
     elif model == "MB1":
@@ -245,10 +246,8 @@ def get_attenuation_length(z, frequency, model):
     else:
         raise NotImplementedError("attenuation model {} is not implemented.".format(model))
 
-    # mask for positive z and mask for <~0 attenuation length
-    if np.any(z > 0):
-        logger.warning("Attenuation length is set to inf for positive z (above ice surface)")
-
+    if hasattr(z, '__len__') and not np.any(z <= 0):
+        logger.warning("You requested the attenuation length for exlusively positive depths, i.e., for air. Return inf for all frequencies.")
 
     min_length = 1 * units.m
     if not hasattr(frequency, '__len__') and not hasattr(z, '__len__'):
@@ -259,20 +258,87 @@ def get_attenuation_length(z, frequency, model):
     else:
         att_length_f[att_length_f < min_length] = min_length
         att_length_f[z > 0] = np.inf
+
     return att_length_f
+
+
+try:
+    from numba import jit
+
+    def gl3_slope_interpolation_f(x):
+        """
+        Interpolation function for the slope of the GL3 model.
+
+        Parameters
+        ----------
+        x : array-like
+            Depth in meters. Positive values are below the surface.
+
+        Returns
+        -------
+        array-like
+            Slope of the attenuation length as a function of depth.
+        """
+        if x < gl3_parameters[0, 0]:
+            return np.ones_like(x) * gl3_parameters[0, 1]
+        if x > gl3_parameters[-1, 0]:
+            return np.ones_like(x) * gl3_parameters[-1, 1]
+
+        return np.interp(x, gl3_parameters[:, 0], gl3_parameters[:, 1])
+
+
+    def gl3_offset_interpolation_f(x):
+        """
+        Interpolation function for the offset of the GL3 model.
+
+        Parameters
+        ----------
+        x : array-like
+            Depth in meters. Positive values are below the surface.
+
+        Returns
+        -------
+        array-like
+            Offset of the attenuation length as a function of depth.
+        """
+        if x < gl3_parameters[0, 0]:
+            return np.ones_like(x) * gl3_parameters[0, 2]
+
+        if x > gl3_parameters[-1, 0]:
+            return np.ones_like(x) * gl3_parameters[-1, 2]
+
+        return np.interp(x, gl3_parameters[:, 0], gl3_parameters[:, 2])
+
+    gl3_slope_interpolation = jit(gl3_slope_interpolation_f, nopython=True, cache=True)
+    gl3_offset_interpolation = jit(gl3_offset_interpolation_f, nopython=True, cache=True)
+    get_temperature = jit(get_temperature, nopython=True, cache=True)
+
+except ImportError:
+    gl3_slope_interpolation = _gl3_slope_interpolation
+    gl3_offset_interpolation = _gl3_offset_interpolation
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
 
-    z = np.linspace(1*units.km,-3*units.km,1000)
-    frequencies = [0.5*units.GHz] #np.linspace(0,1*units.GHz,10)
-    for frequency in frequencies:
-        for model in ["SP1", "GL1", "GL2", "MB1"]:
-            plt.plot(-z/units.m, np.nan_to_num(get_attenuation_length(z, frequency, model)/units.m, posinf=3333), label=f"{model}")
-    plt.xlabel("depth [m]")
-    plt.ylabel("attenuation length [m]")
-    plt.ylim(0,None)
-    plt.title("attenuation length (inf masked to +3333m)")
-    plt.legend()
-    plt.savefig("attenuation_length_models.png")
+    z = np.linspace(-10 * units.m, -3 * units.km, 1000)
+
+    fig, ax = plt.subplots()
+    for idx, freq in enumerate([0.55, 0.6, 0.7, 0.8, 0.9, 1]):
+        for model in ["GL1", "GL3"]:
+            fmt = f"C{idx}" + "-" if model == "GL1" else f"C{idx}" + "--"
+            atteniaton_length = np.array([get_attenuation_length(d, freq * units.GHz, model) for d in z])
+            label = ""
+            if model == "GL1":
+                label = f"{freq} GHz"
+            ax.plot(atteniaton_length, z, fmt, lw=1, label=label)
+
+    ax.plot(np.nan, np.nan, "k-", lw=1, label="GL1")
+    ax.plot(np.nan, np.nan, "k--", lw=1, label="GL3")
+
+    ax.set_xlabel("attenuation length [m]")
+    ax.set_ylabel("depth [m]")
+    ax.legend()
+    fig.tight_layout()
+    plt.show()

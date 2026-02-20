@@ -290,7 +290,7 @@
             "cab_time_delay": 45.38,
             "commission_time": "{TinyDate}:2021-07-01T00:00:00",
             "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
-            "channel_id": 15,
+            "channel_id": 18,
             "station_id": 11
         },
         "16": {
@@ -307,7 +307,7 @@
             "cab_time_delay": 45.4,
             "commission_time": "{TinyDate}:2021-07-01T00:00:00",
             "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
-            "channel_id": 16,
+            "channel_id": 19,
             "station_id": 11
         },
         "17": {
@@ -324,7 +324,7 @@
             "cab_time_delay": 45.31,
             "commission_time": "{TinyDate}:2021-07-01T00:00:00",
             "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
-            "channel_id": 17,
+            "channel_id": 20,
             "station_id": 11
         },
         "18": {
@@ -341,7 +341,7 @@
             "cab_time_delay": 45.31,
             "commission_time": "{TinyDate}:2021-07-01T00:00:00",
             "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
-            "channel_id": 18,
+            "channel_id": 15,
             "station_id": 11
         },
         "19": {
@@ -358,7 +358,7 @@
             "cab_time_delay": 45.43,
             "commission_time": "{TinyDate}:2021-07-01T00:00:00",
             "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
-            "channel_id": 19,
+            "channel_id": 16,
             "station_id": 11
     
        
@@ -377,7 +377,7 @@
             "cab_time_delay": 45.73,
             "commission_time": "{TinyDate}:2021-07-01T00:00:00",
             "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
-            "channel_id": 20,
+            "channel_id": 17,
             "station_id": 11
         },
         "21": {

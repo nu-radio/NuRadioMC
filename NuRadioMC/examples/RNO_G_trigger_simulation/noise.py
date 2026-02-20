@@ -4,7 +4,7 @@ from NuRadioReco.framework.event import Event
 from NuRadioReco.framework.station import Station
 from NuRadioReco.framework.channel import Channel
 
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units, fft, signal_processing
 from NuRadioReco.detector.RNO_G import rnog_detector
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
@@ -12,15 +12,12 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 
 from matplotlib import pyplot as plt
 from collections import defaultdict
-from scipy import constants
 import datetime as dt
 import numpy as np
 import argparse
 import copy
 import time
 import json
-import sys
-
 
 import NuRadioMC  # to init the logger
 import logging
@@ -45,6 +42,7 @@ This script produces a json file with the total simulation time, the number of t
 and a few other meta data which are necessary to interpret the results.
 """
 
+
 # define the deep trigger channels
 deep_trigger_channels = np.array([0, 1, 2, 3])
 
@@ -67,45 +65,6 @@ sigma_thresholds = np.linspace(3.2, 4, 20)
 high_low_trigger_thresholds = {s: s for s in sigma_thresholds}
 
 
-def calculate_vrms_from_temperature(noise_temp_channel, bandwidth=None, response=None):
-    """ Helper function to calculate the noise vrms from a given noise temperature and bandwidth.
-
-    This function does not take into account the individual channel response.
-    It assumes a flat rectangular filter with the given bandwidth. We have to
-    simulate the noise for each channel in the exact same bandwith and apply
-    the hardware response afterwards to get correct results.
-
-    Parameters
-    ----------
-    noise_temp_channel: float
-        The noise temperature of the channel in Kelvin
-    bandwidth: tuple (list of 2 floats) (default: None)
-        The lower and upper frequency of the bandwidth. Required unless response is specified.
-    response: `NuRadioReco.detector.response.Response` (default: None)
-        If not None, the response of the channel is taken into account to calculate the noise vrms.
-
-    Returns
-    -------
-    vrms_per_channel: float
-        The vrms of the channel
-    """
-    if bandwidth is None and response is None:
-        raise ValueError("Please specify bandwidht or response")
-
-    if response is None:
-        vrms_per_channel = (noise_temp_channel * 50 * constants.k *
-                            (bandwidth[1] - bandwidth[0]) / units.Hz) ** 0.5
-    else:
-        freqs = np.arange(0, 2500, 0.1) * units.MHz
-
-        # Bandwidth, i.e., \Delta f in equation
-        integrated_channel_response = np.trapz(np.abs(response(freqs)) ** 2, freqs)
-        vrms_per_channel = (noise_temp_channel * 50 * constants.k *
-                            integrated_channel_response / units.Hz) ** 0.5
-
-    return vrms_per_channel
-
-
 def get_vrms_per_channel(args, noise_kwargs, det, filters):
     """
     Get the vrms of the noise traces for each channel.
@@ -113,6 +72,7 @@ def get_vrms_per_channel(args, noise_kwargs, det, filters):
     """
     # It is important to create a new noiseAdder for each run (when using ray). Otherwise the noise is not random.
     noiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+    noiseAdder.begin()
 
     vrms_per_channel = defaultdict(list)
     for _ in range(args.nevents):
@@ -180,7 +140,9 @@ def get_noise_event(noiseAdder, det, channel_ids, noise_kwargs):
         # as specified with `min_freq` and `max_freq`
 
         noise_spec = noiseAdder.bandlimited_noise(
-            sampling_rate=sampling_rate, type='rayleigh', time_domain=False, **noise_kwargs)
+            sampling_rate=sampling_rate, time_domain=False,
+            # station_id=station_id, channel_id=channel_id,
+            **noise_kwargs)
 
         channel.set_frequency_spectrum(noise_spec, sampling_rate)
         station.add_channel(channel)
@@ -330,9 +292,13 @@ if __name__ == "__main__":
     parser.add_argument("--index", type=int, default=0, help="")
     parser.add_argument("--ray", action="store_true")
     parser.add_argument("--label", type=str, default="")
+    parser.add_argument("--noise_type", type=str, default="rayleigh")
     parser.add_argument("--running_vrms", action="store_true")
 
     args = parser.parse_args()
+
+    if args.noise_type != "rayleigh":
+        raise NotImplementedError("Only \"rayleigh\" noise is currently implemented.")
 
     if args.label != "":
         args.label = f"_{args.label}"
@@ -351,16 +317,18 @@ if __name__ == "__main__":
 
     # Calculate the vrms for the given temperature and bandwidth. It is _CORRECT_
     # to not account for the response of the channel here.
-    vrms = calculate_vrms_from_temperature(300 * units.kelvin, bandwidth)
+    vrms = signal_processing.calculate_vrms_from_temperature(300 * units.kelvin, bandwidth)
     logger.info(f"VRMS [for bandwidth {bandwidth / units.MHz} MHz]: {vrms / units.microvolt:.2f} muV")
     noise_kwargs = {
         "amplitude": vrms,
         "min_freq": bandwidth[0],
         "max_freq": bandwidth[1],
         "n_samples": args.n_samples,
+        "type": args.noise_type,
     }
 
     freqs = fft.freqs(noise_kwargs['n_samples'], det.get_sampling_frequency(args.station_id, None, trigger=True))
+
     filters = {channel_id: det.get_signal_chain_response(args.station_id, channel_id, trigger=True)(freqs)
         for channel_id in deep_trigger_channels}
 
@@ -368,7 +336,7 @@ if __name__ == "__main__":
         # this might return slightly different results than the function get_vrms_per_channel
         # because of the frequency resolution with which the spectra are sampled.
         vrms_per_channel = np.array(
-            [calculate_vrms_from_temperature(
+            [signal_processing.calculate_vrms_from_temperature(
                 300 * units.kelvin,
                 response=det.get_signal_chain_response(args.station_id, channel_id, trigger=True))
             for channel_id in deep_trigger_channels]
@@ -379,6 +347,7 @@ if __name__ == "__main__":
         # also effects the realized trigger thresholds.
         logger.info(f"VRMS per channel (incl. amplifier): {np.around(vrms_per_channel / units.mV, 2)} mV")
         noise_kwargs["vrms_per_channel"] = vrms_per_channel
+        logger.info(f"Use a vrms of {np.around(noise_kwargs['vrms_per_channel'] / units.mV, 2)} mV to define the trigger thresholds")
 
     n_events = args.nevents
     t0 = time.time()
@@ -440,10 +409,15 @@ if __name__ == "__main__":
 
     max_rate = 1 / dt
 
+    # to save the vrms as a list in the json file
+    if not args.running_vrms:
+        noise_kwargs["vrms_per_channel"] = noise_kwargs["vrms_per_channel"].tolist()
+
     data = {
         "vrms": vrms,
         "total_time": total_time,
-        "tot_nevents": n_events * args.nruns
+        "tot_nevents": n_events * args.nruns,
+        "noise_kwargs": noise_kwargs,
     }
 
     for trigger_name, trigger_data in triggers.items():
@@ -465,6 +439,7 @@ if __name__ == "__main__":
                     f"({trigger_rate / units.Hz:.2f} +- {e_trigger_rate / units.Hz:.2f} Hz)")
 
     vrms_label = 'running_vrms' if args.running_vrms else 'fixed_vrms'
-    with open(f"trigger_rates_st{args.station_id}_{adc_output}_{vrms_label}_{noise_kwargs['n_samples']}_{sigma_thresholds[0]:.2f}-"
-              f"{sigma_thresholds[-1]:.2f}_{total_time / units.s:.1f}s{args.label}.json", "w") as f:
+    with open(f"trigger_rates_st{args.station_id}_{adc_output}_{vrms_label}_{noise_kwargs['n_samples']}_"
+              f"{args.noise_type}_{sigma_thresholds[0]:.2f}-{sigma_thresholds[-1]:.2f}_"
+              f"{total_time / units.s:.1f}s{args.label}.json", "w") as f:
         json.dump(data, f)

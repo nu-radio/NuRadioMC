@@ -8,8 +8,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 Used in the trace from efield and trace frm sim-efield plots. Keep them
 commented out for later
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.utilities import geometryUtilities
-from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import signal_processing, geometryUtilities
 """
 import numpy as np
 from dash import dcc, html, callback
@@ -206,7 +205,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                 opacity=0.7,
                 line=dict(
                     width=4,
-                    dash='dot'),  
+                    dash='dot'),
                 marker={
                     'color': colors[i % len(colors)],
                     'line': {'color': colors[i % len(colors)]}
@@ -351,7 +350,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             channel_ids.append(channel.get_id())
         for electric_field in station.get_electric_fields():
             for i_trace, trace in enumerate(
-                    trace_utilities.get_channel_voltage_from_efield(station, electric_field, channel_ids, det,
+                    signal_processing.get_channel_voltage_from_efield(station, electric_field, channel_ids, det,
                                                                     station.get_parameter(stnp.zenith),
                                                                     station.get_parameter(stnp.azimuth),
                                                                     antenna_pattern_provider)):
@@ -382,7 +381,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
         for i_channel, channel in enumerate(station.iter_channels()):
             for electric_field in sim_station.get_electric_fields_for_channels([channel.get_id()]):
                 trace = \
-                    trace_utilities.get_channel_voltage_from_efield(sim_station, electric_field, [channel.get_id()],
+                    signal_processing.get_channel_voltage_from_efield(sim_station, electric_field, [channel.get_id()],
                                                                     det,
                                                                     electric_field.get_parameter(efp.zenith),
                                                                     electric_field.get_parameter(efp.azimuth),

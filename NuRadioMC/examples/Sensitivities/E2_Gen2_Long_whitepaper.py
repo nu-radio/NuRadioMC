@@ -611,7 +611,7 @@ def add_limit(ax, limit_labels, E, Veff, n_stations, label, livetime=3*units.yea
                                          signalEff = n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
+                                         nuCrsScn='hedis_bgr18')
 
 
         _plt, = ax.plot(E/plotUnitsEnergy,limit/ plotUnitsFlux, linestyle=linestyle, color=color,
@@ -627,14 +627,14 @@ def add_limit(ax, limit_labels, E, Veff, n_stations, label, livetime=3*units.yea
                                          signalEff = n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
+                                         nuCrsScn='hedis_bgr18')
         limit_upper = fluxes.get_limit_e2_flux(energy = E,
                                          veff_sr = Veff[1],
                                          livetime = livetime,
                                          signalEff = n_stations,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
+                                         nuCrsScn='hedis_bgr18')
 
         plt1 = ax.fill_between(E/plotUnitsEnergy,limit_upper/ plotUnitsFlux,
         limit_lower/plotUnitsFlux,color=color,alpha=0.2)
@@ -782,7 +782,7 @@ if __name__=="__main__":
                                          signalEff = 200,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
+                                         nuCrsScn='hedis_bgr18')
 
 #THIS IS THE GENERIC PATHFINDER AT SOUTHPOLE, shaded region for uncertainties in trigger, design etc.
 
@@ -800,7 +800,7 @@ if __name__=="__main__":
                                          signalEff = 200,
                                          energyBinsPerDecade=energyBinsPerDecade,
                                          upperLimOnEvents=2.44,
-                                         nuCrsScn='ctw')
+                                         nuCrsScn='hedis_bgr18')
 
         #THIS IS THE GENERIC PATHFINDER AT SOUTHPOLE, shaded region for uncertainties in trigger, design etc.
 
@@ -829,7 +829,7 @@ if __name__=="__main__":
                                              signalEff = 35,
                                              energyBinsPerDecade=energyBinsPerDecade,
                                              upperLimOnEvents=2.44,
-                                             nuCrsScn='ctw')
+                                             nuCrsScn='hedis_bgr18')
 
         _plt3, = ax.plot(energies_Greenland[mask]/plotUnitsEnergy, greenland_limit/plotUnitsFlux,color='r',linewidth=3,label='RNO-G (5 years)')
         labels.append(_plt3)

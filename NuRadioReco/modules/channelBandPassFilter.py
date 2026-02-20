@@ -2,7 +2,7 @@ import numpy as np
 from scipy import signal
 import logging
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, bandpass_filter, signal_processing
+from NuRadioReco.utilities import units, signal_processing
 
 
 class channelBandPassFilter:
@@ -208,7 +208,7 @@ class channelBandPassFilter:
                 self.__filter_cached = None
         if (self.__filter_cached is None) or (not self.__caching):
             self.__filter_args = filter_args
-            self.__filter_cached = bandpass_filter.get_filter_response(
+            self.__filter_cached = signal_processing.get_filter_response(
                 frequencies, tmp_passband, tmp_filter_type, tmp_order, tmp_rp, tmp_roll_width
             )
 

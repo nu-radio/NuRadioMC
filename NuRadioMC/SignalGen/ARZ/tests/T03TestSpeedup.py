@@ -26,7 +26,7 @@ if __name__ == "__main__":
     n_index = 1.78
     theta = np.arccos(1./n_index)
     R = 1 * units.km
-    a = ARZ.ARZ(library="/Users/cglaser/work/ARIANNA/data/ARZ/v1.1/library_v1.1.pkl", interp_factor=1, interp_factor2=1)
+    a = ARZ.ARZ(interp_factor=1, interp_factor2=1)
 
     # HAD 1e19
     shower_energy = 10*units.EeV

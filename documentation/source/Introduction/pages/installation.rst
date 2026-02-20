@@ -169,23 +169,6 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
 They can be installed by including adding ``[option]`` when installing NuRadioMC. Alternatively,
 use ``pip install nuradiomc[all]`` to install all optional dependencies (or ``[all,dev]`` to also install development dependencies).
 
-- ``[RNO-G]``
-
-  `mattak <https://github.com/RNO-G/mattak>`__ is required to open RNO-G root files:
-
-  .. code-block:: bash
-
-    pip install mattak
-
-- ``[rno-g-extras]``
-
-  Optionally, to filter RNO-G data (during read in) the `RNO-G run table database <https://github.com/RNO-G/rnog-runtable>`__
-  can be used. Note that this requires membership of the RNO-G Github organisation (not public):
-
-  .. code-block:: bash
-
-    pip install git+ssh://git@github.com/RNO-G/rnog-runtable.git
-
 - ``[proposal]``
 
   ``proposal`` is needed to use :mod:`NuRadioMC.EvtGen.NuRadioProposal` module (simulating secondary particles):
@@ -224,7 +207,7 @@ use ``pip install nuradiomc[all]`` to install all optional dependencies (or ``[a
 
   .. code-block:: bash
 
-    pip install git+https://github.com/nu-radio/cr-pulse-interpolator
+    pip install cr-pulse-interpolator
 
 - ``[dev]``
 
@@ -243,6 +226,21 @@ use ``pip install nuradiomc[all]`` to install all optional dependencies (or ``[a
   .. code-block:: Bash
 
     pip install sphinx sphinx_rtd_theme numpydoc
+
+- RNO-G-specific dependencies
+
+  `mattak <https://github.com/RNO-G/mattak>`__ is required to open RNO-G root files:
+
+  .. code-block:: bash
+
+    pip install git+https://github.com/RNO-G/mattak
+
+  Optionally, to filter RNO-G data (during read in) the `RNO-G run table database <https://github.com/RNO-G/rnog-runtable>`__
+  can be used. Note that this requires membership of the RNO-G Github organisation (not public):
+
+  .. code-block:: bash
+
+    pip install git+ssh://git@github.com/RNO-G/rnog-runtable.git
 
 - Some debug plots need peakutils:
 

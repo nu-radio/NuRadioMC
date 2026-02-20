@@ -6,6 +6,7 @@ import radiotools.coordinatesystems
 from NuRadioReco.utilities.trace_utilities import get_stokes
 
 import pickle
+from NuRadioReco.utilities.io_utilities import _dumps
 import logging
 logger = logging.getLogger('NuRadioReco.ElectricField')
 
@@ -50,7 +51,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace,
         """
         returns a unique identifier consisting of the tuple channel_ids, shower_id and ray_tracing_id
         """
-        return (self._channel_ids, self._shower_id, self._ray_tracing_id)
+        return (tuple(self._channel_ids), self._shower_id, self._ray_tracing_id)
 
     def set_channel_ids(self, channel_ids):
         self._channel_ids = channel_ids
@@ -167,7 +168,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace,
             'base_trace': base_trace_pkl
         })
 
-        return pickle.dumps(data, protocol=4)
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
