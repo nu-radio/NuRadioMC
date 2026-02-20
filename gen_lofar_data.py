@@ -1,6 +1,8 @@
 import logging
 import lofar_processing
 import multiprocessing
+import pipeline
+import argparse
 
 import pickle as pkl
 import pandas as pd
@@ -13,10 +15,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-TITLE = "lofar-snr-7"
+TITLE = "lofar-full-hist-method"
 OUTPUT_DIR = Path(f"analysis/{TITLE}/data")
-NUM_THREADS = 12
-SNR = 7
+NUM_THREADS = 124
+SNR = 5
 
 def processing_wrapper(df_chunk):
     """Wrapper for the lofar_data_processing function to
@@ -25,7 +27,7 @@ def processing_wrapper(df_chunk):
     Args:
         df_chunk (pd.DataFrame): chunk of dataframe with events to analyse
     """
-    sim_files = lofar_processing.get_sim_files(df_chunk)
+    sim_files = lofar_processing.get_sim_files(df_chunk, "all", 15)
     lofar_processing.lofar_data_processing(df_chunk, OUTPUT_DIR, sim_files, SNR)
 
 
@@ -65,9 +67,14 @@ df.columns = [
     28,
 ]
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--chunk_id", type=int, help="Chunk to use from dataframe")
+args = parser.parse_args()
+
+chunk_id = args.chunk_id
 filtered_df = df.loc[df["std_core"] < 10]
-df_splits = np.split(filtered_df, NUM_THREADS)
+df_splits = np.array_split(filtered_df, NUM_THREADS)
 
-pool = multiprocessing.Pool(NUM_THREADS)
-pool.map(processing_wrapper, df_splits)
-
+processing_wrapper(df_splits[chunk_id])
+# pool = multiprocessing.Pool(NUM_THREADS)
+# pool.map(processing_wrapper, df_splits)
