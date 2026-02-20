@@ -173,7 +173,7 @@ class efieldInterferometricDepthReco:
 
     def reconstruct_interferometric_depth(
             self, traces, times, station_positions, shower_axis, core,
-            lower_depth=400, upper_depth=1000, bin_size=50, return_profile=False):
+            lower_depth=400, upper_depth=1000, bin_size=20, return_profile=False):
         """
         Returns Gauss-parameters fitted to the "peak" of the interferometic
         longitudinal profile along the shower axis.
@@ -270,19 +270,24 @@ class efieldInterferometricDepthReco:
 
                 if not np.argmax(signals_tmp) == 0 or depth_add <= 0:
                     break
-
+        
+        # popt, pkov = curve_fit(normal, depths, signals_tmp, p0=[np.amax(
+        #     signals_tmp), depths[np.argmax(signals_tmp)], 100], maxfev=1000)
+        
         idx_max = np.argmax(signals_tmp)
         depths_final = np.linspace(
-            depths[idx_max - 1], depths[idx_max + 1], 26)  # 4 g/cm2 bins
+            depths[idx_max - 3], depths[idx_max + 3], 26)  # 4 g/cm2 bins
         signals_final, self._final_sum_trace = self.sample_longitudinal_profile(
             traces, times, station_positions, shower_axis, core, depths=depths_final)
 
-        popt, pkov = curve_fit(normal, depths_final, signals_final, p0=[np.amax(
+        popt, self._peak_fit_pcov = curve_fit(normal, depths_final, signals_final, p0=[np.amax(
             signals_final), depths_final[np.argmax(signals_final)], 100], maxfev=1000)
         
         if return_profile:
             return depths, depths_final, signals_tmp, signals_final, popt
-
+        # if return_profile:
+        #     return depths, depths, signals_tmp, signals_tmp, popt
+        
         return popt
 
 
@@ -315,7 +320,7 @@ class efieldInterferometricDepthReco:
 
 
     @register_run()
-    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, use_voltage_traces=True, long_plot=True, rit_plot=True, n_samples=None, use_interferometric_axis=False):
+    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, use_voltage_traces=True, long_plot=True, rit_plot=True, n_samples=None, use_interferometric_axis=False, tolerance=1.2e3):
         """
         Run interferometric reconstruction of depth of coherent signal.
 
@@ -363,7 +368,7 @@ class efieldInterferometricDepthReco:
         core, shower_axis, cs = get_geometry_and_transformation(shower, use_interferometric_axis)
 
         traces_vxB, times, pos = get_station_data(
-            evt, det, cs, use_MC_pulses, use_voltage_traces, n_sampling=n_samples)
+            evt, det, cs, use_MC_pulses, use_voltage_traces, n_samples, tolerance)
 
         if long_plot:
             depths, depths_final, signals_tmp, signals_final, rit_parameters = \
@@ -637,7 +642,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             magnetic_field_vector,
             is_mc=True,
             initial_grid_spacing=20,
-            cross_section_size=400):
+            cross_section_size=400,
+            depths=[500, 600, 700, 800, 900, 1000]):
         """
         Run interferometric reconstruction of the shower axis. Find the maxima of the interferometric signals
         within 2-d plane (slices) along a given axis (initial guess). Through those maxima (their position in the
@@ -702,8 +708,9 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             core_inital = cs.transform_from_vxB_vxvxB_2D(
                 np.array([np.random.normal(0, 100), np.random.normal(0, 100), 0]), core)
 
-        depths = [500, 600, 700, 800, 900, 1000]
         deg_resolution = np.deg2rad(0.005)
+        init_found_points = []
+        init_weights = []
 
         found_points = []
         weights = []
@@ -733,9 +740,21 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         for depth, spacing in zip(depths, initial_grid_spacing):
             found_point, weight = sample_lateral_cross_section_placeholder(depth, spacing)
 
-            found_points.append(found_point)
-            weights.append(weight)
+            init_found_points.append(found_point)
+            init_weights.append(weight)
+        
+        if self._bootstrap:
+            final_depths = np.linspace(depths[np.argmax(init_weights)] - 100, depths[np.argmax(init_weights)] + 100, 6)
 
+            for depth, spacing in zip(final_depths, initial_grid_spacing):
+                found_point, weight = sample_lateral_cross_section_placeholder(depth, spacing)
+
+                found_points.append(found_point)
+                weights.append(weight)
+        else:
+            found_points = init_found_points
+            weights = init_weights
+        
         if 0:
             while True:
                 if np.argmax(weights) != 0:
@@ -766,7 +785,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         found_points = np.array(found_points)
         weights = np.array(weights)
 
-        popt, pcov = curve_fit(interferometry.fit_axis, found_points[:, -1], found_points.flatten(),
+        popt, self._axis_pcov = curve_fit(interferometry.fit_axis, found_points[:, -1], found_points.flatten(),
                             sigma=np.amax(weights) / np.repeat(weights, 3), p0=[zenith_inital, azimuth_inital, 0, 0])
         direction_rec = hp.spherical_to_cartesian(*popt[:2])
         core_rec = interferometry.fit_axis(np.array([core[-1]]), *popt)
@@ -774,7 +793,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         return direction_rec, core_rec
 
     @register_run()
-    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, use_voltage_traces=True, n_samples=None, cross_section_size=1000, cross_section_spacing=60):
+    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, use_voltage_traces=True, n_samples=None, cross_section_size=1000, cross_section_spacing=60, depths=[500, 600, 700, 800, 900, 1000], tolerance=1.2e3, bootstrap=False):
         """
         Run interferometric reconstruction of depth of coherent signal.
 
@@ -804,6 +823,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         # TODO: Make it more flexible. Choose shower from which the geometry and atmospheric properties are taken.
         # Also store xrit in this shower.
+        self._bootstrap = bootstrap
+        
         if use_MC_geometry:
             shower = evt.get_first_sim_shower()
         else:
@@ -813,10 +834,20 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         core, shower_axis, cs = get_geometry_and_transformation(shower, False)
 
         traces_vxB, times, pos = get_station_data(
-            evt, det, cs, use_MC_pulses, use_voltage_traces, n_samples)
+            evt, det, cs, use_MC_pulses, use_voltage_traces, n_samples, tolerance)
 
         direction_rec, core_rec = self.reconstruct_shower_axis(
-            traces_vxB, times, pos, shower_axis, core, is_mc=True, magnetic_field_vector=shower[shp.magnetic_field_vector], initial_grid_spacing=cross_section_spacing, cross_section_size=cross_section_size)
+            traces_vxB, 
+            times, 
+            pos,
+            shower_axis, 
+            core, 
+            is_mc=True, 
+            magnetic_field_vector=shower[shp.magnetic_field_vector], 
+            initial_grid_spacing=cross_section_spacing, 
+            cross_section_size=cross_section_size, 
+            depths=depths
+        )
 
         shower.set_parameter(shp.interferometric_shower_axis, direction_rec)
         shower.set_parameter(shp.interferometric_core, core_rec)
@@ -867,7 +898,7 @@ def get_geometry_and_transformation(shower, use_interferometric_axis):
     return core, shower_axis, cs
 
 
-def get_station_data(evt, det, cs, use_MC_pulses, use_voltage_trace: bool=False, n_sampling=None):
+def get_station_data(evt, det, cs, use_MC_pulses, use_voltage_trace: bool=False, n_sampling=None, tolerance=1.2e3):
     """
     Returns station data in a proper format
 
@@ -915,7 +946,7 @@ def get_station_data(evt, det, cs, use_MC_pulses, use_voltage_trace: bool=False,
 
         if use_voltage_trace:
             channels_in_station = det.get_channel_ids(station.get_id())
-            
+
             for i in range(0, len(channels_in_station), 2):
                 y_id = channels_in_station[i]
                 x_id = channels_in_station[i+1]
@@ -994,6 +1025,12 @@ def get_station_data(evt, det, cs, use_MC_pulses, use_voltage_trace: bool=False,
     final_traces = np.array(final_traces)
     times = np.array(times)
     pos = np.array(pos)
+
+    hist, edges = np.histogram(times[:, 0], bins=500)
+    selection = edges[hist.argmax()]
+    tolerance = 0.6e3
+    mask = (times[:, 0] > selection - tolerance) & (times[:, 0] < selection + tolerance)
+    times, final_traces, pos = times[mask], final_traces[mask], pos[mask]
 
     return final_traces, times, pos
 
