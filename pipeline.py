@@ -66,6 +66,7 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.modules.io.LOFAR.readLOFARData import LOFAR_event_id_to_unix
 from NuRadioReco.modules.efieldRadioInterferometricReconstruction import (
     efieldInterferometricDepthReco,
+    efieldInterferometricAxisReco,
 )
 from NuRadioReco.modules.efieldToVoltageConverter import efieldToVoltageConverter
 from NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup import (
@@ -73,6 +74,8 @@ from NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup import (
 )
 from NuRadioReco.modules.eventTypeIdentifier import eventTypeIdentifier
 from NuRadioReco.modules.channelResampler import channelResampler
+from NuRadioReco.modules.LOFAR import stationPulseFinder, planeWaveDirectionFitter_LOFAR
+from NuRadioReco.modules import voltageToEfieldConverter
 
 # Used to read and interpolate CoREAS simulation files to detector positions
 from NuRadioReco.modules.io.coreas.readCoREASDetector import readCoREASDetector
@@ -89,7 +92,7 @@ from NuRadioReco.utilities.trace_utilities import get_electric_field_energy_flue
 # Classes for handling shower and event parameters
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-
+from NuRadioReco.framework.parameters import stationParameters as stp
 
 logging.basicConfig(
     level=logging.INFO,
@@ -109,6 +112,7 @@ LOFAR_PATH = (
 )
 STAR_PATH = "/vol/astro5/lofar/tgottmer/simfiles/sim-detector.json"
 NOISE_ARR = np.load("/vol/astro5/lofar/tgottmer/simfiles/lofar_real_noise_library.npy")
+
 
 def set_fluence_of_efields(
     function, sim_station, quantity=efp.signal_energy_fluence
@@ -237,10 +241,13 @@ def read_event(
                 trace = channel.get_trace()
                 if len(trace) <= len(NOISE_ARR):
                     start_index = np.random.randint(0, len(NOISE_ARR) - len(trace) + 1)
-                    channel.set_trace(trace + NOISE_ARR[start_index:start_index+len(trace)], sampling_rate=channel.get_sampling_rate())
-            
-            # v_to_e_converter.run(event, station, det)
+                    channel.set_trace(
+                        trace + NOISE_ARR[start_index : start_index + len(trace)],
+                        sampling_rate=channel.get_sampling_rate(),
+                    )
 
+            # v_to_e_converter.run(event, station, det)
+        event.get_first_sim_shower().set_parameter(shp.atmospheric_model, np.int64(1))
         # --- Step 3: Apply physics cuts and generate plots ---
         event_after_cut = apply_cut(event, det, "SNR", snr_cut)
 
@@ -300,7 +307,7 @@ def calc_interferometetric_depth(
     output_dir: Path,
     event_id: int,
     sim_id: int,
-    core_position: list = [0, 0, 0]
+    core_position: list = [0, 0, 0],
 ) -> None:
     """Takes an event and adds X_rit to its parameters and stores the
     longitudonal depth profile of the air shower.
@@ -323,7 +330,15 @@ def calc_interferometetric_depth(
     diagnostic_dir = output_dir.parents[1] / "diagnostic_plots"
     event.get_first_sim_shower().set_parameter(shp.core, core_position)
     try:
-        reconstructor.run(event, detector, use_MC_geometry=True, use_MC_pulses=False, use_voltage_traces=True, n_samples=1024)
+        reconstructor.run(
+            event,
+            detector,
+            use_MC_geometry=True,
+            use_MC_pulses=False,
+            use_voltage_traces=True,
+            n_samples=1024,
+            use_interferometric_axis=True,
+        )
     except RuntimeError:
         logger.error(
             f"RuntimeError while fitting {event_id}_{sim_id}, skipping and plotting traces"
@@ -516,6 +531,8 @@ def generate_data(
     station_ids_star = [1]
     interferometric_depth_module = efieldInterferometricDepthReco()
     interferometric_depth_module.begin(debug=debug)
+    axis_reco = efieldInterferometricAxisReco()
+    axis_reco.begin(debug=False)
 
     for i, (event_file, long_file) in enumerate(zip(event_files, long_files)):
         failed = False  # used to check if reading failed -> if so skip interferometry but store data
@@ -571,10 +588,37 @@ def generate_data(
 
         if not failed:
             try:
+                logger.info("Runnning axis interferometry...")
                 make_fluence_plot(
                     event_star, star_interpolator, output_dir, event_id, sim_id
                 )
+                axis_reco.run(
+                    event_star,
+                    det_star,
+                    use_MC_geometry=True,
+                    use_MC_pulses=False,
+                    use_voltage_traces=True,
+                    n_samples=2048,
+                    cross_section_size=200,
+                    cross_section_spacing=[10, 10, 10, 10, 10],
+                    depths=[400, 460, 520, 580, 620],
+                )
+                star_ax_cov = axis_reco._axis_pcov
 
+                axis_reco.run(
+                    event_lofar,
+                    det_lofar,
+                    use_MC_geometry=True,
+                    use_MC_pulses=False,
+                    use_voltage_traces=True,
+                    n_samples=2048,
+                    cross_section_size=200,
+                    cross_section_spacing=[10, 10, 10, 10, 10],
+                    depths=[400, 460, 520, 580, 620],
+                )
+                lofar_ax_cov = axis_reco._axis_pcov
+
+                logger.info("Running depth interferometry...")
                 calc_interferometetric_depth(
                     event_star,
                     det_star,
@@ -583,6 +627,7 @@ def generate_data(
                     event_id,
                     sim_id,
                 )
+                star_depth_pcov = interferometric_depth_module._peak_fit_pcov
                 calc_interferometetric_depth(
                     event_lofar,
                     det_lofar,
@@ -590,8 +635,12 @@ def generate_data(
                     output_dir / "long_depth_interpolated" / "LOFAR",
                     event_id,
                     sim_id,
-                    core_position + [0]  # make core 3d and set z-coord to 0 to accomadete simulation mismatch
+                    core_position
+                    + [
+                        0
+                    ],  # make core 3d and set z-coord to 0 to accomadete simulation mismatch
                 )
+                lofar_depth_pcov = interferometric_depth_module._peak_fit_pcov
             except Exception as err:
                 logger.exception(
                     f"Failed interferometry for {event_id} {sim_id}, traceback: {err}"
@@ -612,6 +661,7 @@ def generate_data(
             lofar_dict[event_id][
                 sim_id
             ] = event_lofar.get_first_sim_shower().get_parameters()
+
         except KeyError:
             star_dict[event_id] = {}
             star_dict[event_id][
@@ -622,6 +672,16 @@ def generate_data(
             lofar_dict[event_id][
                 sim_id
             ] = event_lofar.get_first_sim_shower().get_parameters()
+
+        try:
+            lofar_dict[event_id][f"{sim_id}_axis_pcov"] = lofar_ax_cov
+            lofar_dict[event_id][f"{sim_id}_depth_pcov"] = lofar_depth_pcov
+            star_dict[event_id][f"{sim_id}_axis_pcov"] = star_ax_cov
+            star_dict[event_id][f"{sim_id}_depth_pcov"] = star_depth_pcov
+        except Exception as err:
+            logger.exception(
+                f"Failed saving variances for {event_id} {sim_id}, traceback: {err}"
+            )
 
         if (i % 25 == 0 and i != 0) or (i == len(event_files) - 1):
             logger.info(f"Dumping events -- Last event {event_id} {sim_id}")
@@ -651,7 +711,7 @@ def apply_cut(
     detector: NuRadioReco.detector.detector_base.DetectorBase,
     cut_type: Literal["Cherenkov", "Percent", "SNR"],
     percent_cut: float = 0.05,
-    snr_cut: float = 5
+    snr_cut: float = 5,
 ) -> NuRadioReco.framework.event.Event:
     """Applies a fluence cut on detectors containing a certain
     amount of the maximum fluence. Cherenkov-cone based,
@@ -755,7 +815,7 @@ def apply_cut(
                 )
 
         logger.info(f"Finshed: Zeroed E-field for {antennas_to_cut.sum()} antennas")
-    
+
     elif cut_type == "SNR":
         noise_power = 0.0001276411170139778  # pre-calculated noise V_RMS
         cut_antennas = 0
@@ -767,14 +827,10 @@ def apply_cut(
                 snr = max_signal / noise_power
 
                 if snr < snr_cut:
-                    channel.set_trace(
-                        np.zeros_like(trace), channel.get_sampling_rate()
-                    )
+                    channel.set_trace(np.zeros_like(trace), channel.get_sampling_rate())
                     cut_antennas += 1
 
         logger.info(f"Cut voltage traces for {cut_antennas} antennas")
-
-
 
     return event
 
@@ -847,14 +903,16 @@ def slant_depth_to_altitude(x_max_gpcm2: float, zenith_rad: float) -> float:
     return altitude_km * 1000.0 * units.m
 
 
-def dict_to_df(data: dict) -> pd.DataFrame:
+def dict_to_df(data: dict, dict_type: Literal["multiple", "single"]) -> pd.DataFrame:
     """Takes a dictionairy containing the events with format
-    {event_id: {sim_id: }}. Converts this to a pandas dataframe.
-    Also adds columns containing degrees and correct units for
-    X_max, X_rit and their difference.
+    {event_id: {sim_id: }} for "multiple" or {event_id: } for "single".
+    Converts this to a pandas dataframe. Also adds columns containing
+    degrees and correct units for X_max, X_rit and their difference.
 
     Args:
         data (dict): dictionairy as described
+        dict_type (Literal): "multiple" if multiple events in dict
+            otherwise "single"
 
     Returns:
         pd.DataFrame: df containing the events
@@ -862,14 +920,17 @@ def dict_to_df(data: dict) -> pd.DataFrame:
     dfs = []
 
     for event_dict in data:
-        df = pd.DataFrame.from_dict(data[event_dict], orient="index")
+        if dict_type == "single":
+            df = pd.DataFrame.from_dict(data[event_dict], orient="columns")
+        else:
+            df = pd.DataFrame.from_dict(data[event_dict], orient="index")
         df["event_id"] = event_dict
         dfs.append(df)
 
     full_df = pd.concat(dfs)
 
     full_df["zenith_deg"] = np.rad2deg(full_df[shp.zenith])
-    full_df["azimuth_deg"] = np.rad2deg(full_df[shp.azimuth])
+    full_df["azimuth_deg"] = np.rad2deg(full_df[shp.azimuth]) % (2 * np.pi)
     full_df["X_max"] = full_df[shp.shower_maximum] / (units.g / units.cm2)
     try:
         full_df["X_rit"] = full_df[shp.interferometric_shower_maximum] / (
@@ -883,11 +944,15 @@ def dict_to_df(data: dict) -> pd.DataFrame:
     return full_df
 
 
-def read_events_from_pkl(directory: Path) -> pd.DataFrame:
+def read_events_from_pkl(
+    directory: Path, dict_type: Literal["multiple", "single"]
+) -> pd.DataFrame:
     """Converts the pickle files in a directory to a pandas dataframe.
 
     Args:
         directory (Path): path to directory containing pickle files
+        dict_type (Literal): "multiple" if multiple events in dict
+            otherwise "single"
 
     Returns:
         pd.DataFrame: DataFrame containing all events
@@ -903,7 +968,7 @@ def read_events_from_pkl(directory: Path) -> pd.DataFrame:
     dfs = []
 
     for data_dict in event_dicts:
-        df = dict_to_df(data_dict)
+        df = dict_to_df(data_dict, dict_type)
         dfs.append(df)
 
     full_df = pd.concat(dfs)
@@ -1040,7 +1105,7 @@ def plot_traces_per_station(
         event_id (int): id of event
         sim_id (str): simulation id of event
         output_dir (Path): path to output directory
-        subset_traces(int): number of traces to plot. Default to None for all traces.        
+        subset_traces(int): number of traces to plot. Default to None for all traces.
     Returns:
         None
     """
