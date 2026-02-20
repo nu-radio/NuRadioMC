@@ -15,8 +15,11 @@ try:
 except ImportError:
     numba_available = False
 
+if not hasattr(np, 'trapezoid'):
+    # needed for compatibility with old numpy versions
+    np.trapezoid = np.trapz
+
 logger = logging.getLogger("NuRadioMC.SignalGen.ARZ")
-# logger.setLevel(logging.INFO)
 
 ######################
 ######################
@@ -268,7 +271,7 @@ def get_vector_potential(
 #         F_p[~mask] = 1.e-30 * fc / xntot
         F_p[~mask] = 0
 
-        vp[it] = integrate.trapezoid(-v * profile_ce_interp2 * F_p / R, z)
+        vp[it] = np.trapezoid(-v * profile_ce_interp2 * F_p / R, z)
 
     vp *= factor
 
@@ -920,7 +923,7 @@ class ARZ(object):
     #         F_p[~mask] = 1.e-30 * fc / xntot
             F_p[~mask] = 0
 
-            vp[it] = integrate.trapezoid(-v * profile_ce_interp2 * F_p / R, z)
+            vp[it] = np.trapezoid(-v * profile_ce_interp2 * F_p / R, z)
             if  0:
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(1, 1)
