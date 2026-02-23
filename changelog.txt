@@ -8,6 +8,9 @@ new features:
   under NuRadioReco/detector/amps/custom.
 - Added elevation to detector sites, and a corresponding `get_site_elevation` method to the `Detector` class. Altitudes were obtained
 from the NOAA ETOPO1 dataset via www.opentopodata.org.
+- Implemented automatic windowing of the time-domain response in the `deteector.respone.Response` class (windowing performed by default in the __call__ method).
+  Integrated in the RNO-G hardwareResponseIncoperator. If you do not use this module and neither the `deteector.respone.Response` class, your results are
+  uneffected.
 
 bugfixes:
 
