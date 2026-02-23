@@ -934,20 +934,26 @@
 <span class="sd">        debug_plotpath: string or None</span>
 <span class="sd">            if not None plots will be saved to a file rather then shown. Plots will</span>
 <span class="sd">            be save into the `debug_plotpath` directory</span>
-<span class="sd">        use_channels: array of ints (default: [0, 1, 2, 3])</span>
-<span class="sd">            the channel ids to use for the electric field reconstruction</span>
-<span class="sd">            default: 0 - 3</span>
-<span class="sd">        bandpass: [float, float] (default: [100 * units.MHz, 500 * units.MHz])</span>
-<span class="sd">            the lower and upper frequecy for which the analytic pulse is calculated.</span>
+<span class="sd">        use_channels: array of ints</span>
+<span class="sd">            The channel ids to use for the electric field reconstruction</span>
+<span class="sd">        bandpass: [float, float]</span>
+<span class="sd">            The lower and upper frequecy for which the analytic pulse is calculated.</span>
 <span class="sd">            A butterworth filter of 10th order and a rectangular filter is applied.</span>
-<span class="sd">            default 100 - 500 MHz</span>
 <span class="sd">        use_MC_direction: bool</span>
 <span class="sd">            use simulated direction instead of reconstructed direction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">use_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">use_channels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;No channels specified for electric field reconstruction. &quot;</span>
+                <span class="s2">&quot;Please provide `use_channels` argument to the voltageToAnalyticEfieldConverter.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">bandpass</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">bandpass</span> <span class="o">=</span> <span class="p">[</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">500</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">]</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;No bandpass specified for electric field reconstruction. &quot;</span>
+                <span class="s2">&quot;Please provide `bandpass` argument to the voltageToAnalyticEfieldConverter.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__counter</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">station_id</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;event </span><span class="si">{}</span><span class="s2">, station </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">station_id</span><span class="p">))</span>

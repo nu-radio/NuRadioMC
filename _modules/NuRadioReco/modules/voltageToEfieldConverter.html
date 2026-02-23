@@ -840,8 +840,8 @@
 <span class="sd">        evt : `NuRadioReco.framework.event.Event`</span>
 <span class="sd">        station : `NuRadioReco.framework.base_station.BaseStation`</span>
 <span class="sd">        det : Detector object</span>
-<span class="sd">        use_channels: array of ints (default: [0, 1, 2, 3])</span>
-<span class="sd">            the channel ids to use for the electric field reconstruction</span>
+<span class="sd">        use_channels: array of ints</span>
+<span class="sd">            The channel ids to use for the electric field reconstruction</span>
 <span class="sd">        use_MC_direction: bool, default: False</span>
 <span class="sd">            If True uses zenith and azimuth direction from simulated station.</span>
 <span class="sd">            Otherwise, uses reconstructed direction from station parameters.</span>
@@ -850,7 +850,15 @@
 <span class="sd">            assuming the other is 0. Otherwise (default), reconstructs electric field for both eTheta and ePhi</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">use_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">use_channels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;No channels specified for electric field reconstruction. &quot;</span>
+                <span class="s2">&quot;Please provide `use_channels` argument to the voltageToEfieldConverter.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">use_channels</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force_Polarization</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;At least two channels with orthogonal antenna response are needed for electric field reconstruction. &quot;</span>
+                <span class="s2">&quot;Please provide at least two channels in `use_channels` or set `force_Polarization` to &#39;eTheta&#39; or &#39;ePhi&#39;.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">use_MC_direction</span><span class="p">:</span>
             <span class="n">zenith</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()[</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span>

@@ -751,12 +751,10 @@ from the fit parameters.</p>
 <dt><strong>debug_plotpath: string or None</strong></dt><dd><p>if not None plots will be saved to a file rather then shown. Plots will
 be save into the <em class="xref py py-obj">debug_plotpath</em> directory</p>
 </dd>
-<dt><strong>use_channels: array of ints (default: [0, 1, 2, 3])</strong></dt><dd><p>the channel ids to use for the electric field reconstruction
-default: 0 - 3</p>
+<dt><strong>use_channels: array of ints</strong></dt><dd><p>The channel ids to use for the electric field reconstruction</p>
 </dd>
-<dt><strong>bandpass: [float, float] (default: [100 * units.MHz, 500 * units.MHz])</strong></dt><dd><p>the lower and upper frequecy for which the analytic pulse is calculated.
-A butterworth filter of 10th order and a rectangular filter is applied.
-default 100 - 500 MHz</p>
+<dt><strong>bandpass: [float, float]</strong></dt><dd><p>The lower and upper frequecy for which the analytic pulse is calculated.
+A butterworth filter of 10th order and a rectangular filter is applied.</p>
 </dd>
 <dt><strong>use_MC_direction: bool</strong></dt><dd><p>use simulated direction instead of reconstructed direction</p>
 </dd>
