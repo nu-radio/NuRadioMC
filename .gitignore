@@ -153,3 +153,4 @@ NuRadioReco/examples/Interactive/data/
 
 # Simulation output
 NuRadioMC/examples/simulate_effective_ice_temperature/*.json
+NuRadioMC/examples/simulate_effective_ice_temperature/__output_tempfile.h5
