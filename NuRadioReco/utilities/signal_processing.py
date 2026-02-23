@@ -26,6 +26,7 @@ See Also
 from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft, trace_utilities, constants
 
 from NuRadioReco.detector import filterresponse
+from NuRadioReco.detector.response import Response
 import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
@@ -674,7 +675,7 @@ def get_channel_voltage_from_efield(
 
 
 
-def window_response_in_time_domain(resp, freqs=None, sampling_rate=5 * units.GHz, t0=2 * units.microsecond, min_diff=0.005, max_t_diff=5 * units.ns, min_island_length=1 * units.ns, show_debug=False):
+def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * units.microsecond, min_diff=0.005, max_t_diff=5 * units.ns, min_island_length=1 * units.ns, show_debug=False, freqs=None):
     """ Windows a response in the time domain (i.e., sets the response to 0 outside a window).
 
     This function takes the reponse in the time domain, identifies the relevant region of the response,
@@ -690,8 +691,6 @@ def window_response_in_time_domain(resp, freqs=None, sampling_rate=5 * units.GHz
     ----------
     resp: NuRadioReco.detector.response.Response or callable(freqs) or spectrum -> complex response
         The response function or spectrum to be windowed. If spectrum, freqs must be supplied.
-    freqs: array of float (default: None)
-        The array of frequencies used to generate the spectrum of resp.
     sampling_rate: float (default: 5 * units.GHz)
         For conversion in time domain, i.e., the sampling rate to evaluate the response in the time domain.
     t0: float (default: 2 * units.microsecond)
@@ -705,6 +704,9 @@ def window_response_in_time_domain(resp, freqs=None, sampling_rate=5 * units.GHz
         The minimum length of an island to be considered significant.
     show_debug: bool (default: False)
         If True, show the debug plots.
+    freqs: array of float (default: None)
+        The array of frequencies used to generate the spectrum of resp. Required if resp is not a Response object or callable,
+        i.e., if resp is already a spectrum. If resp is a Response object, freqs will be generated automatically from t0 and sampling_rate.
 
     Returns
     -------
@@ -712,7 +714,7 @@ def window_response_in_time_domain(resp, freqs=None, sampling_rate=5 * units.GHz
         The windowed response function or spectrum.
     """
 
-    if isinstance(resp, NuRadioReco.detector.response.Response):
+    if isinstance(resp, Response) or callable(resp):
         spec = resp(freqs)
         input_response = True
         num_samples = int(t0 * sampling_rate)
@@ -910,8 +912,3 @@ def impulse_response_using_hilbert_phase(response, frequencies, left_time_shift=
         plt.show()
 
     return combo_resp, combo, times
-
-
-
-
-
