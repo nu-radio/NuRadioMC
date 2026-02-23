@@ -64,7 +64,6 @@ if __name__ == "__main__":
 
 
     fig, axs = plt.subplots(3, 4, figsize=(8, 4.5), sharex='col', sharey='col', layout='constrained')
-    fig.get_layout_engine().set(h_pad=0, hspace=0)
     bandpass_kwargs = dict(passband=[80*units.MHz, 500*units.MHz], filter_type='butterabs')
 
     diff_trace = BaseTrace() # store the difference
