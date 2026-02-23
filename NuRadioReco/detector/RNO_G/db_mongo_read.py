@@ -193,6 +193,13 @@ class Database(object):
 
     def get_detector_time(self):
         return self.__detector_time
+    
+    def check_database_time(self):
+        if self.__database_time is None:
+            self.set_database_time(datetime.datetime.now(tz=datetime.timezone.utc))
+            logger.warning("Database time is not set, setting to current time.")
+        else:
+            logger.info(f"Database time is set to {self.__database_time}.")
 
     def find_primary_measurement(self, collection_name, name, primary_time, identification_label, data_dict):
         """
