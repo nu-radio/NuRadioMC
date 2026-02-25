@@ -1105,13 +1105,13 @@ class Database(object):
                     component_data = self.get_time_dependent_factor(
                         collection=component_entry["collection"], search_id=component_entry["id"])
 
-                    if "time_dependent_template" in component_data.keys():
-                        template_name = component_data["time_dependent_template"]["name"]
+                    if "template_response" in component_data.keys():
+                        template_name = component_data["template_response"]["name"]
                         component_data_template = {"collection": "full_chain"}
                         component_data_template["name"] = template_name
                         component_data_template.update(self.get_component_data(
                             collection_name="full_chain",
-                            component_name=component_data["time_dependent_template"]["name"],
+                            component_name=component_data["template_response"]["name"],
                             sparameter="S21",
                             verbose=verbose))
                     else:
