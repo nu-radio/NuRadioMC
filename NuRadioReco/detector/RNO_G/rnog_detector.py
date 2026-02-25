@@ -382,7 +382,10 @@ class Detector():
 
     def _check_update_buffer(self):
         """
-        Checks whether the correct detector description per station in in the current period.
+        Checks, per station, whether the current description is "still" in the correct period.
+        I.e., it should detect if the period changed. Periods are defined by the modification timestamps
+        of the station/channels/calibrations/... (de)commissioning. If the period changed, the buffer needs
+        to be updated by querying the new station information from the database.
 
         Returns
         -------
@@ -397,11 +400,10 @@ class Detector():
                                  [dt.timestamp() for dt in
                                   self._time_periods_per_station[station_id]["modification_timestamps"]])
 
-            if period != self._time_period_index_per_station[station_id]:
-                need_update[station_id] = True
-            else:
-                need_update[station_id] = False
+            # update station if periods do not match
+            need_update[station_id] = not (period == self._time_period_index_per_station[station_id])
 
+            # update period for next check (this means we have to update buffer immediately ...)
             self._time_period_index_per_station[station_id] = period
 
         debug_str = "The following stations need to be updated:"
@@ -448,8 +450,18 @@ class Detector():
 
     def update(self, time):
         """
-        Updates the detector. If configure in constructor this function with trigger the
-        database query.
+        Updates the detector. Queries the database for new information if necessary.
+
+        Notes
+        -----
+        A station's description is updated if a change in the detector description is detected. The check
+        is perfomed by `_check_update_buffer` which checks if the current detector time is still in the
+        same "period" as the buffered description. Periods are defined by the modification timestamps of
+        the station/channels/calibrations/... (de)commissioning timestamps. If the period changed, the buffer needs
+        to be updated by querying the new station information from the database. The modification timestamps for each
+        station are queried at class initialization with `self.__db.query_modification_timestamps_per_station()` and
+        stored in `self._time_periods_per_station`. The current period for each station is tracked with
+        `self._time_period_index_per_station` and updated inside `_check_update_buffer()`.
 
         Parameters
         ----------
