@@ -898,17 +898,16 @@ z-coordinate is automatically set to the observation level of the simulation.</p
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>This function uses the core position of the original shower to perform the transformation which, typically,
+has zero x and y coordinates (i.e., [0, 0, altitude]). Hence, <em class="xref py py-obj">position_on_ground</em> is expected to be relative
+to the shower-core for which you want to perform the interpolation.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_efield_value">
 <span class="sig-name descname"><span class="pre">get_interp_efield_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position_on_ground</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs_transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'no_transform'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.get_interp_efield_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_efield_value" title="Link to this definition"></a></dt>
 <dd><p>Calculate the interpolated electric field given an antenna position on ground.</p>
-<p>If the geomagnetic angle is smaller than 15deg,
-the electric field of the closest observer position is returned instead.</p>
-<p>Note that <em class="xref py py-obj">position_on_ground</em> is in absolute coordinates, not relative to the core position.
-Extrapolation outside of the starshape is handled by the <code class="docutils literal notranslate"><span class="pre">cr-pulse-interpolator</span></code> package (see
-also the description of <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> in <a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_efield_interpolator</span></code></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -933,15 +932,19 @@ If ‘sky_to_ground’, the electric field is transformed to the ground coordina
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>If the geomagnetic angle is smaller than 15deg,
+the electric field of the closest observer position is returned instead.</p>
+<p>Note that <em class="xref py py-obj">position_on_ground</em> is in relative coordinates (in x and y), relative to the shower-core for
+which you want to perform the interpolation. The z-coordinate should be absolute, i.e., the height above sea level.
+Extrapolation outside of the starshape is handled by the <code class="docutils literal notranslate"><span class="pre">cr-pulse-interpolator</span></code> package (see
+also the description of <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> in <a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_efield_interpolator</span></code></a>).</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_fluence_value">
 <span class="sig-name descname"><span class="pre">get_interp_fluence_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position_on_ground</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreasInterpolator.html#coreasInterpolator.get_interp_fluence_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_fluence_value" title="Link to this definition"></a></dt>
 <dd><p>Calculate the interpolated fluence for a given position on the ground.</p>
-<p>Note that <code class="docutils literal notranslate"><span class="pre">position_on_ground</span></code> is in absolute coordinates, not relative to the core position.
-Extrapolation outside of the starshape is handled by the <code class="docutils literal notranslate"><span class="pre">cr-pulse-interpolator</span></code> package (see
-also the description of <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> in <a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_fluence_interpolator</span></code></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -958,6 +961,11 @@ z-coordinate is automatically set to the observation level of the simulation.</p
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Note that <em class="xref py py-obj">position_on_ground</em> is in relative coordinates (in x and y), relative to the shower-core for
+which you want to perform the interpolation. The z-coordinate should be absolute, i.e., the height above sea level.
+Extrapolation outside of the starshape is handled by the <code class="docutils literal notranslate"><span class="pre">cr-pulse-interpolator</span></code> package (see
+also the description of <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> in <a class="reference internal" href="#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_fluence_interpolator</span></code></a>).</p>
 </dd></dl>
 
 <dl class="py method">

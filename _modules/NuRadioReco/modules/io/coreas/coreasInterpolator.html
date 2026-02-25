@@ -1051,6 +1051,12 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transform the position of the antenna on ground to the shower plane.</span>
 
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This function uses the core position of the original shower to perform the transformation which, typically,</span>
+<span class="sd">        has zero x and y coordinates (i.e., [0, 0, altitude]). Hence, `position_on_ground` is expected to be relative</span>
+<span class="sd">        to the shower-core for which you want to perform the interpolation.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        position_on_ground : np.ndarray</span>
@@ -1084,10 +1090,13 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the interpolated electric field given an antenna position on ground.</span>
 
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
 <span class="sd">        If the geomagnetic angle is smaller than 15deg,</span>
 <span class="sd">        the electric field of the closest observer position is returned instead.</span>
 
-<span class="sd">        Note that `position_on_ground` is in absolute coordinates, not relative to the core position.</span>
+<span class="sd">        Note that `position_on_ground` is in relative coordinates (in x and y), relative to the shower-core for</span>
+<span class="sd">        which you want to perform the interpolation. The z-coordinate should be absolute, i.e., the height above sea level.</span>
 <span class="sd">        Extrapolation outside of the starshape is handled by the ``cr-pulse-interpolator`` package (see</span>
 <span class="sd">        also the description of ``kwargs`` in `initialize_efield_interpolator`).</span>
 
@@ -1152,7 +1161,10 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the interpolated fluence for a given position on the ground.</span>
 
-<span class="sd">        Note that ``position_on_ground`` is in absolute coordinates, not relative to the core position.</span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Note that `position_on_ground` is in relative coordinates (in x and y), relative to the shower-core for</span>
+<span class="sd">        which you want to perform the interpolation. The z-coordinate should be absolute, i.e., the height above sea level.</span>
 <span class="sd">        Extrapolation outside of the starshape is handled by the ``cr-pulse-interpolator`` package (see</span>
 <span class="sd">        also the description of ``kwargs`` in `initialize_fluence_interpolator`).</span>
 
