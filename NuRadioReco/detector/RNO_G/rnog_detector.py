@@ -1088,8 +1088,8 @@ class Detector():
 
             position_id = self.__buffered_stations[station_id]["devices"][device_id]["id_position"]
 
-            device_pos_info = self.__db.get_device_position(
-                device_position_id=position_id)
+            device_pos_info = self.__db.get_position(
+                position_id=position_id, component="device")
             self.__buffered_stations[station_id]["devices"][device_id]['device_position'] = device_pos_info
 
         return np.array(self.__buffered_stations[station_id]["devices"][device_id]["device_position"]["position"])
