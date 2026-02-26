@@ -4,6 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Store shower Xmax in simulated shower when simulating with ARZ Askaryan emission models.
 - Added the option to use custom (user-specified) amplifiers. Custom amplifiers can be provided as .csv files
   under NuRadioReco/detector/amps/custom.
 - Added elevation to detector sites, and a corresponding `get_site_elevation` method to the `Detector` class. Altitudes were obtained
