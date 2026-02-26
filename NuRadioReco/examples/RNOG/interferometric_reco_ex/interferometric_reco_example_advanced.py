@@ -244,8 +244,8 @@ def get_sim_truth_fixed_coord(config, event_object, pa_pos_abs):
     r_rel_PA = np.sqrt(x_rel_PA**2 + y_rel_PA**2 + z_rel_PA**2)
     
     zenith_rel_PA = np.degrees(np.arccos(z_rel_PA / r_rel_PA))
-    azimuth_rel_PA = np.degrees(np.arctan2(y_rel_PA, x_rel_PA)) % 360
-    
+    azimuth_rel_PA = np.arctan2(y_rel_PA, x_rel_PA) % (2 * np.pi)
+
     if config['coord_system'] == 'cylindrical':
         if config['rec_type'] == 'rhoz':
             return azimuth_rel_PA
@@ -253,7 +253,7 @@ def get_sim_truth_fixed_coord(config, event_object, pa_pos_abs):
             return rho_rel_PA
     elif config['coord_system'] == 'spherical':
         if config['rec_type'] == 'phitheta':
-            return r_rel_PA    
+            return r_rel_PA
 
 def calculate_channel_snr(trace):
     """
@@ -564,7 +564,8 @@ def run_two_stage_reconstruction(reco, event, event_station, det, config, pa_pos
     stage1_config = config.copy()
     stage1_config['limits'] = [0, 200, -200, 0]
     #stage1_config['limits'] = [0, 1000, -900, 200]
-    stage1_config['channels'] = [0, 1, 2, 3, 5, 6, 7]
+    # Use only channels that have loaded interpolators (subset of preferred channels)
+    stage1_config['channels'] = [ch for ch in [0, 1, 2, 3, 5, 6, 7] if ch in reco._interpolators]
     #stage1_config['step_sizes'] = [2, 2]
     stage1_config['fixed_coord'] = 0
     stage1_config['coord_system'] = 'cylindrical'
@@ -769,13 +770,14 @@ def main():
     reco = interferometricDirectionReconstruction()
     
     # Initialize detector description
-    # Option 1: Load from JSON file (uncomment if using local detector file)
-    #det = detector.Detector(json_filename=config['detector_json'])
-    # Option 2: Load from MongoDB (default for RNO-G)
-    
-    #detectorpath = "/storage/group/szw5718/default/rno-g/data/calibrated_stations/station11/station_11.json"
-    #det = NuRadioReco.detector.RNO_G.rnog_detector.Detector(detector_file = detectorpath)
-    det = detector.Detector(source="rnog_mongo")
+    detector_json = config.get('detector_json', None)
+    if detector_json:
+        import NuRadioReco.detector.RNO_G.rnog_detector as rnog_detector
+        det = rnog_detector.Detector(detector_file=detector_json)
+        logger.info("Loaded detector from JSON: %s", detector_json)
+    else:
+        det = detector.Detector(source="rnog_mongo")
+        logger.info("Loaded detector from MongoDB")
     det.update(datetime(2024, 3, 1))
     station_id = config.get('station_id')
     
@@ -817,7 +819,10 @@ def main():
         print(f"[File {file_idx}/{len(input_files)}] {os.path.basename(input_file)}", flush=True)
         logger.info(f"Processing file {file_idx}/{len(input_files)}: {input_file}")
         
-        reader.begin(input_file)
+        if is_nur_file:
+            reader.begin(input_file)
+        else:
+            reader.begin(input_file, mattak_kwargs={'read_daq_status': False})
 
         # --event-ids: exact (run, event) pairs, bypass all run/event filtering
         if exact_event_ids is not None:
@@ -969,18 +974,17 @@ def main():
                     # For multiple events (e.g., burn sample), save one file per run with all events
                     single_event_mode = args.events is not None and len(args.events) == 1
                     include_event_in_path = single_event_mode or args.output_type == 'nur'
-                    # Use run in path if filtering by run, or if file_id is not provided
-                    use_run_in_path = (args.runs is not None or args.events is not None or args.output_type == 'nur') and args.file_id is None
+                    use_run_in_path = args.file_id is None
                     
                     print(f"[DEBUG] single_event_mode={single_event_mode}, include_event_in_path={include_event_in_path}", flush=True)
                     print(f"[DEBUG] use_run_in_path={use_run_in_path}, args.file_id={args.file_id}", flush=True)
                     
                     results_path, maps_dir = create_organized_paths(
-                        config, 
-                        run_number if use_run_in_path else args.file_id,  # Use file_id instead of run_number when available
-                        args.output_type, 
-                        event_number=event_number if include_event_in_path else None,
-                        use_run_in_path=use_run_in_path or args.file_id is not None  # Treat file_id like run for path organization
+                        config,
+                        (run_number if use_run_in_path else args.file_id,
+                         event_number if include_event_in_path else None),
+                        args.output_type,
+                        use_run_in_path=use_run_in_path or args.file_id is not None
                     )
                     print(f"[DEBUG] results_path set to: {results_path}", flush=True)
                     print(f"[DEBUG] maps_dir set to: {maps_dir}", flush=True)
@@ -1089,6 +1093,7 @@ def main():
             # Get event-specific fixed_coord if using per-event values
             if args.sim_truth_fixed_coord:
                 event_config['fixed_coord'] = get_sim_truth_fixed_coord(event_config, event, pa_pos_abs)
+                reco.clear_delay_matrix_cache()
                     
             # Run interferometric direction reconstruction
             # Priority: plane wave fallback > auto mode > manual mode
@@ -1161,9 +1166,9 @@ def main():
                         result_row["phi"] = rec_coord_0 / units.deg
                         result_row["z"] = rec_coord_1 / units.m
 
-                        if not np.isnan(rec_coord0_alt) and not np.isnan(rec_coord1_alt):
-                            result_row["phi_alt"] = rec_coord0_alt / units.deg
-                            result_row["z_alt"] = rec_coord1_alt / units.m
+                        if not np.isnan(rec_coord_0_alt) and not np.isnan(rec_coord_1_alt):
+                            result_row["phi_alt"] = rec_coord_0_alt / units.deg
+                            result_row["z_alt"] = rec_coord_1_alt / units.m
                         else:
                             result_row["phi_alt"] = np.nan
                             result_row["z_alt"] = np.nan
