@@ -521,8 +521,8 @@ class CorrelationMapPlotter:
                 results_group = f['results']
                 
                 # Get arrays from HDF5
-                reco_run_numbers = results_group['run_number'][:]
-                reco_event_numbers = results_group['event_number'][:]
+                reco_run_numbers = results_group['runNum'][:] if 'runNum' in results_group else results_group['run_number'][:]
+                reco_event_numbers = results_group['eventNum'][:] if 'eventNum' in results_group else results_group['event_number'][:]
                 filenames = results_group['filename'][:]
                 
                 # Find the row matching our run_number and event_number
