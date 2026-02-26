@@ -1272,63 +1272,62 @@
         <span class="c1"># to the Cherenkov angle, but NuRadioMC will reuse the shower realization of the first ray tracing solution.</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">theta</span> <span class="o">-</span> <span class="n">cherenkov_angle</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">maximum_angle</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;viewing angle </span><span class="si">{</span><span class="n">theta</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">deg is more than </span><span class="si">{</span><span class="n">maximum_angle</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">deg away from the Cherenkov cone. Returning zero trace.&quot;</span><span class="p">)</span>
-            <span class="n">empty_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">empty_trace</span>
+            <span class="n">trace_onsky</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># get the appropriate model parameters</span>
+            <span class="k">if</span> <span class="n">shower_type</span> <span class="o">==</span> <span class="s2">&quot;HAD&quot;</span><span class="p">:</span>
+                <span class="n">model_parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">Af</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Af_p</span><span class="p">,</span>
+                    <span class="n">t0_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t0_p_pos</span><span class="p">,</span>
+                    <span class="n">freq_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq_p_pos</span><span class="p">,</span>
+                    <span class="n">exp_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exp_p_pos</span><span class="p">,</span>
+                    <span class="n">t0_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t0_p_neg</span><span class="p">,</span>
+                    <span class="n">freq_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq_p_neg</span><span class="p">,</span>
+                    <span class="n">exp_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exp_p_neg</span>
+                <span class="p">)</span>
+                <span class="n">em_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">em_fraction</span><span class="p">(</span><span class="n">shower_energy</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">shower_type</span> <span class="o">==</span> <span class="s2">&quot;EM&quot;</span><span class="p">:</span>
+                <span class="n">model_parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">Af</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Af_e</span><span class="p">,</span>
+                    <span class="n">t0_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t0_e_pos</span><span class="p">,</span>
+                    <span class="n">freq_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq_e_pos</span><span class="p">,</span>
+                    <span class="n">exp_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exp_e_pos</span><span class="p">,</span>
+                    <span class="n">t0_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t0_e_neg</span><span class="p">,</span>
+                    <span class="n">freq_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq_e_neg</span><span class="p">,</span>
+                    <span class="n">exp_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exp_e_neg</span>
+                <span class="p">)</span>
+                <span class="n">em_factor</span> <span class="o">=</span> <span class="mf">1.</span>
+            <span class="k">elif</span><span class="p">(</span><span class="n">shower_type</span> <span class="o">==</span> <span class="s2">&quot;TAU&quot;</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Tau showers are not yet implemented&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Tau showers are not yet implemented&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;showers of type </span><span class="si">{}</span><span class="s2"> are not implemented. Use &#39;HAD&#39;, &#39;EM&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shower_type</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_numba</span><span class="p">:</span>
+                <span class="n">vp</span> <span class="o">=</span> <span class="n">get_vector_potential_numba</span><span class="p">(</span>
+                    <span class="n">shower_energy</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">profile_depth</span><span class="p">,</span> <span class="n">profile_ce</span><span class="p">,</span>
+                    <span class="n">shower_type</span><span class="o">=</span><span class="n">shower_type</span><span class="p">,</span> <span class="n">n_index</span><span class="o">=</span><span class="n">n_index</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">R</span><span class="p">,</span>
+                    <span class="n">interp_factor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_interp_factor</span><span class="p">,</span> <span class="n">interp_factor2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_interp_factor2</span><span class="p">,</span>
+                    <span class="n">shift_for_xmax</span><span class="o">=</span><span class="n">shift_for_xmax</span><span class="p">,</span> <span class="o">**</span><span class="n">model_parameters</span><span class="p">,</span> <span class="n">em_factor</span><span class="o">=</span><span class="n">em_factor</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">vp</span> <span class="o">=</span> <span class="n">get_vector_potential</span><span class="p">(</span>
+                    <span class="n">shower_energy</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">profile_depth</span><span class="p">,</span> <span class="n">profile_ce</span><span class="p">,</span>
+                    <span class="n">shower_type</span><span class="o">=</span><span class="n">shower_type</span><span class="p">,</span> <span class="n">n_index</span><span class="o">=</span><span class="n">n_index</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">R</span><span class="p">,</span>
+                    <span class="n">interp_factor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_interp_factor</span><span class="p">,</span> <span class="n">interp_factor2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_interp_factor2</span><span class="p">,</span>
+                    <span class="n">shift_for_xmax</span><span class="o">=</span><span class="n">shift_for_xmax</span><span class="p">,</span> <span class="o">**</span><span class="n">model_parameters</span><span class="p">,</span> <span class="n">em_factor</span><span class="o">=</span><span class="n">em_factor</span>
+                <span class="p">)</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">vp</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">dt</span>
 
-        <span class="c1"># get the appropriate model parameters</span>
-        <span class="k">if</span> <span class="n">shower_type</span> <span class="o">==</span> <span class="s2">&quot;HAD&quot;</span><span class="p">:</span>
-            <span class="n">model_parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-                <span class="n">Af</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Af_p</span><span class="p">,</span>
-                <span class="n">t0_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t0_p_pos</span><span class="p">,</span>
-                <span class="n">freq_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq_p_pos</span><span class="p">,</span>
-                <span class="n">exp_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exp_p_pos</span><span class="p">,</span>
-                <span class="n">t0_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t0_p_neg</span><span class="p">,</span>
-                <span class="n">freq_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq_p_neg</span><span class="p">,</span>
-                <span class="n">exp_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exp_p_neg</span>
-            <span class="p">)</span>
-            <span class="n">em_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">em_fraction</span><span class="p">(</span><span class="n">shower_energy</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">shower_type</span> <span class="o">==</span> <span class="s2">&quot;EM&quot;</span><span class="p">:</span>
-            <span class="n">model_parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-                <span class="n">Af</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Af_e</span><span class="p">,</span>
-                <span class="n">t0_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t0_e_pos</span><span class="p">,</span>
-                <span class="n">freq_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq_e_pos</span><span class="p">,</span>
-                <span class="n">exp_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exp_e_pos</span><span class="p">,</span>
-                <span class="n">t0_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t0_e_neg</span><span class="p">,</span>
-                <span class="n">freq_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq_e_neg</span><span class="p">,</span>
-                <span class="n">exp_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exp_e_neg</span>
-            <span class="p">)</span>
-            <span class="n">em_factor</span> <span class="o">=</span> <span class="mf">1.</span>
-        <span class="k">elif</span><span class="p">(</span><span class="n">shower_type</span> <span class="o">==</span> <span class="s2">&quot;TAU&quot;</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Tau showers are not yet implemented&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Tau showers are not yet implemented&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;showers of type </span><span class="si">{}</span><span class="s2"> are not implemented. Use &#39;HAD&#39;, &#39;EM&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shower_type</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_numba</span><span class="p">:</span>
-            <span class="n">vp</span> <span class="o">=</span> <span class="n">get_vector_potential_numba</span><span class="p">(</span>
-                <span class="n">shower_energy</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">profile_depth</span><span class="p">,</span> <span class="n">profile_ce</span><span class="p">,</span>
-                <span class="n">shower_type</span><span class="o">=</span><span class="n">shower_type</span><span class="p">,</span> <span class="n">n_index</span><span class="o">=</span><span class="n">n_index</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">R</span><span class="p">,</span>
-                <span class="n">interp_factor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_interp_factor</span><span class="p">,</span> <span class="n">interp_factor2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_interp_factor2</span><span class="p">,</span>
-                <span class="n">shift_for_xmax</span><span class="o">=</span><span class="n">shift_for_xmax</span><span class="p">,</span> <span class="o">**</span><span class="n">model_parameters</span><span class="p">,</span> <span class="n">em_factor</span><span class="o">=</span><span class="n">em_factor</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">vp</span> <span class="o">=</span> <span class="n">get_vector_potential</span><span class="p">(</span>
-                <span class="n">shower_energy</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">profile_depth</span><span class="p">,</span> <span class="n">profile_ce</span><span class="p">,</span>
-                <span class="n">shower_type</span><span class="o">=</span><span class="n">shower_type</span><span class="p">,</span> <span class="n">n_index</span><span class="o">=</span><span class="n">n_index</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">R</span><span class="p">,</span>
-                <span class="n">interp_factor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_interp_factor</span><span class="p">,</span> <span class="n">interp_factor2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_interp_factor2</span><span class="p">,</span>
-                <span class="n">shift_for_xmax</span><span class="o">=</span><span class="n">shift_for_xmax</span><span class="p">,</span> <span class="o">**</span><span class="n">model_parameters</span><span class="p">,</span> <span class="n">em_factor</span><span class="o">=</span><span class="n">em_factor</span>
-            <span class="p">)</span>
-        <span class="n">trace</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">vp</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">dt</span>
-<span class="c1">#         trace = -np.gradient(vp, axis=0) / dt</span>
+            <span class="c1"># use viewing angle relative to shower maximum for rotation into spherical coordinate system (that reduced eR component)</span>
+            <span class="k">if</span> <span class="n">shift_for_xmax</span><span class="p">:</span>  <span class="c1"># if we shifted the observerposition already to be relative to Xmax, we don&#39;t need to do that here.</span>
+                <span class="n">thetaprime</span> <span class="o">=</span> <span class="n">theta</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">thetaprime</span> <span class="o">=</span> <span class="n">theta_to_thetaprime</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">R</span><span class="p">)</span>
+            <span class="n">cs</span> <span class="o">=</span> <span class="n">cstrafo</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="n">zenith</span><span class="o">=</span><span class="n">thetaprime</span><span class="p">,</span> <span class="n">azimuth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">trace_onsky</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_from_ground_to_onsky</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
 
-        <span class="c1"># use viewing angle relative to shower maximum for rotation into spherical coordinate system (that reduced eR component)</span>
-        <span class="k">if</span> <span class="n">shift_for_xmax</span><span class="p">:</span>  <span class="c1"># if we shifted the observerposition already to be relative to Xmax, we don&#39;t need to do that here.</span>
-            <span class="n">thetaprime</span> <span class="o">=</span> <span class="n">theta</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">thetaprime</span> <span class="o">=</span> <span class="n">theta_to_thetaprime</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">R</span><span class="p">)</span>
-        <span class="n">cs</span> <span class="o">=</span> <span class="n">cstrafo</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="n">zenith</span><span class="o">=</span><span class="n">thetaprime</span><span class="p">,</span> <span class="n">azimuth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">trace_onsky</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_from_ground_to_onsky</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">if</span><span class="p">(</span><span class="n">output_mode</span> <span class="o">==</span> <span class="s1">&#39;full&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">trace_onsky</span><span class="p">,</span> <span class="n">profile_depth</span><span class="p">,</span> <span class="n">profile_ce</span>
         <span class="k">elif</span><span class="p">(</span><span class="n">output_mode</span> <span class="o">==</span> <span class="s1">&#39;Xmax&#39;</span><span class="p">):</span>
