@@ -455,13 +455,13 @@ class Detector():
         Notes
         -----
         A station's description is updated if a change in the detector description is detected. The check
-        is perfomed by `_check_update_buffer` which checks if the current detector time is still in the
+        is perfomed by `self._check_update_buffer` which checks if the current detector time is still in the
         same "period" as the buffered description. Periods are defined by the modification timestamps of
         the station/channels/calibrations/... (de)commissioning timestamps. If the period changed, the buffer needs
         to be updated by querying the new station information from the database. The modification timestamps for each
         station are queried at class initialization with `self.__db.query_modification_timestamps_per_station()` and
         stored in `self._time_periods_per_station`. The current period for each station is tracked with
-        `self._time_period_index_per_station` and updated inside `_check_update_buffer()`.
+        `self._time_period_index_per_station` and updated inside `self._check_update_buffer`.
 
         Parameters
         ----------
