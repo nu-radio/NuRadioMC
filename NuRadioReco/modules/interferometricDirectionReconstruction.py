@@ -235,7 +235,7 @@ class interferometricDirectionReconstruction():
         return time_delay_matrices
     
     @staticmethod
-    def _correlator(times, v_array_pairs, delay_matrices, apply_hann_window=False, use_hilbert=False):
+    def _correlator(times, v_array_pairs, delay_matrices, apply_hann_window=False, hilbert_envelope_mode=None):
         """
         Compute correlation between channel pairs given time delay matrices.
         """
@@ -270,9 +270,9 @@ class interferometricDirectionReconstruction():
             t1, t2 = times[ch1_idx], times[ch2_idx]
             dt = min(dts[ch1_idx], dts[ch2_idx])
             
-            # if use_hilbert:
-            #     v1 = np.abs(hilbert(v1))
-            #     v2 = np.abs(hilbert(v2))
+            if hilbert_envelope_mode == "traces":
+                v1 = np.abs(hilbert(v1))
+                v2 = np.abs(hilbert(v2))
             
             # Vectorized normalization
             mean1 = v1.mean()
@@ -291,7 +291,7 @@ class interferometricDirectionReconstruction():
             # Compute correlation
             corr = correlate(v1_normalized, v2_normalized, mode='full', method='auto')
             
-            if use_hilbert:
+            if hilbert_envelope_mode == "correlation":
                 corr = np.abs(hilbert(corr))
             
             # Normalize by overlap
@@ -489,10 +489,13 @@ class interferometricDirectionReconstruction():
         v_array_pairs = list(itertools.combinations(volt_arrays, 2))
         logger.debug("Prepared %d voltage arrays and %d pairs for correlation", len(volt_arrays), len(v_array_pairs))
 
+        # hilbert_envelope_mode: None, "traces", or "correlation"
+        hilbert_mode = config.get('hilbert_envelope_mode', None)
+
         pair_corr_matrices, corr_matrix, max_corr = self._correlator(
             time_arrays, v_array_pairs, delay_matrices,
             apply_hann_window=config.get('apply_hann_window', False),
-            use_hilbert=config.get('use_hilbert_envelope', False)
+            hilbert_envelope_mode=hilbert_mode,
         )
         logger.debug("Correlation matrix shape: %s, max_corr: %s", np.shape(corr_matrix), str(max_corr))
         
@@ -543,10 +546,7 @@ class interferometricDirectionReconstruction():
             map_kwargs['rec_coord_0'] = rec_coord0
             map_kwargs['rec_coord_1'] = rec_coord1
             map_kwargs['rec_max_corr'] = max_corr
-            print(f"config rec type: {config['rec_type']}")
-            print(f"rec type: {rec_type}")
-            full_corr_map_save_path = save_corr_map(corr_matrix, position_dict, evt=evt, config=config, save_dir=save_dir, **map_kwargs)
-            print(f"full corr map save path: {full_corr_map_save_path}")
+            full_corr_map_save_path = save_corr_map(corr_matrix, position_dict, event=evt, config=config, save_dir=save_dir, **map_kwargs)
             logger.debug("Saved full correlation map to %s (event %s)", save_dir, evt.get_id())
 
             logger.debug("save_pair_maps flag = %s", save_pair_maps)
@@ -571,7 +571,7 @@ class interferometricDirectionReconstruction():
                     pair_map_kwargs['pair_rec_coord_0'] = pair_rec_coord0
                     pair_map_kwargs['pair_rec_coord_1'] = pair_rec_coord1
                     pair_map_kwargs['pair_rec_max_corr'] = np.nanmax(pair_corr)
-                    _ = save_corr_map(pair_corr, position_dict, evt=evt, config=config, save_dir=pair_save_dir, **pair_map_kwargs)
+                    _ = save_corr_map(pair_corr, position_dict, event=evt, config=config, save_dir=pair_save_dir, **pair_map_kwargs)
                     logger.info("Saved pair map for channels %s-%s to %s", ch1, ch2, pair_save_dir)
         else:
             full_corr_map_save_path = None

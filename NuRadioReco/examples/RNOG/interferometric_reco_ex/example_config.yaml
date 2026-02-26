@@ -14,7 +14,7 @@ fixed_coord: 34
 # Additional OPTIONAL arguments (block offsets and voltage calibration automatically handled by ReadRNOGDataMattak)
 apply_upsampling: true
 apply_cw_removal: true
-use_hilbert_envelope: true
+hilbert_envelope_mode: "correlation"
 apply_bandpass: false
 apply_hann_window: false
 interp_mode: "linear"

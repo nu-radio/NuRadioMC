@@ -212,7 +212,7 @@ apply_upsampling: true           # Upsample waveforms to 5 GHz
 apply_bandpass: false             # Apply bandpass filter
 apply_cw_removal: false           # Remove CW interference
 apply_hann_window: false          # Apply Hann window to correlations
-use_hilbert_envelope: false       # Use Hilbert envelope for correlations
+hilbert_envelope_mode: null        # Hilbert envelope: null, "traces", or "correlation"
 
 # Alternate reconstruction options
 find_alternate_reco: false        # Find alternate reconstruction coordinates
@@ -327,7 +327,7 @@ The `--comprehensive` option creates a multi-panel visualization including:
 | `apply_bandpass` | bool | `false` | Apply 100-600 MHz bandpass filter |
 | `apply_cw_removal` | bool | `false` | Remove CW interference |
 | `apply_hann_window` | bool | `false` | Apply Hann window to correlations |
-| `use_hilbert_envelope` | bool | `false` | Use Hilbert envelope for correlations |
+| `hilbert_envelope_mode` | string/null | `null` | Hilbert envelope mode: `null` (disabled), `"traces"` (envelope traces before correlating), `"correlation"` (envelope the cross-correlation) |
 | `find_alternate_reco` | bool | `false` | Find alternate reconstruction coordinates |
 | `alternate_exclude_radius_deg` | float | `5.0` | Exclusion radius around primary maximum (degrees) |
 | `save_results_to` | string | `"./results/"` | Base directory for organized output structure |
@@ -411,7 +411,7 @@ time_delay_tables: "/path/to/tables/"
 apply_upsampling: true           # Upsample to 5 GHz
 apply_cw_removal: true           # Remove CW interference
 apply_hann_window: false         # Apply Hann window to correlations
-use_hilbert_envelope: true      # Use Hilbert envelope for correlations
+hilbert_envelope_mode: "correlation"  # Hilbert envelope: null, "traces", or "correlation"
 find_alternate_reco: true        # Find alternate reconstruction coordinates
 alternate_exclude_radius_deg: 20.0 # Exclusion radius around primary (degrees)
 ```
@@ -1024,7 +1024,7 @@ Additional correlation analysis options:
 
 ```yaml
 apply_hann_window: true          # Apply Hann window to reduce spectral leakage
-use_hilbert_envelope: true       # Use envelope correlation for better SNR
+hilbert_envelope_mode: "correlation"  # Envelope the cross-correlation for better SNR
 ```
 
 **Hann window:** Reduces edge effects in correlation by tapering the trace edges.
@@ -1252,7 +1252,7 @@ logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction").
 - Verify channel selection
 - Adjust search grid (`limits`, `step_sizes`)
 - Try different `fixed_coord` value, or use `mode: 'auto'` (advanced script)
-- Consider using `use_hilbert_envelope: true` for better correlation
+- Consider using `hilbert_envelope_mode: "correlation"` for better correlation
 - Check for edge signals with `--edge-sigma` (advanced script)
 
 ### Slow performance

@@ -23,7 +23,7 @@ step_sizes: [0.5, 0.5]      # Stage 1 step sizes (rho, z) in meters
 # Signal processing options (apply to both stages)
 apply_upsampling: true
 apply_cw_removal: true
-use_hilbert_envelope: true
+hilbert_envelope_mode: "correlation"
 apply_bandpass: false
 apply_hann_window: false
 interp_method: "linear"
