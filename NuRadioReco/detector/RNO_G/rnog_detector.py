@@ -951,13 +951,14 @@ class Detector():
                     y_units = component_entry["gain_factor_unit"]
                     frequencies = None
                     time_delay = 0
+                    weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
 
                 elif component_entry['collection'] == "time_delays":
                     ydata = 1  # Fake gain factor of 1 in magitude (does nothing)
                     y_units = "mag"
                     frequencies = None
                     time_delay = component_entry["time_delay"] * getattr(units, component_entry["time_delay_unit"])
-
+                    weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
 
                 else:
                     # Get the response data
@@ -990,7 +991,6 @@ class Detector():
                             ydata[0] = np.asarray(ydata[0]) * 10 ** (attenuator / 20)
                         else:
                             raise KeyError
-
                 response = Response(
                     frequencies, ydata, y_units,
                     time_delay=time_delay, weight=weight,
