@@ -1634,13 +1634,14 @@
                     <span class="n">y_units</span> <span class="o">=</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;gain_factor_unit&quot;</span><span class="p">]</span>
                     <span class="n">frequencies</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="n">time_delay</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">weight</span> <span class="o">=</span> <span class="n">component_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># returns 1 as the default if weight is not included</span>
 
                 <span class="k">elif</span> <span class="n">component_entry</span><span class="p">[</span><span class="s1">&#39;collection&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;time_delays&quot;</span><span class="p">:</span>
                     <span class="n">ydata</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Fake gain factor of 1 in magitude (does nothing)</span>
                     <span class="n">y_units</span> <span class="o">=</span> <span class="s2">&quot;mag&quot;</span>
                     <span class="n">frequencies</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="n">time_delay</span> <span class="o">=</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;time_delay&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;time_delay_unit&quot;</span><span class="p">])</span>
-
+                    <span class="n">weight</span> <span class="o">=</span> <span class="n">component_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># returns 1 as the default if weight is not included</span>
 
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># Get the response data</span>
@@ -1673,7 +1674,6 @@
                             <span class="n">ydata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ydata</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">attenuator</span> <span class="o">/</span> <span class="mi">20</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="k">raise</span> <span class="ne">KeyError</span>
-
                 <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span>
                     <span class="n">frequencies</span><span class="p">,</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">y_units</span><span class="p">,</span>
                     <span class="n">time_delay</span><span class="o">=</span><span class="n">time_delay</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span>

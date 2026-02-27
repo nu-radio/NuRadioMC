@@ -793,25 +793,28 @@ a mongo server</p></li>
 <tr class="row-even"><td><p><strong>add_measurement_protocol</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>clone_collection_to_collection</strong></p></td>
+<tr class="row-odd"><td><p><strong>check_database_time</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>create_empty_collection</strong></p></td>
+<tr class="row-even"><td><p><strong>clone_collection_to_collection</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_collection_names</strong></p></td>
+<tr class="row-odd"><td><p><strong>create_empty_collection</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_database_time</strong></p></td>
+<tr class="row-even"><td><p><strong>get_collection_names</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_detector_time</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_database_time</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_object_names</strong></p></td>
+<tr class="row-even"><td><p><strong>get_detector_time</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_station_ids</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_object_names</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_station_ids</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -1155,6 +1158,11 @@ Only works for the following collections: gain_calibration</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.check_database_time">
+<span class="sig-name descname"><span class="pre">check_database_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database.check_database_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.check_database_time" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.find_primary_measurement">
@@ -1525,7 +1533,7 @@ or what is specified (example: wanted_quantity = measurements.measurement_name)<
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_time_dependent_factor">
 <span class="sig-name descname"><span class="pre">get_time_dependent_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurement_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_primary_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/RNO_G/db_mongo_read.html#Database.get_time_dependent_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.RNO_G.db_mongo_write.Database.get_time_dependent_factor" title="Link to this definition"></a></dt>
-<dd><p>Get the time dependent factor for a given station and channel id for the current detector time. 
+<dd><p>Get the time dependent factor for a given station and channel id for the current detector time.
 Time dependent factors are quantities that have commissioning and decommissioning times (e.g., gain calibration values or time delays).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

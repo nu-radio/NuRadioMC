@@ -771,7 +771,7 @@
 <span class="sd">            If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_database_time</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_database_time</span><span class="p">()</span>
 
         <span class="c1"># close the time period of the old primary measurement</span>
         <span class="k">if</span> <span class="n">primary_measurement</span> <span class="ow">and</span> <span class="n">identification_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">[</span><span class="n">collection</span><span class="p">]</span><span class="o">.</span><span class="n">distinct</span><span class="p">(</span><span class="n">identification_key</span><span class="p">):</span>
@@ -826,7 +826,7 @@
 <span class="sd">            If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_database_time</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_database_time</span><span class="p">()</span>
 
         <span class="n">search_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">identification_key</span><span class="p">:</span> <span class="n">identification_value</span><span class="p">,</span>
                        <span class="s2">&quot;commission_time&quot;</span><span class="p">:</span> <span class="n">commission_time</span><span class="p">,</span>
@@ -1022,8 +1022,9 @@
 <span class="sd">        primary_end_time: datetime.datetime or None</span>
 <span class="sd">            If this argument is given, the end of the current primary measurement is set to this timestamp (instead of now).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">present_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+        <span class="c1"># Use database_time instead of current time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_database_time</span><span class="p">()</span>
+        <span class="n">present_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database_time</span><span class="p">()</span>
 
         <span class="c1"># find the current primary measurement</span>
         <span class="n">obj_id</span><span class="p">,</span> <span class="n">measurement_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_primary_measurement</span><span class="p">(</span>
