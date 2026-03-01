@@ -1029,8 +1029,8 @@ class Detector():
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
         signal_chain_components = {
-            key: value["weight"] for key, value in
-                signal_chain_dict['response_chain'].items()}
+            ele["name"]: ele["weight"] for ele in
+                signal_chain_dict['response_chain']}
 
         return signal_chain_components
 
