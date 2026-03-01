@@ -275,6 +275,45 @@ def calculate_channel_snr(trace):
     
     return snr
 
+def compute_snr_pair_weights(event_station, channels):
+    """
+    Compute geometric-mean SNR weights for all channel pairs.
+
+    For each pair (i, j), weight = sqrt(snr_i * snr_j).
+    Pairs where either channel has SNR <= 0 get weight 0.
+
+    Parameters
+    ----------
+    event_station : Station
+        Station object containing channel traces
+    channels : list
+        Channel IDs to use
+
+    Returns
+    -------
+    np.ndarray
+        Array of weights, one per pair in itertools.combinations order
+    """
+    channel_snrs = {}
+    for ch in channels:
+        try:
+            channel = event_station.get_channel(ch)
+            trace = channel.get_trace()
+            noise_rms = trace_utils.get_split_trace_noise_RMS(trace)
+            snr = trace_utils.get_signal_to_noise_ratio(trace, noise_rms)
+            channel_snrs[ch] = snr
+        except Exception:
+            channel_snrs[ch] = 0.0
+
+    weights = []
+    for ch1, ch2 in itertools.combinations(channels, 2):
+        snr1 = max(channel_snrs[ch1], 0.0)
+        snr2 = max(channel_snrs[ch2], 0.0)
+        weights.append(np.sqrt(snr1 * snr2))
+
+    return np.array(weights)
+
+
 def detect_edge_signal(trace, n_chunks=10, edge_threshold_sigma=3.0):
     """
     Detect if signal is cut off at edge of trace window.
@@ -483,6 +522,8 @@ def run_plane_wave_fallback(reco, event, event_station, det, config, save_maps, 
     # Create fallback config: spherical, channels 0-3, fixed r=10m, azimuth=0°, sweep zenith
     fallback_config = config.copy()
     fallback_config['channels'] = [0, 1, 2, 3]
+    if 'pair_weights' in fallback_config:
+        fallback_config['pair_weights'] = compute_snr_pair_weights(event_station, fallback_config['channels'])
     fallback_config['coord_system'] = 'spherical'
     fallback_config['rec_type'] = 'phitheta'
     fallback_config['fixed_coord'] = 10.0  # 10 meter radius (encompasses all 4 channels)
@@ -566,6 +607,8 @@ def run_two_stage_reconstruction(reco, event, event_station, det, config, pa_pos
     #stage1_config['limits'] = [0, 1000, -900, 200]
     # Use only channels that have loaded interpolators (subset of preferred channels)
     stage1_config['channels'] = [ch for ch in [0, 1, 2, 3, 5, 6, 7] if ch in reco._interpolators]
+    if 'pair_weights' in stage1_config:
+        stage1_config['pair_weights'] = compute_snr_pair_weights(event_station, stage1_config['channels'])
     #stage1_config['step_sizes'] = [2, 2]
     stage1_config['fixed_coord'] = 0
     stage1_config['coord_system'] = 'cylindrical'
@@ -709,6 +752,8 @@ def main():
                        help="SNR threshold for channel filtering. Channels below threshold are dropped. If no helper channels [9,10,22,23] pass threshold, event is skipped.")
     parser.add_argument("--edge-sigma", type=float, default=None,
                        help="Edge signal detection threshold in standard deviations. Channels with signals at trace edges exceeding this threshold are dropped. If no helper channels [9,10,22,23] remain, event is skipped.")
+    parser.add_argument("--snr-weighting", action="store_true",
+                       help="Weight channel pair correlations by geometric mean of per-channel SNR. Low-SNR pairs contribute less to the correlation map.")
     parser.add_argument("--file-id", type=str, default=None,
                        help="Unique identifier for this file (used for output filename when processing multiple files without run filtering). Typically a hash or index.")
 
@@ -1089,6 +1134,10 @@ def main():
             # Create event-specific config with filtered channels
             event_config = config.copy()
             event_config['channels'] = channels_to_use
+
+            # Compute SNR-based pair weights if requested
+            if args.snr_weighting:
+                event_config['pair_weights'] = compute_snr_pair_weights(event_station, channels_to_use)
 
             # Get event-specific fixed_coord if using per-event values
             if args.sim_truth_fixed_coord:

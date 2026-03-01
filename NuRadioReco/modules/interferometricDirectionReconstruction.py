@@ -235,7 +235,7 @@ class interferometricDirectionReconstruction():
         return time_delay_matrices
     
     @staticmethod
-    def _correlator(times, v_array_pairs, delay_matrices, apply_hann_window=False, hilbert_envelope_mode=None):
+    def _correlator(times, v_array_pairs, delay_matrices, apply_hann_window=False, hilbert_envelope_mode=None, pair_weights=None):
         """
         Compute correlation between channel pairs given time delay matrices.
         """
@@ -328,8 +328,16 @@ class interferometricDirectionReconstruction():
                     interp_corr = np.interp(valid_delays, time_lags, corr_normalized)
                     pair_corr_matrices_array[pair_idx][valid_mask] = interp_corr
         
-        # Aggregation: Use nansum divided by total number of pairs
-        mean_corr_matrix = np.nansum(pair_corr_matrices_array, axis=0) / n_pairs
+        # Aggregation: weighted or unweighted average across pairs
+        if pair_weights is not None:
+            w = np.asarray(pair_weights, dtype=np.float64)[:, np.newaxis, np.newaxis]
+            w_sum = np.nansum(w)
+            if w_sum > 0:
+                mean_corr_matrix = np.nansum(w * pair_corr_matrices_array, axis=0) / w_sum
+            else:
+                mean_corr_matrix = np.nansum(pair_corr_matrices_array, axis=0) / n_pairs
+        else:
+            mean_corr_matrix = np.nansum(pair_corr_matrices_array, axis=0) / n_pairs
         
         if np.all(np.isnan(mean_corr_matrix)):
             logger.warning("Mean correlation matrix is all NaN (no valid pair contributions)")
@@ -496,6 +504,7 @@ class interferometricDirectionReconstruction():
             time_arrays, v_array_pairs, delay_matrices,
             apply_hann_window=config.get('apply_hann_window', False),
             hilbert_envelope_mode=hilbert_mode,
+            pair_weights=config.get('pair_weights', None),
         )
         logger.debug("Correlation matrix shape: %s, max_corr: %s", np.shape(corr_matrix), str(max_corr))
         
