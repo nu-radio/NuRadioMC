@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import logging
+from scipy.fft import next_fast_len
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
@@ -23,6 +24,27 @@ class efieldToVoltageConverterPerEfield():
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverterPerEfield')
         self.logger.setLevel(log_level)
         self.antenna_provider = antennapattern.AntennaPatternProvider()
+        self._pre_pulse_time = 0.0
+        self._post_pulse_time = 0.0
+
+    def begin(self, pre_pulse_time=0.0, post_pulse_time=0.0):
+        """
+        Configure zero-padding for linear convolution.
+
+        When padding > 0, the E-field trace is zero-padded before FFT so that
+        the frequency-domain multiplication with the antenna response is
+        equivalent to linear (not circular) convolution. The result is cropped
+        back to the original trace length.
+
+        Parameters
+        ----------
+        pre_pulse_time : float
+            Time to zero-pad before the trace (in NuRadioReco units, i.e. ns)
+        post_pulse_time : float
+            Time to zero-pad after the trace (in NuRadioReco units, i.e. ns)
+        """
+        self._pre_pulse_time = float(pre_pulse_time)
+        self._post_pulse_time = float(post_pulse_time)
 
     @register_run()
     def run(self, evt, station, det):
@@ -67,24 +89,53 @@ class efieldToVoltageConverterPerEfield():
                                                                            ray_tracing_id=electric_field.get_ray_tracing_solution_id())
                 sim_channel[chp.signal_ray_type] = electric_field[efp.ray_path_type]
 
-                ff = electric_field.get_frequencies()
-                efield_fft = electric_field.get_frequency_spectrum()
+                sr = electric_field.get_sampling_rate()
+                dt = 1.0 / sr
+
+                efield_trace = electric_field.get_trace()  # shape (3, N)
+                N = efield_trace.shape[1]
+
+                n_pre = int(np.ceil(self._pre_pulse_time * sr))
+                n_post = int(np.ceil(self._post_pulse_time * sr))
+
+                if n_pre == 0 and n_post == 0:
+                    Npad = N
+                else:
+                    Npad = next_fast_len(N + n_pre + n_post)
+
+                trace_pad = np.zeros((3, Npad), dtype=efield_trace.dtype)
+                trace_pad[:, n_pre:n_pre + N] = efield_trace
+
+                ff = np.fft.rfftfreq(Npad, d=dt)
+                efield_fft = np.fft.rfft(trace_pad, axis=-1)
 
                 zenith = electric_field[efp.zenith]
                 azimuth = electric_field[efp.azimuth]
 
-                # get antenna pattern for current channel
                 VEL = signal_processing.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
 
-                if VEL is None:  # this can happen if there is not signal path to the antenna
-                    voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros
+                if VEL is None:
+                    voltage_fft = np.zeros_like(efield_fft[1])
                 else:
-                    # Apply antenna response to electric field
-                    VEL = VEL[0]  # we only requested the VEL for one channel, so selecting it
+                    VEL = VEL[0]
                     voltage_fft = np.sum(VEL * np.array([efield_fft[1], efield_fft[2]]), axis=0)
 
-                # Remove DC offset
-                voltage_fft[np.where(ff < 5 * units.MHz)] = 0.
+                voltage_fft[ff < 5 * units.MHz] = 0.0
+
+                v_full = np.fft.irfft(voltage_fft, n=Npad)
+
+                if n_pre > 0 or n_post > 0:
+                    edge = max(1, int(np.ceil(200 * sr)))
+                    edge_max = np.max(np.abs(np.r_[v_full[:edge], v_full[-edge:]]))
+                    peak = np.max(np.abs(v_full))
+                    if peak > 0 and edge_max > 2e-3 * peak:
+                        self.logger.warning(
+                            "PerEfield padding may be insufficient: edge_max/peak=%.3g "
+                            "(ch %d, pre=%.0f ns, post=%.0f ns, Npad=%d)",
+                            edge_max / peak, channel_id,
+                            self._pre_pulse_time, self._post_pulse_time, Npad)
+
+                v = v_full[n_pre:n_pre + N]
 
                 dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station.get_id(), channel_id) - electric_field.get_position())
                 if dist_channel_efield / units.mm > 0.01:
@@ -93,8 +144,7 @@ class efieldToVoltageConverterPerEfield():
                 else:
                     travel_time_shift = 0
 
-                # set the trace to zeros
-                sim_channel.set_frequency_spectrum(voltage_fft, electric_field.get_sampling_rate())
+                sim_channel.set_trace(v, sr)
                 sim_channel.set_trace_start_time(electric_field.get_trace_start_time() + travel_time_shift)
                 sim_station.add_channel(sim_channel)
 
