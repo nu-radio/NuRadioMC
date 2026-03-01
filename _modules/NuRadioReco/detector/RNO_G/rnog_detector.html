@@ -1715,8 +1715,8 @@
         <span class="n">signal_chain_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel_signal_chain</span><span class="p">(</span>
             <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="n">signal_chain_components</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span>
-                <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s1">&#39;response_chain&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="n">ele</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]:</span> <span class="n">ele</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span>
+                <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s1">&#39;response_chain&#39;</span><span class="p">]}</span>
 
         <span class="k">return</span> <span class="n">signal_chain_components</span></div>
 
