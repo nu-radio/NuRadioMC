@@ -258,7 +258,7 @@ class triggerSimulator:
                     continue
 
                 if channel.get_trace_start_time() != channel_trace_start_time:
-                    logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
+                    logger.warning(f'Channel {channel_id} has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
 
                 dt = 1. / channel.get_sampling_rate()
                 trace = np.array(channel.get_trace())
