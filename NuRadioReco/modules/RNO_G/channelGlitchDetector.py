@@ -6,10 +6,13 @@ from NuRadioReco.framework.event import Event
 import numpy as np
 import logging
 import collections
+
+
 # Total sampling buffer of the LAB4D: 2048 samples
 LAB4D_READOUT_SIZE = 2048
 # Length of a sampling block in the LAB4D: 64 samples
 LAB4D_SAMPLING_BLOCK_SIZE = 64
+
 class channelGlitchDetector:
     """
     This module detects scrambled data (digitizer "glitches") in the channels.
@@ -94,7 +97,8 @@ class channelGlitchDetector:
             trace_us = unscramble(trace, block_size=self._lab4d_sampling_blocksize, readout_size=self._lab4d_readout_size)
 
             # glitching test statistic and boolean discriminate
-            glitch_ts = (diff_sq(trace, block_size=self._lab4d_sampling_blocksize) - diff_sq(trace_us, block_size=self._lab4d_sampling_blocksize)) / np.var(trace)
+            glitch_ts = (diff_sq(trace, block_size=self._lab4d_sampling_blocksize) - 
+                         diff_sq(trace_us, block_size=self._lab4d_sampling_blocksize)) / np.var(trace)
             glitch_disc = glitch_ts > self.ts_cut_value
 
             ch.set_parameter(chp.glitch, glitch_disc)
