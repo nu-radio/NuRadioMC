@@ -405,4 +405,4 @@ if __name__ == "__main__":
 
     # plot_ray_paths_attenuation(args.z_antenna, args.n_theta, model=args.attenuation_model)
     fname = args.fname or f"eff_temperature_{args.z_antenna}m_ntheta{args.n_theta}_{args.attenuation_model}_{args.frequency}MHz_summer.json"
-    get_eff_temperature(args.z_antenna, args.n_theta, args.plot, args.attenuation_model, freq=args.frequency * units.MHz, fname=fname)>>>>>>> develop
+    get_eff_temperature(args.z_antenna, args.n_theta, args.plot, args.attenuation_model, freq=args.frequency * units.MHz, fname=fname)
