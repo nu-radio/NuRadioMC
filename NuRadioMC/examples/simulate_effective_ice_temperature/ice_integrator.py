@@ -236,7 +236,7 @@ def temperature_integral(zenith, z_antenna, freq=400 * units.MHz, model="GL3"):
     return t_eff_at_antenna
 
 
-def get_eff_temperature(z_antenna=-100, n_theta=100, freq=0.4, plot=False, attenuation_model="GL3", fname=None):
+def get_eff_temperature(z_antenna=-100, n_theta=100, plot=False, attenuation_model="GL3", freq=400 * units.MHz, fname=None):
     import time
     t0 = time.time()
     thetas = np.linspace(0, np.pi, n_theta)
@@ -250,7 +250,7 @@ def get_eff_temperature(z_antenna=-100, n_theta=100, freq=0.4, plot=False, atten
         "theta": thetas.tolist(),
         "eff_temperature": eff_temperatures,
         "attenuation_model": attenuation_model,
-        "frequency": freq
+        "frequency": freq / units.GHz
     }
 
     if fname is None:
@@ -389,9 +389,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Calculate the effective temperature at the antenna. ')
     parser.add_argument('--z_antenna', type=float, default=-100, help='Depth of the antenna in meters')
-    parser.add_argument('--frequency', type=float, default=0.4, help='Frequency in MHz')
     parser.add_argument('--n_theta', type=int, default=100, help='Number of angles to consider (equidistant in theta from 0 to pi)')
     parser.add_argument('--plot', action='store_true', help='Plot the effective temperature as a function of the angle')
+    parser.add_argument('--frequency', type=float, default=400, help='Frequency in MHz')
 
     parser.add_argument('--attenuation_model', type=str, default="GL3", help='Specify the attenuation model to use')
     parser.add_argument('--fname', type=str, default=None, help='Filename to save the data to')
@@ -402,7 +402,7 @@ if __name__ == "__main__":
     if args.z_antenna > 0:
         raise ValueError("The antenna is at or above the surface (z=0), the depth should be negative.")
 
-    fname = args.fname or f"eff_temperature_{args.z_antenna}m_ntheta{args.n_theta}_{args.frequency}GHz_{args.attenuation_model}{args.label}.json"
 
-    get_eff_temperature(args.z_antenna, args.n_theta, args.frequency, args.plot, args.attenuation_model, fname)
     # plot_ray_paths_attenuation(args.z_antenna, args.n_theta, model=args.attenuation_model)
+    fname = args.fname or f"eff_temperature_{args.z_antenna}m_ntheta{args.n_theta}_{args.attenuation_model}_{args.frequency}MHz_summer.json"
+    get_eff_temperature(args.z_antenna, args.n_theta, args.plot, args.attenuation_model, freq=args.frequency * units.MHz, fname=fname)>>>>>>> develop
