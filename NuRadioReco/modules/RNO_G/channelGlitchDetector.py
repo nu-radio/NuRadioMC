@@ -114,7 +114,13 @@ def unscramble(trace, block_size=LAB4D_SAMPLING_BLOCK_SIZE, readout_size=LAB4D_R
 
     Parameters
     ----------
-    `trace`: channel waveform
+    trace: np.ndarray
+        The channel waveform
+
+    Returns
+    -------
+    new_trace: np.ndarray
+        The unscrambled trace
     """
 
     twice_block_size = 2 * block_size
@@ -138,7 +144,10 @@ def diff_sq(eventdata, block_size=LAB4D_SAMPLING_BLOCK_SIZE):
     """
     Returns sum of squared differences of samples across seams of 128-sample chunks.
 
-    `eventdata`: channel waveform
+    Parameters
+    ----------
+    eventdata: np.ndarray
+        The channel waveform
     """
     twice_block_size = 2 * block_size
 
