@@ -581,7 +581,7 @@ class Detector():
             f"Query information for station {station_id} at {self.get_detector_time()}")
         if self._query_all:
             station_information = self.__db.get_complete_station_information(
-                station_id)
+                station_id, measurement_signal_chain=self.signal_chain_measurement_name)
         else:
             station_information = self.__db.get_general_station_information(
                 station_id)
@@ -924,39 +924,41 @@ class Detector():
         if response_key not in signal_chain_dict or signal_chain_dict[response_key] is None:
             measurement_components_list = signal_chain_dict[response_chain_key]
 
+            #### This HACK was introduced to handle the NuRadio placeholder measurements, which are not needed anymore. It has been commented out for archival purposes. ####
             # Here comes a HACK
-            components = [entry["collection"] for entry in measurement_components_list]
-            is_equal = False
-            if "drab_board" in components and "iglu_board" in components:
-                is_equal = np.allclose(
-                    measurement_components_list[components.index("drab_board")]["mag"],
-                    measurement_components_list[components.index("iglu_board")]["mag"])
+            # components = [entry["collection"] for entry in measurement_components_list]
+            # is_equal = False
+            # if "drab_board" in components and "iglu_board" in components:
+            #     is_equal = np.allclose(
+            #         measurement_components_list[components.index("drab_board")]["mag"],
+            #         measurement_components_list[components.index("iglu_board")]["mag"])
 
-                if is_equal:
-                    self.logger.warning(
-                        f"Station.channel {station_id}.{channel_id}: Currently both, "
-                        "iglu and drab board are configured in the signal chain but their "
-                        "responses are the same (because we measure them together in the lab). "
-                        "Skip the drab board response.")
+            #     if is_equal:
+            #         self.logger.warning(
+            #             f"Station.channel {station_id}.{channel_id}: Currently both, "
+            #             "iglu and drab board are configured in the signal chain but their "
+            #             "responses are the same (because we measure them together in the lab). "
+            #             "Skip the drab board response.")
 
             responses = []
             for component_entry in measurement_components_list:
                 # Skip drab_board if its equal with iglu (see warning above)
-                if is_equal and component_entry["collection"] == "drab_board":
-                    continue
+                # if is_equal and component_entry["collection"] == "drab_board":
+                #     continue
 
                 if component_entry['collection'] == "gain_calibration":
                     ydata = component_entry["gain_factor"]
                     y_units = component_entry["gain_factor_unit"]
                     frequencies = None
                     time_delay = 0
+                    weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
 
                 elif component_entry['collection'] == "time_delays":
                     ydata = 1  # Fake gain factor of 1 in magitude (does nothing)
                     y_units = "mag"
                     frequencies = None
                     time_delay = component_entry["time_delay"] * getattr(units, component_entry["time_delay_unit"])
-
+                    weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
 
                 else:
                     # Get the response data
@@ -989,7 +991,6 @@ class Detector():
                             ydata[0] = np.asarray(ydata[0]) * 10 ** (attenuator / 20)
                         else:
                             raise KeyError
-
                 response = Response(
                     frequencies, ydata, y_units,
                     time_delay=time_delay, weight=weight,
@@ -1028,8 +1029,8 @@ class Detector():
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
         signal_chain_components = {
-            key: value["weight"] for key, value in
-                signal_chain_dict['response_chain'].items()}
+            ele["name"]: ele["weight"] for ele in
+                signal_chain_dict['response_chain']}
 
         return signal_chain_components
 
@@ -1087,8 +1088,8 @@ class Detector():
 
             position_id = self.__buffered_stations[station_id]["devices"][device_id]["id_position"]
 
-            device_pos_info = self.__db.get_device_position(
-                device_position_id=position_id)
+            device_pos_info = self.__db.get_position(
+                position_id=position_id, component="device")
             self.__buffered_stations[station_id]["devices"][device_id]['device_position'] = device_pos_info
 
         return np.array(self.__buffered_stations[station_id]["devices"][device_id]["device_position"]["position"])

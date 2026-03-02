@@ -26,6 +26,7 @@ from pymongo import MongoClient
 import NuRadioReco.utilities.metaclasses
 import astropy.time
 
+
 import logging
 logger = logging.getLogger("NuRadioReco.MongoDBRead")
 
@@ -140,6 +141,8 @@ class Database(object):
 
         self.__digitizer_collection = "digitizer_configuration"
 
+        self.__gain_calibration_collection = "gain_calibration"
+
 
 
     def set_database_time(self, time):
@@ -158,7 +161,11 @@ class Database(object):
             logger.error("Set invalid time for database. Time has to be of type datetime.datetime")
             raise TypeError("Set invalid time for database. Time has to be of type datetime.datetime")
 
-        if time < datetime.datetime(2024, 11, 1):
+        if time.tzinfo is None:
+            logger.warning(f"No timezone information provided for the database time {time}. Assuming UTC.")
+            time = time.replace(tzinfo=datetime.timezone.utc)
+
+        if time < datetime.datetime(2024, 11, 1, tzinfo=datetime.timezone.utc):
             logger.error("Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.")
             raise ValueError("Set invalid time for database. Time has to be after 01.11.2024 (1st november 2024), before that the database was not used to describe the detector.")
 
@@ -188,6 +195,13 @@ class Database(object):
 
     def get_detector_time(self):
         return self.__detector_time
+
+    def check_database_time(self):
+        if self.__database_time is None:
+            self.set_database_time(datetime.datetime.now(tz=datetime.timezone.utc))
+            logger.warning("Database time is not set, setting to current time.")
+        else:
+            logger.info(f"Database time is set to {self.__database_time}.")
 
     def find_primary_measurement(self, collection_name, name, primary_time, identification_label, data_dict):
         """
@@ -880,9 +894,9 @@ class Database(object):
 
     def get_time_dependent_factor(self, collection, search_id, measurement_name=None, use_primary_time=None):
         """
-        Get the time dependent factor for a given station and channel id for the current detector time. 
+        Get the time dependent factor for a given station and channel id for the current detector time.
         Time dependent factors are quantities that have commissioning and decommissioning times (e.g., gain calibration values or time delays).
-        
+
         Parameters
         ----------
         collection: string
@@ -1078,6 +1092,7 @@ class Database(object):
             channel_signal_id=channel_signal_id, measurement_name=measurement_name, verbose=verbose)
 
         for chain_key in ['response_chain', 'trigger_response_chain']:
+            templates_to_append = []
 
             # Not every channel has a trigger response chain
             if chain_key not in channel_sig_info:
@@ -1085,10 +1100,27 @@ class Database(object):
 
             # go through the component list query the corresponing measurements from the database (s parameters)
             for ice, component_entry in enumerate(channel_sig_info[chain_key]):
-                if component_entry["collection"] in ["gain_calibration", "time_delays"]:
-                    # only load a single calibration value
+                component_data_template = None
+                if component_entry["collection"] == "gain_calibration":
                     component_data = self.get_time_dependent_factor(
                         collection=component_entry["collection"], search_id=component_entry["id"])
+
+                    if "template_response" in component_data.keys():
+                        template_name = component_data["template_response"]["name"]
+                        component_data_template = {"collection": "full_chain"}
+                        component_data_template["name"] = template_name
+                        component_data_template.update(self.get_component_data(
+                            collection_name="full_chain",
+                            component_name=component_data["template_response"]["name"],
+                            sparameter="S21",
+                            verbose=verbose))
+                    else:
+                        component_data_template = None
+
+                elif component_entry["collection"] == "time_delays":
+                    component_data = self.get_time_dependent_factor(
+                        collection=component_entry["collection"], search_id=component_entry["id"])
+
                 else:
                     # create a search dict with addtional informations
                     supp_info = {key: component_entry[key] for key in component_entry.keys() if re.search("(channel|breakout)", key)}
@@ -1099,9 +1131,14 @@ class Database(object):
                         supplementary_info=supp_info,
                         verbose=verbose,
                         sparameter='S21')
-
                 # add the component data to the channel_sig_info dict
                 channel_sig_info[chain_key][ice].update(component_data)
+
+                if component_data_template is not None:
+                    templates_to_append.append(component_data_template)
+
+            channel_sig_info[chain_key].extend(templates_to_append)
+
 
         return channel_sig_info
 
@@ -1231,7 +1268,25 @@ class Database(object):
             channel_times_comm = self.db[self.__station_collection].distinct("channels.commission_time", {"id": station_id})
             channel_times_decomm = self.db[self.__station_collection].distinct("channels.decommission_time", {"id": station_id})
 
-            mod_set = np.unique(station_times_comm + station_times_decomm + channel_times_comm + channel_times_decomm)
+            # # get set of (de)commission times for calibrations
+            available_ids = self.db[self.__gain_calibration_collection].distinct("id")
+            for id in available_ids:
+                if not id.startswith("sta"):
+                    logger.warning(
+                        f"Found gain calibration entry with unexpected ID: {id}. "
+                        "This is not expected and this entry will be ignored for the modification timestamp query.")
+
+            # HACK: This is not strictly correct as it is not acnostic to the specific version of the calibration
+            # (e.g., measurement_name), we might select additional unnecessary modification timestamps.
+            calibration_times_comm = self.db[self.__gain_calibration_collection].distinct(
+                "commission_time", {"id": {"$regex": f'^sta{station_id}_'}})  # already returns unique values
+            calibration_times_decomm = self.db[self.__gain_calibration_collection].distinct(
+                "decommission_time", {"id": {"$regex": f'^sta{station_id}_'}})  # already returns unique values
+
+            mod_set = np.unique(
+                station_times_comm + station_times_decomm +
+                channel_times_comm + channel_times_decomm +
+                calibration_times_comm + calibration_times_decomm).tolist()
             mod_set.sort()
             station_times_comm.sort()
             station_times_decomm.sort()
