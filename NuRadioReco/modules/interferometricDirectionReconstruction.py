@@ -607,12 +607,14 @@ class interferometricDirectionReconstruction():
         
         if coord_system == "cylindrical":
             num_rows_to_10m = int(np.ceil(10 / abs(step_sizes[1])))
-            surface_corr= self.get_surf_corr(corr_matrix, num_rows_to_10m)
+            # Surface = near z=0 = last rows (coord1 runs from -100 to 0)
+            surface_corr = np.nanmax(corr_matrix[-num_rows_to_10m:])
             station.set_parameter(stnp.rec_surf_corr, surface_corr)
         else:
             TIR = 35 # degrees
             num_rows_to_TIR = int(np.ceil(TIR / abs(step_sizes[1])))
-            surface_corr= self.get_surf_corr(corr_matrix, num_rows_to_TIR)
+            # Surface = near zenith = first rows (coord1 runs from 0 to 180 deg)
+            surface_corr = self.get_surf_corr(corr_matrix, num_rows_to_TIR)
             station.set_parameter(stnp.rec_surf_corr, surface_corr)
 
         station.set_parameter(stnp.rec_max_correlation, max_corr)
