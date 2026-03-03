@@ -38,9 +38,7 @@ class channelSinewaveSubtraction:
             Flag to save the identified noise frequencies for each channel.
         freq_band: tuple (default: (0.1, 0.7))
             Frequency band to calculate baseline RMS of fft spectrum. Used to identify noise peaks.
-            0.1 to 0.7 GHz is the default for RNO-G, based on bandpass. 
-        removed_freqs: dict (default: None)
-            Dictionary to store filtered noise frequencies for each channel for diagnostics.
+            0.1 to 0.7 GHz is the default for RNO-G, based on bandpass.
 
         """
         self.freq_band = freq_band
@@ -51,13 +49,13 @@ class channelSinewaveSubtraction:
         det=None, algorithm: str='simple', peak_prominence: float = 4.0) -> None:
         """
         Run the CW filter module on a given event and station. Removes all the CW peaks > peak_prominence * RMS.
-    
+
         Parameters
-        ----------  
+        ----------
         event: `NuRadioReco.framework.event.Event`
             Event object to process.
         station: `NuRadioReco.framework.station.Station`
-            Station object to process.  
+            Station object to process.
         det: `NuRadioReco.detector.detector.Detector` (default: None)
             Detector object to process.
         algorithm: str (default: 'simple')
@@ -65,9 +63,9 @@ class channelSinewaveSubtraction:
             'simple' search for narrow < 10 MHz peaks which > peak_prominence * RMS within freq band
             'sliding' search for narrow < 10 MHz peaks which > peak_prominence * RMS within 100 MHz sliding window
         peak_prominence: float (default: 4.0)
-            Threshold for identifying prominent peaks in the FFT spectrum. 
+            Threshold for identifying prominent peaks in the FFT spectrum.
         """
-        removed_freqs = {} 
+        removed_freqs = {}
         for channel in station.iter_channels():
             sampling_rate = channel.get_sampling_rate()
             trace = channel.get_trace()
@@ -130,7 +128,7 @@ def guess_amplitude_iir(wf: np.ndarray, target_freq: float, sampling_rate: float
         Sampling rate of the waveform (GHz).
 
     Returns
-    --------
+    -------
     amplitude: float
         Estimated amplitude at the target frequency.
     """
@@ -140,7 +138,7 @@ def guess_amplitude_iir(wf: np.ndarray, target_freq: float, sampling_rate: float
     N = len(wf)  # Number of samples
     k = int(0.5 + (N * target_freq / sampling_rate))  # Frequency bin index
     omega = (2.0 * np.pi * k) / N  # Angular frequency
-    scaling_factor = N / 2.0 
+    scaling_factor = N / 2.0
 
     # IIR filter coefficients derived from Goertzel's difference equation
     b = [1.0, 0, 0.0]  # Numerator coefficients
@@ -194,10 +192,9 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
     wf: np.ndarray
         Input waveform (1D array).
     algoritm: string (default: 'simple')
-        algorithm to search for peaks: 
+        algorithm to search for peaks:
         'simple' search for narrow < 10 MHz peaks which > peak_prominence * RMS withing freq band
-        'sliding' search for narrow < 10 MHz peaks which > peak_prominence * RMS withing 100 MHz sliding window
-        
+        'sliding' search for narrow < 10 MHz peaks which > peak_prominence * RMS withing 50 MHz sliding window
     sampling_rate: float (default: 3.2)
         Sampling rate of the waveform (GHz).
     peak_prominance: float (default: 6.0)
@@ -240,7 +237,7 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
     band_mask = (freqs >= f_min) & (freqs <= f_max)
     spec_roi = spec[band_mask]
 
-    peak_width_limit = int(10 * 1e-3 / delta_f) #10 MHz 
+    peak_width_limit = int(10 * units.MHz / delta_f) #10 MHz
 
     if algorithm == 'simple':
         # Compute RMS in the selected frequency band
@@ -248,27 +245,26 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
 
         # Find noise peaks based on this band-limited RMS
         peak_idxs, _ = signal.find_peaks(spec, height=peak_prominence * rms_band, width=(0, peak_width_limit))
-     
+
 
     elif algorithm == 'sliding':
         spec_roi = spec[band_mask]
         freq_roi = freqs[band_mask]
         # Compute RMS in a sliding window
-        window_size = int(50 * 1e-3 / delta_f) #100 MHz 
+        window_size = int(50 * units.MHz / delta_f) #50 MHz
         windowed_spectrum = np.lib.stride_tricks.sliding_window_view(spec_roi, window_size)
         rms_values = np.sqrt(np.mean(windowed_spectrum**2, axis=1))
 
         all_peaks = []
         for i in range(len(rms_values)):
-            start, end = i, i + window_size
-            local_spectrum = spec_roi[start:end]
-            
+            local_spectrum = windowed_spectrum[i]
+
             peaks, _  = signal.find_peaks(local_spectrum, height=peak_prominence * rms_values[i], width=(0, peak_width_limit))
-            
+
             # Convert indices to global indices
-            global_peaks = peaks + start
+            global_peaks = peaks + i
             all_peaks.extend(global_peaks)
-        #find first index of the band    
+        #find first index of the band
         first_idx = np.argmax(band_mask) if np.any(band_mask) else -1
         # Remove duplicates (since windows overlap)
         all_peaks = sorted(set(all_peaks))  # Unique and sorted peaks
@@ -312,11 +308,11 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
             # Fit the sinusoidal model to the waveform
             try:
 
-                params, covariance = curve_fit(sinusoid, t, wf, p0=initial_guess) 
+                params, covariance = curve_fit(sinusoid, t, wf, p0=initial_guess)
                 # Check if any parameters are NaN or Inf
                 if np.any(np.isnan(params)) or np.any(np.isinf(params)):
                     raise RuntimeError("Fit returned invalid parameters.")
-        
+
                 estimated_amplitude, estimated_freq, estimated_phase = params
 
                 filtered_freqs.append(estimated_freq)
@@ -325,14 +321,14 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
                     raise RuntimeError("Fit covariance matrix is invalid, fit may not have converged.")
 
                 # Generate the estimated CW noise
-                estimated_cw_noise = sinusoid(t, estimated_amplitude, estimated_freq,estimated_phase) 
+                estimated_cw_noise = sinusoid(t, estimated_amplitude, estimated_freq,estimated_phase)
 
                 logger.info(f"Subtract sinewave with a frequency: {estimated_freq / units.MHz:.1f} MHz, "
                             f"an amplitude: {estimated_amplitude:.1e} V/GHz and a phase: {estimated_phase / units.deg:.1f} deg")
 
                 # Subtract the estimated CW noise
                 corrected_waveform -= estimated_cw_noise
-                power_after_subtraction = np.sum(abs(fft.time2freq(corrected_waveform, sampling_rate)) ** 2) 
+                power_after_subtraction = np.sum(abs(fft.time2freq(corrected_waveform, sampling_rate)) ** 2)
                 logger.info(f"Power reduction: {100 * (1 - power_after_subtraction / power_orig):.1f}%")
 
                 if power_orig < power_after_subtraction:
