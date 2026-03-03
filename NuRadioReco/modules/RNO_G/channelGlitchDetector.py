@@ -7,6 +7,12 @@ import numpy as np
 import logging
 import collections
 
+
+# Total sampling buffer of the LAB4D: 2048 samples
+LAB4D_READOUT_SIZE = 2048
+# Length of a sampling block in the LAB4D: 64 samples
+LAB4D_SAMPLING_BLOCK_SIZE = 64
+
 class channelGlitchDetector:
     """
     This module detects scrambled data (digitizer "glitches") in the channels.
@@ -46,10 +52,10 @@ class channelGlitchDetector:
         self.glitch_fraction_warn_level = glitch_fraction_warn_level
 
         # Total sampling buffer of the LAB4D: 2048 samples
-        self._lab4d_readout_size = 2048
+        self._lab4d_readout_size = LAB4D_READOUT_SIZE
 
         # Length of a sampling block in the LAB4D: 64 samples
-        self._lab4d_sampling_blocksize = 64
+        self._lab4d_sampling_blocksize = LAB4D_SAMPLING_BLOCK_SIZE
 
     def begin(self):
         # Per-run glitching statistics
@@ -81,50 +87,6 @@ class channelGlitchDetector:
             Detector object, not used!
         """
 
-        def diff_sq(eventdata):
-            """
-            Returns sum of squared differences of samples across seams of 128-sample chunks.
-
-            `eventdata`: channel waveform
-            """
-
-            block_size = self._lab4d_sampling_blocksize
-            twice_block_size = 2 * block_size
-
-            runsum = 0.0
-            for chunk in range(len(eventdata) // twice_block_size - 1):
-                runsum += (eventdata[chunk * twice_block_size + block_size - 1] - eventdata[chunk * twice_block_size + block_size]) ** 2
-            return np.sum(runsum)
-
-        def unscramble(trace):
-            """
-            Applies an unscrambling operation to the passed `trace`.
-            Note: the first and last sampling block are unusable and hence replaced by zeros in the returned waveform.
-
-            Parameters
-            ----------
-            `trace`: channel waveform
-            """
-
-            readout_size = self._lab4d_readout_size
-            block_size = self._lab4d_sampling_blocksize
-            twice_block_size = 2 * block_size
-
-            new_trace = np.zeros_like(trace)
-
-            for i_section in range(len(trace) // block_size):
-                section_start = i_section * block_size
-                section_end = i_section * block_size + block_size
-                if i_section % 2 == 0:
-                    new_trace[(section_start + twice_block_size) % readout_size :\
-                              (section_end + twice_block_size) % readout_size] = trace[section_start:section_end]
-                elif i_section > 1:
-                    new_trace[(section_start - twice_block_size) % readout_size :\
-                              (section_end - twice_block_size) % readout_size] = trace[section_start:section_end]
-                    new_trace[0:block_size] = 0
-
-            return new_trace
-
         # update event counter
         self.events_checked += 1
 
@@ -132,10 +94,11 @@ class channelGlitchDetector:
             ch_id = ch.get_id()
 
             trace = ch.get_trace()
-            trace_us = unscramble(trace)
+            trace_us = unscramble(trace, block_size=self._lab4d_sampling_blocksize, readout_size=self._lab4d_readout_size)
 
             # glitching test statistic and boolean discriminate
-            glitch_ts = (diff_sq(trace) - diff_sq(trace_us)) / np.var(trace)
+            glitch_ts = (diff_sq(trace, block_size=self._lab4d_sampling_blocksize) - 
+                         diff_sq(trace_us, block_size=self._lab4d_sampling_blocksize)) / np.var(trace)
             glitch_disc = glitch_ts > self.ts_cut_value
 
             ch.set_parameter(chp.glitch, glitch_disc)
@@ -144,6 +107,54 @@ class channelGlitchDetector:
             # update glitching statistics
             self.events_glitching_per_channel[ch_id] += glitch_disc
 
+def unscramble(trace, block_size=LAB4D_SAMPLING_BLOCK_SIZE, readout_size=LAB4D_READOUT_SIZE):
+    """
+    Applies an unscrambling operation to the passed `trace`.
+    Note: the first and last sampling block are unusable and hence replaced by zeros in the returned waveform.
+
+    Parameters
+    ----------
+    trace: np.ndarray
+        The channel waveform
+
+    Returns
+    -------
+    new_trace: np.ndarray
+        The unscrambled trace
+    """
+
+    twice_block_size = 2 * block_size
+
+    new_trace = np.zeros_like(trace)
+
+    for i_section in range(len(trace) // block_size):
+        section_start = i_section * block_size
+        section_end = i_section * block_size + block_size
+        if i_section % 2 == 0:
+            new_trace[(section_start + twice_block_size) % readout_size :\
+                        (section_end + twice_block_size) % readout_size] = trace[section_start:section_end]
+        elif i_section > 1:
+            new_trace[(section_start - twice_block_size) % readout_size :\
+                        (section_end - twice_block_size) % readout_size] = trace[section_start:section_end]
+            new_trace[0:block_size] = 0
+
+    return new_trace
+
+def diff_sq(eventdata, block_size=LAB4D_SAMPLING_BLOCK_SIZE):
+    """
+    Returns sum of squared differences of samples across seams of 128-sample chunks.
+
+    Parameters
+    ----------
+    eventdata: np.ndarray
+        The channel waveform
+    """
+    twice_block_size = 2 * block_size
+
+    runsum = 0.0
+    for chunk in range(len(eventdata) // twice_block_size - 1):
+        runsum += (eventdata[chunk * twice_block_size + block_size - 1] - eventdata[chunk * twice_block_size + block_size]) ** 2
+    return np.sum(runsum)
 
 def has_glitch(event_or_station):
     """
