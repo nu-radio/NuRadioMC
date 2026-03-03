@@ -867,7 +867,7 @@
                         <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">T%H%M%S&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">_debug.png&#39;</span><span class="p">,</span> <span class="n">transparent</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">component_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blacklist</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">component_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blacklist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">window_response</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the complex response for a given frequency.</span>
 
@@ -886,6 +886,9 @@
 <span class="sd">            If True (and `component_names is not None`), ignore components selected with `component_names`.</span>
 <span class="sd">            If False, only consider components selected with `component_names`.</span>
 
+<span class="sd">        window_response: bool (Default: True)</span>
+<span class="sd">            Window the reponse to keep the impulse reponse causal and finite in time which keeps signal traces</span>
+<span class="sd">            mostly noiseless.</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
@@ -893,7 +896,6 @@
 <span class="sd">            The complex response at the desired frequencies</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
-
         <span class="n">freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">component_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -931,6 +933,10 @@
                                 <span class="sa">f</span><span class="s2">&quot;Options are: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Returned response is equal to 1.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">window_response</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.signal_processing</span><span class="w"> </span><span class="kn">import</span> <span class="n">window_response_in_time_domain</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">window_response_in_time_domain</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">freqs</span><span class="o">=</span><span class="n">freq</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">response</span>
 

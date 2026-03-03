@@ -644,6 +644,12 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
 
+
+<span class="c1"># Total sampling buffer of the LAB4D: 2048 samples</span>
+<span class="n">LAB4D_READOUT_SIZE</span> <span class="o">=</span> <span class="mi">2048</span>
+<span class="c1"># Length of a sampling block in the LAB4D: 64 samples</span>
+<span class="n">LAB4D_SAMPLING_BLOCK_SIZE</span> <span class="o">=</span> <span class="mi">64</span>
+
 <div class="viewcode-block" id="channelGlitchDetector">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelGlitchDetector.html#NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelGlitchDetector</span><span class="p">:</span>
@@ -685,10 +691,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">glitch_fraction_warn_level</span> <span class="o">=</span> <span class="n">glitch_fraction_warn_level</span>
 
         <span class="c1"># Total sampling buffer of the LAB4D: 2048 samples</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_lab4d_readout_size</span> <span class="o">=</span> <span class="mi">2048</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lab4d_readout_size</span> <span class="o">=</span> <span class="n">LAB4D_READOUT_SIZE</span>
 
         <span class="c1"># Length of a sampling block in the LAB4D: 64 samples</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_lab4d_sampling_blocksize</span> <span class="o">=</span> <span class="mi">64</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lab4d_sampling_blocksize</span> <span class="o">=</span> <span class="n">LAB4D_SAMPLING_BLOCK_SIZE</span>
 
 <div class="viewcode-block" id="channelGlitchDetector.begin">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelGlitchDetector.html#NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector.begin">[docs]</a>
@@ -728,50 +734,6 @@
 <span class="sd">            Detector object, not used!</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">diff_sq</span><span class="p">(</span><span class="n">eventdata</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Returns sum of squared differences of samples across seams of 128-sample chunks.</span>
-
-<span class="sd">            `eventdata`: channel waveform</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-
-            <span class="n">block_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lab4d_sampling_blocksize</span>
-            <span class="n">twice_block_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">block_size</span>
-
-            <span class="n">runsum</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eventdata</span><span class="p">)</span> <span class="o">//</span> <span class="n">twice_block_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-                <span class="n">runsum</span> <span class="o">+=</span> <span class="p">(</span><span class="n">eventdata</span><span class="p">[</span><span class="n">chunk</span> <span class="o">*</span> <span class="n">twice_block_size</span> <span class="o">+</span> <span class="n">block_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">eventdata</span><span class="p">[</span><span class="n">chunk</span> <span class="o">*</span> <span class="n">twice_block_size</span> <span class="o">+</span> <span class="n">block_size</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">runsum</span><span class="p">)</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">unscramble</span><span class="p">(</span><span class="n">trace</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Applies an unscrambling operation to the passed `trace`.</span>
-<span class="sd">            Note: the first and last sampling block are unusable and hence replaced by zeros in the returned waveform.</span>
-
-<span class="sd">            Parameters</span>
-<span class="sd">            ----------</span>
-<span class="sd">            `trace`: channel waveform</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-
-            <span class="n">readout_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lab4d_readout_size</span>
-            <span class="n">block_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lab4d_sampling_blocksize</span>
-            <span class="n">twice_block_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">block_size</span>
-
-            <span class="n">new_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
-
-            <span class="k">for</span> <span class="n">i_section</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">//</span> <span class="n">block_size</span><span class="p">):</span>
-                <span class="n">section_start</span> <span class="o">=</span> <span class="n">i_section</span> <span class="o">*</span> <span class="n">block_size</span>
-                <span class="n">section_end</span> <span class="o">=</span> <span class="n">i_section</span> <span class="o">*</span> <span class="n">block_size</span> <span class="o">+</span> <span class="n">block_size</span>
-                <span class="k">if</span> <span class="n">i_section</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">new_trace</span><span class="p">[(</span><span class="n">section_start</span> <span class="o">+</span> <span class="n">twice_block_size</span><span class="p">)</span> <span class="o">%</span> <span class="n">readout_size</span> <span class="p">:</span>\
-                              <span class="p">(</span><span class="n">section_end</span> <span class="o">+</span> <span class="n">twice_block_size</span><span class="p">)</span> <span class="o">%</span> <span class="n">readout_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">section_start</span><span class="p">:</span><span class="n">section_end</span><span class="p">]</span>
-                <span class="k">elif</span> <span class="n">i_section</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">new_trace</span><span class="p">[(</span><span class="n">section_start</span> <span class="o">-</span> <span class="n">twice_block_size</span><span class="p">)</span> <span class="o">%</span> <span class="n">readout_size</span> <span class="p">:</span>\
-                              <span class="p">(</span><span class="n">section_end</span> <span class="o">-</span> <span class="n">twice_block_size</span><span class="p">)</span> <span class="o">%</span> <span class="n">readout_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">section_start</span><span class="p">:</span><span class="n">section_end</span><span class="p">]</span>
-                    <span class="n">new_trace</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">block_size</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-
-            <span class="k">return</span> <span class="n">new_trace</span>
-
         <span class="c1"># update event counter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">events_checked</span> <span class="o">+=</span> <span class="mi">1</span>
 
@@ -779,10 +741,11 @@
             <span class="n">ch_id</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
 
             <span class="n">trace</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
-            <span class="n">trace_us</span> <span class="o">=</span> <span class="n">unscramble</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+            <span class="n">trace_us</span> <span class="o">=</span> <span class="n">unscramble</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lab4d_sampling_blocksize</span><span class="p">,</span> <span class="n">readout_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lab4d_readout_size</span><span class="p">)</span>
 
             <span class="c1"># glitching test statistic and boolean discriminate</span>
-            <span class="n">glitch_ts</span> <span class="o">=</span> <span class="p">(</span><span class="n">diff_sq</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">-</span> <span class="n">diff_sq</span><span class="p">(</span><span class="n">trace_us</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+            <span class="n">glitch_ts</span> <span class="o">=</span> <span class="p">(</span><span class="n">diff_sq</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lab4d_sampling_blocksize</span><span class="p">)</span> <span class="o">-</span> 
+                         <span class="n">diff_sq</span><span class="p">(</span><span class="n">trace_us</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lab4d_sampling_blocksize</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
             <span class="n">glitch_disc</span> <span class="o">=</span> <span class="n">glitch_ts</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_cut_value</span>
 
             <span class="n">ch</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">chp</span><span class="o">.</span><span class="n">glitch</span><span class="p">,</span> <span class="n">glitch_disc</span><span class="p">)</span>
@@ -792,6 +755,60 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">events_glitching_per_channel</span><span class="p">[</span><span class="n">ch_id</span><span class="p">]</span> <span class="o">+=</span> <span class="n">glitch_disc</span></div>
 </div>
 
+
+<div class="viewcode-block" id="unscramble">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelGlitchDetector.html#NuRadioReco.modules.RNO_G.channelGlitchDetector.unscramble">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unscramble</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="n">LAB4D_SAMPLING_BLOCK_SIZE</span><span class="p">,</span> <span class="n">readout_size</span><span class="o">=</span><span class="n">LAB4D_READOUT_SIZE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Applies an unscrambling operation to the passed `trace`.</span>
+<span class="sd">    Note: the first and last sampling block are unusable and hence replaced by zeros in the returned waveform.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trace: np.ndarray</span>
+<span class="sd">        The channel waveform</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    new_trace: np.ndarray</span>
+<span class="sd">        The unscrambled trace</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">twice_block_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">block_size</span>
+
+    <span class="n">new_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i_section</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">//</span> <span class="n">block_size</span><span class="p">):</span>
+        <span class="n">section_start</span> <span class="o">=</span> <span class="n">i_section</span> <span class="o">*</span> <span class="n">block_size</span>
+        <span class="n">section_end</span> <span class="o">=</span> <span class="n">i_section</span> <span class="o">*</span> <span class="n">block_size</span> <span class="o">+</span> <span class="n">block_size</span>
+        <span class="k">if</span> <span class="n">i_section</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">new_trace</span><span class="p">[(</span><span class="n">section_start</span> <span class="o">+</span> <span class="n">twice_block_size</span><span class="p">)</span> <span class="o">%</span> <span class="n">readout_size</span> <span class="p">:</span>\
+                        <span class="p">(</span><span class="n">section_end</span> <span class="o">+</span> <span class="n">twice_block_size</span><span class="p">)</span> <span class="o">%</span> <span class="n">readout_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">section_start</span><span class="p">:</span><span class="n">section_end</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">i_section</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">new_trace</span><span class="p">[(</span><span class="n">section_start</span> <span class="o">-</span> <span class="n">twice_block_size</span><span class="p">)</span> <span class="o">%</span> <span class="n">readout_size</span> <span class="p">:</span>\
+                        <span class="p">(</span><span class="n">section_end</span> <span class="o">-</span> <span class="n">twice_block_size</span><span class="p">)</span> <span class="o">%</span> <span class="n">readout_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">section_start</span><span class="p">:</span><span class="n">section_end</span><span class="p">]</span>
+            <span class="n">new_trace</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">block_size</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="n">new_trace</span></div>
+
+
+<div class="viewcode-block" id="diff_sq">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelGlitchDetector.html#NuRadioReco.modules.RNO_G.channelGlitchDetector.diff_sq">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">diff_sq</span><span class="p">(</span><span class="n">eventdata</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="n">LAB4D_SAMPLING_BLOCK_SIZE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns sum of squared differences of samples across seams of 128-sample chunks.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    eventdata: np.ndarray</span>
+<span class="sd">        The channel waveform</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">twice_block_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">block_size</span>
+
+    <span class="n">runsum</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eventdata</span><span class="p">)</span> <span class="o">//</span> <span class="n">twice_block_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">runsum</span> <span class="o">+=</span> <span class="p">(</span><span class="n">eventdata</span><span class="p">[</span><span class="n">chunk</span> <span class="o">*</span> <span class="n">twice_block_size</span> <span class="o">+</span> <span class="n">block_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">eventdata</span><span class="p">[</span><span class="n">chunk</span> <span class="o">*</span> <span class="n">twice_block_size</span> <span class="o">+</span> <span class="n">block_size</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">runsum</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="has_glitch">

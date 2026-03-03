@@ -663,6 +663,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">geometryUtilities</span> <span class="k">as</span> <span class="n">geo_utl</span><span class="p">,</span> <span class="n">fft</span><span class="p">,</span> <span class="n">trace_utilities</span><span class="p">,</span> <span class="n">constants</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">filterresponse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector.response</span><span class="w"> </span><span class="kn">import</span> <span class="n">Response</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_trace</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.signal.windows</span><span class="w"> </span><span class="kn">import</span> <span class="n">hann</span>
@@ -1349,7 +1350,7 @@
 
 <div class="viewcode-block" id="window_response_in_time_domain">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html#NuRadioReco.utilities.signal_processing.window_response_in_time_domain">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">window_response_in_time_domain</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">,</span> <span class="n">t0</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">microsecond</span><span class="p">,</span> <span class="n">min_diff</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> <span class="n">max_t_diff</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">min_island_length</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">show_debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">window_response_in_time_domain</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">,</span> <span class="n">t0</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">microsecond</span><span class="p">,</span> <span class="n">min_diff</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> <span class="n">max_t_diff</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">min_island_length</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">show_debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">freqs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Windows a response in the time domain (i.e., sets the response to 0 outside a window).</span>
 
 <span class="sd">    This function takes the reponse in the time domain, identifies the relevant region of the response,</span>
@@ -1363,8 +1364,8 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    resp: NuRadioReco.detector.response.Response or callable(freqs) -&gt; complex response</span>
-<span class="sd">        The response function to be windowed.</span>
+<span class="sd">    resp: NuRadioReco.detector.response.Response or callable(freqs) or spectrum -&gt; complex response</span>
+<span class="sd">        The response function or spectrum to be windowed. If spectrum, freqs must be supplied.</span>
 <span class="sd">    sampling_rate: float (default: 5 * units.GHz)</span>
 <span class="sd">        For conversion in time domain, i.e., the sampling rate to evaluate the response in the time domain.</span>
 <span class="sd">    t0: float (default: 2 * units.microsecond)</span>
@@ -1378,19 +1379,29 @@
 <span class="sd">        The minimum length of an island to be considered significant.</span>
 <span class="sd">    show_debug: bool (default: False)</span>
 <span class="sd">        If True, show the debug plots.</span>
+<span class="sd">    freqs: array of float (default: None)</span>
+<span class="sd">        The array of frequencies used to generate the spectrum of resp. Required if resp is not a Response object or callable,</span>
+<span class="sd">        i.e., if resp is already a spectrum. If resp is a Response object, freqs will be generated automatically from t0 and sampling_rate.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    resp_f: callable(freqs) -&gt; complex response</span>
-<span class="sd">        The windowed response function.</span>
+<span class="sd">    resp_f: callable(freqs) or spectrum -&gt; complex response</span>
+<span class="sd">        The windowed response function or spectrum.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">num_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t0</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">Response</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">callable</span><span class="p">(</span><span class="n">resp</span><span class="p">):</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">resp</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
+        <span class="n">input_response</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">num_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t0</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">)</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="n">sampling_rate</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">freqs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;freqs MUST be passed when not using the response class&quot;</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">resp</span>
+        <span class="n">input_response</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">num_samples</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
 
-    <span class="n">freqs</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="n">sampling_rate</span><span class="p">)</span>
     <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_samples</span><span class="p">)</span> <span class="o">/</span> <span class="n">sampling_rate</span>
-    <span class="n">spec</span> <span class="o">=</span> <span class="n">resp</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
-
     <span class="n">time_response</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="n">sampling_rate</span><span class="p">)</span>
 
     <span class="c1"># Roll the maximum of the time response to the center</span>
@@ -1446,7 +1457,15 @@
     <span class="c1"># Connect selected islands</span>
     <span class="n">sample_padding</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># padding because we apply a window</span>
     <span class="n">selected_range</span> <span class="o">=</span> <span class="p">[</span><span class="n">selected_islands</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">sample_padding</span><span class="p">,</span> <span class="n">selected_islands</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">sample_padding</span><span class="p">]</span>
-    <span class="n">window</span> <span class="o">=</span> <span class="n">half_hann_window</span><span class="p">(</span><span class="n">selected_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">selected_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">0.01</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="n">half_hann_window</span><span class="p">(</span><span class="n">selected_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">selected_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">0.01</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Zero length window. Returning original response.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">input_response</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">resp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">spec</span>
 
     <span class="c1"># Windowing: Outside of the selected range, set the response to 0, inside the selected range, apply a hann window</span>
     <span class="n">time_response</span><span class="p">[:</span><span class="n">selected_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1477,7 +1496,100 @@
     <span class="n">response_freq</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">time_response</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="n">sampling_rate</span><span class="p">)</span>
     <span class="n">resp_f</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">response_freq</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span> <span class="o">+</span> <span class="mi">0</span><span class="n">j</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">resp_f</span></div>
+    <span class="k">if</span> <span class="n">input_response</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">resp_f</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">response_freq</span></div>
+
+
+<div class="viewcode-block" id="impulse_response_using_hilbert_phase">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html#NuRadioReco.utilities.signal_processing.impulse_response_using_hilbert_phase">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">impulse_response_using_hilbert_phase</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">left_time_shift</span><span class="o">=</span><span class="mi">10</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">right_time_shift</span><span class="o">=</span><span class="mi">100</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">show_debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates a causal impulse response using a Hilbert derived phase. The theory can be found in chapter 8 of</span>
+<span class="sd">    &#39;Advanced Signal Integrity for High-Speed Digitial Designs&#39; by Hall and Heck. The Hilbert derived phased is defined by</span>
+<span class="sd">    the Kramers-Kronig relations where the imaginary component of a response can be computed by the Hilbert tranformation of the real</span>
+<span class="sd">    component. Causality is enforced by shifting the response later in time with left_time_shift. To keep resulting signals convolved and rolled</span>
+<span class="sd">    with the response it will enforce causality there by doing the Kramers-Kronig on the time reversed reponse with right_time_shift.</span>
+<span class="sd">    The final impulse reponse is spliced between the forward and backward which windows the impulse repsponse.</span>
+
+<span class="sd">    There is overlap with the functionality of window_response_in_time_domain.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    response: array of complex</span>
+<span class="sd">        Signal chain response as a frequency spectrum.</span>
+<span class="sd">    frequencies: array of float</span>
+<span class="sd">        Frequency bins used for channel_response. Assumes np.rfft standard of odd number of frequencies from 0 to sampling_rate/2.</span>
+<span class="sd">    left_time_shift: float</span>
+<span class="sd">        Time before the impulse response needed to calculate the causal response (leading edge).</span>
+<span class="sd">    right_time_shift: float</span>
+<span class="sd">        Time after the impulse response needed to calculate the causal reponse in the reverse direction (trailing edge).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    response: array of complex</span>
+<span class="sd">        Windowed response in the frequency domain</span>
+<span class="sd">    impulse_response: array of float</span>
+<span class="sd">        Hilbert derived impulse response v(t)</span>
+<span class="sd">    times: array of float</span>
+<span class="sd">        Time bins of impulse response</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_bins</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
+    <span class="n">f_sampling</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">n_bins</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">n_bins</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">n_bins</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="n">f_sampling</span>
+
+    <span class="c1"># Calculate the causal impulse response.</span>
+    <span class="n">shifted_response</span> <span class="o">=</span> <span class="n">response</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">frequencies</span><span class="o">*</span><span class="n">left_time_shift</span><span class="p">)</span>
+    <span class="n">hilbert_phase</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">hilbert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">shifted_response</span><span class="p">)))</span>
+    <span class="n">shifted_causal_response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">shifted_response</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">hilbert_phase</span>
+    <span class="n">causal_response</span> <span class="o">=</span> <span class="n">shifted_causal_response</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">+</span><span class="mi">2</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">frequencies</span><span class="o">*</span><span class="n">left_time_shift</span><span class="p">)</span>
+    <span class="n">causal_impulse</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">causal_response</span><span class="p">,</span> <span class="n">f_sampling</span><span class="p">)</span>
+    <span class="n">causal_impulse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">causal_impulse</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the causal impulse response for the time reversed response.</span>
+    <span class="n">rev_resp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="n">rev_shifted</span> <span class="o">=</span> <span class="n">rev_resp</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">frequencies</span><span class="o">*</span><span class="n">right_time_shift</span><span class="p">)</span>
+    <span class="n">rev_phase</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">hilbert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">rev_shifted</span><span class="p">)))</span>
+    <span class="n">rev_causal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">rev_shifted</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">rev_phase</span>
+    <span class="n">rev_causal</span> <span class="o">=</span> <span class="n">rev_causal</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">frequencies</span><span class="o">*</span><span class="n">right_time_shift</span><span class="p">)</span>
+    <span class="n">rev_causal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">rev_causal</span><span class="p">)</span>
+    <span class="n">rev_impulse</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">rev_causal</span><span class="p">,</span> <span class="n">f_sampling</span><span class="p">)</span>
+    <span class="n">rev_impulse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">rev_impulse</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rev_impulse</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Splice the forward and backward causal impulse responses.</span>
+    <span class="n">combo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">causal_impulse</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">],</span> <span class="n">rev_impulse</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">:]))</span>
+    <span class="n">combo_resp</span><span class="o">=</span><span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">combo</span><span class="p">,</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">),</span><span class="n">frequencies</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">show_debug</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">response</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Imag(Original)&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">shifted_response</span><span class="p">),</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;dashed&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Imag(Shifted original)&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">hilbert_phase</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;dashed&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Imag(Hilbert derived)&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">causal_response</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Imag(Acausal Removed)&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Frequencies [GHz]&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Amplitude of Imag(Response) [V/GHz]&quot;</span><span class="p">)</span>
+
+        <span class="n">original_impulse</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">f_sampling</span><span class="p">)</span>
+        <span class="n">original_impulse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">original_impulse</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">fig_impulse</span><span class="p">,</span> <span class="n">ax_impulse</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax_impulse</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">original_impulse</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Original Impulse&quot;</span><span class="p">)</span>
+        <span class="n">ax_impulse</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">causal_impulse</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Acausal Removed Impulse&quot;</span><span class="p">)</span>
+        <span class="n">ax_impulse</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">rev_impulse</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Reverse Acausal Removed Impulse&quot;</span><span class="p">)</span>
+        <span class="n">ax_impulse</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">combo</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Spliced Impulse Response&quot;</span><span class="p">)</span>
+
+        <span class="n">ax_impulse</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">ax_impulse</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time [ns]&quot;</span><span class="p">)</span>
+        <span class="n">ax_impulse</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Impulse Response [V]&quot;</span><span class="p">)</span>
+        <span class="n">ax_impulse</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">left</span><span class="o">=-</span><span class="mi">60</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">combo_resp</span><span class="p">,</span> <span class="n">combo</span><span class="p">,</span> <span class="n">times</span></div>
 
 </pre></div>
 

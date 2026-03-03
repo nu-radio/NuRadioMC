@@ -1021,7 +1021,7 @@ at the air/ice boundary are already being taken into account.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.signal_processing.window_response_in_time_domain">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">window_response_in_time_domain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_t_diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_island_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#window_response_in_time_domain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.window_response_in_time_domain" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">window_response_in_time_domain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_t_diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_island_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#window_response_in_time_domain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.window_response_in_time_domain" title="Link to this definition"></a></dt>
 <dd><p>Windows a response in the time domain (i.e., sets the response to 0 outside a window).</p>
 <p>This function takes the reponse in the time domain, identifies the relevant region of the response,
 and sets the response to 0 outside that region. The relevant region is found as the region where the
@@ -1033,7 +1033,7 @@ and returns the windowed response in the frequency domain.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>resp: NuRadioReco.detector.response.Response or callable(freqs) -&gt; complex response</strong></dt><dd><p>The response function to be windowed.</p>
+<dt><strong>resp: NuRadioReco.detector.response.Response or callable(freqs) or spectrum -&gt; complex response</strong></dt><dd><p>The response function or spectrum to be windowed. If spectrum, freqs must be supplied.</p>
 </dd>
 <dt><strong>sampling_rate: float (default: 5 * units.GHz)</strong></dt><dd><p>For conversion in time domain, i.e., the sampling rate to evaluate the response in the time domain.</p>
 </dd>
@@ -1048,11 +1048,50 @@ For this the maximum difference is normalized to 1.</p>
 </dd>
 <dt><strong>show_debug: bool (default: False)</strong></dt><dd><p>If True, show the debug plots.</p>
 </dd>
+<dt><strong>freqs: array of float (default: None)</strong></dt><dd><p>The array of frequencies used to generate the spectrum of resp. Required if resp is not a Response object or callable,
+i.e., if resp is already a spectrum. If resp is a Response object, freqs will be generated automatically from t0 and sampling_rate.</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>resp_f: callable(freqs) -&gt; complex response</dt><dd><p>The windowed response function.</p>
+<dt>resp_f: callable(freqs) or spectrum -&gt; complex response</dt><dd><p>The windowed response function or spectrum.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.signal_processing.impulse_response_using_hilbert_phase">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">impulse_response_using_hilbert_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left_time_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_time_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#impulse_response_using_hilbert_phase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.impulse_response_using_hilbert_phase" title="Link to this definition"></a></dt>
+<dd><p>Calculates a causal impulse response using a Hilbert derived phase. The theory can be found in chapter 8 of
+‘Advanced Signal Integrity for High-Speed Digitial Designs’ by Hall and Heck. The Hilbert derived phased is defined by
+the Kramers-Kronig relations where the imaginary component of a response can be computed by the Hilbert tranformation of the real
+component. Causality is enforced by shifting the response later in time with left_time_shift. To keep resulting signals convolved and rolled
+with the response it will enforce causality there by doing the Kramers-Kronig on the time reversed reponse with right_time_shift.
+The final impulse reponse is spliced between the forward and backward which windows the impulse repsponse.</p>
+<p>There is overlap with the functionality of window_response_in_time_domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>response: array of complex</strong></dt><dd><p>Signal chain response as a frequency spectrum.</p>
+</dd>
+<dt><strong>frequencies: array of float</strong></dt><dd><p>Frequency bins used for channel_response. Assumes np.rfft standard of odd number of frequencies from 0 to sampling_rate/2.</p>
+</dd>
+<dt><strong>left_time_shift: float</strong></dt><dd><p>Time before the impulse response needed to calculate the causal response (leading edge).</p>
+</dd>
+<dt><strong>right_time_shift: float</strong></dt><dd><p>Time after the impulse response needed to calculate the causal reponse in the reverse direction (trailing edge).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>response: array of complex</dt><dd><p>Windowed response in the frequency domain</p>
+</dd>
+<dt>impulse_response: array of float</dt><dd><p>Hilbert derived impulse response v(t)</p>
+</dd>
+<dt>times: array of float</dt><dd><p>Time bins of impulse response</p>
 </dd>
 </dl>
 </dd>

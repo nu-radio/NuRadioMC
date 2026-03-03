@@ -739,6 +739,41 @@ The default value of 0.0 is a good starting point.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelGlitchDetector.unscramble">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.channelGlitchDetector.</span></span><span class="sig-name descname"><span class="pre">unscramble</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">readout_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2048</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelGlitchDetector.html#unscramble"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelGlitchDetector.unscramble" title="Link to this definition"></a></dt>
+<dd><p>Applies an unscrambling operation to the passed <a class="reference external" href="https://docs.python.org/3/library/trace.html#module-trace" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace</span></code></a>.
+Note: the first and last sampling block are unusable and hence replaced by zeros in the returned waveform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: np.ndarray</strong></dt><dd><p>The channel waveform</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>new_trace: np.ndarray</dt><dd><p>The unscrambled trace</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelGlitchDetector.diff_sq">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.channelGlitchDetector.</span></span><span class="sig-name descname"><span class="pre">diff_sq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eventdata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelGlitchDetector.html#diff_sq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelGlitchDetector.diff_sq" title="Link to this definition"></a></dt>
+<dd><p>Returns sum of squared differences of samples across seams of 128-sample chunks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>eventdata: np.ndarray</strong></dt><dd><p>The channel waveform</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelGlitchDetector.has_glitch">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.channelGlitchDetector.</span></span><span class="sig-name descname"><span class="pre">has_glitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_or_station</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelGlitchDetector.html#has_glitch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelGlitchDetector.has_glitch" title="Link to this definition"></a></dt>
 <dd><p>Returns true if any channel in any station has a “glitch”.</p>
