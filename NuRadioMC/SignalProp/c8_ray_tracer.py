@@ -2,11 +2,11 @@ import logging
 
 import numpy as np
 
-from c8_tracer.c8_tracer_ext import Vec3
 from c8_tracer.nrmc_interface import CreateNRMCWrappedRayTracer
 
 from NuRadioReco.utilities import units
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+
 
 class C8RayTracerIndividual(ray_tracing_base):
     """
@@ -38,6 +38,7 @@ class C8RayTracerIndividual(ray_tracing_base):
         min_step: float = 0.0001,
         max_step: float = 1.0,
         tolerance: float = 1e-8,
+        n_rays: int = 21,
     ):
         if n_reflections != 1:
             raise RuntimeError(
@@ -60,6 +61,7 @@ class C8RayTracerIndividual(ray_tracing_base):
             min_step,
             max_step,
             tolerance,
+            nRays=n_rays,
         )
 
         self.set_config(config=config)
@@ -86,14 +88,9 @@ class C8RayTracerIndividual(ray_tracing_base):
             self.find_solutions()
 
         if self._paths[iS] is None:
-            signal_path = self._tracer.GetSignalPath(
-                Vec3(self._X1),
-                Vec3(self._results[iS].emit),
-                Vec3(self._X2),
-                self._medium,
+            self._paths[iS] = np.array(
+                [np.array([x.x, x.y, x.z]) for x in self._results[iS]]
             )
-
-            self._paths[iS] = np.array([np.array([x.x, x.y, x.z]) for x in signal_path])
 
         return self._paths[iS]
 
