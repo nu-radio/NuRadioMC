@@ -337,7 +337,7 @@ class IceModelSimple(IceModel):
             return -self.delta_n / self.z_0 * np.exp((z - self.z_shift) / self.z_0)
 
         if (isinstance(position, list) or position.ndim == 1):
-            gradient = np.array([0,0,0])
+            gradient = np.array([0, 0, 0], dtype=float)
             if (position[2] - self.z_air_boundary) <= 0:
                 gradient[2] = gradient_z(position[2])
         else:
