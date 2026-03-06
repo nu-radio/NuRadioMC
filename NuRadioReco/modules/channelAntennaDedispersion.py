@@ -9,9 +9,9 @@ logger = logging.getLogger('NuRadioReco.channelAntennaDedispersion')
 
 class channelAntennaDedispersion:
     """
-    The goal of this module is to unfold the antenna response at a point where the
-    direction of the incoming signal is not known. Hence, we choose the most sensitive
-    direction (and polarisation) for each antenna as a proxy.
+    The goal of this module is to unfold the group delay introduced by the antenna at a point where the
+    direction of the incoming signal is not known. Hence, we choose the most sensitive direction (and polarisation) 
+    for each antenna as a proxy. The goal is to improve the signal-to-noise ratio on the channel level.
 
     For a proper reconstruction of the electric field, please look at the voltage2EFieldConverter module.
     """
