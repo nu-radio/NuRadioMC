@@ -8,28 +8,42 @@ logger = logging.getLogger('NuRadioReco.channelAntennaDedispersion')
 
 
 class channelAntennaDedispersion:
+    """
+    The goal of this module is to unfold the antenna response at a point where the
+    direction of the incoming signal is not known. Hence, we choose the most sensitive
+    direction (and polarisation) for each antenna as a proxy.
 
+    For a proper reconstruction of the electric field, please look at the voltage2EFieldConverter module.
+    """
     def __init__(self):
+
 
         self._provider = AntennaPatternProvider()
 
-#     @lru_cache(maxsize=32)  # hashing doen't make sense because ff array is always different
+        # relative to the antenna orientation
+        self.antennas_most_sensitive_directions = {
+            "LPDA": [0, 0], # the sensitive direction of an LPDA is the boresight direction
+            "bicone": [90 * units.deg, 0], # the sensitive direction of a dipole is perpendicular to its orientation
+            "dipole": [90 * units.deg, 0], # the sensitive direction of a dipole is perpendicular to its orientation
+        }
+
     def _get_response(self, det, station_id, channel_id, ff):
         antenna_name = det.get_antenna_model(station_id, channel_id)
         antenna = self._provider.load_antenna_pattern(antenna_name)
         zen_ori, az_ori, zen_rot, az_rot = det.get_antenna_orientation(station_id, channel_id)
-        if("LPDA" in antenna_name):
-            zen = zen_ori  # the sensitive direction of an LPDA is the boresight direction
-            az = az_ori
-        elif("bicone" in antenna_name or "dipole" in antenna_name):
-            zen = 90 * units.deg + zen_ori  # the sensitive direction of a dipole is perpendicular to its orientatoin
-            az = 0
-        else:
-            raise AttributeError(f"antenna name {antenna_name} can't be interpreted")
+
+        if antenna_name not in self.antennas_most_sensitive_directions:
+            raise AttributeError(f"Antenna name {antenna_name} can't be interpreted. "
+                f"Available names are: {list(self.antennas_most_sensitive_directions.keys())}")
+
+        zen = zen_ori + self.antennas_most_sensitive_directions[antenna_name][0]
+        az = az_ori + self.antennas_most_sensitive_directions[antenna_name][1]
+
         VEL = antenna.get_antenna_response_vectorized(ff, zen, az, zen_ori, az_ori, zen_rot, az_rot)
         polarization = "phi"
-        if(np.sum(np.abs(VEL['theta'])) > np.sum(np.abs(VEL['phi']))):
+        if np.sum(np.abs(VEL['theta'])) > np.sum(np.abs(VEL['phi'])):
             polarization = "theta"
+
         response = np.exp(1j * np.angle(VEL[polarization]))
         return response
 
@@ -38,13 +52,18 @@ class channelAntennaDedispersion:
         for channel in station.iter_channels():
             ff = channel.get_frequencies()
             response = self._get_response(det, station.get_id(), channel.get_id(), tuple(ff))
+
             if debug:
+                from matplotlib import pyplot as plt
+
                 trace = channel.get_trace()
                 tt = channel.get_times()
-                from matplotlib import pyplot as plt
                 fig, ax = plt.subplots(1, 1)
                 ax.plot(tt, trace)
-            channel.set_frequency_spectrum(channel.get_frequency_spectrum() / response, sampling_rate=channel.get_sampling_rate())
+
+            channel.set_frequency_spectrum(
+                channel.get_frequency_spectrum() / response, sampling_rate=channel.get_sampling_rate())
+
             if debug:
                 trace = channel.get_trace()
                 ax.plot(tt, trace, '--')
