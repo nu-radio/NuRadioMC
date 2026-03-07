@@ -82,16 +82,30 @@ class C8RayTracerIndividual(ray_tracing_base):
     def get_solution_type(self, iS):
         raise NotImplementedError("TODO, figure out what to return")
 
-    def get_path(self, iS, n_points=1000):
+    def get_path(self, iS, n_points=None):
         # ensure solutions exist
         if self._results is None:
             self.find_solutions()
 
+        # results are stored as Vec3 unless asked for, convert
         if self._paths[iS] is None:
             self._paths[iS] = np.array(
                 [np.array([x.x, x.y, x.z]) for x in self._results[iS]]
             )
 
+        # interpolate points if number specified
+        if n_points is not None:
+            x = np.linspace(0.0, 1.0, n_points)
+            xp = np.linspace(0.0, 1.0, len(self._paths[iS]))
+            return np.transpose(
+                [
+                    np.interp(x, xp, self._paths[iS, :, 0]),
+                    np.interp(x, xp, self._paths[iS, :, 1]),
+                    np.interp(x, xp, self._paths[iS, :, 2]),
+                ]
+            )
+
+        # return the native path otherwise
         return self._paths[iS]
 
     def get_launch_vector(self, iS):
