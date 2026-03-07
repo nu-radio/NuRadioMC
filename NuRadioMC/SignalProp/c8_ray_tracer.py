@@ -73,11 +73,18 @@ class C8RayTracerIndividual(ray_tracing_base):
         self._paths = None
 
     def find_solutions(self):
-        self._results = self._trace_to_point(self._X1, self._X2)
-        self._paths = [None] * len(self._results)
+        if self._X1 is not None and self._X2 is not None:
+            self._results = self._trace_to_point(self._X1, self._X2)
+            self._paths = [None] * len(self._results)
+            return
+
+        self.__logger.fatal(
+            "Asking to find solutions without first settings the end points"
+        )
+        raise RuntimeError()
 
     def has_solution(self):
-        return len(self._results) > 0
+        return self._results is not None and len(self._results) > 0
 
     def get_solution_type(self, iS):
         raise NotImplementedError("TODO, figure out what to return")
@@ -86,6 +93,9 @@ class C8RayTracerIndividual(ray_tracing_base):
         # ensure solutions exist
         if self._results is None:
             self.find_solutions()
+
+        assert self._paths is not None
+        assert self._results is not None
 
         # results are stored as Vec3 unless asked for, convert
         if self._paths[iS] is None:
@@ -109,9 +119,11 @@ class C8RayTracerIndividual(ray_tracing_base):
         return self._paths[iS]
 
     def get_launch_vector(self, iS):
+        assert self._results is not None
         return self._results[iS].emit
 
     def get_receive_vector(self, iS):
+        assert self._results is not None
         return -self._results[iS].receive
 
     def get_reflection_angle(self, iS):
@@ -121,7 +133,7 @@ class C8RayTracerIndividual(ray_tracing_base):
         # find the point closest to z and ensure that it is plausibly
         # a reflection, note that the tracer will ensure that a path point
         # is with 5e-6 m of a reflection plane, so it won't be subtle
-        path = self.get_path[iS]
+        path = self.get_path(iS)
         z_ref = self._medium.z_air_boundary
 
         dz = np.abs(path[:, 2] - z_ref)
@@ -136,8 +148,10 @@ class C8RayTracerIndividual(ray_tracing_base):
         # TODO: which is the angle they are consisering
         return abs(np.arccos(dr[2]))
 
-    def get_path_length(self, iS):
-        return self._results[iS].R_distance
+    def get_path_length(self, iS, analytic=False):
+        assert self._results is not None
+        return self._results[iS].R_distance * units.m
 
-    def get_travel_time(self, iS):
+    def get_travel_time(self, iS, analytic=False):
+        assert self._results is not None
         return self._results[iS].propagation_time * units.s
