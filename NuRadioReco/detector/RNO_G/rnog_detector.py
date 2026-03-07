@@ -581,7 +581,7 @@ class Detector():
             f"Query information for station {station_id} at {self.get_detector_time()}")
         if self._query_all:
             station_information = self.__db.get_complete_station_information(
-                station_id)
+                station_id, measurement_signal_chain=self.signal_chain_measurement_name)
         else:
             station_information = self.__db.get_general_station_information(
                 station_id)
