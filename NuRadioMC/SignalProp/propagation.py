@@ -6,7 +6,7 @@ solution_types = {
     3: 'reflected'
 }
 
-solution_types_revert = {v:k for k, v in solution_types.items()}
+solution_types_revert = {v: k for k, v in solution_types.items()}
 available_modules = [
     'analytic',
     'radiopropa',
