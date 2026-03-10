@@ -931,7 +931,7 @@ def get_path(C0, x1, x2, layers, n_points=2000):
 
         y_turn, _, _ = build_y_field(C0, x1, np.array([z_turn]), layers)
 
-        y_mirror = mirror(y_forward, y_turn)
+        y_mirror = 2*y_turn - y_forward
 
         z_up = z_forward[::-1]
         y_up = y_mirror[::-1]
