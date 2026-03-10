@@ -1448,9 +1448,8 @@ class simulation:
         # calculate bary centers of station
         station_barycenter = np.zeros((len(self._station_ids), 3))
         for iSt, station_id in enumerate(self._station_ids):
-            pos = []
-            for channel_id in self._det.get_channel_ids(station_id):
-                pos.append(self._det.get_relative_position(station_id, channel_id))
+            pos = [self._det.get_relative_position(station_id, channel_id)
+                for channel_id in self._det.get_channel_ids(station_id)]
             station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
 
         # loop over event groups
@@ -1474,6 +1473,7 @@ class simulation:
             if particle_mode:
                 weight = calculate_particle_weight(event_group, event_indices[0], self._config, self._fin)
             time_logger.stop_time("weight calc.")
+
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if weight < self._config['speedup']['minimum_weight_cut']:
@@ -1502,7 +1502,7 @@ class simulation:
                     distance_cut = self._get_distance_cut(np.sum(shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
                     if vertex_distances_to_station.min() > distance_cut:
                         logger.debug(f"event group {event_group.get_run_number()} is too far away from station {station_id}, skipping to next station")
-                        # continue
+                        continue
 
                 output_buffer[station_id] = {}
                 station = NuRadioReco.framework.station.Station(station_id)
