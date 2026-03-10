@@ -1,3 +1,53 @@
+"""
+Ray tracing module for layered ice refractive index profiles.
+
+This module implements analytic ray tracing in glacial ice or another medium where the
+refractive index varies exponentially with depth and may change
+between multiple layers. It provides utilities to
+
+* evaluate refractive index profiles
+* compute analytic ray trajectories
+* determine turning points
+* solve for ray parameters connecting two points
+* classify solutions (direct, refracted, reflected)
+
+The implementation follows the analytic solution of ray propagation
+in exponential media commonly used in radio detection of neutrinos
+in glacial ice.
+
+Typical workflow
+----------------
+1. Define the ice layers (e.g. ``LAYERS``).
+2. Use :func:`find_solutions` to determine valid ray parameters between
+   two points.
+3. Use :func:`get_path` to compute the full ray trajectory.
+
+Coordinates
+-----------
+Positions are given as (y, z) coordinates:
+
+* y : horizontal distance
+* z : depth (negative downward)
+
+The ray parameter ``C0`` corresponds to the inverse horizontal slowness
+of the ray and determines the curvature of the trajectory.
+Authors
+-------
+Hannes Warnhofer
+    RNO-G/DESY Zeuthen
+
+Contact
+-------
+hannes.warnhofer@desy.de
+
+Created
+-------
+2026
+
+Notes
+-----
+Developed for use in NuRadioMC ray tracing.
+"""
 
 import numpy as np
 from scipy import optimize
@@ -48,69 +98,34 @@ LAYERS = [
     }
 ]
 
-def get_layer_params_old(z):
-
-    if z > -14.9:
-        # Snow
-        return {
-            "n_ice": 1.51188,
-            "delta_n": 0.271579,
-            "z_0": 1/0.114553,
-            "z_min": -14.9,
-            "z_max": 0.0,
-            "region": "snow",
-            "region_name" : "Snow"
-        }
-
-    elif z > -80.5:
-        # Firn
-        return {
-            "n_ice": 1.89957,
-            "delta_n": 0.529715,
-            "z_0": 1/0.0129175,
-            "z_min": -80.5,
-            "z_max": -14.9,
-            "region": "firn",
-            "region_name" : "Firn"
-        }
-
-    else:
-        # Bubbly ice
-        return {
-            "n_ice": 1.77468,
-            "delta_n": 1.41573,
-            "z_0": 1/0.0387882,
-            "z_min": -1500.0,
-            "z_max": -80.5,
-            "region": "bubbly_ice",
-            "region_name" : "Ice"
-        }
-
 def get_layer_params(z, layers):
     """
-    Return the layer definition corresponding to a given depth.
+    Return the ice layer parameters for a given depth based on a list of layers.
 
-    The function searches through a list of layer dictionaries and returns
-    the one whose depth interval contains the input depth.
+    The function searches through a list of layer definitions and returns the
+    layer whose depth range contains the provided value.
 
-    Args:
-        z (float):
-            Depth value in meters.
-        layers (list of dict):
-            List of layer definitions containing `z_min` and `z_max`.
+    Parameters
+    ----------
+    z : float
+        Depth coordinate (negative downwards).
+    layers : list of dict
+        Layer definitions containing `z_min`, `z_max`, `n_ice`, etc.
 
-    Returns:
-        dict:
-            The layer dictionary that contains the given depth.
+    Returns
+    -------
+    dict
+        Matching layer dictionary.
 
-    Raises:
-        ValueError:
-            If the depth is outside all defined layer ranges.
+    Raises
+    ------
+    ValueError
+        If `z` is outside all defined layers.
 
-    Example:
-        >>> layer = get_layer_params(-50, LAYERS)
-        >>> layer["region"]
-        'firn'
+    Examples
+    --------
+    >>> get_layer_params(-50, LAYERS)
+    {'z_min': -80.5, 'z_max': -14.9, 'n_ice': 1.89957, ...}
     """
 
     for layer in layers:
@@ -120,24 +135,27 @@ def get_layer_params(z, layers):
 
 def get_layer_indices(z_array, layers):
     """
-    Determine which layer each depth value belongs to.
+    Determine the layer index for each depth in an array.
 
-    The function supports both scalar and array inputs and returns the
-    corresponding layer indices.
+    This function assigns each depth to the index of the corresponding
+    layer in the provided layer list.
 
-    Args:
-        z_array (float or array-like):
-            Depth value(s).
-        layers (list of dict):
-            List of layer definitions.
+    Parameters
+    ----------
+    z_array : float or array_like
+        Depth(s) to evaluate.
+    layers : list of dict
+        List of layer definitions.
 
-    Returns:
-        int or numpy.ndarray:
-            Layer index (or array of indices) corresponding to each depth.
+    Returns
+    -------
+    int or ndarray of int
+        Index(es) of the layer corresponding to each depth.
 
-    Example:
-        >>> get_layer_indices([-10, -100], LAYERS)
-        array([0, 2])
+    Examples
+    --------
+    >>> get_layer_indices([-10, -50, -100], LAYERS)
+    array([0, 1, 2])
     """
     scalar_input = np.isscalar(z_array)
 
@@ -154,24 +172,33 @@ def get_layer_indices(z_array, layers):
 
 def get_refractive_index(z, layers):
     """
-    Compute the refractive index n(z) for a given depth or array of depths.
+    Compute the refractive index profile n(z).
 
-    The refractive index is calculated using an exponential model within
-    each layer.
+    The refractive index is evaluated using an exponential parameterization
+    within each layer.
 
-    Args:
-        z (float or array-like):
-            Depth value(s).
-        layers (list of dict):
-            List of layer definitions.
+    Parameters
+    ----------
+    z : float or array_like
+        Depth coordinate(s).
+    layers : list of dict
+        Layer definitions containing ``n_ice``, ``delta_n``, and ``z_0``.
 
-    Returns:
-        float or numpy.ndarray:
-            Refractive index value(s) corresponding to the input depth(s).
+    Returns
+    -------
+    float or ndarray
+        Refractive index evaluated at the provided depth(s).
 
-    Example:
-        >>> get_refractive_index(-100, LAYERS)
-        1.77
+    Notes
+    -----
+    The refractive index in each layer follows
+
+    n(z) = n_ice - delta_n * exp(z / z_0)
+
+    Examples
+    --------
+    >>> get_refractive_index(-50, LAYERS)
+    1.6
     """
     
     z = np.asarray(z)
@@ -200,22 +227,36 @@ def get_refractive_index(z, layers):
 
 def analytic_F(z, C_0, layer):
     """
-    Evaluate the analytic ray tracing integral F(z) for a given layer.
+    Compute the analytic ray tracing function F(z) for a given layer.
 
-    This function computes the analytic solution used to reconstruct the
-    horizontal ray trajectory.
+    This function represents the analytic solution of the ray path
+    integral in a medium with an exponential refractive index profile.
 
-    Args:
-        z (float or array-like):
-            Depth value(s).
-        C_0 (float):
-            Ray parameter controlling the trajectory curvature.
-        layer (dict):
-            Layer definition containing refractive index parameters.
+    Parameters
+    ----------
+    z : float or ndarray
+        Depth coordinate(s).
+    C_0 : float
+        Ray parameter (inverse horizontal slowness).
+    layer : dict
+        Layer definition containing ``n_ice``, ``delta_n``, and ``z_0``.
 
-    Returns:
-        float or numpy.ndarray:
-            Value of the analytic function F(z).
+    Returns
+    -------
+    float or ndarray
+        Value of the analytic function F(z).
+
+    Notes
+    -----
+    The returned function is used to compute the horizontal coordinate
+    of the ray trajectory:
+
+    y(z) = F(z) + C1
+
+    Examples
+    --------
+    >>> analytic_F(-50, 0.5, LAYERS[1])
+    12.345
     """
 
     n_ice   = layer["n_ice"]
@@ -238,22 +279,32 @@ def analytic_F(z, C_0, layer):
 
 def compute_all_offsets(C0, x_start, layers):
     """
-    Compute integration offsets for all layers for a given ray parameter.
+    Compute the horizontal offsets C1 for each layer to ensure continuity of y(z).
 
-    The offsets ensure that the analytic ray solution remains continuous
-    when crossing layer boundaries.
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter.
+    x_start : tuple
+        Starting coordinates (y_start, z_start).
+    layers : list of dict
+        Ice layer definitions.
 
-    Args:
-        C0 (float):
-            Ray parameter.
-        x_start (tuple):
-            Starting position `(y, z)` of the ray.
-        layers (list of dict):
-            Layer definitions.
+    Returns
+    -------
+    ndarray
+        Array of offset constants ``C1`` for each layer.
 
-    Returns:
-        numpy.ndarray:
-            Array of offset values `C1` for each layer.
+    Examples
+    --------
+    >>> compute_all_offsets(0.5, (0, -50), LAYERS)
+    array([1.2, 0.8, 0.5])
+
+    
+    Notes
+    -----
+    The offsets are propagated both upward and downward from the starting
+    layer to enforce continuity of the ray trajectory.
     """
 
     y_start, z_start = x_start
@@ -303,35 +354,39 @@ def compute_all_offsets(C0, x_start, layers):
 
 def build_y_field(C0, x_start, z_array, layers, C1=None):
     """
-    Compute the horizontal ray coordinate y(z) for a set of depths.
+    Compute the horizontal ray trajectory y(z).
 
-    The function evaluates the analytic ray solution across multiple
-    layers and applies the appropriate layer offsets.
+    Given a ray parameter and a starting position, this function evaluates
+    the horizontal coordinate of the ray at a set of depth values.
 
-    Args:
-        C0 (float):
-            Ray parameter.
-        x_start (tuple):
-            Starting coordinate `(y, z)`.
-        z_array (array-like):
-            Depth values where the trajectory should be evaluated.
-        layers (list of dict):
-            Layer definitions.
-        C1 (array-like, optional):
-            Precomputed layer offsets.
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter.
+    x_start : tuple
+        Starting coordinates (y_start, z_start).
+    z_array : array_like
+        Depth values at which to evaluate the trajectory.
+    layers : list of dict
+        Layer definitions.
+    C1 : ndarray, optional
+        Precomputed offsets for each layer. If not provided, they are
+        calculated internally.
 
-    Returns:
-        tuple:
-            (y, layer_idx, C1)
+    Returns
+    -------
+    tuple
+        y : ndarray
+            y-coordinates corresponding to `z_array`.
+        layer_idx : ndarray
+            Layer index for each depth.
+        C1 : ndarray
+            Offsets used for each layer.
 
-            y : numpy.ndarray
-                Horizontal coordinates corresponding to `z_array`.
-
-            layer_idx : numpy.ndarray
-                Layer index for each depth value.
-
-            C1 : numpy.ndarray
-                Offset values used for each layer.
+    Examples
+    --------
+    >>> build_y_field(0.5, (0, -50), [-100, -50, -10], LAYERS)
+    (array([1.1, 1.3, 1.5]), array([2, 1, 0]), array([0.5, 0.8, 1.2]))
     """
 
     z_array = np.asarray(z_array)
@@ -361,20 +416,26 @@ def build_y_field(C0, x_start, z_array, layers, C1=None):
 
 def find_z_turn(C0, layers):
     """
-    Determine the turning point depth of a ray.
+    Find the turning point depth where the ray reflects due to total internal refraction.
+    The turning point occurs where the refractive index equals
+    ``1 / C0``.
 
-    The turning point occurs where the refractive index satisfies
-    n(z) = 1 / C0.
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter.
+    layers : list of dict
+        Ice layer definitions.
 
-    Args:
-        C0 (float):
-            Ray parameter.
-        layers (list of dict):
-            Layer definitions.
+    Returns
+    -------
+    float
+        Depth of turning point. Returns 0.0 if no turning point exists.
 
-    Returns:
-        float:
-            Depth of the turning point. Returns 0.0 if no turning point exists.
+    Examples
+    --------
+    >>> find_z_turn(0.5, LAYERS)
+    -20.0
     """
 
     target_n = 1.0 / C0
@@ -393,21 +454,28 @@ def find_z_turn(C0, layers):
 
 def evaluate_y(C0, C1, z, layers):
     """
-    Evaluate the ray trajectory y(z) at a given depth.
+    Evaluate y(z) at a given depth using precomputed offsets.
 
-    Args:
-        C0 (float):
-            Ray parameter.
-        C1 (array-like):
-            Layer offsets.
-        z (float):
-            Depth value.
-        layers (list of dict):
-            Layer definitions.
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter.
+    C1 : array
+        Offsets per layer.
+    z : float
+        Depth to evaluate.
+    layers : list of dict
+        Ice layer definitions.
 
-    Returns:
-        float:
-            Horizontal ray coordinate y(z).
+    Returns
+    -------
+    float
+        y-coordinate at depth `z`.
+
+    Examples
+    --------
+    >>> evaluate_y(0.5, C1, -50, LAYERS)
+    1.23
     """
     idx = get_layer_indices(z, layers)
     F_val = analytic_F(z, C0, layers[int(idx)])
@@ -415,27 +483,31 @@ def evaluate_y(C0, C1, z, layers):
 
 def get_turning_point(C0, x1, layers, C1=None):
     """
-    Compute the horizontal and vertical coordinates of the ray turning point.
+    Compute the coordinates of the turning point (y, z) of a ray with C0 starting from x1.
 
-    Args:
-        C0 (float):
-            Ray parameter.
-        x1 (tuple):
-            Starting coordinate `(y, z)`.
-        layers (list of dict):
-            Layer definitions.
-        C1 (array-like, optional):
-            Precomputed layer offsets.
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter.
+    x1 : tuple
+        Start coordinates (y_start, z_start).
+    layers : list of dict
+        Ice layer definitions.
+    C1 : array, optional
+        Precomputed offsets.
 
-    Returns:
-        tuple:
-            (y_turn, z_turn)
+    Returns
+    -------
+    tuple
+        y_turn : float
+            y-coordinate of turning point.
+        z_turn : float
+            z-coordinate of turning point.
 
-            y_turn : float
-                Horizontal coordinate of the turning point.
-
-            z_turn : float
-                Depth of the turning point.
+    Examples
+    --------
+    >>> get_turning_point(0.5, (0, -50), LAYERS)
+    (1.23, -20.0)
     """
 
     if C1 is None:
@@ -453,26 +525,34 @@ def get_turning_point(C0, x1, layers, C1=None):
 
     return y_turn , z_turn
 
+
 def evaluate_y_with_mirror(C0, C1, z_array, layers):
     """
-    Evaluate y(z) while accounting for ray reflection at the turning point.
+    Evaluate the ray trajectory including reflection at the turning point.
 
-    If the ray passes the turning point, the trajectory is mirrored to
-    represent the refracted/reflected path.
+    If a turning point exists, the trajectory above the turning point
+    is mirrored to represent the refracted portion of the ray path.
 
-    Args:
-        C0 (float):
-            Ray parameter.
-        C1 (array-like):
-            Layer offsets.
-        z_array (array-like):
-            Depth values.
-        layers (list of dict):
-            Layer definitions.
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter.
+    C1 : array
+        Offsets per layer.
+    z_array : array_like
+        Depths to evaluate.
+    layers : list of dict
+        Ice layer definitions.
 
-    Returns:
-        numpy.ndarray:
-            Horizontal ray coordinates corresponding to the input depths.
+    Returns
+    -------
+    ndarray
+        y-coordinates including mirrored values after the turning point.
+
+    Examples
+    --------
+    >>> evaluate_y_with_mirror(0.5, C1, [-50, -10, 0], LAYERS)
+    array([1.2, 1.4, 1.6])
     """
     z_array = np.asarray(z_array)
     y = np.zeros_like(z_array, dtype=float)
@@ -508,23 +588,31 @@ def get_delta_y(C0, x1, x2, layers, C0range=(-1.0,-1.0)):
     Compute the horizontal difference between the ray trajectory and a target point.
 
     This function evaluates how far the analytic ray path deviates from
-    the desired endpoint.
+    the desired target position ``x2``. It is used as the objective function
+    when solving for valid ray tracing solutions.
 
-    Args:
-        C0 (float):
-            Ray parameter.
-        x1 (tuple):
-            Starting coordinate `(y, z)`.
-        x2 (tuple):
-            Target coordinate `(y, z)`.
-        layers (list of dict):
-            Layer definitions.
-        C0range (tuple, optional):
-            Allowed range for C0.
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter.
+    x1 : tuple
+        Start coordinates (y_start, z_start).
+    x2 : tuple
+        Target coordinates (y_target, z_target).
+    layers : list of dict
+        Ice layer definitions.
+    C0range : tuple, optional
+        Allowed range of C0 values. Default is (-1.0, -1.0) (automatic).
 
-    Returns:
-        float:
-            Difference between predicted and target horizontal position.
+    Returns
+    -------
+    float
+        Difference in y between ray and target. Returns -inf if C0 is out of range.
+
+    Examples
+    --------
+    >>> get_delta_y(0.5, (0,-50), (1,0), LAYERS)
+    0.123
     """
     C_0_first = C0
 
@@ -583,15 +671,23 @@ def get_C0_from_log(logC0,n_ice):
     This transformation improves numerical stability when fitting ray
     parameters.
 
-    Args:
-        logC0 (float):
-            Logarithmic optimization parameter.
-        n_ice (float):
-            Refractive index in deep ice.
+    
+    Parameters
+    ----------
+    logC0 : float
+        Logarithmic fit parameter.
+    n_ice : float
+        Refractive index of deep ice.
 
-    Returns:
-        float:
-            Ray parameter C0.
+    Returns
+    -------
+    float
+        Linear C0 value.
+
+    Examples
+    --------
+    >>> get_C0_from_log(0.1, 1.78)
+    1.789
     """
     return np.exp(logC0) + 1. / n_ice
 
@@ -599,17 +695,24 @@ def get_C0_from_theta(z_start, layers, theta):
     """
     Compute the ray parameter C0 from a launch angle.
 
-    Args:
-        z_start (float):
-            Launch depth.
-        layers (list of dict):
-            Layer definitions.
-        theta (float):
-            Launch angle in radians.
+    Parameters
+    ----------
+    z_start : float
+        Start depth.
+    layers : list of dict
+        Ice layer definitions.
+    theta : float
+        Launch angle in radians.
 
-    Returns:
-        float:
-            Ray parameter C0.
+    Returns
+    -------
+    float
+        Corresponding C0 value.
+
+    Examples
+    --------
+    >>> get_C0_from_theta(-50, LAYERS, np.pi/6)
+    0.57
     """
     n_start = get_refractive_index([z_start], layers)
     p = n_start * np.sin(np.pi/2-theta)
@@ -627,23 +730,27 @@ def get_skim_angle(x1, layers, zskim = 0.0):
 
     The ray arrives horizontally at the plane at zskim (90° angle).
 
-    Args:
-        x1 (tuple):
-            Starting position `(y, z)`.
-        layers (list of dict):
-            Layer definitions.
-        zskim (float, optional):
-            Depth used for the calculation.
+    Parameters
+    ----------
+    x1 : tuple
+        Start coordinates (y, z).
+    layers : list of dict
+        Ice layer definitions.
+    zskim : float, optional
+        Depth of surface to skim (default 0.0).
 
-    Returns:
-        tuple:
-            (C0crit, thcrit)
+    Returns
+    -------
+    tuple
+        C0crit : float
+            C0 of critical angle.
+        thcrit : float
+            Critical angle in radians.
 
-            C0crit : float
-                Ray parameter corresponding to the critical angle.
-
-            thcrit : float
-                Critical launch angle in radians.
+    Examples
+    --------
+    >>> get_skim_angle((0, -50), LAYERS)
+    (0.5, 1.57)
     """
 
     nlaunch = get_refractive_index([x1[1]],layers)
@@ -667,52 +774,63 @@ def get_skim_angle(x1, layers, zskim = 0.0):
     return C0crit, thcrit
 
 
-def obj_delta_y_sqr( logC_0, x1, x2, layers, n_deep):
+def obj_delta_y_sqr(logC_0, x1, x2, layers, n_deep):
     """
     Objective function used in root finding for ray solutions.
 
     This function returns the squared horizontal mismatch between the
     predicted ray endpoint and the target point.
 
-    Args:
-        logC_0 (float):
-            Optimization parameter in log-space.
-        x1 (array-like):
-            Start coordinate.
-        x2 (array-like):
-            End coordinate.
-        layers (list of dict):
-            Layer definitions.
-        n_deep (float):
-            Deep ice refractive index.
+    Parameters
+    ----------
+    logC_0 : float
+        Logarithmic ray parameter used by the optimizer.
+    x1 : ndarray
+        Starting position.
+    x2 : ndarray
+        Target position.
+    layers : list of dict
+        Layer definitions.
+    n_deep : float
+        Refractive index in deep ice.
+    reflection : int, optional
+        Reflection configuration flag.
+    reflection_case : int, optional
+        Reflection mode.
 
-    Returns:
-        float:
-            Squared horizontal difference.
+    Returns
+    -------
+    float
+        Squared difference between ray and target position.
     """
     C_0 = get_C0_from_log(logC_0, n_deep)
     return get_delta_y(C_0, x1, x2, layers, (-1.0,-1.0)) ** 2
 
-def obj_delta_y( logC_0, x1, x2, layers, n_deep):
+def obj_delta_y(logC_0, x1, x2, layers, n_deep):
     """
-Objective function returning the horizontal mismatch of the ray path.
+    Objective function returning the horizontal mismatch of the ray path.
 
-Args:
-    logC_0 (float):
-        Optimization parameter in log-space.
-    x1 (array-like):
-        Start coordinate.
-    x2 (array-like):
-        End coordinate.
-    layers (list of dict):
+    This function is used during root finding to determine ray
+    parameters that connect two points.
+
+    Parameters
+    ----------
+    logC_0 : float
+        Logarithmic ray parameter.
+    x1 : ndarray
+        Starting position.
+    x2 : ndarray
+        Target position.
+    layers : list of dict
         Layer definitions.
-    n_deep (float):
+    n_deep : float
         Deep ice refractive index.
 
-Returns:
-    float:
-        Horizontal difference between predicted and target position.
-"""
+    Returns
+    -------
+    float
+        Horizontal difference between the ray trajectory and target point.
+    """
     C_0 = get_C0_from_log(logC_0, n_deep)
     return get_delta_y(C_0, x1, x2, layers, (-1.0,-1.0))
 
@@ -720,23 +838,31 @@ def determine_solution_type(x1, x2, C0, layers):
     """
     Determine the physical type of a ray tracing solution.
 
-    Args:
-        x1 (array-like):
-            Start coordinate `(y, z)`.
-        x2 (array-like):
-            End coordinate `(y, z)`.
-        C0 (float):
-            Ray parameter.
-        layers (list of dict):
-            Layer definitions.
+    
+    Parameters
+    ----------
+    x1 : array_like
+        Start coordinates (y, z).
+    x2 : array_like
+        End coordinates (y, z).
+    C0 : float
+        Ray parameter.
+    layers : list of dict
+        Ice layer definitions.
 
-    Returns:
-        int:
-            Solution type identifier:
+    Returns
+    -------
+    int
+        Identifier for the solution type:
 
-            * 1 — direct ray
-            * 2 — refracted ray
-            * 3 — reflected ray
+        * 1 : direct
+        * 2 : refracted
+        * 3 : reflected
+
+    Examples
+    --------
+    >>> determine_solution_type((0,-50), (1,0), 0.5, LAYERS)
+    1
     """
     y_turn, z_turn = get_turning_point(C0, x1, layers)
     if(x2[0] < y_turn):
@@ -754,29 +880,31 @@ def find_solutions(x1, x2, layers):
     The function searches for ray parameters C0 that connect the start
     and end positions using numerical root finding.
 
-    Args:
-        x1 (tuple):
-            Start coordinate `(y, z)`.
-        x2 (tuple):
-            End coordinate `(y, z)`.
-        layers (list of dict):
-            Layer definitions.
+    Parameters
+    ----------
+    x1 : tuple
+        Start coordinates (y, z).
+    x2 : tuple
+        End coordinates (y, z).
+    layers : list of dict
+        Ice layer definitions.
 
-    Returns:
-        list of dict:
-            List of ray solutions containing:
+    Returns
+    -------
+    list of dict
+            List of solutions. Each entry contains
 
-            type : int
-                Solution type (direct, refracted, reflected)
+            - ``type`` : solution type
+            - ``C0`` : ray parameter
+            - ``D`` : logarithmic parameter used in optimization
+            - ``x1`` : starting position
 
-            C0 : float
-                Ray parameter
 
-            D : float
-                Optimization parameter
 
-            x1 : tuple
-                Start coordinate
+    Examples
+    --------
+    >>> find_solutions((0,-50), (1,0), LAYERS)
+    [{'type': 1, 'C0': 0.5, 'D': 0.1, 'x1': (0,-50)}]
     """
 
     # calculate optimal start value. The objective function becomes infinity if the turning point is below the z
@@ -877,35 +1005,52 @@ def find_solutions(x1, x2, layers):
 
 def get_path(C0, x1, x2, layers, n_points=2000):
     """
-    Compute the ray trajectory (y,z) between two points using analytic ray tracing.
+    Compute the analytic ray trajectory between two points.
 
-    This function builds the ray path for a given ray parameter C0,
-    accounting for turning points and mirroring if the ray bends back
-    before reaching the target.
+    This function constructs the ray path for a given ray parameter ``C0``.
+    If a turning point exists (where the ray bends upward due to the
+    refractive index gradient), the trajectory is mirrored to generate
+    the refracted branch.
 
-    Args:
-        C0 (float):
-            Ray parameter controlling trajectory curvature.
-        x1 (tuple):
-            Start coordinate `(y, z)`.
-        x2 (tuple):
-            End coordinate `(y, z)`.
-        layers (list of dict):
-            List of layer definitions (each containing `n_ice`, `delta_n`, `z_0`, etc.).
-        n_points (int, optional):
-            Number of points to use in the forward integration branch. Default is 2000.
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter controlling the curvature of the trajectory.
+    x1 : tuple
+        Starting coordinate ``(y, z)``.
+    x2 : tuple
+        Target coordinate ``(y, z)``.
+    layers : list of dict
+        Layer definitions describing the refractive index profile.
+    n_points : int, optional
+        Number of points used for the forward integration branch.
+        Default is 2000.
 
-    Returns:
-        tuple:
-            y_path : numpy.ndarray
-                Horizontal coordinates of the ray path.
-            z_path : numpy.ndarray
-                Depth coordinates of the ray path.
+    Returns
+    -------
+    y_path : ndarray
+        Horizontal coordinates of the ray path.
+    z_path : ndarray
+        Depth coordinates of the ray path.
 
-    Example:
-        >>> y_path, z_path = get_path(C0=0.5, x1=(0, -500), x2=(100, -50), layers=LAYERS)
-        >>> len(y_path)
-        4000  # forward + mirrored points if turning occurs
+    Notes
+    -----
+    If a turning point occurs, the function constructs the refracted branch
+    by mirroring the forward trajectory around the turning point.
+
+    The returned trajectory stops once the horizontal coordinate reaches
+    the receiver position.
+
+    Examples
+    --------
+    >>> y_path, z_path = get_path(
+    ...     C0=0.5,
+    ...     x1=(0, -500),
+    ...     x2=(100, -50),
+    ...     layers=LAYERS
+    ... )
+    >>> len(y_path)
+    4000
     """
 
     y1, z1 = x1
