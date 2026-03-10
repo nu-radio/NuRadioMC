@@ -1642,16 +1642,18 @@ class simulation:
                             event_time=self._evt_time,
                             detector_simulation_part1=self.detector_simulation_part1)
 
-                        logger.debug(f"Adding sim_station to station {station_id} for event group "
-                                     f"{event_group.get_run_number()}, channel {channel_id}")
-                        station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
-
                         # The non-triggered channels were simulated using the efieldToVoltageConverterPerEfield
                         # (notice the "PerEfield" in the name). This means that each electric field was converted to
                         # a sim channel. Now we still have to add together all sim channels associated with one "physical"
                         # channel. Furthermore we have to cut out the correct readout window. For the trigger channels
                         # this is done with the channelReadoutWindowCutter, here we have to do it manually.
                         for evt in output_buffer[station_id].values():
+                            station = evt.get_station()
+
+                            logger.debug(f"Adding sim_station to station {station_id} for event group "
+                                        f"{event_group.get_run_number()}, channel {channel_id}")
+                            station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
+
                             for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
                                 if not station.has_channel(sim_channel.get_id()):
                                     # For each physical channel we first create a "empty" trace (all zeros)
@@ -1662,6 +1664,10 @@ class simulation:
                                 # ... and now add the sim channel to the correct window defined by the "empty trace"
                                 # At this point the traces are noiseless, hence, we do not have to raise an error.
                                 channel.add_to_trace(sim_channel, raise_error=False)
+
+                # The signal simulation is finished, now we only have to add noise
+                # to the non-trigger channels, calculate some quatities (for convinience)
+                # and write the output.
 
                 for evt in output_buffer[station_id].values():
                     station = evt.get_station()
