@@ -1301,6 +1301,6 @@ class SurfaceCorr:
         else:
             surf_corr_ratio = np.inf
 
-        return surf_corr_ratio, max_surf_corr, max_r, max_r
+        return surf_corr_ratio, max_surf_corr, max_r, max_z
 
     
