@@ -890,10 +890,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        z_air_boundary: float, NuRadio length units</span>
-<span class="sd">            z coordinate of the surface of the glacier</span>
-<span class="sd">        z_bottom: float, NuRadio length units</span>
-<span class="sd">            z coordinate of the bedrock/bottom of the glacier.</span>
 <span class="sd">        n_ice: float, dimensionless</span>
 <span class="sd">            refractive index of the deep bulk ice</span>
 <span class="sd">        delta_n: float, NuRadio length units</span>
@@ -903,6 +899,10 @@
 <span class="sd">            scale depth of the exponential</span>
 <span class="sd">        z_shift: float, NuRadio length units</span>
 <span class="sd">            up or down shift od the exponential profile</span>
+<span class="sd">        z_air_boundary: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the surface of the glacier</span>
+<span class="sd">        z_bottom: float, NuRadio length units</span>
+<span class="sd">            z coordinate of the bedrock/bottom of the glacier.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">z_air_boundary</span><span class="p">,</span> <span class="n">z_bottom</span><span class="p">)</span>
@@ -1004,14 +1004,14 @@
         <span class="k">def</span><span class="w"> </span><span class="nf">gradient_z</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
             <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_n</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">z</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="n">gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">gradient</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">gradient_z</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">gradient</span> <span class="o">=</span> <span class="n">gradient_z</span><span class="p">(</span><span class="n">position</span><span class="p">[:,</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">gradient</span> <span class="o">=</span> <span class="n">gradient_z</span><span class="p">(</span><span class="n">position</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
             <span class="n">gradient</span><span class="p">[</span><span class="n">position</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gradient</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gradient</span><span class="p">),</span><span class="n">gradient</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gradient</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gradient</span><span class="p">),</span> <span class="n">gradient</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">gradient</span></div>
 
