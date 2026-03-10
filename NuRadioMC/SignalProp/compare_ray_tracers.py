@@ -9,17 +9,15 @@ import matplotlib.pyplot as plt
 
 import time
 
+from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
+from c8_tracer.nrmc_propagator import C8RayTracerIndividual
 
 n_datapoints = 100
 n_output_parameters = int(2 * 4)
 
-n_frequencies = 10
-max_frequency = 1 * units.GHz
-
-ice = medium.get_ice_model("greenland_simple")  # 'southpole_2015')
+ice = medium.get_ice_model('southpole_2015')
 # ice = medium.get_ice_model('uniform_ice')
 
-from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
 
 propagator_1 = ray_tracing(
     ice,
@@ -27,7 +25,6 @@ propagator_1 = ray_tracing(
     use_cpp=False,
 )
 
-from NuRadioMC.SignalProp.c8_ray_tracer import C8RayTracerIndividual
 
 propagator_2 = C8RayTracerIndividual(
     ice,
