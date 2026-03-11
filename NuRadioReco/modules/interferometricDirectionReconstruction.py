@@ -613,7 +613,7 @@ class interferometricDirectionReconstruction():
         else:
             TIR = 35 # degrees
             num_rows_to_TIR = int(np.ceil(TIR / abs(step_sizes[1])))
-            # Surface = near zenith = first rows (coord1 runs from 0 to 180 deg)
+            # Surface = near zenith 0 = first rows (coord1 runs from 0 to 180 deg)
             surface_corr = self.get_surf_corr(corr_matrix, num_rows_to_TIR)
             station.set_parameter(stnp.rec_surf_corr, surface_corr)
 
