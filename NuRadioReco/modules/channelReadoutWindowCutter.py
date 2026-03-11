@@ -2,7 +2,9 @@ from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.channel
 from NuRadioReco.utilities import units, signal_processing
 
+import secrets
 import numpy as np
+from numpy.random import Generator, Philox
 import functools
 import logging
 logger = logging.getLogger('NuRadioReco.channelReadoutWindowCutter')
@@ -20,9 +22,21 @@ class channelReadoutWindowCutter:
         logger.setLevel(log_level)
         self.begin()
 
-    def begin(self):
+    def begin(self, random_seed=None):
+        """
+        Configure the module.
+
+        Parameters
+        ----------
+        random_seed : int or None, optional
+            Seed for the random number generator used for jitter and
+            timing smear. If ``None`` (default), a cryptographically
+            random 128-bit seed is generated via :func:`secrets.randbits`.
+        """
         self.__sampling_rate_error_issued = False
-        pass
+        if random_seed is None:
+            random_seed = secrets.randbits(128)
+        self._rng = Generator(Philox(random_seed))
 
     @register_run()
     def run(self, event, station, detector):
@@ -65,7 +79,10 @@ class channelReadoutWindowCutter:
             logger.info('No trigger found (which triggered)! Channel timings will not be changed.')
             return
 
+        jitter_sample = self._rng.integers(-32, 32)
+        norm_smear = self._rng.normal(0, 10.5 * units.ns)
         trigger_time = trigger.get_trigger_time()
+
         for channel in station.iter_channels():
 
             detector_sampling_rate = detector.get_sampling_frequency(station.get_id(), channel.get_id())
@@ -89,7 +106,9 @@ class channelReadoutWindowCutter:
                 raise AttributeError
 
             channel_id = channel.get_id()
-            pre_trigger_time = trigger.get_pre_trigger_time_channel(channel_id)
+            pre_trigger_time = trigger.get_pre_trigger_time_channel(channel_id) 
+            pre_trigger_time += (jitter_sample/detector_sampling_rate)
+            pre_trigger_time += norm_smear
 
             pre_trigger_time_channel = trigger_time - pre_trigger_time - channel.get_trace_start_time()
 
