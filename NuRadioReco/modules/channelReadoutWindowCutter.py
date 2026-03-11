@@ -24,14 +24,15 @@ class channelReadoutWindowCutter:
 
     def begin(self, random_seed=None):
         """
+
+        Parameters
+        ----------
         random_seed : int or None, optional
-        
+            Set a random seed, used if simulating a random jitter for the readout window
         """
         
         self.__sampling_rate_error_issued = False
-        if random_seed is None:
-            random_seed = secrets.randbits(128)
-        self._rng = Generator(Philox(random_seed))
+        self._rng = Generator(Philox(random_seed or secrets.randbits(128)))
 
     @register_run()
     def run(self, event, station, detector):
@@ -101,9 +102,8 @@ class channelReadoutWindowCutter:
                 raise AttributeError
 
             channel_id = channel.get_id()
-            pre_trigger_time = trigger.get_pre_trigger_time_channel(channel_id) 
-            pre_trigger_time += (jitter_sample/detector_sampling_rate)
-            pre_trigger_time += norm_smear
+            pre_trigger_time = (trigger.get_pre_trigger_time_channel(channel_id) +
+                jitter_sample / detector_sampling_rate + norm_smear)
 
             pre_trigger_time_channel = trigger_time - pre_trigger_time - channel.get_trace_start_time()
 
