@@ -24,15 +24,10 @@ class channelReadoutWindowCutter:
 
     def begin(self, random_seed=None):
         """
-        Configure the module.
-
-        Parameters
-        ----------
         random_seed : int or None, optional
-            Seed for the random number generator used for jitter and
-            timing smear. If ``None`` (default), a cryptographically
-            random 128-bit seed is generated via :func:`secrets.randbits`.
+        
         """
+        
         self.__sampling_rate_error_issued = False
         if random_seed is None:
             random_seed = secrets.randbits(128)
