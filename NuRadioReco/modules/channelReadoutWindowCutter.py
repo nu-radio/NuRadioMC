@@ -75,9 +75,22 @@ class channelReadoutWindowCutter:
             logger.info('No trigger found (which triggered)! Channel timings will not be changed.')
             return
 
-        jitter_sample = self._rng.integers(-32, 32)
-        norm_smear = self._rng.normal(0, 10.5 * units.ns)
         trigger_time = trigger.get_trigger_time()
+
+        # Compute jitter time caused by multiple experimental sources
+        # like readout sampling block(L4D board designed to be 128 samples 
+        # empirically data gives 64sample block) and 
+        # unknown trigger time in data(gaussian spread by empirical data is 10.5ns)
+        first_channel = next(station.iter_channels())
+        first_detector_sampling_rate = detector.get_sampling_frequency(
+            station.get_id(), first_channel.get_id())
+
+        jitter_time = jitter_adder(
+            gaussian_spread=10.5 * units.ns,
+            sample_block_size=64,
+            sampling_rate=first_detector_sampling_rate * units.GHz,
+            rng=self._rng,
+        )
 
         for channel in station.iter_channels():
 
@@ -103,7 +116,7 @@ class channelReadoutWindowCutter:
 
             channel_id = channel.get_id()
             pre_trigger_time = (trigger.get_pre_trigger_time_channel(channel_id) +
-                jitter_sample / detector_sampling_rate + norm_smear)
+                jitter_time)
 
             pre_trigger_time_channel = trigger_time - pre_trigger_time - channel.get_trace_start_time()
 
@@ -245,6 +258,48 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     channel.set_trace_start_time(channel_trace_start_time)
 
     return channel
+
+
+def jitter_adder(gaussian_spread=0*units.ns, sample_block_size=64, sampling_rate=2.4*units.GHz, rng=None):
+    """
+    Generate a readout-window jitter composed of a discrete sample offset
+    (converted to time) and a continuous Gaussian time smear.
+
+    Parameters
+    ----------
+    gaussian_spread : float
+        Standard deviation of the Gaussian time smear (in NuRadioReco
+        time units, e.g. ``10.5 * units.ns``).
+        when gaussian_spread is 0, only the sample block jitter is used
+    sample_block_size : int
+        Range of the uniform integer jitter caused by the readout window 
+        being collected in sample blocks (usually 64 or 128 samples).  
+        An integer is drawn from 
+        ``[-sample_block_size / 2, sample_block_size / 2)``.
+    sampling_rate : float
+        Sampling rate used to convert the integer sample offset to a
+        time value (``jitter_time = jitter_sample / sampling_rate``).
+        the input should be in GHz
+    rng : numpy.random.Generator
+        Random number generator instance, e.g.
+        ``Generator(Philox(random_seed or secrets.randbits(128)))``.
+
+    Returns
+    -------
+    sample_jitter_time : float
+        Time jitter from the discrete sample offset
+        (``jitter_sample / sampling_rate``).
+    norm_smear : float
+        Gaussian time smear drawn from ``N(0, gaussian_spread)``.
+    """
+    if rng is None:
+        rng = Generator(Philox(secrets.randbits(128)))
+
+    sample_jitter = rng.integers(-sample_block_size / 2, sample_block_size / 2)
+    sample_jitter_time = sample_jitter / sampling_rate
+    norm_smear = rng.normal(0, gaussian_spread)
+    jitter_time = sample_jitter_time + norm_smear
+    return jitter_time
 
 
 @functools.lru_cache(maxsize=1024)
