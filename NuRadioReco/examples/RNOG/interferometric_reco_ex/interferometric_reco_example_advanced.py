@@ -15,7 +15,7 @@ Example:
 
 import argparse
 from datetime import datetime
-import os, sys
+import os, re, sys
 import yaml
 import gc
 import time
@@ -34,6 +34,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.modules.channelResampler import channelResampler
 from NuRadioReco.modules.channelBandPassFilter import channelBandPassFilter
 from NuRadioReco.modules.channelSinewaveSubtraction import channelSinewaveSubtraction
+from NuRadioReco.modules.channelAntennaDedispersion import channelAntennaDedispersion
 from NuRadioReco.modules.channelAddCableDelay import channelAddCableDelay
 from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
 from NuRadioReco.modules.io.eventReader import eventReader
@@ -199,45 +200,90 @@ def get_PA_position(station_id, det):
     return pa_pos_rel_station, pa_pos_abs
 
 def get_sim_vertex_rel_PA(event_object, pa_pos_abs):
-    """
-    Get simulation vertex position relative to PA center.
-    
+    """Get simulation vertex position relative to PA center.
+
     Parameters
     ----------
     event_object : Event
-        NuRadioReco Event object
+        NuRadioReco Event object.
     pa_pos_abs : np.ndarray
-        Absolute position of PA center [x, y, z]
-    
+        Absolute position of PA center [x, y, z].
+
     Returns
     -------
     np.ndarray
-        Vertex position relative to PA center [x, y, z]
+        Vertex position relative to PA center [x, y, z].
     """
     interaction_vertex_abs = list(event_object.get_sim_showers())[0].get_parameter(showerParameters.vertex)
     interaction_vertex_rel_PA = np.array(interaction_vertex_abs) - pa_pos_abs
-    
+
     return interaction_vertex_rel_PA
 
-def get_sim_truth_fixed_coord(config, event_object, pa_pos_abs):
+
+def _vertex_rel_PA_from_filename(input_file):
+    """Compute emitter position relative to PA center from filename label.
+
+    Fallback for NUR files that lack sim showers (e.g. A02 pulser sim output).
+    Filename must contain a label like ``r50.0_zen90.0_az0.0``.
+
+    A01 defines the emitter position as pa_center + r * displacement_vec,
+    so the (r, zen, az) label directly encodes the displacement from PA center.
+
+    Parameters
+    ----------
+    input_file : str
+        Path to the NUR file.
+
+    Returns
+    -------
+    np.ndarray
+        Vertex position relative to PA center [x, y, z].
     """
-    Get simulation truth value for fixed coordinate.
-    
+    m = re.search(r'r(\d+\.?\d*)_zen(\d+\.?\d*)_az(\d+\.?\d*)',
+                  os.path.basename(input_file))
+    if m is None:
+        raise ValueError(
+            f"Cannot parse emitter position from filename: {input_file}")
+    r = float(m.group(1))
+    zen = np.radians(float(m.group(2)))
+    az = np.radians(float(m.group(3)))
+    # A01 defines: emitter = pa_center + r * [sin(zen)cos(az), ...]
+    # So this displacement vector is vertex_rel_PA directly
+    return np.array([
+        r * np.sin(zen) * np.cos(az),
+        r * np.sin(zen) * np.sin(az),
+        r * np.cos(zen),
+    ])
+
+
+def get_sim_truth_fixed_coord(config, event_object, pa_pos_abs,
+                              input_file=None):
+    """Get simulation truth value for fixed coordinate.
+
     Parameters
     ----------
     config : dict
-        Configuration dictionary
+        Configuration dictionary.
     event_object : Event
-        NuRadioReco Event object
+        NuRadioReco Event object.
     pa_pos_abs : np.ndarray
-        Absolute position of PA center [x, y, z]
-    
+        Absolute position of PA center [x, y, z].
+    input_file : str, optional
+        Path to current NUR file. Used as fallback when no sim showers exist.
+
     Returns
     -------
     float
-        Fixed coordinate value in appropriate units
+        Fixed coordinate value in appropriate units.
     """
-    interaction_vertex_rel_PA = get_sim_vertex_rel_PA(event_object, pa_pos_abs)
+    sim_showers = list(event_object.get_sim_showers())
+    if sim_showers:
+        interaction_vertex_rel_PA = get_sim_vertex_rel_PA(event_object, pa_pos_abs)
+    elif input_file is not None:
+        interaction_vertex_rel_PA = _vertex_rel_PA_from_filename(input_file)
+    else:
+        raise ValueError(
+            "No sim showers and no input_file provided for oracle fallback")
     x_rel_PA, y_rel_PA, z_rel_PA = interaction_vertex_rel_PA
     
     rho_rel_PA = np.sqrt(x_rel_PA**2 + y_rel_PA**2)
@@ -254,6 +300,8 @@ def get_sim_truth_fixed_coord(config, event_object, pa_pos_abs):
     elif config['coord_system'] == 'spherical':
         if config['rec_type'] == 'phitheta':
             return r_rel_PA
+        elif config['rec_type'] == 'rtheta':
+            return azimuth_rel_PA
 
 def calculate_channel_snr(trace):
     """
@@ -812,6 +860,8 @@ def main():
         freq_band=tuple(config.get('cw_freq_band', [0.1, 0.6]))
     )
 
+    antenna_dedispersion = channelAntennaDedispersion()
+
     reco = interferometricDirectionReconstruction()
     
     # Initialize detector description
@@ -823,7 +873,9 @@ def main():
     else:
         det = detector.Detector(source="rnog_mongo")
         logger.info("Loaded detector from MongoDB")
-    det.update(datetime(2024, 3, 1))
+    det_date_str = config.get('detector_date', '2022-10-01')
+    det_date = datetime.strptime(det_date_str, '%Y-%m-%d')
+    det.update(det_date)
     station_id = config.get('station_id')
     
     # Pre-calculate PA position once (it's constant per station)
@@ -1056,10 +1108,13 @@ def main():
 
             # Bandpass filter reduces noise outside antenna sensitivity range
             if config.get('apply_bandpass', False):
-                channel_bandpass_filter.run(event, event_station, det, 
+                channel_bandpass_filter.run(event, event_station, det,
                     passband=[0.1 * units.GHz, 0.6 * units.GHz],
                     filter_type='butter', order=10)
-                            
+
+            # Remove antenna phase dispersion to sharpen pulses
+            if config.get('apply_dedispersion', False):
+                antenna_dedispersion.run(event, event_station, det)
 
             # Start with all configured channels
             channels_to_use = config['channels'].copy()
@@ -1141,7 +1196,9 @@ def main():
 
             # Get event-specific fixed_coord if using per-event values
             if args.sim_truth_fixed_coord:
-                event_config['fixed_coord'] = get_sim_truth_fixed_coord(event_config, event, pa_pos_abs)
+                event_config['fixed_coord'] = get_sim_truth_fixed_coord(
+                    event_config, event, pa_pos_abs,
+                    input_file=input_file)
                 reco.clear_delay_matrix_cache()
                     
             # Run interferometric direction reconstruction
@@ -1233,16 +1290,24 @@ def main():
                             result_row["rho_alt"] = np.nan
                             result_row["z_alt"] = np.nan
                 elif final_coord_system == "spherical":
-                    # Spherical reconstruction: azimuth and zenith (radius is fixed)
-                    result_row["phi"] = rec_coord_0 / units.deg
-                    result_row["theta"] = rec_coord_1 / units.deg
-
-                    if not np.isnan(rec_coord_0_alt) and not np.isnan(rec_coord_1_alt):
-                        result_row["phi_alt"] = rec_coord_0_alt / units.deg
-                        result_row["theta_alt"] = rec_coord_1_alt / units.deg
+                    if config.get("rec_type") == "rtheta":
+                        result_row["r"] = rec_coord_0 / units.m
+                        result_row["theta"] = rec_coord_1 / units.deg
+                        if not np.isnan(rec_coord_0_alt) and not np.isnan(rec_coord_1_alt):
+                            result_row["r_alt"] = rec_coord_0_alt / units.m
+                            result_row["theta_alt"] = rec_coord_1_alt / units.deg
+                        else:
+                            result_row["r_alt"] = np.nan
+                            result_row["theta_alt"] = np.nan
                     else:
-                        result_row["phi_alt"] = np.nan
-                        result_row["theta_alt"] = np.nan
+                        result_row["phi"] = rec_coord_0 / units.deg
+                        result_row["theta"] = rec_coord_1 / units.deg
+                        if not np.isnan(rec_coord_0_alt) and not np.isnan(rec_coord_1_alt):
+                            result_row["phi_alt"] = rec_coord_0_alt / units.deg
+                            result_row["theta_alt"] = rec_coord_1_alt / units.deg
+                        else:
+                            result_row["phi_alt"] = np.nan
+                            result_row["theta_alt"] = np.nan
                 
                 results.append(result_row)
             
