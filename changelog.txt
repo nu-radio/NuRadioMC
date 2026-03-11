@@ -4,10 +4,14 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Store shower Xmax in simulated shower when simulating with ARZ Askaryan emission models.
 - Added the option to use custom (user-specified) amplifiers. Custom amplifiers can be provided as .csv files
   under NuRadioReco/detector/amps/custom.
 - Added elevation to detector sites, and a corresponding `get_site_elevation` method to the `Detector` class. Altitudes were obtained
 from the NOAA ETOPO1 dataset via www.opentopodata.org.
+- Implemented automatic windowing of the time-domain response in the `deteector.respone.Response` class (windowing performed by default in the __call__ method).
+  Integrated in the RNO-G hardwareResponseIncoperator. If you do not use this module and neither the `deteector.respone.Response` class, your results are
+  uneffected.
 
 bugfixes:
 
@@ -37,6 +41,8 @@ new features:
 - Refactor phased array trigger modules and expands to three trigger modules, phasedArrayTrigger is the legacy trigger with a simple
   interface, beamformedPowerIntegrationTrigger performs the same function as phasedArrayTrigger but access to lower level options to mimic firmware,
   digitalBeamformedEnvelopeTrigger instead computes the Hilbert envelope of the beamformed traces and allows access to lower level options.
+- Refactor rno-g channelGlitchDector module such that `unscrable` and `diff_sq` now live outside of class definition 
+  and can be called without class object.
 - Added analytic VPol and HPol antenna model approximations
 
 bugfixes:

@@ -236,6 +236,9 @@ def calculate_sim_efield(
                 if not shower.has_parameter(shp.charge_excess_profile_id):
                     shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
                     logger.debug(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
+                if not shower.has_parameter(shp.shower_maximum):
+                    shower_xmax = additional_output['profile_depth'][np.argmax(additional_output['profile_ce'])]
+                    shower.set_parameter(shp.shower_maximum, shower_xmax)
 
             if config['signal']['model'] == "Alvarez2009":
                 if not shower.has_parameter(shp.k_L):
