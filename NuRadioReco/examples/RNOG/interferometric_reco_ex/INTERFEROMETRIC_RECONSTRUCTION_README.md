@@ -7,7 +7,9 @@ This module performs directional reconstruction of radio signals by fitting time
 - **`interferometric_reco_example.py`**: Simple reconstruction script with core functionality (recommended starting point)
 - **`interferometric_reco_example_advanced.py`**: Advanced reconstruction script with additional features:
   - SNR-based channel filtering (`--snr-threshold`)
+  - SNR-based pair weighting (`--snr-weighting`)
   - Edge signal detection (`--edge-sigma`)
+  - Antenna dedispersion (`apply_dedispersion` in config)
   - Two-stage automatic reconstruction (`mode: 'auto'` in config)
   - Helper channel validation for quality control
 - **`correlation_map_plotter.py`**: Standalone script for plotting saved correlation maps with comprehensive visualization options
@@ -314,7 +316,8 @@ The `--comprehensive` option creates a multi-panel visualization including:
 |----------------|------------|---------------------|-------|
 | `cylindrical` | `phiz` | Azimuth (φ) and depth (z), with fixed radius (ρ) | φ: degrees, z: meters |
 | `cylindrical` | `rhoz` | Radius (ρ) and depth (z), with fixed azimuth (φ) | ρ: meters, z: meters |
-| `spherical` | N/A | Azimuth (φ) and zenith (θ), with fixed radius (r) | φ, θ: degrees |
+| `spherical` | `phitheta` | Azimuth (φ) and zenith (θ), with fixed radius (r) | φ, θ: degrees |
+| `spherical` | `rtheta` | Radius (r) and zenith (θ), with fixed azimuth (φ) | r: meters, θ: degrees |
 
 ### Optional Parameters
 
@@ -327,6 +330,7 @@ The `--comprehensive` option creates a multi-panel visualization including:
 | `apply_bandpass` | bool | `false` | Apply 100-600 MHz bandpass filter |
 | `apply_cw_removal` | bool | `false` | Remove CW interference |
 | `apply_hann_window` | bool | `false` | Apply Hann window to correlations |
+| `apply_dedispersion` | bool | `false` | **Advanced script only.** Remove antenna phase dispersion before correlating. Sharpens pulses by undoing frequency-dependent phase shifts introduced by the antenna response. |
 | `hilbert_envelope_mode` | string/null | `null` | Hilbert envelope mode: `null` (disabled), `"traces"` (envelope traces before correlating), `"correlation"` (envelope the cross-correlation) |
 | `find_alternate_reco` | bool | `false` | Find alternate reconstruction coordinates |
 | `alternate_exclude_radius_deg` | float | `5.0` | Exclusion radius around primary maximum (degrees) |
@@ -334,6 +338,7 @@ The `--comprehensive` option creates a multi-panel visualization including:
 | `cw_freq_band` | list[float] | `[0.1, 0.7]` | CW removal frequency band (GHz) |
 | `cw_peak_prominence` | float | `4.0` | CW peak detection threshold |
 | `interp_method` | string | `"linear"` | Interpolation method: 'linear' or 'nearest' |
+| `detector_date` | string | `"2022-10-01"` | Date for detector description lookup (format: `YYYY-MM-DD`) |
 
 ---
 
@@ -1033,6 +1038,10 @@ hilbert_envelope_mode: "correlation"  # Envelope the cross-correlation for bette
 - SNR is low
 - Phase information is unreliable
 
+**Antenna dedispersion** (`apply_dedispersion: true`): Removes frequency-dependent phase shifts introduced by the antenna response, sharpening received pulses. Uses `channelAntennaDedispersion` from NuRadioReco. This is applied before correlation and can improve time delay resolution for broadband signals.
+
+**SNR pair weighting** (`--snr-weighting`): Weights each channel pair's correlation by the geometric mean of the two channels' SNR values, so that high-SNR pairs contribute more to the final correlation map. Applied per-event.
+
 ---
 
 ### Caching
@@ -1076,7 +1085,7 @@ python interferometric_reco_example_advanced.py \
 - For **spherical** reconstruction (fixed r): Uses true radial distance from PA center to simulation vertex
 
 **Important notes:**
-- Only works with NUR simulation files that contain shower information (`event.get_sim_showers()`)
+- Works with NUR simulation files that contain shower information (`event.get_sim_showers()`). If no sim showers are present (e.g. pulser sim output from A02), falls back to parsing the emitter position from the filename (expects a label like `r50.0_zen90.0_az0.0`).
 - The fixed coordinate is calculated **per-event** from the true interaction vertex
 - Delay matrix caching is disabled when using this flag (since fixed_coord varies per event)
 - This mode is primarily for validation - it tells you "if I knew the correct fixed coordinate, how well could I reconstruct the other coordinates?"
@@ -1351,11 +1360,15 @@ Advanced Options:
   --snr-threshold FLOAT        SNR threshold for channel filtering
                                Drops channels below threshold
                                Skips event if no helper channels [9,10,22,23] pass
+  --snr-weighting              Weight pair correlations by geometric mean of
+                               per-channel SNR. Low-SNR pairs contribute less.
   --edge-sigma FLOAT           Edge signal detection threshold (in std devs)
                                Drops channels with signals at trace edges
                                Skips event if no helper channels remain
   --sim-truth-fixed-coord      Use simulation truth for fixed coordinate
                                (NUR simulation files only, for validation)
+                               Falls back to parsing position from filename if
+                               no sim showers are present
 ```
 
 ---
