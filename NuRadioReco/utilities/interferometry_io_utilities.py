@@ -168,7 +168,9 @@ def save_reco_results_hdf5(results, filepath, config):
     with h5py.File(filepath, 'w') as f:
         config_group = f.create_group('config')
         for key, value in config.items():
-            if isinstance(value, (list, tuple, np.ndarray)):
+            if value is None:
+                config_group.attrs[key] = "null"
+            elif isinstance(value, (list, tuple, np.ndarray)):
                 config_group.attrs[key] = np.array(value)
             else:
                 config_group.attrs[key] = value
