@@ -806,7 +806,7 @@ class interferometricDirectionReconstruction():
         left, right, bottom, top = limits
         
         buffer = 0.0 # buffer R [m] used to avoid weirdness that happens near 0
-        if coord_system == "cylindrical" and left < buffer:
+        if coord_system == "cylindrical" and rec_type == "rhoz" and left < buffer:
             coord0_vec = np.arange(buffer, right + step_sizes[0], step_sizes[0])
         else:
             coord0_vec = np.arange(left, right + step_sizes[0], step_sizes[0])
