@@ -1393,8 +1393,9 @@ The 2D scripts (`interferometric_reco_example.py`, `interferometric_reco_example
 
 1. Performs a coarse 3D grid scan over (rho, phi, z) with log-spaced rho points
 2. Identifies the top-N coarse peaks (default N=3)
-3. Refines each peak with L-BFGS-B optimization
-4. Optionally runs a second pass with antenna dedispersion at estimated arrival angles
+3. Builds a fine linear grid around each peak and re-evaluates the correlation
+4. Refines the best fine-grid result with L-BFGS-B optimization
+5. Optionally runs a second pass with antenna dedispersion at estimated arrival angles
 
 ### Multiray support
 
