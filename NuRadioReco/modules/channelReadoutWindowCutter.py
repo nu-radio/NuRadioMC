@@ -84,10 +84,13 @@ class channelReadoutWindowCutter:
         first_channel = next(station.iter_channels())
         first_detector_sampling_rate = detector.get_sampling_frequency(
             station.get_id(), first_channel.get_id())
+            
+        gaussian_spread=10.5 * units.ns
+        sample_block_size=64
 
         jitter_time = jitter_adder(
-            gaussian_spread=10.5 * units.ns,
-            sample_block_size=64,
+            gaussian_spread=gaussian_spread,
+            sample_block_size=sample_block_size,
             sampling_rate=first_detector_sampling_rate * units.GHz,
             rng=self._rng,
         )
