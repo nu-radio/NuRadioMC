@@ -6,7 +6,7 @@ This guide explains how to reproduce the 3D interferometric reconstruction resul
 
 1. **NuRadioMC/NuRadioReco** installed (this repo, `deep_cr_reco` branch or later)
 2. **Python 3.11+** with numpy, scipy, h5py, pyyaml, numba (optional but recommended for speed)
-3. **Multiray travel time tables** for station 23 (44 NPZ files: 11 channels x 4 ray types each). These are not included in the repo. Not included in the repo; see the RNO-G internal wiki for download instructions.
+3. **Multiray travel time tables** for station 23 (44 NPZ files: 11 channels x 4 ray types each). Not included in the repo. On the Chicago cluster, the tables are at `/data/reconstruction/validation_sets/test_tables/multiray_tables/station23/`. For other systems, see the RNO-G internal wiki for download instructions.
 4. **RNO-G MongoDB access** (detector description is loaded from `radio.zeuthen.desy.de:27017` by default)
 5. **Simulation datasets** (see below)
 
@@ -22,7 +22,7 @@ nu_e_ccnc_1e18_1e20eV_GZK-2_IceCube-nu-2022_{NNNNNN}.nur
 nu_e_ccnc_1e18_1e20eV_GZK-2_IceCube-nu-2022_{NNNNNN}.hdf5
 ```
 
-See the RNO-G internal wiki for the shared data location.
+On the Chicago cluster, the dataset is at `/data/reconstruction/validation_sets/sim_neutrinos/sim_output_gzk/`. For other systems, see the RNO-G internal wiki.
 
 ### Simulated pulser calibration
 
@@ -38,22 +38,22 @@ See the RNO-G internal wiki for the shared data location.
 
 Filename pattern: `output_r{R}_zen{ZEN}_az{AZ}.nur`
 
-See the RNO-G internal wiki for the shared data location.
+On the Chicago cluster, the dataset is at `/data/reconstruction/validation_sets/sim_cal_pulsers/test_set/`. For other systems, see the RNO-G internal wiki.
 
 ## Setup
 
-1. Edit `time_delay_tables` in the config file to point to your local copy of the multiray tables:
+1. Edit `time_delay_tables` in the config file to point to the parent directory of `station23/`. On the Chicago cluster:
 
 ```yaml
-time_delay_tables: "/your/path/to/multiray_tables"
+time_delay_tables: "/data/reconstruction/validation_sets/test_tables/multiray_tables"
 ```
 
-The directory must contain a `station23/` subdirectory with files matching the pattern `st23_ch{N}_rz_table_{ray_type}.npz` for channels 0-3, 5-7, 9-10, 22-23 and ray types direct, reflected, refracted (plus the combined table without suffix).
+The code appends `station{ID}/` internally, so it will look for files at `<time_delay_tables>/station23/st23_ch{N}_rz_table_{ray_type}.npz`.
 
 2. Verify the table files are present:
 
 ```bash
-ls /your/path/to/multiray_tables/station23/st23_ch0_rz_table_direct.npz
+ls /data/reconstruction/validation_sets/test_tables/multiray_tables/station23/st23_ch0_rz_table_direct.npz
 ```
 
 ## Running reconstruction
