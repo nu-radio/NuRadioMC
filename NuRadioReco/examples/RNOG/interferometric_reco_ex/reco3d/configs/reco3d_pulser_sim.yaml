@@ -10,7 +10,7 @@
 # Best permutation: hilbert=none, hann=off, bandpass=off, hw_phase=on,
 # dedispersion=rxtx, snr_weight=off, correlation_normalization=energy.
 #
-# Restricted search volume: rho 1-125m, z -100 to 0m (above PA).
+# Search volume: rho 1-200m, z -230 to 0m.
 # Fine grid with grouped multiray.
 #
 # Update paths below before running.
@@ -23,8 +23,8 @@ hierarchical: true
 multi_ray_types: true
 multiray_combo_mode: "grouped"
 
-coarse_limits: [1, 125, 0, 360, -100, 0]
-coarse_n_rho: 63
+coarse_limits: [1, 200, 0, 360, -230, 0]
+coarse_n_rho: 100
 coarse_step_sizes: [0, 4, 1]
 coarse_n_peaks: 3
 coarse_peak_separation: [10, 10, 10]
@@ -32,7 +32,7 @@ coarse_peak_separation: [10, 10, 10]
 refine_window: [5, 5, 5]
 refine_step_sizes: [0.2, 0.3, 0.2]
 
-limits: [1, 125, 0, 360, -100, 0]
+limits: [1, 200, 0, 360, -230, 0]
 
 # Paths: update these for your environment
 time_delay_tables: "/path/to/multiray_tables"
