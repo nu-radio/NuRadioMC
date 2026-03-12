@@ -12,9 +12,10 @@ This module performs directional reconstruction of radio signals by fitting time
   - Antenna dedispersion (`apply_dedispersion` in config)
   - Two-stage automatic reconstruction (`mode: 'auto'` in config)
   - Helper channel validation for quality control
-- **`correlation_map_plotter.py`**: Standalone script for plotting saved correlation maps with comprehensive visualization options
+- **`correlation_map_plotter.py`**: Standalone script for plotting saved correlation maps with full visualization options
 - **`example_config.yaml`**: Example configuration file with all available options
 - **`INTERFEROMETRIC_RECONSTRUCTION_README.md`**: This documentation file
+- **`reco3d/`**: Full 3D reconstruction module (searches all three cylindrical coordinates simultaneously). See [3D Reconstruction](#3d-reconstruction) and `reco3d/RECO3D_QUICKSTART.md`.
 
 ### Which Script Should I Use?
 
@@ -28,7 +29,7 @@ This module performs directional reconstruction of radio signals by fitting time
 - You need automatic channel quality filtering based on SNR
 - You want to detect and exclude channels with cut-off signals at trace edges
 - You want fully automatic two-stage reconstruction (finds distance first, then direction)
-- You're processing noisy data or need robust event-level quality cuts
+- You're processing noisy data or need event-level quality cuts
 - You want to skip events where no helper channels pass quality thresholds
 
 Both scripts share the same configuration file format and output structures. The simple version is documented in the Quick Start section below, while the advanced features are detailed in the [Advanced Options](#advanced-options) section.
@@ -60,6 +61,9 @@ The core reconstruction functionality is implemented in the NuRadioReco module:
 `NuRadioReco.modules.interferometricDirectionReconstruction`
 
 ## Table of Contents
+- [Files in this Directory](#files-in-this-directory)
+- [Supporting Modules](#supporting-modules)
+- [Overview](#overview)
 - [Requirements](#requirements)
 - [Quick Start](#quick-start)
 - [Configuration File](#configuration-file)
@@ -76,8 +80,14 @@ The core reconstruction functionality is implemented in the NuRadioReco module:
   - [Plane Wave Fallback](#plane-wave-fallback)
   - [Signal Processing Options](#signal-processing-options)
   - [Caching](#caching)
+  - [Simulation Truth Fixed Coordinate](#simulation-truth-fixed-coordinate-nur-files-only)
+  - [Combining Advanced Features](#combining-advanced-features)
+  - [Parallel Processing](#parallel-processing)
 - [Logging Configuration](#logging-configuration)
 - [Troubleshooting](#troubleshooting)
+- [Command-Line Arguments Reference](#command-line-arguments-reference)
+- [3D Reconstruction](#3d-reconstruction)
+- [Contact & Support](#contact--support)
 
 ---
 
@@ -841,7 +851,7 @@ python interferometric_reco_example_advanced.py \
     --edge-sigma 3.0 \
 ```
 
-Both filters are applied sequentially: first edge detection, then SNR filtering. This ensures only clean, high-quality channels are used for reconstruction.
+Both filters are applied sequentially: first edge detection, then SNR filtering, so only clean channels are used for reconstruction.
 
 ---
 
@@ -1109,7 +1119,7 @@ This will reconstruct φ and z for each event using the true ρ value, allowing 
 
 **Available in:** `interferometric_reco_example_advanced.py` only
 
-All advanced features can be combined for robust, fully automatic processing:
+All advanced features can be combined for fully automatic processing:
 
 ```bash
 # Fully automatic processing with quality filters
@@ -1373,12 +1383,86 @@ Advanced Options:
 
 ---
 
+## 3D Reconstruction
+
+The `reco3d/` subdirectory contains a full 3D reconstruction module that searches all three cylindrical coordinates (rho, phi, z) simultaneously, rather than fixing one coordinate as the 2D scripts above do. This is the recommended approach for production reconstruction of both neutrino and pulser calibration data.
+
+### How it differs from the 2D scripts
+
+The 2D scripts (`interferometric_reco_example.py`, `interferometric_reco_example_advanced.py`) scan two coordinates with the third fixed (e.g., phi and z at fixed rho). The 3D module instead:
+
+1. Performs a coarse 3D grid scan over (rho, phi, z) with log-spaced rho points
+2. Identifies the top-N coarse peaks (default N=3)
+3. Refines each peak with L-BFGS-B optimization
+4. Optionally runs a second pass with antenna dedispersion at estimated arrival angles
+
+### Multiray support
+
+The 3D module supports per-ray-type travel time tables (direct, reflected, refracted). In `grouped` mode, it evaluates all valid ray-type combinations per channel pair and selects the combination that maximizes the summed correlation. This handles the ambiguity of which ray path each channel's signal took, which is important for sources at geometries where multiple ray solutions of sufficient amplitude exist.
+
+### Files
+
+The core module lives in `NuRadioReco/modules/`:
+
+| File | Description |
+|------|-------------|
+| `interferometricDirectionReconstruction3D.py` | Core 3D reconstruction module with hierarchical grid search and L-BFGS-B refinement |
+
+The example scripts live in `reco3d/`:
+
+| File | Description |
+|------|-------------|
+| `interferometric_reco_3d_example.py` | Driver script: detector setup, preprocessing, pass 1 + optional pass 2 with antenna dedispersion |
+| `fast_grouped_multiray.py` | Numba-accelerated grouped multiray correlator |
+| `submit_reco3d_example.sh` | Example SLURM batch submission with automatic chunking and merge |
+
+### Configs
+
+Three validated configs are provided in `reco3d/configs/`:
+
+| Config | Dataset | Best mode | Median ang. sep. | Runtime |
+|--------|---------|-----------|-------------------|---------|
+| `reco3d_neutrino_gzk.yaml` | GZK neutrino sim (10^18 - 10^20 eV) | hw | 1.10 deg | ~9 s/event |
+| `reco3d_pulser_sim.yaml` | Simulated pulser calibration (10-200m) | rxtx | 0.27 deg | ~94 s/event |
+| `reco3d_pulser_sim_fast.yaml` | Simulated pulser calibration (10-200m) | hw | 1.53 deg | ~9 s/event |
+
+The fast pulser config skips the antenna dedispersion pass (pass2) that dominates runtime in the full config. It compensates with Hilbert trace envelope and Hann windowing, which smooth over phase distortion from the antenna response. Use `reco3d_pulser_sim.yaml` with rxtx mode when sub-degree accuracy is needed and the transmitter position is known; use the fast config when runtime matters more (10x faster, still under 2 deg).
+
+### Quick example
+
+```bash
+cd reco3d/
+
+# Single neutrino file, hw mode
+python interferometric_reco_3d_example.py \
+    --config configs/reco3d_neutrino_gzk.yaml \
+    --mode hw \
+    -i /path/to/neutrino_000000.nur \
+    -o results/test_neutrino_hw.h5
+
+# Single pulser file, fast hw mode (no dedispersion pass)
+python interferometric_reco_3d_example.py \
+    --config configs/reco3d_pulser_sim_fast.yaml \
+    --mode hw \
+    -i /path/to/pulser_sim.nur \
+    -o results/test_pulser_fast.h5
+
+# Batch (edit submit script for your cluster first)
+bash submit_reco3d_example.sh \
+    configs/reco3d_neutrino_gzk.yaml \
+    /path/to/nur_files/ \
+    /path/to/output/ \
+    hw
+```
+
+See `reco3d/RECO3D_QUICKSTART.md` for full setup instructions, dataset descriptions, resource estimates, and validated benchmark numbers.
+
+---
+
 ## Contact & Support
 
 For questions or issues:
 - Review examples in this README
 - Check NuRadioReco documentation
-- Contact Bryan Hendricks (blh5615@psu.edu)
-
----
+- Open an issue on the NuRadioMC GitHub repository
 
