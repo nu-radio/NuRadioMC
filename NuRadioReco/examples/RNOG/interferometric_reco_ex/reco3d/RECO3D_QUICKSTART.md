@@ -42,10 +42,10 @@ On the Chicago cluster, the dataset is at `/data/reconstruction/validation_sets/
 
 ## Setup
 
-1. Edit `time_delay_tables` in the config file to point to the parent directory of `station23/`. On the Chicago cluster:
+1. Edit `time_delay_tables` in the config file to point to the parent directory of `station23/`:
 
 ```yaml
-time_delay_tables: "/data/reconstruction/validation_sets/test_tables/multiray_tables"
+time_delay_tables: "/path/to/multiray_tables"
 ```
 
 The code appends `station{ID}/` internally, so it will look for files at `<time_delay_tables>/station23/st23_ch{N}_rz_table_{ray_type}.npz`.
@@ -53,7 +53,7 @@ The code appends `station{ID}/` internally, so it will look for files at `<time_
 2. Verify the table files are present:
 
 ```bash
-ls /data/reconstruction/validation_sets/test_tables/multiray_tables/station23/st23_ch0_rz_table_direct.npz
+ls /path/to/multiray_tables/station23/st23_ch0_rz_table_direct.npz
 ```
 
 ## Running reconstruction
