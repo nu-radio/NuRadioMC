@@ -84,13 +84,13 @@ class channelReadoutWindowCutter:
         first_channel = next(station.iter_channels())
         first_detector_sampling_rate = detector.get_sampling_frequency(
             station.get_id(), first_channel.get_id())
-            
+
         gaussian_spread=10.5 * units.ns
         sample_block_size=64
 
         jitter_time = jitter_adder(
-            gaussian_spread=gaussian_spread,
-            sample_block_size=sample_block_size,
+            gaussian_spread=0,
+            sample_block_size=0,
             sampling_rate=first_detector_sampling_rate * units.GHz,
             rng=self._rng,
         )
@@ -298,12 +298,15 @@ def jitter_adder(gaussian_spread=0*units.ns, sample_block_size=64, sampling_rate
     if rng is None:
         rng = Generator(Philox(secrets.randbits(128)))
 
-    sample_jitter = rng.integers(-sample_block_size / 2, sample_block_size / 2)
+    if sample_block_size == 0:
+        sample_jitter = 0
+    else:
+        sample_jitter = rng.integers(-sample_block_size / 2, sample_block_size / 2)
+    
     sample_jitter_time = sample_jitter / sampling_rate
     norm_smear = rng.normal(0, gaussian_spread)
     jitter_time = sample_jitter_time + norm_smear
     return jitter_time
-
 
 @functools.lru_cache(maxsize=1024)
 def _get_resampled_number_of_samples(number_of_samples, sampling_rate, detector_sampling_rate):
