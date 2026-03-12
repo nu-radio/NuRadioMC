@@ -228,7 +228,7 @@ These numbers are from the preprocessing permutation study (March 2026) using th
 
 Key findings:
 - **HW phase removal** is the single most important preprocessing step for both datasets.
-- **Hilbert envelope mode** has opposite preferences: neutrinos prefer `correlation`, pulsers prefer `none`. This reflects the difference between multiray far-field signals (where envelope extraction avoids destructive interference) and single-path near-field signals.
+- **Hilbert envelope mode** has opposite preferences: neutrinos prefer `correlation`, pulsers prefer `none`. Still investigating.
 - **Hann windowing and bandpass** are important for pulsers but negligible for neutrinos.
 - **Antenna dedispersion** (rx/rxtx mode) improves pulser results substantially (0.27 deg rxtx vs 0.74 deg hw) but offers marginal improvement for neutrinos at ~3x runtime cost.
 
