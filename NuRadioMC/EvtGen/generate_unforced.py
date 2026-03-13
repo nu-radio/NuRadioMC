@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from radiotools import helper as hp
 from NuRadioMC.utilities import cross_sections as cs
 from NuRadioMC.utilities import earth_attenuation
-from scipy.integrate import quad
+from scipy.integrate import quad, trapezoid
 from scipy.optimize import brentq
 from scipy.interpolate import interp1d
 from NuRadioMC.simulation.time_logger import pretty_time_delta
@@ -216,7 +216,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         """
         tt = np.linspace(0, t, t / step)
         rr = np.linalg.norm(X + np.outer(tt, v), axis=1)
-        res = np.trapz(earth.density(rr), tt)
+        res = trapezoid(earth.density(rr), tt)
         return res
 
     def obj_dist_to_surface(t, v, X):
