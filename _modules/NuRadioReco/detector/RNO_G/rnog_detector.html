@@ -1027,7 +1027,10 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_check_update_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Checks whether the correct detector description per station in in the current period.</span>
+<span class="sd">        Checks, per station, whether the current description is &quot;still&quot; in the correct period.</span>
+<span class="sd">        I.e., it should detect if the period changed. Periods are defined by the modification timestamps</span>
+<span class="sd">        of the station/channels/calibrations/... (de)commissioning. If the period changed, the buffer needs</span>
+<span class="sd">        to be updated by querying the new station information from the database.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1042,11 +1045,10 @@
                                  <span class="p">[</span><span class="n">dt</span><span class="o">.</span><span class="n">timestamp</span><span class="p">()</span> <span class="k">for</span> <span class="n">dt</span> <span class="ow">in</span>
                                   <span class="bp">self</span><span class="o">.</span><span class="n">_time_periods_per_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;modification_timestamps&quot;</span><span class="p">]])</span>
 
-            <span class="k">if</span> <span class="n">period</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_period_index_per_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">]:</span>
-                <span class="n">need_update</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">need_update</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="c1"># update station if periods do not match</span>
+            <span class="n">need_update</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="n">period</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_period_index_per_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">])</span>
 
+            <span class="c1"># update period for next check (this means we have to update buffer immediately ...)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_time_period_index_per_station</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">period</span>
 
         <span class="n">debug_str</span> <span class="o">=</span> <span class="s2">&quot;The following stations need to be updated:&quot;</span>
@@ -1098,8 +1100,18 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Updates the detector. If configure in constructor this function with trigger the</span>
-<span class="sd">        database query.</span>
+<span class="sd">        Updates the detector. Queries the database for new information if necessary.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        A station&#39;s description is updated if a change in the detector description is detected. The check</span>
+<span class="sd">        is perfomed by `self._check_update_buffer` which checks if the current detector time is still in the</span>
+<span class="sd">        same &quot;period&quot; as the buffered description. Periods are defined by the modification timestamps of</span>
+<span class="sd">        the station/channels/calibrations/... (de)commissioning timestamps. If the period changed, the buffer needs</span>
+<span class="sd">        to be updated by querying the new station information from the database. The modification timestamps for each</span>
+<span class="sd">        station are queried at class initialization with `self.__db.query_modification_timestamps_per_station()` and</span>
+<span class="sd">        stored in `self._time_periods_per_station`. The current period for each station is tracked with</span>
+<span class="sd">        `self._time_period_index_per_station` and updated inside `self._check_update_buffer`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>

@@ -1615,8 +1615,7 @@ the basic information of all stations and checks if station is among them.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.update" title="Link to this definition"></a></dt>
-<dd><p>Updates the detector. If configure in constructor this function with trigger the
-database query.</p>
+<dd><p>Updates the detector. Queries the database for new information if necessary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1625,6 +1624,15 @@ database query.</p>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>A station’s description is updated if a change in the detector description is detected. The check
+is perfomed by <em class="xref py py-obj">self._check_update_buffer</em> which checks if the current detector time is still in the
+same “period” as the buffered description. Periods are defined by the modification timestamps of
+the station/channels/calibrations/… (de)commissioning timestamps. If the period changed, the buffer needs
+to be updated by querying the new station information from the database. The modification timestamps for each
+station are queried at class initialization with <em class="xref py py-obj">self.__db.query_modification_timestamps_per_station()</em> and
+stored in <em class="xref py py-obj">self._time_periods_per_station</em>. The current period for each station is tracked with
+<em class="xref py py-obj">self._time_period_index_per_station</em> and updated inside <em class="xref py py-obj">self._check_update_buffer</em>.</p>
 </dd></dl>
 
 </dd></dl>
