@@ -42,10 +42,10 @@ jobs:
       data-cache-key: ${{ steps.cache-keys.outputs.data-key }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Set up Python [${{ env.PYTHON_VERSION }}]
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
@@ -57,7 +57,7 @@ jobs:
 
     - name: Cache Python environment
       id: cache-env
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cache/pip
@@ -94,7 +94,7 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
       uses: ./.github/actions/setup-gsl
@@ -136,7 +136,7 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
       uses: ./.github/actions/setup-gsl
@@ -173,7 +173,7 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
       uses: ./.github/actions/setup-gsl
@@ -205,7 +205,7 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
       uses: ./.github/actions/setup-gsl
@@ -242,7 +242,7 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
       uses: ./.github/actions/setup-gsl
@@ -288,7 +288,7 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
       uses: ./.github/actions/setup-gsl
