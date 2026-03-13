@@ -55,6 +55,7 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache-key: ${{ steps.cache-keys.outputs.env-key }}
+        restore-only: false
 
     - name: Lint with flake8 (important)
       if: always()
