@@ -10,7 +10,7 @@ logger = logging.getLogger("NuRadioReco.utilities.version")
 
 def get_git_commit_hash(module) -> str:
     try:
-        if not module.__version__.endswith('-dev'):
+        if 'dev' not in module.__version__:
             # distribution versions won't have a Git repository;
             # eagerly return to not waste time
             return "none"
