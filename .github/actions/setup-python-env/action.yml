@@ -13,17 +13,20 @@ runs:
   using: 'composite'
   steps:
     - name: Set up Python [${{ inputs.python-version }}]
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ inputs.python-version }}
 
     - name: Restore Python environment
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: |
           ~/.cache/pip
           ${{ env.pythonLocation }}
         key: ${{ inputs.cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-env-${{ inputs.python-version }}-
-          ${{ runner.os }}-env-
+        fail-on-cache-miss: true
+
+    - name: Display installed Python modules
+      shell: bash
+      run: |
+        pip list
