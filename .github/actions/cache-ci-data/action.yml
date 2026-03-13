@@ -15,4 +15,5 @@ runs:
         path: |
           NuRadioReco/examples/Interactive/data
           NuRadioReco/test/data
+          NuRadioReco/detector/AntennaModels
         key: ${{ inputs.cache-key }}
