@@ -16,15 +16,24 @@ runs:
       uses: actions/setup-python@v6
       with:
         python-version: ${{ inputs.python-version }}
+        cache: 'pip'
 
-    - name: Restore Python environment
-      uses: actions/cache/restore@v5
+    - name: Cache Python environment
+      id: cache-env
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cache/pip
           ${{ env.pythonLocation }}
         key: ${{ inputs.cache-key }}
-        fail-on-cache-miss: true
+
+    - name: Install Python dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        pip install -e .[proposal,galacticnoise,cr_interpolator]
 
     - name: Display installed Python modules
       shell: bash
