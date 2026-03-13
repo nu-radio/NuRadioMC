@@ -40,7 +40,7 @@ runs:
         key: ${{ inputs.cache-key }}
 
     - name: Install Python dependencies
-      if: ${{ steps.cache.outputs.cache-hit != 'true' || steps.cache-restore.outputs.cache-hit != 'true' }}
+      if: ${{ steps.cache.outputs.cache-hit != 'true' && steps.cache-restore.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
         python -m pip install --upgrade pip
