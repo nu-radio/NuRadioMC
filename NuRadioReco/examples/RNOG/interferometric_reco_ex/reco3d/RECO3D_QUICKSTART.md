@@ -4,9 +4,9 @@ This guide explains how to reproduce the 3D interferometric reconstruction resul
 
 ## Prerequisites
 
-1. **NuRadioMC/NuRadioReco** installed (this repo, `deep_cr_reco` branch or later)
+1. **NuRadioMC/NuRadioReco** installed (this repo, `reco3d_release` branch)
 2. **Python 3.11+** with numpy, scipy, h5py, pyyaml, numba (optional but recommended for speed)
-3. **Multiray travel time tables** for station 23 (44 NPZ files: 11 channels x 4 ray types each). Not included in the repo. On the Chicago cluster, the tables are at `/data/reconstruction/validation_sets/test_tables/multiray_tables/station23/`. For other systems, see the RNO-G internal wiki for download instructions.
+3. **Multiray travel time tables** for station 23 (44 NPZ files: 11 channels x 4 tables each (direct, refracted, reflected, combined)). Not included in the repo. On the Chicago cluster, the tables are at `/data/reconstruction/validation_sets/test_tables/multiray_tables/station23/`. For other stations, generate them using the scripts in `../tables/` (see below).
 4. **RNO-G MongoDB access** (detector description is loaded from `radio.zeuthen.desy.de:27017` by default)
 5. **Simulation datasets** (see below)
 
@@ -22,7 +22,7 @@ nu_e_ccnc_1e18_1e20eV_GZK-2_IceCube-nu-2022_{NNNNNN}.nur
 nu_e_ccnc_1e18_1e20eV_GZK-2_IceCube-nu-2022_{NNNNNN}.hdf5
 ```
 
-On the Chicago cluster, the dataset is at `/data/reconstruction/validation_sets/sim_neutrinos/sim_output_gzk/`. For other systems, see the RNO-G internal wiki.
+On the Chicago cluster, the dataset is at `/data/reconstruction/validation_sets/sim_neutrinos/sim_output_gzk/`.
 
 ### Simulated pulser calibration
 
@@ -38,7 +38,7 @@ On the Chicago cluster, the dataset is at `/data/reconstruction/validation_sets/
 
 Filename pattern: `output_r{R}_zen{ZEN}_az{AZ}.nur`
 
-On the Chicago cluster, the dataset is at `/data/reconstruction/validation_sets/sim_cal_pulsers/test_set/`. For other systems, see the RNO-G internal wiki.
+On the Chicago cluster, the dataset is at `/data/reconstruction/validation_sets/sim_cal_pulsers/test_set/`.
 
 ## Setup
 
@@ -113,7 +113,31 @@ Standard interferometric reconstruction assumes a single ray path between source
 
 The 3D module uses per-channel, per-ray-type travel time tables. In `grouped` mode (`multiray_combo_mode: "grouped"` in the config), it evaluates all physically valid ray-type combinations and selects the one that maximizes the summed correlation. Channels at similar depths are grouped together (they see the same ray type), reducing the combinatorial cost.
 
-Each table is a 2D (R, Z) grid of travel times for one channel and one ray type, stored as an NPZ file. For station 23 with 11 channels and 4 table types (direct, reflected, refracted, plus combined), this is 44 files.
+Each table is a 2D (R, Z) grid of travel times for one channel and one ray type, stored as an NPZ file. For station 23 with 11 channels and 4 table types (direct, reflected, refracted, plus combined), this is 44 files. The 3D configs in this directory use the per-ray-type tables (direct, refracted, reflected). The combined tables (no suffix, min travel time across ray types) are used when `multi_ray_types: false`.
+
+### Generating tables
+
+The table generator and SLURM submission template are in `../tables/` (shared with the 2D scripts):
+
+```bash
+cd ../tables/
+
+# Single channel, multiray only (default)
+python rz_lookup_table_creator_inice.py \
+    --station 23 --channel 0 --num_threads 8 \
+    --output-dir /path/to/multiray_tables/station23
+
+# Multiray + combined tables in one pass
+python rz_lookup_table_creator_inice.py \
+    --station 23 --channel 0 --mode all --num_threads 8 \
+    --output-dir /path/to/multiray_tables/station23
+
+# All 11 VPOL channels via SLURM
+# Args: STATION (default 23), MODE (default "all"), DET_DATE, OUTPUT_DIR
+sbatch submit_rz_table_jobs.slurm 23 all "2022-10-01" /path/to/multiray_tables/station23
+```
+
+The `--mode` flag controls output: `multiray` (3 per-ray-type files), `combined` (1 min-time file), or `all` (both). The `--det-date` argument sets the detector description date used for antenna positions (default `2022-10-01`). Use `--detector-file` for batch jobs where MongoDB is unreachable. Each channel takes roughly 6 minutes on 9 cores and uses about 5 GB of memory.
 
 ## Mode reference
 
@@ -238,13 +262,17 @@ Key findings:
 NuRadioReco/modules/
   interferometricDirectionReconstruction3D.py   Core 3D reconstruction module
 
-NuRadioReco/examples/RNOG/interferometric_reco_ex/reco3d/
-  interferometric_reco_3d_example.py        Driver: preprocessing + pass1 + optional pass2
-  fast_grouped_multiray.py          Numba-accelerated grouped multiray correlator
-  submit_reco3d_example.sh          Example SLURM batch submission
-  RECO3D_QUICKSTART.md              This file
-  configs/
-    reco3d_neutrino_gzk.yaml        Best neutrino config (hw mode)
-    reco3d_pulser_sim.yaml          Best pulser config (rxtx mode)
-    reco3d_pulser_sim_fast.yaml     Fast pulser config (hw mode, no dedispersion)
+NuRadioReco/examples/RNOG/interferometric_reco_ex/
+  tables/
+    rz_lookup_table_creator_inice.py      Table generator (multiray, combined, or both)
+    submit_rz_table_jobs.slurm            SLURM submission for all VPOL channels
+  reco3d/
+    interferometric_reco_3d_example.py    Driver: preprocessing + pass1 + optional pass2
+    fast_grouped_multiray.py              Numba-accelerated grouped multiray correlator
+    submit_reco3d_example.sh              Example SLURM batch submission
+    RECO3D_QUICKSTART.md                  This file
+    configs/
+      reco3d_neutrino_gzk.yaml           Best neutrino config (hw mode)
+      reco3d_pulser_sim.yaml             Best pulser config (rxtx mode)
+      reco3d_pulser_sim_fast.yaml        Fast pulser config (hw mode, no dedispersion)
 ```

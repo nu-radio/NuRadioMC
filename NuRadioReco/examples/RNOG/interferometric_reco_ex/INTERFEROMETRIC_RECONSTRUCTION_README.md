@@ -151,7 +151,7 @@ If you're using a SLURM cluster with different CPU types across nodes, the compi
 
 ### 0. Try the Example First
 
-To quickly see the reconstruction in action, before even looking at setting it up yourself in the next steps, first download the provided calibration pulser root file at /data/reconstruction/validation_sets/cal_pulsers/station21/run476/combined.root and the pre-generated time tables (at least for station 21 since this pulser run is from it) from /data/reconstruction/travel_times_analytic/ from the Chicago server. Once you've downloaded the root file and time tables, you can run the example script like so (make sure if you download the tables to any location other than a tables/ dir in this directory to change the default time_delay_tables setting in the example_config.yaml to the new location; same for specifying the input for combined.root below):
+To quickly see the reconstruction in action, you need a calibration pulser ROOT file and pre-generated time tables for the corresponding station. On the Chicago cluster, these are at `/data/reconstruction/validation_sets/cal_pulsers/station21/run476/combined.root` and `/data/reconstruction/travel_times_analytic/`. Update the `time_delay_tables` path in `example_config.yaml` to point to your table location, then run:
 
 ```bash
 # Run reconstruction with example config and data
@@ -167,7 +167,7 @@ python correlation_map_plotter.py \
     --minimaps
 ```
 
-This should reproduce the example figure shown at `/data/reconstruction/example_plots/station21_run476_event7_corrmap_phiz.png` on the Chicago server. The "combined.root" file used to reproduce this is from a calibration pulsing run with pulser on helper string C.
+The "combined.root" file is from a calibration pulsing run with the pulser on helper string C.
 
 ### 1. Create a Configuration File
 
@@ -726,13 +726,23 @@ r: Radial distance from power string at surface of the ice.
 
 ### Required Directory Structure
 
+For the 2D scripts (single-ray tables, one per channel):
 ```
 time_delay_tables/
 └── station23/
-    ├── ch0_rz_table_rel_ant.npz
-    ├── ch1_rz_table_rel_ant.npz
-    ├── ch2_rz_table_rel_ant.npz
-    ├── ch3_rz_table_rel_ant.npz
+    ├── st23_ch0_rz_table.npz
+    ├── st23_ch1_rz_table.npz
+    └── ...
+```
+
+For the 3D module (multiray tables, three per channel):
+```
+time_delay_tables/
+└── station23/
+    ├── st23_ch0_rz_table_direct.npz
+    ├── st23_ch0_rz_table_refracted.npz
+    ├── st23_ch0_rz_table_reflected.npz
+    ├── st23_ch1_rz_table_direct.npz
     └── ...
 ```
 
@@ -757,19 +767,12 @@ Each `.npz` file must contain:
 
 ### Generating Time Delay Tables
 
-Time delay tables can be generated using ray-tracing codes that account for:
-- Ice refractivity profile (e.g., exponential density model for Greenland)
-- Signal propagation paths (direct, refracted, and reflected rays)
-- Antenna positions in station coordinate system
-- The fastest arrival time is stored (minimum across all ray types)
+Table generation scripts are in `tables/`. See `reco3d/RECO3D_QUICKSTART.md` for usage.
 
-**Example generation code:**
-```python
-# For each grid point (r, z):
-src_position = antenna_position + [r, 0, 0]  # Offset perpendicularly by r
-src_position[2] = z                          # Set to absolute depth z (not relative!)
-travel_time = raytracer.get_travel_time(src_position, antenna_position)
-```
+- `rz_lookup_table_creator_inice.py`: generates per-ray-type tables (direct, refracted, reflected), combined tables (min across ray types), or both.
+- `submit_rz_table_jobs.slurm`: SLURM submission for all VPOL channels.
+
+Each table stores travel times on a 2D (R, Z) grid computed via NuRadioMC analytic raytracing with the `greenland_simple` ice model. The shortest travel time per ray solution type is stored.
 
 ## Advanced Options
 
@@ -1416,6 +1419,13 @@ The example scripts live in `reco3d/`:
 | `interferometric_reco_3d_example.py` | Driver script: detector setup, preprocessing, pass 1 + optional pass 2 with antenna dedispersion |
 | `fast_grouped_multiray.py` | Numba-accelerated grouped multiray correlator |
 | `submit_reco3d_example.sh` | Example SLURM batch submission with automatic chunking and merge |
+
+Table generation scripts (shared with the 2D scripts) live in `tables/`:
+
+| File | Description |
+|------|-------------|
+| `rz_lookup_table_creator_inice.py` | Table generator: multiray, combined, or both |
+| `submit_rz_table_jobs.slurm` | SLURM submission for all VPOL channels |
 
 ### Configs
 
