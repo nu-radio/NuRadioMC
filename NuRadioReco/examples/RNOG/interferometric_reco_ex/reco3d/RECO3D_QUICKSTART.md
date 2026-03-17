@@ -128,7 +128,7 @@ python evaluate_reco_results.py \
     --dataset pulser
 ```
 
-The script prints median angular separation, percentiles, and the fraction of events below 1 and 2 degrees, alongside the expected values from the validated results table below.
+The script prints median angular separation, percentiles, and the fraction of events below 1 and 2 degrees. It also prints reference values from the validated results below for comparison. These reference values are specific to the shipped validation datasets and station 23. If you are running on a different simulation set or station, your numbers will differ; treat them as a ballpark sanity check, not an exact target.
 
 ## Multiray travel time tables
 
@@ -177,9 +177,13 @@ In `rx` and `rxtx` modes, pass 2 re-reads the event and removes antenna phase di
 - **Rx dedispersion** removes the receiving antenna's phase response at the arrival angles estimated from pass 1. Since the arrival direction is unknown beforehand, it requires the pass 1 result.
 - **Tx dedispersion** (rxtx only) also removes the transmitting antenna's phase response at the launch angles computed from the known emitter position. The emitter position is parsed from the NUR filename (pattern `output_r{R}_zen{ZEN}_az{AZ}.nur`), so this mode only applies to pulser simulations where the source location is known.
 
-## Preprocessing options
+## Input format and preprocessing
 
-The driver applies preprocessing modules before calling the reconstruction module. All options are set in the YAML config file and default to the values shown below.
+The driver script (`interferometric_reco_3d_example.py`) expects standard NuRadioMC simulation output: NUR files containing voltage traces (not electric fields). No manual preprocessing is needed. The driver applies all necessary waveform processing (cable delays, hardware response removal, upsampling, optional bandpass/CW filtering) internally before calling the reconstruction module. You do not need to apply voltage calibration, antenna deconvolution, bandpass filtering, or any other signal processing yourself.
+
+If you are integrating the reconstruction module into your own processing chain rather than using the driver script, the module expects waveforms that have at minimum had cable delays applied. See the config options below for the full set of preprocessing the driver applies.
+
+All preprocessing options are set in the YAML config file and default to the values shown below.
 
 | Config key | Default | Description |
 |------------|---------|-------------|
@@ -267,7 +271,7 @@ For neutrino truth comparison, the paired HDF5 files contain `xx`, `yy`, `zz` ve
 | Fraction < 1 deg | 67% |
 | Fraction < 2 deg | 74% |
 
-Neutrino results are from the full 12,916-event GZK dataset using `reco3d_neutrino_gzk.yaml`. Pulser results are from the preprocessing permutation study (March 2026) on a stratified subsample. Your results should match when using the same configs, tables, and datasets.
+Neutrino results are from the full 12,916-event GZK dataset using `reco3d_neutrino_gzk.yaml`. Pulser results are from the preprocessing permutation study (March 2026) on a stratified subsample. Your results should match when using the same configs, tables, and datasets. For other simulation sets, stations, or energy ranges, treat these as a ballpark reference rather than an exact target.
 
 ## File listing
 

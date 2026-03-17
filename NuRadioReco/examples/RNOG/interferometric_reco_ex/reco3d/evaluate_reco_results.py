@@ -1,19 +1,27 @@
 """Evaluate 3D reconstruction results against simulation truth.
 
 Computes angular separation between reconstructed and true source directions
-for each event, then prints summary statistics for comparison against the
-validated results in RECO3D_QUICKSTART.md.
+for each event, then prints summary statistics. Works with any NuRadioMC
+simulation; reference values from the shipped validation datasets are printed
+for comparison but will differ for other simulation sets, stations, or configs.
 
 Supports two dataset types:
-- neutrino: truth from paired HDF5 files (vertex positions)
+- neutrino: truth from paired HDF5 files (vertex positions), or directly
+  from NUR files if no HDF5 files are found in --sim-dir
 - pulser: truth from NUR filenames (output_r{R}_zen{ZEN}_az{AZ}.nur)
 
 Usage:
-    # Neutrino GZK dataset
+    # Neutrino GZK dataset (paired HDF5 truth files)
     python evaluate_reco_results.py \
         --reco-file merged_reco_results.h5 \
         --dataset neutrino \
         --sim-dir /path/to/gzk_hdf5_files/
+
+    # Neutrino dataset (NUR files only, no paired HDF5)
+    python evaluate_reco_results.py \
+        --reco-file merged_reco_results.h5 \
+        --dataset neutrino \
+        --sim-dir /path/to/nur_files/
 
     # Pulser sim dataset
     python evaluate_reco_results.py \
@@ -103,6 +111,54 @@ def load_neutrino_truth(sim_dir, pa_abs, station=23):
                     rho = np.sqrt(dx**2 + dy**2)
                     phi = np.degrees(np.arctan2(dy, dx)) % 360.0
                     truth[(basename, int(egid))] = (rho, phi, zz[i])
+
+    return truth
+
+
+def load_neutrino_truth_nur(sim_dir, pa_abs, station=23):
+    """Build truth lookup from NUR simulation files.
+
+    Reads the primary interaction vertex from each event in the NUR files.
+    Use this when paired HDF5 truth files are not available.
+
+    Parameters
+    ----------
+    sim_dir : str
+        Directory containing NUR simulation files.
+    pa_abs : np.ndarray
+        Phased array center absolute position [x, y, z].
+    station : int
+        Station ID.
+
+    Returns
+    -------
+    dict
+        Maps (nur_basename, run_number) to (rho, phi_deg, z_abs).
+    """
+    from NuRadioReco.modules.io.NuRadioRecoio import NuRadioRecoio
+    import NuRadioReco.framework.parameters as parameters
+
+    nur_files = sorted(glob.glob(os.path.join(sim_dir, "*.nur")))
+    truth = {}
+
+    for nf in nur_files:
+        basename = os.path.basename(nf)
+        fin = NuRadioRecoio([nf])
+        for evt in fin.get_events():
+            stn = evt.get_station(station)
+            if stn is None:
+                continue
+            sim_shower = evt.get_first_sim_shower()
+            if sim_shower is None:
+                continue
+            vertex = sim_shower.get_parameter(parameters.showerParameters.vertex)
+            run_number = evt.get_run_number()
+
+            dx = vertex[0] - pa_abs[0]
+            dy = vertex[1] - pa_abs[1]
+            rho = np.sqrt(dx**2 + dy**2)
+            phi = np.degrees(np.arctan2(dy, dx)) % 360.0
+            truth[(basename, int(run_number))] = (rho, phi, vertex[2])
 
     return truth
 
@@ -212,14 +268,20 @@ def print_metrics(ang_seps, label):
 
 EXPECTED = {
     'neutrino': (
-        "Expected (reco3d_neutrino_gzk.yaml, hw mode, 12,916 events):\n"
+        "Reference values (from shipped GZK validation dataset, station 23,\n"
+        "  reco3d_neutrino_gzk.yaml, hw mode, 12,916 events):\n"
         "  Median: 1.04 deg, 68th: 2.04 deg, 90th: 14.09 deg\n"
-        "  <1 deg: 49%, <2 deg: 68%"
+        "  <1 deg: 49%, <2 deg: 68%\n"
+        "  Note: your results will differ if using a different simulation set,\n"
+        "  station, or config. These are provided as a ballpark reference."
     ),
     'pulser': (
-        "Expected (reco3d_pulser_sim.yaml, rxtx mode, 27 stratified events):\n"
+        "Reference values (from shipped pulser validation dataset, station 23,\n"
+        "  reco3d_pulser_sim.yaml, rxtx mode, 27 stratified events):\n"
         "  Median: 0.27 deg, 68th: 1.15 deg\n"
-        "  <1 deg: 67%, <2 deg: 74%"
+        "  <1 deg: 67%, <2 deg: 74%\n"
+        "  Note: your results will differ if using a different simulation set,\n"
+        "  station, or config. These are provided as a ballpark reference."
     ),
 }
 
@@ -252,8 +314,17 @@ def main():
                            detector_file=args.detector_file)
 
     if args.dataset == "neutrino":
-        truth = load_neutrino_truth(args.sim_dir, pa_abs, args.station)
-        print(f"Loaded {len(truth)} truth entries from {args.sim_dir}")
+        hdf5_files = glob.glob(os.path.join(args.sim_dir, "*.hdf5"))
+        if hdf5_files:
+            truth = load_neutrino_truth(args.sim_dir, pa_abs, args.station)
+            print(f"Loaded {len(truth)} truth entries from HDF5 files in {args.sim_dir}")
+        else:
+            nur_files = glob.glob(os.path.join(args.sim_dir, "*.nur"))
+            if not nur_files:
+                print(f"No .hdf5 or .nur files found in {args.sim_dir}")
+                return
+            truth = load_neutrino_truth_nur(args.sim_dir, pa_abs, args.station)
+            print(f"Loaded {len(truth)} truth entries from NUR files in {args.sim_dir}")
     else:
         truth = load_pulser_truth(args.reco_file, pa_abs)
         print(f"Loaded {len(truth)} unique pulser positions from filenames")
