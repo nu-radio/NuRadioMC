@@ -1,48 +1,80 @@
 #!/bin/bash
-# Example SLURM submission for 3D interferometric reconstruction.
+# SLURM submission for 3D interferometric reconstruction.
 #
-# Splits input NUR files across N_CHUNKS parallel jobs. Each chunk processes
+# Splits input NUR files across parallel jobs. Each chunk processes
 # a subset of files and writes results to a separate HDF5 file. After all
 # chunks complete, a merge job concatenates them into merged_reco_results.h5.
 #
 # Usage:
-#   bash submit_reco3d_example.sh <config.yaml> <data_dir> <output_dir> [mode]
+#   bash submit_reco3d_example.sh --config <config.yaml> --data-dir <dir> \
+#       --output-dir <dir> --account <acct> [options]
 #
-# Arguments:
-#   config.yaml  - Reco config (e.g., configs/reco3d_neutrino_gzk.yaml)
-#   data_dir     - Directory containing input .nur files
-#   output_dir   - Where to write per-chunk HDF5 results
-#   mode         - hw, rx, or rxtx (default: hw)
+# Required:
+#   --config       Reco config YAML (e.g., configs/reco3d_neutrino_gzk.yaml)
+#   --data-dir     Directory containing input .nur files
+#   --output-dir   Where to write per-chunk HDF5 results
+#   --account      SLURM account
 #
-# Adjust ACCOUNT, PARTITION, N_CHUNKS, WALLTIME, and MEM for your cluster.
+# Optional:
+#   --mode         hw, rx, or rxtx (default: hw)
+#   --n-chunks     Number of parallel jobs (default: 100)
+#   --partition    SLURM partition (default: cluster default)
+#   --mem          Memory per job (default: 4GB)
+#   --walltime     Override walltime (default: 30min for hw, 3h for rx/rxtx)
 
 set -euo pipefail
 
-if [ $# -lt 3 ]; then
-    echo "Usage: submit_reco3d_example.sh <config.yaml> <data_dir> <output_dir> [mode]"
+# Defaults
+MODE="hw"
+N_CHUNKS=100
+PARTITION=""
+MEM="4GB"
+WALLTIME=""
+
+# Parse named arguments
+CONFIG=""
+DATA_DIR=""
+OUT_DIR=""
+ACCOUNT=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --config)     CONFIG="$2"; shift 2 ;;
+        --data-dir)   DATA_DIR="$2"; shift 2 ;;
+        --output-dir) OUT_DIR="$2"; shift 2 ;;
+        --account)    ACCOUNT="$2"; shift 2 ;;
+        --mode)       MODE="$2"; shift 2 ;;
+        --n-chunks)   N_CHUNKS="$2"; shift 2 ;;
+        --partition)  PARTITION="$2"; shift 2 ;;
+        --mem)        MEM="$2"; shift 2 ;;
+        --walltime)   WALLTIME="$2"; shift 2 ;;
+        *)
+            echo "Unknown argument: $1"
+            echo "Usage: submit_reco3d_example.sh --config <yaml> --data-dir <dir> --output-dir <dir> --account <acct> [options]"
+            exit 1 ;;
+    esac
+done
+
+if [ -z "$CONFIG" ] || [ -z "$DATA_DIR" ] || [ -z "$OUT_DIR" ] || [ -z "$ACCOUNT" ]; then
+    echo "Missing required arguments. Need: --config, --data-dir, --output-dir, --account"
     exit 1
 fi
 
-CONFIG=$1
-DATA_DIR=$2
-OUT_DIR=$3
-MODE=${4:-hw}
+if [ -z "$WALLTIME" ]; then
+    case "$MODE" in
+        hw)   WALLTIME="00:30:00" ;;
+        rx)   WALLTIME="03:00:00" ;;
+        rxtx) WALLTIME="03:00:00" ;;
+        *)
+            echo "Unknown mode: $MODE (use hw, rx, or rxtx)"
+            exit 1 ;;
+    esac
+fi
 
-# Cluster settings (adjust for your environment)
-ACCOUNT="your_account"
-PARTITION="your_partition"
-N_CHUNKS=100
-MEM="4GB"
-
-if [ "$MODE" = "hw" ]; then
-    WALLTIME="00:30:00"
-elif [ "$MODE" = "rx" ]; then
-    WALLTIME="03:00:00"
-elif [ "$MODE" = "rxtx" ]; then
-    WALLTIME="03:00:00"
-else
-    echo "Unknown mode: $MODE (use hw, rx, or rxtx)"
-    exit 1
+# Build common sbatch args
+SBATCH_ARGS=(--account "${ACCOUNT}" --nodes 1 --ntasks 1 --cpus-per-task 1)
+if [ -n "$PARTITION" ]; then
+    SBATCH_ARGS+=(--partition "${PARTITION}")
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -64,7 +96,7 @@ if [ "$N_CHUNKS" -gt "$N_FILES" ]; then
 fi
 
 echo "Found $N_FILES NUR files, splitting across $N_CHUNKS chunks"
-echo "Mode: $MODE, Walltime: $WALLTIME, Memory: $MEM"
+echo "Mode: $MODE, Walltime: $WALLTIME, Memory: $MEM, Account: $ACCOUNT"
 
 CHUNK_DIR="${OUT_DIR}/chunk_filelists"
 mkdir -p "$CHUNK_DIR"
@@ -88,9 +120,7 @@ for ((i=0; i<N_CHUNKS; i++)); do
 
     JID=$(sbatch --parsable \
         --job-name="reco3d_${i}" \
-        --account="${ACCOUNT}" \
-        --partition="${PARTITION}" \
-        --nodes=1 --ntasks=1 --cpus-per-task=1 \
+        "${SBATCH_ARGS[@]}" \
         --mem="${MEM}" --time="${WALLTIME}" \
         --output="${OUT_DIR}/slurm_outputs/slurm_%j_chunk${i}.out" \
         --wrap="python ${DRIVER} --config ${CONFIG} --mode ${MODE} -i ${FILES_ARG} -o ${OUT_DIR}/chunk_${i}.h5")
@@ -115,14 +145,12 @@ with h5py.File('${OUT_DIR}/merged_reco_results.h5', 'w') as h:
     g = h.create_group('results')
     for k, v in merged.items():
         g.create_dataset(k, data=v)
-print(f'Merged {len(files)} chunks, {len(merged.get(\"rho\", []))} events')
+print('Merged %d chunks, %d events' % (len(files), len(merged.get('rho', []))))
 \""
 
 MERGE_JID=$(sbatch --parsable \
     --job-name="reco3d_merge" \
-    --account="${ACCOUNT}" \
-    --partition="${PARTITION}" \
-    --nodes=1 --ntasks=1 --cpus-per-task=1 \
+    "${SBATCH_ARGS[@]}" \
     --mem="2GB" --time="00:10:00" \
     --dependency="afterany${JOB_IDS}" \
     --output="${OUT_DIR}/slurm_outputs/slurm_%j_merge.out" \

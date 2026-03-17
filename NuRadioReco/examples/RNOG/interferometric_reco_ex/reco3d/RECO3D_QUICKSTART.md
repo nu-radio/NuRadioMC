@@ -6,7 +6,7 @@ This guide explains how to reproduce the 3D interferometric reconstruction resul
 
 1. **NuRadioMC/NuRadioReco** installed (this repo, `reco3d_release` branch)
 2. **Python 3.11+** with numpy, scipy, h5py, pyyaml, numba (optional but recommended for speed)
-3. **Multiray travel time tables** for station 23 (44 NPZ files: 11 channels x 4 tables each (direct, refracted, reflected, combined)). Not included in the repo. On the Chicago cluster, the tables are at `/data/reconstruction/validation_sets/test_tables/multiray_tables/station23/`. For other stations, generate them using the scripts in `../tables/` (see below).
+3. **Multiray travel time tables** for your station (44 NPZ files per station: 11 channels x 4 tables each (direct, refracted, reflected, combined)). Not included in the repo. On the Chicago cluster, pre-generated tables for stations 11, 12, 13, 21, 22, 23, and 24 are at `/data/reconstruction/validation_sets/test_tables/multiray_tables/`. For other stations, generate them using the scripts in `../tables/` (see below).
 4. **RNO-G MongoDB access** (detector description is loaded from `radio.zeuthen.desy.de:27017` by default)
 5. **Simulation datasets** (see below)
 
@@ -56,6 +56,10 @@ The code appends `station{ID}/` internally, so it will look for files at `<time_
 ls /path/to/multiray_tables/station23/st23_ch0_rz_table_direct.npz
 ```
 
+## Using a different station
+
+The shipped configs are for station 23. To run on a different station, copy a config and change `station_id` to your station number. Make sure travel time tables for your station exist at the path specified by `time_delay_tables`. The code looks for files at `<time_delay_tables>/station{ID}/st{ID}_ch{N}_rz_table_{ray_type}.npz`. All other config parameters (channels, grid limits, preprocessing) are the same across stations.
+
 ## Running reconstruction
 
 ### Single file (interactive)
@@ -63,7 +67,7 @@ ls /path/to/multiray_tables/station23/st23_ch0_rz_table_direct.npz
 ```bash
 cd reco3d/
 
-# Neutrino, hw mode (no antenna dedispersion, ~9 s/event)
+# Neutrino, hw mode (no antenna dedispersion, ~6 s/event)
 python interferometric_reco_3d_example.py \
     --config configs/reco3d_neutrino_gzk.yaml \
     --mode hw \
@@ -87,25 +91,44 @@ python interferometric_reco_3d_example.py \
 
 ### Batch (SLURM)
 
-Edit `submit_reco3d_example.sh` to set your ACCOUNT, PARTITION, N_CHUNKS, then:
-
 ```bash
-# Neutrino GZK, hw mode
+# Neutrino GZK, hw mode, 100 chunks
 bash submit_reco3d_example.sh \
-    configs/reco3d_neutrino_gzk.yaml \
-    /path/to/gzk_nur_files/ \
-    /path/to/output/neutrino_hw/ \
-    hw
+    --config configs/reco3d_neutrino_gzk.yaml \
+    --data-dir /path/to/gzk_nur_files/ \
+    --output-dir /path/to/output/neutrino_hw/ \
+    --account your_account \
+    --mode hw --n-chunks 100
 
-# Pulser sim, rxtx mode
+# Pulser sim, rxtx mode, 200 chunks
 bash submit_reco3d_example.sh \
-    configs/reco3d_pulser_sim.yaml \
-    /path/to/pulser_scan_data/ \
-    /path/to/output/pulser_rxtx/ \
-    rxtx
+    --config configs/reco3d_pulser_sim.yaml \
+    --data-dir /path/to/pulser_scan_data/ \
+    --output-dir /path/to/output/pulser_rxtx/ \
+    --account your_account \
+    --mode rxtx --n-chunks 200
 ```
 
 The script splits NUR files across chunks, submits parallel SLURM jobs, and queues a merge job (inline HDF5 concatenation) that runs after all chunks complete. The final output is `merged_reco_results.h5`.
+
+### Evaluating results
+
+Use `evaluate_reco_results.py` to compute angular separations against simulation truth and compare to the validated results:
+
+```bash
+# Neutrino GZK (truth from paired HDF5 files)
+python evaluate_reco_results.py \
+    --reco-file /path/to/output/neutrino_hw/merged_reco_results.h5 \
+    --dataset neutrino \
+    --sim-dir /path/to/gzk_hdf5_files/
+
+# Pulser sim (truth parsed from NUR filenames)
+python evaluate_reco_results.py \
+    --reco-file /path/to/output/pulser_rxtx/merged_reco_results.h5 \
+    --dataset pulser
+```
+
+The script prints median angular separation, percentiles, and the fraction of events below 1 and 2 degrees, alongside the expected values from the validated results table below.
 
 ## Multiray travel time tables
 
@@ -137,13 +160,13 @@ python rz_lookup_table_creator_inice.py \
 sbatch submit_rz_table_jobs.slurm 23 all "2022-10-01" /path/to/multiray_tables/station23
 ```
 
-The `--mode` flag controls output: `multiray` (3 per-ray-type files), `combined` (1 min-time file), or `all` (both). The `--det-date` argument sets the detector description date used for antenna positions (default `2022-10-01`). Use `--detector-file` for batch jobs where MongoDB is unreachable. Each channel takes roughly 6 minutes on 9 cores and uses about 5 GB of memory.
+The `--mode` flag controls output: `multiray` (3 per-ray-type files), `combined` (1 min-time file), or `all` (both). The `--det-date` argument sets the detector description date used for antenna positions (default `2022-10-01`). Use `--detector-file` for batch jobs where MongoDB is unreachable. Tables are computed using NuRadioMC analytic raytracing with the `greenland_simple` exponential ice model. Each channel takes roughly 6 minutes on 9 cores and uses about 5 GB of memory.
 
 ## Mode reference
 
 | Mode | What it does | When to use | Runtime |
 |------|-------------|-------------|---------|
-| `hw` | Pass 1 only: cable delay + HW phase removal + grid search | Neutrinos (unknown source), fast pulser baseline | ~9 s/event |
+| `hw` | Pass 1 only: cable delay + HW phase removal + grid search | Neutrinos (unknown source), fast pulser baseline | ~6 s/event |
 | `rx` | Pass 1 + Pass 2: Rx antenna dedispersion at estimated arrival angles, local re-search | Neutrinos when runtime is acceptable | ~30 s/event |
 | `rxtx` | Pass 1 + Pass 2: Rx + Tx antenna dedispersion (requires known emitter position in filename) | Pulser simulations only | ~94 s/event |
 
@@ -177,10 +200,10 @@ For simulation data, bandpass, CW removal, and dedispersion are typically unnece
 
 | Resource | Estimate |
 |----------|----------|
-| Time per event | ~9 s |
-| Total CPU time | ~32 CPU-hours |
+| Time per event | ~6 s |
+| Total CPU time | ~22 CPU-hours |
 | Recommended chunks | 100 |
-| Walltime per chunk | 30 min |
+| Walltime per chunk | 20 min |
 | Memory per chunk | 4 GB |
 
 ### Pulser sim (18,879 events, rxtx mode)
@@ -225,15 +248,15 @@ For neutrino truth comparison, the paired HDF5 files contain `xx`, `yy`, `zz` ve
 
 ## Validated results
 
-### Neutrino GZK (hw mode, 99 stratified events)
+### Neutrino GZK (hw mode, 12,916 events)
 
 | Metric | Value |
 |--------|-------|
-| Median angular separation | 1.10 deg |
-| 68th percentile | 2.41 deg |
-| 90th percentile | 13.63 deg |
-| Fraction < 1 deg | 44% |
-| Fraction < 2 deg | 64% |
+| Median angular separation | 1.04 deg |
+| 68th percentile | 2.04 deg |
+| 90th percentile | 14.09 deg |
+| Fraction < 1 deg | 49% |
+| Fraction < 2 deg | 68% |
 
 ### Pulser sim (rxtx mode, 27 stratified events)
 
@@ -244,17 +267,7 @@ For neutrino truth comparison, the paired HDF5 files contain `xx`, `yy`, `zz` ve
 | Fraction < 1 deg | 67% |
 | Fraction < 2 deg | 74% |
 
-These numbers are from the preprocessing permutation study (March 2026) using the configs in this directory. Your results should match within statistical noise when using the same configs, tables, and datasets.
-
-## Preprocessing permutation study summary
-
-288 preprocessing configurations were tested on the neutrino dataset, and 432 on the pulser dataset. The configs provided here represent the best validated combinations.
-
-Key findings:
-- **HW phase removal** is the single most important preprocessing step for both datasets.
-- **Hilbert envelope mode** has opposite preferences: neutrinos prefer `correlation`, pulsers prefer `none`. Still investigating.
-- **Hann windowing and bandpass** are important for pulsers but negligible for neutrinos.
-- **Antenna dedispersion** (rx/rxtx mode) improves pulser results substantially (0.27 deg rxtx vs 0.74 deg hw) but offers marginal improvement for neutrinos at ~3x runtime cost.
+Neutrino results are from the full 12,916-event GZK dataset using `reco3d_neutrino_gzk.yaml`. Pulser results are from the preprocessing permutation study (March 2026) on a stratified subsample. Your results should match when using the same configs, tables, and datasets.
 
 ## File listing
 
@@ -268,6 +281,7 @@ NuRadioReco/examples/RNOG/interferometric_reco_ex/
     submit_rz_table_jobs.slurm            SLURM submission for all VPOL channels
   reco3d/
     interferometric_reco_3d_example.py    Driver: preprocessing + pass1 + optional pass2
+    evaluate_reco_results.py          Evaluate reco results against sim truth (neutrino or pulser)
     fast_grouped_multiray.py              Numba-accelerated grouped multiray correlator
     submit_reco3d_example.sh              Example SLURM batch submission
     RECO3D_QUICKSTART.md                  This file

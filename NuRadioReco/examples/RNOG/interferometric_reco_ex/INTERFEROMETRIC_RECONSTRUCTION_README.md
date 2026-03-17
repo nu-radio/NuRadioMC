@@ -1417,6 +1417,7 @@ The example scripts live in `reco3d/`:
 | File | Description |
 |------|-------------|
 | `interferometric_reco_3d_example.py` | Driver script: detector setup, preprocessing, pass 1 + optional pass 2 with antenna dedispersion |
+| `evaluate_reco_results.py` | Evaluate reco results against sim truth (neutrino or pulser) |
 | `fast_grouped_multiray.py` | Numba-accelerated grouped multiray correlator |
 | `submit_reco3d_example.sh` | Example SLURM batch submission with automatic chunking and merge |
 
@@ -1433,7 +1434,7 @@ Three validated configs are provided in `reco3d/configs/`:
 
 | Config | Dataset | Best mode | Median ang. sep. | Runtime |
 |--------|---------|-----------|-------------------|---------|
-| `reco3d_neutrino_gzk.yaml` | GZK neutrino sim (10^18 - 10^20 eV) | hw | 1.10 deg | ~9 s/event |
+| `reco3d_neutrino_gzk.yaml` | GZK neutrino sim (10^18 - 10^20 eV) | hw | 1.04 deg | ~6 s/event |
 | `reco3d_pulser_sim.yaml` | Simulated pulser calibration (10-200m) | rxtx | 0.27 deg | ~94 s/event |
 | `reco3d_pulser_sim_fast.yaml` | Simulated pulser calibration (10-200m) | hw | 1.53 deg | ~9 s/event |
 
