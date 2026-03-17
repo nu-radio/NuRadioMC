@@ -33,12 +33,15 @@ class channelAntennaDedispersion:
         antenna = self._provider.load_antenna_pattern(antenna_name)
         zen_ori, az_ori, zen_rot, az_rot = det.get_antenna_orientation(station_id, channel_id)
 
-        if antenna_name not in self.antennas_most_sensitive_directions:
+        match = next(
+            (key_name for key_name in self.antennas_most_sensitive_directions if key_name in antenna_name), None
+        )
+        if match is None:
             raise AttributeError(f"Antenna name {antenna_name} can't be interpreted. "
                 f"Available names are: {list(self.antennas_most_sensitive_directions.keys())}")
 
-        zen = zen_ori + self.antennas_most_sensitive_directions[antenna_name][0]
-        az = az_ori + self.antennas_most_sensitive_directions[antenna_name][1]
+        zen = zen_ori + self.antennas_most_sensitive_directions[match][0]
+        az = az_ori + self.antennas_most_sensitive_directions[match][1]
 
         VEL = antenna.get_antenna_response_vectorized(ff, zen, az, zen_ori, az_ori, zen_rot, az_rot)
         polarization = "phi"
