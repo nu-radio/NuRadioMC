@@ -24,7 +24,8 @@ class channelAntennaDedispersion:
         self.antennas_most_sensitive_directions = {
             "LPDA": [0, 0], # the sensitive direction of an LPDA is the boresight direction
             "bicone": [90 * units.deg, 0], # the sensitive direction of a dipole is perpendicular to its orientation
-            "dipole": [90 * units.deg, 0], # the sensitive direction of a dipole is perpendicular to its orientation
+            "vpol": [90 * units.deg, 0], # the sensitive direction of a dipole is perpendicular to its orientation
+            "hpol": [0, 0], # the sensitive direction of a dipole is along it's direction
         }
 
     def _get_response(self, det, station_id, channel_id, ff):
