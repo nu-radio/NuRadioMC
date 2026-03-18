@@ -7,7 +7,7 @@ import copy
 import yaml
 import numpy as np
 import h5py
-from scipy import constants
+from scipy import constants, integrate
 from numpy.random import Generator, Philox
 
 from radiotools import helper as hp
@@ -1314,7 +1314,7 @@ class simulation:
                     np.abs(filt)[np.abs(filt) > np.abs(filt).max() / 100] ** 2)  # a factor of 100 corresponds to -40 dB in amplitude
                 self._integrated_channel_response_normalization[station_id][channel_id] = mean_integrated_response
 
-                integrated_channel_response = np.trapz(np.abs(filt) ** 2, ff)
+                integrated_channel_response = integrate.trapezoid(np.abs(filt) ** 2, ff)
                 self._integrated_channel_response[station_id][channel_id] = integrated_channel_response
 
                 logger.debug(f"Station.channel {station_id}.{channel_id} estimated bandwidth is "

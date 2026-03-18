@@ -30,7 +30,7 @@ from NuRadioReco.detector.response import Response
 import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
-from scipy import signal, interpolate
+from scipy import signal, interpolate, integrate
 import numpy as np
 import fractions
 import decimal
@@ -574,7 +574,7 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
             bandwidth = bandwidth[1] - bandwidth[0]
     else:
         freqs = freqs or np.arange(0, 2500, 0.1) * units.MHz
-        bandwidth = np.trapz(np.abs(response(freqs)) ** 2, freqs)
+        bandwidth = integrate.trapezoid(np.abs(response(freqs)) ** 2, freqs)
 
     return (temperature * impedance * bandwidth * constants.k_B) ** 0.5
 
