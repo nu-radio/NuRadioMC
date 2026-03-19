@@ -600,8 +600,8 @@ class readRNOGData:
         Returns
         -------
         data: dict
-            Keys of the dict are the event indecies (as used in self.read_event(event_index)). The values are dictinaries
-            them self containing the information specified with "keys" parameter.
+            Keys of the dict are the event indices (as used in self.read_event(event_index)). The values are dictionaries
+            themselves, containing the information specified with "keys" parameter.
         """
 
         if keys is None:
