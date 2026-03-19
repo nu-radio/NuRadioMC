@@ -189,7 +189,7 @@ All preprocessing options are set in the YAML config file and default to the val
 
 | Config key | Default | Description |
 |------------|---------|-------------|
-| `apply_cable_delays` | `true` | Subtract cable delays (`channelAddCableDelay`) |
+| `apply_cable_delay` | `true` | Subtract cable delays (`channelAddCableDelay`) |
 | `apply_hw_phase_removal` | `true` | Remove hardware phase response (`hardwareResponseIncorporator`, phase-only) |
 | `apply_upsampling` | `true` | Resample to 10 GHz (`channelResampler`) |
 | `apply_bandpass` | `false` | Bandpass filter, 100-600 MHz Butterworth order 10 (`channelBandPassFilter`) |

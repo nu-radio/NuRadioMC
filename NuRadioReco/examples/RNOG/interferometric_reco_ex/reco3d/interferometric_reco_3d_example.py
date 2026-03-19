@@ -361,7 +361,7 @@ def main():
             evt1 = reader._eventReader__fin.get_event(event_id=eid)
             stn1 = evt1.get_station(station_id)
 
-            if config.get('apply_cable_delays', True):
+            if config.get('apply_cable_delay', True):
                 cable_delay.run(evt1, stn1, det, mode='subtract')
             if config.get('apply_hw_phase_removal', True):
                 hw_response.run(evt1, stn1, det, sim_to_data=False,
@@ -389,7 +389,7 @@ def main():
                 evt2 = reader._eventReader__fin.get_event(event_id=eid)
                 stn2 = evt2.get_station(station_id)
 
-                if config.get('apply_cable_delays', True):
+                if config.get('apply_cable_delay', True):
                     cable_delay.run(evt2, stn2, det, mode='subtract')
                 if config.get('apply_hw_phase_removal', True):
                     hw_response.run(evt2, stn2, det, sim_to_data=False,

@@ -40,7 +40,7 @@ multiray_table_name_pattern: "st{station_id}_ch{ch}_rz_table_{ray_type}.npz"
 detector_date: "2022-10-01"
 
 # Preprocessing (driver-level, applied before reconstruction module)
-apply_cable_delays: true
+apply_cable_delay: true
 apply_hw_phase_removal: true
 apply_upsampling: true
 apply_bandpass: false
