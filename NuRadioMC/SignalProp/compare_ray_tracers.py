@@ -11,13 +11,22 @@ import time
 
 from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
 from c8_tracer.nrmc_propagator import C8RayTracerIndividual
+from c8_tracer.nrmc_propagator import C8RayTracerTable
 
 n_datapoints = 100
 n_output_parameters = int(2 * 4)
 
-ice = medium.get_ice_model('southpole_2015')
+ice = medium.get_ice_model("southpole_2015")
 # ice = medium.get_ice_model('uniform_ice')
 
+x_det = 0 * units.m
+y_det = 0 * units.m
+z_det = -100 * units.m
+
+r_max = 2000 * units.m
+r_min = 100 * units.m
+z_max = -0.5
+z_min = -0.4 * r_max - 1000 * units.m
 
 propagator_1 = ray_tracing(
     ice,
@@ -35,9 +44,19 @@ propagator_2 = C8RayTracerIndividual(
     n_rays=15,
 )
 
-x_det = 0 * units.m
-y_det = 0 * units.m
-z_det = -100 * units.m
+propagator_2 = C8RayTracerTable(
+    ice,
+    [np.array([x_det, y_det, z_det])],
+    r_max,
+    z_min,
+    z_max,
+    25.0,
+    n_reflections=1,  # This refers to all reflections, including surface reflections
+    min_step=0.001,
+    max_step=10.0,
+    tolerance=1e-5,
+    n_rays=15,
+)
 
 t0 = time.time()
 t1_tot = 0.0
@@ -51,12 +70,12 @@ results_c8 = np.zeros([n_datapoints, n_output_parameters])
 for i in range(n_datapoints):
     print("Progress:", i, "/", n_datapoints, " points ray-traced", end="\r")
 
-    x0_vertex = np.random.random() * 2000 * units.m + 100 * units.m
-    y0_vertex = 0
+    x0_vertex = (r_max - r_min) * np.random.random() + r_min
+    y0_vertex = 0.0
     z0_vertex = (
         -0.4 * np.sqrt(x0_vertex**2 + y0_vertex**2)
         - np.random.random() * 1000 * units.m
-    )  # - np.random.random() * 1000 * units.m - 100 * units.m
+    )
 
     xyz_start = np.array([x0_vertex, y0_vertex, z0_vertex])
     X_array[i, :] = xyz_start
@@ -212,7 +231,7 @@ for i_param in range(n_output_parameters):
     ax[i_param].legend()
     ax[i_param].set_xlim(0, np.max(X_array[:, 0]) * 1.1)
     y_max = np.max(np.abs(results_c8[:, i_param] - results_analytic[:, i_param])) * 1.1
-    ax[i_param].set_ylim(-y_max, y_max)
+    # ax[i_param].set_ylim(-y_max, y_max)
     ax[i_param].set_xlabel("Vertex position $x$ [m]")
     ax[i_param].set_ylabel(
         "Delta "
@@ -241,7 +260,7 @@ for i_param in range(n_output_parameters):
     ax[i_param].legend()
     ax[i_param].set_xlim(np.min(X_array[:, 2]) * 1.1, 0)
     y_max = np.max(np.abs(results_c8[:, i_param] - results_analytic[:, i_param])) * 1.1
-    ax[i_param].set_ylim(-y_max, y_max)
+    # ax[i_param].set_ylim(-y_max, y_max)
     ax[i_param].set_xlabel("Vertex position $z$ [m]")
     ax[i_param].set_ylabel(
         "Delta "
