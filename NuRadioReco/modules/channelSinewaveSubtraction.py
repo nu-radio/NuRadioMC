@@ -46,7 +46,7 @@ class channelSinewaveSubtraction:
 
     @register_run()
     def run(self, event: NuRadioReco.framework.event.Event, station: NuRadioReco.framework.station.Station,
-        det=None, algorithm: str='simple', peak_prominence: float = 4.0) -> None:
+        det=None, algorithm: str='sliding', peak_prominence: float = 4.0) -> None:
         """
         Run the CW filter module on a given event and station. Removes all the CW peaks > peak_prominence * RMS.
 
