@@ -410,8 +410,9 @@ def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id):
     antenna_position_rel = det.get_relative_position(station_id, channel_id) - efield.get_position()
 
     if np.linalg.norm(antenna_position_rel) > 5 * units.m:
-        logger.warning("Calculate an additional time shift for an electric field that is more than 5 meters "
-                       "away from the antenna position.")
+        logger.warning(f"Calculate an additional time shift for an electric field that is more than 5 meters "
+                       f"away from the antenna position. Station: {station_id}, Channel: {channel_id}, "
+                       f"Distance: {np.linalg.norm(antenna_position_rel)} m")
 
     travel_time_shift = geo_utl.get_time_delay_from_direction(
         efield.get_parameter(efp.zenith),
