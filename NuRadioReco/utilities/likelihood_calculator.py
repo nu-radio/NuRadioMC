@@ -695,7 +695,7 @@ class LikelihoodCalculator:
 
         self._set_covariance_matrices(covariance_matrices, spectra)
 
-    def calculate_fisher_information_matrix(self, signal_function, paramters_x0, dx, frequency_domain=False, ignore_parameters=[]):
+    def calculate_fisher_information_matrix(self, signal_function, paramters_x0, dx, frequency_domain=False, ignore_parameters=[], plot=False):
         """
         Calculate Fisher information matrix for a set of parameter values (paramters_x0) which generates a signal using the covariance matrices of the noise.
 
@@ -723,7 +723,7 @@ class LikelihoodCalculator:
 
         # Calculate derivatives:
         derivatives = np.zeros([n_parameters, self.n_antennas, self.n_samples])
-        derivatives_fft = np.zeros([n_parameters, self.n_antennas, self.n_frequencies])
+        derivatives_fft = np.zeros([n_parameters, self.n_antennas, self.n_frequencies], dtype=complex)
         signal_0 = signal_function(paramters_x0)
         i_skipped = 0
         for i_param in range(n_parameters):
@@ -745,6 +745,36 @@ class LikelihoodCalculator:
                     elif frequency_domain:
                         integrand = np.real(derivatives_fft[i_param, i_ant, :] * derivatives_fft[j_param, i_ant, :].conj()) / self.noise_psd[i_ant, :]
                         fisher_information_matrix[i_param, j_param] += 4 * np.sum(integrand[self.noise_psd[i_ant, :] > np.max(self.noise_psd[i_ant, :] * self.threshold_amplitude ** 2)]) * (self.frequencies[1] - self.frequencies[0])
+
+
+        if plot:
+            # Plot derivatives:
+            fig, ax = plt.subplots(n_parameters, self.n_antennas, figsize=(30, 30))
+            for i_par in range(n_parameters):
+                for i_ant in range(self.n_antennas):
+                    ax[i_par, i_ant].plot(np.arange(self.n_samples), np.real(derivatives[i_par, i_ant, :]), label="Re")
+                    ax[i_par, i_ant].plot(np.arange(self.n_samples), np.imag(derivatives[i_par, i_ant, :]), label="Im")
+                    ax[i_par, i_ant].set_title("Parameter %d, Antenna %d" % (i_par, i_ant))
+                    ax[i_par, i_ant].legend()
+                    ax[i_par, i_ant].set_xlabel("Time [ns]")
+                    ax[i_par, i_ant].set_ylabel("Voltage [V]")
+            fig.tight_layout()
+            plt.savefig("derivatives_nm.pdf")
+            plt.close()
+
+            # Plot FFT of derivatives:
+            fig, ax = plt.subplots(n_parameters, self.n_antennas, figsize=(30, 30))
+            for i_par in range(n_parameters):
+                for i_ant in range(self.n_antennas):
+                    ax[i_par, i_ant].plot(self.frequencies, np.real(derivatives_fft[i_par, i_ant, :]), label="Re")
+                    ax[i_par, i_ant].plot(self.frequencies, np.imag(derivatives_fft[i_par, i_ant, :]), label="Im")
+                    ax[i_par, i_ant].set_title("Parameter %d, Antenna %d" % (i_par, i_ant))
+                    ax[i_par, i_ant].legend()
+                    ax[i_par, i_ant].set_xlabel("Frequency [Hz]")
+                    ax[i_par, i_ant].set_ylabel("Voltage [V]")
+            fig.tight_layout()
+            plt.savefig("derivatives_fft_nm.pdf")
+            plt.close()
 
         return fisher_information_matrix
 
