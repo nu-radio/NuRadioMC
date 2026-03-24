@@ -381,6 +381,12 @@ if __name__ == "__main__":
     else:
         nur_output_filename = None
 
+    simulation.channelReadoutWindowCutter.begin(
+        random_seed=root_seed,
+        sample_block_size=64,          # uniform jitter over +-64 samples
+        gaussian_jitter=0 * units.ns,  # no gaussian for now (per sjoerd's recommendation)
+    )
+
     sim = mySimulation(
         inputfilename=input_data,
         outputfilename=output_filename,

@@ -12,27 +12,43 @@ logger = logging.getLogger('NuRadioReco.channelReadoutWindowCutter')
 
 class channelReadoutWindowCutter:
     """
-    Modifies channel traces to simulate the effects of the trigger
+    Modifies channel traces to simulate the effects of the trigger and associated readout window.
 
-    The trace is cut to the length defined in the detector description relative to the trigger time.
-    If no trigger exists, nothing is done.
+    The trace is cut to the length defined in the detector description relative to the trigger time
+    taking into account the trigger's pre_trigger_time. If no trigger exists, nothing is done. Allows
+    to simulate randomness in the definition of the readout window.
     """
 
     def __init__(self, log_level=logging.NOTSET):
         logger.setLevel(log_level)
         self.begin()
 
-    def begin(self, random_seed=None):
+    def begin(self, random_seed=None, gaussian_jitter=0 * units.ns, sample_block_size=0):
         """
 
         Parameters
         ----------
         random_seed : int or None, optional
-            Set a random seed, used if simulating a random jitter for the readout window
+            Set a random seed, used if simulating a random jitter for the readout window.
+            (Default: secrets.randbits(128))
+
+        gaussian_jitter : float, optional
+            Gaussian time jitter in ns (default unit) to smear the position of the trigger in the trace (nominal
+            value defined by ``trigger.pre_trigger_time``). (Default: 0)
+
+        sample_block_size : int, optional
+            Defines "block" of samples within which the trigger is uniformly smeared. (Default: 0)
+
+        Also see
+        --------
+        time_jitter
         """
         
         self.__sampling_rate_error_issued = False
         self._rng = Generator(Philox(random_seed or secrets.randbits(128)))
+        self._gaussian_jitter = gaussian_jitter
+        self._sample_block_size = sample_block_size
+
 
     @register_run()
     def run(self, event, station, detector):
@@ -85,13 +101,10 @@ class channelReadoutWindowCutter:
         first_detector_sampling_rate = detector.get_sampling_frequency(
             station.get_id(), first_channel.get_id())
 
-        gaussian_spread=10.5 * units.ns
-        sample_block_size=64
-
-        jitter_time = jitter_adder(
-            gaussian_spread=0,
-            sample_block_size=0,
-            sampling_rate=first_detector_sampling_rate * units.GHz,
+        jitter_time = time_jitter(
+            gaussian_spread=self._gaussian_jitter,
+            sample_block_size=self._sample_block_size,
+            sampling_rate=first_detector_sampling_rate,
             rng=self._rng,
         )
 
@@ -263,7 +276,7 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     return channel
 
 
-def jitter_adder(gaussian_spread=0*units.ns, sample_block_size=64, sampling_rate=2.4*units.GHz, rng=None):
+def time_jitter(gaussian_spread=0*units.ns, sample_block_size=64, sampling_rate=2.4*units.GHz, rng=None):
     """
     Generate a readout-window jitter composed of a discrete sample offset
     (converted to time) and a continuous Gaussian time smear.
@@ -298,15 +311,18 @@ def jitter_adder(gaussian_spread=0*units.ns, sample_block_size=64, sampling_rate
     if rng is None:
         rng = Generator(Philox(secrets.randbits(128)))
 
-    if sample_block_size == 0:
-        sample_jitter = 0
-    else:
-        sample_jitter = rng.integers(-sample_block_size / 2, sample_block_size / 2)
-    
-    sample_jitter_time = sample_jitter / sampling_rate
-    norm_smear = rng.normal(0, gaussian_spread)
-    jitter_time = sample_jitter_time + norm_smear
+    jitter_sample = 0
+    if sample_block_size != 0:
+        jitter_sample += rng.integers(-sample_block_size / 2, sample_block_size / 2)
+
+    if gaussian_spread != 0:
+        gaussian_time = rng.normal(0, gaussian_spread)
+        jitter_sample += round(gaussian_time * sampling_rate)  # snap to nearest sample
+
+    jitter_time = jitter_sample/sampling_rate
+
     return jitter_time
+
 
 @functools.lru_cache(maxsize=1024)
 def _get_resampled_number_of_samples(number_of_samples, sampling_rate, detector_sampling_rate):
