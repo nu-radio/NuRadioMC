@@ -8,22 +8,46 @@ inputs:
   cache-key:
     description: 'Cache key for Python environment'
     required: true
+  restore-only:
+    description: 'If true, only restore from cache (i.e. never saves/overwrites the cache)'
+    default: true
 
 runs:
   using: 'composite'
   steps:
     - name: Set up Python [${{ inputs.python-version }}]
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ inputs.python-version }}
+        cache: 'pip'
 
-    - name: Restore Python environment
-      uses: actions/cache/restore@v4
+    - name: Cache Python environment
+      id: cache
+      if: inputs.restore-only != 'true'
+      uses: actions/cache@v5
       with:
         path: |
-          ~/.cache/pip
           ${{ env.pythonLocation }}
         key: ${{ inputs.cache-key }}
-        restore-keys: |
-          ${{ runner.os }}-env-${{ inputs.python-version }}-
-          ${{ runner.os }}-env-
+
+    - name: Cache Python environment (restore only)
+      id: cache-restore
+      if: inputs.restore-only == 'true'
+      uses: actions/cache/restore@v5
+      with:
+        path: |
+          ${{ env.pythonLocation }}
+        key: ${{ inputs.cache-key }}
+
+    - name: Install Python dependencies
+      if: ${{ steps.cache.outputs.cache-hit != 'true' && steps.cache-restore.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        pip install -e .[proposal,galacticnoise,cr_interpolator,minimizers]
+
+    - name: Display installed Python modules
+      shell: bash
+      run: |
+        pip list
