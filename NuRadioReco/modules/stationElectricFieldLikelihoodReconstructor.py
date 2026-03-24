@@ -460,11 +460,14 @@ class stationElectricFieldLikelihoodReconstructor:
         for i_ch, channel_id in enumerate(use_channels):
             channel = station.get_channel(channel_id)
 
-            # Subtract the cable delay and travel time of the reference channel, since
+            # Subtract the cable delay (and travel time) of the reference channel, since
             # they were added in efieldToVoltageConverter. Then the time of the readout
             # pulse is roughly the provided time (plus antenna group delay):
             tst = channel.get_trace_start_time()
-            channel.set_trace_start_time(tst - det.get_cable_delay(station_id, use_channels[0]) - self.travel_time_shifts[0])
+            if self.travel_time_shifts is None:
+                channel.set_trace_start_time(tst - det.get_cable_delay(station_id, use_channels[0]))
+            elif self.travel_time_shifts is not None:
+                channel.set_trace_start_time(tst - det.get_cable_delay(station_id, use_channels[0]) - self.travel_time_shifts[0])
 
             # Make new channel which is the signal in the readout windows of the data trace:
             signal_channel = NuRadioReco.framework.channel.Channel(channel_id)
@@ -534,7 +537,7 @@ class stationElectricFieldLikelihoodReconstructor:
             The error on the fluence
         """
 
-        dx_array = np.array([1e-3, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6])
+        dx_array = np.array([1e-3, 1e-5, 1e-5, 1e-5, 1e-4, 1e-5, 1e-5, 1e-5])
         fisher_information_matrix = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, parameters_initial, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
         f_i = np.linalg.pinv(fisher_information_matrix)
         uncertainties_1 = np.sqrt(np.diag(f_i))

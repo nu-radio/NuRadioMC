@@ -112,15 +112,15 @@ filter_low = channelBandPassFilter.get_filter(frequencies, station_id, channel_i
 filter_high = channelBandPassFilter.get_filter(frequencies, station_id, channel_ids[0], det, **filter_settings_high)
 filter = abs(filter_low * filter_high)
 reco = NuRadioReco.modules.stationElectricFieldLikelihoodReconstructor.stationElectricFieldLikelihoodReconstructor()
-reco.begin(n_channels, n_samples, sampling_rate, filter, noise_amplitude, filter_settings_low, filter_settings_high)
-signal_fit = reco.run(evt, station, det, use_MC_direction=True, return_signal=True)
+reco.begin(n_channels, n_samples, sampling_rate, filter, noise_amplitude, [filter_settings_low, filter_settings_high])
+signal_fit, parameters_fit, minus_two_llh = reco.run(evt, station, det, use_MC_direction=True, full_output=True)
 
 efield_reco = station.get_electric_fields()[0]
 
-reference_fluence = 0.8686
-reference_fluence_error = 0.148
-reference_polarization = 65.416
-reference_polarization_error = 9.973
+reference_fluence = 0.8677
+reference_fluence_error = 0.147
+reference_polarization = 65.610
+reference_polarization_error = 9.968
 
 np.testing.assert_almost_equal(efield_reco[efp.signal_energy_fluence], reference_fluence, decimal=2)
 np.testing.assert_almost_equal(efield_reco.get_parameter_error(efp.signal_energy_fluence), reference_fluence_error, decimal=2)
