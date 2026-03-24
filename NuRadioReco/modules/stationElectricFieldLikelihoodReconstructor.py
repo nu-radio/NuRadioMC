@@ -235,7 +235,12 @@ class stationElectricFieldLikelihoodReconstructor:
         fitted_signal = signal_function(fitted_params_best)
 
         # save results to station object:
-        electric_field = self._get_efield(fitted_params_best[:6], fitted_params_best[6], fitted_params_best[7], use_channels, apply_filter=save_filtered_efield)
+        if self.travel_time_shifts is None:
+            efield_time = fitted_params_best[4] - det.get_cable_delay(station.get_id(), use_channels[0])
+        elif self.travel_time_shifts is not None:
+            efield_time = fitted_params_best[4] - det.get_cable_delay(station.get_id(), use_channels[0]) - self.travel_time_shifts[0]
+        efield_parameters = np.array([fitted_params_best[0], fitted_params_best[1], fitted_params_best[2], fitted_params_best[3], efield_time, fitted_params_best[5]])
+        electric_field = self._get_efield(efield_parameters, fitted_params_best[6], fitted_params_best[7], use_channels, apply_filter=save_filtered_efield)
         electric_field.set_parameter(efp.signal_energy_fluence, fluence_reco_best)
         electric_field.set_parameter_error(efp.signal_energy_fluence, fluence_uncertainty_best)
         electric_field.set_parameter(efp.polarization_angle, polarization_reco_best)
@@ -253,8 +258,6 @@ class stationElectricFieldLikelihoodReconstructor:
         exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
         exp_pol_angle = np.arctan2(exp_efield_onsky[2], exp_efield_onsky[1])
         electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
-
-        electric_field.set_trace_start_time(trace_start_times[0])
 
         station.add_electric_field(electric_field)
 
@@ -445,10 +448,20 @@ class stationElectricFieldLikelihoodReconstructor:
             Signal for given parameters
         """
 
+        # Subtract the cable delay (and travel time) of the reference channel, to
+        # get the rough efield time for the desired readout pulse time. These times
+        # are added again in efieldToVoltageConverter. Antenna group delay is not
+        # taken into account here:
+        if self.travel_time_shifts is None:
+            efield_time = parameters[4] - det.get_cable_delay(station_id, use_channels[0])
+        elif self.travel_time_shifts is not None:
+            efield_time = parameters[4] - det.get_cable_delay(station_id, use_channels[0]) - self.travel_time_shifts[0]
+        efield_parameters = np.array([parameters[0], parameters[1], parameters[2], parameters[3], efield_time, parameters[5]])
+
         zenith_arrival = parameters[6]
         azimuth_arrival = parameters[7]
 
-        electric_field = self._get_efield(parameters, zenith_arrival, azimuth_arrival, use_channels, apply_filter=filter_before_det_resp)
+        electric_field = self._get_efield(efield_parameters, zenith_arrival, azimuth_arrival, use_channels, apply_filter=filter_before_det_resp)
 
         sim_station = SimStation(station_id)
         if self.travel_time_shifts is None:
@@ -479,15 +492,6 @@ class stationElectricFieldLikelihoodReconstructor:
 
         for i_ch, channel_id in enumerate(use_channels):
             channel = station.get_channel(channel_id)
-
-            # Subtract the cable delay (and travel time) of the reference channel, since
-            # they were added in efieldToVoltageConverter. Then the time of the readout
-            # pulse is roughly the provided time (plus antenna group delay):
-            tst = channel.get_trace_start_time()
-            if self.travel_time_shifts is None:
-                channel.set_trace_start_time(tst - det.get_cable_delay(station_id, use_channels[0]))
-            elif self.travel_time_shifts is not None:
-                channel.set_trace_start_time(tst - det.get_cable_delay(station_id, use_channels[0]) - self.travel_time_shifts[0])
 
             # Make new channel which is the signal in the readout windows of the data trace:
             signal_channel = NuRadioReco.framework.channel.Channel(channel_id)
