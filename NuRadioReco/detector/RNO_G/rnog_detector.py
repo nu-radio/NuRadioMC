@@ -246,6 +246,7 @@ class Detector():
             # When not querying the entire description at once,
             # we need to make sure that the buffer is updated
             # for all stations before exporting.
+            self._query_all = True
             for station_id in self.__buffered_stations:
                 # remove everything (could be handled smarter ...)
                 self.__buffered_stations[station_id] = {}
