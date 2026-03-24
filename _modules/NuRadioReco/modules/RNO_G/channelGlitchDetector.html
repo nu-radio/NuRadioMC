@@ -797,6 +797,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">diff_sq</span><span class="p">(</span><span class="n">eventdata</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="n">LAB4D_SAMPLING_BLOCK_SIZE</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns sum of squared differences of samples across seams of 128-sample chunks.</span>
+<span class="sd">    Ignores the first and last `block_size` samples, which `unscramble` cannot reconstruct.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -806,7 +807,7 @@
     <span class="n">twice_block_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">block_size</span>
 
     <span class="n">runsum</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eventdata</span><span class="p">)</span> <span class="o">//</span> <span class="n">twice_block_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">eventdata</span><span class="p">)</span> <span class="o">//</span> <span class="n">twice_block_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
         <span class="n">runsum</span> <span class="o">+=</span> <span class="p">(</span><span class="n">eventdata</span><span class="p">[</span><span class="n">chunk</span> <span class="o">*</span> <span class="n">twice_block_size</span> <span class="o">+</span> <span class="n">block_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">eventdata</span><span class="p">[</span><span class="n">chunk</span> <span class="o">*</span> <span class="n">twice_block_size</span> <span class="o">+</span> <span class="n">block_size</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">runsum</span><span class="p">)</span></div>
 

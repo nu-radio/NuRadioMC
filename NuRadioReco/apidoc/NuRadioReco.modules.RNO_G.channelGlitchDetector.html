@@ -762,7 +762,8 @@ Note: the first and last sampling block are unusable and hence replaced by zeros
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelGlitchDetector.diff_sq">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.channelGlitchDetector.</span></span><span class="sig-name descname"><span class="pre">diff_sq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eventdata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelGlitchDetector.html#diff_sq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelGlitchDetector.diff_sq" title="Link to this definition"></a></dt>
-<dd><p>Returns sum of squared differences of samples across seams of 128-sample chunks.</p>
+<dd><p>Returns sum of squared differences of samples across seams of 128-sample chunks.
+Ignores the first and last <em class="xref py py-obj">block_size</em> samples, which <a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelGlitchDetector.unscramble" title="NuRadioReco.modules.RNO_G.channelGlitchDetector.unscramble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unscramble</span></code></a> cannot reconstruct.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
