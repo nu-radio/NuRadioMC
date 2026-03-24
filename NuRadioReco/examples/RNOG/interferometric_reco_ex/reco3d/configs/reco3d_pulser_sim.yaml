@@ -1,13 +1,13 @@
 # 3D interferometric reconstruction config: simulated pulser calibration
 #
-# Validated on 6,840 simulated pulser NUR files (r: 10-200m, zen: 20-160 deg,
-# az: 0-360 deg, 3 events per grid point, 18,879 triggered events total).
-# Median angular separation: 0.27 deg (27 stratified events, rxtx mode).
-# Runtime: ~94 s/event (rxtx mode), ~9 s/event (hw mode).
+# Validated on 18,879 triggered events from 6,840 simulated pulser NUR files
+# (r: 10-200m, zen: 20-160 deg, az: 0-360 deg, 3 events per grid point).
+# Median angular separation: 0.42 deg (full dataset, rxtx mode).
+# Runtime: ~19 s/event (rxtx mode), ~15 s/event (hw mode).
 #
 # Preprocessing: cable delay subtraction, HW phase removal, 10 GHz upsampling,
 # no Hilbert envelope, no SNR pair weighting.
-# Best permutation: hilbert=none, hann=off, bandpass=off, hw_phase=on,
+# Best permutation: hilbert=none, hann=on, bandpass=off, hw_phase=on,
 # dedispersion=rxtx, snr_weight=off, correlation_normalization=energy.
 #
 # Search volume: rho 1-200m, z -230 to 0m.
@@ -34,8 +34,8 @@ refine_step_sizes: [0.2, 0.3, 0.2]
 
 limits: [1, 200, 0, 360, -230, 0]
 
-# Paths: update these for your environment
-time_delay_tables: "/path/to/multiray_tables"
+# Paths: set NURADIO_TABLE_DIR and (optionally) NURADIO_DETECTOR_DIR
+time_delay_tables: "${NURADIO_TABLE_DIR}"
 multiray_table_name_pattern: "st{station_id}_ch{ch}_rz_table_{ray_type}.npz"
 detector_date: "2022-10-01"
 
@@ -51,7 +51,14 @@ hilbert_envelope_mode: null
 interp_method: "linear"
 snr_pair_weighting: false
 correlation_normalization: "energy"
+apply_hann_window: true
 
 # Pass 2 (local re-search after Rx/Tx dedispersion)
+# pass2_hierarchical enables coarse+refine search instead of flat grid
 pass2_window: [20, 10, 20]
 pass2_step_sizes: [0.2, 0.3, 0.2]
+pass2_hierarchical: true
+pass2_coarse_step_sizes: [2, 1, 2]
+pass2_coarse_n_peaks: 3
+pass2_coarse_peak_separation: [5, 3, 5]
+pass2_refine_window: [5, 3, 5]

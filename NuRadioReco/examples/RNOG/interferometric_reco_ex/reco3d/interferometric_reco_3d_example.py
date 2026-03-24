@@ -280,6 +280,10 @@ def main():
     with open(args.config) as f:
         config = yaml.safe_load(f)
 
+    for key, val in config.items():
+        if isinstance(val, str) and '$' in val:
+            config[key] = os.path.expandvars(val)
+
     det = init_detector(config)
     station_id = config['station_id']
     channels = config['channels']
@@ -316,18 +320,36 @@ def main():
     # Reusable pass 2 reco object (tables are the same, only limits change)
     reco2 = None
     if args.mode != "hw":
+        p2_hierarchical = config.get('pass2_hierarchical', False)
         config_p2_template = {
             'station_id': station_id, 'channels': channels,
-            'coord_system': 'cylindrical', 'hierarchical': False,
+            'coord_system': 'cylindrical',
+            'hierarchical': p2_hierarchical,
             'multi_ray_types': config.get('multi_ray_types', False),
+            'multiray_combo_mode': config.get('multiray_combo_mode', 'grouped'),
             'time_delay_tables': config['time_delay_tables'],
             'interp_method': config.get('interp_method', 'linear'),
             'snr_pair_weighting': config.get('snr_pair_weighting', True),
             'hilbert_envelope_mode': config.get('hilbert_envelope_mode', 'traces'),
+            'correlation_normalization': config.get('correlation_normalization', 'normalized'),
+            'apply_hann_window': config.get('apply_hann_window', False),
             'limits': [1, 100, 0, 360, -100, 0],
             'step_sizes': p2_steps,
             'n_rho': 0,
         }
+        if p2_hierarchical:
+            config_p2_template.update({
+                'coarse_limits': [1, 100, 0, 360, -100, 0],
+                'coarse_n_rho': 0,
+                'coarse_step_sizes': config.get(
+                    'pass2_coarse_step_sizes', [2, 1, 2]),
+                'coarse_n_peaks': config.get('pass2_coarse_n_peaks', 3),
+                'coarse_peak_separation': config.get(
+                    'pass2_coarse_peak_separation', [5, 3, 5]),
+                'refine_window': config.get(
+                    'pass2_refine_window', [5, 3, 5]),
+                'refine_step_sizes': p2_steps,
+            })
         if 'table_name_pattern' in config:
             config_p2_template['table_name_pattern'] = config['table_name_pattern']
         if 'multiray_table_name_pattern' in config:
@@ -366,6 +388,7 @@ def main():
             if config.get('apply_hw_phase_removal', True):
                 hw_response.run(evt1, stn1, det, sim_to_data=False,
                                 mode='phase_only')
+
             if config.get('apply_upsampling', True):
                 resampler.run(evt1, stn1, det,
                               sampling_rate=10 * units.GHz)
@@ -380,7 +403,10 @@ def main():
             if config.get('apply_dedispersion', False):
                 antenna_dedispersion.run(evt1, stn1, det)
 
+            t_p1_start = time.time()
             r1 = reco1.run(evt1, stn1, det, config)
+            t_p1 = time.time() - t_p1_start
+            logger.info("  pass1: %.2fs", t_p1)
 
             if args.mode == "hw":
                 result = r1
@@ -403,6 +429,7 @@ def main():
                         passband=[0.1 * units.GHz, 0.6 * units.GHz],
                         filter_type='butter', order=10)
 
+                t_p2_pre = time.time()
                 rx_angles = compute_arrival_angles(
                     r1['rho'], r1['phi'], r1['z'],
                     station_id, det, channels)
@@ -414,6 +441,7 @@ def main():
                                           provider, tx_model, tx_ori)
 
                 resampler.run(evt2, stn2, det, sampling_rate=10 * units.GHz)
+                t_p2_dedisp = time.time() - t_p2_pre
 
                 z_profile_step = config.get('z_profile_step', None)
                 if z_profile_step is not None:
@@ -422,7 +450,7 @@ def main():
                         r1, p2_window, z_profile_step)
                 else:
                     config_p2 = dict(config_p2_template)
-                    config_p2['limits'] = [
+                    p2_limits = [
                         max(1, r1['rho'] - p2_window[0]),
                         r1['rho'] + p2_window[0],
                         r1['phi'] - p2_window[1],
@@ -430,8 +458,15 @@ def main():
                         r1['z'] - p2_window[2],
                         r1['z'] + p2_window[2],
                     ]
+                    config_p2['limits'] = p2_limits
+                    if p2_hierarchical:
+                        config_p2['coarse_limits'] = p2_limits
+                    t_p2_reco_start = time.time()
                     r2 = reco2.run(evt2, stn2, det, config_p2)
+                    t_p2_reco = time.time() - t_p2_reco_start
 
+                logger.info("  pass2: dedisp=%.2fs, reco=%.2fs",
+                            t_p2_dedisp, t_p2_reco)
                 result = r2
                 result['pass1_rho'] = r1['rho']
                 result['pass1_phi'] = r1['phi']

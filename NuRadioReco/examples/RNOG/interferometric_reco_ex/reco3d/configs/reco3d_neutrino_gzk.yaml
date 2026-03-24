@@ -31,8 +31,8 @@ refine_step_sizes: [2, 0.5, 2]
 
 limits: [1, 1500, 0, 360, -1500, 0]
 
-# Paths: update these for your environment
-time_delay_tables: "/path/to/multiray_tables"
+# Paths: set NURADIO_TABLE_DIR in your environment
+time_delay_tables: "${NURADIO_TABLE_DIR}"
 multiray_table_name_pattern: "st{station_id}_ch{ch}_rz_table_{ray_type}.npz"
 detector_date: "2022-10-01"
 

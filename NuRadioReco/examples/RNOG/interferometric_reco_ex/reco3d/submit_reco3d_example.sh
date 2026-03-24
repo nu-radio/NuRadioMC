@@ -78,6 +78,7 @@ if [ -n "$PARTITION" ]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../../../../.." && pwd)"
 DRIVER="${SCRIPT_DIR}/interferometric_reco_3d_example.py"
 
 mkdir -p "${OUT_DIR}/slurm_outputs"
@@ -123,7 +124,7 @@ for ((i=0; i<N_CHUNKS; i++)); do
         "${SBATCH_ARGS[@]}" \
         --mem="${MEM}" --time="${WALLTIME}" \
         --output="${OUT_DIR}/slurm_outputs/slurm_%j_chunk${i}.out" \
-        --wrap="python ${DRIVER} --config ${CONFIG} --mode ${MODE} -i ${FILES_ARG} -o ${OUT_DIR}/chunk_${i}.h5")
+        --wrap="PYTHONPATH=${REPO_ROOT} python ${DRIVER} --config ${CONFIG} --mode ${MODE} -i ${FILES_ARG} -o ${OUT_DIR}/chunk_${i}.h5")
 
     JOB_IDS="${JOB_IDS}:${JID}"
 done
