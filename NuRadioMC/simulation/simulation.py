@@ -1509,6 +1509,7 @@ class simulation:
                             emitters=event_group.get_sim_emitters(),
                             station_id=station_id, channel_id=channel_id,
                             min_efield_amplitude=min_amplitude,
+                            rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
                             **sim_efield_kwargs)
 
                     if sim_station.is_candidate():
