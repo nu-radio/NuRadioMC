@@ -28,6 +28,7 @@ from NuRadioReco.modules.channelSinewaveSubtraction import channelSinewaveSubtra
 from NuRadioReco.modules.channelAntennaDedispersion import channelAntennaDedispersion
 from NuRadioReco.modules.RNO_G.hardwareResponseIncorporator import hardwareResponseIncorporator
 from NuRadioReco.modules.io.eventReader import eventReader
+from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
 from NuRadioReco.utilities import units
 from NuRadioReco.detector.antennapattern import AntennaPatternProvider
 from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
@@ -361,10 +362,17 @@ def main():
     n_processed = 0
     t_total = 0
 
+    is_nur = args.input[0].endswith('.nur')
+
     for input_file in args.input:
-        reader = eventReader()
-        reader.begin(input_file)
-        event_ids = reader._eventReader__fin.get_event_ids()
+        if is_nur:
+            reader = eventReader()
+            reader.begin(input_file)
+            event_ids = reader._eventReader__fin.get_event_ids()
+        else:
+            reader = readRNOGData()
+            reader.begin(input_file)
+            event_ids = reader.get_event_ids()
 
         emitter_pos = None
         launch_angles = {}
@@ -380,7 +388,10 @@ def main():
         for eid in event_ids:
             t0 = time.time()
 
-            evt1 = reader._eventReader__fin.get_event(event_id=eid)
+            if is_nur:
+                evt1 = reader._eventReader__fin.get_event(event_id=eid)
+            else:
+                evt1 = reader.get_event(eid[0], eid[1])
             stn1 = evt1.get_station(station_id)
 
             if config.get('apply_cable_delay', True):
@@ -412,7 +423,10 @@ def main():
                 result = r1
             else:
                 # Pass 2: re-read, apply dedisp, local search
-                evt2 = reader._eventReader__fin.get_event(event_id=eid)
+                if is_nur:
+                    evt2 = reader._eventReader__fin.get_event(event_id=eid)
+                else:
+                    evt2 = reader.get_event(eid[0], eid[1])
                 stn2 = evt2.get_station(station_id)
 
                 if config.get('apply_cable_delay', True):
