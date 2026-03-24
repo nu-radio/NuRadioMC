@@ -129,38 +129,58 @@ class stationElectricFieldLikelihoodReconstructor:
         )
 
     @register_run()
-    def run(self, evt, station, det, use_channels=None, signal_search_window=None, use_MC_direction=False, second_order=False, full_output=False):
+    def run(self, evt, station, det, use_channels=None, signal_search_window=None, use_MC_direction=False, second_order=False, full_output=False, save_filtered_efield=True):
         """
         Run the likelihood reconstruction of electric field.
 
         Parameters
         ----------
-            evt: NuRadioReco.framework.event.Event
-                The event to run the module on.
+        evt: NuRadioReco.framework.event.Event
+            The event to run the module on.
 
-            station: NuRadioReco.framework.station.Station
-                The station object containing the channels with the data traces.
+        station: NuRadioReco.framework.station.Station
+            The station object containing the channels with the data traces.
 
-            det: NuRadioReco.framework.detector.Detector
-                The detector description.
+        det: NuRadioReco.framework.detector.Detector
+            The detector description.
 
-            use_channels: list, optional
-                List of channel IDs to be used for the reconstruction. If None, all channels are used.
+        use_channels: list, optional
+            List of channel IDs to be used for the reconstruction. If None, all channels are used.
 
-            signal_search_window: tuple, optional
-                Time window (start, end) to search for the signal in the traces.
+        signal_search_window: tuple, optional
+            Time window (start, end) to search for the signal in the traces.
 
-            use_MC_direction: bool, optional
-                Whether to use the Monte Carlo true arrival direction for the reconstruction if it is
-                present in the sim_station object.
+        use_MC_direction: bool, optional
+            Whether to use the Monte Carlo true arrival direction for the reconstruction if it is
+            present in the sim_station object.
 
-            second_order: bool, optional
-                If True, fit include the second order term in the frequency domain of the electric field
-                as a fitting parameter. Otherwise, the second order term is fixed to 0. Default: False
+        second_order: bool, optional
+            If True, fit include the second order term in the frequency domain of the electric field
+            as a fitting parameter. Otherwise, the second order term is fixed to 0. Default: False
 
-            full_output: bool, optional
-                If True, return the reconstructed signal, the signal parameters and the minus two
-                log-likelihood of the reconstructed signal. Default: False
+        full_output: bool, optional
+            If True, return the reconstructed signal, the signal parameters and the minus two
+            log-likelihood of the reconstructed signal. Default: False
+
+        save_filtered_efield: bool, optional
+            Wether saved efield and its fluence are for the filtered or unfiltered electric field.
+            If True, the module works in a way that is consistent with voltageToEfieldConverter
+            and voltageToAnalyticEfieldConverter. Default: True
+
+        Returns
+        -------
+        fitted_signal: np.ndarray
+            The reconstructed signal in the readout traces.
+            Only returned if `full_output` enabled
+
+        fitted_params_best: np.ndarray
+            The best fit parameters of the signal model.
+            Only returned if `full_output` enabled
+
+        minus_two_llh_best: float
+            The minus two log-likelihood value of the reconstructed signal.
+            Only returned if `full_output` enabled
+
         """
 
         if use_channels is None:
@@ -190,7 +210,7 @@ class stationElectricFieldLikelihoodReconstructor:
         assert channel.get_sampling_rate() == self.sampling_rate, "Sampling rate of channel does not match sampling rate in begin()"
 
         def signal_function(parameters):
-            return self._get_signal(parameters, det, station.get_id(), use_channels, trace_start_times)
+            return self._get_signal(parameters, det, station.get_id(), use_channels, trace_start_times, filter_before_det_resp=save_filtered_efield)
 
         self.matched_filter.set_data(traces)
 
@@ -215,7 +235,7 @@ class stationElectricFieldLikelihoodReconstructor:
         fitted_signal = signal_function(fitted_params_best)
 
         # save results to station object:
-        electric_field = self._get_efield(fitted_params_best[:6], fitted_params_best[6], fitted_params_best[7], use_channels, apply_filter=True)
+        electric_field = self._get_efield(fitted_params_best[:6], fitted_params_best[6], fitted_params_best[7], use_channels, apply_filter=save_filtered_efield)
         electric_field.set_parameter(efp.signal_energy_fluence, fluence_reco_best)
         electric_field.set_parameter_error(efp.signal_energy_fluence, fluence_uncertainty_best)
         electric_field.set_parameter(efp.polarization_angle, polarization_reco_best)
