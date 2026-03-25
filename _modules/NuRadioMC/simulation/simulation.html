@@ -2325,16 +2325,18 @@
                             <span class="n">event_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt_time</span><span class="p">,</span>
                             <span class="n">detector_simulation_part1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">detector_simulation_part1</span><span class="p">)</span>
 
-                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding sim_station to station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> for event group &quot;</span>
-                                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event_group</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">()</span><span class="si">}</span><span class="s2">, channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                        <span class="n">station</span><span class="o">.</span><span class="n">add_sim_station</span><span class="p">(</span><span class="n">sim_station</span><span class="p">)</span>  <span class="c1"># this will add the channels and efields to the existing sim_station object</span>
-
                         <span class="c1"># The non-triggered channels were simulated using the efieldToVoltageConverterPerEfield</span>
                         <span class="c1"># (notice the &quot;PerEfield&quot; in the name). This means that each electric field was converted to</span>
                         <span class="c1"># a sim channel. Now we still have to add together all sim channels associated with one &quot;physical&quot;</span>
                         <span class="c1"># channel. Furthermore we have to cut out the correct readout window. For the trigger channels</span>
                         <span class="c1"># this is done with the channelReadoutWindowCutter, here we have to do it manually.</span>
                         <span class="k">for</span> <span class="n">evt</span> <span class="ow">in</span> <span class="n">output_buffer</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                            <span class="n">station</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>
+
+                            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding sim_station to station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> for event group &quot;</span>
+                                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event_group</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">()</span><span class="si">}</span><span class="s2">, channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="n">station</span><span class="o">.</span><span class="n">add_sim_station</span><span class="p">(</span><span class="n">sim_station</span><span class="p">)</span>  <span class="c1"># this will add the channels and efields to the existing sim_station object</span>
+
                             <span class="k">for</span> <span class="n">sim_channel</span> <span class="ow">in</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">get_channels_by_channel_id</span><span class="p">(</span><span class="n">channel_id</span><span class="p">):</span>
                                 <span class="k">if</span> <span class="ow">not</span> <span class="n">station</span><span class="o">.</span><span class="n">has_channel</span><span class="p">(</span><span class="n">sim_channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()):</span>
                                     <span class="c1"># For each physical channel we first create a &quot;empty&quot; trace (all zeros)</span>
@@ -2345,6 +2347,10 @@
                                 <span class="c1"># ... and now add the sim channel to the correct window defined by the &quot;empty trace&quot;</span>
                                 <span class="c1"># At this point the traces are noiseless, hence, we do not have to raise an error.</span>
                                 <span class="n">channel</span><span class="o">.</span><span class="n">add_to_trace</span><span class="p">(</span><span class="n">sim_channel</span><span class="p">,</span> <span class="n">raise_error</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+                <span class="c1"># The signal simulation is finished, now we only have to add noise</span>
+                <span class="c1"># to the non-trigger channels, calculate some quatities (for convinience)</span>
+                <span class="c1"># and write the output.</span>
 
                 <span class="k">for</span> <span class="n">evt</span> <span class="ow">in</span> <span class="n">output_buffer</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                     <span class="n">station</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>
