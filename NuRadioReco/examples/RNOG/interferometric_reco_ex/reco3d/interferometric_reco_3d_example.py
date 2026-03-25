@@ -490,6 +490,17 @@ def main():
                 result['pass1_phi'] = r1['phi']
                 result['pass1_z'] = r1['z']
                 result['pass1_corr'] = r1['max_corr']
+                result['p1_preproc_time'] = t_preproc
+                result['p1_total_time'] = t_p1
+                for k in ['coarse_time', 'refine_time', 'opt_time']:
+                    if k in r1:
+                        result['p1_' + k] = r1[k]
+                result['p2_dedisp_time'] = t_p2_dedisp
+                result['p2_reco_time'] = t_p2_reco
+                for k in ['coarse_time', 'refine_time', 'opt_time',
+                           'grid_time']:
+                    if k in r2:
+                        result['p2_' + k] = r2[k]
 
             dt_evt = time.time() - t0
             t_total += dt_evt
@@ -523,7 +534,12 @@ def main():
         numeric_keys = ['rho', 'phi', 'z', 'max_corr']
         optional_keys = ['pass1_rho', 'pass1_phi', 'pass1_z', 'pass1_corr',
                          'grid_time', 'opt_time', 'coarse_time', 'refine_time',
-                         'preproc_time', 'post_time', 'raw_refine_time']
+                         'preproc_time', 'post_time', 'raw_refine_time',
+                         'p1_preproc_time', 'p1_total_time',
+                         'p1_coarse_time', 'p1_refine_time', 'p1_opt_time',
+                         'p2_dedisp_time', 'p2_reco_time',
+                         'p2_coarse_time', 'p2_refine_time', 'p2_opt_time',
+                         'p2_grid_time']
         for k in optional_keys:
             if k in results[0]:
                 numeric_keys.append(k)
