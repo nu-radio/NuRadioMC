@@ -3,7 +3,8 @@ from __future__ import absolute_import, division, print_function
 solution_types = {
     1: 'direct',
     2: 'refracted',
-    3: 'reflected'
+    3: 'reflected',
+    4: 'from_air'
 }
 
 solution_types_revert = {v:k for k, v in solution_types.items()}

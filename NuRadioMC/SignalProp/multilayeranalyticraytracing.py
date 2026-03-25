@@ -162,8 +162,8 @@ LAYERS_AIR = [
         "z_min": 0.0,
         "z_max": np.inf,
         "n_ice": 1.0,
-        "delta_n": 0.1,
-        "z_0": -100.0,
+        "delta_n": 0.000001,
+        "z_0": -500.0,
         "region": "air",
         "region_name": "Air"
     },
@@ -247,7 +247,7 @@ def layers_to_arrays(layers):
     return z_min, z_max, n_ice, delta_n, z0
 
 
-@njit
+@njit(cache = True)
 def get_layer_index(z, z_min, z_max):
     """
     Determine the layer index corresponding to a given depth.
@@ -275,7 +275,7 @@ def get_layer_index(z, z_min, z_max):
             return i
     return -1
 
-@njit
+@njit(cache = True)
 def analytic_F(z, C0, n_ice, delta_n, z0):
     """
     Evaluate the analytic ray integral F(z) for an exponential index profile.
@@ -338,7 +338,7 @@ def analytic_F(z, C0, n_ice, delta_n, z0):
     val = z0 * (n_ice*n_ice*C0*C0 - 1.0)**-0.5 * np.log(logargument)
     return float(np.real(val))
 
-@njit
+@njit(cache = True)
 def compute_offsets(C0, y_start, z_start, layers):
     """
     Compute horizontal offset constants for all layers.
@@ -399,7 +399,7 @@ def compute_offsets(C0, y_start, z_start, layers):
 
     return C1, idx_start
 
-@njit
+@njit(cache = True)
 def build_y_field(C0, z_array, layers, C1):
     """
     Evaluate the horizontal ray trajectory y(z).
@@ -436,10 +436,13 @@ def build_y_field(C0, z_array, layers, C1):
         idx = get_layer_index(z, z_min, z_max)
         layer_idx[j] = idx
         F = analytic_F(z, C0, n_ice[idx], delta_n[idx], z0[idx])
+        #print(f"F: {F}")
+        #print(f"C1[{idx}]={C1[idx]}")
         y[j] = float(F + C1[idx])
+        #print(f"y[{j}]={y[j]}")
     return y, layer_idx
 
-@njit
+@njit(cache = True)
 def evaluate_y(C0, C1, z, layers):
     """
     Evaluate the horizontal ray coordinate at a given depth.
@@ -480,7 +483,7 @@ def evaluate_y(C0, C1, z, layers):
     F = analytic_F(z, C0, n_ice[idx], delta_n[idx], z0[idx])
     return float(F + C1[idx])
 
-@njit
+@njit(cache = True)
 def find_z_turn(C0, layers):
     """
     Determine the depth of the ray turning point.
@@ -532,7 +535,7 @@ def find_z_turn(C0, layers):
             #return float(z0[i] * np.log((n_ice[i] - target_n) / delta_n[i]))
     return np.max(z_max)
 
-@njit
+@njit(cache = True)
 def get_turning_point(C0, y_start, z_start, layers, C1=None,
                       downgoing=False, with_air=False):
     """
@@ -580,7 +583,7 @@ def get_turning_point(C0, y_start, z_start, layers, C1=None,
     # Find depth of turning point
     z_turn = find_z_turn(C0, layers)
     
-    numerical_safety_offset = 1e-8
+    numerical_safety_offset = 1e-6
     z_surface = 0.0 - numerical_safety_offset
 
     if (z_turn >= z_surface) and not with_air:
@@ -591,7 +594,7 @@ def get_turning_point(C0, y_start, z_start, layers, C1=None,
     
     return y_turn, z_turn
 
-@njit
+@njit(cache = True)
 def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
                 downgoing, with_air):
     """
@@ -667,7 +670,7 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
         y_fit = evaluate_y(C0, C1, z2, layers)
         return y2 - y_fit
 
-@njit
+@njit(cache = True)
 def get_refractive_index(z, layers):
     """
     Evaluate the refractive index at a given depth.
@@ -695,7 +698,7 @@ def get_refractive_index(z, layers):
     idx = get_layer_index(z, z_min, z_max)
     return n_ice[idx] - delta_n[idx] * np.exp(z / z0[idx])
 
-@njit
+@njit(cache = True)
 def get_C0_from_theta(z_start, theta, layers):
     """
     Convert a launch angle to the corresponding ray parameter.
@@ -718,12 +721,12 @@ def get_C0_from_theta(z_start, theta, layers):
     """
     # Convert launch angle to ray parameter
     n_start = get_refractive_index(z_start, layers)
-    p = n_start * np.sin(np.pi/2 - theta)
+    p = n_start * np.cos(theta)
     if p == 0.0:
         return 1e12  # avoid division by zero
     return 1.0 / p
 
-@njit
+@njit(cache = True)
 def get_skim_angle(y1, z1, zskim, layers):
     """
     Compute the critical launch angle for a ray that skims a given depth.
@@ -1068,13 +1071,13 @@ def find_solutions(x1, x2, layers,tol=1e-6):
     #print(f"theta_straight: {theta_straight}")
 
     _, theta_skim = get_skim_angle(
-    y1, z1,
-    z2,
-    layers
-    )
+        y1, z1,
+        z2,
+        layers
+        )
 
     if not np.isfinite(theta_skim):
-        theta_skim = theta_straight + 0.1
+        theta_skim = theta_straight - 0.1
     #print(f"theta_skim: {theta_skim}")
     
 
@@ -1111,6 +1114,7 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                             'D' : result.x[0],
                             'x1': x1})
     else:
+        # or maybe just see again what this brings us and keep it if it's new
         result = optimize.root(obj_delta_y_sqr, x0=logC0skim, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
         if(result.fun < 1e-7):
             if(np.round(result.x[0], 5) not in np.round(C0s, 5)):
@@ -1122,6 +1126,37 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                                 'C0': C_0,
                                 'D' : result.x[0],
                                 'x1': x1})
+                
+            '''else:
+            logC0_stop = 100.
+            delta_start = obj_delta_y(
+                logC0skim,
+                y1, z1, y2, z2,
+                layers,
+                n_deep,downgoing,with_air
+                )
+
+            delta_stop = obj_delta_y(
+                logC0_stop,
+                y1, z1, y2, z2,
+                layers,
+                n_deep,downgoing,with_air
+                )
+            
+            print("delta_start: ", delta_start)
+            print("delta_stop: ", delta_stop)
+
+            if(np.sign(delta_start) != np.sign(delta_stop)):
+                result = optimize.brentq(obj_delta_y, logC0skim, logC0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
+                if(np.round(result, 5) not in np.round(C0s, 5)):
+                    C_0 = get_C0_from_log(result,n_deep)
+                    C0s.append(C_0)
+                    solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+
+                    results.append({'type': solution_type,
+                                    'C0': C_0,
+                                    'D' : result2,
+                                    'x1': x1})'''
 
     # check if another solution with higher logC0 exists
     logC0_start = result.x[0] + 0.00001
@@ -1284,9 +1319,10 @@ def get_path(C0, x1, x2, layers, n_points=2000):
         z1, z2 = z2, z1
 
     C1, _ = compute_offsets(C0, y1, z1, layers)
+    print(f"C1 in get_path call: {C1}")
     y_turn, z_turn = get_turning_point(C0,y1,z1,layers,C1,downgoing,with_air)
 
-    if z_turn <= z1 or with_air or y_turn > y2:
+    if z_turn <= z1 or with_air or y_turn > y2 or y_turn is None or z_turn is None:
         z_forward = np.linspace(z1, z2, n_points)
         y_forward, _ = build_y_field(C0, z_forward, layers, C1)
         y_path, z_path = y_forward, z_forward
