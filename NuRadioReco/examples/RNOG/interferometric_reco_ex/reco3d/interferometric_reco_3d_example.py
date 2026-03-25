@@ -394,6 +394,7 @@ def main():
                 evt1 = reader.get_event(eid[0], eid[1])
             stn1 = evt1.get_station(station_id)
 
+            t_preproc_start = time.time()
             if config.get('apply_cable_delay', True):
                 cable_delay.run(evt1, stn1, det, mode='subtract')
             if config.get('apply_hw_phase_removal', True):
@@ -413,11 +414,14 @@ def main():
                     filter_type='butter', order=10)
             if config.get('apply_dedispersion', False):
                 antenna_dedispersion.run(evt1, stn1, det)
+            t_preproc = time.time() - t_preproc_start
 
             t_p1_start = time.time()
             r1 = reco1.run(evt1, stn1, det, config)
             t_p1 = time.time() - t_p1_start
-            logger.info("  pass1: %.2fs", t_p1)
+            logger.info("  pass1: %.2fs (preproc: %.2fs)", t_p1, t_preproc)
+
+            r1['preproc_time'] = t_preproc
 
             if args.mode == "hw":
                 result = r1
@@ -518,7 +522,8 @@ def main():
 
         numeric_keys = ['rho', 'phi', 'z', 'max_corr']
         optional_keys = ['pass1_rho', 'pass1_phi', 'pass1_z', 'pass1_corr',
-                         'grid_time', 'opt_time', 'coarse_time', 'refine_time']
+                         'grid_time', 'opt_time', 'coarse_time', 'refine_time',
+                         'preproc_time', 'post_time', 'raw_refine_time']
         for k in optional_keys:
             if k in results[0]:
                 numeric_keys.append(k)
