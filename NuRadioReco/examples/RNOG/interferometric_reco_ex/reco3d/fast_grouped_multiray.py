@@ -715,7 +715,7 @@ def grouped_multiray_numba(corr_data, tt_all, channels, ch_to_group,
     ch_pairs = list(_it.combinations(range(len(channels)), 2))
     n_pairs = len(ch_pairs)
 
-    tt_t, ch_available_rts = pack_tt_grids_transposed(
+    tt_packed, ch_available_rts = pack_tt_grids(
         tt_all, channels, grid_shape)
     corr_packed, corr_lengths, dts, offsets = pack_corr_data(corr_data, n_pairs)
     combo_table = build_combo_table(channels, ch_to_group, n_groups,
@@ -729,8 +729,8 @@ def grouped_multiray_numba(corr_data, tt_all, channels, ch_to_group,
     else:
         pw = np.ones(n_pairs, dtype=np.float64)
 
-    result_flat = _grouped_multiray_kernel_t(
-        tt_t, corr_packed, corr_lengths, dts, offsets,
+    result_flat = _grouped_multiray_kernel_pairmajor(
+        tt_packed, corr_packed, corr_lengths, dts, offsets,
         pair_ch1, pair_ch2, pw, combo_table, n_points
     )
 
@@ -779,12 +779,12 @@ def perpair_multiray_numba(corr_data, tt_all, channels, pair_weights=None):
     ch_pairs = list(_it.combinations(range(len(channels)), 2))
     n_pairs = len(ch_pairs)
 
-    tt_t, ch_available_rts = pack_tt_grids_transposed(
+    tt_packed, ch_available_rts = pack_tt_grids(
         tt_all, channels, grid_shape)
     corr_packed, corr_lengths, dts, offsets = pack_corr_data(corr_data, n_pairs)
 
     n_ch = len(channels)
-    ch_rt_mask = np.zeros((n_ch, 3), dtype=np.bool_)
+    ch_rt_mask = np.zeros((n_ch, tt_packed.shape[1]), dtype=np.bool_)
     for ci in range(n_ch):
         for rt_idx in ch_available_rts[ci]:
             ch_rt_mask[ci, rt_idx] = True
@@ -797,8 +797,8 @@ def perpair_multiray_numba(corr_data, tt_all, channels, pair_weights=None):
     else:
         pw = np.ones(n_pairs, dtype=np.float64)
 
-    result_flat = _perpair_multiray_kernel_t(
-        tt_t, corr_packed, corr_lengths, dts, offsets,
+    result_flat = _perpair_multiray_kernel_pairmajor(
+        tt_packed, corr_packed, corr_lengths, dts, offsets,
         pair_ch1, pair_ch2, pw, ch_rt_mask, n_points
     )
 
