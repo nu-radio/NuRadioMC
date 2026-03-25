@@ -1,16 +1,13 @@
 # 3D interferometric reconstruction config: GZK neutrino simulation
 #
-# Validated on 12,916 triggered GZK neutrino events (10^18 - 10^20 eV).
-# Median angular separation: 1.04 deg (full dataset, hw mode).
-# Runtime: ~6 s/event (hw mode).
+# Validated on 27,667 GZK neutrino events (10^18-10^20 eV, 300K noise).
+# Median angular separation: 1.48 deg (full dataset, hw mode).
+# Runtime: ~6 s/event (hw mode, compute nodes).
 #
-# hilbert=traces, hann=off, bandpass=off, hw_phase=on, snr_weight=on.
+# hilbert=traces, hann=on, bandpass=off, hw_phase=on, snr_weight=off.
 #
 # Grid: 50 log-spaced rho points (1-1500m), 4 deg phi step, 10m z step.
-# Hierarchical coarse scan with 5 peaks, L-BFGS-B refinement, then pass 2
-# local re-search around best peak.
-#
-# Update paths below before running.
+# Hierarchical coarse scan with 5 peaks, L-BFGS-B refinement.
 
 station_id: 23
 channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
@@ -46,7 +43,8 @@ apply_dedispersion: false
 
 hilbert_envelope_mode: "traces"
 interp_method: "linear"
-snr_pair_weighting: true
+snr_pair_weighting: false
+apply_hann_window: true
 
 # Pass 2 (local re-search after dedispersion in rx/rxtx mode)
 pass2_window: [100, 30, 100]
