@@ -350,6 +350,91 @@ if HAS_NUMBA:
 
 if HAS_NUMBA:
     @njit(parallel=True, fastmath=True, cache=True)
+    def _perpair_multiray_kernel_pairmajor(tt_packed, corr_packed,
+                                            corr_lengths, corr_dts,
+                                            corr_offsets, pair_ch1,
+                                            pair_ch2, pair_weights,
+                                            ch_rt_mask, n_points):
+        """Pair-major per-pair multiray kernel for better cache locality.
+
+        Outer loop over pairs, inner loop over points. For each pair, the
+        correlation array and pair metadata stay in cache while sweeping
+        all grid points. Uses tt_packed (n_ch, n_rt, n_points) layout so
+        travel times for a given (ch, rt) are contiguous across points.
+
+        Parameters
+        ----------
+        tt_packed : float64 array (n_ch, n_rt, n_points)
+        corr_packed : float64 array (n_pairs, max_corr_len)
+        corr_lengths : int64 array (n_pairs,)
+        corr_dts : float64 array (n_pairs,)
+        corr_offsets : float64 array (n_pairs,)
+        pair_ch1 : int64 array (n_pairs,)
+        pair_ch2 : int64 array (n_pairs,)
+        pair_weights : float64 array (n_pairs,)
+        ch_rt_mask : bool array (n_ch, n_rt)
+        n_points : int
+
+        Returns
+        -------
+        float64 array (n_points,)
+        """
+        n_pairs = pair_ch1.shape[0]
+        n_rt = tt_packed.shape[1]
+        w_sum = 0.0
+        for p in range(n_pairs):
+            w_sum += pair_weights[p]
+
+        result = np.zeros(n_points, dtype=np.float64)
+
+        for pidx in range(n_pairs):
+            c1 = pair_ch1[pidx]
+            c2 = pair_ch2[pidx]
+            w = pair_weights[pidx]
+            dt = corr_dts[pidx]
+            offset = corr_offsets[pidx]
+            clen = corr_lengths[pidx]
+
+            for pt in prange(n_points):
+                best_val = 0.0
+                for rt1 in range(n_rt):
+                    if not ch_rt_mask[c1, rt1]:
+                        continue
+                    tt1 = tt_packed[c1, rt1, pt]
+                    if not np.isfinite(tt1):
+                        continue
+                    for rt2 in range(n_rt):
+                        if not ch_rt_mask[c2, rt2]:
+                            continue
+                        tt2 = tt_packed[c2, rt2, pt]
+                        delay = tt1 - tt2
+                        if not np.isfinite(delay):
+                            continue
+
+                        kf = (delay - offset) / dt
+                        k = int(np.floor(kf))
+                        if k < 0 or k >= clen - 1:
+                            val = 0.0
+                        else:
+                            alpha = kf - k
+                            val = (corr_packed[pidx, k]
+                                   + (corr_packed[pidx, k + 1]
+                                      - corr_packed[pidx, k]) * alpha)
+
+                        if val > best_val:
+                            best_val = val
+
+                result[pt] += best_val * w
+
+        if w_sum > 0.0:
+            for pt in prange(n_points):
+                result[pt] /= w_sum
+
+        return result
+
+
+if HAS_NUMBA:
+    @njit(parallel=True, fastmath=True, cache=True)
     def _perpair_multiray_kernel_t(tt_t, corr_packed, corr_lengths,
                                     corr_dts, corr_offsets,
                                     pair_ch1, pair_ch2, pair_weights,
