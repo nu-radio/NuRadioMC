@@ -115,8 +115,8 @@ class channelGalacticNoiseAdder:
             by a lot. If the frequencies of the channels change, the cache is cleared.
         scaling: float, default: 1.0
             Scaling factor for the noise. This is useful when doing interferometry with extremely large arrays
-            such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas. 
-            Instead, one can use every nth antenna and scale the noise by a factor of 1/\sqrt{n} (since the SNR 
+            such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas.
+            Instead, one can use every nth antenna and scale the noise by a factor of 1/\sqrt{n} (since the SNR
             is expected to scale with the square root of the number of antennas when using interferomtery/beamforming).
         """
         if debug:
@@ -305,8 +305,12 @@ class channelGalacticNoiseAdder:
         n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
 
         channel_spectra = {}
+        channel_depths = []
         for channel in station.iter_channels(use_channels=selected_channel_ids):
             channel_spectra[channel.get_id()] = channel.get_frequency_spectrum()
+            channel_depths.append(detector.get_relative_position(station.get_id(), channel.get_id())[2])
+
+        any_in_ice_channel = np.any(np.array(channel_depths) < 0)
 
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
             azimuth = local_coordinates[i_pixel].az.rad
@@ -315,17 +319,11 @@ class channelGalacticNoiseAdder:
             if zenith > 90. * units.deg:
                 continue
 
-            if n_ice != n_air: # consider signal reflection at ice surface
+            if any_in_ice_channel:
                 t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, n_air)
                 t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, n_air)
                 fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice, n_air)
-            else: # we are at an in-air site; no refraction
-                t_theta = 1
-                t_phi = 1
-                fresnel_zenith = zenith
 
-            if fresnel_zenith is None:
-                continue
 
             if self.__caching:
                 noise_temperature = self._get_cached_noise_temperature_for_pixel(i_pixel)
@@ -357,6 +355,9 @@ class channelGalacticNoiseAdder:
                     curr_t_phi = 1
                     curr_fresnel_zenith = zenith
                     curr_n = n_air
+
+                if curr_fresnel_zenith is None:
+                    continue
 
                 antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(
                     detector.get_antenna_model(station.get_id(), channel.get_id()))
