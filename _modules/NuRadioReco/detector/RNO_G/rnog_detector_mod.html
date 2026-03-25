@@ -721,10 +721,10 @@
     <span class="nd">@_check_detector_time</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a dictionary of all channel parameters. </span>
-<span class="sd">        </span>
-<span class="sd">        The dictionary is returned as a &quot;reference&quot; (as every mutable object in python, without a copy call). </span>
-<span class="sd">        That means, changing entries in this dictionary will change the detector description in memory. </span>
+<span class="sd">        Returns a dictionary of all channel parameters.</span>
+
+<span class="sd">        The dictionary is returned as a &quot;reference&quot; (as every mutable object in python, without a copy call).</span>
+<span class="sd">        That means, changing entries in this dictionary will change the detector description in memory.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -843,7 +843,7 @@
 
         <span class="c1"># modify the signal chain</span>
         <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s2">&quot;total_response&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orig_response</span> <span class="o">*</span> <span class="n">component_response</span>
-        <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s2">&quot;response_chain&quot;</span><span class="p">][</span><span class="n">component</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">component</span>
+        <span class="n">signal_chain_dict</span><span class="p">[</span><span class="s2">&quot;response_chain&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
 
         <span class="c1"># write the modified signal chain back to the buffered station</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Detector__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">&quot;channels&quot;</span><span class="p">][</span><span class="n">channel_id</span><span class="p">][</span><span class="s1">&#39;signal_chain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">signal_chain_dict</span></div>
