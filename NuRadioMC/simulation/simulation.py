@@ -127,15 +127,13 @@ def calculate_sim_efield(
     if distance_cut is not None:
         time_logger.start_time('distance cut')
 
-        vertex_positions = []
-        shower_energies = []
+        vertex_positions = np.zeros((len(showers), 3))
+        shower_energies = np.zeros((len(showers)))
         for i, shower in enumerate(showers):
-            vertex_positions.append(shower.get_parameter(shp.vertex))
-            shower_energies.append(shower.get_parameter(shp.energy))
-        vertex_positions = np.array(vertex_positions)
-        shower_energies = np.array(shower_energies)
-        vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
+            vertex_positions[i] = shower.get_parameter(shp.vertex)
+            shower_energies[i] = shower.get_parameter(shp.energy)
 
+        vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
         time_logger.stop_time('distance cut')
 
     logger.debug("Calculating electric field for station %d , channel %d from list of showers", station_id, channel_id)
@@ -1439,19 +1437,10 @@ class simulation:
         logger.status("Starting NuRadioMC simulation")
         time_logger.reset_times()
 
-        i_triggered_events = 0 # counter for triggered events
-
+        i_triggered_events = 0  # counter for triggered events
         particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
         event_group_ids = np.array(self._fin['event_group_ids'])
         unique_event_group_ids = np.unique(event_group_ids)
-
-        # calculate bary centers of station
-        station_barycenter = np.zeros((len(self._station_ids), 3))
-        for iSt, station_id in enumerate(self._station_ids):
-            pos = []
-            for channel_id in self._det.get_channel_ids(station_id):
-                pos.append(self._det.get_relative_position(station_id, channel_id))
-            station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
 
         # loop over event groups
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
@@ -1474,42 +1463,26 @@ class simulation:
             if particle_mode:
                 weight = calculate_particle_weight(event_group, event_indices[0], self._config, self._fin)
             time_logger.stop_time("weight calc.")
+
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if weight < self._config['speedup']['minimum_weight_cut']:
                 logger.debug("neutrino weight is smaller than %f, skipping event", self._config['speedup']['minimum_weight_cut'])
                 continue
 
-            # these quantities get computed to apply the distance cut as a function of shower energies
-            # the shower energies of closeby showers will be added as they can constructively interfere
-            if self._config['speedup']['distance_cut']:
-                time_logger.start_time("distance cut")
-                shower_energies = []
-                vertex_positions = []
-                for shower in event_group.get_sim_showers():
-                    shower_energies.append([shower[shp.energy]])
-                    vertex_positions.append([shower[shp.vertex]])
-                shower_energies = np.array(shower_energies)
-                vertex_positions = np.array(vertex_positions)
-                time_logger.stop_time("distance cut")
-
             output_buffer = {}
             # loop over all stations (each station is treated independently)
             for iSt, station_id in enumerate(self._station_ids):
-                if self._config['speedup']['distance_cut']:
-                    # perform a quick cut to reject event group completely if no shower is close enough to the station
-                    vertex_distances_to_station = np.linalg.norm(vertex_positions - station_barycenter[iSt], axis=1)
-                    distance_cut = self._get_distance_cut(np.sum(shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
-                    if vertex_distances_to_station.min() > distance_cut:
-                        logger.debug(f"event group {event_group.get_run_number()} is too far away from station {station_id}, skipping to next station")
-                        # continue
-
                 output_buffer[station_id] = {}
                 station = NuRadioReco.framework.station.Station(station_id)
                 sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
                 sim_station.set_is_neutrino()  # naming not ideal, but this function defines in-ice emission (compared to in-air emission from air showers)
                 station.set_sim_station(sim_station)
                 event_group.set_station(station)
+
+                sim_efield_kwargs = dict(
+                    det=self._det, propagator=self._propagator, medium=self._ice, config=self._config
+                )
 
                 # we allow to first only simualte trigger channels. As the trigger channels might be different per station,
                 # we need to determine the channels to simulate first per station
@@ -1523,21 +1496,21 @@ class simulation:
                 # loop over all trigger channels
                 candidate_station = False
                 for iCh, channel_id in enumerate(channel_ids):
+                    min_amplitude = float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id]
                     if particle_mode:
                         sim_station = calculate_sim_efield(
                             showers=event_group.get_sim_showers(),
                             station_id=station_id, channel_id=channel_id,
-                            det=self._det, propagator=self._propagator, medium=self._ice,
-                            config=self._config,
-                            min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id],
-                            distance_cut=self._get_distance_cut)
+                            min_efield_amplitude=min_amplitude,
+                            distance_cut=self._get_distance_cut,
+                            **sim_efield_kwargs)
                     else:
                         sim_station = calculate_sim_efield_for_emitter(
                             emitters=event_group.get_sim_emitters(),
                             station_id=station_id, channel_id=channel_id,
-                            det=self._det, propagator=self._propagator, medium=self._ice, config=self._config,
+                            min_efield_amplitude=min_amplitude,
                             rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
-                            min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id])
+                            **sim_efield_kwargs)
 
                     if sim_station.is_candidate():
                         candidate_station = True
@@ -1610,30 +1583,27 @@ class simulation:
                 if len(non_trigger_channels):
                     logger.debug(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
+                        min_amplitude = float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id]
                         if particle_mode:
                             sim_station = calculate_sim_efield(
                                 showers=event_group.get_sim_showers(),
                                 station_id=station_id, channel_id=channel_id,
-                                det=self._det, propagator=self._propagator, medium=self._ice,
-                                config=self._config,
-                                min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude'])
-                                    * self._Vrms_efield_per_channel[station_id][channel_id],
-                                distance_cut=self._get_distance_cut)
+                                min_efield_amplitude=min_amplitude,
+                                distance_cut=self._get_distance_cut,
+                                **sim_efield_kwargs)
                         else:
                             sim_station = calculate_sim_efield_for_emitter(
                                 emitters=event_group.get_sim_emitters(),
                                 station_id=station_id, channel_id=channel_id,
-                                det=self._det, propagator=self._propagator, medium=self._ice, config=self._config,
                                 rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
-                                min_efield_amplitude=float(self._config['speedup']['min_efield_amplitude'])
-                                    * self._Vrms_efield_per_channel[station_id][channel_id])
+                                min_efield_amplitude=min_amplitude,
+                                **sim_efield_kwargs)
 
                         # skip to next channel if the efield is below the speed cut
                         if not sim_station.get_electric_fields():
                             logger.info(f"Eventgroup {event_group.get_run_number()} Station {station_id} channel {channel_id:02d} has "
                                         f"{len(sim_station.get_electric_fields())} efields, skipping to next channel")
                             continue
-
 
                         # applies the detector response to the electric fields (the antennas are defined
                         # in the json detector description file)
