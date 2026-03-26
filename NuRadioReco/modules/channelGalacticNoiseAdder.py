@@ -65,6 +65,17 @@ class channelGalacticNoiseAdder:
     folded with the antenna response. Since evaluating every frequency individually
     would be too slow, the model is evaluated for a few frequencies and the log10
     of the brightness temperature is interpolated in between.
+
+    Notes
+    -----
+    For an accurate simulation of the galactic noise in deep in-ice antennas, you need to provide
+    an ice (describing the refractive index) and (ice) attenuation model. The attenuation is calculated
+    along a straight line path, which is obviously incorrect, but for antenna depths of maximum 100 to
+    200 meters, the error should be acceptable. Beyond that, the coherence in the noise from one patch
+    in the sky between different antennas is still not correctly simulated, as the correct calculation
+    of the phase shift would require ray tracing. However, keep in mind that the expected coherence from
+    the galactic noise is expected to be very low and will not be detectable without a large number of
+    antennas.
     """
 
     def __init__(self):
@@ -316,6 +327,7 @@ class channelGalacticNoiseAdder:
         if self._ice is not None:
             n_ice_surf = self._ice.get_index_of_refraction(np.array([0, 0, -0.01]))
         else:
+            # This can return n_ice_surf = n_air for sites that are not on the ice (auger, lofar, ska)
             n_ice_surf = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
 
         # This is actually better than using the ice model for the refractive index since it returns 1 for
@@ -324,12 +336,25 @@ class channelGalacticNoiseAdder:
 
         channel_spectra = {}
         channel_depths = []
+        average_attenuation_length = {}
         for channel in station.iter_channels(use_channels=selected_channel_ids):
             channel_spectra[channel.get_id()] = channel.get_frequency_spectrum()
-            channel_depths.append(detector.get_relative_position(station.get_id(), channel.get_id())[2])
+            channel_depth = detector.get_relative_position(station.get_id(), channel.get_id())[2]
+            channel_depths.append(channel_depth)
+
+            # calculate the signal attenuation for in-ice channels. This is a very rough approximation,
+            # since it assumes a straight line path and not a bend ray.
+            if self._attenuation_model is not None and channel_depth < -10:
+                # Approximate attenuation along a straight line and 10 steps.
+                n = int(abs(channel_depth) // 10) + 1
+                depth_bins = np.linspace(0, channel_depth, num=n)
+                depths = depth_bins[:-1] + np.diff(depth_bins) / 2
+                average_attenuation_length[channel.get_id()] = np.mean(
+                    [attenuation.get_attenuation_length(d, freqs[passband_filter], self._attenuation_model) for d in depths],
+                    axis=0,
+                )
 
         any_in_ice_channel = np.any(np.array(channel_depths) < 0)
-
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
             azimuth = local_coordinates[i_pixel].az.rad
             zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad # this is the in-air zenith
@@ -338,9 +363,12 @@ class channelGalacticNoiseAdder:
                 continue
 
             if any_in_ice_channel:
+                # For sites such as lofar or SKA, even if a channel has a negative z-coordinate
+                # and any_in_ice_channel is technically true, the resulting t_theta and t_phi will be 1,
+                # and fresnel_zenith=zenith, because n_air == n_ice_surf.
                 t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice_surf, n_air)
                 t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice_surf, n_air)
-                if self._ice is None:
+                if self._ice is None:  # get depth independent refractive index
                     fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice_surf, n_air)
 
             if self.__caching:
@@ -378,44 +406,23 @@ class channelGalacticNoiseAdder:
                     curr_fresnel_zenith = zenith
                     curr_n = n_air
 
-                if curr_fresnel_zenith is None:
-                    continue
-
                 antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(
                     detector.get_antenna_model(station.get_id(), channel.get_id()))
                 antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel.get_id())
 
-                # calculate the phase offset in comparison to station center
-                # consider additional distance in air & ice
-                # assume for air & ice constant index of refraction
+                # Calculate the phase offset in comparison to station center
+                # consider additional distance in air & ice. Assume for air & ice
+                # constant index of refraction. This is incorrect in particular
+                # for the ice
                 dt = geometryUtilities.get_time_delay_from_direction(
                     curr_fresnel_zenith, azimuth, channel_pos, n=curr_n)
+                delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
-                if channel_pos[2] < -5:
-                    if not self.__you_have_been_warned:
-                        logger.warning(
-                            "Galactic noise is not yet simulated most accurately for deep in-ice channels. "
-                            "The phase shift between different antennas are probably inaccurate.")
-                        self.__you_have_been_warned = True
-
-                # calculate the signal attenuation for in-ice channels. This is a very rough approximation,
-                # since it assumes a straight line path and not a bend ray.
                 if self._attenuation_model is not None and channel_pos[2] < -10:
-                    # Approximate attenuation along a straight line and 10 steps.
-                    distance_in_ice = abs(channel_pos[2]) / np.cos(curr_fresnel_zenith)
-
-                    # Since channel_pos[2] < -10, this ensures at least num >= 2
-                    dist_steps = np.linspace(0, distance_in_ice, num=int(distance_in_ice / 10) + 1 )
-                    d_step = dist_steps[1] - dist_steps[0]
-                    depths = channel_pos[2] + np.cos(curr_fresnel_zenith) * (dist_steps[:-1] + d_step / 2)
-
-                    exponent = -d_step / np.array(
-                        [attenuation.get_attenuation_length(d, freqs[passband_filter], self._attenuation_model) for d in depths])
-                    attenuation_factor = np.product(np.exp(exponent), axis=0)
+                    attenuation_factor = np.exp(-(abs(channel_pos[2]) / np.cos(curr_fresnel_zenith)) /
+                                                average_attenuation_length[channel.get_id()])
                 else:
                     attenuation_factor = np.ones_like(efield_amplitude)
-
-                delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
                 # add random polarizations and phase to electric field
                 polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
