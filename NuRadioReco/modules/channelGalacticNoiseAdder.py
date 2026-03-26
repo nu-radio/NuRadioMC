@@ -336,7 +336,7 @@ class channelGalacticNoiseAdder:
 
         channel_spectra = {}
         channel_depths = []
-        average_attenuation_length = {}
+        one_over_average_attenuation_length = {}
         for channel in station.iter_channels(use_channels=selected_channel_ids):
             channel_spectra[channel.get_id()] = channel.get_frequency_spectrum()
             channel_depth = detector.get_relative_position(station.get_id(), channel.get_id())[2]
@@ -346,11 +346,10 @@ class channelGalacticNoiseAdder:
             # since it assumes a straight line path and not a bend ray.
             if self._attenuation_model is not None and channel_depth < -10:
                 # Approximate attenuation along a straight line and 10 steps.
-                n = int(abs(channel_depth) // 10) + 1
-                depth_bins = np.linspace(0, channel_depth, num=n)
+                depth_bins = np.linspace(0, channel_depth)
                 depths = depth_bins[:-1] + np.diff(depth_bins) / 2
-                average_attenuation_length[channel.get_id()] = np.mean(
-                    [attenuation.get_attenuation_length(d, freqs[passband_filter], self._attenuation_model) for d in depths],
+                one_over_average_attenuation_length[channel.get_id()] = np.mean(
+                    [1 / attenuation.get_attenuation_length(d, freqs[passband_filter], self._attenuation_model) for d in depths],
                     axis=0,
                 )
 
@@ -419,8 +418,9 @@ class channelGalacticNoiseAdder:
                 delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
                 if self._attenuation_model is not None and channel_pos[2] < -10:
-                    attenuation_factor = np.exp(-(abs(channel_pos[2]) / np.cos(curr_fresnel_zenith)) /
-                                                average_attenuation_length[channel.get_id()])
+                    attenuation_factor = np.exp(
+                        -(abs(channel_pos[2]) / np.cos(curr_fresnel_zenith)) *
+                        one_over_average_attenuation_length[channel.get_id()])
                 else:
                     attenuation_factor = np.ones_like(efield_amplitude)
 
