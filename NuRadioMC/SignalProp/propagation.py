@@ -7,7 +7,7 @@ solution_types = {
     4: 'from_air'
 }
 
-solution_types_revert = {v:k for k, v in solution_types.items()}
+solution_types_revert = {v: k for k, v in solution_types.items()}
 available_modules = [
     'analytic',
     'radiopropa',
