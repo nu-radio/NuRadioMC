@@ -98,6 +98,7 @@ class channelGalacticNoiseAdder:
             scaling=1.0,
             ice_model=None,
             attenuation_model=None,
+            simulate_sun=False,
     ):
         """
         Set up important parameters for the module
@@ -138,6 +139,8 @@ class channelGalacticNoiseAdder:
             The ice model to use for the simulation of in-ice antennas.
         attenuation_model: str, default: None
             The attenuation model to use for the simulation of in-ice antennas.
+        simulate_sun: bool, default: False
+            If True, the sun's contribution to the galactic noise is simulated. This is experimental!
         """
         if debug:
             warnings.warn("This argument is deprecated and will be removed in future versions.", DeprecationWarning)
@@ -145,6 +148,11 @@ class channelGalacticNoiseAdder:
         self.__random_generator = Generator(Philox(seed))
         self.__n_side = n_side
         self.solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
+
+        self._simulate_sun = simulate_sun
+        if self._simulate_sun:
+            logger.warning("You are simulating the sun's contribution to the galactic noise. "
+                "This is experimental and might not be very accurate! See in-code comments for details.")
 
         self.__caching = caching
         self.scaling = scaling
@@ -321,8 +329,31 @@ class channelGalacticNoiseAdder:
 
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
         station_time = station.get_station_time()
-
         local_coordinates = get_local_coordinates((site_latitude, site_longitude), station_time, self.__n_side)
+
+
+        if self._simulate_sun:
+            # If we want to simulate the sun, we need to calculate its position in the sky and
+            # the corresponding pixel in the healpix map.
+            site_location = astropy.coordinates.EarthLocation(
+                lat=site_latitude * astropy.units.deg, lon=site_longitude * astropy.units.deg)
+            local_cs = astropy.coordinates.AltAz(
+                obstime=station_time, location=site_location)
+            sun_coord = astropy.coordinates.get_sun(station_time).transform_to(local_cs)
+
+            sun_zen = 90. * astropy.units.deg - sun_coord.alt
+            sun_azi = sun_coord.az
+            sun_pixel = healpy.pixelfunc.ang2pix(self.__n_side, sun_zen.rad, sun_azi.rad)
+
+            # Angular radius of the (optical) sun as seen from the earth.
+            # The actual size of the sun in radio can be different and
+            # frequency dependent, but this is a good approximation for now.
+            theta = (astropy.constants.R_sun / sun_coord.distance).decompose()
+            sun_omega = np.pi * theta**2  # small angle approximation
+            logger.debug(
+                f"Simulating the sun's contribution to the galactic noise. "
+                f"Sun pixel: {sun_pixel}, Sun zenith: {sun_zen}, Sun azimuth: {sun_azi})"
+            )
 
         if self._ice is not None:
             n_ice_surf = self._ice.get_index_of_refraction(np.array([0, 0, -0.01]))
@@ -353,6 +384,15 @@ class channelGalacticNoiseAdder:
                     axis=0,
                 )
 
+        if self._ice is None or self._attenuation_model is None:
+            if np.min(channel_depths) < -20 and not self.__you_have_been_warned:
+                logger.warning(
+                    "You are simulating deep in-ice channels (below 20m) but have not provided an ice or attenuation model. "
+                    "The refractive index is thus the same for the calculation of the Fresnel coefficients "
+                    "and the phase shift as for the ice_surface, which is not correct. This warning is only printed once!"
+                )
+                self.__you_have_been_warned = True
+
         any_in_ice_channel = np.any(np.array(channel_depths) < 0)
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
             azimuth = local_coordinates[i_pixel].az.rad
@@ -364,16 +404,18 @@ class channelGalacticNoiseAdder:
             if any_in_ice_channel:
                 # For sites such as lofar or SKA, even if a channel has a negative z-coordinate
                 # and any_in_ice_channel is technically true, the resulting t_theta and t_phi will be 1,
-                # and fresnel_zenith=zenith, because n_air == n_ice_surf.
+                # and surf_zenith=zenith, because n_air == n_ice_surf.
                 t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice_surf, n_air)
                 t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice_surf, n_air)
-                if self._ice is None:  # get depth independent refractive index
-                    fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice_surf, n_air)
+                surf_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice_surf, n_air)
 
             if self.__caching:
                 noise_temperature = self._get_cached_noise_temperature_for_pixel(i_pixel)
             else:
                 noise_temperature = np.power(10, self.__noise_temperature_funcs[i_pixel](freqs[passband_filter]))
+
+            if self._simulate_sun and i_pixel == sun_pixel:
+                noise_temperature += sun_omega / self.solid_angle * Tb_quiet_sun(freqs[passband_filter])
 
             efield_amplitude = signal_processing.get_electric_field_from_temperature(
                 freqs[passband_filter], noise_temperature, self.solid_angle)
@@ -397,13 +439,18 @@ class channelGalacticNoiseAdder:
                         curr_n = self._ice.get_index_of_refraction(channel_pos)
                         curr_fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, curr_n, n_air)
                     else:
-                        curr_fresnel_zenith = fresnel_zenith
+                        curr_fresnel_zenith = surf_zenith
                         curr_n = n_ice_surf
+
+                    # The (de)focusing due to air-ice boundary is already included in the Fresnel coefficients (t_theta/phi),
+                    # here we account for the additional (de)focusing from the gradually changing refractive index in the firm.
+                    focusing_factor = np.sqrt((n_ice_surf * np.cos(surf_zenith)) / (curr_n * np.cos(curr_fresnel_zenith)))
                 else: # we are in air
                     curr_t_theta = 1
                     curr_t_phi = 1
                     curr_fresnel_zenith = zenith
                     curr_n = n_air
+                    focusing_factor = 1
 
                 antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(
                     detector.get_antenna_model(station.get_id(), channel.get_id()))
@@ -424,13 +471,14 @@ class channelGalacticNoiseAdder:
                 else:
                     attenuation_factor = np.ones_like(efield_amplitude)
 
+
                 # add random polarizations and phase to electric field
                 polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
                 channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
-                    1j * delta_phases) * np.cos(polarizations) * curr_t_theta * attenuation_factor
+                    1j * delta_phases) * np.cos(polarizations) * curr_t_theta * attenuation_factor * focusing_factor
                 channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.exp(
-                    1j * delta_phases) * np.sin(polarizations) * curr_t_phi * attenuation_factor
+                    1j * delta_phases) * np.sin(polarizations) * curr_t_phi * attenuation_factor * focusing_factor
 
                 # fold electric field with antenna response
                 if self.__caching:
@@ -534,6 +582,8 @@ def get_local_coordinates(coordinates, obs_time, n_side):
     -------
     local_coordinates: astropy.coordinates.SkyCoord
         The local coordinates of the pixels of the healpix map
+    sun_coordinates: astropy.coordinates.SkyCoord, optional
+        The local coordinates of the sun (if sun=True)
     """
     site_latitude, site_longitude = coordinates
     site_location = astropy.coordinates.EarthLocation(
@@ -556,3 +606,49 @@ def get_local_coordinates(coordinates, obs_time, n_side):
 
     local_coordinates = galactic_coordinates.transform_to(local_cs)
     return local_coordinates
+
+
+def Tb_quiet_sun(nu, kind='linear'):
+    f = Tb_quiet_sun_paper(kind=kind)
+    return np.power(10, f(np.log10(nu)))
+
+@functools.lru_cache(maxsize=2)
+def Tb_quiet_sun_paper(kind='linear'):
+
+    # This is data of the quiet sun brightness temperature digitized from Fig. 5, of the paper:
+    # https://iopscience.iop.org/article/10.3847/1538-4357/ac6b37/pdf
+    # First column (i.e., entires data[::2]) is the frequency in MHz,
+    # second column (i.e., entries data[1::2]) is the brightness temperature in K.
+    data = np.array([
+        15.060724325205065, 122701.78220087259,
+        15.876542140124316, 146675.73927896278,
+        16.84673686448343, 183335.7686269777,
+        18.115666561211253, 220786.08426477874,
+        20.135947446647886, 269857.8130123856,
+        22.981940237261043, 337266.16604412446,
+        33.512127308790284, 474607.88378179277,
+        40.60340447826144, 550580.2566932675,
+        48.872414216886185, 619993.1163195028,
+        80.84239412333073, 762960.8522460236,
+        94.1472794671951, 785813.3991897015,
+        109.64068351827044, 815394.2231007224,
+        142.90957239126385, 839664.4631625947,
+        180.2185844542181, 814739.8494407722,
+        227.28965486883104, 739354.8333126334,
+        308.3786113174188, 600026.3965025863,
+        412.9377214863189, 448699.73837802495,
+        549.3674814026401, 306883.5587758216,
+        683.9762948907373, 217867.7976521072,
+        880.338134652793, 144647.1870885708,
+        1074.4360119917706, 105011.39714303697,
+        1373.746716952524, 70240.73705220643,
+        1827.6947107331177, 46631.862791560954,
+        4721.350657521103, 16431.3945572252,
+        7712.462272772942, 12375.17761046132,
+        19124.788361772276, 9595.324665349062,
+    ])
+    freq = data[0::2] * units.MHz
+    Tb = data[1::2]
+    f = scipy.interpolate.interp1d(np.log10(freq), np.log10(Tb), kind=kind, fill_value="extrapolate")
+
+    return f
