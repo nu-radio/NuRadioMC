@@ -582,8 +582,6 @@ def get_local_coordinates(coordinates, obs_time, n_side):
     -------
     local_coordinates: astropy.coordinates.SkyCoord
         The local coordinates of the pixels of the healpix map
-    sun_coordinates: astropy.coordinates.SkyCoord, optional
-        The local coordinates of the sun (if sun=True)
     """
     site_latitude, site_longitude = coordinates
     site_location = astropy.coordinates.EarthLocation(
@@ -609,16 +607,19 @@ def get_local_coordinates(coordinates, obs_time, n_side):
 
 
 def Tb_quiet_sun(nu, kind='linear'):
+    """ Returns the apparent brigthness temperature for the quite sun for a given frequency """
     f = Tb_quiet_sun_paper(kind=kind)
     return np.power(10, f(np.log10(nu)))
 
 @functools.lru_cache(maxsize=2)
 def Tb_quiet_sun_paper(kind='linear'):
-
+    """ Returns function of Tb(f) """
+    
     # This is data of the quiet sun brightness temperature digitized from Fig. 5, of the paper:
     # https://iopscience.iop.org/article/10.3847/1538-4357/ac6b37/pdf
     # First column (i.e., entires data[::2]) is the frequency in MHz,
     # second column (i.e., entries data[1::2]) is the brightness temperature in K.
+    
     data = np.array([
         15.060724325205065, 122701.78220087259,
         15.876542140124316, 146675.73927896278,
