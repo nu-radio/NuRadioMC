@@ -149,7 +149,7 @@ def read_event(
     event_id: int,
     sim_id: int,
     percent_cut: float = 0.05,
-    snr_cut: float = 7,
+    snr_cut: float = 3,
 ) -> Tuple[
     NuRadioReco.framework.event.Event,
     NuRadioReco.detector.detector_base.DetectorBase
@@ -231,10 +231,10 @@ def read_event(
 
         for station in event.get_stations():
             station.set_station_time(event_time)
-            resampler.run(event, station, det, 200 * units.MHz)
             identifier.run(event, station, "forced", "cosmic_ray")
             logger.info(f"Converting station {station.get_id()}")
             convert.run(event, station, det)
+            resampler.run(event, station, det, 400 * units.MHz)
 
             logging.info("Adding noise...")
             for channel in station.iter_channels():
@@ -532,7 +532,7 @@ def generate_data(
     interferometric_depth_module = efieldInterferometricDepthReco()
     interferometric_depth_module.begin(debug=debug)
     axis_reco = efieldInterferometricAxisReco()
-    axis_reco.begin(debug=False)
+    axis_reco.begin(debug=debug)
 
     for i, (event_file, long_file) in enumerate(zip(event_files, long_files)):
         failed = False  # used to check if reading failed -> if so skip interferometry but store data
@@ -601,7 +601,8 @@ def generate_data(
                     n_samples=2048,
                     cross_section_size=200,
                     cross_section_spacing=[10, 10, 10, 10, 10],
-                    depths=[400, 460, 520, 580, 620],
+                    depths=[400, 500, 600, 700, 800, 900],
+                    bootstrap=False
                 )
                 star_ax_cov = axis_reco._axis_pcov
 
@@ -614,7 +615,8 @@ def generate_data(
                     n_samples=2048,
                     cross_section_size=200,
                     cross_section_spacing=[10, 10, 10, 10, 10],
-                    depths=[400, 460, 520, 580, 620],
+                    depths=[400, 500, 600, 700, 800, 900],
+                    bootstrap=True
                 )
                 lofar_ax_cov = axis_reco._axis_pcov
 
@@ -921,7 +923,7 @@ def dict_to_df(data: dict, dict_type: Literal["multiple", "single"]) -> pd.DataF
 
     for event_dict in data:
         if dict_type == "single":
-            df = pd.DataFrame.from_dict(data[event_dict], orient="columns")
+            df = pd.DataFrame.from_dict(data, orient="index")
         else:
             df = pd.DataFrame.from_dict(data[event_dict], orient="index")
         df["event_id"] = event_dict
@@ -963,7 +965,31 @@ def read_events_from_pkl(
     for file in files:
         with open(file, "rb") as f:
             data = pkl.load(f)
-            event_dicts.append(data)
+            if dict_type == "single": 
+                for key, value in data.items():
+                    if type(key) == np.float64:
+                        data = value
+                        event_id = key
+                    elif "axis" in key:
+                        axis_cov = value
+                        data["ax_err"] = np.sqrt(np.diag(axis_cov))
+                    elif "depth":
+                        depth_cov = value
+                        data["depth_err"] = np.sqrt(np.diag(depth_cov))
+                event_dicts.append({event_id: data})
+            else:
+                for key, value in data.items():
+                    event_id = key
+                    event_dict = {}
+                    for key2, value2 in value.items():
+                        if "axis" not in key2 and "depth" not in key2:
+                            sim_id = key2
+                            event_dict[sim_id] = value2
+                        elif "axis" in key2:
+                            event_dict[sim_id]["ax_err"] = np.sqrt(np.diag(value2))
+                        elif "depth" in key2:
+                            event_dict[sim_id]["depth_err"] = np.sqrt(np.diag(value2))
+                    event_dicts.append({event_id: event_dict})
 
     dfs = []
 
