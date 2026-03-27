@@ -2,6 +2,7 @@ import os
 import logging
 import pipeline
 import re
+import shutil
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -17,7 +18,11 @@ from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
 from NuRadioReco.modules.io.LOFAR.readLOFARData import LOFAR_event_id_to_unix
 from NuRadioReco.modules.io.LOFAR import readLOFARData
-from NuRadioReco.modules import channelBandPassFilter, voltageToEfieldConverter
+from NuRadioReco.modules import (
+    channelBandPassFilter,
+    voltageToEfieldConverter,
+    channelResampler,
+)
 from NuRadioReco.modules.io.eventWriter import eventWriter
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -62,7 +67,7 @@ def get_sim_files(
     for i, series in df.iterrows():
         event_id = int(series["event_id"])
         x_max = series["xreco"]
-        if files == "all":
+        if files == "all" or files == "match":
             hdf5, long = pipeline.get_filepaths([event_id])
         elif files == "sample":
             hdf5, long = pipeline.get_filepaths([event_id], n_sims)
@@ -99,12 +104,11 @@ def get_sim_files(
 
 
 def lofar_data_processing(
-    df: pd.DataFrame, output_dir: Path, sim_files: dict, snr: float
-):
+    df: pd.DataFrame, output_dir: Path, sim_files: dict, snr: float, write_out: bool=False, use_simulations: bool=True
+) -> None:
     det = detector.Detector(LOFAR_PATH, source="json", antenna_by_depth=False)
     reader = readLOFARData.readLOFARData(
         restricted_station_set=[
-            "CS001",
             "CS002",
             "CS003",
             "CS004",
@@ -119,12 +123,12 @@ def lofar_data_processing(
     calibrator = stationGalacticCalibrator.stationGalacticCalibrator()
     pulse_finder = stationPulseFinder.stationPulseFinder()
     event_writer = eventWriter()
-    efield_converter = voltageToEfieldConverter.voltageToEfieldConverter()
-    fitter = planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter()
+    resampler = channelResampler.channelResampler()
 
     sim_id = 0
     diagnostic_dir = output_dir / "diagnostic_plots"
     nur_dir = output_dir / "nur"
+    py_dir = output_dir / "python_files"
     data_dict = {}
 
     interferometric_depth_module = efieldInterferometricDepthReco()
@@ -136,6 +140,18 @@ def lofar_data_processing(
     os.makedirs(diagnostic_dir, exist_ok=True)
     os.makedirs(nur_dir, exist_ok=True)
     os.makedirs(output_dir / "pickle", exist_ok=True)
+    os.makedirs(py_dir, exist_ok=True)
+
+    # Copy relevant pythoon files containing all parameters as i forget
+    shutil.copy("NuRadioMC/gen_data.py", py_dir)
+    shutil.copy("NuRadioMC/gen_data.sh", py_dir)
+    shutil.copy("NuRadioMC/gen_lofar_data.py", py_dir)
+    shutil.copy("NuRadioMC/lofar_processing.py", py_dir)
+    shutil.copy("NuRadioMC/pipeline.py", py_dir)
+    shutil.copy(
+        "NuRadioMC/NuRadioReco/modules/efieldRadioInterferometricReconstruction.py",
+        py_dir,
+    )
 
     for i, series in df.iterrows():
         event_id = series.at["event_id"]
@@ -148,7 +164,6 @@ def lofar_data_processing(
             logger.warning(f"Couldn't find file for {event_id}")
             reader = readLOFARData.readLOFARData(
                 restricted_station_set=[
-                    "CS001",
                     "CS002",
                     "CS003",
                     "CS004",
@@ -162,7 +177,6 @@ def lofar_data_processing(
             logger.warning(f"Error during reading of event {event_id}")
             reader = readLOFARData.readLOFARData(
                 restricted_station_set=[
-                    "CS001",
                     "CS002",
                     "CS003",
                     "CS004",
@@ -218,6 +232,12 @@ def lofar_data_processing(
         pulse_finder.run(evt, det)
         pulse_finder.end()
 
+        # Upsample to 0.4 GHz
+        resampler.begin()
+        for station in evt.get_stations():
+            resampler.run(evt, station, det, sampling_rate=0.4 * units.GHz)
+        resampler.end()
+
         evt.get_first_shower().set_parameter(shp.azimuth, series.at["azimuth"])
         evt.get_first_shower().set_parameter(shp.zenith, series.at["zenith"])
         evt.get_first_shower().set_parameter(
@@ -231,25 +251,9 @@ def lofar_data_processing(
             shp.shower_maximum, series.at["xreco"] * (units.g / units.cm2)
         )
         evt.get_first_shower().get_parameters()
-
-        # fitter.begin(
-        #     debug=False
-        # )
-        # fitter.run(evt, det)
-        # fitter.end()
-
-        # efield_converter.begin()
-        # for station in evt.get_stations():
-        #     if station.get_parameter(stnp.triggered):
-        #         for group_id in station.get_channel_ids(return_group_ids=True):
-        #             efield_converter.run(
-        #                 evt, station, det,
-        #                 use_channels=[channel.get_id() for channel in station.iter_channel_group(group_id)]
-        #             )
-        # efield_converter.end()
-
-        event_writer.begin(str(nur_dir / f"{event_id}.nur"))
-        event_writer.run(evt)
+        if write_out:
+            event_writer.begin(str(nur_dir / f"{event_id}.nur"))
+            event_writer.run(evt)
 
         logger.info("Cutting on snr...")
         evt = pipeline.apply_cut(evt, det, "SNR", snr_cut=snr)
@@ -265,7 +269,8 @@ def lofar_data_processing(
                 n_samples=2048,
                 cross_section_size=200,
                 cross_section_spacing=[10, 10, 10, 10, 10],
-                depths=[400, 460, 520, 580, 620],
+                depths=[400, 500, 600, 700, 800, 900],
+                bootstrap=True,
             )
 
             logger.info("Running depth interferometry...")
@@ -322,13 +327,13 @@ def lofar_data_processing(
         plt.close(long_profile_plot)
         plt.close(init_sum_trace)
         plt.close(final_sum_trace)
-
-        # logger.info("Generating simuulation data...")
-        pipeline.generate_data(
-            sim_files[event_id][0],
-            sim_files[event_id][1],
-            output_dir.parents[0] / "sim",
-            [1, 2, 3, 4, 5, 6, 7],
-            core_position=[series.at["core_x"], series.at["core_y"]],
-        )
+        if use_simulations:
+            logger.info("Generating simulation data...")
+            pipeline.generate_data(
+                sim_files[event_id][0],
+                sim_files[event_id][1],
+                output_dir.parents[0] / "sim",
+                [2, 3, 4, 5, 6, 7],
+                core_position=[series.at["core_x"], series.at["core_y"]],
+            )
     interferometric_depth_module.end()
