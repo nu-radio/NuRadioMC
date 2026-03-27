@@ -382,7 +382,10 @@ class Detector():
 
     def _check_update_buffer(self):
         """
-        Checks whether the correct detector description per station in in the current period.
+        Checks, per station, whether the current description is "still" in the correct period.
+        I.e., it should detect if the period changed. Periods are defined by the modification timestamps
+        of the station/channels/calibrations/... (de)commissioning. If the period changed, the buffer needs
+        to be updated by querying the new station information from the database.
 
         Returns
         -------
@@ -397,11 +400,10 @@ class Detector():
                                  [dt.timestamp() for dt in
                                   self._time_periods_per_station[station_id]["modification_timestamps"]])
 
-            if period != self._time_period_index_per_station[station_id]:
-                need_update[station_id] = True
-            else:
-                need_update[station_id] = False
+            # update station if periods do not match
+            need_update[station_id] = not (period == self._time_period_index_per_station[station_id])
 
+            # update period for next check (this means we have to update buffer immediately ...)
             self._time_period_index_per_station[station_id] = period
 
         debug_str = "The following stations need to be updated:"
@@ -448,8 +450,18 @@ class Detector():
 
     def update(self, time):
         """
-        Updates the detector. If configure in constructor this function with trigger the
-        database query.
+        Updates the detector. Queries the database for new information if necessary.
+
+        Notes
+        -----
+        A station's description is updated if a change in the detector description is detected. The check
+        is perfomed by `self._check_update_buffer` which checks if the current detector time is still in the
+        same "period" as the buffered description. Periods are defined by the modification timestamps of
+        the station/channels/calibrations/... (de)commissioning timestamps. If the period changed, the buffer needs
+        to be updated by querying the new station information from the database. The modification timestamps for each
+        station are queried at class initialization with `self.__db.query_modification_timestamps_per_station()` and
+        stored in `self._time_periods_per_station`. The current period for each station is tracked with
+        `self._time_period_index_per_station` and updated inside `self._check_update_buffer`.
 
         Parameters
         ----------
@@ -581,7 +593,7 @@ class Detector():
             f"Query information for station {station_id} at {self.get_detector_time()}")
         if self._query_all:
             station_information = self.__db.get_complete_station_information(
-                station_id)
+                station_id, measurement_signal_chain=self.signal_chain_measurement_name)
         else:
             station_information = self.__db.get_general_station_information(
                 station_id)
@@ -951,13 +963,14 @@ class Detector():
                     y_units = component_entry["gain_factor_unit"]
                     frequencies = None
                     time_delay = 0
+                    weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
 
                 elif component_entry['collection'] == "time_delays":
                     ydata = 1  # Fake gain factor of 1 in magitude (does nothing)
                     y_units = "mag"
                     frequencies = None
                     time_delay = component_entry["time_delay"] * getattr(units, component_entry["time_delay_unit"])
-
+                    weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
 
                 else:
                     # Get the response data
@@ -990,7 +1003,6 @@ class Detector():
                             ydata[0] = np.asarray(ydata[0]) * 10 ** (attenuator / 20)
                         else:
                             raise KeyError
-
                 response = Response(
                     frequencies, ydata, y_units,
                     time_delay=time_delay, weight=weight,
@@ -1029,8 +1041,8 @@ class Detector():
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
         signal_chain_components = {
-            key: value["weight"] for key, value in
-                signal_chain_dict['response_chain'].items()}
+            ele["name"]: ele["weight"] for ele in
+                signal_chain_dict['response_chain']}
 
         return signal_chain_components
 
@@ -1088,8 +1100,8 @@ class Detector():
 
             position_id = self.__buffered_stations[station_id]["devices"][device_id]["id_position"]
 
-            device_pos_info = self.__db.get_device_position(
-                device_position_id=position_id)
+            device_pos_info = self.__db.get_position(
+                position_id=position_id, component="device")
             self.__buffered_stations[station_id]["devices"][device_id]['device_position'] = device_pos_info
 
         return np.array(self.__buffered_stations[station_id]["devices"][device_id]["device_position"]["position"])

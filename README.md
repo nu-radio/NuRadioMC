@@ -11,9 +11,7 @@ in the same github repository.)
 
 ## Documentation and Installation
 
-The documentation including detailed installation instructions can be found at https://nu-radio.github.io/NuRadioMC/main.html
-
-**TL;DR:**
+The documentation, including detailed installation instructions, can be found at https://nu-radio.github.io/NuRadioMC/main.html.
 
 The stable pip release can be installed directly from pypi:
 ```
@@ -34,6 +32,8 @@ square brackets, i.e. `pip install -e .[dev,proposal]`. To install all optional 
 If you're using NuRadioMC for your research, please cite
 
 * C. Glaser, D. Garcia-Fernandez, A. Nelles et al., "NuRadioMC: Simulating the radio emission of neutrinos from interaction to detector", [European Physics Journal C 80, 77 (2020)](https://dx.doi.org/10.1140/epjc/s10052-020-7612-8), [arXiv:1906.01670](https://arxiv.org/abs/1906.01670)
+  
+  _(Please refer to the arXiv version for improved ray-tracing equations and documentation of the FFT normalization as used in the current NuRadioMC version.)_
 
 and for the detector simulation and event reconstruction part
 

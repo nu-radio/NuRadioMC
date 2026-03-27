@@ -2,9 +2,37 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
-version 3.1.0-dev
+version 3.2.0-dev
 new features:
-- added rno-g cal_pulser waveform model at different temperatures in NuRadioMC/data 
+- Store shower Xmax in simulated shower when simulating with ARZ Askaryan emission models.
+- Added the option to use custom (user-specified) amplifiers. Custom amplifiers can be provided as .csv files
+  under NuRadioReco/detector/amps/custom.
+- Added elevation to detector sites, and a corresponding `get_site_elevation` method to the `Detector` class. Altitudes were obtained
+from the NOAA ETOPO1 dataset via www.opentopodata.org.
+- Implemented automatic windowing of the time-domain response in the `deteector.respone.Response` class (windowing performed by default in the __call__ method).
+  Integrated in the RNO-G hardwareResponseIncoperator. If you do not use this module and neither the `deteector.respone.Response` class, your results are
+  uneffected.
+
+bugfixes:
+- Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.
+  This is only relevant when simulating primaries and large detector arrays.
+
+deprecations:
+- Remove default values for `use_channels` and `bandpass` in voltageToAnalyticEfieldConverter.py and voltageToEfieldConverter.py which were suitable for ARIANNA.
+  Now, the arguments are required and an error is raised when they are not set.
+
+version 3.1.1
+new features:
+
+bugfixes:
+- Fixed the length of the top-level 'triggered' array in HDF5 output. Previously, the length
+was unintentionally ``m_showers`` (the number of showers in a single station) instead of
+``n_showers`` (the number of showers in the simulation), which could cause a crash for
+multi-station simulations.
+
+version 3.1.0
+new features:
+- added rno-g cal_pulser waveform model at different temperatures in NuRadioMC/data
 - energy-dependent inelasticity distribution (only BGR18 model) and cc / nc fraction (all models)
 - rice distribution method for estimating electric field energy fluences as proposed in S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
 - Change to default behaviour of Singleton (NuRadioReco.utilities.metaclasses.Singleton) classes.
@@ -15,11 +43,15 @@ new features:
 - Refactor phased array trigger modules and expands to three trigger modules, phasedArrayTrigger is the legacy trigger with a simple
   interface, beamformedPowerIntegrationTrigger performs the same function as phasedArrayTrigger but access to lower level options to mimic firmware,
   digitalBeamformedEnvelopeTrigger instead computes the Hilbert envelope of the beamformed traces and allows access to lower level options.
+- Refactor rno-g channelGlitchDector module such that `unscrable` and `diff_sq` now live outside of class definition
+  and can be called without class object.
+- Added analytic VPol and HPol antenna model approximations
 
 bugfixes:
 - Fixed the core parameter in Events created by the readCoREASDetector module not being 3-dimensional
 - Convert list of channel ids to tuple in efield.get_unique_identifier() to make it hashable
 - Fixed discrepancy in index of refraction (NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction) when calling with 1D vs. 2D array
+- Improved analytic LPDA antenna response which did not resemble the simulated RNO-G LPDAs
 
 version 3.0.3
 bugfixes:
