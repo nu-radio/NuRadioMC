@@ -15,10 +15,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-TITLE = "lofar-full-hist-method"
+TITLE = "lofar-all-traces"
 OUTPUT_DIR = Path(f"analysis/{TITLE}/data")
 NUM_THREADS = 124
-SNR = 5
+SNR = 3
+
+logger.info(f"Starting {TITLE} with SNR {SNR}")
 
 def processing_wrapper(df_chunk):
     """Wrapper for the lofar_data_processing function to

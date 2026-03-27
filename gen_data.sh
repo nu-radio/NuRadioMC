@@ -5,7 +5,7 @@
 #SBATCH -e /vol/astro5/lofar/tgottmer/logs/%A_%x_%a.log
 #SBATCH --chdir=/vol/astro5/lofar/tgottmer/
 #SBATCH --mem=10G
-#SBATCH --arr=0-124
+#SBATCH --arr=0-123
 
 WORK_DIR=/vol/astro5/lofar/tgottmer/
 

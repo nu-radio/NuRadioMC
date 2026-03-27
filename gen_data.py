@@ -18,9 +18,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 mlogger = multiprocessing.log_to_stderr(level=logging.INFO)
 # CONSTANTS, DON'T FORGET TO CHANGE THEM TO RELEVANT RUN
-TITLE = "reset_core_for_interf_cher_1"
+TITLE = "snr_7"
 logging.info(f"Starting {TITLE}")
-STATIONS = [1, 2, 3, 4, 5, 6, 7]
+STATIONS = [2, 3, 4, 5, 6, 7]
 NUM_THREADS = 14
 
 LIST_OR_NUM_EVENTS = "list"  # list for fixed event list or num of events needed
@@ -81,7 +81,7 @@ def get_data_from_ids(event_ids: list):
         event_ids (list): list of event_ids
     """
     fps = pipeline.get_filepaths(event_ids, sample_size=10)
-    pipeline.generate_data(fps[0], fps[1], OUTPUT_DIR, STATIONS, percent_cut=0.20)
+    pipeline.generate_data(fps[0], fps[1], OUTPUT_DIR, STATIONS, percent_cut=0.10)
 
 
 # -------------ANALYSIS---------------
