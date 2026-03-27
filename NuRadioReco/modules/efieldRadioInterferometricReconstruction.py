@@ -12,9 +12,11 @@ import sys
 import copy
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from numba import jit
 
 import logging
-logger = logging.getLogger('NuRadioReco.efieldRadioInterferometricReconstruction')
+
+logger = logging.getLogger("NuRadioReco.efieldRadioInterferometricReconstruction")
 
 """
 This module hosts to classes
@@ -28,10 +30,12 @@ The implementation here is based on work published in [2].
 [2]: F. Schlueter, T. Huege, doi:10.1088/1748-0221/16/07/P07048
 
 """
+
+
 def normal(x, A, x0, sigma):
-    """ Gauss curve """
-    return A / np.sqrt(2 * np.pi * sigma ** 2) \
-        * np.exp(-1 / 2 * ((x - x0) / sigma) ** 2)
+    """Gauss curve"""
+    return A / np.sqrt(2 * np.pi * sigma**2) * np.exp(-1 / 2 * ((x - x0) / sigma) ** 2)
+
 
 class efieldInterferometricDepthReco:
     """
@@ -79,10 +83,16 @@ class efieldInterferometricDepthReco:
         self._long_profile_plot = None
         pass
 
-
     def sample_longitudinal_profile(
-            self, traces, times, station_positions,
-            shower_axis, core, depths=None, distances=None):
+        self,
+        traces,
+        times,
+        station_positions,
+        shower_axis,
+        core,
+        depths=None,
+        distances=None,
+    ):
         """
         Returns the longitudinal profile of the interferometic signal sampled along the shower axis.
 
@@ -121,7 +131,7 @@ class efieldInterferometricDepthReco:
 
         zenith = hp.get_angle(np.array([0, 0, 1]), shower_axis)
         tstep = times[0, 1] - times[0, 0]
-        sum_traces = []
+        self.sum_traces = []
         if depths is not None:
             signals = np.zeros(len(depths))
             depths_or_distances = depths
@@ -132,13 +142,14 @@ class efieldInterferometricDepthReco:
             depths_or_distances = distances
 
         fig, ax = plt.subplots()
-        
+
         for idx, dod in enumerate(depths_or_distances):
             if depths is not None:
                 try:
                     # here z coordinate of core has to be the altitude of the observation_level
                     dist = self._at.get_distance_xmax_geometric(
-                        zenith, dod, observation_level=core[-1])
+                        zenith, dod, observation_level=core[-1]
+                    )
                 except ValueError:
                     signals[idx] = 0
                     continue
@@ -152,27 +163,35 @@ class efieldInterferometricDepthReco:
             point_on_axis = shower_axis * dist + core
             if self._interpolation:
                 sum_trace = interferometry.interfere_traces_rit(
-                    point_on_axis, station_positions, traces, times, tab=self._tab)
+                    point_on_axis, station_positions, traces, times, tab=self._tab
+                )
             else:
                 # sum_trace = interferometry.interfere_traces_padding(
                 #     point_on_axis, station_positions, core, traces, times, tab=self._tab)
                 sys.exit("Not implemented")
-            
+
             ax.plot(sum_trace, label=f"{dod}")
-            sum_traces.append(sum_trace)
+            self.sum_traces.append(sum_trace)
 
             signal = interferometry.get_signal(sum_trace, tstep, kind=self._signal_kind)
             signals[idx] = signal
-        
 
         fig.suptitle("Sum_trace at different depths")
-        
+
         return signals, fig
 
-
     def reconstruct_interferometric_depth(
-            self, traces, times, station_positions, shower_axis, core,
-            lower_depth=400, upper_depth=1000, bin_size=50, return_profile=False):
+        self,
+        traces,
+        times,
+        station_positions,
+        shower_axis,
+        core,
+        lower_depth=400,
+        upper_depth=1000,
+        bin_size=20,
+        return_profile=False,
+    ):
         """
         Returns Gauss-parameters fitted to the "peak" of the interferometic
         longitudinal profile along the shower axis.
@@ -242,14 +261,21 @@ class efieldInterferometricDepthReco:
 
         depths = np.arange(lower_depth, upper_depth, bin_size)
         signals_tmp, self._initial_sum_trace = self.sample_longitudinal_profile(
-            traces, times, station_positions, shower_axis, core, depths=depths)
+            traces, times, station_positions, shower_axis, core, depths=depths
+        )
 
         # if max signal is at the upper edge add points there
-        if np.argmax(signals_tmp) == len(depths) - 1:
+        if np.argmax(signals_tmp) >= len(depths) - 4:
             while True:
                 depth_add = np.amax(depths) + bin_size
                 signal_add, _ = self.sample_longitudinal_profile(
-                    traces, times, station_positions, shower_axis, core, depths=[depth_add])
+                    traces,
+                    times,
+                    station_positions,
+                    shower_axis,
+                    core,
+                    depths=[depth_add],
+                )
                 plt.close(_)  # close unneccesary plot
                 depths = np.append(depths, depth_add)
                 signals_tmp = np.append(signals_tmp, signal_add)
@@ -258,11 +284,17 @@ class efieldInterferometricDepthReco:
                     break
 
         # if max signal is at the lower edge add points there
-        elif np.argmax(signals_tmp) == 0:
+        elif np.argmax(signals_tmp) <= 4:
             while True:
                 depth_add = np.amin(depths) - bin_size
                 signal_add, _ = self.sample_longitudinal_profile(
-                    traces, times, station_positions, shower_axis, core, depths=[depth_add])
+                    traces,
+                    times,
+                    station_positions,
+                    shower_axis,
+                    core,
+                    depths=[depth_add],
+                )
                 plt.close(_)  # close unneccesary plot
                 depths = np.append(depth_add, depths)
                 signals_tmp = np.append(signal_add, signals_tmp)
@@ -270,20 +302,31 @@ class efieldInterferometricDepthReco:
                 if not np.argmax(signals_tmp) == 0 or depth_add <= 0:
                     break
 
+        # popt, pkov = curve_fit(normal, depths, signals_tmp, p0=[np.amax(
+        #     signals_tmp), depths[np.argmax(signals_tmp)], 100], maxfev=1000)
+
         idx_max = np.argmax(signals_tmp)
         depths_final = np.linspace(
-            depths[idx_max - 1], depths[idx_max + 1], 26)  # 4 g/cm2 bins
+            depths[idx_max - 3], depths[idx_max + 3], 26
+        )  # 4 g/cm2 bins
         signals_final, self._final_sum_trace = self.sample_longitudinal_profile(
-            traces, times, station_positions, shower_axis, core, depths=depths_final)
+            traces, times, station_positions, shower_axis, core, depths=depths_final
+        )
 
-        popt, pkov = curve_fit(normal, depths_final, signals_final, p0=[np.amax(
-            signals_final), depths_final[np.argmax(signals_final)], 100], maxfev=1000)
-        
+        popt, self._peak_fit_pcov = curve_fit(
+            normal,
+            depths_final,
+            signals_final,
+            p0=[np.amax(signals_final), depths_final[np.argmax(signals_final)], 100],
+            maxfev=1000,
+        )
+
         if return_profile:
             return depths, depths_final, signals_tmp, signals_final, popt
+        # if return_profile:
+        #     return depths, depths, signals_tmp, signals_tmp, popt
 
         return popt
-
 
     def update_atmospheric_model_and_refractivity_table(self, shower):
         """
@@ -298,23 +341,46 @@ class efieldInterferometricDepthReco:
         if self._at is None:
             self._at = models.Atmosphere(shower[shp.atmospheric_model])
             self._tab = refractivity.RefractivityTable(
-                self._at.model, refractivity_at_sea_level=shower[shp.refractive_index_at_ground] - 1, curved=True)
+                self._at.model,
+                refractivity_at_sea_level=shower[shp.refractive_index_at_ground] - 1,
+                curved=True,
+            )
 
         elif self._at.model != shower[shp.atmospheric_model]:
             self._at = models.Atmosphere(shower[shp.atmospheric_model])
             self._tab = refractivity.RefractivityTable(
-                self._at.model, refractivity_at_sea_level=shower[shp.refractive_index_at_ground] - 1, curved=True)
+                self._at.model,
+                refractivity_at_sea_level=shower[shp.refractive_index_at_ground] - 1,
+                curved=True,
+            )
 
-        elif self._tab._refractivity_at_sea_level != shower[shp.refractive_index_at_ground] - 1:
+        elif (
+            self._tab._refractivity_at_sea_level
+            != shower[shp.refractive_index_at_ground] - 1
+        ):
             self._tab = refractivity.RefractivityTable(
-                self._at.model, refractivity_at_sea_level=shower[shp.refractive_index_at_ground] - 1, curved=True)
+                self._at.model,
+                refractivity_at_sea_level=shower[shp.refractive_index_at_ground] - 1,
+                curved=True,
+            )
 
         else:
             pass
 
-
     @register_run()
-    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True, long_plot=True, rit_plot=True):
+    def run(
+        self,
+        evt,
+        det,
+        use_MC_geometry=True,
+        use_MC_pulses=True,
+        use_voltage_traces=True,
+        long_plot=True,
+        rit_plot=True,
+        n_samples=None,
+        use_interferometric_axis=False,
+        tolerance=1.2e3,
+    ):
         """
         Run interferometric reconstruction of depth of coherent signal.
 
@@ -332,6 +398,21 @@ class efieldInterferometricDepthReco:
 
         use_MC_pulses : bool
             if true, take electric field trace from sim_station
+
+        use_voltage_traces : bool
+            if True, use the maximum voltage trace for each antenna pair instead of efield trace
+
+        long_plot : bool
+            if True, generate longitudonal development plots for each shower analysed
+
+        rit_plot: bool
+            if True, plot the results of the rit
+
+        n_samples: int
+            Take specified number of samples around peak, if None use full trace
+
+        use_interferometric_axis: bool
+            if True, use the interferometric axis stored in shower parameters
         """
 
         # TODO: Mimic imperfect time syncronasation by adding a time jitter here?
@@ -344,36 +425,54 @@ class efieldInterferometricDepthReco:
             shower = evt.get_first_shower()
 
         self.update_atmospheric_model_and_refractivity_table(shower)
-        core, shower_axis, cs = get_geometry_and_transformation(shower)
+        core, shower_axis, cs = get_geometry_and_transformation(
+            shower, use_interferometric_axis
+        )
 
-        traces_vxB, times, pos = get_station_data(
-            evt, det, cs, use_MC_pulses, n_sampling=None)
+        traces_vxB, times, pos, stations = get_station_data(
+            evt,
+            det,
+            cs,
+            use_MC_pulses,
+            use_voltage_traces,
+            n_samples,
+            tolerance,
+            single_polarization=True,
+            hist_reject=True,
+            all_traces=True,
+        )
 
         if long_plot:
-            depths, depths_final, signals_tmp, signals_final, rit_parameters = \
+            depths, depths_final, signals_tmp, signals_final, rit_parameters = (
                 self.reconstruct_interferometric_depth(
-                    traces_vxB, times, pos, shower_axis, core, return_profile=True)
+                    traces_vxB, times, pos, shower_axis, core, return_profile=True
+                )
+            )
 
             fig, ax = plt.subplots(1)
             ax.plot(depths, signals_tmp, ".")
             ax.plot(depths_final, signals_final, ".")
-            ax.plot(depths_final, normal(
-                depths_final, *rit_parameters))
+            ax.plot(depths_final, normal(depths_final, *rit_parameters))
             ax.axvline(rit_parameters[1])
             self._long_profile_plot = fig
         else:
             rit_parameters = self.reconstruct_interferometric_depth(
-                traces_vxB, times, pos, shower_axis, core)
+                traces_vxB, times, pos, shower_axis, core
+            )
 
         xrit = rit_parameters[1]
-        shower.set_parameter(shp.interferometric_shower_maximum, xrit * units.g / units.cm2)
+        shower.set_parameter(
+            shp.interferometric_shower_maximum, xrit * units.g / units.cm2
+        )
 
-        #TODO: Add calibration Xmax(Xrit, theta, ...)?
+        # TODO: Add calibration Xmax(Xrit, theta, ...)?
 
         # for plotting
         if rit_plot:
             self._data["xrit"].append(xrit)
-            self._data["xmax"].append(shower[shp.shower_maximum] / (units.g / units.cm2))
+            self._data["xmax"].append(
+                shower[shp.shower_maximum] / (units.g / units.cm2)
+            )
             self._data["zenith"].append(shower[shp.zenith])
 
     def end(self):
@@ -383,7 +482,11 @@ class efieldInterferometricDepthReco:
 
         fig, ax = plt.subplots(1)
         sct = ax.scatter(
-            self._data["xmax"], self._data["xrit"], s=200, c=np.rad2deg(self._data["zenith"]))
+            self._data["xmax"],
+            self._data["xrit"],
+            s=200,
+            c=np.rad2deg(self._data["zenith"]),
+        )
         cbi = plt.colorbar(sct, pad=0.02)
         cbi.set_label("zenith angle / deg")
         ax.set_xlabel(r"$X_\mathrm{max}$ / g$\,$cm$^{-2}$")
@@ -397,11 +500,13 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
     """
     Class to reconstruct the shower axis with beamforming.
     """
+
     def __init__(self):
         super().__init__()
 
-
-    def find_maximum_in_plane(self, xs, ys, p_axis, station_positions, traces, times, cs):
+    def find_maximum_in_plane(
+        self, xs, ys, p_axis, station_positions, traces, times, cs
+    ):
         """
         Sample interferometric signals in 2-d plane (vxB-vxvxB) perpendicular to a given axis on a rectangular/quadratic grid.
         The orientation of the plane is defined by the radiotools.coordinatesytem.cstrafo argument.
@@ -447,22 +552,33 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
                 p = p_axis + cs.transform_from_vxB_vxvxB(np.array([x, y, 0]))
 
                 sum_trace = interferometry.interfere_traces_rit(
-                    p, station_positions, traces, times, tab=self._tab)
+                    p, station_positions, traces, times, tab=self._tab
+                )
                 signal = interferometry.get_signal(
-                    sum_trace, tstep, kind=self._signal_kind)
+                    sum_trace, tstep, kind=self._signal_kind
+                )
                 signals[xdx, ydx] = signal
 
         idx = np.argmax(signals)
         return idx, signals
 
-
     def sample_lateral_cross_section(
-            self,
-            traces, times, station_positions,
-            shower_axis_inital, core, depth, cs,
-            shower_axis_mc, core_mc,
-            relative=False, initial_grid_spacing=60, centered_around_truth=True,
-            cross_section_size=1000, deg_resolution=np.deg2rad(0.005)):
+        self,
+        traces,
+        times,
+        station_positions,
+        shower_axis_inital,
+        core,
+        depth,
+        cs,
+        shower_axis_mc,
+        core_mc,
+        relative=False,
+        initial_grid_spacing=60,
+        centered_around_truth=True,
+        cross_section_size=1000,
+        deg_resolution=np.deg2rad(0.005),
+    ):
         """
         Sampling the "cross section", i.e., 2d-lateral distribution of the beam formed signal for a slice in the atmosphere.
         It is looking for the maximum in the lateral distribution with an (stupid) iterative grid search.
@@ -530,61 +646,82 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         """
 
-        zenith_inital, _ = hp.cartesian_to_spherical(
-            *np.split(shower_axis_inital, 3))
+        zenith_inital, _ = hp.cartesian_to_spherical(*np.split(shower_axis_inital, 3))
         dist = self._at.get_distance_xmax_geometric(
-            zenith_inital, depth, observation_level=core[-1])
+            zenith_inital, depth, observation_level=core[-1]
+        )
         p_axis = shower_axis_inital * dist + core
 
         # we use the true core to make sure that it is within the inital search gri
         mc_at_plane = interferometry.get_intersection_between_line_and_plane(
-            shower_axis_inital, p_axis, shower_axis_mc, core_mc)
+            shower_axis_inital, p_axis, shower_axis_mc, core_mc
+        )
         mc_vB = cs.transform_to_vxB_vxvxB(mc_at_plane, core=p_axis)
         # mc_points.append(mc_at_plane + core)
 
         dr_ref_target = np.tan(deg_resolution) * dist
         if relative:
             # ensure that true xmax is within the search grid but not on a grid point
-            xlims = (np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[0])
-            ylims = (np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[1])
+            xlims = (np.array([-1.2, 1.2]) + np.random.uniform(0, 0.1, 2)) * np.abs(
+                mc_vB[0]
+            )
+            ylims = (np.array([-1.2, 1.2]) + np.random.uniform(0, 0.1, 2)) * np.abs(
+                mc_vB[1]
+            )
 
             xs = np.linspace(*xlims, 20)
             ys = np.linspace(*ylims, 20)
 
         else:
             if centered_around_truth:
-                xs = np.arange(mc_vB[0] - cross_section_size / 2 -
-                            np.random.uniform(0, initial_grid_spacing, 1),
-                            mc_vB[0] + cross_section_size / 2, initial_grid_spacing)
-                ys = np.arange(mc_vB[1] - cross_section_size / 2 -
-                            np.random.uniform(0, initial_grid_spacing, 1),
-                            mc_vB[1] + cross_section_size / 2, initial_grid_spacing)
+                xs = np.arange(
+                    mc_vB[0]
+                    - cross_section_size / 2
+                    - np.random.uniform(0, initial_grid_spacing, 1),
+                    mc_vB[0] + cross_section_size / 2,
+                    initial_grid_spacing,
+                )
+                ys = np.arange(
+                    mc_vB[1]
+                    - cross_section_size / 2
+                    - np.random.uniform(0, initial_grid_spacing, 1),
+                    mc_vB[1] + cross_section_size / 2,
+                    initial_grid_spacing,
+                )
 
             else:
                 # quadratic grid with true intersection contained
-                max_dist = np.amax(
-                    [np.abs(mc_vB[0]), np.abs(mc_vB[1]), 3 * initial_grid_spacing]) + initial_grid_spacing
-                xlims = np.array([-max_dist, max_dist]) + \
-                    np.random.uniform(-0.1 * initial_grid_spacing,
-                                    0.1 * initial_grid_spacing, 2)
-                ylims = np.array([-max_dist, max_dist]) + \
-                    np.random.uniform(-0.1 * initial_grid_spacing,
-                                    0.1 * initial_grid_spacing, 2)
-                xs = np.arange(xlims[0], xlims[1] +
-                            initial_grid_spacing, initial_grid_spacing)
-                ys = np.arange(ylims[0], ylims[1] +
-                            initial_grid_spacing, initial_grid_spacing)
+                max_dist = (
+                    np.amax(
+                        [np.abs(mc_vB[0]), np.abs(mc_vB[1]), 3 * initial_grid_spacing]
+                    )
+                    + initial_grid_spacing
+                )
+                xlims = np.array([-max_dist, max_dist]) + np.random.uniform(
+                    -0.1 * initial_grid_spacing, 0.1 * initial_grid_spacing, 2
+                )
+                ylims = np.array([-max_dist, max_dist]) + np.random.uniform(
+                    -0.1 * initial_grid_spacing, 0.1 * initial_grid_spacing, 2
+                )
+                xs = np.arange(
+                    xlims[0], xlims[1] + initial_grid_spacing, initial_grid_spacing
+                )
+                ys = np.arange(
+                    ylims[0], ylims[1] + initial_grid_spacing, initial_grid_spacing
+                )
 
         iloop = 0
         while True:
 
             idx, signals = self.find_maximum_in_plane(
-                xs, ys, p_axis, station_positions, traces, times, cs=cs)
+                xs, ys, p_axis, station_positions, traces, times, cs=cs
+            )
 
             if self._debug:
                 # from AERAutilities import pyplots, pyplots_utils # for mpl rc
                 plot_lateral_cross_section(
-                    xs, ys, signals, mc_vB, title=r"%.1f$\,$g$\,$cm$^{-2}$" % depth)
+                    xs, ys, signals, mc_vB, title=r"%.1f$\,$g$\,$cm$^{-2}$" % depth
+                )
 
             iloop += 1
             dr = np.sqrt((xs[1] - xs[0]) ** 2 + (ys[1] - ys[0]) ** 2)
@@ -608,20 +745,25 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         xfound = xs[int(idx // len(ys))]
         yfound = ys[int(idx % len(ys))]
-        point_found = p_axis + \
-            cs.transform_from_vxB_vxvxB(np.array([xfound, yfound, 0]))
+        point_found = p_axis + cs.transform_from_vxB_vxvxB(
+            np.array([xfound, yfound, 0])
+        )
 
         return point_found, weight
 
-
     def reconstruct_shower_axis(
-            self,
-            traces, times, station_positions,
-            shower_axis, core,
-            magnetic_field_vector,
-            is_mc=True,
-            initial_grid_spacing=60,
-            cross_section_size=1000):
+        self,
+        traces,
+        times,
+        station_positions,
+        shower_axis,
+        core,
+        magnetic_field_vector,
+        is_mc=True,
+        initial_grid_spacing=20,
+        cross_section_size=400,
+        depths=[500, 600, 700, 800, 900, 1000],
+    ):
         """
         Run interferometric reconstruction of the shower axis. Find the maxima of the interferometric signals
         within 2-d plane (slices) along a given axis (initial guess). Through those maxima (their position in the
@@ -659,7 +801,6 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         """
 
-
         if is_mc:
             zenith_mc, azimuth_mc = hp.cartesian_to_spherical(*shower_axis)
 
@@ -667,27 +808,30 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             zenith_inital = zenith_mc + np.deg2rad(np.random.normal(0, 0.5))
             azimuth_inital = azimuth_mc + np.deg2rad(np.random.normal(0, 0.5))
             shower_axis_inital = hp.spherical_to_cartesian(
-                zenith=zenith_inital, azimuth=azimuth_inital)
+                zenith=zenith_inital, azimuth=azimuth_inital
+            )
 
         else:
             shower_axis_inital = shower_axis
             core_inital = core
-            zenith_inital, azimuth_inital = hp.cartesian_to_spherical(
-                *shower_axis)
+            zenith_inital, azimuth_inital = hp.cartesian_to_spherical(*shower_axis)
 
             shower_axis, core = None, None
 
             raise ValueError("is_mc=False is not yet properly implemented!")
 
         cs = coordinatesystems.cstrafo(
-            zenith_inital, azimuth_inital, magnetic_field_vector=magnetic_field_vector)
+            zenith_inital, azimuth_inital, magnetic_field_vector=magnetic_field_vector
+        )
 
         if is_mc:
             core_inital = cs.transform_from_vxB_vxvxB_2D(
-                np.array([np.random.normal(0, 100), np.random.normal(0, 100), 0]), core)
+                np.array([np.random.normal(0, 100), np.random.normal(0, 100), 0]), core
+            )
 
-        depths = [500, 600, 700, 800, 900, 1000]
         deg_resolution = np.deg2rad(0.005)
+        init_found_points = []
+        init_weights = []
 
         found_points = []
         weights = []
@@ -695,7 +839,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         relative = False
         centered_around_truth = True
 
-        def sample_lateral_cross_section_placeholder(dep):
+        def sample_lateral_cross_section_placeholder(dep, spacing):
             """
             Run sample_lateral_cross_section for a particular depth.
 
@@ -707,18 +851,47 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
             """
             return self.sample_lateral_cross_section(
-                traces, times, station_positions,
-                shower_axis_inital, core_inital, dep, cs,
-                shower_axis, core,
-                relative=relative, initial_grid_spacing=initial_grid_spacing,
+                traces,
+                times,
+                station_positions,
+                shower_axis_inital,
+                core_inital,
+                dep,
+                cs,
+                shower_axis,
+                core,
+                relative=relative,
+                initial_grid_spacing=spacing,
                 centered_around_truth=centered_around_truth,
-                cross_section_size=cross_section_size, deg_resolution=deg_resolution)
+                cross_section_size=cross_section_size,
+                deg_resolution=deg_resolution,
+            )
 
-        for depth in depths:
-            found_point, weight = sample_lateral_cross_section_placeholder(depth)
+        for depth, spacing in zip(depths, initial_grid_spacing):
+            found_point, weight = sample_lateral_cross_section_placeholder(
+                depth, spacing
+            )
 
-            found_points.append(found_point)
-            weights.append(weight)
+            init_found_points.append(found_point)
+            init_weights.append(weight)
+
+        if self._bootstrap:
+            final_depths = np.linspace(
+                depths[np.argmax(init_weights)] - 50,
+                depths[np.argmax(init_weights)] + 50,
+                6,
+            )
+
+            for depth, spacing in zip(final_depths, initial_grid_spacing):
+                found_point, weight = sample_lateral_cross_section_placeholder(
+                    depth, spacing
+                )
+
+                found_points.append(found_point)
+                weights.append(weight)
+        else:
+            found_points = init_found_points
+            weights = init_weights
 
         if 0:
             while True:
@@ -728,7 +901,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
                 new_depth = depths[0] - (depths[1] - depths[0])
                 print("extend to", new_depth)
                 found_point, weight = sample_lateral_cross_section_placeholder(
-                    new_depth)
+                    new_depth
+                )
 
                 depths = [new_depth] + depths
                 found_points = [found_point] + found_points
@@ -741,7 +915,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
                 new_depth = depths[-1] + (depths[1] - depths[0])
                 print("extend to", new_depth)
                 found_point, weight = sample_lateral_cross_section_placeholder(
-                    new_depth)
+                    new_depth
+                )
 
                 depths.append(new_depth)
                 found_points.append(found_point)
@@ -750,15 +925,33 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         found_points = np.array(found_points)
         weights = np.array(weights)
 
-        popt, pcov = curve_fit(interferometry.fit_axis, found_points[:, -1], found_points.flatten(),
-                            sigma=np.amax(weights) / np.repeat(weights, 3), p0=[zenith_inital, azimuth_inital, 0, 0])
+        popt, self._axis_pcov = curve_fit(
+            interferometry.fit_axis,
+            found_points[:, -1],
+            found_points.flatten(),
+            sigma=np.amax(weights) / np.repeat(weights, 3),
+            p0=[zenith_inital, azimuth_inital, 0, 0],
+        )
         direction_rec = hp.spherical_to_cartesian(*popt[:2])
         core_rec = interferometry.fit_axis(np.array([core[-1]]), *popt)
 
         return direction_rec, core_rec
 
     @register_run()
-    def run(self, evt, det, use_MC_geometry=True, use_MC_pulses=True):
+    def run(
+        self,
+        evt,
+        det,
+        use_MC_geometry=True,
+        use_MC_pulses=True,
+        use_voltage_traces=True,
+        n_samples=None,
+        cross_section_size=1000,
+        cross_section_spacing=60,
+        depths=[500, 600, 700, 800, 900, 1000],
+        tolerance=1.2e3,
+        bootstrap=False,
+    ):
         """
         Run interferometric reconstruction of depth of coherent signal.
 
@@ -776,25 +969,53 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         use_MC_pulses : bool
             if true, take electric field trace from sim_station
+
+        use_voltage_traces : bool
+            if True, use the maximum voltage trace for each antenna pair instead of efield trace
+
+        n_samples: int
+            Take specified number of samples around peak, if None use full trace
         """
 
         # TODO: Mimic imperfect time syncronasation by adding a time jitter here?
 
         # TODO: Make it more flexible. Choose shower from which the geometry and atmospheric properties are taken.
         # Also store xrit in this shower.
+        self._bootstrap = bootstrap
+
         if use_MC_geometry:
             shower = evt.get_first_sim_shower()
         else:
             shower = evt.get_first_shower()
 
         self.update_atmospheric_model_and_refractivity_table(shower)
-        core, shower_axis, cs = get_geometry_and_transformation(shower)
+        core, shower_axis, cs = get_geometry_and_transformation(shower, False)
 
-        traces_vxB, times, pos = get_station_data(
-            evt, det, cs, use_MC_pulses)
+        traces_vxB, times, pos, stations = get_station_data(
+            evt,
+            det,
+            cs,
+            use_MC_pulses,
+            use_voltage_traces,
+            n_samples,
+            tolerance,
+            single_polarization=True,
+            hist_reject=True,
+            all_traces=True,
+        )
 
         direction_rec, core_rec = self.reconstruct_shower_axis(
-            traces_vxB, times, pos, shower_axis, core, is_mc=True, magnetic_field_vector=shower[shp.magnetic_field_vector])
+            traces_vxB,
+            times,
+            pos,
+            shower_axis,
+            core,
+            is_mc=True,
+            magnetic_field_vector=shower[shp.magnetic_field_vector],
+            initial_grid_spacing=cross_section_spacing,
+            cross_section_size=cross_section_size,
+            depths=depths,
+        )
 
         shower.set_parameter(shp.interferometric_shower_axis, direction_rec)
         shower.set_parameter(shp.interferometric_core, core_rec)
@@ -803,7 +1024,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         pass
 
 
-def get_geometry_and_transformation(shower):
+def get_geometry_and_transformation(shower, use_interferometric_axis):
     """
     Returns core (def. as intersection between shower axis and observation plane,
     shower axis, and radiotools.coordinatesytem for given shower.
@@ -812,27 +1033,77 @@ def get_geometry_and_transformation(shower):
     ----------
 
     shower : BaseShower
+
+    use_interferometric_axis: bool
+        if True, returns the interferometric axis, if False returns the pre-calculated axis
     """
 
     observation_level = shower[shp.observation_level]
-    core = shower[shp.core]
 
-    if core[-1] != observation_level:
-        sys.exit("Code down the road expect that to be equal!")
+    # if not np.isclose(core[-1], observation_level):
+    #     sys.exit("Code down the road expect that to be equal!")
 
-    zenith = shower[shp.zenith]
-    azimuth = shower[shp.azimuth]
+    if use_interferometric_axis:
+        shower_axis = shower[shp.interferometric_shower_axis]
+        zenith = shower_axis[0]
+        azimuth = shower_axis[1]
+
+        core = shower[shp.interferometric_core]
+    else:
+        zenith = shower[shp.zenith]
+        azimuth = shower[shp.azimuth]
+        shower_axis = hp.spherical_to_cartesian(zenith, azimuth)
+
+        core = shower[shp.core]
+
     magnetic_field_vector = shower[shp.magnetic_field_vector]
 
-    shower_axis = hp.spherical_to_cartesian(zenith, azimuth)
-
     cs = coordinatesystems.cstrafo(
-        zenith, azimuth, magnetic_field_vector=magnetic_field_vector)
+        zenith, azimuth, magnetic_field_vector=magnetic_field_vector
+    )
 
     return core, shower_axis, cs
 
 
-def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
+def window_trace(trace: np.ndarray, time: np.ndarray, n_sampling: int):
+    """Samples trace around its peak with n_samples corresponding
+    to n_sampling
+
+    Args:
+        trace (np.ndarray): trace to window
+        time (np.ndarray): timeseries to window
+        n_sampling (int): n_samples to window with
+
+    Returns:
+        trace: windowed trace
+        time: windowed timeseries
+    """
+    hw = n_sampling // 2
+    m = np.argmax(np.abs(trace))
+
+    if m < hw:
+        m = hw
+    if m > len(trace) - hw:
+        m = len(trace) - hw
+
+    trace = trace[m - hw : m + hw]
+    time = time[m - hw : m + hw]
+
+    return trace, time
+
+
+def get_station_data(
+    evt,
+    det,
+    cs,
+    use_MC_pulses,
+    use_voltage_trace: bool = False,
+    n_sampling=None,
+    tolerance=300,
+    single_polarization=True,
+    hist_reject=True,
+    all_traces=False,
+):
     """
     Returns station data in a proper format
 
@@ -848,67 +1119,297 @@ def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
     use_MC_pulses : bool
         if true take electric field trace from sim_station
 
+    use_voltage_trace : bool, default False
+        if true use the voltage traces
+
     n_sampling : int
         if not None clip trace with n_sampling // 2 around np.argmax(np.abs(trace))
+
+    tolerance: int
+        tolerance in selection in histogram rejection in ns. Traces with a start time outside
+        of this amount will be rejected as bad trace
+
+    single_polarization: bool
+        If true, a single dominant antenna polarization will be chosen
+
+    hist_reject: bool
+        Use histogram rejection method to reject bad traces instead of selecting all traces.
+        This method can only be used in conjunction with n_sampling, as it makes a histogram of
+        the start times of all traces. The bin with the largest amount of traces will be taken
+        as general start time, traces that start within the specified tolerance will be selected.
+        All other traces will be rejected.
+
+    all_traces : bool
+        If true, start time found using the histogram rejection. Afterwards takes n_sampling number
+        of samples for all traces within event.
 
     Returns
     -------
 
-    traces_vxB : np.array
-        The electric field traces in the vxB polarisation (takes first electric field stored in a station) for all stations/observers.
+    final_traces : np.array
+        If use_voltage_trace=False: the electric field traces in the vxB polarisation (takes first
+        electric field stored in a station) for all stations/observers. Else: the maximum voltage
+        trace per each observer.
 
-    times : mp.array
-        The electric field traces time series for all stations/observers.
+    times : np.array
+        The electric field or voltage traces time series for all stations/observers.
 
     pos : np.array
         Positions for all stations/observers.
+
+    stations : np.array
+        Corresponding stations with positions/selected channels
     """
 
-    traces_vxB = []
+    final_traces = []
     times = []
     pos = []
+
+    x_channels = []
+    x_times = []
+    y_channels = []
+    y_times = []
+    x_pos = []
+    y_pos = []
+    x_stations = []
+    y_stations = []
 
     for station in evt.get_stations():
 
         if use_MC_pulses:
             station = station.get_sim_station()
 
-        for electric_field in station.get_electric_fields():
-            traces = cs.transform_to_vxB_vxvxB(
-                cs.transform_from_onsky_to_ground(electric_field.get_trace()))
-            trace_vxB = traces[0]
-            time = copy.copy(electric_field.get_times())
+        if single_polarization:
+            channels_in_station = det.get_channel_ids(station.get_id())
 
-            if n_sampling is not None:
-                hw = n_sampling // 2
-                m = np.argmax(np.abs(trace_vxB))
+            for i in range(0, len(channels_in_station), 2):
+                x_id = channels_in_station[i]
+                y_id = channels_in_station[i + 1]
 
-                if m < hw:
-                    m = hw
-                if m > len(trace_vxB) - hw:
-                    m = len(trace_vxB) - hw
+                try:
+                    channel_y = evt.get_station(station.get_id()).get_channel(y_id)
+                    trace_y = channel_y.get_trace()
+                    time_y = channel_y.get_times()
 
-                trace_vxB = trace_vxB[m-hw:m+hw]
-                time = time[m-hw:m+hw]
+                    if n_sampling is not None:
+                        trace_y, time_y = window_trace(trace_y, time_y, n_sampling)
 
-            traces_vxB.append(trace_vxB)
-            times.append(time)
-            """
-            Break is used for the neutrino detection, which uses a different
-            definition of a station, for LOFAR data where station consist of 
-            multiple antannae where we want the efield from, remove it. From this
-            adjustments are also made for the station positions.
-            """
-            pos.append(electric_field.get_position() + det.get_absolute_position(station.get_id()))
-            # break  # just take the first efield. TODO: Improve this
+                    y_channels.append(trace_y)
+                    y_times.append(time_y)
+                    channel_pos = np.array(
+                        [
+                            det.get_channel(station.get_id(), x_id)["ant_position_x"],
+                            det.get_channel(station.get_id(), x_id)["ant_position_y"],
+                            det.get_channel(station.get_id(), x_id)["ant_position_z"],
+                        ]
+                    )
+                    y_pos.append(
+                        channel_pos + det.get_absolute_position(station.get_id())
+                    )
+                    y_stations.append(station.get_id())
+                except KeyError:
+                    channel_y = None
 
-       # pos.append(det.get_absolute_position(station.get_id()))
+                try:
+                    channel_x = evt.get_station(station.get_id()).get_channel(x_id)
+                    trace_x = channel_x.get_trace()
+                    time_x = channel_x.get_times()
 
-    traces_vxB = np.array(traces_vxB)
-    times = np.array(times)
-    pos = np.array(pos)
+                    if n_sampling is not None:
+                        trace_x, time_x = window_trace(trace_x, time_x, n_sampling)
 
-    return traces_vxB, times, pos
+                    x_channels.append(trace_x)
+                    x_times.append(time_x)
+
+                    channel_pos = np.array(
+                        [
+                            det.get_channel(station.get_id(), x_id)["ant_position_x"],
+                            det.get_channel(station.get_id(), x_id)["ant_position_y"],
+                            det.get_channel(station.get_id(), x_id)["ant_position_z"],
+                        ]
+                    )
+                    x_pos.append(
+                        channel_pos + det.get_absolute_position(station.get_id())
+                    )
+                    x_stations.append(station.get_id())
+                except KeyError:
+                    channel_x = None
+
+        elif use_voltage_trace and not single_polarization:
+            channels_in_station = det.get_channel_ids(station.get_id())
+
+            for i in range(0, len(channels_in_station), 2):
+                y_id = channels_in_station[i]
+                x_id = channels_in_station[i + 1]
+
+                try:
+                    channel_y = evt.get_station(station.get_id()).get_channel(y_id)
+                    trace_y = channel_y.get_trace()
+                except KeyError:
+                    channel_y = None
+
+                try:
+                    channel_x = evt.get_station(station.get_id()).get_channel(x_id)
+                    trace_x = channel_x.get_trace()
+                except KeyError:
+                    channel_x = None
+
+                if channel_x is None and channel_y is None:
+                    continue
+                elif channel_x is not None and channel_y is None:
+                    trace_to_keep = channel_x
+                    time = channel_x.get_times()
+                    kept_id = x_id
+                elif channel_x is None and channel_y is not None:
+                    trace_to_keep = channel_y
+                    time = channel_y.get_times()
+                    kept_id = y_id
+                else:
+                    if trace_y.max() > trace_x.max():
+                        trace_to_keep = trace_y
+                        time = channel_y.get_times()
+                        kept_id = y_id
+                    else:
+                        trace_to_keep = trace_x
+                        time = channel_x.get_times()
+                        kept_id = x_id
+
+                if not trace_to_keep.all():
+                    continue
+
+                if n_sampling is not None:
+                    trace_to_keep, time = window_trace(trace_to_keep, time, n_sampling)
+
+                final_traces.append(trace_to_keep)
+                times.append(time)
+
+                channel_pos = np.array(
+                    [
+                        det.get_channel(station.get_id(), kept_id)["ant_position_x"],
+                        det.get_channel(station.get_id(), kept_id)["ant_position_y"],
+                        det.get_channel(station.get_id(), kept_id)["ant_position_z"],
+                    ]
+                )
+                pos.append(channel_pos + det.get_absolute_position(station.get_id()))
+
+        else:
+            for electric_field in station.get_electric_fields():
+                traces = cs.transform_to_vxB_vxvxB(
+                    cs.transform_from_onsky_to_ground(electric_field.get_trace())
+                )
+                trace_vxB = traces[0]
+                time = copy.copy(electric_field.get_times())
+
+                if n_sampling is not None:
+                    trace_vxB, time = window_trace(trace_vxB, time, n_sampling)
+
+                final_traces.append(trace_vxB)
+                times.append(time)
+                """
+                Break is used for the neutrino detection, which uses a different
+                definition of a station, for LOFAR data where station consist of 
+                multiple antannae where we want the efield from, remove it. From this
+                adjustments are also made for the station positions.
+                """
+                pos.append(
+                    electric_field.get_position()
+                    + det.get_absolute_position(station.get_id())
+                )
+                # break  # just take the first efield. TODO: Improve this
+
+    # pos.append(det.get_absolute_position(station.get_id()))
+    # Pad length of inhomogeneaus arrays before np.array'ing them
+    max_len = np.max([arr.shape[0] for arr in x_channels])
+    x_channels = np.array(
+        [np.pad(channel, (0, max_len - channel.shape[0])) for channel in x_channels]
+    )
+    y_channels = np.array(
+        [np.pad(channel, (0, max_len - channel.shape[0])) for channel in y_channels]
+    )
+
+    if single_polarization:
+        if x_channels.max(axis=1).mean() > y_channels.max(axis=1).mean():
+            final_traces = x_channels
+            times = np.array(
+                [
+                    np.pad(channel, (0, max_len - channel.shape[0]))
+                    for channel in x_times
+                ]
+            )
+            pos = np.array(x_pos)
+            stations = np.array(x_stations)
+        else:
+            final_traces = y_channels
+            times = np.array(
+                [
+                    np.pad(channel, (0, max_len - channel.shape[0]))
+                    for channel in y_times
+                ]
+            )
+            pos = np.array(y_pos)
+            stations = np.array(y_stations)
+    else:
+        final_traces = np.array(final_traces)
+        times = np.array(times)
+        pos = np.array(pos)
+
+    if hist_reject:
+        hist, edges = np.histogram(times[:, 0], bins=1000)
+        selection = edges[hist.argmax()]
+        mask = (times[:, 0] > selection - tolerance) & (
+            times[:, 0] < selection + tolerance
+        )
+        times, final_traces, pos = times[mask], final_traces[mask], pos[mask]
+
+    if all_traces:  # Takes all traces at start time instead of subset
+        full_traces, full_times, pos, stations = get_station_data(
+            evt,
+            det,
+            None,
+            False,
+            True,
+            None,
+            single_polarization=True,
+            hist_reject=False,
+            all_traces=False,
+        )
+        select_from = np.argwhere(full_times[0] > selection)[0][0]
+        final_traces, times = (
+            full_traces[:, select_from : select_from + n_sampling],
+            full_times[:, select_from : select_from + n_sampling],
+        )
+
+    if single_polarization:
+        return final_traces, times, pos, stations
+    else:
+        return final_traces, times, pos
+
+
+def window_trace(trace: np.ndarray, time: np.ndarray, n_sampling: int):
+    """Samples trace around its peak with n_samples corresponding
+    to n_sampling
+
+    Args:
+        trace (np.ndarray): trace to window
+        time (np.ndarray): timeseries to window
+        n_sampling (int): n_samples to window with
+
+    Returns:
+        trace: windowed trace
+        time: windowed timeseries
+    """
+    hw = n_sampling // 2
+    m = np.argmax(np.abs(trace))
+
+    if m < hw:
+        m = hw
+    if m > len(trace) - hw:
+        m = len(trace) - hw
+
+    trace = trace[m - hw : m + hw]
+    time = time[m - hw : m + hw]
+
+    return trace, time
 
 
 def plot_lateral_cross_section(xs, ys, signals, mc_pos=None, fname=None, title=None):
@@ -940,7 +1441,7 @@ def plot_lateral_cross_section(xs, ys, signals, mc_pos=None, fname=None, title=N
     yy, xx = np.meshgrid(ys, xs)
 
     fig, ax = plt.subplots(1)
-    pcm = ax.pcolormesh(xx, yy, signals, shading='gouraud')
+    pcm = ax.pcolormesh(xx, yy, signals, shading="gouraud")
     ax.plot(xx, yy, "ko", markersize=3)
     cbi = plt.colorbar(pcm, pad=0.02)
     cbi.set_label(r"$f_{B_{j}}$ / eV$\,$m$^{-2}$")
@@ -949,15 +1450,28 @@ def plot_lateral_cross_section(xs, ys, signals, mc_pos=None, fname=None, title=N
     xfound = xs[int(idx // len(ys))]
     yfound = ys[int(idx % len(ys))]
 
-    ax.plot(xfound, yfound, ls=None, marker="o", color="C1",
-            markersize=10, label="found maximum")
+    ax.plot(
+        xfound,
+        yfound,
+        ls=None,
+        marker="o",
+        color="C1",
+        markersize=10,
+        label="found maximum",
+    )
     if mc_pos is not None:
-        ax.plot(mc_pos[0], mc_pos[1], ls=None, marker="*", color="r",
-                markersize=10, label=r"intersection with $\hat{a}_\mathrm{MC}$")
+        ax.plot(
+            mc_pos[0],
+            mc_pos[1],
+            ls=None,
+            marker="*",
+            color="r",
+            markersize=10,
+            label=r"intersection with $\hat{a}_\mathrm{MC}$",
+        )
 
     ax.legend()
-    ax.set_ylabel(
-        r"$\vec{v} \times \vec{v} \times \vec{B}$ / m")
+    ax.set_ylabel(r"$\vec{v} \times \vec{v} \times \vec{B}$ / m")
     ax.set_xlabel(r"$\vec{v} \times \vec{B}$ / m")
     if title is not None:
         ax.set_title(title)  # r"slant depth = %d g / cm$^2$" % depth)

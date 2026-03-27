@@ -18,21 +18,57 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 mlogger = multiprocessing.log_to_stderr(level=logging.INFO)
 # CONSTANTS, DON'T FORGET TO CHANGE THEM TO RELEVANT RUN
-TITLE = "prelimenary_results_7"
-STATIONS = [1, 2, 3, 4, 5, 6, 7]
+TITLE = "snr_7"
+logging.info(f"Starting {TITLE}")
+STATIONS = [2, 3, 4, 5, 6, 7]
 NUM_THREADS = 14
 
 LIST_OR_NUM_EVENTS = "list"  # list for fixed event list or num of events needed
 # EVENT_IDS = [86132542, 132649890, 268490510, 219294520]
-EVENT_IDS = [99394319, 95591951, 86132542, 83827322, 74486916,
-        70848963, 69134130, 66187840, 63934386, 336673661,
-        285360413, 273524336, 268490510, 260691538, 242151059,
-        237959892, 237608273, 234548441, 230943673, 225865341,
-        219294520, 217006485, 212089170, 205642073, 198490827,
-        190669040, 183985109, 181699538, 178027768, 175038176,
-        172055925, 161326774, 157571174, 149538803, 142043645,
-        131373704, 132649890, 127437284, 126346457, 123314680,
-        111394500, 105147553]
+EVENT_IDS = [
+    99394319,
+    95591951,
+    86132542,
+    83827322,
+    74486916,
+    70848963,
+    69134130,
+    66187840,
+    63934386,
+    325674960,
+    285360413,
+    273524336,
+    268490510,
+    260691538,
+    242151059,
+    237959892,
+    237608273,
+    234548441,
+    230943673,
+    225865341,
+    219294520,
+    217006485,
+    212089170,
+    205642073,
+    198490827,
+    190669040,
+    183985109,
+    181699538,
+    178027768,
+    175038176,
+    172055925,
+    161326774,
+    157571174,
+    149538803,
+    142043645,
+    131373704,
+    132649890,
+    127437284,
+    126346457,
+    123314680,
+    111394500,
+    105147553,
+]
 NUM_EVENTS = 288
 OUTPUT_DIR = Path(f"analysis/{TITLE}")
 
@@ -44,8 +80,8 @@ def get_data_from_ids(event_ids: list):
     Args:
         event_ids (list): list of event_ids
     """
-    fps = pipeline.get_filepaths(event_ids, 15)
-    pipeline.generate_data(fps[0], fps[1], OUTPUT_DIR, STATIONS)
+    fps = pipeline.get_filepaths(event_ids, sample_size=10)
+    pipeline.generate_data(fps[0], fps[1], OUTPUT_DIR, STATIONS, percent_cut=0.10)
 
 
 # -------------ANALYSIS---------------
