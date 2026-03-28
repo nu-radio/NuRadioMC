@@ -14,9 +14,37 @@ except ImportError:
 
 
 RAY_TYPES = ['direct', 'refracted', 'reflected']
+SOLUTION_TYPES = ['solution_0', 'solution_1']
 
 
-def pack_tt_grids(tt_all, channels, grid_shape):
+def _infer_ray_type_list(tt_all, channels):
+    """Determine the ray type list from the keys present in tt_all.
+
+    Returns RAY_TYPES if any channel has a standard ray-type key, otherwise
+    SOLUTION_TYPES if solution-ordered keys are found.
+
+    Parameters
+    ----------
+    tt_all : dict
+        Maps channel_id -> {ray_type_name -> grid}.
+    channels : list
+        Channel IDs.
+
+    Returns
+    -------
+    list
+        Ray type name list.
+    """
+    for ch in channels:
+        keys = set(tt_all.get(ch, {}).keys())
+        if keys & {'direct', 'refracted', 'reflected'}:
+            return RAY_TYPES
+        if keys & {'solution_0', 'solution_1'}:
+            return SOLUTION_TYPES
+    return RAY_TYPES
+
+
+def pack_tt_grids(tt_all, channels, grid_shape, ray_type_names=None):
     """Pack per-channel per-ray-type travel time grids into a contiguous 3D array.
 
     Parameters
@@ -27,20 +55,25 @@ def pack_tt_grids(tt_all, channels, grid_shape):
         Channel IDs.
     grid_shape : tuple
         Shape of each travel time grid.
+    ray_type_names : list or None
+        Ordered ray type names. If None, inferred from tt_all keys.
 
     Returns
     -------
     np.ndarray
-        Shape (n_channels, 3, n_points). Ray type indices: 0=direct,
-        1=refracted, 2=reflected. Missing ray types filled with NaN.
+        Shape (n_channels, n_rt, n_points). Missing ray types filled with NaN.
     list
         Per-channel list of available ray type indices.
     """
-    n_ch = len(channels)
-    n_points = int(np.prod(grid_shape))
-    rt_map = {rt: i for i, rt in enumerate(RAY_TYPES)}
+    if ray_type_names is None:
+        ray_type_names = _infer_ray_type_list(tt_all, channels)
 
-    tt_packed = np.full((n_ch, 3, n_points), np.nan, dtype=np.float64)
+    n_ch = len(channels)
+    n_rt = len(ray_type_names)
+    n_points = int(np.prod(grid_shape))
+    rt_map = {rt: i for i, rt in enumerate(ray_type_names)}
+
+    tt_packed = np.full((n_ch, n_rt, n_points), np.nan, dtype=np.float64)
     ch_available_rts = []
 
     for ci, ch in enumerate(channels):
@@ -54,13 +87,13 @@ def pack_tt_grids(tt_all, channels, grid_shape):
     return tt_packed, ch_available_rts
 
 
-def pack_tt_grids_transposed(tt_all, channels, grid_shape):
+def pack_tt_grids_transposed(tt_all, channels, grid_shape,
+                             ray_type_names=None):
     """Pack travel time grids with point-major layout for cache locality.
 
     For single-threaded kernels, this layout puts all channel/ray-type data
-    for a single grid point in contiguous memory (n_ch * 3 * 8 = 264 bytes
-    for 11 channels), fitting in ~4 cache lines instead of requiring 33
-    scattered reads across 211 MB.
+    for a single grid point in contiguous memory, fitting in a few cache
+    lines instead of requiring scattered reads across the full table.
 
     Parameters
     ----------
@@ -70,19 +103,25 @@ def pack_tt_grids_transposed(tt_all, channels, grid_shape):
         Channel IDs.
     grid_shape : tuple
         Shape of each travel time grid.
+    ray_type_names : list or None
+        Ordered ray type names. If None, inferred from tt_all keys.
 
     Returns
     -------
     np.ndarray
-        Shape (n_points, n_channels, 3), C-contiguous.
+        Shape (n_points, n_channels, n_rt), C-contiguous.
     list
         Per-channel list of available ray type indices.
     """
-    n_ch = len(channels)
-    n_points = int(np.prod(grid_shape))
-    rt_map = {rt: i for i, rt in enumerate(RAY_TYPES)}
+    if ray_type_names is None:
+        ray_type_names = _infer_ray_type_list(tt_all, channels)
 
-    tt_t = np.full((n_points, n_ch, 3), np.nan, dtype=np.float64)
+    n_ch = len(channels)
+    n_rt = len(ray_type_names)
+    n_points = int(np.prod(grid_shape))
+    rt_map = {rt: i for i, rt in enumerate(ray_type_names)}
+
+    tt_t = np.full((n_points, n_ch, n_rt), np.nan, dtype=np.float64)
     ch_available_rts = []
 
     for ci, ch in enumerate(channels):
@@ -129,7 +168,8 @@ def pack_corr_data(corr_data, n_pairs):
     return corr_packed, lengths, dts, offsets
 
 
-def build_combo_table(channels, ch_to_group, n_groups, ch_available_rts):
+def build_combo_table(channels, ch_to_group, n_groups, ch_available_rts,
+                      n_rt=None):
     """Build the combo enumeration table.
 
     Parameters
@@ -142,6 +182,9 @@ def build_combo_table(channels, ch_to_group, n_groups, ch_available_rts):
         Number of depth groups.
     ch_available_rts : list
         Per-channel list of available ray type indices.
+    n_rt : int or None
+        Number of ray type slots. If None, inferred as max index + 1
+        from ch_available_rts.
 
     Returns
     -------
@@ -149,21 +192,22 @@ def build_combo_table(channels, ch_to_group, n_groups, ch_available_rts):
         Shape (n_combos, n_channels). Each row gives the ray type index
         for each channel under that combo.
     """
+    if n_rt is None:
+        all_indices = [idx for avail in ch_available_rts for idx in avail]
+        n_rt = max(all_indices) + 1 if all_indices else 3
+
     group_rts = []
     for gidx in range(n_groups):
         group_chs_ci = [ci for ci, ch in enumerate(channels)
                         if ch_to_group[ch] == gidx]
-        rts = set(range(3))
+        rts = set(range(n_rt))
         for ci in group_chs_ci:
             rts &= set(ch_available_rts[ci])
         if not rts:
-            # No common ray type across all channels in this group.
-            # Fall back to the union so the product is never empty;
-            # invalid travel times produce NaN delays which are skipped.
             for ci in group_chs_ci:
                 rts |= set(ch_available_rts[ci])
         if not rts:
-            rts = {0}  # direct as last resort
+            rts = {0}
         group_rts.append(sorted(rts))
 
     combos = list(itertools.product(*group_rts))
@@ -355,13 +399,13 @@ if HAS_NUMBA:
                                  corr_dts, corr_offsets,
                                  pair_ch1, pair_ch2, pair_weights,
                                  ch_rt_mask, n_points):
-        """Per-pair multiray kernel: max across 9 ray combos per pair.
+        """Per-pair multiray kernel: max across ray combos per pair.
 
         Accelerated version of _correlator_lean_multiray for comparison.
 
         Parameters
         ----------
-        tt_packed : float64 array (n_ch, 3, n_points)
+        tt_packed : float64 array (n_ch, n_rt, n_points)
         corr_packed : float64 array (n_pairs, max_corr_len)
         corr_lengths : int64 array (n_pairs,)
         corr_dts : float64 array (n_pairs,)
@@ -369,8 +413,7 @@ if HAS_NUMBA:
         pair_ch1 : int64 array (n_pairs,)
         pair_ch2 : int64 array (n_pairs,)
         pair_weights : float64 array (n_pairs,)
-        ch_rt_mask : bool array (n_ch, 3)
-            Which ray types are available per channel.
+        ch_rt_mask : bool array (n_ch, n_rt)
         n_points : int
 
         Returns
@@ -378,6 +421,7 @@ if HAS_NUMBA:
         float64 array (n_points,)
         """
         n_pairs = pair_ch1.shape[0]
+        n_rt = tt_packed.shape[1]
         w_sum = 0.0
         for p in range(n_pairs):
             w_sum += pair_weights[p]
@@ -391,13 +435,13 @@ if HAS_NUMBA:
                 c2 = pair_ch2[pidx]
                 best_val = 0.0
 
-                for rt1 in range(3):
+                for rt1 in range(n_rt):
                     if not ch_rt_mask[c1, rt1]:
                         continue
                     tt1 = tt_packed[c1, rt1, pt]
                     if not np.isfinite(tt1):
                         continue
-                    for rt2 in range(3):
+                    for rt2 in range(n_rt):
                         if not ch_rt_mask[c2, rt2]:
                             continue
                         tt2 = tt_packed[c2, rt2, pt]
@@ -525,13 +569,12 @@ if HAS_NUMBA:
         """Per-pair multiray kernel with point-major TT layout.
 
         Same algorithm as _perpair_multiray_kernel but tt_t has shape
-        (n_points, n_ch, 3) for better cache locality when iterating
+        (n_points, n_ch, n_rt) for better cache locality when iterating
         over grid points.
 
         Parameters
         ----------
-        tt_t : float64 array (n_points, n_ch, 3)
-            Travel times, point-major layout.
+        tt_t : float64 array (n_points, n_ch, n_rt)
         corr_packed : float64 array (n_pairs, max_corr_len)
         corr_lengths : int64 array (n_pairs,)
         corr_dts : float64 array (n_pairs,)
@@ -539,7 +582,7 @@ if HAS_NUMBA:
         pair_ch1 : int64 array (n_pairs,)
         pair_ch2 : int64 array (n_pairs,)
         pair_weights : float64 array (n_pairs,)
-        ch_rt_mask : bool array (n_ch, 3)
+        ch_rt_mask : bool array (n_ch, n_rt)
         n_points : int
 
         Returns
@@ -547,6 +590,7 @@ if HAS_NUMBA:
         float64 array (n_points,)
         """
         n_pairs = pair_ch1.shape[0]
+        n_rt = tt_t.shape[2]
         w_sum = 0.0
         for p in range(n_pairs):
             w_sum += pair_weights[p]
@@ -560,13 +604,13 @@ if HAS_NUMBA:
                 c2 = pair_ch2[pidx]
                 best_val = 0.0
 
-                for rt1 in range(3):
+                for rt1 in range(n_rt):
                     if not ch_rt_mask[c1, rt1]:
                         continue
                     tt1 = tt_t[pt, c1, rt1]
                     if not np.isfinite(tt1):
                         continue
-                    for rt2 in range(3):
+                    for rt2 in range(n_rt):
                         if not ch_rt_mask[c2, rt2]:
                             continue
                         tt2 = tt_t[pt, c2, rt2]
@@ -609,7 +653,7 @@ if HAS_NUMBA:
 
         Parameters
         ----------
-        tt_t : float64 array (n_points, n_ch, 3)
+        tt_t : float64 array (n_points, n_ch, n_rt)
         corr_packed : float64 array (n_pairs, max_corr_len)
         corr_lengths : int64 array (n_pairs,)
         corr_dts : float64 array (n_pairs,)
@@ -717,9 +761,10 @@ def grouped_multiray_numba(corr_data, tt_all, channels, ch_to_group,
 
     tt_packed, ch_available_rts = pack_tt_grids(
         tt_all, channels, grid_shape)
+    n_rt = tt_packed.shape[1]
     corr_packed, corr_lengths, dts, offsets = pack_corr_data(corr_data, n_pairs)
     combo_table = build_combo_table(channels, ch_to_group, n_groups,
-                                    ch_available_rts)
+                                    ch_available_rts, n_rt=n_rt)
 
     pair_ch1 = np.array([p[0] for p in ch_pairs], dtype=np.int64)
     pair_ch2 = np.array([p[1] for p in ch_pairs], dtype=np.int64)
