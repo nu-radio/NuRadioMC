@@ -58,8 +58,8 @@ if USE_NUMBA:
         """Numba-compiled scalar grouped correlation at a single point.
 
         Args:
-            tt_vals: float64 array (n_ch, 3). Travel times per channel per ray type.
-            tt_valid: bool array (n_ch, 3). Whether each TT is valid.
+            tt_vals: float64 array (n_ch, n_rt). Travel times per channel per ray type.
+            tt_valid: bool array (n_ch, n_rt). Whether each TT is valid.
             corr_packed: float64 array (n_pairs, max_corr_len). Padded correlations.
             corr_lengths: int64 array (n_pairs,). Actual correlation lengths.
             corr_dts: float64 array (n_pairs,). Sample spacing per pair.
@@ -220,6 +220,7 @@ except (ImportError, OSError):
 
 
 RAY_TYPES = ['direct', 'refracted', 'reflected']
+SOLUTION_TYPES = ['solution_0', 'solution_1']
 RAY_TYPE_COMBOS = list(itertools.product(RAY_TYPES, RAY_TYPES))
 
 
@@ -242,6 +243,8 @@ class InterferometricReco3D:
         self.ant_locs = None
         self._multi_ray_types = False
         self._multiray_combo_mode = 'per_pair'  # 'per_pair' or 'grouped'
+        self._active_ray_types = RAY_TYPES
+        self._n_ray_slots = len(RAY_TYPES)
 
     def begin(self, station_id, config, det):
         """Initialize interpolators and antenna positions.
@@ -350,6 +353,13 @@ class InterferometricReco3D:
         self._multi_ray_types = config.get('multi_ray_types', False)
         self._multiray_combo_mode = config.get('multiray_combo_mode', 'per_pair')
 
+        table_scheme = config.get('table_scheme', 'ray_type')
+        if table_scheme == 'solution_ordered':
+            self._active_ray_types = SOLUTION_TYPES
+        else:
+            self._active_ray_types = RAY_TYPES
+        self._n_ray_slots = len(self._active_ray_types)
+
         self._interpolators = {}
         self._multiray_interpolators = {}
 
@@ -360,7 +370,7 @@ class InterferometricReco3D:
             )
             for ch in config['channels']:
                 self._multiray_interpolators[ch] = {}
-                for rt in RAY_TYPES:
+                for rt in self._active_ray_types:
                     fname = pattern.format(
                         station_id=station_id, ch=ch, ray_type=rt
                     )
@@ -369,7 +379,8 @@ class InterferometricReco3D:
                     )
                     self._multiray_interpolators[ch][rt] = \
                         self._load_rz_interpolator(table_file, interp_method)
-            logger.info("Loaded per-ray-type tables for %d channels",
+            logger.info("Loaded %s tables (%d types) for %d channels",
+                        table_scheme, self._n_ray_slots,
                         len(config['channels']))
         else:
             pattern = config.get('table_name_pattern',
@@ -560,7 +571,7 @@ class InterferometricReco3D:
         tt_all = {}
         for ch in channels:
             tt_all[ch] = {}
-            for rt in RAY_TYPES:
+            for rt in self._active_ray_types:
                 td = self._multiray_interpolators[ch][rt]
                 if USE_NUMBA:
                     tt_flat = _bilinear_batch_numba(
@@ -915,14 +926,14 @@ class InterferometricReco3D:
         group_ray_types = []
         for gidx in range(n_groups):
             group_chs = [ch for ch in channels if ch_to_group[ch] == gidx]
-            rts = set(RAY_TYPES)
+            rts = set(self._active_ray_types)
             for ch in group_chs:
                 rts &= set(tt_all.get(ch, {}).keys())
             if not rts:
                 for ch in group_chs:
                     rts |= set(tt_all.get(ch, {}).keys())
             if not rts:
-                rts = {'direct'}
+                rts = {self._active_ray_types[0]}
             group_ray_types.append(sorted(rts))
 
         combos = list(itertools.product(*group_ray_types))
@@ -1190,7 +1201,7 @@ class InterferometricReco3D:
         if self._multi_ray_types:
             for ch in channels:
                 ch_tds = []
-                for rt in RAY_TYPES:
+                for rt in self._active_ray_types:
                     ch_tds.append(self._multiray_interpolators[ch][rt])
                 td_list.append(ch_tds)
         else:
@@ -1214,12 +1225,12 @@ class InterferometricReco3D:
         if self._multi_ray_types and self._multiray_combo_mode == 'grouped':
             ch_to_group, _ = self._build_channel_groups(channels)
             n_groups = max(ch_to_group.values()) + 1
-            rt_map = {rt: i for i, rt in enumerate(RAY_TYPES)}
+            rt_map = {rt: i for i, rt in enumerate(self._active_ray_types)}
             group_rts_all = []
             for gidx in range(n_groups):
                 group_chs = [ch for ch in channels
                              if ch_to_group[ch] == gidx]
-                rts = set(RAY_TYPES)
+                rts = set(self._active_ray_types)
                 for ch in group_chs:
                     avail = set(self._multiray_interpolators[ch].keys())
                     rts &= avail
@@ -1227,7 +1238,7 @@ class InterferometricReco3D:
                     for ch in group_chs:
                         rts |= set(self._multiray_interpolators[ch].keys())
                 if not rts:
-                    rts = {'direct'}
+                    rts = {self._active_ray_types[0]}
                 group_rts_all.append(sorted(rts))
 
             combos = list(itertools.product(*group_rts_all))
@@ -1318,8 +1329,9 @@ class InterferometricReco3D:
             n_ch = _cache['n_ch'] if _cache else len(channels)
 
             # Compute travel times into arrays
-            tt_vals = np.full((n_ch, 3), -np.inf, dtype=np.float64)
-            tt_valid = np.zeros((n_ch, 3), dtype=np.bool_)
+            n_rt = self._n_ray_slots
+            tt_vals = np.full((n_ch, n_rt), -np.inf, dtype=np.float64)
+            tt_valid = np.zeros((n_ch, n_rt), dtype=np.bool_)
             for ci in range(n_ch):
                 ch = channels[ci]
                 if ant_pos is not None:
@@ -1332,7 +1344,7 @@ class InterferometricReco3D:
                 r = max(np.sqrt(dx * dx + dy * dy), 1.0)
                 if _cache is not None:
                     td_ch = _cache['td_list'][ci]
-                    for rti in range(3):
+                    for rti in range(n_rt):
                         td = td_ch[rti]
                         if USE_NUMBA:
                             tt = _bilinear_scalar_numba(
@@ -1344,7 +1356,7 @@ class InterferometricReco3D:
                             tt_vals[ci, rti] = tt
                             tt_valid[ci, rti] = True
                 else:
-                    for rti, rt in enumerate(RAY_TYPES):
+                    for rti, rt in enumerate(self._active_ray_types):
                         tt = self._tt_scalar(ch, rt, r, z)
                         if np.isfinite(tt) and tt > 0:
                             tt_vals[ci, rti] = tt
@@ -1366,7 +1378,7 @@ class InterferometricReco3D:
                 ch_tt = {}
                 for ci, ch in enumerate(channels):
                     ch_tt_ch = {}
-                    for rti, rt in enumerate(RAY_TYPES):
+                    for rti, rt in enumerate(self._active_ray_types):
                         if tt_valid[ci, rti]:
                             ch_tt_ch[rt] = tt_vals[ci, rti]
                     ch_tt[ch] = ch_tt_ch
@@ -1382,10 +1394,10 @@ class InterferometricReco3D:
                 corr_arr, dt, offset = corr_data[pidx]
                 ci1 = channels.index(c1)
                 ci2 = channels.index(c2)
-                for rti1 in range(3):
+                for rti1 in range(n_rt):
                     if not tt_valid[ci1, rti1]:
                         continue
-                    for rti2 in range(3):
+                    for rti2 in range(n_rt):
                         if not tt_valid[ci2, rti2]:
                             continue
                         delay = tt_vals[ci1, rti1] - tt_vals[ci2, rti2]
@@ -1467,14 +1479,14 @@ class InterferometricReco3D:
             for gidx in range(n_groups):
                 group_chs = [ch for ch in channels
                              if ch_to_group[ch] == gidx]
-                rts = set(RAY_TYPES)
+                rts = set(self._active_ray_types)
                 for ch in group_chs:
                     rts &= set(ch_tt.get(ch, {}).keys())
                 if not rts:
                     for ch in group_chs:
                         rts |= set(ch_tt.get(ch, {}).keys())
                 if not rts:
-                    rts = {'direct'}
+                    rts = {self._active_ray_types[0]}
                 group_ray_types.append(sorted(rts))
             combos = list(itertools.product(*group_ray_types))
             combo_rt_list = []
@@ -1832,7 +1844,7 @@ class InterferometricReco3D:
             td_list = []
             for ch in channels:
                 ch_tds = [self._multiray_interpolators[ch][rt]
-                          for rt in RAY_TYPES]
+                          for rt in self._active_ray_types]
                 td_list.append(ch_tds)
             pw = np.ones(n_pairs, dtype=np.float64)
             if pair_weights is not None:
