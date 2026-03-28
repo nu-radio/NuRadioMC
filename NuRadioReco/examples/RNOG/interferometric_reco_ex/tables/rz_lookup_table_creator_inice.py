@@ -1,8 +1,9 @@
 """Generate per-channel R-Z travel time lookup tables (in-ice only).
 
-Supports three output modes:
+Supports four output modes:
 - multiray: per-ray-type tables (direct, refracted, reflected)
 - combined: single table with min travel time across all ray types
+- solution_ordered: 2 tables ordered by travel time (solution_0=fastest, solution_1=slowest)
 - all: both multiray and combined
 
 Uses NuRadioMC analytic raytracing to classify solutions by ray type.
@@ -105,7 +106,8 @@ def generate_tables(station, ch, mode="multiray", rz_res=1, r_max=1600,
         Channel number.
     mode : str
         "multiray" (3 per-ray-type files), "combined" (1 min-time file),
-        or "all" (both).
+        "solution_ordered" (2 travel-time-ordered files), or "all" (both
+        multiray and combined).
     rz_res : float
         Grid resolution in meters.
     r_max : float
@@ -166,6 +168,7 @@ def generate_tables(station, ch, mode="multiray", rz_res=1, r_max=1600,
     sfx = f"_{name_suffix}" if name_suffix else ""
     write_multiray = mode in ("multiray", "all")
     write_combined = mode in ("combined", "all")
+    write_solution_ordered = mode == "solution_ordered"
 
     if write_multiray:
         for sol_type, name in RAY_TYPE_NAMES.items():
@@ -220,6 +223,44 @@ def generate_tables(station, ch, mode="multiray", rz_res=1, r_max=1600,
                   f"{valid.max():.2f}] ns")
         print(f"    Saved: {outpath}")
 
+    if write_solution_ordered:
+        sol_0 = np.full((len(R_RANGE), len(Z_RANGE)), np.nan)
+        sol_1 = np.full((len(R_RANGE), len(Z_RANGE)), np.nan)
+
+        for i in range(len(R_RANGE)):
+            for j in range(len(Z_RANGE)):
+                finite_times = sorted(
+                    tables[rt][i, j]
+                    for rt in RAY_TYPES
+                    if np.isfinite(tables[rt][i, j])
+                )
+                if len(finite_times) >= 1:
+                    sol_0[i, j] = finite_times[0]
+                if len(finite_times) >= 2:
+                    sol_1[i, j] = finite_times[1]
+
+        for sol_idx, data in enumerate([sol_0, sol_1]):
+            name = f"solution_{sol_idx}"
+            outpath = os.path.join(
+                output_dir,
+                f"st{station}_ch{ch}_rz_table_{name}{sfx}.npz"
+            )
+            np.savez_compressed(
+                outpath,
+                r_range_vals=R_RANGE,
+                z_range_vals=Z_RANGE,
+                data=data,
+            )
+            n_valid = np.sum(~np.isnan(data))
+            n_total = data.size
+            print(f"  {name}: {n_valid}/{n_total} valid "
+                  f"({100*n_valid/n_total:.1f}%)")
+            if n_valid > 0:
+                valid = data[~np.isnan(data)]
+                print(f"    time range: [{valid.min():.2f}, "
+                      f"{valid.max():.2f}] ns")
+            print(f"    Saved: {outpath}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -228,9 +269,12 @@ if __name__ == "__main__":
     parser.add_argument("--station", type=int, required=True)
     parser.add_argument("--channel", type=int, required=True)
     parser.add_argument("--mode", type=str, default="multiray",
-                        choices=["multiray", "combined", "all"],
+                        choices=["multiray", "combined", "solution_ordered",
+                                 "all"],
                         help="multiray (3 ray-type files), combined "
-                             "(1 min-time file), or all (default: multiray)")
+                             "(1 min-time file), solution_ordered "
+                             "(2 travel-time-ordered files), or all "
+                             "(default: multiray)")
     parser.add_argument("--num_threads", type=int, default=1)
     parser.add_argument("--output-dir", type=str, default=None)
     parser.add_argument("--rz-res", type=int, default=1)
