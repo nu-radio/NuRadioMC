@@ -67,21 +67,21 @@ The shipped configs are for station 23. To run on a different station, copy a co
 ```bash
 cd reco3d/
 
-# Neutrino, hw mode (no antenna dedispersion, ~6 s/event)
+# Neutrino, hw mode (no antenna dedispersion, ~2 s/event)
 python interferometric_reco_3d_example.py \
     --config configs/reco3d_neutrino_gzk.yaml \
     --mode hw \
     -i /path/to/nu_e_ccnc_1e18_1e20eV_GZK-2_IceCube-nu-2022_000000.nur \
     -o results/test_neutrino_hw.h5
 
-# Pulser, rxtx mode (Rx + Tx antenna dedispersion, ~94 s/event)
+# Pulser, rxtx mode (Rx + Tx antenna dedispersion, ~10 s/event)
 python interferometric_reco_3d_example.py \
     --config configs/reco3d_pulser_sim.yaml \
     --mode rxtx \
     -i /path/to/output_r50.0_zen90.0_az0.0.nur \
     -o results/test_pulser_rxtx.h5
 
-# Pulser, hw mode (no antenna dedispersion, ~9 s/event)
+# Pulser, hw mode (no antenna dedispersion, ~5 s/event)
 python interferometric_reco_3d_example.py \
     --config configs/reco3d_pulser_sim.yaml \
     --mode hw \
@@ -166,9 +166,9 @@ The `--mode` flag controls output: `multiray` (3 per-ray-type files), `combined`
 
 | Mode | What it does | When to use | Runtime |
 |------|-------------|-------------|---------|
-| `hw` | Pass 1 only: cable delay + HW phase removal + grid search | Neutrinos (unknown source), fast pulser baseline | ~6 s/event |
-| `rx` | Pass 1 + Pass 2: Rx antenna dedispersion at estimated arrival angles, local re-search | Neutrinos when runtime is acceptable | ~30 s/event |
-| `rxtx` | Pass 1 + Pass 2: Rx + Tx antenna dedispersion (requires known emitter position in filename) | Pulser simulations only | ~94 s/event |
+| `hw` | Pass 1 only: cable delay + HW phase removal + grid search | Neutrinos (unknown source), fast pulser baseline | ~2 s/event |
+| `rx` | Pass 1 + Pass 2: Rx antenna dedispersion at estimated arrival angles, local re-search | Neutrinos when runtime is acceptable | ~15 s/event |
+| `rxtx` | Pass 1 + Pass 2: Rx + Tx antenna dedispersion (requires known emitter position in filename) | Pulser simulations only | ~10 s/event |
 
 All modes run pass 1: a hierarchical 3D grid search (coarse log-spaced rho scan, peak extraction, linear refine grid, L-BFGS-B optimization) using the multiray tables.
 
@@ -202,35 +202,38 @@ For simulation data, bandpass, CW removal, and dedispersion are typically unnece
 
 ## Resource estimates
 
-### Neutrino GZK (12,916 events, hw mode)
+### Neutrino GZK (27,667 events, hw mode)
 
 | Resource | Estimate |
 |----------|----------|
-| Time per event | ~6 s |
-| Total CPU time | ~22 CPU-hours |
-| Recommended chunks | 100 |
-| Walltime per chunk | 20 min |
+| Time per event | ~2.2 s |
+| Total CPU time | ~17 CPU-hours |
+| Recommended chunks | 200 |
+| Walltime per chunk | 10 min |
 | Memory per chunk | 4 GB |
 
 ### Pulser sim (18,879 events, rxtx mode)
 
 | Resource | Estimate |
 |----------|----------|
-| Time per event | ~94 s |
-| Total CPU time | ~493 CPU-hours |
+| Time per event | ~10 s |
+| Total CPU time | ~52 CPU-hours |
 | Recommended chunks | 200 |
-| Walltime per chunk | 3 hours |
+| Walltime per chunk | 30 min |
 | Memory per chunk | 4 GB |
 
 ### Pulser sim (18,879 events, hw mode)
 
 | Resource | Estimate |
 |----------|----------|
-| Time per event | ~9 s |
-| Total CPU time | ~47 CPU-hours |
+| Time per event | ~5 s |
+| Total CPU time | ~26 CPU-hours |
 | Recommended chunks | 100 |
-| Walltime per chunk | 25 min |
+| Walltime per chunk | 15 min |
 | Memory per chunk | 4 GB |
+
+See [`benchmarking/README.md`](benchmarking/README.md) for detailed per-stage
+breakdowns and percentile distributions.
 
 ## Output format
 
@@ -254,26 +257,39 @@ For neutrino truth comparison, the paired HDF5 files contain `xx`, `yy`, `zz` ve
 
 ## Validated results
 
-### Neutrino GZK (hw mode, 12,916 events)
+### Neutrino GZK (hw mode)
+
+| Dataset | Events | Median | 68th | < 1 deg | < 2 deg |
+|---------|--------|--------|------|---------|---------|
+| Noiseless | 12,916 | 1.04 deg | 2.04 deg | 49% | 68% |
+| Noisy (300K) | 27,667 | 1.48 deg | 2.89 deg | 38% | 59% |
+
+### Pulser sim (rxtx mode, 18,879 events)
 
 | Metric | Value |
 |--------|-------|
-| Median angular separation | 1.04 deg |
-| 68th percentile | 2.04 deg |
-| 90th percentile | 14.09 deg |
-| Fraction < 1 deg | 49% |
-| Fraction < 2 deg | 68% |
+| Median angular separation | 0.42 deg |
+| 68th percentile | 1.21 deg |
+| 90th percentile | 13.99 deg |
+| Fraction < 1 deg | 65% |
+| Fraction < 2 deg | 76% |
 
-### Pulser sim (rxtx mode, 27 stratified events)
+Neutrino results use `reco3d_neutrino_gzk.yaml`. Pulser results use `reco3d_pulser_sim.yaml` in rxtx mode on the full 18,879-event dataset. Your results should match when using the same configs, tables, and datasets. For other simulation sets, stations, or energy ranges, treat these as a ballpark reference rather than an exact target.
 
-| Metric | Value |
-|--------|-------|
-| Median angular separation | 0.27 deg |
-| 68th percentile | 1.15 deg |
-| Fraction < 1 deg | 67% |
-| Fraction < 2 deg | 74% |
+## Benchmarking
 
-Neutrino results are from the full 12,916-event GZK dataset using `reco3d_neutrino_gzk.yaml`. Pulser results are from the preprocessing permutation study (March 2026) on a stratified subsample. Your results should match when using the same configs, tables, and datasets. For other simulation sets, stations, or energy ranges, treat these as a ballpark reference rather than an exact target.
+Detailed per-stage timing breakdowns, memory profiles, and profiling scripts
+are in the `benchmarking/` directory. See
+[`benchmarking/README.md`](benchmarking/README.md) for canonical results on the
+GZK neutrino and simulated pulser datasets.
+
+Quick timing check for a single event:
+
+```bash
+python benchmarking/benchmark_kernels.py \
+    --config configs/reco3d_neutrino_gzk.yaml \
+    --nur-file /path/to/neutrino.nur
+```
 
 ## File listing
 
@@ -291,6 +307,11 @@ NuRadioReco/examples/RNOG/interferometric_reco_ex/
     fast_grouped_multiray.py              Numba-accelerated grouped multiray correlator
     submit_reco3d_example.sh              Example SLURM batch submission
     RECO3D_QUICKSTART.md                  This file
+    benchmarking/
+      README.md                           Benchmark results and methodology
+      benchmark_kernels.py                Single-event kernel comparison
+      summarize_batch_timing.py           Summarize timing from batch HDF5 results
+      profile_memory.py                   Peak RSS memory profiling
     configs/
       reco3d_neutrino_gzk.yaml           Best neutrino config (hw mode)
       reco3d_pulser_sim.yaml             Best pulser config (rxtx mode)

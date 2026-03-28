@@ -3,7 +3,7 @@
 # Validated on 18,879 triggered events from 6,840 simulated pulser NUR files
 # (r: 10-200m, zen: 20-160 deg, az: 0-360 deg, 3 events per grid point).
 # Median angular separation: 0.42 deg (full dataset, rxtx mode).
-# Runtime: ~19 s/event (rxtx mode), ~15 s/event (hw mode).
+# Runtime: ~10 s/event (rxtx mode), ~5 s/event (hw mode).
 #
 # Preprocessing: cable delay subtraction, HW phase removal, 10 GHz upsampling,
 # no Hilbert envelope, no SNR pair weighting.

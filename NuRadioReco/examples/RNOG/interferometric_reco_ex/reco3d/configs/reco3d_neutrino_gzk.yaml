@@ -2,7 +2,7 @@
 #
 # Validated on 27,667 GZK neutrino events (10^18-10^20 eV, 300K noise).
 # Median angular separation: 1.48 deg (full dataset, hw mode).
-# Runtime: ~6 s/event (hw mode, compute nodes).
+# Runtime: ~2 s/event (hw mode, compute nodes).
 #
 # hilbert=traces, hann=on, bandpass=off, hw_phase=on, snr_weight=off.
 #
