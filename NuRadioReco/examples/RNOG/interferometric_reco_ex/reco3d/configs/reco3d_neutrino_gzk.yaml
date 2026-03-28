@@ -31,6 +31,7 @@ limits: [1, 1500, 0, 360, -1500, 0]
 # Paths: set NURADIO_TABLE_DIR in your environment
 time_delay_tables: "${NURADIO_TABLE_DIR}"
 multiray_table_name_pattern: "st{station_id}_ch{ch}_rz_table_{ray_type}.npz"
+detector_file: "${NURADIO_DETECTOR_DIR}/rnog_all_stations_2022-10-01.json.xz"
 detector_date: "2022-10-01"
 
 # Preprocessing (driver-level, applied before reconstruction module)
