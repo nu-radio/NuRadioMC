@@ -169,6 +169,44 @@ class analogToDigitalConverter:
             'perfect_ceiling_comparator': perfect_ceiling_comparator}
 
         self._mandatory_fields = ['adc_nbits', 'adc_sampling_frequency']
+        self._pedestal_voltage = None
+
+    def set_pedestal_voltage(self, pedestal_voltage):
+        """Set the ADC pedestal voltage for asymmetric clipping.
+
+        When simulated traces are pedestal-subtracted (centered at 0V)
+        but the real ADC operates on a DC-biased signal, the effective
+        voltage range is asymmetric. For example, an ADC with 0-2.5V
+        range and 1.5V pedestal clips at -1.5V (negative) and +1.0V
+        (positive) in pedestal-subtracted coordinates.
+
+        Parameters
+        ----------
+        pedestal_voltage : float or dict
+            Pedestal voltage in NuRadioReco units (i.e., volts). Can be
+            a single value (applied to all channels) or a dict mapping
+            channel_id to pedestal voltage.
+        """
+        self._pedestal_voltage = pedestal_voltage
+
+    def _get_pedestal(self, channel_id, det_channel, field_prefix=''):
+        """Return the pedestal voltage for a channel.
+
+        Checks (in order): set_pedestal_voltage() value, then the
+        detector description field ``adc_pedestal_voltage``.
+
+        Returns None if no pedestal is configured.
+        """
+        if self._pedestal_voltage is not None:
+            if isinstance(self._pedestal_voltage, dict):
+                return self._pedestal_voltage.get(channel_id)
+            return self._pedestal_voltage
+
+        key = field_prefix + "adc_pedestal_voltage"
+        val = det_channel.get(key)
+        if val is not None:
+            return val * units.V
+        return None
 
     def _get_adc_parameters(self, det_channel, channel_id, vrms=None, trigger_adc=False):
         """ Get the ADC parameters for a channel from the detector description """
@@ -204,15 +242,19 @@ class analogToDigitalConverter:
                 logger.error(error_msg)
                 raise ValueError(error_msg)
 
-            if field_prefix + "adc_min_voltage" not in det_channel and field_prefix + "adc_max_voltage" not in det_channel:
+            if field_prefix + "adc_min_voltage" not in det_channel or field_prefix + "adc_max_voltage" not in det_channel:
                 raise ValueError(
                     f"The fields \"{field_prefix}adc_min_voltage\" and \"{field_prefix}adc_max_voltage\" "
                     f"are not present in channel {channel_id}. Please specify them in your detector file.")
 
-                adc_voltage_range = (
-                    det_channel[field_prefix + "adc_min_voltage"] * units.V,
-                    det_channel[field_prefix + "adc_max_voltage"] * units.V
-                )
+            adc_min = det_channel[field_prefix + "adc_min_voltage"] * units.V
+            adc_max = det_channel[field_prefix + "adc_max_voltage"] * units.V
+
+            pedestal = self._get_pedestal(channel_id, det_channel, field_prefix)
+            if pedestal is not None:
+                adc_voltage_range = (adc_min - pedestal, adc_max - pedestal)
+            else:
+                adc_voltage_range = (adc_min, adc_max)
         else:
             if field_prefix + "adc_noise_nbits" in det_channel:
                 error_msg = (
@@ -236,8 +278,18 @@ class analogToDigitalConverter:
                     vrms / units.mV, adc_noise_count))
             adc_voltage_range_tmp = vrms * (2 ** adc_n_bits - 1) / adc_noise_count
 
-            # make the assumption that the voltage range is symmetric around 0
-            adc_voltage_range = (-adc_voltage_range_tmp / 2, adc_voltage_range_tmp / 2)
+            # If a pedestal voltage is available with min/max, use the
+            # physical asymmetric range. Otherwise assume symmetric.
+            pedestal = self._get_pedestal(channel_id, det_channel, field_prefix)
+            min_v_key = field_prefix + "adc_min_voltage"
+            max_v_key = field_prefix + "adc_max_voltage"
+            if (pedestal is not None
+                    and min_v_key in det_channel and max_v_key in det_channel):
+                adc_min = det_channel[min_v_key] * units.V
+                adc_max = det_channel[max_v_key] * units.V
+                adc_voltage_range = (adc_min - pedestal, adc_max - pedestal)
+            else:
+                adc_voltage_range = (-adc_voltage_range_tmp / 2, adc_voltage_range_tmp / 2)
 
         logger.debug(
             ("ADC parameters Channel {}: "
