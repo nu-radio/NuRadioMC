@@ -86,6 +86,10 @@ jobs:
         # we want to include the changelog since the last release
         # First, we use gh release and some regex to get the latest tag
         export LATEST_TAG=$(gh release list | sed -rn 's/.*Latest\s*(\S+).*/\1/p')
+        # the checkout action does not by default fetch the entire remote,
+        # so to compare to the previous tag we first need to fetch it
+        git fetch --depth=1 origin refs/tags/$LATEST_TAG:refs/tags/$LATEST_TAG
+
         # Next, we use some more regex to select
         # the section of the changelog between the new and latest versions:
         git diff --output-indicator-new=\| $LATEST_TAG $NEW_TAG changelog.txt | sed -rn "/^\|.*$VERSION_NEW/,/^[^|]/{s/\|//p}" | sed -n "2,\$p" > /tmp/changelog_$NEW_TAG.md

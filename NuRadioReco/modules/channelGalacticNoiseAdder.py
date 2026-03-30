@@ -388,7 +388,7 @@ class channelGalacticNoiseAdder:
                         antenna_pattern, curr_fresnel_zenith, azimuth, *antenna_orientation)
                 else:
                     antenna_response = antenna_pattern.get_antenna_response_vectorized(
-                        freqs, curr_fresnel_zenith, azimuth, *antenna_orientation)
+                        freqs[passband_filter], curr_fresnel_zenith, azimuth, *antenna_orientation)
 
                 channel_noise_spectrum = (
                     antenna_response['theta'] * channel_noise_spec[1][passband_filter]

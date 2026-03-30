@@ -7,7 +7,6 @@ The effective temperature of the ice for a given direction include the temperatu
 
 ## Requirements
 * git@github.com:RNO-G/antenna-positioning.git
-  * At the time of writing this example requires a specific branch of RadioPropa: ice_model/exponential_polynomial
 * git@github.com:nu-radio/RadioPropa.git
 
 

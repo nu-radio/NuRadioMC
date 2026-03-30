@@ -11,9 +11,7 @@ in the same github repository.)
 
 ## Documentation and Installation
 
-The documentation including detailed installation instructions can be found at https://nu-radio.github.io/NuRadioMC/main.html
-
-**TL;DR:**
+The documentation, including detailed installation instructions, can be found at https://nu-radio.github.io/NuRadioMC/main.html.
 
 The stable pip release can be installed directly from pypi:
 ```

@@ -15,7 +15,7 @@ def find_snr_of_timeseries(timeseries, sampling_rate=None, window_start=0, windo
     r"""
     Return the signal-to-noise ratio (SNR) of a given time trace, defined as
 
-    ..math ::
+    .. math::
         \frac{max( | Hilbert(timeseries[window]) | )}{ STD( Hilbert(timeseries[noise]) ) }
 
     The signal window and noise window are controlled through the extra parameters to the function.
@@ -80,7 +80,9 @@ def find_snr_of_timeseries(timeseries, sampling_rate=None, window_start=0, windo
 
 class stationPulseFinder:
     """
-    Look for significant pulses in every station. The module uses beamforming to enhance the sensitivity in
+    Look for significant pulses in every station.
+
+    The module uses beamforming to enhance the sensitivity in
     direction estimated from the LORA particle data. It also identifies the channels which have an SNR good
     enough to use for direction fitting later.
     """
@@ -97,6 +99,8 @@ class stationPulseFinder:
 
     def begin(self, window=256, noise_window=10000, cr_snr=6.5, good_channels=6, logger_level=logging.NOTSET):
         """
+        Set parameters for pulse finding
+
         Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
         to use for noise measurements. The function also defines what an acceptable SNR is to consider a
         cosmic-ray signal to be in the trace, as well as the number of good channels a station should have

@@ -1,6 +1,7 @@
 import NuRadioReco.detector.RNO_G.db_mongo_read
 import NuRadioReco.utilities.metaclasses
 import six
+import re
 import datetime
 
 from bson import ObjectId
@@ -71,7 +72,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             self.db[collection_name].update_one({'name': name},
                                      {'$push': {'measurements': {
                                          'id_measurement': ObjectId(),
-                                         'last_updated': datetime.datetime.utcnow(),
+                                         'last_updated': datetime.datetime.now(tz=datetime.timezone.utc),
                                          'function_test': False,
                                          'primary_measurement': primary_measurement_times,
                                          'channel_id': channel_id
@@ -80,7 +81,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             self.db[collection_name].update_one({'name': name},
                                      {'$push': {'measurements': {
                                          'id_measurement': ObjectId(),
-                                         'last_updated': datetime.datetime.utcnow(),
+                                         'last_updated': datetime.datetime.now(tz=datetime.timezone.utc),
                                          'function_test': False,
                                          'primary_measurement': primary_measurement_times,
                                          'breakout': breakout_id,
@@ -90,7 +91,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             self.db[collection_name].update_one({'name': name},
                                      {'$push': {'measurements': {
                                          'id_measurement': ObjectId(),
-                                         'last_updated': datetime.datetime.utcnow(),
+                                         'last_updated': datetime.datetime.now(tz=datetime.timezone.utc),
                                          'function_test': False,
                                          'primary_measurement': primary_measurement_times
                                      }}}, upsert=True)
@@ -117,26 +118,86 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time
         """
 
-        self.set_database_time(datetime.datetime.utcnow())
+        self.set_database_time(datetime.datetime.now(tz=datetime.timezone.utc))
 
         # close the time period of the old primary measurement
         if primary_measurement and identification_value in self.db[collection].distinct(identification_key):
+            primary_time_end = primary_measurement_start
             self.update_current_primary(
-                collection, identification_value, identification_label=identification_key, data_dict=data_dict)
+                collection, identification_value, identification_label=identification_key, data_dict=data_dict, primary_end_time=primary_time_end)
 
         # define the new primary measurement times
         if primary_measurement:
             if primary_measurement_start is None:
-                primary_measurement_start = datetime.datetime.utcnow()
+                primary_measurement_start = datetime.datetime.now(tz=datetime.timezone.utc)
             primary_measurement_times = [{'start': primary_measurement_start, 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
         else:
             primary_measurement_times = []
 
         # update the entry with the measurement (if the entry doesn't exist it will be created)
         data_dict.update({'id_measurement': ObjectId(
-        ), 'primary_measurement': primary_measurement_times, 'last_updated': datetime.datetime.utcnow()})
-        self.db[collection].update_one({identification_key: identification_value},
+        ), 'primary_measurement': primary_measurement_times, 'last_updated': datetime.datetime.now(tz=datetime.timezone.utc)})
+
+        main_dict = {identification_key: identification_value}
+            
+        self.db[collection].update_one(main_dict,
                                        {'$push': {'measurements': data_dict}}, upsert=True)
+
+    
+    def add_time_dependent_entry_to_database(self, collection, identification_key, identification_value, primary_measurement, data_dict, commission_time, decommission_time, primary_measurement_start=None):
+        """
+        inserts a time dependent entry into the database.
+        If the measurement dosn't exist yet, it will be created.
+        Only works for the following collections: gain_calibration
+
+        Parameters
+        ----------
+        collection: string
+            specify the collection in which the entry will be added
+        identification_key: string
+            specify the key used for identification (must be 'name' or 'id')
+        identification_value: string
+            specify the name of the entry (e.g. the name of the measurement or the channel position identifier)
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
+        data_dict: dict
+            dictionary with all the information that should be saved for this entry
+        commission_time: datetime.datetime
+            The commission time of the measurement.
+        decommission_time: datetime.datetime
+            The decommission time of the measurement.
+        primary_measurement_start: datetime.datetime
+            If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time
+        """
+
+        self.set_database_time(datetime.datetime.now(tz=datetime.timezone.utc))
+
+        search_dict = {identification_key: identification_value,
+                       "commission_time": commission_time,
+                       "decommission_time": decommission_time}
+
+        # close the time period of the old primary measurement (if it exists)
+        search_result = list(self.db[collection].aggregate([{"$match": search_dict}]))
+        if primary_measurement and len(search_result) == 1: # an entry already exists and needs to be updated
+                primary_time_end = primary_measurement_start
+                self.update_current_primary(
+                    collection, search_result[0]["_id"], identification_label="_id", data_dict=data_dict, primary_end_time=primary_time_end)
+
+        # define the new primary measurement times
+        if primary_measurement:
+            if primary_measurement_start is None:
+                primary_measurement_start = datetime.datetime.now(tz=datetime.timezone.utc)
+            primary_measurement_times = [{'start': primary_measurement_start, 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
+        else:
+            primary_measurement_times = []
+
+        # update the entry with the measurement (if the entry doesn't exist it will be created)
+        data_dict.update({'id_measurement': ObjectId(
+        ), 'primary_measurement': primary_measurement_times, 'last_updated': datetime.datetime.now(tz=datetime.timezone.utc)})
+            
+        self.db[collection].update_one(search_dict,
+                                       {'$push': {'measurements': data_dict}}, upsert=True)
+        
 
     def add_general_station_info(self, station_id, station_name, station_comment, signal_digitizer_config_id, trigger_digitizer_config_id, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
         # check if an active station exist; if true, the active station will be decommissioned
@@ -150,7 +211,9 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         stations = list(self.db[self.__station_collection].aggregate(time_filter))
 
         if len(stations) > 0:
-            self.decommission_a_station(station_id, commission_time)
+            self.decommission_a_object(station_id=station_id, 
+                                       object_name="station",
+                                       decomm_time=commission_time)
 
         # create uniqe position identifier
         position_identifier = f'position_stn{station_id}_{commission_time.month}{commission_time.year}'
@@ -194,7 +257,10 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
         # check if the channel already exist, decommission the active channel first
         if entries != []:
-            self.decommission_a_channel(station_id, channel_id, commission_time)
+            self.decommission_a_object(station_id=station_id, 
+                                       object_name="channel",
+                                       decomm_time=commission_time,
+                                       object_id=channel_id)
 
         # create uniqe position and signal chain identifier
         position_identifier = f'position_stn{station_id}_cha{channel_id}_{commission_time.month}{commission_time.year}'
@@ -240,7 +306,10 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
         # check if the device already exist, decommission the active device first
         if entries != []:
-            self.decommission_a_device(station_id, device_id, commission_time)
+            self.decommission_a_object(station_id=station_id, 
+                                       object_name="device",
+                                       decomm_time=commission_time,
+                                       object_id=device_id)
 
         # create uniqe position and identifier
         position_identifier = f'position_stn{station_id}_dev{device_id}_{commission_time.month}{commission_time.year}'
@@ -261,13 +330,13 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
     def add_measurement_protocol(self, protocol_name):
         # insert the new measurement protocol
         self.db['measurement_protocol'].insert_one({'protocol': protocol_name,
-                                                   'inserted': datetime.datetime.utcnow()})
+                                                   'inserted': datetime.datetime.now(tz=datetime.timezone.utc)})
 
     # operation that change the primary status of a measurement
 
-    def update_current_primary(self, collection_name, name, identification_label, data_dict):
+    def update_current_primary(self, collection_name, name, identification_label, data_dict, primary_end_time=None):
         """
-        updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow()
+        updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow() or primary_end_time
 
         Parameters
         ----------
@@ -279,9 +348,11 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             specify what kind of label is used for the identification ("name" or "id")
         data_dict: dict
             dictionary containing additional information that are used to search the database (e.g., channel_id, S_parameter)
+        primary_end_time: datetime.datetime or None
+            If this argument is given, the end of the current primary measurement is set to this timestamp (instead of now).
         """
 
-        present_time = self.__database_time
+        present_time = datetime.datetime.now(tz=datetime.timezone.utc)
 
         # find the current primary measurement
         obj_id, measurement_id = self.find_primary_measurement(
@@ -305,10 +376,14 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
                 primary_times = info[0]['measurements']['primary_measurement']
 
                 # update the 'end' time to the present time
-                primary_times[-1]['end'] = present_time
+                if primary_end_time is not None:
+                    primary_times[-1]['end'] = primary_end_time
+                else:
+                    primary_times[-1]['end'] = present_time
 
                 self.db[collection_name].update_one({'_id': obj_id}, {"$set": {
                                          "measurements.$[updateIndex].primary_measurement": primary_times}}, array_filters=[{"updateIndex.id_measurement": m_id}])
+
 
     def __change_primary_object_measurement(self, object_type, object_name, search_filter, channel_id=None, breakout_id=None, breakout_channel_id=None):
         """
@@ -331,7 +406,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             If a brakout channel id is given (for a downhole_chain) the value is used to search for the current primary measurement (default: None).
         """
 
-        present_time = datetime.datetime.utcnow()
+        present_time = datetime.datetime.now(tz=datetime.timezone.utc)
 
         # get the information about the measurement specified in the search filter
         search_results = list(self.db[object_type].aggregate(search_filter))
@@ -617,8 +692,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             board_type, board_name, search_filter, breakout_id=breakout_id, breakout_channel_id=breakout_cha_id)
 
     # operation that decommission a object
-
-    def decommission_a_station(self, station_id, decomm_time):
+    def decommission_a_object(self, station_id, object_name, decomm_time, object_id=None):
         """
         function to decommission an active station in the db
 
@@ -626,43 +700,19 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         ----------
         station_id: int
             the unique identifier of the station
+        object_name: str
+            type of the object that will be decommissioned (station|channel|device)
         decomm_time: datetime
             time which should be used for updating the decommission time
+        object_id: int
+            id of the object that gets decommissioned (only necessary for (channel|device))
         """
-        # get the entry of the aktive station
-        if self.db[self.__station_collection].count_documents({'id': station_id}) == 0:
-            logger.error(f'No active station {station_id} in the database')
-        else:
-            # filter to get all active stations with the correct id
-            time = self.__current_time
-            time_filter = [{"$match": {
-                'commission_time': {"$lte": time},
-                'decommission_time': {"$gte": time},
-                'id': station_id}}]
-            # get all stations which fit the filter (should only be one)
-            stations = list(self.db[self.__station_collection].aggregate(time_filter))
-            if len(stations) > 1:
-                logger.error('More than one active station was found.')
-            else:
-                object_id = stations[0]['_id']
-
-                # change the commission/decomission time
-                self.db[self.__station_collection].update_one(
-                    {'_id': object_id}, {'$set': {'decommission_time': decomm_time}})
-
-    def decommission_a_channel(self, station_id, channel_id, decomm_time):
-        """
-        function to decommission an active channel in the db
-
-        Parameters
-        ----------
-        station_id: int
-            the unique identifier of the station
-        channel_id: int
-            the unique identifier of the channel
-        decomm_time: datetime
-            time which should be used for updating the decommission time
-        """
+        # checks if the arguments are valid
+        if not re.fullmatch(r"(station|channel|device)", object_name):
+            raise RuntimeError("The given object name is not valid. Please only use 'station' or 'channel' or 'device'.")
+        if re.fullmatch(r"(channel|device)", object_name) and object_id is None:
+            raise RuntimeError("Object id is missing. You try to decommission a channel or device without specifying the id.")
+        
         # get the entry of the aktive station
         if self.db[self.__station_collection].count_documents({'id': station_id}) == 0:
             logger.error(f'No active station {station_id} in the database')
@@ -680,40 +730,10 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             else:
                 object_id = stations[0]['_id']
 
-                # change the decommission time of a specific channel
-                self.db[self.__station_collection].update_one({'_id': object_id}, {'$set': {'channels.$[updateIndex].decommission_time': decomm_time}},
-                                               array_filters=[{"updateIndex.id": channel_id}])
-
-    def decommission_a_device(self, station_id, device_id, decomm_time):
-        """
-        function to decommission an active device in the db
-
-        Parameters
-        ----------
-        station_id: int
-            the unique identifier of the station
-        device_id: int
-            the unique identifier of the device
-        decomm_time: datetime
-            time which should be used for updating the decommission time
-        """
-        # get the entry of the active station
-        if self.db[self.__station_collection].count_documents({'id': station_id}) == 0:
-            logger.error(f'No active station {station_id} in the database')
-        else:
-            # filter to get all active stations with the correct id
-            time = self.__current_time
-            time_filter = [{"$match": {
-                'commission_time': {"$lte": time},
-                'decommission_time': {"$gte": time},
-                'id': station_id}}]
-            # get all stations which fit the filter (should only be one)
-            stations = list(self.db[self.__station_collection].aggregate(time_filter))
-            if len(stations) > 1:
-                logger.error('More than one active station was found.')
-            else:
-                object_id = stations[0]['_id']
-
-                # change the decommission time of a specific device
-                self.db[self.__station_collection].update_one({'_id': object_id}, {'$set': {'devices.$[updateIndex].decommission_time': decomm_time}},
-                                               array_filters=[{"updateIndex.id": device_id}])
+                # change the commission/decomission time
+                if re.fullmatch(r"station", object_name):
+                    self.db[self.__station_collection].update_one(
+                        {'_id': object_id}, {'$set': {'decommission_time': decomm_time}})
+                else:
+                    self.db[self.__station_collection].update_one(
+                        {'_id': object_id}, {'$set': {f'{object_name}s.$[updateIndex].decommission_time': decomm_time}}, array_filters=[{"updateIndex.id": object_id}])

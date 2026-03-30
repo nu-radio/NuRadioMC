@@ -19,7 +19,6 @@ class electricFieldSignalReconstructor:
     """
 
     def __init__(self):
-        self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
         self.__signal_window_pre = None
         self.__signal_window_post = None
         self.__noise_window = None
@@ -33,7 +32,7 @@ class electricFieldSignalReconstructor:
         logger.setLevel(log_level)
 
     @register_run()
-    def run(self, evt, station, det, debug=False):
+    def run(self, evt, station, det, signal_search_window=None, fluence_method="noise_subtraction", fluence_estimator_kwargs={}, debug=False):
         """
         reconstructs quantities for electric field
 
@@ -45,18 +44,35 @@ class electricFieldSignalReconstructor:
 
         det: detector
 
-        debug: bool
+        signal_search_window: tuple (optional)
+            search window for signal in ns
+
+        fluence_method: str (optional)
+            method to calculate fluence ("noise_subtraction" or "rice_distribution")
+
+        fluence_estimator_kwargs: dict (optional)
+            kwargs for fluence estimator. Only used if fluence_method is "rice_distribution"
+
+        debug: bool (optional)
             set debug
 
         """
         for electric_field in station.get_electric_fields():
             trace_copy = copy.copy(electric_field.get_trace())
 
+            if signal_search_window is not None:
+                times = electric_field.get_times()
+                signal_search_window_mask = (times > signal_search_window[0]) & (times < signal_search_window[1])
+                times_masked = times[signal_search_window_mask]
+                trace_copy = trace_copy[:, signal_search_window_mask]
+            else:
+                times_masked = electric_field.get_times()
+
             # calculate hilbert envelope
             envelope = np.abs(signal.hilbert(trace_copy))
             envelope_mag = np.linalg.norm(envelope, axis=0)
             signal_time_bin = np.argmax(envelope_mag)
-            signal_time = electric_field.get_times()[signal_time_bin]
+            signal_time = times_masked[signal_time_bin]
             electric_field[efp.signal_time] = signal_time
 
     #
@@ -91,9 +107,10 @@ class electricFieldSignalReconstructor:
                 dt = 1. / electric_field.get_sampling_rate()
                 ax.plot(tt / units.ns, trace[1] / units.mV * units.m)
                 ax.plot(tt / units.ns, trace[2] / units.mV * units.m)
-                ax.plot(tt / units.ns, envelope_mag / units.mV * units.m)
-                ax.vlines([low_pos * dt, up_pos * dt], 0, envelope_mag.max() / units.mV * units.m)
+                ax.plot(times_masked / units.ns, envelope_mag / units.mV * units.m)
+                ax.vlines([signal_search_window[0] + low_pos * dt, signal_search_window[0] + up_pos * dt], 0, envelope_mag.max() / units.mV * units.m, linestyles='dotted')
                 ax.vlines([signal_time - self.__signal_window_pre, signal_time + self.__signal_window_post], 0, envelope_mag.max() / units.mV * units.m, linestyles='dashed')
+                plt.show()
 
             times = electric_field.get_times()
             mask_signal_window = (times > (signal_time - self.__signal_window_pre)) & (times < (signal_time + self.__signal_window_post))
@@ -102,13 +119,7 @@ class electricFieldSignalReconstructor:
                 # set the noise window to the first "self.__noise_window" ns of the trace. If this cuts into the signal window, the noise window is reduced to not overlap with the signal window
                 mask_noise_window = times < min(times[0] + self.__noise_window, signal_time - self.__signal_window_pre)
 
-            signal_energy_fluence = trace_utilities.get_electric_field_energy_fluence(trace, times, mask_signal_window, mask_noise_window)
-            dt = times[1] - times[0]
-            signal_energy_fluence_error = np.zeros(3)
-            if(np.sum(mask_noise_window)):
-                RMSNoise = np.sqrt(np.mean(trace[:, mask_noise_window] ** 2, axis=1))
-                signal_energy_fluence_error = (4 * np.abs(signal_energy_fluence / self.__conversion_factor_integrated_signal) * RMSNoise ** 2 * dt + 2 * (self.__signal_window_pre + self.__signal_window_post) * RMSNoise ** 4 * dt) ** 0.5
-            signal_energy_fluence_error *= self.__conversion_factor_integrated_signal
+            signal_energy_fluence, signal_energy_fluence_error = trace_utilities.get_electric_field_energy_fluence(trace, times, mask_signal_window, mask_noise_window, return_uncertainty=True, method=fluence_method, estimator_kwargs=fluence_estimator_kwargs)
             electric_field.set_parameter(efp.signal_energy_fluence, signal_energy_fluence)
             electric_field.set_parameter_error(efp.signal_energy_fluence, signal_energy_fluence_error)
 

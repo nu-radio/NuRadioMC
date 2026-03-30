@@ -238,7 +238,7 @@ class hardwareResponseIncorporator:
                 trace_fft, channel.get_sampling_rate())
 
         if not sim_to_data:
-            if not evt.has_been_processed_by_module('channelAddCableDelay', station.get_id()):
+            if not evt._has_been_processed_by_module('channelAddCableDelay', station.get_id()):
                 self.logger.warning(
                     "The hardwareResponseIncorporator module should _not_ be used to remove the cable delay "
                     "from data anymore. Please use channelAddCableDelay module for this (before running "
