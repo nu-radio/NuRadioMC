@@ -242,6 +242,16 @@ class Detector():
             An optional comment describing this detector that will be added to the exported detector description.
         """
 
+        if not self._query_all:
+            # When not querying the entire description at once,
+            # we need to make sure that the buffer is updated
+            # for all stations before exporting.
+            self.logger.info("Query entire detector description at once before exporting (this might take a while) ...")
+            for station_id in self.__buffered_stations:
+                # remove everything (could be handled smarter ...)
+                self.__buffered_stations[station_id] = {}
+                self._query_station_information(station_id, query_all_information=True)
+
         periods = {}
         for station_id in self.__buffered_stations:
 
@@ -497,7 +507,7 @@ class Detector():
 
             for station_id, need_update in update_buffer_for_station.items():
                 if need_update and self.has_station(station_id):
-                    self._query_station_information(station_id)
+                    self._query_station_information(station_id, query_all_information=self._query_all)
 
         # Return when buffer is not empty. This has to come first ...
         for station_id in self.__buffered_stations:
@@ -568,18 +578,18 @@ class Detector():
         self.logger.debug(f"Station {station_id} not commissioned!")
         return False
 
-    def _query_station_information(self, station_id):
+    def _query_station_information(self, station_id, query_all_information):
         """
         Query information about a specific station from the database via the db_mongo_read interface.
-        You can query only information from the station_list collection (all=False) or the complete
-        information of the station (all=True).
+        You can query only information from the station_list collection (query_all_information=False) 
+        or the complete information of the station (query_all_information=True).
 
         Parameters
         ----------
         station_id: int
             Station id
 
-        all: bool
+        query_all_information: bool
             If true, query all relevant information form a station including its channel and devices (position, signal chain, ...).
             If false, query only the information from the station list collection (describes a station with all channels and devices
             with their (de)commissioning timestamps but not data like position, signal chain, ...)
@@ -591,7 +601,8 @@ class Detector():
 
         self.logger.info(
             f"Query information for station {station_id} at {self.get_detector_time()}")
-        if self._query_all:
+
+        if query_all_information:
             station_information = self.__db.get_complete_station_information(
                 station_id, measurement_signal_chain=self.signal_chain_measurement_name)
         else:
