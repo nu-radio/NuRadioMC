@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
+from scipy import integrate
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import cross_sections
 from radiotools import helper as hp
@@ -256,7 +257,7 @@ class PREM:
         zs = endpoint[2] + ts * distance * direction[2]
         rs = np.sqrt(xs ** 2 + ys ** 2 + zs ** 2)
         rhos = self.density(rs)
-        return np.trapz(rhos * distance, ts)
+        return integrate.trapezoid(rhos * distance, ts)
 
 
 class CoreMantleCrustModel(PREM):

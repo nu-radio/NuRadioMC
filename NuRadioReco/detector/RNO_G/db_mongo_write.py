@@ -118,7 +118,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time
         """
 
-        self.set_database_time(datetime.datetime.now(tz=datetime.timezone.utc))
+        self.check_database_time()
 
         # close the time period of the old primary measurement
         if primary_measurement and identification_value in self.db[collection].distinct(identification_key):
@@ -170,7 +170,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time
         """
 
-        self.set_database_time(datetime.datetime.now(tz=datetime.timezone.utc))
+        self.check_database_time()
 
         search_dict = {identification_key: identification_value,
                        "commission_time": commission_time,
@@ -351,8 +351,9 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         primary_end_time: datetime.datetime or None
             If this argument is given, the end of the current primary measurement is set to this timestamp (instead of now).
         """
-
-        present_time = datetime.datetime.now(tz=datetime.timezone.utc)
+        # Use database_time instead of current time
+        self.check_database_time()
+        present_time = self.get_database_time()
 
         # find the current primary measurement
         obj_id, measurement_id = self.find_primary_measurement(

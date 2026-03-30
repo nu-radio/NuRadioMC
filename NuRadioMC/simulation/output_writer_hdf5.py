@@ -349,7 +349,7 @@ class outputWriterHDF5:
 
         # save trigger information on first level
         shower_id_to_index = {shower_id: i for i, shower_id in enumerate(shower_ids)}
-        triggered = np.zeros(len(shower_ids_stn), dtype=bool)
+        triggered = np.zeros(len(shower_ids), dtype=bool)
         multiple_triggers = np.zeros((len(shower_ids), len(self._mout_attributes['trigger_names'])), dtype=bool)
         trigger_times = np.ones((len(shower_ids), len(self._mout_attributes['trigger_names'])), dtype=float) * np.nan
         for shower_id in shower_ids:

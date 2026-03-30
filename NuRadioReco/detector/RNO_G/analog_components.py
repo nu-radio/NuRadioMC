@@ -1,20 +1,21 @@
 import numpy as np
+import logging
 from scipy.interpolate import interp1d
 import os
 from NuRadioReco.utilities import units
+from functools import lru_cache
 from radiotools import helper as hp
-import logging
 logger = logging.getLogger('NuRadioReco.analog_components')
 
-
+@lru_cache(maxsize=128)
 def load_amp_response(amp_type='rno_surface', temp=293.15,
                       path=os.path.dirname(os.path.realpath(__file__))):  # use this function to read in log data
     """
-    Read out amplifier gain and phase. Currently only examples have been implemented.
-    Needs a better structure in the future, possibly with database.
-    The hardware response incorporator currently reads in the load amp response.
-    If you want to read in the RI function for your reconstruction it needs to be changed
-    in modules/RNO_G/hardweareResponseIncorporator.py l. 52, amp response.
+    Read out amplifier gain and phase.
+
+    These are all 'placeholder' measurements of a single reference amplifier/signal chain;
+    more up-to-date, channel-specific amplifier responses may be loaded via
+    the :class:`rnog_detector <NuRadioReco.detector.RNO_G.rnog_detector.Detector>` class.
     
     Temperature dependence: the function loads a reference measurement made at room temperature
     and will correct it for the temperature. The correction function is obtained empirically for
@@ -27,6 +28,8 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         * "rno_surface": the surface signal chain
         * "iglu": the in-ice signal chain
         * "phased_array": the additional filter of the phased array channels before going into the phased array trigger. 
+        * "rno_surface_impulse": alternative measurement of the surface signal chain response, including the RADIANT
+        * "deep_impulse": alternative measurement of the deep (iglu) signal chain response, including the RADIANT
     temp: float (default 293.15K)
         the default temperature in Kelvin that the amplifier response is corrected for
     """
@@ -72,7 +75,9 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         ph = os.path.join(path, 'HardwareResponses/ULP-216+_Plus25DegC.s2p')
         ff, S11gain, S11deg, S21gain, S21deg, S12gain, S12deg, S22gain, S22deg = np.loadtxt(ph, comments=['#', '!'], unpack=True)
         ff *= units.MHz
-        amp_gain_discrete = hp.dB_to_linear(S21gain)
+
+        # Convert gain in dB power to linear in voltage
+        amp_gain_discrete = 10**(S21gain / 20)
         amp_phase_discrete = S21deg * units.deg
     else:
         msg = f"Amp type `{amp_type}` not recognized. possible values are {get_available_amplifiers()}"
@@ -105,4 +110,5 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
 
 
 def get_available_amplifiers():
+    """Returns a list of available amplifiers"""
     return ['iglu', 'deep_impulse', 'rno_surface', 'rno_surface_impulse', 'phased_array', 'ULP_216']
