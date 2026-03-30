@@ -363,6 +363,23 @@ class Detector():
 
                 station_data["channels"] = {int(channel_id): channel_data for channel_id, channel_data in station_data["channels"].items()}
                 station_data["devices"] = {int(device_id): device_data for device_id, device_data in station_data["devices"].items()}
+                
+                # Convert response_chain from dict format to list format if needed
+                for channel_id, channel_data in station_data["channels"].items():
+                    if "signal_chain" in channel_data and "response_chain" in channel_data["signal_chain"]:
+                        response_chain = channel_data["signal_chain"]["response_chain"]
+                        # Check if response_chain is a dict (needs conversion) vs a list (already correct)
+                        if isinstance(response_chain, dict):
+                            # Convert dict format to list format
+                            response_chain_list = []
+                            for component_type, component_data in response_chain.items():
+                                if isinstance(component_data, dict):
+                                    # Add the collection key to the component data
+                                    component_dict = component_data.copy()
+                                    component_dict["collection"] = component_type
+                                    response_chain_list.append(component_dict)
+                            channel_data["signal_chain"]["response_chain"] = response_chain_list
+                
                 self.__buffered_stations[int(station_id)] = station_data
 
             # need to convert modification_timestamps back to datetime objects
