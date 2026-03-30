@@ -883,6 +883,16 @@
 <span class="sd">            An optional comment describing this detector that will be added to the exported detector description.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_all</span><span class="p">:</span>
+            <span class="c1"># When not querying the entire description at once,</span>
+            <span class="c1"># we need to make sure that the buffer is updated</span>
+            <span class="c1"># for all stations before exporting.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Query entire detector description at once before exporting (this might take a while) ...&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">:</span>
+                <span class="c1"># remove everything (could be handled smarter ...)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_query_station_information</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">query_all_information</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
         <span class="n">periods</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">:</span>
 
@@ -1147,7 +1157,7 @@
 
             <span class="k">for</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">need_update</span> <span class="ow">in</span> <span class="n">update_buffer_for_station</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">need_update</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_query_station_information</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_query_station_information</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">query_all_information</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_query_all</span><span class="p">)</span>
 
         <span class="c1"># Return when buffer is not empty. This has to come first ...</span>
         <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">:</span>
@@ -1225,18 +1235,18 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_query_station_information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_query_station_information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">query_all_information</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Query information about a specific station from the database via the db_mongo_read interface.</span>
-<span class="sd">        You can query only information from the station_list collection (all=False) or the complete</span>
-<span class="sd">        information of the station (all=True).</span>
+<span class="sd">        You can query only information from the station_list collection (query_all_information=False) </span>
+<span class="sd">        or the complete information of the station (query_all_information=True).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        station_id: int</span>
 <span class="sd">            Station id</span>
 
-<span class="sd">        all: bool</span>
+<span class="sd">        query_all_information: bool</span>
 <span class="sd">            If true, query all relevant information form a station including its channel and devices (position, signal chain, ...).</span>
 <span class="sd">            If false, query only the information from the station list collection (describes a station with all channels and devices</span>
 <span class="sd">            with their (de)commissioning timestamps but not data like position, signal chain, ...)</span>
@@ -1248,7 +1258,8 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Query information for station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_detector_time</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_all</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">query_all_information</span><span class="p">:</span>
             <span class="n">station_information</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__db</span><span class="o">.</span><span class="n">get_complete_station_information</span><span class="p">(</span>
                 <span class="n">station_id</span><span class="p">,</span> <span class="n">measurement_signal_chain</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">signal_chain_measurement_name</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
