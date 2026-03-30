@@ -13,21 +13,37 @@ import logging
 
 class noiseImporter:
     """
-    Imports recorded traces from RNOG stations. Uses forced/software triggers.
+    Imports recorded traces from RNO-G stations. Uses forced/software triggers.
 
+    Adds measured noise to both readout channels and (optionally) trigger
+    channel copies. The trigger copy injection handles the readout-to-trigger
+    signal chain conversion automatically using the detector description.
+
+    The trigger copy feature is needed for any simulation that evaluates a
+    realistic hardware trigger (e.g., FLOWER board) on measured noise. The
+    FLOWER board sees the signal through a different signal chain than the
+    RADIANT readout, so the noise must be transformed from the readout
+    domain to the trigger domain before injection into trigger copies.
     """
 
     def begin(
-            self, noise_folders, file_pattern="*",
+            self, noise_folders=None, noise_files=None, file_pattern="*",
             match_station_id=False, station_ids=None,
             channel_mapping=None, scramble_noise_file_order=True,
-            log_level=logging.NOTSET, random_seed=None, reader_kwargs={}):
+            log_level=logging.NOTSET, random_seed=None, reader_kwargs={},
+            inject_trigger_copies=False, trigger_channels=None,
+            hardware_response_incorporator=None):
         """
 
         Parameters
         ----------
-        noise_folders: str or list(str)
+        noise_folders: str or list(str) or None
             Folder(s) containing noise file(s). Search in any subfolder as well.
+            Either noise_folders or noise_files must be provided.
+
+        noise_files: list(str) or None
+            Explicit list of ROOT file paths or run directories to use.
+            Skips recursive glob discovery. Takes precedence over noise_folders.
 
         file_pattern: str
             File pattern used to search for directories, (Default: "*", other examples might be "combined")
@@ -55,6 +71,21 @@ class noiseImporter:
 
         reader_kwargs: dict
             Optional arguements passed to readRNOGDataMattak
+
+        inject_trigger_copies: bool
+            If True, also inject noise into trigger channel copies with
+            the readout-to-trigger transfer function applied. Required
+            for realistic FLOWER trigger evaluation. (Default: False)
+
+        trigger_channels: list(int) or None
+            Channel IDs that have trigger copies (e.g., [0, 1, 2, 3] for
+            the phased array). Required when inject_trigger_copies=True.
+            (Default: None)
+
+        hardware_response_incorporator: hardwareResponseIncorporator or None
+            An initialized hardwareResponseIncorporator instance, used to
+            compute the readout-to-trigger transfer function. Required
+            when inject_trigger_copies=True. (Default: None)
         """
 
         self.logger = logging.getLogger('NuRadioReco.RNOG.noiseImporter')
@@ -66,22 +97,43 @@ class noiseImporter:
 
         self.__channel_mapping = channel_mapping
 
+        self._inject_trigger_copies = inject_trigger_copies
+        self._trigger_channels = trigger_channels or []
+        self._hw_resp = hardware_response_incorporator
+        self._readout_to_trigger_transfer = {}
+
+        if inject_trigger_copies:
+            if not self._trigger_channels:
+                raise ValueError(
+                    "trigger_channels must be specified when "
+                    "inject_trigger_copies=True")
+            if self._hw_resp is None:
+                raise ValueError(
+                    "hardware_response_incorporator must be provided when "
+                    "inject_trigger_copies=True")
+
         self.logger.info(f"\n\tMatch station id: {match_station_id}"
                     f"\n\tUse noise from only those stations: {station_ids}"
                     f"\n\tUse the following channel mapping: {channel_mapping}"
                     f"\n\tRandomize sequence of noise files: {scramble_noise_file_order}")
 
-        if not isinstance(noise_folders, list):
-            noise_folders = [noise_folders]
+        if noise_files is not None:
+            # Explicit file list: pass files/dirs directly to readRNOGData
+            if isinstance(noise_files, str):
+                noise_files = [noise_files]
+            self.__noise_folders = np.array(noise_files)
+        elif noise_folders is not None:
+            if not isinstance(noise_folders, list):
+                noise_folders = [noise_folders]
 
-        # find all subfolders
-        noise_files = []
-        for noise_folder in noise_folders:
-            if noise_folder == "":
-                continue
-
-            noise_files += glob.glob(f"{noise_folder}/**/{file_pattern}root", recursive=True)
-        self.__noise_folders = np.unique([os.path.dirname(e) for e in noise_files])
+            discovered = []
+            for noise_folder in noise_folders:
+                if noise_folder == "":
+                    continue
+                discovered += glob.glob(f"{noise_folder}/**/{file_pattern}root", recursive=True)
+            self.__noise_folders = np.unique([os.path.dirname(e) for e in discovered])
+        else:
+            raise ValueError("Either noise_folders or noise_files must be provided")
 
         self.logger.info(f"Found {len(self.__noise_folders)}")
         if not len(self.__noise_folders):
@@ -95,7 +147,7 @@ class noiseImporter:
 
         default_reader_kwargs = {
             "selectors": [lambda einfo: einfo.triggerType == "FORCE"],
-            "log_level": log_level, "select_runs": True, "max_trigger_rate": 2 * units.Hz,
+            "select_runs": True, "max_trigger_rate": 2 * units.Hz,
             "run_types": ["physics"]
         }
         default_reader_kwargs.update(reader_kwargs)
@@ -157,57 +209,142 @@ class noiseImporter:
         return noise_event, i_noise
 
 
-    @register_run()
-    def run(self, evt, station, det):
-
+    def _draw_and_cache_noise(self, station):
+        """Draw a noise event and cache it for two-stage injection."""
         if self._match_station_id:
-            # select only noise events from simulated station id
             station_mask = self.__station_id_list == station.get_id()
             if not np.any(station_mask):
                 raise ValueError(f"No station with id {station.get_id()} in noise data.")
-
         else:
-            # select all noise events
             station_mask = np.full_like(self.__event_index_list, True)
 
         noise_event, i_noise = self.__draw_noise_event(station_mask)
-
         station_id = noise_event.get_station_ids()[0]
         noise_station = noise_event.get_station(station_id)
 
-        if self.__station_ids is not None and not station_id in self.__station_ids:
-            raise ValueError(f"Station id {station_id} not in list of allowed ids: {self.__station_ids}")
+        if self.__station_ids is not None and station_id not in self.__station_ids:
+            raise ValueError(f"Station id {station_id} not in list: {self.__station_ids}")
 
         self.logger.debug("Selected noise event {} ({}, run {}, event {})".format(
             i_noise, noise_station.get_station_time(), noise_event.get_run_number(),
             noise_event.get_id()))
 
+        self._cached_noise_station = noise_station
+        return noise_station
+
+    @register_run()
+    def run(self, evt, station, det, trigger_copies_only=False):
+        """Add measured noise to station channels.
+
+        Parameters
+        ----------
+        evt, station, det : standard NuRadioReco objects
+        trigger_copies_only : bool
+            If True, only inject into trigger channel copies (for use
+            at the internal simulation rate before trigger evaluation).
+            If False, inject into readout channels (normal mode).
+            When True, a new noise event is drawn and cached. When
+            False with a cached event, the cached event is reused to
+            ensure trigger and readout see the same noise realization.
+        """
+        if trigger_copies_only:
+            noise_station = self._draw_and_cache_noise(station)
+        elif hasattr(self, '_cached_noise_station') and self._cached_noise_station is not None:
+            noise_station = self._cached_noise_station
+            self._cached_noise_station = None
+        else:
+            noise_station = self._draw_and_cache_noise(station)
+
         for channel in station.iter_channels():
             channel_id = channel.get_id()
-
-            trace = channel.get_trace()
             noise_channel = noise_station.get_channel(self.__get_noise_channel(channel_id))
             noise_trace = noise_channel.get_trace()
 
-            if len(trace) > 2048:
-                self.logger.warning("Simulated trace is longer than 2048 bins... trim with :2048")
-                trace = trace[:2048]
+            if not trigger_copies_only:
+                trace = channel.get_trace()
 
-            # sanity checks
-            if len(trace) != len(noise_trace):
-                erg_msg = f"Mismatch in trace lenght: Noise has {len(noise_trace)} " + \
-                    "and simulation has {len(trace)} samples"
-                self.logger.error(erg_msg)
-                raise ValueError(erg_msg)
+                if len(trace) > 2048:
+                    self.logger.warning("Simulated trace longer than 2048, trimming")
+                    trace = trace[:2048]
 
-            if channel.get_sampling_rate() != noise_channel.get_sampling_rate():
-                erg_msg = "Mismatch in sampling rate: Noise has {} and simulation has {} GHz".format(
-                    noise_channel.get_sampling_rate() / units.GHz, channel.get_sampling_rate() / units.GHz)
-                self.logger.error(erg_msg)
-                raise ValueError(erg_msg)
+                if len(trace) != len(noise_trace):
+                    erg_msg = (f"Mismatch in trace length: Noise has {len(noise_trace)} "
+                               f"and simulation has {len(trace)} samples")
+                    self.logger.error(erg_msg)
+                    raise ValueError(erg_msg)
 
-            trace = trace + noise_trace
-            channel.set_trace(trace, channel.get_sampling_rate())
+                if channel.get_sampling_rate() != noise_channel.get_sampling_rate():
+                    erg_msg = (f"Mismatch in sampling rate: Noise has "
+                               f"{noise_channel.get_sampling_rate() / units.GHz} and "
+                               f"simulation has {channel.get_sampling_rate() / units.GHz} GHz")
+                    self.logger.error(erg_msg)
+                    raise ValueError(erg_msg)
+
+                trace = trace + noise_trace
+                channel.set_trace(trace, channel.get_sampling_rate())
+
+            # Trigger copy injection (only during the trigger-copies-only stage)
+            if (trigger_copies_only
+                    and self._inject_trigger_copies
+                    and channel_id in self._trigger_channels
+                    and channel.has_extra_trigger_channel()):
+                trig_ch = channel.get_trigger_channel()
+                trig_trace = trig_ch.get_trace()
+                n_trig = len(trig_trace)
+                trig_sr = trig_ch.get_sampling_rate()
+
+                if trig_sr == 0:
+                    # Trigger copy sampling rate not set; fall back to
+                    # the regular channel's rate (internal sim rate)
+                    trig_sr = channel.get_sampling_rate()
+                    self.logger.debug(
+                        f"ch{channel_id}: trigger copy sr=0, using channel sr={trig_sr/units.GHz:.1f} GHz")
+
+                # Upsample noise to match trigger copy length
+                n_up = int(round(len(noise_trace) * trig_sr / noise_channel.get_sampling_rate()))
+                noise_up = self._upsample(noise_trace, n_up)
+
+                # Apply readout-to-trigger transfer function
+                transfer = self._get_readout_to_trigger_transfer(
+                    channel_id, n_up, det, station.get_id(), trig_sr)
+                noise_fft = np.fft.rfft(noise_up)
+                trig_noise = np.fft.irfft(noise_fft * transfer, n=n_up)
+
+                # Add to trigger copy (noise covers first n_up samples,
+                # rest of trigger copy is signal-only from the convolution)
+                trig_trace[:n_up] += trig_noise
+                trig_ch.set_trace(trig_trace, trig_sr)
+
+    @staticmethod
+    def _upsample(trace, target_n_samples):
+        """Upsample via FFT zero-padding above Nyquist."""
+        n_orig = len(trace)
+        spec = np.fft.rfft(trace)
+        new_spec = np.zeros(target_n_samples // 2 + 1, dtype=complex)
+        new_spec[:len(spec)] = spec
+        return np.fft.irfft(new_spec, n=target_n_samples) * (target_n_samples / n_orig)
+
+    def _get_readout_to_trigger_transfer(self, ch_id, n_samples, det, station_id, sampling_rate):
+        """Compute and cache the readout-to-trigger transfer function.
+
+        Returns trigger_response / readout_response in the frequency domain.
+        Regularizes near-zero readout values to prevent division artifacts.
+        """
+        key = (ch_id, n_samples)
+        if key not in self._readout_to_trigger_transfer:
+            ff = np.fft.rfftfreq(n_samples, d=1.0 / sampling_rate)
+            readout = self._hw_resp.get_filter(
+                ff, station_id, ch_id, det,
+                sim_to_data=True, is_trigger=False)
+            trigger = self._hw_resp.get_filter(
+                ff, station_id, ch_id, det,
+                sim_to_data=True, is_trigger=True)
+            readout_abs = np.abs(readout)
+            max_r = np.max(readout_abs)
+            safe_readout = np.where(
+                readout_abs > 1e-3 * max_r, readout, max_r)
+            self._readout_to_trigger_transfer[key] = trigger / safe_readout
+        return self._readout_to_trigger_transfer[key]
 
     def end(self):
         self._noise_reader.end()
@@ -216,4 +353,3 @@ class noiseImporter:
         self.logger.info(
             "\n\tThe five most used noise events have been used: {}"
             .format(", ".join([str(ele) for ele in n_use[sort][:5]])))
-        pass
