@@ -1,0 +1,35 @@
+noise: False
+sampling_rate: 5.  # GHz, internal simulation sampling rate
+
+speedup:
+  minimum_weight_cut: 1.e-5
+  min_efield_amplitude: -1
+  delta_C_cut: 0.698  # 40 degree
+
+propagation:
+  module: analytic
+  ice_model: greenland_simple
+  attenuation_model: GL3
+  attenuate_ice: True
+  n_freq: 25
+  focusing: True
+  focusing_limit: 2
+  n_reflections: 0
+
+signal:
+  model: ARZ2020
+  zerosignal: False
+  polarization: auto
+  shower_type: null
+
+trigger:
+  noise_temperature: 300  # in Kelvin
+
+output:
+  channel_traces: True
+  electric_field_traces: False
+  sim_channel_traces: True
+  sim_electric_field_traces: False
+
+weights:
+  weight_mode: core_mantle_crust

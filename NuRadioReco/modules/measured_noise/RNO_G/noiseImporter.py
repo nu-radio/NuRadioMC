@@ -22,8 +22,9 @@ class noiseImporter:
     The trigger copy feature is needed for any simulation that evaluates a
     realistic hardware trigger (e.g., FLOWER board) on measured noise. The
     FLOWER board sees the signal through a different signal chain than the
-    RADIANT readout, so the noise must be transformed from the readout
-    domain to the trigger domain before injection into trigger copies.
+    RADIANT readout (see arXiv:2411.12922, Sec. 3.2), so the noise must
+    be transformed from the readout domain to the trigger domain before
+    injection into trigger copies.
     """
 
     def begin(
