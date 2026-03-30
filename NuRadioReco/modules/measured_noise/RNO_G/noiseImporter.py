@@ -166,6 +166,10 @@ class noiseImporter:
 
         self._n_use_event = collections.defaultdict(int)
 
+    @property
+    def n_events_available(self):
+        """Number of noise events in the pool."""
+        return len(self.__event_index_list)
 
     def __get_noise_channel(self, channel_id):
         if self.__channel_mapping is None:

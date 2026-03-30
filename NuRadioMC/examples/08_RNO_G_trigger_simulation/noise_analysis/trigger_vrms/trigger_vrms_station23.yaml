@@ -1,0 +1,11 @@
+trigger_vrms_V:
+  0: 0.004303603662497474
+  1: 0.0051208517568708135
+  2: 0.004200548272436807
+  3: 0.002986970413144379
+metadata:
+  station_id: 23
+  event_time: '2022-10-01'
+  n_events: 100
+  seed: 42
+  ft_noise_dir: /storage/group/szw5718/default/rno-g/data/forced_triggers/station23

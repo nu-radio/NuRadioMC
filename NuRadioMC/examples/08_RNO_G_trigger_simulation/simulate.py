@@ -22,6 +22,7 @@ import os
 import secrets
 import datetime as dt
 import pandas as pd
+import yaml
 
 from scipy.fft import next_fast_len
 
@@ -156,12 +157,11 @@ if __name__ == "__main__":
                         choices=["cc", "nc", "ccnc"])
     parser.add_argument("--n_events", '-n', type=int, default=1000)
     parser.add_argument("--fiducial_rmax", type=float, default=None,
-                        help="Max radius in m. If set, uses CR proxy volume "
-                             "(0-1m depth). If not set, uses neutrino volume.")
-    parser.add_argument("--min_zenith", type=float, default=0.0,
-                        help="Min zenith angle in degrees (default: 0)")
-    parser.add_argument("--max_zenith", type=float, default=60.0,
-                        help="Max zenith angle in degrees (default: 60)")
+                        help="Override config fiducial_volume.rmax (m)")
+    parser.add_argument("--min_zenith", type=float, default=None,
+                        help="Override config fiducial_volume.min_zenith (deg)")
+    parser.add_argument("--max_zenith", type=float, default=None,
+                        help="Override config fiducial_volume.max_zenith (deg)")
 
     # Output
     parser.add_argument("--output_file", type=str, default=None)
@@ -174,10 +174,18 @@ if __name__ == "__main__":
                         help="FT noise data directory (enables measured noise mode)")
     parser.add_argument("--ft_seed", type=int, default=None)
     parser.add_argument("--ft_clean_mask", type=str, default=None)
+    parser.add_argument("--trigger_vrms", type=str, default=None,
+                        help="YAML file with trigger-path Vrms per channel "
+                             "(from noise_analysis/trigger_vrms/extract_trigger_vrms.py)")
 
     # ADC pedestal
     parser.add_argument("--pedestal_voltage", type=float, default=DEFAULT_PEDESTAL_V,
                         help="ADC pedestal voltage in V (default: 1.5)")
+
+    # Per-channel noise temperatures (workaround until DB has calibrated values)
+    parser.add_argument("--noise_temperatures", type=str, default=None,
+                        help="JSON file mapping channel_id to noise temperature (K). "
+                             "Overrides the detector description per-channel values.")
 
     # Misc
     parser.add_argument("--proposal", action="store_true")
@@ -207,6 +215,17 @@ if __name__ == "__main__":
     event_time = dt.datetime.fromisoformat(args.event_time)
     det.update(event_time)
 
+    # Override per-channel noise temperatures if provided.
+    # Temporary workaround: the DB currently stores a flat 300 K default.
+    # Once calibrated per-channel values are in the DB, this won't be needed.
+    if args.noise_temperatures is not None:
+        import json
+        with open(args.noise_temperatures) as f:
+            temp_map = json.load(f)
+        for ch_id_str, temp_k in temp_map.items():
+            det.get_channel(args.station_id, int(ch_id_str))["noise_temperature"] = float(temp_k)
+        logger.info(f"Loaded per-channel noise temperatures from {args.noise_temperatures}")
+
     # ADC clip range from pedestal
     det_ch = det.get_channel(args.station_id, 0)
     adc_min = det_ch.get("adc_min_voltage", 0) * units.V
@@ -223,17 +242,28 @@ if __name__ == "__main__":
 
     # Trigger noise Vrms
     if use_ft_noise:
-        # Hardcoded FT-measured values for station 23. These should be
-        # recomputed if using a different station or detector description.
-        TRIGGER_VRMS_FT = {
-            0: 4.102e-3, 1: 4.627e-3, 2: 3.703e-3, 3: 2.625e-3,
-        }
+        if args.trigger_vrms is None:
+            raise ValueError(
+                "--trigger_vrms is required in FT noise mode. "
+                "Generate it with noise_analysis/trigger_vrms/extract_trigger_vrms.py")
+        with open(args.trigger_vrms) as f:
+            vrms_data = yaml.safe_load(f)
+        trigger_vrms_dict = vrms_data["trigger_vrms_V"]
         trigger_noise_vrms = np.array(
-            [TRIGGER_VRMS_FT[ch] for ch in DEEP_TRIGGER_CHANNELS])
+            [trigger_vrms_dict[ch] for ch in DEEP_TRIGGER_CHANNELS])
     else:
-        trigger_noise_vrms = get_vrms_from_temperature_for_trigger_channels(
-            det, args.station_id, DEEP_TRIGGER_CHANNELS,
-            config['trigger']['noise_temperature'])
+        if args.noise_temperatures is not None:
+            # Per-channel temperatures were patched into the detector;
+            # compute trigger Vrms from each channel's own temperature
+            trigger_noise_vrms = np.array([
+                get_vrms_from_temperature_for_trigger_channels(
+                    det, args.station_id, [ch],
+                    det.get_noise_temperature(args.station_id, ch))[0]
+                for ch in DEEP_TRIGGER_CHANNELS])
+        else:
+            trigger_noise_vrms = get_vrms_from_temperature_for_trigger_channels(
+                det, args.station_id, DEEP_TRIGGER_CHANNELS,
+                config['trigger']['noise_temperature'])
 
     logger.info(f"Trigger Vrms: {[f'{v/units.mV:.2f} mV' for v in trigger_noise_vrms]}")
 
@@ -281,6 +311,19 @@ if __name__ == "__main__":
         ft_files = valid_files
         logger.info(f"Found {len(ft_files)} valid FT noise files")
 
+        # Build event selectors (FORCE trigger + optional clean mask)
+        ft_selectors = [lambda einfo: einfo.triggerType == "FORCE"]
+        if args.ft_clean_mask is not None:
+            mask_data = np.load(args.ft_clean_mask)
+            flagged = set()
+            for r, e, c in zip(mask_data['runNum'], mask_data['eventNum'],
+                               mask_data['is_clean']):
+                if c == 0:
+                    flagged.add((int(r), int(e)))
+            ft_selectors.append(
+                lambda einfo, _f=flagged: (einfo.run, einfo.eventNumber) not in _f)
+            logger.info(f"Clean mask: excluding {len(flagged)} flagged FT events")
+
         _noise_importer_instance = noiseImporter()
         _noise_importer_instance.begin(
             noise_files=ft_files,
@@ -291,22 +334,29 @@ if __name__ == "__main__":
             trigger_channels=DEEP_TRIGGER_CHANNELS,
             hardware_response_incorporator=hw_resp,
             reader_kwargs={
+                "selectors": ft_selectors,
                 "select_runs": False,
                 "convert_to_voltage": True,
                 "apply_baseline_correction": "median",
             },
         )
-        # The noiseImporter handles readout noise in the resampler (stage 2)
-        # and trigger copies in _detector_simulation_filter_amp (stage 1...
-        # actually the noiseImporter.run() handles both in a single call).
-        # For the resampler, we set the module-level reference.
         _noise_importer = _noise_importer_instance
 
-    # Fiducial volume: CLI args override config, config overrides defaults
+        n_pool = _noise_importer.n_events_available
+        if args.n_events > n_pool:
+            logger.warning(
+                f"FT noise pool ({n_pool} events) is smaller than n_events "
+                f"({args.n_events}). Noise events will be reused. Consider "
+                f"adding more FT data to reduce repetition.")
+
+    # Fiducial volume + zenith range: CLI overrides config, config overrides defaults
     fid_config = config.get("fiducial_volume", {})
-    fiducial_rmax = args.fiducial_rmax or fid_config.get("rmax")
+    fiducial_rmax = args.fiducial_rmax if args.fiducial_rmax is not None else fid_config.get("rmax")
     fiducial_zmin = fid_config.get("zmin")
     fiducial_zmax = fid_config.get("zmax")
+
+    min_zenith = args.min_zenith if args.min_zenith is not None else fid_config.get("min_zenith", 0.0)
+    max_zenith = args.max_zenith if args.max_zenith is not None else fid_config.get("max_zenith", 60.0)
 
     if fiducial_rmax is not None and fiducial_zmin is not None:
         volume = {
@@ -315,13 +365,15 @@ if __name__ == "__main__":
             "fiducial_zmin": fiducial_zmin * units.m,
             "fiducial_zmax": (fiducial_zmax or 0) * units.m,
         }
-        logger.info(f"Fiducial volume from config: rmax={fiducial_rmax}m, "
+        logger.info(f"Fiducial volume: rmax={fiducial_rmax}m, "
                      f"z=[{fiducial_zmin}, {fiducial_zmax or 0}]m")
     elif fiducial_rmax is not None:
         volume = get_fiducial_volume_cr(rmax=fiducial_rmax)
-        logger.info(f"CR proxy fiducial volume: rmax={fiducial_rmax}m, z=[-1, 0]m")
+        logger.info(f"Fiducial volume: rmax={fiducial_rmax}m, z=[-1, 0]m")
     else:
         volume = get_fiducial_volume_neutrino(args.energy)
+
+    logger.info(f"Zenith range: [{min_zenith}, {max_zenith}] deg")
 
     pos = det.get_absolute_position(args.station_id)
     logger.info(f"Simulating around center x0={pos[0]:.2f}m, y0={pos[1]:.2f}m")
@@ -449,8 +501,8 @@ if __name__ == "__main__":
                   "all": [12, 14, 16, -12, -14, -16]}
 
     if args.neutrino_file is None:
-        zen_min = np.deg2rad(args.min_zenith)
-        zen_max = np.deg2rad(args.max_zenith)
+        zen_min = np.deg2rad(min_zenith)
+        zen_max = np.deg2rad(max_zenith)
 
         input_data = generator.generate_eventlist_cylinder(
             "on-the-fly",
