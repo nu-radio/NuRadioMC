@@ -10,15 +10,17 @@ matches the simulated thermal reference (~0.28). Tighter cuts sculpt the
 thermal distribution (negative skewness appears). Looser cuts leave
 measurable non-Gaussian tails.
 
+Reads per-channel noise RMS from the NPZ produced by extract_ft_rms.py.
+
 Produces:
-    figures/threshold_convergence.png - 4-panel convergence plot
+    figures/ft_cleaning_threshold_convergence.png - 4-panel convergence plot
 
 Usage:
     python validate_threshold.py \\
-        --feature_file /path/to/merged_feature_output.h5
+        --rms_npz ft_rms_station23.npz
 
     python validate_threshold.py \\
-        --feature_file /path/to/merged_feature_output.h5 \\
+        --rms_npz ft_rms_station23.npz \\
         --sim_nur nur_sim_noise/noise_season2023_st23_1000events.nur \\
         --output_dir figures/
 """
@@ -26,18 +28,12 @@ Usage:
 import argparse
 import os
 import numpy as np
-import pandas as pd
 from scipy import stats as spstats
 import matplotlib.pyplot as plt
 
 HELPER_CHS = [9, 10, 11, 21, 22, 23]
 PA_CHS = [0, 1, 2, 3]
 ALL_CHS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 21, 22, 23]
-VPOL_CHS = [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
-
-KEY_FEATURES = [
-    "chAvgSNR", "maxAmplitude", "impulsivity", "coherentSNR", "outlier_score",
-]
 
 
 def robust_stats(arr):
@@ -54,59 +50,44 @@ def robust_stats(arr):
     return med, 1.4826 * mad
 
 
-def composite_flag(df):
-    """Apply the 5-sigma composite flag + multi-channel RMS criterion.
+def load_rms_from_npz(npz_path):
+    """Load per-channel noise RMS arrays from the RMS NPZ.
 
     Args:
-        df: DataFrame with feature columns.
+        npz_path: Path to NPZ from extract_ft_rms.py.
 
     Returns:
-        Boolean array, True = flagged.
+        Dict mapping channel ID to RMS array, plus n_events count.
     """
-    n = len(df)
-    flag = np.zeros(n, dtype=bool)
-
-    for feat in KEY_FEATURES:
-        if feat not in df.columns:
-            continue
-        vals = df[feat].values
-        med, sig = robust_stats(vals)
-        if sig > 0:
-            flag |= vals > med + 5 * sig
-
-    rms_cols = [f"ch{ch}_noise_RMS" for ch in VPOL_CHS]
-    rms_zscores = pd.DataFrame()
-    for col in rms_cols:
-        if col not in df.columns:
-            continue
-        med, sig = robust_stats(df[col].values)
-        if sig > 0:
-            rms_zscores[col] = (df[col].values - med) / sig
-
-    n_chs_above = (rms_zscores > 3).sum(axis=1)
-    flag |= n_chs_above >= 3
-    return flag
+    data = np.load(npz_path)
+    channels = data["channels"]
+    rms_data = {}
+    for ch in channels:
+        key = f"ch{ch}_noise_RMS"
+        if key in data:
+            rms_data[ch] = data[key]
+    n_events = len(data["runNum"])
+    return rms_data, n_events
 
 
-def compute_zscores(df, channels):
-    """Compute per-channel MAD z-scores for noise_RMS.
+def compute_zscores(rms_data, channels):
+    """Compute per-channel MAD z-scores for noise RMS.
 
     Args:
-        df: DataFrame with ch{N}_noise_RMS columns.
+        rms_data: Dict mapping channel ID to RMS array.
         channels: List of channel IDs.
 
     Returns:
-        DataFrame of z-scores, one column per channel.
+        Dict mapping channel ID to z-score array.
     """
-    zscores = pd.DataFrame(index=df.index)
+    zscores = {}
     for ch in channels:
-        col = f"ch{ch}_noise_RMS"
-        if col not in df.columns:
+        if ch not in rms_data:
             continue
-        vals = df[col].values
+        vals = rms_data[ch]
         med, sig = robust_stats(vals)
         if sig > 0:
-            zscores[f"ch{ch}"] = (vals - med) / sig
+            zscores[ch] = (vals - med) / sig
     return zscores
 
 
@@ -125,35 +106,37 @@ def get_sim_reference(sim_nur, station_id):
     reader = er.eventReader()
     reader.begin(sim_nur)
 
-    rms_data = {}
+    rms_by_ch = {}
     for evt in reader.run():
         stn = evt.get_station(station_id)
         if stn is None:
             continue
         for ch in stn.iter_channels():
             ch_id = ch.get_id()
-            rms_data.setdefault(ch_id, []).append(np.std(ch.get_trace()))
+            rms_by_ch.setdefault(ch_id, []).append(np.std(ch.get_trace()))
 
-    max_kurt = max(spstats.kurtosis(np.array(v)) for v in rms_data.values())
-    max_skew = max(abs(spstats.skew(np.array(v))) for v in rms_data.values())
-    n_events = max(len(v) for v in rms_data.values())
+    max_kurt = max(spstats.kurtosis(np.array(v)) for v in rms_by_ch.values())
+    max_skew = max(abs(spstats.skew(np.array(v))) for v in rms_by_ch.values())
+    n_events = max(len(v) for v in rms_by_ch.values())
 
     return {"max_kurtosis": max_kurt, "max_skewness": max_skew,
             "n_events": n_events}
 
 
-def sweep_thresholds(df, base_flag, zscores, thresholds):
+def sweep_thresholds(rms_data, zscores, thresholds):
     """Sweep thresholds and compute post-cut distribution shape.
 
     Args:
-        df: Full DataFrame.
-        base_flag: Boolean array of composite-flagged events.
-        zscores: DataFrame of per-channel z-scores.
+        rms_data: Dict mapping channel ID to RMS array.
+        zscores: Dict mapping channel ID to z-score array.
         thresholds: Array of threshold values to sweep.
 
     Returns:
         Dict of arrays keyed by metric name.
     """
+    n_events = len(next(iter(rms_data.values())))
+    z_matrix = np.column_stack([zscores[ch] for ch in sorted(zscores)])
+
     results = {
         "threshold": thresholds,
         "helper_avg_kurt": [], "helper_max_kurt": [],
@@ -161,21 +144,19 @@ def sweep_thresholds(df, base_flag, zscores, thresholds):
     }
 
     for thresh in thresholds:
-        cut = (zscores > thresh).any(axis=1).values
+        cut = (z_matrix > thresh).any(axis=1)
         clean = ~cut
-        results["pct_cut"].append(100 * cut.sum() / len(df))
+        results["pct_cut"].append(100 * cut.sum() / n_events)
 
         hk, hs, pk = [], [], []
         for ch in HELPER_CHS:
-            col = f"ch{ch}_noise_RMS"
-            if col in df.columns:
-                vals = df.loc[clean, col].values
+            if ch in rms_data:
+                vals = rms_data[ch][clean]
                 hk.append(spstats.kurtosis(vals))
                 hs.append(spstats.skew(vals))
         for ch in PA_CHS:
-            col = f"ch{ch}_noise_RMS"
-            if col in df.columns:
-                vals = df.loc[clean, col].values
+            if ch in rms_data:
+                vals = rms_data[ch][clean]
                 pk.append(spstats.kurtosis(vals))
 
         results["helper_avg_kurt"].append(np.mean(hk))
@@ -189,25 +170,26 @@ def sweep_thresholds(df, base_flag, zscores, thresholds):
     return results
 
 
-def plot_convergence(results, sim_ref, output_dir, df=None, zscores=None):
+def plot_convergence(results, sim_ref, output_dir, n_events,
+                     rms_data=None, zscores=None):
     """Generate the threshold convergence plot with before/after distributions.
 
     Args:
         results: Dict from sweep_thresholds.
         sim_ref: Dict with max_kurtosis, max_skewness from sim.
         output_dir: Directory for output figure.
-        df: Full DataFrame (needed for distribution panels).
-        zscores: Per-channel z-score DataFrame (needed for distribution panels).
+        n_events: Total number of events.
+        rms_data: Dict of per-channel RMS arrays (for distribution panels).
+        zscores: Dict of per-channel z-score arrays (for distribution panels).
     """
     thresholds = results["threshold"]
-    has_dists = df is not None and zscores is not None
+    has_dists = rms_data is not None and zscores is not None
 
     if has_dists:
         fig, axes = plt.subplots(2, 3, figsize=(18, 9))
     else:
         fig, axes = plt.subplots(2, 2, figsize=(12, 9))
 
-    # Top-left: helper kurtosis
     ax = axes[0, 0]
     ax.plot(thresholds, results["helper_max_kurt"], "o-", color="C0",
             markersize=4, label="Helper max")
@@ -224,7 +206,6 @@ def plot_convergence(results, sim_ref, output_dir, df=None, zscores=None):
     ax.set_ylim(-0.1, 1.5)
     ax.legend(fontsize=8)
 
-    # Bottom-left: helper skewness + PA kurtosis combined
     ax = axes[1, 0]
     ax.plot(thresholds, results["helper_avg_skew"], "o-", color="C0",
             markersize=4, label="Helper skewness")
@@ -242,12 +223,11 @@ def plot_convergence(results, sim_ref, output_dir, df=None, zscores=None):
     ax.legend(fontsize=8)
 
     if has_dists:
-        cut_4sig = (zscores > 4.0).any(axis=1).values
+        z_matrix = np.column_stack([zscores[ch] for ch in sorted(zscores)])
+        cut_4sig = (z_matrix > 4.0).any(axis=1)
         clean = ~cut_4sig
-        n_before = len(df)
         n_after = clean.sum()
 
-        # Top-middle: fraction removed
         ax = axes[0, 1]
         ax.plot(thresholds, results["pct_cut"], "o-", color="C0",
                 markersize=4)
@@ -258,7 +238,6 @@ def plot_convergence(results, sim_ref, output_dir, df=None, zscores=None):
         ax.set_title("Fraction removed")
         ax.legend(fontsize=8)
 
-        # Bottom-middle: fraction removed log scale
         ax = axes[1, 1]
         ax.plot(thresholds, results["pct_cut"], "o-", color="C0",
                 markersize=4)
@@ -270,14 +249,13 @@ def plot_convergence(results, sim_ref, output_dir, df=None, zscores=None):
         ax.set_yscale("log")
         ax.legend(fontsize=8)
 
-        # Top-right: max z-score across channels
-        max_z_all = zscores.max(axis=1).values
-        max_z_clean = max_z_all[clean]
+        max_z = z_matrix.max(axis=1)
+        max_z_clean = max_z[clean]
 
         ax = axes[0, 2]
         bins = np.linspace(0, 10, 120)
-        ax.hist(max_z_all, bins=bins, alpha=0.6, color="C3", density=True,
-                label=f"Before ({n_before:,})")
+        ax.hist(max_z, bins=bins, alpha=0.6, color="C3", density=True,
+                label=f"Before ({n_events:,})")
         ax.hist(max_z_clean, bins=bins, alpha=0.6, color="C0", density=True,
                 label=f"After ({n_after:,})")
         ax.axvline(4.0, color="C3", ls="--", lw=1.5, label="4$\\sigma$ cut")
@@ -287,16 +265,15 @@ def plot_convergence(results, sim_ref, output_dir, df=None, zscores=None):
         ax.set_yscale("log")
         ax.legend(fontsize=8)
 
-        # Bottom-right: mean z-score across channels
-        mean_z_all = zscores.mean(axis=1).values
-        mean_z_clean = mean_z_all[clean]
+        mean_z = z_matrix.mean(axis=1)
+        mean_z_clean = mean_z[clean]
 
         ax = axes[1, 2]
-        lo = np.percentile(mean_z_all, 0.01)
-        hi = np.percentile(mean_z_all, 99.99)
+        lo = np.percentile(mean_z, 0.01)
+        hi = np.percentile(mean_z, 99.99)
         bins = np.linspace(lo, hi, 120)
-        ax.hist(mean_z_all, bins=bins, alpha=0.6, color="C3", density=True,
-                label=f"Before ({n_before:,})")
+        ax.hist(mean_z, bins=bins, alpha=0.6, color="C3", density=True,
+                label=f"Before ({n_events:,})")
         ax.hist(mean_z_clean, bins=bins, alpha=0.6, color="C0", density=True,
                 label=f"After ({n_after:,})")
         ax.set_xlabel("Mean z-score across channels")
@@ -305,7 +282,6 @@ def plot_convergence(results, sim_ref, output_dir, df=None, zscores=None):
         ax.set_yscale("log")
         ax.legend(fontsize=8)
 
-    n_events = int(len(df)) if df is not None else ""
     fig.suptitle(f"FT noise cleaning threshold calibration\n"
                  f"Station 23, {n_events:,} events, "
                  f"per-channel noise_RMS MAD z-score cut",
@@ -313,7 +289,7 @@ def plot_convergence(results, sim_ref, output_dir, df=None, zscores=None):
     plt.tight_layout()
 
     os.makedirs(output_dir, exist_ok=True)
-    outpath = os.path.join(output_dir, "threshold_convergence.png")
+    outpath = os.path.join(output_dir, "ft_cleaning_threshold_convergence.png")
     plt.savefig(outpath, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"Saved: {outpath}")
@@ -344,8 +320,8 @@ def main():
     """Run the threshold validation sweep."""
     parser = argparse.ArgumentParser(
         description="Validate FT noise cleaning threshold against sim reference.")
-    parser.add_argument("--feature_file", type=str, required=True,
-                        help="Path to merged feature HDF5")
+    parser.add_argument("--rms_npz", type=str, required=True,
+                        help="Path to NPZ from extract_ft_rms.py")
     parser.add_argument("--sim_nur", type=str, default=None,
                         help="Path to simulated thermal noise NUR for reference. "
                              "If not provided, uses hardcoded reference values.")
@@ -354,9 +330,9 @@ def main():
                         help="Output directory for plots (default: figures/)")
     args = parser.parse_args()
 
-    print(f"Loading features from {args.feature_file}...")
-    df = pd.read_hdf(args.feature_file, key="data")
-    print(f"  {len(df):,} events")
+    print(f"Loading RMS data from {args.rms_npz}...")
+    rms_data, n_events = load_rms_from_npz(args.rms_npz)
+    print(f"  {n_events:,} events, {len(rms_data)} channels")
 
     if args.sim_nur:
         print(f"Computing sim reference from {args.sim_nur}...")
@@ -369,19 +345,17 @@ def main():
         print(f"  Using hardcoded sim reference: kurtosis={sim_ref['max_kurtosis']}, "
               f"skewness={sim_ref['max_skewness']}")
 
-    print("Computing composite flag...")
-    base_flag = composite_flag(df)
-    print(f"  Composite flagged: {base_flag.sum():,}")
-
     print("Computing per-channel z-scores...")
-    zscores = compute_zscores(df, ALL_CHS)
+    zscores = compute_zscores(rms_data, ALL_CHS)
 
     thresholds = np.arange(2.5, 8.05, 0.25)
-    print(f"Sweeping {len(thresholds)} thresholds from {thresholds[0]} to {thresholds[-1]}...")
-    results = sweep_thresholds(df, base_flag, zscores, thresholds)
+    print(f"Sweeping {len(thresholds)} thresholds from "
+          f"{thresholds[0]} to {thresholds[-1]}...")
+    results = sweep_thresholds(rms_data, zscores, thresholds)
 
     print_sweep_table(results, sim_ref)
-    plot_convergence(results, sim_ref, args.output_dir, df=df, zscores=zscores)
+    plot_convergence(results, sim_ref, args.output_dir, n_events,
+                     rms_data=rms_data, zscores=zscores)
 
 
 if __name__ == "__main__":

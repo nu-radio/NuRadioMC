@@ -4,25 +4,35 @@ Forced-trigger (FT) events serve as the noise pool for simulations using measure
 
 This directory contains scripts to identify non-thermal FT events and produce a clean mask (`--ft_clean_mask` in `simulate.py`). All numbers below are from station 23, 2022 FT data. Results will vary for other stations and time periods.
 
+## Pipeline
+
+```
+extract_ft_rms.py       (slow: reads ROOT files, saves per-channel RMS as NPZ)
+        |
+        v
+generate_clean_mask.py  (fast: reads RMS NPZ, applies 4-sigma cut, saves mask NPZ)
+validate_threshold.py   (fast: reads RMS NPZ, sweeps thresholds, plots convergence)
+```
+
 ## Files
 
 | File | Description |
 |------|-------------|
-| `generate_clean_mask.py` | Generates the clean event mask from FT feature data |
+| `extract_ft_rms.py` | Extracts per-channel noise RMS from FT ROOT files |
+| `generate_clean_mask.py` | Applies per-channel MAD-sigma threshold to RMS data, produces clean mask |
 | `validate_threshold.py` | Sweeps cleaning thresholds and validates against simulated thermal reference |
-| `plot_flagged_waveforms.py` | Plots waveforms of flagged events for visual inspection |
 | `clean_mask_station23.npz` | Output mask: 712,913 clean / 718,979 total events (99.16%) |
 | `figures/ft_cleaning_threshold_convergence.png` | Cleaning threshold sweep + before/after z-score distributions |
 
 ## Data sources
 
-**FT data:** 718,979 FORCE trigger events from station 23, all 2022 runs (1-1135). `generate_clean_mask.py` reads FT events directly from ROOT files via `readRNOGDataMattak`, filtering for FORCE triggers. It computes per-channel noise RMS from the raw waveforms. `validate_threshold.py` and `plot_flagged_waveforms.py` operate on pre-extracted HDF5 features (per-channel `ch{N}_noise_RMS` columns from the feature extraction pipeline).
+**FT data:** 718,979 FORCE trigger events from station 23, all 2022 runs (1-1135). `extract_ft_rms.py` reads FT events from ROOT files via `readRNOGDataMattak`, filtering for FORCE triggers, and computes the per-channel waveform RMS after voltage calibration and median baseline correction. The output NPZ is consumed by all downstream scripts.
 
 ## Cleaning method
 
 The initial approach used a composite flag based on 5 derived features (`chAvgSNR`, `maxAmplitude`, `impulsivity`, `coherentSNR`, `outlier_score`) plus a multi-channel RMS criterion, drawn from the full 372-feature set produced by the feature extraction pipeline. This flagged 4,416 events (0.61%).
 
-Of those, 774 were flagged by the composite criteria but not by a per-channel RMS cut. These events had low z-scores (median 1.73, max 3.78) and looked like normal thermal noise on inspection (see `test_figs/`), indicating the composite flag was likely producing false positives, so the final method uses only per-channel `noise_RMS`. For each of the 15 deep channels (ch0-11, 21-23), compute the median and MAD (median absolute deviation) of noise_RMS across all FT events. Convert MAD to Gaussian-equivalent sigma: `sigma = 1.4826 * MAD`. Flag any event where `(noise_RMS - median) / sigma > 4` on any channel.
+Of those, 774 were flagged by the composite criteria but not by a per-channel RMS cut. These events had low z-scores (median 1.73, max 3.78) and looked like normal thermal noise on inspection, indicating the composite flag was likely producing false positives, so the final method uses only per-channel `noise_RMS`. For each of the 15 deep channels (ch0-11, 21-23), compute the median and MAD (median absolute deviation) of noise_RMS across all FT events. Convert MAD to Gaussian-equivalent sigma: `sigma = 1.4826 * MAD`. Flag any event where `(noise_RMS - median) / sigma > 4` on any channel.
 
 ## Threshold calibration
 
@@ -80,31 +90,26 @@ Per-channel breakdown (number of events exceeding 4 sigma on each channel). A si
 ## Usage
 
 ```bash
-# Generate the clean mask (reads ROOT files directly)
-python generate_clean_mask.py \
+# Step 1: Extract per-channel RMS from ROOT files (slow, run once)
+python extract_ft_rms.py \
     --ft_noise_dir /path/to/forced_triggers/station23 \
     --station_id 23
 
+# Step 2: Generate the clean mask
+python generate_clean_mask.py \
+    --rms_npz ft_rms_station23.npz
+
 # Validate the threshold choice (requires simulated thermal noise NUR)
 python validate_threshold.py \
-    --feature_file /path/to/merged_feature_output.h5 \
+    --rms_npz ft_rms_station23.npz \
     --sim_nur /path/to/simulated_noise.nur \
     --output_dir figures/
-
-# Visually inspect flagged events
-python plot_flagged_waveforms.py \
-    --feature_file /path/to/merged_feature_output.h5 \
-    --ft_dir /path/to/handcarry/station23 \
-    --n_samples 20 \
-    --output_dir test_figs/
 ```
 
 ## Known limitations
 
-- **Station 23, 2022 only.** The included `clean_mask_station23.npz` covers station 23 FT data from 2022. Other stations and years require regenerating the mask from their own feature extraction output.
+- **Station 23, 2022 only.** The included `clean_mask_station23.npz` covers station 23 FT data from 2022. Other stations and years require re-running `extract_ft_rms.py` and `generate_clean_mask.py` on their own FT data.
 
 - **Simulated thermal reference from a different season.** The 4-sigma threshold was validated against simulated noise generated with effective temperatures from 2023 (from Ruben), while the FT data is from 2022. If the noise environment differs between seasons (which it probably does), the threshold may need recalibration with a matching reference.
-
-- **Validation scripts require external feature extraction.** `validate_threshold.py` and `plot_flagged_waveforms.py` operate on pre-extracted HDF5 features (per-channel noise_RMS) from the feature extraction pipeline, which is not included in NuRadioMC. `generate_clean_mask.py` reads ROOT files directly and has no such dependency.
 
 - **Per-channel RMS only.** The cleaning criterion uses per-channel noise_RMS and does not flag events with contamination that preserves the per-channel RMS. In practice, the 4-sigma cut captures all visually identifiable non-thermal events in the station 23 dataset.
