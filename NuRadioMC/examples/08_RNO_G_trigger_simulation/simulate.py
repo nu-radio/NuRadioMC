@@ -425,7 +425,6 @@ if __name__ == "__main__":
             )
 
             self.event_log = []
-            self._readout_to_trigger_transfer = {}
 
         def _detector_simulation_filter_amp(self, evt, station, det_arg):
             """Apply hardware response with padding, then inject FT trigger noise."""
