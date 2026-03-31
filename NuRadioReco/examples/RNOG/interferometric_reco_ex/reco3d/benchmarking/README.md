@@ -9,59 +9,89 @@ requirements before submitting batch jobs.
 
 27,667 triggered events from 200 noisy GZK simulation files (10^18-10^20 eV,
 300K noise), station 23.
-Config: `reco3d_neutrino_gzk.yaml` (hilbert=traces, hann=on, snr_weight=off).
 
-| Stage | Median (s) | Mean (s) | 25th (s) | 75th (s) | 90th (s) |
-|-------|-----------|---------|---------|---------|---------|
-| Preprocessing | 0.07 | 0.28 | 0.07 | 0.07 | 0.08 |
-| Coarse scan | 1.08 | 1.08 | 1.02 | 1.14 | 1.17 |
-| Refine scan | 0.64 | 1.32 | 0.56 | 1.80 | 3.01 |
-| Optimizer | 0.33 | 0.34 | 0.28 | 0.38 | 0.44 |
-| **Total** | **2.24** | **3.02** | **2.04** | **3.35** | **4.57** |
+### Solution-ordered tables (2-table, recommended)
 
-The coarse scan is consistent across events (~1.08s). Refine scan varies with
-the number and spread of coarse peaks (0.35-3.24s at 25th-90th percentile).
-Preprocessing is dominated by the first event's JIT compilation and table I/O;
-subsequent events take ~0.07s.
+Config: `reco3d_neutrino_gzk_2table.yaml` (hilbert=traces, hann=on, snr_weight=off, table_scheme=solution_ordered).
 
-### Speedup vs baseline (point-major kernels)
+| Stage | Median (s) |
+|-------|-----------|
+| Coarse scan | 0.68 |
+| Refine scan | 0.56 |
+| Optimizer | 0.12 |
+| **Total** | **1.43** |
 
-| Stage | Baseline (s) | Pair-major (s) | Speedup |
-|-------|-------------|---------------|---------|
-| Coarse scan | 1.99 | 1.08 | 1.84x |
-| Refine scan | 1.68 | 0.64 | 2.63x |
-| Optimizer | 0.31 | 0.33 | ~1x |
-| **Total** | **4.11** | **2.24** | **1.84x** |
+### Ray-type tables (3-table)
 
-Results are bitwise identical between baseline and pair-major (verified on all
-27,667 events: zero difference in rho, phi, z, and max_corr).
+Config: `reco3d_neutrino_gzk.yaml` (same preprocessing, table_scheme=ray_type).
+
+| Stage | Median (s) |
+|-------|-----------|
+| Coarse scan | 1.12 |
+| Refine scan | 0.78 |
+| Optimizer | 0.35 |
+| **Total** | **2.27** |
+
+### Speedup summary (neutrino hw)
+
+| Optimization | Median s/event | Cumulative speedup |
+|-------------|---------------|-------------------|
+| Original (point-major, 3-table) | ~6.0 | 1x |
+| Pair-major kernels, 3-table | 2.27 | 2.6x |
+| Pair-major kernels, 2-table | 1.43 | 4.2x |
+
+The optimizer sees the largest per-stage improvement from 2-table (2.86x)
+because it evaluates the grouped combo function at every L-BFGS-B iteration.
+Results are bitwise identical between 3-table pair-major and the original
+point-major baseline (verified on all 27,667 events).
 
 ## Canonical timing: simulated pulser (rxtx mode)
 
 18,879 triggered events from 6,840 simulated pulser NUR files (r: 10-200m,
 zen: 20-160 deg, az: 0-360 deg), station 23.
-Config: `reco3d_pulser_sim.yaml` (hilbert=none, hann=on, energy normalization,
-pass2_hierarchical=true).
 
-| Stage | Median (s) | Mean (s) | 25th (s) | 75th (s) | 90th (s) |
-|-------|-----------|---------|---------|---------|---------|
-| P1 preproc | 0.08 | 0.38 | 0.08 | 0.09 | 0.09 |
-| P1 coarse | 4.33 | 4.32 | 4.14 | 4.48 | 4.62 |
-| P1 refine | 2.40 | 2.72 | 2.16 | 3.00 | 3.93 |
-| P1 optimizer | 0.47 | 0.47 | 0.40 | 0.54 | 0.61 |
-| **P1 total** | **7.34** | **7.64** | **7.06** | **7.94** | **8.97** |
-| P2 dedispersion | 0.13 | 0.16 | 0.10 | 0.14 | 0.15 |
-| P2 coarse | 0.02 | 0.02 | 0.02 | 0.02 | 0.02 |
-| P2 refine | 1.33 | 1.49 | 1.17 | 1.63 | 2.13 |
-| P2 optimizer | 0.47 | 0.48 | 0.41 | 0.55 | 0.63 |
-| **P2 reco** | **1.91** | **2.06** | **1.73** | **2.19** | **2.71** |
-| **Total** | **9.45** | **10.24** | **9.05** | **10.33** | **11.92** |
+### Solution-ordered tables (2-table, recommended)
 
-Speedup vs previous baseline (hierarchical pass 2, point-major kernels):
-19.1 s/event -> 9.5 s/event = **2.01x**.
+Config: `reco3d_pulser_sim_2table.yaml` (hilbert=none, hann=on, energy normalization,
+pass2_hierarchical=true, table_scheme=solution_ordered).
 
-Accuracy: 0.42 deg median angular separation, 65% < 1 deg, 76% < 2 deg
-(identical to previous baseline, evaluated with `evaluate_reco_results.py`).
+| Stage | Median (s) |
+|-------|-----------|
+| P1 coarse | 3.00 |
+| P1 refine | 2.25 |
+| P1 optimizer | 0.17 |
+| **P1 total** | **5.54** |
+| P2 reco | 1.99 |
+| **Total** | **7.78** |
+
+Accuracy: 0.41 deg median, 65% < 1 deg, 76% < 2 deg, 90th percentile 11.20 deg.
+
+### Ray-type tables (3-table)
+
+Config: `reco3d_pulser_sim.yaml` (same preprocessing, table_scheme=ray_type).
+
+| Stage | Median (s) |
+|-------|-----------|
+| P1 coarse | 4.31 |
+| P1 refine | 2.42 |
+| P1 optimizer | 0.46 |
+| **P1 total** | **7.35** |
+| P2 reco | 1.91 |
+| **Total** | **9.46** |
+
+Accuracy: 0.42 deg median, 65% < 1 deg, 76% < 2 deg, 90th percentile 13.99 deg.
+
+### Speedup summary (pulser rxtx)
+
+| Optimization | Median s/event | Cumulative speedup |
+|-------------|---------------|-------------------|
+| Original (hierarchical P2, point-major, 3-table) | 19.1 | 1x |
+| Pair-major kernels, 3-table | 9.46 | 2.0x |
+| Pair-major kernels, 2-table | 7.78 | 2.5x |
+
+The 2-table scheme also slightly improves the 90th percentile accuracy
+(11.2 vs 14.0 deg) because fewer combos help the optimizer converge more
+reliably.
 
 ## Memory usage
 
@@ -183,4 +213,4 @@ The canonical results were measured on:
 - SLURM cluster compute nodes: Intel Xeon Gold 6342 @ 2.80 GHz
 - Python 3.11, Numba 0.62.1, NumPy 2.3.4, SciPy 1.16.2
 - Single-threaded per job (Numba parallel within each job)
-- Date: 2026-03-25
+- Date: 2026-03-28 (2-table), 2026-03-25 (3-table)

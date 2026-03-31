@@ -6,15 +6,19 @@ This guide explains how to reproduce the 3D interferometric reconstruction resul
 
 1. **NuRadioMC/NuRadioReco** installed (this repo, `reco3d_release` branch)
 2. **Python 3.11+** with numpy, scipy, h5py, pyyaml, numba (optional but recommended for speed)
-3. **Multiray travel time tables** for your station (44 NPZ files per station: 11 channels x 4 tables each (direct, refracted, reflected, combined)). Not included in the repo. On the Chicago cluster, pre-generated tables for stations 11, 12, 13, 21, 22, 23, and 24 are at `/data/reconstruction/validation_sets/test_tables/multiray_tables/`. For other stations, generate them using the scripts in `../tables/` (see below).
-4. **RNO-G MongoDB access** (detector description is loaded from `radio.zeuthen.desy.de:27017` by default)
+3. **Multiray travel time tables** for your station. Two table schemes are supported:
+   - **Ray-type tables** (default): 44 NPZ files per station (11 channels x 4 tables: direct, refracted, reflected, combined). File pattern: `st{ID}_ch{CH}_rz_table_{ray_type}.npz`.
+   - **Solution-ordered tables** (recommended, faster): 22 NPZ files per station (11 channels x 2 tables: solution_0 = fastest arrival, solution_1 = slowest). File pattern: `st{ID}_ch{CH}_rz_table_solution_{0,1}.npz`. Set `table_scheme: "solution_ordered"` in the config to use these. See [Solution-ordered tables](#solution-ordered-tables) below.
+   
+   Tables are not included in the repo. On the Chicago cluster, pre-generated tables (both ray-type and solution-ordered) for stations 11, 12, 13, 21, 22, 23, and 24 are at `/data/reconstruction/validation_sets/test_tables/multiray_tables/`. For other stations, generate them using the scripts in `../tables/` (see below).
+4. **RNO-G MongoDB access** (detector description is loaded from `radio.zeuthen.desy.de:27017` by default) or a local detector export file (set `detector_file` in the config)
 5. **Simulation datasets** (see below)
 
 ## Datasets
 
 ### GZK neutrino simulation
 
-100 paired NUR/HDF5 files. 12,916 triggered events at station 23, energy range 10^18 to 10^20 eV with GZK-weighted spectrum.
+200 paired NUR/HDF5 files. 27,667 triggered events at station 23 with 300K thermal noise, energy range 10^18 to 10^20 eV with GZK-weighted spectrum.
 
 Filename pattern:
 ```
@@ -160,7 +164,21 @@ python rz_lookup_table_creator_inice.py \
 sbatch submit_rz_table_jobs.slurm 23 all "2022-10-01" /path/to/multiray_tables/station23
 ```
 
-The `--mode` flag controls output: `multiray` (3 per-ray-type files), `combined` (1 min-time file), or `all` (both). The `--det-date` argument sets the detector description date used for antenna positions (default `2022-10-01`). Use `--detector-file` for batch jobs where MongoDB is unreachable. Tables are computed using NuRadioMC analytic raytracing with the `greenland_simple` exponential ice model. Each channel takes roughly 6 minutes on 9 cores and uses about 5 GB of memory.
+The `--mode` flag controls output: `multiray` (3 per-ray-type files), `combined` (1 min-time file), `solution_ordered` (2 solution-ordered files), or `all` (all of the above). The `--det-date` argument sets the detector description date used for antenna positions (default `2022-10-01`). Use `--detector-file` for batch jobs where MongoDB is unreachable. Tables are computed using NuRadioMC analytic raytracing with the `greenland_simple` exponential ice model. Each channel takes roughly 6 minutes on 9 cores and uses about 5 GB of memory.
+
+### Solution-ordered tables
+
+With the `greenland_simple` ice model, each (R,Z) geometry has 0 or 2 ray solutions (direct + refracted). The reflected solution is rare. Solution-ordered tables reorder by travel time: solution_0 = fastest arrival, solution_1 = slowest. This reduces the grouped correlator combinations from 3^N_groups (81 for 4 depth groups) to 2^N_groups (16), giving a 1.2-1.6x speedup with slightly better accuracy in the optimization tail.
+
+To generate solution-ordered tables:
+
+```bash
+python rz_lookup_table_creator_inice.py \
+    --station 23 --channel 0 --mode solution_ordered --num_threads 8 \
+    --output-dir /path/to/multiray_tables/station23
+```
+
+To use them, set `table_scheme: "solution_ordered"` in the config (see the `_2table` config variants).
 
 ## Mode reference
 
@@ -202,12 +220,14 @@ For simulation data, bandpass, CW removal, and dedispersion are typically unnece
 
 ## Resource estimates
 
+Estimates below use the solution-ordered (2-table) scheme. Ray-type (3-table) runtimes are 1.2-1.6x longer.
+
 ### Neutrino GZK (27,667 events, hw mode)
 
 | Resource | Estimate |
 |----------|----------|
-| Time per event | ~2.2 s |
-| Total CPU time | ~17 CPU-hours |
+| Time per event | ~1.4 s |
+| Total CPU time | ~11 CPU-hours |
 | Recommended chunks | 200 |
 | Walltime per chunk | 10 min |
 | Memory per chunk | 4 GB |
@@ -216,18 +236,18 @@ For simulation data, bandpass, CW removal, and dedispersion are typically unnece
 
 | Resource | Estimate |
 |----------|----------|
-| Time per event | ~10 s |
-| Total CPU time | ~52 CPU-hours |
+| Time per event | ~7.8 s |
+| Total CPU time | ~41 CPU-hours |
 | Recommended chunks | 200 |
-| Walltime per chunk | 30 min |
+| Walltime per chunk | 25 min |
 | Memory per chunk | 4 GB |
 
 ### Pulser sim (18,879 events, hw mode)
 
 | Resource | Estimate |
 |----------|----------|
-| Time per event | ~5 s |
-| Total CPU time | ~26 CPU-hours |
+| Time per event | ~3.5 s |
+| Total CPU time | ~18 CPU-hours |
 | Recommended chunks | 100 |
 | Walltime per chunk | 15 min |
 | Memory per chunk | 4 GB |
@@ -257,24 +277,23 @@ For neutrino truth comparison, the paired HDF5 files contain `xx`, `yy`, `zz` ve
 
 ## Validated results
 
-### Neutrino GZK (hw mode)
+### Neutrino GZK (hw mode, 27,667 events, 300K noise)
 
-| Dataset | Events | Median | 68th | < 1 deg | < 2 deg |
-|---------|--------|--------|------|---------|---------|
-| Noiseless | 12,916 | 1.04 deg | 2.04 deg | 49% | 68% |
-| Noisy (300K) | 27,667 | 1.48 deg | 2.89 deg | 38% | 59% |
+| Table scheme | Median | 68th | < 1 deg | < 2 deg | Runtime |
+|-------------|--------|------|---------|---------|---------|
+| Solution-ordered (2-table) | 1.48 deg | 2.89 deg | 38% | 59% | ~1.4 s/event |
+| Ray-type (3-table) | 1.48 deg | 2.89 deg | 38% | 59% | ~2.2 s/event |
 
 ### Pulser sim (rxtx mode, 18,879 events)
 
-| Metric | Value |
-|--------|-------|
-| Median angular separation | 0.42 deg |
-| 68th percentile | 1.21 deg |
-| 90th percentile | 13.99 deg |
-| Fraction < 1 deg | 65% |
-| Fraction < 2 deg | 76% |
+| Table scheme | Median | 68th | 90th | < 1 deg | < 2 deg | Runtime |
+|-------------|--------|------|------|---------|---------|---------|
+| Solution-ordered (2-table) | 0.41 deg | 1.20 deg | 11.20 deg | 65% | 76% | ~7.8 s/event |
+| Ray-type (3-table) | 0.42 deg | 1.21 deg | 13.99 deg | 65% | 76% | ~9.5 s/event |
 
-Neutrino results use `reco3d_neutrino_gzk.yaml`. Pulser results use `reco3d_pulser_sim.yaml` in rxtx mode on the full 18,879-event dataset. Your results should match when using the same configs, tables, and datasets. For other simulation sets, stations, or energy ranges, treat these as a ballpark reference rather than an exact target.
+The 2-table scheme is recommended: same or better accuracy with 1.2-1.6x faster runtime. The 90th percentile improvement on pulsers (11.2 vs 14.0 deg) comes from fewer optimizer combos leading to more reliable convergence.
+
+Neutrino results use `reco3d_neutrino_gzk.yaml` (or `_2table` variant). Pulser results use `reco3d_pulser_sim.yaml` (or `_2table` variant) in rxtx mode. Your results should match when using the same configs, tables, and datasets. For other simulation sets, stations, or energy ranges, treat these as a ballpark reference rather than an exact target.
 
 ## Benchmarking
 
@@ -313,7 +332,9 @@ NuRadioReco/examples/RNOG/interferometric_reco_ex/
       summarize_batch_timing.py           Summarize timing from batch HDF5 results
       profile_memory.py                   Peak RSS memory profiling
     configs/
-      reco3d_neutrino_gzk.yaml           Best neutrino config (hw mode)
-      reco3d_pulser_sim.yaml             Best pulser config (rxtx mode)
+      reco3d_neutrino_gzk.yaml           Neutrino config, ray-type tables (hw mode)
+      reco3d_neutrino_gzk_2table.yaml    Neutrino config, solution-ordered tables (recommended)
+      reco3d_pulser_sim.yaml             Pulser config, ray-type tables (rxtx mode)
+      reco3d_pulser_sim_2table.yaml      Pulser config, solution-ordered tables (recommended)
       reco3d_pulser_sim_fast.yaml        Fast pulser config (hw mode, no dedispersion)
 ```
