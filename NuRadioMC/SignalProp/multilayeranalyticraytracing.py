@@ -26,7 +26,7 @@ tracing solver used in NuRadioMC . In order to enable compilation with
 ``numba.njit(nopython=True)``, the layer definitions are internally
 converted from dictionary-based objects to arrays. 
 For more insight into the physics behind this approach and remarks on the solving strategy it is recommended 
-to have a look at the companion note to this module ``MultilayerAnalyticRayTracting.md`` and the appendix C of
+to have a look at the companion note to this module ``MultilayerAnalyticRayTracting.md`` (will be added in the future) and the appendix C of
 "NuRadioMC: Simulating the Radio Emission of Neutrinos from Interaction to Detector“ (2020). https://doi.org/10.1140/epjc/s10052-020-7612-8.
 This appendix describes the implementation of the previously used single layer analytic raytracer.
 
@@ -196,6 +196,55 @@ LAYERS_AIR = [
     }
 ]
 
+LAYERS_TEST = [
+    {
+        "z_min": 0.0,
+        "z_max": np.inf,
+        "n_ice": 1.0,
+        "delta_n": 0.000001,
+        "z_0": -500.0,
+        "region": "air",
+        "region_name": "Air"
+    },
+    {
+        "z_min": -14.9,
+        "z_max": 0.0,
+        "n_ice": 1.51188,
+        "delta_n": 0.271579,
+        "z_0": 1/0.114553,
+        "region": "snow",
+        "region_name": "Snow"
+    },
+    {
+        "z_min": -80.5,
+        "z_max": -14.9,
+        "n_ice": 1.89957,
+        "delta_n": 0.529715,
+        "z_0": 1/0.0129175,
+        "region": "firn",
+        "region_name": "Firn"
+    },
+    {
+        "z_min": -300.0,
+        "z_max": -80.5,
+        "n_ice": 1.77468,
+        "delta_n": 1.41573,
+        "z_0": 1/0.0387882,
+        "region": "upper_ice",
+        "region_name": "Upper Ice"
+    },
+    {
+        "z_min": -3000.0,
+        "z_max": -300.0,
+        "n_ice": 1.9468,
+        "delta_n": 1.41573,
+        "z_0": 1/0.0387882,
+        "region": "lower_ice",
+        "region_name": "Lower Ice"
+    }
+]
+
+
 
 def layers_to_arrays(layers):
     """
@@ -246,6 +295,45 @@ def layers_to_arrays(layers):
 
     return z_min, z_max, n_ice, delta_n, z0
 
+
+def init_layer_arrays(z_min, z_max, n_ice, delta_n, z0):
+    """
+    Validate and return layer arrays.
+
+    All inputs must be array-like with same length.
+
+    Parameters
+    ----------
+        tuple of ndarray
+        Arrays describing the layer parameters:
+
+        z_min : ndarray
+            Lower depth boundary of each layer.
+
+        z_max : ndarray
+            Upper depth boundary of each layer.
+
+        n_ice : ndarray
+            Asymptotic refractive index in each layer.
+
+        delta_n : ndarray
+            Refractive index contrast.
+
+        z0 : ndarray
+            Exponential scale depth. 
+    """
+    z_min = np.asarray(z_min, dtype=float)
+    z_max = np.asarray(z_max, dtype=float)
+    n_ice = np.asarray(n_ice, dtype=float)
+    delta_n = np.asarray(delta_n, dtype=float)
+    z0 = np.asarray(z0, dtype=float)
+
+    n = len(z_min)
+
+    if not (len(z_max) == len(n_ice) == len(delta_n) == len(z0) == n):
+        raise ValueError("All input arrays must have the same length")
+
+    return z_min, z_max, n_ice, delta_n, z0
 
 @njit(cache = True)
 def get_layer_index(z, z_min, z_max):
@@ -339,7 +427,7 @@ def analytic_F(z, C0, n_ice, delta_n, z0):
     return float(np.real(val))
 
 @njit(cache = True)
-def compute_offsets(C0, y_start, z_start, layers):
+def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False):
     """
     Compute horizontal offset constants for all layers.
 
@@ -390,14 +478,26 @@ def compute_offsets(C0, y_start, z_start, layers):
     F_start = analytic_F(z_start, C0, n_ice[idx_start], delta_n[idx_start], z0[idx_start])
     C1[idx_start] = float(y_start - F_start)
 
+    if get_intersection_point is True:
+        ybs = np.zeros(n_layers-1) 
+        zbs = np.zeros(n_layers-1)
+
     for i in range(idx_start - 1, -1, -1):
         zb = float(z_min[i])
         F_deep = analytic_F(zb, C0, n_ice[i+1], delta_n[i+1], z0[i+1])
         yb = float(F_deep + C1[i+1])
+
+        if get_intersection_point is True:
+            ybs[i]=yb
+            zbs[i]=zb
+
         F_shallow = analytic_F(zb, C0, n_ice[i], delta_n[i], z0[i])
         C1[i] = float(yb - F_shallow)
 
-    return C1, idx_start
+    if get_intersection_point is True:
+        return C1, idx_start, ybs, zbs
+    else:
+        return C1, idx_start, np.zeros(n_layers -1), np.zeros(n_layers -1)
 
 @njit(cache = True)
 def build_y_field(C0, z_array, layers, C1):
@@ -512,6 +612,9 @@ def find_z_turn(C0, layers):
     If no turning point exists within the medium, the function returns
     the maximum depth boundary of the defined layers.
     """
+
+    eps = 1e-12
+
     C0 = float(C0)
     z_min, z_max, n_ice, delta_n, z0 = layers
     target_n = 1.0 / C0
@@ -519,19 +622,25 @@ def find_z_turn(C0, layers):
     for i in range(n_layers):
         n_min = n_ice[i] - delta_n[i] * np.exp(z_min[i] / z0[i])
         n_max = n_ice[i] - delta_n[i] * np.exp(z_max[i] / z0[i])
-        if n_min >= target_n >= n_max:
+
+        if abs(target_n - n_min) <= eps:
+            return z_min[i]
+        if abs(target_n - n_max) <= eps:
+            return z_max[i]
+
+        if (n_min + eps) >= target_n >= (n_max - eps):
             val = (n_ice[i] - target_n) / delta_n[i]
 
-            if val <= 0:
-                #return z_max[-1] + 1000.0
-                return np.max(z_max)
+            if val < 0.0:
+                continue
             
-            z = z0[i] * np.log(val)
+            z = z0[i] * np.log(np.abs(val))
 
             if np.isnan(z):
-                #return z_max[-1] + 1000.0
-                return np.max(z_max)
-            return z
+                continue
+
+            if (z_min[i] - eps) <= z <= (z_max[i] + eps):
+                return z
             #return float(z0[i] * np.log((n_ice[i] - target_n) / delta_n[i]))
     return np.max(z_max)
 
@@ -576,14 +685,18 @@ def get_turning_point(C0, y_start, z_start, layers, C1=None,
     If the ray reaches the surface and ``with_air`` is False, the
     turning point is clamped to the surface depth.
     """
+
+    #if with_air:
+    #    return None,None
+
     if C1 is None:
         # Compute offsets once
-        C1, _ = compute_offsets(C0, y_start, z_start, layers)
+        C1, _, _, _ = compute_offsets(C0, y_start, z_start, layers)
     
     # Find depth of turning point
     z_turn = find_z_turn(C0, layers)
     
-    numerical_safety_offset = 1e-6
+    numerical_safety_offset = 1e-8
     z_surface = 0.0 - numerical_safety_offset
 
     if (z_turn >= z_surface) and not with_air:
@@ -648,9 +761,7 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
         C0range = (1. / n_ice[-1], np.inf)
     if C0 < C0range[0] or C0 > C0range[1]:
         return -np.inf
-    C1, _ = compute_offsets(C0, y1, z1, layers)
-    #z_turn = float(find_z_turn(C0, layers))
-    #y_turn = float(evaluate_y(C0, C1, z_turn, layers))
+    C1, _ , _, _= compute_offsets(C0, y1, z1, layers)
     y_turn, z_turn = get_turning_point(C0,y1,z1,layers,C1,downgoing,with_air)
     
     if (y_turn is not None) and (z_turn is not None):
@@ -659,6 +770,7 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
             dy = y_turn - y2
             diff = np.sqrt(dz*dz + dy*dy) + 10.0 * np.abs(dz)
             return -diff
+            #return -np.inf
         elif y_turn > y2:
             y_fit = evaluate_y(C0, C1, z2, layers)
             return y2 - y_fit
@@ -666,7 +778,7 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
             y_raw = evaluate_y(C0, C1, z2, layers)
             y_fit = 2.0*y_turn - y_raw
             return -(y2 - y_fit)
-    else: 
+    elif (y_turn is None) and (z_turn is None): 
         y_fit = evaluate_y(C0, C1, z2, layers)
         return y2 - y_fit
 
@@ -725,6 +837,36 @@ def get_C0_from_theta(z_start, theta, layers):
     if p == 0.0:
         return 1e12  # avoid division by zero
     return 1.0 / p
+
+@njit(cache = True)
+def get_launch_angle_old(z_start, C0, layers):
+    """
+    Convert a launch angle to the corresponding ray parameter. Other way
+
+    Parameters
+    ----------
+    z_start : float
+        Starting depth of the ray.
+
+    theta : float
+        Launch angle in radians.
+
+    layers : tuple of ndarray
+        Layer parameter arrays.
+
+    Returns
+    -------
+    float
+        Ray parameter C0.
+    """
+    # Convert launch angle to ray parameter
+    n_start = get_refractive_index(z_start, layers)
+    p = C0*n_start
+    if p == 0.0:
+        return 1e12  # avoid division by zero
+    theta = np.arccos(1/p)
+
+    return theta
 
 @njit(cache = True)
 def get_skim_angle(y1, z1, zskim, layers):
@@ -884,7 +1026,12 @@ def obj_delta_y(logC0, y1, z1, y2, z2, layers, n_deep,
             return 1e30
     return dy
 
+DIRECT = 1
+REFRACTED = 2
+REFLECTED = 3
+FROM_AIR = 1
 
+@njit(cache=True)
 def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air):
     """
     Determine the physical type of a ray tracing solution.
@@ -965,19 +1112,23 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air):
         layers,None,downgoing,with_air
     )
 
-    if with_air is True and downgoing is True:
-        return solution_types_revert['from_air']
+    if with_air and downgoing:
+        #return solution_types_revert['from_air']
+        return FROM_AIR
         #return 0
 
     if y2 < y_turn:
         # receiver reached before turning point -> direct ray
-        return solution_types_revert['direct']
+        #return solution_types_revert['direct']
+        return DIRECT
 
-    if z_turn >= -1e-6:
-        return solution_types_revert['reflected']
+    if z_turn >= -1e-8:
+        #return solution_types_revert['reflected']
+        return REFLECTED
     
 
-    return solution_types_revert['refracted']
+    #return solution_types_revert['refracted']
+    return REFRACTED
 
 def find_solutions(x1, x2, layers,tol=1e-6):
     """
@@ -1066,8 +1217,9 @@ def find_solutions(x1, x2, layers,tol=1e-6):
 
     ## Here something is still wrong
     ## theta skim goes to inf for too horizontal geometries when z1 is on the same height as z2.
-
-    theta_straight = np.arctan((z2-z1)/(y2-y1))
+    theta_straight = np.arctan(max((z2-z1),1e-10)/(y2-y1))
+    if theta_straight < np.pi/4: 
+        theta_straight = np.pi/4
     #print(f"theta_straight: {theta_straight}")
 
     _, theta_skim = get_skim_angle(
@@ -1077,7 +1229,7 @@ def find_solutions(x1, x2, layers,tol=1e-6):
         )
 
     if not np.isfinite(theta_skim):
-        theta_skim = theta_straight - 0.1
+        theta_skim = np.arctan(z1/y1)
     #print(f"theta_skim: {theta_skim}")
     
 
@@ -1094,9 +1246,10 @@ def find_solutions(x1, x2, layers,tol=1e-6):
         layers
     )
     #print(f"C0straight: {C0straight}")
-    
+    n_z = get_refractive_index(z1,layers)
     logC0straight = np.log(max(C0straight - 1./n_deep, 1e-12))
-    logC0skim = np.log(max(C0skim - 1./n_deep, 1e-12))
+    logC0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
+    logC0skim = np.log(max(C0skim- 1./n_deep, 1e-12))
     #print(f"logC0skim: {logC0skim}")
     print(f"-------------------------------------------------------")
     print(f"Original x1 and x2: {x1} and {x2}. With air: {with_air}. Downgoing: {downgoing}")
@@ -1126,6 +1279,8 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                                 'C0': C_0,
                                 'D' : result.x[0],
                                 'x1': x1})
+                    
+                
                 
             '''else:
             logC0_stop = 100.
@@ -1159,7 +1314,12 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                                     'x1': x1})'''
 
     # check if another solution with higher logC0 exists
-    logC0_start = result.x[0] + 0.00001
+    if result.x[0] is None: 
+        result_x = logC0skim_nz
+    else:
+        result_x = result.x[0]
+
+    logC0_start = result_x + 0.00001
     #logC0_start = 0.0
     if with_air:
         C0cross_min = 1.0
@@ -1226,7 +1386,7 @@ def find_solutions(x1, x2, layers,tol=1e-6):
     #print('logC0_start: ',logC0_start)
     
     
-    logC0_stop = result.x[0] - 0.00001
+    logC0_stop = result_x - 0.00001
     delta_start = obj_delta_y(
         logC0_start,
         y1, z1, y2, z2,
@@ -1267,7 +1427,8 @@ def find_solutions(x1, x2, layers,tol=1e-6):
 # ------------------------------
 # Path builder
 # ------------------------------
-def get_path(C0, x1, x2, layers, n_points=2000):
+
+def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, get_segments = False):
     """
     Compute the analytic ray trajectory between two points.
 
@@ -1288,6 +1449,9 @@ def get_path(C0, x1, x2, layers, n_points=2000):
     n_points : int, optional
         Number of sampling points used to build the forward branch.
 
+    return_turning_point: bool, optional
+        Whether to return the turning point coordintes or not. Default: False. Function returns 4 elements instead of 2 when True!
+
     Returns
     -------
     y_path : ndarray
@@ -1295,6 +1459,12 @@ def get_path(C0, x1, x2, layers, n_points=2000):
 
     z_path : ndarray
         Depth coordinates of the ray path.
+
+    y_turn : float
+        Y (horizontal displacement) coordinate of the turning point.
+
+    z_turn : float
+        Z (depth) coordinate of the turning point.
 
     Notes
     -----
@@ -1318,8 +1488,12 @@ def get_path(C0, x1, x2, layers, n_points=2000):
         downgoing = True
         z1, z2 = z2, z1
 
-    C1, _ = compute_offsets(C0, y1, z1, layers)
-    print(f"C1 in get_path call: {C1}")
+    if get_segments is True:
+        C1, _, yb, zb = compute_offsets(C0, y1, z1, layers, get_intersection_point=True)
+    else:
+        C1, _, _, _ = compute_offsets(C0, y1, z1, layers)
+
+    #print(f"C1 in get_path call: {C1}")
     y_turn, z_turn = get_turning_point(C0,y1,z1,layers,C1,downgoing,with_air)
 
     if z_turn <= z1 or with_air or y_turn > y2 or y_turn is None or z_turn is None:
@@ -1330,7 +1504,7 @@ def get_path(C0, x1, x2, layers, n_points=2000):
         z_forward = np.linspace(z1, z_turn, n_points)
         y_forward, _ = build_y_field(C0, z_forward, layers, C1)
         
-        print(f"z_turn: {z_turn}, y_turn: {y_turn}")
+        #print(f"z_turn: {z_turn}, y_turn: {y_turn}")
         y_mirror = 2*y_turn - y_forward
         z_up = z_forward[::-1]
         y_up = y_mirror[::-1]
@@ -1352,4 +1526,365 @@ def get_path(C0, x1, x2, layers, n_points=2000):
         y_half = y2 - (y2 - y1)/2
         y_path = 2*y_half - y_path
 
-    return y_path, z_path
+    if return_turning_point is True:
+        if get_segments is True:
+            return y_path, z_path, y_turn, z_turn, yb, zb
+        else:
+            return y_path, z_path, y_turn, z_turn
+    else: 
+        if get_segments is True:
+            return y_path, z_path, yb, zb
+        else:
+            return y_path, z_path
+
+
+from numba.typed import List
+
+UPGOING = 1
+DOWNGOING = 2
+
+@njit(cache=True)
+def get_path_segments(C0, x1, x2, layers):
+    """
+    Construct piecewise ray path segments in a multilayer medium.
+
+    The ray path between two points is decomposed into segments bounded by
+    layer interfaces and, if present, the turning point of the ray. Each
+    segment lies entirely within a single layer with an exponential refractive
+    index profile and is labeled by its propagation direction.
+
+    Segments are defined in depth coordinates and are suitable for subsequent
+    analytic evaluation of path length and travel time.
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter (inverse horizontal slowness), defined as
+        C0 = 1 / beta.
+
+    x1 : tuple of float
+        Start point (y, z) in Cartesian coordinates.
+
+    x2 : tuple of float
+        End point (y, z) in Cartesian coordinates.
+
+    layers : tuple of ndarray
+        Medium definition consisting of:
+        (z_min, z_max, n_ice, delta_n, z0)
+
+        z_min, z_max : ndarray
+            Lower and upper depth boundaries of each layer.
+
+        n_ice : ndarray
+            Base refractive index per layer.
+
+        delta_n : ndarray
+            Amplitude of exponential refractive index variation.
+
+        z0 : ndarray
+            Exponential scale depth per layer.
+
+    Returns
+    -------
+    segments : numba.typed.List of tuples
+        List of path segments. Each segment is defined as:
+        (z_start, z_end, C0, layer_idx, direction)
+
+        z_start : float
+            Starting depth of the segment.
+
+        z_end : float
+            Ending depth of the segment.
+
+        C0 : float
+            Ray parameter (passed through for convenience).
+
+        layer_idx : int
+            Index of the layer in which the segment lies.
+
+        direction : int
+            Propagation direction:
+            - UPGOING (1): increasing z
+            - DOWNGOING (2): decreasing z
+    """
+
+
+    z_min, z_max, n_ice, delta_n, z0 = layers
+
+    y1, z1 = float(x1[0]), float(x1[1])
+    y2, z2 = float(x2[0]), float(x2[1])
+
+    with_air = False
+    if (z1 > 0.0) or (z2 > 0.0):
+        with_air = True
+
+    downgoing = False
+    if z1 > z2:
+        z1, z2 = z2, z1
+        downgoing = True
+
+    solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
+
+    # Compute offsets and get layer intersections while we are at it
+    C1, idx_start, yb, zb = compute_offsets(C0, y1, z1, layers, get_intersection_point=True)
+    # Compute turning point
+    y_turn, z_turn = get_turning_point(C0, y1, z1, layers, C1, downgoing, False)
+
+    if solution_type != 1: # Refracted/reflected rays: go up to the turning point and down again to x2
+
+        # Upwards part from z1 to z_turn
+        points_up = List()
+        points_up.append(z1)
+
+        for i in range(len(zb)):
+            z_b = zb[i]
+            if z1 < z_b < z_turn:
+                points_up.append(z_b)
+
+        points_up.append(z_turn)
+
+        points_up.sort()
+
+        # Downwards part from z_turn to z2
+        points_down = List()
+        points_down.append(z_turn)
+
+        for i in range(len(zb)):
+            z_b = zb[i]
+            if z2 < z_b < z_turn:
+                points_down.append(z_b)
+
+        points_down.append(z2) # Include endpoint
+
+        points_down.sort()
+        points_down.reverse()
+    
+    else: # Direct path: upwards going from x1 to x2
+        points_up = List()
+        points_up.append(z1)
+
+        for i in range(len(zb)):
+            z_b = zb[i]
+            if z1 < z_b < z2:
+                points_up.append(z_b)
+
+        points_up.append(z2) # Include endpoint
+
+        points_up.sort()
+
+    # Build segments from edge points
+    segments = List()
+
+    # Upgoing segments
+    for i in range(len(points_up)-1):
+        z_start = points_up[i]
+        z_end = points_up[i+1]
+        z_mid = 0.5 * (z_start + z_end)
+        idx = get_layer_index(z_mid, z_min, z_max)
+        segments.append((z_start, z_end, C0, idx, UPGOING))
+
+    if solution_type != 1:
+
+        # Downgoing segments
+        for i in range(len(points_down)-1):
+            z_start = points_down[i]
+            z_end = points_down[i+1]
+            z_mid = 0.5 * (z_start + z_end)
+            idx = get_layer_index(z_mid, z_min, z_max)
+            segments.append((z_start, z_end, C0, idx, DOWNGOING))
+
+    return segments
+
+
+#def get_path_length_analytic(C0,x1,x2,layers):
+
+
+from math import sqrt, log, sin
+
+@njit(cache=True)
+def get_path_length_analytic(C0, x1, x2, layers):
+    """
+    Compute total analytic ray path length in a multilayer medium.
+
+    The total path length is obtained by summing analytic contributions from
+    individual segments returned by `get_path_segments`. Each segment lies in a
+    layer with exponential refractive index profile:
+
+        n(z) = n_ice - delta_n * exp(z / z0)
+
+    The path length within each segment is evaluated using a closed-form
+    solution derived from the ray equation.
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter (inverse horizontal slowness).
+
+    x1 : tuple of float
+        Start point (y, z).
+
+    x2 : tuple of float
+        End point (y, z).
+
+    layers : tuple of ndarray
+        Medium definition consisting of:
+        (z_min, z_max, n_ice_arr, delta_n_arr, z0_arr)
+
+    Returns
+    -------
+    total_s : float
+        Total geometric path length of the ray.
+    """
+
+
+    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers    
+    total_s = 0.0
+
+    segments = get_path_segments(C0,x1,x2,layers)
+
+    for seg in segments:
+        z1, z2, C0, idx, upgoing = seg
+
+        n_ice = n_ice_arr[idx]
+        delta_n = delta_n_arr[idx]
+        z0 = z0_arr[idx]
+
+        
+        beta = 1.0 / C0 
+        alpha = n_ice**2 - beta**2
+
+        
+        def gamma(z):
+            n_z = n_ice - delta_n * np.exp(z / z0)
+            g = n_z**2 - beta**2
+            return max(g,1e-14)
+        
+        EPS = 1e-10
+
+        def l1(z):
+            n_z = n_ice - delta_n * np.exp(z / z0)
+            val = sqrt(alpha * gamma(z)) + n_ice * n_z - beta**2
+            return abs(val) #if val > EPS else EPS
+
+        def l2(z):
+            val = sqrt(gamma(z)) + (n_ice - delta_n * np.exp(z / z0))
+            return abs(val) # if val > EPS else EPS
+
+        def get_s(z):
+            return n_ice / sqrt(alpha) * (z - z0 * log(l1(z))) + z0 * log(l2(z))
+
+        if upgoing==1:
+            s_seg = get_s(z2) - get_s(z1)
+        else:
+            s_seg = get_s(z1) - get_s(z2)
+
+        print(f"length of segment: {s_seg}")
+        total_s += s_seg
+    print(f"Total path length: {total_s}")
+    return total_s
+
+@njit
+def get_launch_angle(C0, x1, x2, layers):
+    """
+    Compute the ray launch angle at the starting point.
+
+    The launch angle is determined from the local refractive index and the ray
+    parameter C0 using Snell's law in a continuously varying medium.
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter (inverse horizontal slowness).
+
+    x1 : tuple of float
+        Start point (y, z).
+
+    x2 : tuple of float
+        End point (y, z).
+
+    layers : tuple of ndarray
+        Medium definition.
+
+    Returns
+    -------
+    angle : float
+        Launch angle in radians, measured with respect to the horizontal.
+    """
+
+    y1, z1 = float(x1[0]), float(x1[1])
+    y2, z2 = float(x2[0]), float(x2[1])
+
+    with_air = False
+    if (z1 > 0.0) or (z2 > 0.0):
+        with_air = True
+
+    downgoing = False
+    if z1 > z2:
+        z1, z2 = z2, z1
+        downgoing = True
+
+    solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
+    n = get_refractive_index(x1[1],layers)
+
+    if solution_type == 1 and downgoing: 
+        angle = np.pi - np.arcsin(1/(n*C0))
+    else:
+        angle = np.arcsin(1/(n*C0))
+
+    return angle
+
+@njit
+def get_recieving_angle(C0, x1, x2, layers):
+    """
+    Compute the ray receiving angle at the endpoint.
+
+    The receiving angle is determined from the local refractive index at the
+    endpoint and the ray parameter C0, accounting for ray geometry and solution
+    type (direct or refracted).
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter (inverse horizontal slowness).
+
+    x1 : tuple of float
+        Start point (y, z).
+
+    x2 : tuple of float
+        End point (y, z).
+
+    layers : tuple of ndarray
+        Medium definition.
+
+    Returns
+    -------
+    angle : float
+        Receiving angle in radians, measured with respect to the horizontal.
+
+    """
+    
+    z_min, z_max, n_ice, delta_n, z0 = layers
+
+    y1, z1 = float(x1[0]), float(x1[1])
+    y2, z2 = float(x2[0]), float(x2[1])
+
+    with_air = False
+    if (z1 > 0.0) or (z2 > 0.0):
+        with_air = True
+
+    downgoing = False
+    if z1 > z2:
+        z1, z2 = z2, z1
+        downgoing = True
+
+    solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
+    n = get_refractive_index(x2[1],layers)
+
+    if solution_type == 1:
+        if not downgoing:
+            angle = np.pi - np.arcsin(1/(n*C0))
+        else:
+            angle = np.arcsin(1/(n*C0))
+    else:
+        angle = np.arcsin(1/(n*C0))
+    return angle
