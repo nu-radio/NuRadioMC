@@ -44,7 +44,7 @@ def run_benchmark(config_path, nur_file, event_index, n_runs, detector_file):
     from fast_grouped_multiray import (
         pack_tt_grids, pack_tt_grids_transposed, pack_corr_data,
         build_combo_table,
-        _perpair_multiray_kernel, _perpair_multiray_kernel_t,
+        _perpair_multiray_kernel_t,
         _perpair_multiray_kernel_pairmajor,
         _grouped_multiray_kernel, _grouped_multiray_kernel_pairmajor,
     )
@@ -85,7 +85,6 @@ def run_benchmark(config_path, nur_file, event_index, n_runs, detector_file):
     reco = InterferometricReco3D()
     reco.begin(station_id, config, det)
 
-    # Build correlations
     volt_arrays, time_arrays = [], []
     for ch in channels:
         channel = stn.get_channel(ch)
@@ -102,7 +101,6 @@ def run_benchmark(config_path, nur_file, event_index, n_runs, detector_file):
         apply_hann_window=apply_hann,
         correlation_normalization=corr_norm)
 
-    # Build coarse grid
     coarse_limits = config.get('coarse_limits', [1, 1500, 0, 360, -1500, 0])
     n_rho_coarse = config.get('coarse_n_rho', 50)
     coarse_steps = config.get('coarse_step_sizes', [30, 5, 30])
@@ -144,7 +142,6 @@ def run_benchmark(config_path, nur_file, event_index, n_runs, detector_file):
     pair_ch2 = np.array([p[1] for p in ch_pairs], dtype=np.int64)
     pw = np.ones(n_pairs, dtype=np.float64)
 
-    # Warmup
     print("Warming up Numba kernels...")
     _perpair_multiray_kernel_t(tt_t, corr_packed, corr_lengths, dts, offsets,
                                pair_ch1, pair_ch2, pw, ch_rt_mask, n_points)
@@ -152,7 +149,6 @@ def run_benchmark(config_path, nur_file, event_index, n_runs, detector_file):
                                        dts, offsets, pair_ch1, pair_ch2, pw,
                                        ch_rt_mask, n_points)
 
-    # Per-pair (coarse) benchmark
     print(f"\nCoarse grid: {grid_shape}, {n_points} points, {n_pairs} pairs")
     print(f"Benchmarking ({n_runs} runs each)...\n")
 
@@ -188,7 +184,6 @@ def run_benchmark(config_path, nur_file, event_index, n_runs, detector_file):
     print(f"  Max rel diff:  {rel_diff:.2e}")
     print(f"  Peak match:    {'YES' if peak_pm == peak_pair else 'NO'}")
 
-    # Grouped (refine) benchmark
     peak_idx = np.unravel_index(np.argmax(result_pm), grid_shape)
     rho_peak = rho_vec[peak_idx[0]]
     phi_peak = phi_vec[peak_idx[1]] * 180 / np.pi
@@ -247,7 +242,6 @@ def run_benchmark(config_path, nur_file, event_index, n_runs, detector_file):
         {i: ch_to_group.get(i, i) for i in range(n_ch)},
         n_groups, ch_avail_rts_r)
 
-    # Warmup grouped
     _grouped_multiray_kernel(tt_packed_r, corr_packed_r, corr_lengths_r,
                              dts_r, offsets_r, pair_ch1, pair_ch2, pw,
                              combo_table, n_points_r)

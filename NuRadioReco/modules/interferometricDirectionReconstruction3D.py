@@ -16,7 +16,7 @@ import time
 from collections import namedtuple
 from functools import lru_cache
 
-from scipy.signal import correlate, correlation_lags, hilbert, windows
+from scipy.signal import correlate, hilbert, windows
 from scipy.interpolate import RegularGridInterpolator
 from scipy.optimize import minimize
 
@@ -237,12 +237,13 @@ class InterferometricReco3D:
     }
 
     def __init__(self):
+        """Initialize with empty caches and default settings."""
         self._delay_matrix_cache = {}
         self._interpolators = {}
         self._multiray_interpolators = {}
         self.ant_locs = None
         self._multi_ray_types = False
-        self._multiray_combo_mode = 'per_pair'  # 'per_pair' or 'grouped'
+        self._multiray_combo_mode = 'per_pair'
         self._active_ray_types = RAY_TYPES
         self._n_ray_slots = len(RAY_TYPES)
 
@@ -772,7 +773,6 @@ class InterferometricReco3D:
         ch_pairs = list(itertools.combinations(channels, 2))
         n_pairs = len(ch_pairs)
 
-        # Get grid shape from first available travel time grid
         grid_shape = None
         for ch in channels:
             for rt in tt_all.get(ch, {}):
@@ -944,7 +944,6 @@ class InterferometricReco3D:
         combo_corr = np.zeros(grid_shape, dtype=np.float64)
 
         for combo in combos:
-            # combo[gidx] = ray type name for group gidx
             ch_rt = {ch: combo[ch_to_group[ch]] for ch in channels}
 
             combo_corr[:] = 0.0
@@ -1328,7 +1327,6 @@ class InterferometricReco3D:
         if self._multi_ray_types:
             n_ch = _cache['n_ch'] if _cache else len(channels)
 
-            # Compute travel times into arrays
             n_rt = self._n_ray_slots
             tt_vals = np.full((n_ch, n_rt), -np.inf, dtype=np.float64)
             tt_valid = np.zeros((n_ch, n_rt), dtype=np.bool_)
@@ -1593,7 +1591,6 @@ class InterferometricReco3D:
             z_peak = z_vec[idx[2]]
             peaks.append((rho_peak, phi_peak, z_peak, float(val)))
 
-            # Mask region around this peak
             rho_mask = np.abs(rho_vec - rho_peak) < d_rho
             z_mask = np.abs(z_vec - z_peak) < d_z
             phi_diff = np.abs(phi_vec_deg - phi_peak)
@@ -1707,10 +1704,8 @@ class InterferometricReco3D:
         if n_ch < 4:
             return None
 
-        # Average velocity in ice (c / n_avg, in m/ns)
-        c_ice = 0.3 / 1.55  # ~0.1935 m/ns
+        c_ice = 0.3 / 1.55  # average in-ice velocity ~0.1935 m/ns
 
-        # Get 3D antenna positions
         ant_pos_3d = np.array([self.ant_locs[ch] for ch in channels])
         ch1_loc = self.ant_locs[1]
         ch2_loc = self.ant_locs[2]
@@ -1735,7 +1730,6 @@ class InterferometricReco3D:
             w = pw[pidx]
             # delay = t_ci - t_cj (positive means ci signal arrives later)
             delay = pair_delays[pidx]
-            # Propagate to tdoa relative to ch0
             if ci == 0:
                 tdoa[cj] += -delay * w
                 tdoa_count[cj] += w
@@ -1792,7 +1786,6 @@ class InterferometricReco3D:
         rho = max(np.sqrt(dx**2 + dy**2), 1.0)
         phi_deg = np.degrees(np.arctan2(dy, dx)) % 360.0
 
-        # Clip to physical bounds
         rho = np.clip(rho, 1.0, 1500.0)
         z = np.clip(z, -1500.0, 0.0)
 
@@ -1861,7 +1854,6 @@ class InterferometricReco3D:
                 initial_guess = (500.0, 180.0, -500.0)
         rho0, phi0, z0 = initial_guess
 
-        # Try each combo of ray types
         best_result = None
         best_cost = np.inf
 
@@ -1998,7 +1990,6 @@ class InterferometricReco3D:
 
         rho_tdoa, phi_tdoa, z_tdoa, corr_tdoa = tdoa_result
 
-        # Optimize from TDOA solution
         t0_opt = time.time()
         bounds = [
             (max(full_limits[0], 1.0), full_limits[1]),
@@ -2228,7 +2219,6 @@ class InterferometricReco3D:
         t_refine = time.time() - t0_ref
         refined_peaks = current_peaks
 
-        # Keep top seeds across all refined regions
         n_seeds = config.get('n_optimizer_seeds', 3)
         refined_peaks.sort(key=lambda x: x[3], reverse=True)
         refined_peaks = refined_peaks[:n_seeds]
@@ -2486,12 +2476,10 @@ class InterferometricReco3D:
         corr_norm = config.get('correlation_normalization', 'normalized')
         pair_weights = config.get('pair_weights', None)
 
-        # Build coordinate arrays and source position matrix
         rho_vec, phi_vec, z_vec = self._generate_coord_arrays(config)
         phi_vec_deg = phi_vec * (180.0 / np.pi)
         src_enu = self._build_source_enu_matrix(rho_vec, phi_vec, z_vec)
 
-        # Extract voltage traces
         volt_arrays = []
         time_arrays = []
         for ch in channels:
@@ -2499,7 +2487,6 @@ class InterferometricReco3D:
             volt_arrays.append(channel.get_trace())
             time_arrays.append(channel.get_times())
 
-        # Automatic SNR-based pair weighting
         if config.get('snr_pair_weighting', False) and pair_weights is None:
             pair_weights = self._compute_snr_pair_weights(
                 volt_arrays, channels
@@ -2507,7 +2494,6 @@ class InterferometricReco3D:
 
         v_pairs = list(itertools.combinations(volt_arrays, 2))
 
-        # Pre-compute cross-correlations (shared between grid and optimizer)
         corr_data = self._prepare_corr_funcs(
             time_arrays, v_pairs,
             hilbert_envelope_mode=hilbert_mode,
@@ -2515,7 +2501,6 @@ class InterferometricReco3D:
             correlation_normalization=corr_norm,
         )
 
-        # Grid correlation
         t0 = time.time()
         if self._multi_ray_types:
             tt_data = self._compute_tt_multiray(src_enu, channels)
@@ -2531,7 +2516,6 @@ class InterferometricReco3D:
             )
         t_grid = time.time() - t0
 
-        # Extract top-N peaks
         n_seeds = config.get('n_optimizer_seeds', 3)
         sep = config.get('peak_separation_threshold', [10, 10, 10])
         peaks = self._extract_top_n_peaks(
@@ -2544,7 +2528,6 @@ class InterferometricReco3D:
             return {'rho': np.nan, 'phi': np.nan, 'z': np.nan,
                     'max_corr': np.nan}
 
-        # L-BFGS-B refinement from each peak
         bounds = [
             (max(config['limits'][0], 1.0), config['limits'][1]),
             (config['limits'][2], config['limits'][3]),
@@ -2569,7 +2552,6 @@ class InterferometricReco3D:
             t_grid, t_opt, rho_best, phi_best, z_best, corr_best
         )
 
-        # Set station parameters
         station.set_parameter(stnp.rec_max_correlation, corr_best)
         station.set_parameter(stnp.rec_coord_0, rho_best * units.m)
         station.set_parameter(stnp.rec_coord_1, phi_best * units.deg)

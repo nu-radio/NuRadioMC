@@ -12,7 +12,6 @@ position). Use hw mode to skip pass 2 entirely.
 import argparse
 import datetime
 import os
-import sys
 import yaml
 import time
 import numpy as np
@@ -262,6 +261,7 @@ def _z_profile_pass2(reco2, evt, stn, det, config, config_p2_template,
 
 
 def main():
+    """Run iterative 3D interferometric reconstruction on input events."""
     parser = argparse.ArgumentParser(
         description="3D interferometric direction reconstruction")
     parser.add_argument("--config", type=str, required=True)
@@ -426,7 +426,6 @@ def main():
             if args.mode == "hw":
                 result = r1
             else:
-                # Pass 2: re-read, apply dedisp, local search
                 if is_nur:
                     evt2 = reader._eventReader__fin.get_event(event_id=eid)
                 else:

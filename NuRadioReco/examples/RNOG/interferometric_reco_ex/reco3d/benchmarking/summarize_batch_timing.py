@@ -67,7 +67,6 @@ def summarize(reco_file, mode):
                 if np.any(arr > 0):
                     available.append((label, arr))
 
-        # Compute total
         if mode in ('rx', 'rxtx'):
             total_keys = ['p1_preproc_time', 'p1_total_time',
                           'p2_dedisp_time', 'p2_reco_time']

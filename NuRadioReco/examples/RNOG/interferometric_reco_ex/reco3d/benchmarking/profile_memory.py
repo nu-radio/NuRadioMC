@@ -13,7 +13,6 @@ import resource
 import sys
 import time
 
-import numpy as np
 import yaml
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -124,7 +123,7 @@ def profile(config_path, nur_file, mode, event_index, detector_file,
 
     checkpoint('preprocessing', checkpoints, t0, use_tracemalloc)
 
-    result = reco.run(evt, stn, det, config)
+    reco.run(evt, stn, det, config)
 
     checkpoint('reco_complete', checkpoints, t0, use_tracemalloc)
 
@@ -143,7 +142,6 @@ def profile(config_path, nur_file, mode, event_index, detector_file,
         import tracemalloc
         tracemalloc.stop()
 
-    # Print results
     print(f"File: {nur_file}")
     print(f"Event index: {event_index}, Mode: {mode}")
     print(f"Config: {config_path}")
