@@ -86,6 +86,7 @@ def get_fiducial_volume_neutrino(energy):
     }
 
     def get_limits(dic, E):
+        """Look up the fiducial limit for a given energy from a threshold dict."""
         idx = np.arange(len(dic))[E - 10 ** np.array(list(dic.keys())) * units.eV <= 0]
         assert len(idx), f"Energy {E} is too high."
         return np.array(list(dic.values()))[np.amin(idx)] * units.km
@@ -390,11 +391,11 @@ if __name__ == "__main__":
     logger.info(f"Simulating around center x0={pos[0]:.2f}m, y0={pos[1]:.2f}m")
     volume.update({"x0": pos[0], "y0": pos[1]})
 
-    # Simulation class
     class mySimulation(simulation.simulation):
         """Simulation subclass with FLOWER trigger and optional FT noise."""
 
         def __init__(self, *args_init, **kwargs_init):
+            """Set up noise wrapper and configure efield converter padding."""
             if not use_ft_noise:
                 tmp_config = simulation.get_config(kwargs_init["config_file"])
                 noise_temp = tmp_config['trigger']['noise_temperature']
@@ -562,7 +563,6 @@ if __name__ == "__main__":
     os.makedirs(args.data_dir, exist_ok=True)
     output_nur = output_hdf5.replace(".hdf5", ".nur") if args.nur_output else None
 
-    # Run simulation
     sim = mySimulation(
         inputfilename=input_data,
         outputfilename=output_hdf5,

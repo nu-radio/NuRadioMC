@@ -74,6 +74,7 @@ def extract_vrms(noise_imp, hw_resp, det, station_id, n_events, seed=42):
 
 
 def main():
+    """Extract per-channel trigger-path Vrms and save as YAML."""
     parser = argparse.ArgumentParser(
         description="Extract trigger-path Vrms from FT data")
     parser.add_argument("--ft_noise_dir", type=str, required=True)
@@ -125,7 +126,6 @@ def main():
     vrms = extract_vrms(
         noise_imp, hw_resp, det, args.station_id, args.n_events, args.seed)
 
-    # Write YAML
     output = {
         "trigger_vrms_V": {ch: float(v) for ch, v in vrms.items()},
         "metadata": {

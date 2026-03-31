@@ -127,6 +127,7 @@ def print_summary(df):
 
 
 def main():
+    """Run trigger Vrms convergence study across N values and repeats."""
     parser = argparse.ArgumentParser(description="Trigger Vrms convergence study")
     parser.add_argument("--ft_noise_dir", type=str, default=None)
     parser.add_argument("--station_id", type=int, default=23)
@@ -135,7 +136,6 @@ def main():
     parser.add_argument("--n_repeats", type=int, default=10)
     parser.add_argument("--outdir", type=str, default=".")
 
-    # Parallelization
     parser.add_argument("--chunk_id", type=int, default=None,
                         help="Which chunk to run (0-indexed)")
     parser.add_argument("--n_chunks", type=int, default=None,
@@ -161,7 +161,6 @@ def main():
     else:
         chunk_jobs = all_jobs
 
-    # Detector
     det = rnog_detector.Detector(
         detector_file=args.detector_file, log_level=logging.WARNING,
         always_query_entire_description=False,

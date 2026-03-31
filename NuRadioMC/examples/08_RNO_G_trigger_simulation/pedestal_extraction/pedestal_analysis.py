@@ -107,7 +107,6 @@ def main():
     timestamps = np.array([r[1] for r in results])
     all_peds = np.array([r[2] for r in results])
 
-    # Date range
     dt_min = datetime.datetime.utcfromtimestamp(timestamps.min())
     dt_max = datetime.datetime.utcfromtimestamp(timestamps.max())
 
@@ -162,7 +161,6 @@ def main():
         line += f"{new_lo:>9}m {new_hi:>9}m"
         print(line)
 
-    # Write YAML
     yaml_data = {
         "clip_thresholds_mV": clip_thresholds,
         "metadata": {
@@ -181,7 +179,6 @@ def main():
         yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False)
     print(f"\nSaved YAML to {yaml_path}")
 
-    # Also print copy-pasteable dict
     print(f"\n{'=' * 100}")
     print(f"CLIP_THRESHOLDS_MV (year={year_str}, {len(results)} runs)")
     print(f"{'=' * 100}\n")

@@ -119,7 +119,6 @@ class noiseImporter:
                     f"\n\tRandomize sequence of noise files: {scramble_noise_file_order}")
 
         if noise_files is not None:
-            # Explicit file list: pass files/dirs directly to readRNOGData
             if isinstance(noise_files, str):
                 noise_files = [noise_files]
             self.__noise_folders = np.array(noise_files)
@@ -288,7 +287,6 @@ class noiseImporter:
                 trace = trace + noise_trace
                 channel.set_trace(trace, channel.get_sampling_rate())
 
-            # Trigger copy injection (only during the trigger-copies-only stage)
             if (trigger_copies_only
                     and self._inject_trigger_copies
                     and channel_id in self._trigger_channels
@@ -299,24 +297,19 @@ class noiseImporter:
                 trig_sr = trig_ch.get_sampling_rate()
 
                 if trig_sr == 0:
-                    # Trigger copy sampling rate not set; fall back to
-                    # the regular channel's rate (internal sim rate)
                     trig_sr = channel.get_sampling_rate()
                     self.logger.debug(
                         f"ch{channel_id}: trigger copy sr=0, using channel sr={trig_sr/units.GHz:.1f} GHz")
 
-                # Upsample noise to match trigger copy length
                 n_up = int(round(len(noise_trace) * trig_sr / noise_channel.get_sampling_rate()))
                 noise_up = self._upsample(noise_trace, n_up)
 
-                # Apply readout-to-trigger transfer function
                 transfer = self._get_readout_to_trigger_transfer(
                     channel_id, n_up, det, station.get_id(), trig_sr)
                 noise_fft = np.fft.rfft(noise_up)
                 trig_noise = np.fft.irfft(noise_fft * transfer, n=n_up)
 
-                # Add to trigger copy (noise covers first n_up samples,
-                # rest of trigger copy is signal-only from the convolution)
+                # Noise covers first n_up samples; rest is signal-only from convolution
                 trig_trace[:n_up] += trig_noise
                 trig_ch.set_trace(trig_trace, trig_sr)
 
