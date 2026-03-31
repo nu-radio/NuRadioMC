@@ -90,6 +90,7 @@ import numpy as np
 from scipy import optimize
 from operator import itemgetter
 from numba import njit
+from numba.typed import List
 from functools import lru_cache
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 
@@ -1038,6 +1039,8 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air):
 
     This function classifies a ray trajectory based on the location of
     its turning point relative to the emitter and receiver.
+    Since it is used in the find_solutions function and we are getting the flipped coordinates here, 
+    we just take the information for downgoing and with_air as well, makes this function a bit stupid, sorry
 
     Parameters
     ----------
@@ -1218,7 +1221,7 @@ def find_solutions(x1, x2, layers,tol=1e-6):
     ## Here something is still wrong
     ## theta skim goes to inf for too horizontal geometries when z1 is on the same height as z2.
     theta_straight = np.arctan(max((z2-z1),1e-10)/(y2-y1))
-    if theta_straight < np.pi/4: 
+    if theta_straight < np.pi/4 and not with_air: 
         theta_straight = np.pi/4
     #print(f"theta_straight: {theta_straight}")
 
@@ -1538,7 +1541,7 @@ def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, ge
             return y_path, z_path
 
 
-from numba.typed import List
+
 
 UPGOING = 1
 DOWNGOING = 2
@@ -1714,6 +1717,8 @@ def get_path_length_analytic(C0, x1, x2, layers):
 
     The path length within each segment is evaluated using a closed-form
     solution derived from the ray equation.
+    The math was taken from Appendix C.5 of https://doi.org/10.1140/epjc/s10052-020-7612-8 
+    but without the detour over the angle to get beta but using beta = 1/C0 which should be equivalent (according to my understanding -> know where to search if stuff)
 
     Parameters
     ----------
@@ -1834,7 +1839,7 @@ def get_launch_angle(C0, x1, x2, layers):
     return angle
 
 @njit
-def get_recieving_angle(C0, x1, x2, layers):
+def get_receiving_angle(C0, x1, x2, layers):
     """
     Compute the ray receiving angle at the endpoint.
 
@@ -1888,3 +1893,89 @@ def get_recieving_angle(C0, x1, x2, layers):
     else:
         angle = np.arcsin(1/(n*C0))
     return angle
+
+
+
+@njit(cache=True)
+def get_travel_time_analytic(C0, x1, x2, layers):
+    """
+    Compute total analytic ray path length in a multilayer medium.
+
+    The total path length is obtained by summing analytic contributions from
+    individual segments returned by `get_path_segments`. Each segment lies in a
+    layer with exponential refractive index profile:
+
+        n(z) = n_ice - delta_n * exp(z / z0)
+
+    The path length within each segment is evaluated using a closed-form
+    solution derived from the ray equation. 
+    The math is taken from Appendix C.5 of https://doi.org/10.1140/epjc/s10052-020-7612-8 
+    but without the detour over the angle to get beta but using beta = 1/C0 which should be equivalent (according to my understanding)
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter (inverse horizontal slowness).
+
+    x1 : tuple of float
+        Start point (y, z).
+
+    x2 : tuple of float
+        End point (y, z).
+
+    layers : tuple of ndarray
+        Medium definition consisting of:
+        (z_min, z_max, n_ice_arr, delta_n_arr, z0_arr)
+
+    Returns
+    -------
+    total_s : float
+        Total geometric path length of the ray.
+    """
+
+    c = 299792458.0  # speed of light in vacuum [m/s]
+
+    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers    
+    total_t = 0.0
+
+    segments = get_path_segments(C0,x1,x2,layers)
+
+    for seg in segments:
+        z1, z2, C0, idx, upgoing = seg
+
+        n_ice = n_ice_arr[idx]
+        delta_n = delta_n_arr[idx]
+        z0 = z0_arr[idx]
+
+        
+        beta = 1.0 / C0 
+        alpha = n_ice**2 - beta**2
+
+        
+        def gamma(z):
+            n_z = n_ice - delta_n * np.exp(z / z0)
+            g = n_z**2 - beta**2
+            return max(g,1e-14)
+
+
+        def l1(z):
+            n_z = n_ice - delta_n * np.exp(z / z0)
+            val = sqrt(alpha * gamma(z)) + n_ice * n_z - beta**2
+            return abs(val) 
+
+        def l2(z):
+            val = sqrt(gamma(z)) + (n_ice - delta_n * np.exp(z / z0))
+            return abs(val) 
+        
+        def get_t(z):
+            return ( z0 * ( sqrt(gamma(z)) + n_ice * log(l2(z)) - log(l1(z)) * (n_ice**2 / sqrt(alpha)) ) + z * (n_ice**2 / sqrt(alpha)) ) / c
+
+        if upgoing==1:
+            t_seg = get_t(z2) - get_t(z1)
+        else:
+            t_seg = get_t(z1) - get_t(z2)
+
+        print(f"travel time of segment: {t_seg}")
+        total_t += t_seg
+    print(f"Total travel time: {total_t}")
+    return total_t
