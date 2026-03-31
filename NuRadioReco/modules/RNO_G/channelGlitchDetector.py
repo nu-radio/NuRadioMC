@@ -143,6 +143,7 @@ def unscramble(trace, block_size=LAB4D_SAMPLING_BLOCK_SIZE, readout_size=LAB4D_R
 def diff_sq(eventdata, block_size=LAB4D_SAMPLING_BLOCK_SIZE):
     """
     Returns sum of squared differences of samples across seams of 128-sample chunks.
+    Ignores the first and last `block_size` samples, which `unscramble` cannot reconstruct.
 
     Parameters
     ----------
@@ -152,7 +153,7 @@ def diff_sq(eventdata, block_size=LAB4D_SAMPLING_BLOCK_SIZE):
     twice_block_size = 2 * block_size
 
     runsum = 0.0
-    for chunk in range(len(eventdata) // twice_block_size - 1):
+    for chunk in range(1, len(eventdata) // twice_block_size - 1):
         runsum += (eventdata[chunk * twice_block_size + block_size - 1] - eventdata[chunk * twice_block_size + block_size]) ** 2
     return np.sum(runsum)
 
