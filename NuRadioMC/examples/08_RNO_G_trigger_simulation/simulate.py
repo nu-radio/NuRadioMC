@@ -206,6 +206,8 @@ if __name__ == "__main__":
         args.config = os.path.join(script_dir, "RNO_config.yaml")
     config = simulation.get_config(args.config)
 
+    _override_noise_false = use_ft_noise and config.get("noise", True)
+
     # Detector
     det = rnog_detector.Detector(
         detector_file=args.detector_file, log_level=logging.INFO,
@@ -248,6 +250,10 @@ if __name__ == "__main__":
                 "Generate it with noise_analysis/trigger_vrms/extract_trigger_vrms.py")
         with open(args.trigger_vrms) as f:
             vrms_data = yaml.safe_load(f)
+        vrms_station = vrms_data.get("metadata", {}).get("station_id")
+        if vrms_station is not None and vrms_station != args.station_id:
+            logger.warning(f"Trigger Vrms file is for station {vrms_station}, "
+                           f"but simulating station {args.station_id}")
         trigger_vrms_dict = vrms_data["trigger_vrms_V"]
         trigger_noise_vrms = np.array(
             [trigger_vrms_dict[ch] for ch in DEEP_TRIGGER_CHANNELS])
@@ -315,6 +321,11 @@ if __name__ == "__main__":
         ft_selectors = [lambda einfo: einfo.triggerType == "FORCE"]
         if args.ft_clean_mask is not None:
             mask_data = np.load(args.ft_clean_mask)
+            if 'station_id' in mask_data:
+                mask_station = int(mask_data['station_id'])
+                if mask_station != args.station_id:
+                    logger.warning(f"Clean mask is for station {mask_station}, "
+                                   f"but simulating station {args.station_id}")
             flagged = set()
             for r, e, c in zip(mask_data['runNum'], mask_data['eventNum'],
                                mask_data['is_clean']):
@@ -381,18 +392,27 @@ if __name__ == "__main__":
 
     # Simulation class
     class mySimulation(simulation.simulation):
+        """Simulation subclass with FLOWER trigger and optional FT noise."""
 
         def __init__(self, *args_init, **kwargs_init):
             if not use_ft_noise:
                 tmp_config = simulation.get_config(kwargs_init["config_file"])
+                noise_temp = tmp_config['trigger']['noise_temperature']
 
-                def wrapper_detector_simulation(*a, **kw):
-                    noise_vrms = signal_processing.calculate_vrms_from_temperature(
-                        temperature=tmp_config['trigger']['noise_temperature'],
-                        bandwidth=tmp_config["sampling_rate"] / 2)
-                    kw['noise_vrms'] = noise_vrms
-                    kw['max_freq'] = tmp_config["sampling_rate"] / 2
-                    detector_simulation_thermal(*a, **kw)
+                # When noise_temperature is "detector", the framework handles
+                # per-channel noise itself; don't override with a flat Vrms.
+                if noise_temp == "detector":
+                    def wrapper_detector_simulation(*a, **kw):
+                        kw['add_noise'] = False
+                        detector_simulation_thermal(*a, **kw)
+                else:
+                    def wrapper_detector_simulation(*a, **kw):
+                        noise_vrms = signal_processing.calculate_vrms_from_temperature(
+                            temperature=noise_temp,
+                            bandwidth=tmp_config["sampling_rate"] / 2)
+                        kw['noise_vrms'] = noise_vrms
+                        kw['max_freq'] = tmp_config["sampling_rate"] / 2
+                        detector_simulation_thermal(*a, **kw)
 
                 self._detector_simulation_part2 = wrapper_detector_simulation
 
@@ -408,6 +428,7 @@ if __name__ == "__main__":
             self._readout_to_trigger_transfer = {}
 
         def _detector_simulation_filter_amp(self, evt, station, det_arg):
+            """Apply hardware response with padding, then inject FT trigger noise."""
             is_sim = isinstance(station, NuRadioReco.framework.sim_station.SimStation)
 
             # Pad non-trigger channels for linear convolution
@@ -442,6 +463,7 @@ if __name__ == "__main__":
                 logger.debug("Stage 1: trigger copy noise injected")
 
         def _detector_simulation_trigger(self, evt, station, det_arg):
+            """Run FLOWER trigger (triggerBoardResponse + highLowThreshold) and log results."""
             max_amps = {}
             for ch_id in DEEP_TRIGGER_CHANNELS:
                 if station.has_channel(ch_id):
@@ -484,13 +506,15 @@ if __name__ == "__main__":
                 row[f'max_amp_ch{ch_id}_mV'] = max_amps.get(ch_id, np.nan) / units.mV
             self.event_log.append(row)
 
+    _noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+
     def detector_simulation_thermal(evt, station, det_arg, noise_vrms=None,
                                      max_freq=None, add_noise=True):
         """Thermal noise detector simulation (no FT noise)."""
         efieldToVoltageConverter.run(evt, station, det_arg,
                                      channel_ids=DEEP_TRIGGER_CHANNELS)
         if add_noise and noise_vrms is not None:
-            NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder().run(
+            _noise_adder.run(
                 evt, station, det_arg, amplitude=noise_vrms,
                 min_freq=0 * units.MHz, max_freq=max_freq, type='rayleigh')
         hw_resp.run(evt, station, det_arg, sim_to_data=True)
@@ -550,6 +574,11 @@ if __name__ == "__main__":
         trigger_channels=DEEP_TRIGGER_CHANNELS,
         file_overwrite=True,
     )
+
+    if _override_noise_false:
+        logger.warning("FT noise mode: setting noise=False to prevent "
+                       "thermal noise being added on top of injected FT noise")
+        sim._config['noise'] = False
 
     n_triggered = sim.run()
 

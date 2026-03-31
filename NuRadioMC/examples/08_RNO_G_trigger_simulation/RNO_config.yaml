@@ -4,7 +4,7 @@ sampling_rate: 5.  # GHz, internal simulation sampling rate
 # Fiducial volume. If omitted, an energy-dependent volume is used.
 # fiducial_volume:
 #   rmax: 4000      # meters
-#   zmin: -2700     # meters (Greenland ice depth)
+#   zmin: -3000     # meters
 #   zmax: 0         # meters
 #   min_zenith: 0   # degrees
 #   max_zenith: 180 # degrees

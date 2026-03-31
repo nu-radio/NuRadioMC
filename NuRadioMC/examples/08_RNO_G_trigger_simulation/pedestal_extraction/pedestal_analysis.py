@@ -9,13 +9,13 @@ the --pedestal_voltage flag.
 
 Usage:
     # All pedestals in a directory:
-    python pedestal_analysis.py --data_dir /path/to/satellite/station23/
+    python pedestal_analysis.py --data_dir /path/to/station23/
 
     # Only 2022 pedestals (filtered by timestamp):
-    python pedestal_analysis.py --data_dir /path/to/satellite/station23/ --year 2022
+    python pedestal_analysis.py --data_dir /path/to/station23/ --year 2022
 
     # Compare against reference pedestal files:
-    python pedestal_analysis.py --data_dir /path/to/satellite/station23/ --year 2022 \
+    python pedestal_analysis.py --data_dir /path/to/station23/ --year 2022 \
         --compare_files /path/to/run1000/pedestal.root /path/to/run3400/pedestal.root
 """
 

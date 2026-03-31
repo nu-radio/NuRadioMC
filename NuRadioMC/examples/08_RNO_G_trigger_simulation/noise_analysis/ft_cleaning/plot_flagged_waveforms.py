@@ -1,8 +1,8 @@
 """Plot waveforms of randomly sampled flagged FT events for visual inspection.
 
-Samples N events from the 774 that are caught by the composite flag but
-NOT by the 4-sigma per-channel RMS cut, loads their waveforms from the
-handcarry ROOT data, and plots all channels for each event.
+Samples N events caught by the composite flag but NOT by the per-channel
+RMS cut, loads their waveforms from ROOT data, and plots all channels
+for each event.
 
 Usage:
     python plot_flagged_waveforms.py \

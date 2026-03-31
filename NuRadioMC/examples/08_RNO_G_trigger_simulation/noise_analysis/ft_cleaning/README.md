@@ -2,7 +2,7 @@
 
 Forced-trigger (FT) events serve as the noise pool for simulations using measured noise (see `../simulate.py` with `--ft_noise_dir`). Non-thermal FT events need to be excluded so only thermal noise is injected.
 
-This directory contains the cleaning pipeline that identifies and removes non-thermal FT events, plus the simulated thermal noise reference used to validate the cleaning threshold.
+This directory contains scripts to identify non-thermal FT events and produce a clean mask (`--ft_clean_mask` in `simulate.py`). All numbers below are from station 23, 2022 FT data. Results will vary for other stations and time periods.
 
 ## Files
 
@@ -10,38 +10,25 @@ This directory contains the cleaning pipeline that identifies and removes non-th
 |------|-------------|
 | `generate_clean_mask.py` | Generates the clean event mask from FT feature data |
 | `validate_threshold.py` | Sweeps cleaning thresholds and validates against simulated thermal reference |
-| `analyze_sim_noise.py` | Computes per-channel RMS distribution stats from simulated thermal noise |
 | `plot_flagged_waveforms.py` | Plots waveforms of flagged events for visual inspection |
 | `clean_mask_station23.npz` | Output mask: 712,913 clean / 718,979 total events (99.16%) |
-| `sim_noise_ref/` | Inputs for regenerating the simulated thermal noise reference (see below) |
 | `figures/ft_cleaning_threshold_convergence.png` | Cleaning threshold sweep + before/after z-score distributions |
 
 ## Data sources
 
-**FT feature data:** 718,979 FORCE trigger events from station 23, all 2022 runs (1-1135), extracted from handcarry data at `<data_dir>/handcarry/station23/`. Features were computed by the feature extraction pipeline use by the deep CR search with `--trigger_type FORCE`, producing 372 features per event including per-channel noise_RMS The merged output is at `<feature_output>/merged_feature_output.h5`.
-
-**Simulated thermal noise:** 1000 events of pure thermal noise for station 23 generated through NuRadioMC's signal chain by Ruben Conceicao. The simulation uses per-channel effective noise temperatures and calibrated signal chain responses measured from 2023 data. The NUR file and the input files needed to reproduce it are in `sim_noise_ref/`.
-
-## Simulated thermal noise reference
-
-The `sim_noise_ref/` directory contains:
-
-| File | Description |
-|------|-------------|
-| `eff_temperatures_calibrated_response_season2023_st23.json` | Per-channel effective noise temperatures (K) |
-| `absolute_amplitude_calibration_season2023_st23_best_fit.csv` | Per-channel gain and response calibration parameters |
-
-The effective temperatures were measured from 2023 data. To regenerate the 1000-event simulated noise NUR, run `simulate.py` in thermal mode with `noise_temperature: "detector"` in the config and pass `--noise_temperatures sim_noise_ref/eff_temperatures_calibrated_response_season2023_st23.json`. This overrides the DB's flat 300 K default with calibrated per-channel values. The DB does not currently store calibrated noise temperatures; this workaround will be unnecessary once they are added. See `analyze_sim_noise.py` for extracting per-channel RMS statistics from the NUR output.
+**FT data:** 718,979 FORCE trigger events from station 23, all 2022 runs (1-1135). `generate_clean_mask.py` reads FT events directly from ROOT files via `readRNOGDataMattak`, filtering for FORCE triggers. It computes per-channel noise RMS from the raw waveforms. `validate_threshold.py` and `plot_flagged_waveforms.py` operate on pre-extracted HDF5 features (per-channel `ch{N}_noise_RMS` columns from the feature extraction pipeline).
 
 ## Cleaning method
 
-For each of the 15 deep/helper channels (ch0-11, 21-23), compute the median and MAD (median absolute deviation) of noise_RMS across all 718,979 FT events. Convert MAD to Gaussian-equivalent sigma: `sigma = 1.4826 * MAD`. Flag any event where `(noise_RMS - median) / sigma > 4` on any channel. An event is removed from the clean pool if any single channel exceeds this threshold.
+The initial approach used a composite flag based on 5 derived features (`chAvgSNR`, `maxAmplitude`, `impulsivity`, `coherentSNR`, `outlier_score`) plus a multi-channel RMS criterion, drawn from the full 372-feature set produced by the feature extraction pipeline. This flagged 4,416 events (0.61%).
 
-An earlier version used a composite flag based on 5 derived features plus a multi-channel RMS criterion. Visual inspection showed the extra features only added false positives (see `test_figs/`). The per-channel RMS cut alone is sufficient.
+Of those, 774 were flagged by the composite criteria but not by a per-channel RMS cut. These events had low z-scores (median 1.73, max 3.78) and looked like normal thermal noise on inspection (see `test_figs/`), indicating the composite flag was likely producing false positives, so the final method uses only per-channel `noise_RMS`. For each of the 15 deep channels (ch0-11, 21-23), compute the median and MAD (median absolute deviation) of noise_RMS across all FT events. Convert MAD to Gaussian-equivalent sigma: `sigma = 1.4826 * MAD`. Flag any event where `(noise_RMS - median) / sigma > 4` on any channel.
 
 ## Threshold calibration
 
-The 4-sigma threshold is not arbitrary. It was calibrated by sweeping the threshold from 2.5 to 8 sigma and measuring the post-cut distribution shape (excess kurtosis, skewness) on the worst-affected channels (helper strings ch9-11, 21-23). The simulated thermal noise provides the reference: pure thermal noise through the NuRadioMC signal chain produces per-channel RMS distributions with excess kurtosis < 0.28 and skewness < 0.22.
+The 4-sigma threshold was calibrated by sweeping from 2.5 to 8 sigma and comparing the post-cut noise_RMS distribution shape (excess kurtosis, skewness) against a reference of 1000 pure simulated thermal noise events for station 23 (generated using per-channel calibrated effective temperatures and signal chain responses from 2023 data; contact Ruben for the generation script and inputs). The goal is to find the threshold where the post-cut FT distribution matches the simulated thermal reference (kurtosis < 0.28, skewness < 0.22).
+
+The figure shows kurtosis for helper string channels (ch9-11, 21-23) in the top panel because they have the highest contamination rates and need the tightest cuts to reach the thermal reference. PA channels reach it at looser thresholds and are shown in the bottom-left panel.
 
 ![FT cleaning threshold convergence](figures/ft_cleaning_threshold_convergence.png)
 
@@ -56,7 +43,7 @@ The 4-sigma threshold is not arbitrary. It was calibrated by sweeping the thresh
 | 8.0 sigma | 0.63% | 0.89 | Non-thermal |
 | No cut | 0% | 463 | Non-thermal |
 
-At 4 sigma, the post-cut kurtosis matches the simulated thermal reference. Tighter cuts over-sculpt (skewness goes negative). Looser cuts leave non-Gaussian tails.
+At 4 sigma, the post-cut kurtosis matches the simulated thermal reference relatively well. Tighter cuts over-sculpt (skewness goes negative). Looser cuts leave non-Gaussian tails.
 
 ## Clean mask format
 
@@ -68,7 +55,7 @@ The output `clean_mask_station23.npz` contains:
 | `eventNum` | int32 | Event number per event |
 | `is_clean` | int8 | 1 = clean (thermal), 0 = flagged (non-thermal) |
 
-To exclude contaminated events from simulations, pre-filter the FT data directory or use the mask array programmatically before passing files to `noiseImporter`.
+To exclude non-thermal events from simulations, pass the mask via `--ft_clean_mask` in `simulate.py`.
 
 ## Results
 
@@ -78,7 +65,7 @@ To exclude contaminated events from simulations, pre-filter the FT data director
 | Per-channel 4-sigma flagged | 6,066 (0.84%) |
 | Clean events | 712,913 (99.16%) |
 
-Per-channel breakdown of flagged events:
+Per-channel breakdown (number of events exceeding 4 sigma on each channel). A single event can be flagged on multiple channels, so these sum to more than 6,066:
 
 | Channel | Role | Flagged |
 |---------|------|---------|
@@ -90,23 +77,19 @@ Per-channel breakdown of flagged events:
 | ch23 | Helper C VPOL | 1,669 |
 | ch11 | Helper B HPOL | 782 |
 
-Helper/deep channels dominate the flagged population.
-
 ## Usage
 
 ```bash
-# Generate the clean mask
+# Generate the clean mask (reads ROOT files directly)
 python generate_clean_mask.py \
-    --feature_file /path/to/merged_feature_output.h5 \
+    --ft_noise_dir /path/to/forced_triggers/station23 \
     --station_id 23
 
-# Validate the threshold choice
+# Validate the threshold choice (requires simulated thermal noise NUR)
 python validate_threshold.py \
     --feature_file /path/to/merged_feature_output.h5 \
+    --sim_nur /path/to/simulated_noise.nur \
     --output_dir figures/
-
-# Analyze simulated thermal noise reference
-python analyze_sim_noise.py \
 
 # Visually inspect flagged events
 python plot_flagged_waveforms.py \
@@ -118,10 +101,10 @@ python plot_flagged_waveforms.py \
 
 ## Known limitations
 
-- **Station 23, 2022 only.** The included `clean_mask_station23.npz` covers station 23 FT data from 2022. Other stations and years require regenerating the mask from their own feature extraction output. Contamination rates will differ (stations closer to camp likely have higher RFI contamination).
+- **Station 23, 2022 only.** The included `clean_mask_station23.npz` covers station 23 FT data from 2022. Other stations and years require regenerating the mask from their own feature extraction output.
 
-- **Threshold calibrated against 2023-season simulated noise.** The 4-sigma threshold was validated using simulated thermal noise with effective temperatures measured from 2023 data. If the noise environment changes significantly between seasons, the threshold may need recalibration.
+- **Simulated thermal reference from a different season.** The 4-sigma threshold was validated against simulated noise generated with effective temperatures from 2023 (from Ruben), while the FT data is from 2022. If the noise environment differs between seasons (which it probably does), the threshold may need recalibration with a matching reference.
 
-- **Requires external feature extraction.** The cleaning scripts operate on pre-extracted features (per-channel noise_RMS from the `gather_variables_noise.py` pipeline), not raw waveforms. The feature extraction pipeline is not included in NuRadioMC.
+- **Validation scripts require external feature extraction.** `validate_threshold.py` and `plot_flagged_waveforms.py` operate on pre-extracted HDF5 features (per-channel noise_RMS) from the feature extraction pipeline, which is not included in NuRadioMC. `generate_clean_mask.py` reads ROOT files directly and has no such dependency.
 
-- **Per-channel RMS only.** The cleaning criterion uses per-channel noise_RMS and does not flag events with contamination that preserves the per-channel RMS (e.g., narrowband CW exactly at the thermal noise level). In practice, the 4-sigma cut captures all visually identifiable non-thermal events in the station 23 dataset.
+- **Per-channel RMS only.** The cleaning criterion uses per-channel noise_RMS and does not flag events with contamination that preserves the per-channel RMS. In practice, the 4-sigma cut captures all visually identifiable non-thermal events in the station 23 dataset.

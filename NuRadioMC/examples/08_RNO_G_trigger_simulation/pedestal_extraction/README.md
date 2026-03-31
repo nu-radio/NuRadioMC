@@ -33,14 +33,15 @@ Derived from 1,124 runs for station 23 between 2022-06-27 and 2022-10-01. Sample
 | ch3 | 1593 | -1593 | +907 |
 | ch9 | 1560 | -1560 | +940 |
 
-The full set is in `clip_thresholds_station23_2022.yaml`. An earlier version used all 6,849 runs spanning 2021-2024, but seasonal pedestal drift of up to 108 mV on some channels makes year-specific thresholds more accurate.
+The full set is in `clip_thresholds_station23_2022.yaml`.
 
 ## Usage
 
 ```bash
 # Extract thresholds for 2022 (requires pedestal data and SLURM)
 python pedestal_analysis.py \
-    --data_dir /path/to/satellite/station23/ \
+    --data_dir /path/to/station23/ \
+    --station_id 23 \
     --year 2022 \
     --outdir .
 
@@ -56,10 +57,6 @@ The script uses `joblib` for parallel processing of ROOT files. Run with `--cpus
 
 - **Station 23, 2022 only.** The included `clip_thresholds_station23_2022.yaml` was derived from station 23 runs between 2022-06-27 and 2022-10-01. Other stations require separate extraction.
 
-- **Year-specific thresholds required.** Seasonal pedestal drift of up to 108 mV on some channels means all-year averages are not reliable. Extract thresholds per year (or per season) using the `--year` flag.
-
-- **Single median per channel.** The extraction computes one median pedestal per channel across all qualifying runs. Intra-run variation and run-to-run drift within a season are not captured. For most channels the variation is small (<10 mV), but a few channels show larger excursions.
+- **Single median per channel.** Pedestals drift over time, so the script uses `--year` to restrict to a single year. However, even within a year some channels show run-to-run variation that a single median doesn't capture.
 
 - **No database integration.** The RNO-G MongoDB does not currently store `adc_pedestal_voltage`. Pedestals must be set at runtime via `--pedestal_voltage` (single value) or `set_pedestal_voltage(dict)` (per-channel). Adding this field to the DB would allow automatic pedestal loading.
-
-- **Requires satellite pedestal data.** The extraction reads `pedestal.root` files from the satellite data mirror. These files may not be available for all stations or all runs.

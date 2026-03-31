@@ -1265,7 +1265,7 @@ class simulation:
             # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
             self._fin, self._fin_stations, self._fin_attrs = read_input_hdf5(inputfilename)
         else:
-            logger.status("Generating neutrion interactions on-the-fly")
+            logger.status("Generating neutrino interactions on-the-fly")
             self._inputfilename = "on-the-fly"
             self._fin = inputfilename[0]
             self._fin_attrs = inputfilename[1]

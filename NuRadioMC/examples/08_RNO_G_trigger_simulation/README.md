@@ -1,6 +1,6 @@
 # RNO-G trigger simulation with FLOWER trigger model
 
-General-purpose RNO-G neutrino/CR simulation with a FLOWER trigger model and two noise modes.
+General-purpose RNO-G simulation with a FLOWER trigger model and two noise modes (thermal and measured forced-trigger).
 
 ## Table of contents
 
@@ -34,23 +34,23 @@ All three are optional. Without `--ft_noise_dir`, thermal noise is used. Without
 | `simulate.py` | Simulation script supporting thermal and FT noise modes |
 | `RNO_config.yaml` | Default NuRadioMC config (`noise: False` for FT mode) |
 | [`noise_analysis/`](noise_analysis/) | FT noise cleaning (clean mask) and trigger-path Vrms extraction |
-| [`pedestal_extraction/`](pedestal_extraction/) | ADC pedestal extraction from satellite data, produces per-channel clip thresholds |
+| [`pedestal_extraction/`](pedestal_extraction/) | ADC pedestal extraction from `pedestal.root` files, produces per-channel clip thresholds |
 
 ## Noise modes
 
 ### Thermal (default)
 
-Without `--ft_noise_dir`, the framework generates noise from a 300 K temperature model through the signal chain response.
+Without `--ft_noise_dir`, the framework generates noise from a temperature model through the signal chain response. The default config uses 300 K, configurable via `trigger.noise_temperature` in the YAML (or `"detector"` for per-channel values from the detector description).
 
 ### Measured FT noise (`--ft_noise_dir`)
 
 FT waveforms are recorded through the readout signal chain (RADIANT, 3.2 GHz). The trigger path uses a different signal chain after the 3 dB splitter (arXiv:2411.12922, Sec. 3.2). So FT noise must be injected differently for each path:
 
-1. **Trigger path** (at 5 GHz internal sim rate): FT noise is upsampled from 3.2 to 5 GHz (to match the internal sim rate), then multiplied by a transfer function (`trigger_response / readout_response`, from the detector description) to convert from readout domain to trigger domain. Injected into trigger channel copies only.
+1. **Trigger path** (at 5 GHz internal sim rate): FT noise is upsampled from 3.2 to 5 GHz (to match the internal sim rate), then multiplied by a transfer function (`trigger_response / readout_response`, from the detector description) to convert from readout domain to trigger domain. This stage only touches trigger channel copies.
 
 2. **Readout path** (at 3.2 GHz): the same FT event is added directly to readout channels at native rate. No transform needed since the noise was already recorded through the readout chain.
 
-Both stages use the same noise realization. The config must set `noise: False`.
+Both stages use the same noise realization. The config must set `noise: False` to prevent the framework from also adding thermal noise on top of the injected FT noise.
 
 Point `--ft_noise_dir` at a directory of ROOT files (`station{id}_run*.root` or `run*/waveforms.root`). To exclude non-thermal FT events, pass `--ft_clean_mask` with an NPZ mask file from [`noise_analysis/ft_cleaning/`](noise_analysis/ft_cleaning/).
 
@@ -63,7 +63,7 @@ Point `--ft_noise_dir` at a directory of ROOT files (`station{id}_run*.root` or 
 - High-low window: 6 samples at FLOWER rate (~472 MSa/s)
 - Coincidence window: 20 samples at FLOWER rate
 
-In FT mode, the trigger-path Vrms comes from `TRIGGER_VRMS_FT` (measured from FT data). In thermal mode, it is computed from the noise temperature and the trigger signal chain response. See [`noise_analysis/ft_cleaning/`](noise_analysis/ft_cleaning/) for how the FT Vrms values were derived and their limitations.
+In FT mode, the trigger-path Vrms is loaded from a YAML file (`--trigger_vrms`). In thermal mode, it is computed from the noise temperature and the trigger signal chain response. See [`noise_analysis/trigger_vrms/`](noise_analysis/trigger_vrms/) for extraction and limitations.
 
 ## ADC pedestal and asymmetric saturation
 
@@ -140,11 +140,15 @@ python simulate.py --station_id 23 --energy 1e18 --n_events 100 \
 
 ## Known limitations
 
-- **Trigger Vrms must be pre-extracted.** `simulate.py` reads trigger-path Vrms from a YAML file (`--trigger_vrms`). Extract it using `noise_analysis/trigger_vrms/extract_trigger_vrms.py` before running. See [`noise_analysis/trigger_vrms/`](noise_analysis/trigger_vrms/) for the extraction script and convergence study.
+**FT noise mode:**
+
+- **Trigger Vrms must be pre-extracted.** `--trigger_vrms` requires a YAML file. Extract it using `noise_analysis/trigger_vrms/extract_trigger_vrms.py` before running. See [`noise_analysis/trigger_vrms/`](noise_analysis/trigger_vrms/).
 
 - **VGA gain mismatch.** The simulated VGA gain selection does not match the real FLOWER hardware. Under investigation.
 
-- **Single pedestal voltage for all channels.** `--pedestal_voltage` applies one value. Real per-channel pedestals vary. For per-channel values, call `analogToDigitalConverter.set_pedestal_voltage()` with a dict in your own script. See [`pedestal_extraction/`](pedestal_extraction/).
+**Pedestal handling (applies when using `--pedestal_voltage`):**
+
+- **Single value for all channels.** `--pedestal_voltage` applies one value. Real per-channel pedestals vary. For per-channel values, call `analogToDigitalConverter.set_pedestal_voltage()` with a dict in your own script. See [`pedestal_extraction/`](pedestal_extraction/).
 
 - **No pedestal in the detector database.** The RNO-G MongoDB doesn't store pedestal voltages yet, so they must be passed via `--pedestal_voltage`.
 
