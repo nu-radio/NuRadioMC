@@ -3,7 +3,7 @@
 Reads forced-trigger events from ROOT files via readRNOGDataMattak,
 computes per-channel waveform RMS, and saves the result as an NPZ.
 This is the slow step (reads all ROOT files); downstream scripts
-(generate_clean_mask.py, validate_threshold.py, plot_flagged_waveforms.py)
+(generate_clean_mask.py, validate_threshold.py)
 read the NPZ output.
 
 Output: NPZ file with fields:
