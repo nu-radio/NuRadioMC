@@ -4,7 +4,7 @@ solution_types = {
     1: 'direct',
     2: 'refracted',
     3: 'reflected',
-    4: 'from_air'
+    0: 'from_air'
 }
 
 solution_types_revert = {v: k for k, v in solution_types.items()}
