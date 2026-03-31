@@ -269,9 +269,9 @@ def print_metrics(ang_seps, label):
 EXPECTED = {
     'neutrino': (
         "Reference values (from shipped GZK validation dataset, station 23,\n"
-        "  reco3d_neutrino_gzk.yaml, hw mode, 12,916 events):\n"
-        "  Median: 1.04 deg, 68th: 2.04 deg, 90th: 14.09 deg\n"
-        "  <1 deg: 49%, <2 deg: 68%\n"
+        "  reco3d_neutrino_gzk.yaml, hw mode, 27,667 events, 300K noise):\n"
+        "  Median: 1.48 deg, 68th: 3.30 deg, 90th: 29.03 deg\n"
+        "  <1 deg: 39%, <2 deg: 58%\n"
         "  Note: your results will differ if using a different simulation set,\n"
         "  station, or config. These are provided as a ballpark reference."
     ),
