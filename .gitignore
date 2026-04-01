@@ -151,18 +151,6 @@ NuRadioReco/examples/Interactive/data/
 # zipped DB json files
 *json.xz
 
-NuRadioReco/examples/RNO_energy_reconstruction/lookup_tables*/
-NuRadioReco/examples/RNO_energy_reconstruction/lookup_tables/
-
-# Local lookup outputs and debug files
-NuRadioReco/examples/RNO_energy_reconstruction/Final_lookups/
-NuRadioReco/examples/RNO_energy_reconstruction/checking_detector.py
-
-
-NuRadioReco/examples/RNO_energy_reconstruction/response.py
-NuRadioReco/examples/RNO_energy_reconstruction/script_lookup.sh
-NuRadioReco/examples/RNO_energy_reconstruction/updated_lookup_table/
-NuRadioReco/examples/RNO_energy_reconstruction/updated_lookup_table_2/
-
-NuRadioMC/utilities/data/BGR18_dsigma_dy_H2O.npz
-NuRadioMC/utilities/data/BGR18_dsigma_dy_H2O.npz.lock
+# Simulation output
+NuRadioMC/examples/simulate_effective_ice_temperature/*.json
+NuRadioMC/examples/simulate_effective_ice_temperature/__output_tempfile.h5
