@@ -1102,6 +1102,7 @@ class simulation:
             log_level_propagation=LOGGING_STATUS,
             ice_model=None,
             trigger_channels = None,
+            jitter_random_seed=None,
             **kwargs):
         """
         initialize the NuRadioMC end-to-end simulation
@@ -1152,6 +1153,9 @@ class simulation:
             allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom".
         trigger_channels: list of ints or dict of list of ints
             list of channel ids that are used for the trigger (per station_id). If None, all channels are used.
+        jitter_random_seed: int or None
+            Random seed for the readout window jitter RNG in
+            channelReadoutWindowCutter. If None, a random seed is generated.
         """
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
@@ -1174,6 +1178,8 @@ class simulation:
             self._config['seed'] = np.random.randint(0, 2 ** 32 - 1)
 
         self._rnd = Generator(Philox(self._config['seed']))
+
+        channelReadoutWindowCutter.begin(random_seed=jitter_random_seed)
 
         self._outputfilename = outputfilename
         if os.path.exists(self._outputfilename):
@@ -1723,6 +1729,9 @@ class simulation:
         self._output_writer_hdf5.calculate_Veff()
         if not self._output_writer_hdf5.write_output_file():
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
+            #Youwei"s edit
+            print("No events were triggered. Writing empty HDF5 output file.")
+            
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
         return i_triggered_events

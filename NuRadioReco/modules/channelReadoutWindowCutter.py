@@ -23,7 +23,7 @@ class channelReadoutWindowCutter:
         logger.setLevel(log_level)
         self.begin()
 
-    def begin(self, random_seed=None, gaussian_jitter=0 * units.ns, sample_block_size=0):
+    def begin(self, random_seed=None):
         """
 
         Parameters
@@ -43,11 +43,9 @@ class channelReadoutWindowCutter:
         --------
         time_jitter
         """
-        
+
         self.__sampling_rate_error_issued = False
         self._rng = Generator(Philox(random_seed or secrets.randbits(128)))
-        self._gaussian_jitter = gaussian_jitter
-        self._sample_block_size = sample_block_size
 
 
     @register_run()
@@ -102,8 +100,8 @@ class channelReadoutWindowCutter:
             station.get_id(), first_channel.get_id())
 
         jitter_time = time_jitter(
-            gaussian_spread=self._gaussian_jitter,
-            sample_block_size=self._sample_block_size,
+            gaussian_spread=trigger.get_gaussian_jitter(),
+            sample_block_size=trigger.get_sample_block_size(),
             sampling_rate=first_detector_sampling_rate,
             rng=self._rng,
         )

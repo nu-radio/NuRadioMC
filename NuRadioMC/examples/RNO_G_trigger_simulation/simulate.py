@@ -143,6 +143,10 @@ def rnog_flower_board_high_low_trigger_simulations(evt, station, det, trigger_ch
             trigger_name=f"deep_high_low_{thresh_key}",
             pre_trigger_time=250 * units.ns,
         )
+        station.get_trigger(f"deep_high_low_{thresh_key}").set_jitter_params(
+            sample_block_size=64,
+            gaussian_jitter=0 * units.ns,
+        )
 
     return vrms_after_gain
 
@@ -381,12 +385,6 @@ if __name__ == "__main__":
     else:
         nur_output_filename = None
 
-    simulation.channelReadoutWindowCutter.begin(
-        random_seed=root_seed,
-        sample_block_size=64,          # uniform jitter over +-64 samples
-        gaussian_jitter=0 * units.ns,  # no gaussian for now (per sjoerd's recommendation)
-    )
-
     sim = mySimulation(
         inputfilename=input_data,
         outputfilename=output_filename,
@@ -398,6 +396,7 @@ if __name__ == "__main__":
         trigger_channel_noise_vrms=trigger_channel_noise_vrms,
         event_list=args.event_list,
         use_cpp=True,
+        jitter_random_seed=root_seed,
     )
 
     sim.run()
