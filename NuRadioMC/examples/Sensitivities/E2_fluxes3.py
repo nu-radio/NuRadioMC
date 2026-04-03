@@ -220,10 +220,10 @@ nu_mu_show_data_points = True
 ## km3-230213A
 # From https://www.nature.com/articles/s41586-024-08543-1
 
-km3_230231a_E = np.array([220 ])  * units.PeV
-km3_230231a_E_err = np.array( [[(220-72) ], [(2600-220) ]]) * units.PeV
-km3_230231a_flux = np.array ([5.8e-8  ])  * (units.GeV * units.cm ** -2 * units.second ** -1  * units.sr **-1)
-km3_230231a_flux_err =np.array([[3.7e-8 ],[10.1e-8]]) *  (units.GeV * units.cm ** -2 * units.second ** -1  * units.sr **-1)
+KM3_230231A_E = np.array([220])  * units.PeV
+KM3_230231A_E_err = np.array( [[220-72], [2600-220]]) * units.PeV
+KM3_230231A_flux = np.array ([5.8e-8])  * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr **-1)
+KM3_230231A_flux_err = np.array([[3.7e-8],[10.1e-8]]) * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr **-1)
 
 
 
@@ -654,7 +654,7 @@ def get_E2_limit_figure(diffuse=True,
                         show_PUEO_100=False,
                         show_beacon=False,
                         show_ice_cube_EHE_limit_18=False,  # old IC limit,
-                        show_km3_230213a = True
+                        show_KM3_230213A = True
                         ):
 
     # Limit E2 Plot
@@ -1028,10 +1028,10 @@ def get_E2_limit_figure(diffuse=True,
                     horizontalalignment='left', verticalalignment="bottom", color='#F97807', rotation=35, fontsize=legendfontsize)
         # second_legend.append(beaconleg)
 
-    if show_km3_230213a:
-        ax.errorbar(km3_230231a_E / plotUnitsEnergy, km3_230231a_flux / plotUnitsFlux, km3_230231a_flux_err  / plotUnitsFlux, km3_230231a_E_err / plotUnitsEnergy, color='deeppink')
-        ax.scatter(km3_230231a_E / plotUnitsEnergy, km3_230231a_flux / plotUnitsFlux, color='deeppink')
-        ax.annotate('KM3-230213A', xy = (km3_230231a_E[0] / plotUnitsEnergy*1.1, km3_230231a_flux[0]/plotUnitsFlux*1.1), color='deeppink', fontsize=legendfontsize)
+    if show_KM3_230213A:
+        ax.errorbar(KM3_230231A_E / plotUnitsEnergy, KM3_230231A_flux / plotUnitsFlux, KM3_230231A_flux_err / plotUnitsFlux, KM3_230231A_E_err / plotUnitsEnergy, color='deeppink')
+        ax.scatter(KM3_230231A_E / plotUnitsEnergy, KM3_230231A_flux / plotUnitsFlux, color='deeppink')
+        ax.annotate('KM3-230213A', xy = (KM3_230231A_E[0] / plotUnitsEnergy*1.1, KM3_230231A_flux[0]/plotUnitsFlux*1.1), color='deeppink', fontsize=legendfontsize)
 
     ax.set_yscale('log')
     ax.set_xscale('log')
