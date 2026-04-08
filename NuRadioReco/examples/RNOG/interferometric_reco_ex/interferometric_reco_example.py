@@ -170,9 +170,12 @@ def main():
         
         print(f"Processing file {file_idx}/{len(input_files)}: {input_file}", flush=True)
         
-        reader.begin(input_file)
+        if is_nur_file:
+            reader.begin(input_file)
+        else:
+            reader.begin(input_file,
+                         mattak_kwargs={'read_daq_status': False})
 
-        # Get event IDs differently based on file type
         if is_nur_file:
             # For NUR files, use the underlying NuRadioRecoio object to get event IDs
             event_ids = reader._eventReader__fin.get_event_ids()

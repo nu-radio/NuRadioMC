@@ -97,7 +97,7 @@ def _all_files_in_directory(mattak_dir):
         return False
 
     if full_run:
-        req_files = ["daqstatus.root", "headers.root", "pedestal.root"]
+        req_files = ["daqstatus.root", "headers.root"]
         for file in req_files:
             if not os.path.exists(os.path.join(mattak_dir, file)):
                 logging.error(f"File {file} could not be found in {mattak_dir}")
@@ -434,6 +434,15 @@ class readRNOGData:
 
     def __get_dataset(self, path):
         """ Return a mattak.Dataset.Dataset object for a given path """
+        if os.path.isfile(path) and path.endswith('waveforms.root'):
+            parent = os.path.dirname(path)
+            if os.path.exists(os.path.join(parent, 'headers.root')):
+                path = parent
+            else:
+                self.logger.warning(
+                    "waveforms.root passed without headers.root in the "
+                    "same directory. Attempting to load as-is, but this "
+                    "may fail.")
         return mattak.Dataset.Dataset(station=0, run=0, data_path=path, verbose=self._verbose, **self._mattak_kwargs)
 
     def add_selectors(self, selectors, select_triggers=None):

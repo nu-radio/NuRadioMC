@@ -232,8 +232,11 @@ class InterferometricReco3D:
     # own individual group.
     DEFAULT_DEPTH_GROUPS = {
         'pa': [0, 1, 2, 3],       # ~94-97m, 1m spacing
+        'pa_hpol': [4, 8],        # ~92-93m HPOL on power string
         'helper_b': [9, 10],       # ~96-97m on string B
+        'helper_b_hpol': [11],    # ~95m HPOL on string B
         'helper_c': [22, 23],      # ~96-97m on string C
+        'helper_c_hpol': [21],    # ~95m HPOL on string C
     }
 
     def __init__(self):
@@ -246,6 +249,42 @@ class InterferometricReco3D:
         self._multiray_combo_mode = 'per_pair'
         self._active_ray_types = RAY_TYPES
         self._n_ray_slots = len(RAY_TYPES)
+
+    _KNOWN_CONFIG_KEYS = {
+        'time_delay_tables', 'station_id', 'channels', 'limits', 'step_sizes',
+        'coord_system', 'rec_type', 'fixed_coord',
+        'coarse_limits', 'coarse_step_sizes', 'coarse_n_rho', 'coarse_n_z',
+        'coarse_n_peaks', 'coarse_peak_separation',
+        'refine_step_sizes', 'refine_window', 'refine_n_peaks', 'refine_radius',
+        'refine_levels',
+        'pass2_step_sizes', 'pass2_coarse_step_sizes', 'pass2_n_rho',
+        'pass2_window', 'pass2_hierarchical',
+        'pass2_coarse_n_peaks', 'pass2_coarse_peak_separation',
+        'pass2_refine_window', 'z_profile_step',
+        'hilbert_envelope_mode', 'use_hilbert_envelope',
+        'apply_hann_window', 'correlation_normalization', 'interp_method',
+        'apply_upsampling', 'apply_cw_removal', 'apply_cable_delays',
+        'apply_bandpass', 'apply_cable_delay', 'apply_hw_phase_removal',
+        'apply_dedispersion',
+        'bandpass_band', 'bandpass_order', 'bandpass_filter_type',
+        'mode', 'hierarchical', 'tdoa_mode',
+        'multi_ray_types', 'multiray_combo_mode',
+        'multiray_table_name_pattern', 'table_name_pattern', 'table_scheme',
+        'optimizer_method', 'optimizer_maxiter', 'n_optimizer_seeds',
+        'optimizer_rho_offsets',
+        'skip_optimizer', 'use_tdoa_seed',
+        'snr_pair_weighting', 'pair_weights',
+        'save_results_to', 'detector_file', 'detector_date',
+        'interpolation_method', 'table_type',
+        'n_peaks_save', 'save_coherent_waveforms', 'n_coherent_waveforms',
+        'polarization_groups', 'hpol_weight_scale',
+        'validation',
+        'post_optimizer_mode', 'rho_scan_step',
+        'refinement_envelope_mode', 'refinement_window', 'refinement_maxiter',
+        'de_window', 'de_maxiter', 'de_popsize',
+        'bh_window', 'bh_niter', 'bh_stepsize',
+        'plane_wave_fallback', 'plane_wave_snr_threshold',
+    }
 
     def begin(self, station_id, config, det):
         """Initialize interpolators and antenna positions.
@@ -263,8 +302,36 @@ class InterferometricReco3D:
             with open(config) as f:
                 config = yaml.safe_load(f)
 
+        self._validate_config(config)
         self._preload_tables(station_id, config)
         self.ant_locs = self._get_ant_locs(station_id, det)
+        if 1 in self.ant_locs and 2 in self.ant_locs:
+            self._pa_center = (self.ant_locs[1] + self.ant_locs[2]) / 2.0
+        else:
+            self._pa_center = np.zeros(3)
+
+    def _validate_config(self, config):
+        """Check config for common mistakes and warn about unknown keys."""
+        unknown = set(config.keys()) - self._KNOWN_CONFIG_KEYS
+        if unknown:
+            logger.warning(
+                "Unknown config keys (ignored): %s. "
+                "This module uses cylindrical coordinates (rho, phi, z). "
+                "Keys like 'coord_system', 'rec_type', and 'fixed_coord' "
+                "have no effect.", sorted(unknown)
+            )
+
+        if 'coord_system' in config:
+            cs = config['coord_system']
+            if cs != 'cylindrical':
+                logger.warning(
+                    "coord_system='%s' has no effect. This module always "
+                    "uses cylindrical coordinates (rho, phi, z). The "
+                    "'limits' key is interpreted as "
+                    "[rho_min, rho_max, phi_min, phi_max, z_min, z_max]. "
+                    "If you intended spherical coordinates, this config "
+                    "will produce wrong results.", cs
+                )
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -420,6 +487,8 @@ class InterferometricReco3D:
             locs[ch] = rel
         return locs
 
+    _MAX_GRID_POINTS = 50_000_000
+
     def _generate_coord_arrays(self, config):
         """Generate 1D coordinate arrays from 6-element limits.
 
@@ -436,7 +505,39 @@ class InterferometricReco3D:
         rho_min, rho_max, phi_min, phi_max, z_min, z_max = config['limits']
         d_rho, d_phi, d_z = config['step_sizes']
 
+        if z_max > 0:
+            raise ValueError(
+                f"z_max={z_max} is above the ice surface. Travel time "
+                f"tables only cover in-ice positions (z <= 0). "
+                f"Use negative z values, e.g. limits: "
+                f"[{rho_min}, {rho_max}, {phi_min}, {phi_max}, "
+                f"-{abs(z_max)}, {z_min}]"
+            )
+
         rho_min = max(rho_min, 1.0)  # avoid R=0 table edge effects
+
+        n_rho = len(np.arange(rho_min, rho_max + d_rho, d_rho))
+        n_phi = len(np.arange(phi_min, phi_max, d_phi))
+        n_z = len(np.arange(z_min, z_max + d_z, d_z))
+        n_total = n_rho * n_phi * n_z
+
+        if n_total > self._MAX_GRID_POINTS:
+            raise ValueError(
+                f"Grid has {n_total:,} points "
+                f"({n_rho} rho x {n_phi} phi x {n_z} z), which exceeds "
+                f"the {self._MAX_GRID_POINTS:,} point limit. This would "
+                f"require excessive memory. Use 'coarse_limits' and "
+                f"'coarse_step_sizes' with the hierarchical search "
+                f"(set hierarchical: true) for large search volumes, "
+                f"or increase step_sizes."
+            )
+
+        if not config.get('hierarchical', False):
+            logger.warning(
+                "Running flat grid scan with %s points. Consider using "
+                "hierarchical: true with coarse_limits/coarse_step_sizes "
+                "for better performance.", f"{n_total:,}"
+            )
 
         rho_vec = np.arange(rho_min, rho_max + d_rho, d_rho)
         phi_vec = np.arange(phi_min, phi_max, d_phi) * (np.pi / 180.0)
@@ -461,13 +562,9 @@ class InterferometricReco3D:
         np.ndarray
             Shape (n_rho, n_phi, n_z, 3) with [x, y, z] at each point.
         """
-        ch1 = self.ant_locs[1]
-        ch2 = self.ant_locs[2]
-        pa_center = (ch1 + ch2) / 2.0
-
         rho_g, phi_g, z_g = np.meshgrid(rho_vec, phi_vec, z_vec, indexing='ij')
-        x = rho_g * np.cos(phi_g) + pa_center[0]
-        y = rho_g * np.sin(phi_g) + pa_center[1]
+        x = rho_g * np.cos(phi_g) + self._pa_center[0]
+        y = rho_g * np.sin(phi_g) + self._pa_center[1]
 
         return np.stack((x, y, z_g), axis=-1)
 
@@ -1180,9 +1277,7 @@ class InterferometricReco3D:
             pw = np.asarray(pair_weights, dtype=np.float64)
         w_total = float(pw.sum())
 
-        ch1_loc = self.ant_locs[1]
-        ch2_loc = self.ant_locs[2]
-        pa_center = (ch1_loc + ch2_loc) / 2.0
+        pa_center = self._pa_center
 
         ant_pos = np.array([self.ant_locs[ch][:2] for ch in channels])
 
@@ -1310,9 +1405,7 @@ class InterferometricReco3D:
             pw = _cache['pw']
             ant_pos = _cache['ant_pos']
         else:
-            ch1_loc = self.ant_locs[1]
-            ch2_loc = self.ant_locs[2]
-            pa_center = (ch1_loc + ch2_loc) / 2.0
+            pa_center = self._pa_center
             ch_pairs = list(itertools.combinations(channels, 2))
             if pair_weights is not None:
                 pw = np.array(pair_weights, dtype=np.float64)
@@ -1535,10 +1628,16 @@ class InterferometricReco3D:
         list of float
             Per-pair weights, one per combination(channels, 2).
         """
+        from NuRadioReco.utilities.trace_utilities import (
+            get_split_trace_noise_RMS, get_signal_to_noise_ratio)
+
         snrs = []
         for v in volt_arrays:
-            std = v.std()
-            snrs.append(np.max(np.abs(v)) / std if std > 0 else 0.0)
+            noise_rms = get_split_trace_noise_RMS(v)
+            snrs.append(get_signal_to_noise_ratio(v, noise_rms)
+                        if noise_rms > 0 else 0.0)
+
+        channel_snrs = dict(zip(channels, snrs))
 
         ch_pairs = list(itertools.combinations(range(len(channels)), 2))
         weights = [np.sqrt(snrs[i] * snrs[j]) for i, j in ch_pairs]
@@ -1548,7 +1647,7 @@ class InterferometricReco3D:
             weights = [w / max_w for w in weights]
 
         logger.debug("SNR pair weights: %d pairs", len(weights))
-        return weights
+        return weights, channel_snrs
 
     def _extract_top_n_peaks(self, corr_map, rho_vec, phi_vec_deg, z_vec, n,
                              separation):
@@ -1600,6 +1699,167 @@ class InterferometricReco3D:
             work[np.ix_(rho_mask, phi_mask, z_mask)] = np.nan
 
         return peaks
+
+    def _compute_travel_times_single_point(self, rho, phi_deg, z, channels):
+        """Compute per-channel travel times for a single source position.
+
+        Args:
+            rho: Horizontal distance from PA center (meters).
+            phi_deg: Azimuth in degrees.
+            z: Depth (meters, negative below surface).
+            channels: List of channel IDs.
+
+        Returns:
+            Dict mapping channel ID to travel time (seconds), or NaN.
+        """
+        phi_rad = phi_deg * (np.pi / 180.0)
+        x = rho * np.cos(phi_rad) + self._pa_center[0]
+        y = rho * np.sin(phi_rad) + self._pa_center[1]
+
+        travel_times = {}
+        for ch in channels:
+            pos = self.ant_locs[ch]
+            dx = x - pos[0]
+            dy = y - pos[1]
+            r = max(np.sqrt(dx * dx + dy * dy), 1.0)
+            td = self._interpolators[ch]
+            if USE_NUMBA:
+                tt = _bilinear_scalar_numba(
+                    td.values, td.r_min, td.dr_inv, td.nr,
+                    td.z_min, td.dz_inv, td.nz, r, z)
+            else:
+                tt = td.interp(np.array([[r, z]]))[0]
+            travel_times[ch] = tt
+        return travel_times
+
+    def _compute_coherent_waveform(self, rho, phi_deg, z,
+                                   volt_arrays, time_arrays, channels):
+        """Form coherent delay-and-stack waveform at a source direction.
+
+        Shifts each channel trace by the relative travel time delay and
+        sums. Uses linear interpolation for sub-sample shifting.
+
+        Args:
+            rho, phi_deg, z: Source position in cylindrical coordinates.
+            volt_arrays: List of voltage traces per channel.
+            time_arrays: List of time arrays per channel.
+            channels: List of channel IDs.
+
+        Returns:
+            (times, coherent_trace) where times is the output time array
+            and coherent_trace is the delay-and-stack sum, normalized by
+            the number of contributing channels. Returns (None, None) if
+            travel times are unavailable.
+        """
+        travel_times = self._compute_travel_times_single_point(
+            rho, phi_deg, z, channels)
+
+        valid_tt = {ch: tt for ch, tt in travel_times.items()
+                    if np.isfinite(tt) and tt > 0}
+        if len(valid_tt) < 2:
+            return None, None
+
+        t_ref = min(valid_tt.values())
+        delays = {ch: tt - t_ref for ch, tt in valid_tt.items()}
+
+        ref_idx = channels.index(list(valid_tt.keys())[0])
+        out_times = time_arrays[ref_idx].copy()
+        n_out = len(out_times)
+        coherent = np.zeros(n_out, dtype=np.float64)
+        n_contributing = 0
+
+        for ci, ch in enumerate(channels):
+            if ch not in valid_tt:
+                continue
+            trace = volt_arrays[ci]
+            times = time_arrays[ci]
+            delay = delays[ch]
+
+            shifted_times = out_times + delay
+            shifted_trace = np.interp(shifted_times, times, trace,
+                                      left=0.0, right=0.0)
+            coherent += shifted_trace
+            n_contributing += 1
+
+        if n_contributing > 0:
+            coherent /= n_contributing
+
+        return out_times, coherent
+
+    def _compute_map_snr(self, corr_map, peak_idx, exclusion_bins=3):
+        """Compute map SNR: peak correlation / RMS of map away from peak.
+
+        Args:
+            corr_map: 3D correlation map (n_rho, n_phi, n_z).
+            peak_idx: Tuple (i_rho, i_phi, i_z) of the peak bin.
+            exclusion_bins: Number of bins to exclude around peak in each dim.
+
+        Returns:
+            Map SNR (float), or NaN if map RMS is zero.
+        """
+        mask = np.ones(corr_map.shape, dtype=bool)
+        ir, ip, iz = peak_idx
+        nr, nphi, nz = corr_map.shape
+        r_lo = max(0, ir - exclusion_bins)
+        r_hi = min(nr, ir + exclusion_bins + 1)
+        p_lo = max(0, ip - exclusion_bins)
+        p_hi = min(nphi, ip + exclusion_bins + 1)
+        z_lo = max(0, iz - exclusion_bins)
+        z_hi = min(nz, iz + exclusion_bins + 1)
+        mask[r_lo:r_hi, p_lo:p_hi, z_lo:z_hi] = False
+
+        away = corr_map[mask]
+        away = away[np.isfinite(away)]
+        if len(away) == 0:
+            return np.nan
+        rms = np.std(away)
+        if rms < 1e-12:
+            return np.nan
+        return float(corr_map[peak_idx]) / rms
+
+    def _find_peak_bin(self, rho, phi_deg, z, rho_vec, phi_vec_deg, z_vec):
+        """Find the nearest bin index in the coarse grid for a peak position.
+
+        Args:
+            rho, phi_deg, z: Peak position.
+            rho_vec, phi_vec_deg, z_vec: Coarse grid vectors.
+
+        Returns:
+            Tuple (i_rho, i_phi, i_z).
+        """
+        ir = int(np.argmin(np.abs(rho_vec - rho)))
+        phi_diff = np.abs(phi_vec_deg - phi_deg)
+        phi_diff = np.minimum(phi_diff, 360.0 - phi_diff)
+        ip = int(np.argmin(phi_diff))
+        iz = int(np.argmin(np.abs(z_vec - z)))
+        return (ir, ip, iz)
+
+    def _deduplicate_peaks(self, peaks, d_rho=10, d_phi=5, d_z=10):
+        """Remove duplicate peaks that are within separation thresholds.
+
+        Keeps the highest-correlation peak from each cluster.
+
+        Args:
+            peaks: List of (rho, phi_deg, z, corr) tuples, sorted by corr desc.
+            d_rho, d_phi, d_z: Minimum separation thresholds.
+
+        Returns:
+            Filtered list of peaks.
+        """
+        kept = []
+        for peak in peaks:
+            rho_p, phi_p, z_p, corr_p = peak
+            is_dup = False
+            for rho_k, phi_k, z_k, _ in kept:
+                if abs(rho_p - rho_k) < d_rho and abs(z_p - z_k) < d_z:
+                    dphi = abs(phi_p - phi_k)
+                    dphi = min(dphi, 360 - dphi)
+                    if dphi < d_phi:
+                        is_dup = True
+                        break
+            if not is_dup:
+                kept.append(peak)
+        return kept
 
     def _optimize_from_seed(self, seed, corr_data, channels, bounds,
                             pair_weights=None, method='L-BFGS-B',
@@ -1707,9 +1967,7 @@ class InterferometricReco3D:
         c_ice = 0.3 / 1.55  # average in-ice velocity ~0.1935 m/ns
 
         ant_pos_3d = np.array([self.ant_locs[ch] for ch in channels])
-        ch1_loc = self.ant_locs[1]
-        ch2_loc = self.ant_locs[2]
-        pa_center = (ch1_loc + ch2_loc) / 2.0
+        pa_center = self._pa_center
 
         # Extract per-channel delays relative to first channel using
         # pairwise correlations. Build a per-channel TDOA vector.
@@ -1822,9 +2080,7 @@ class InterferometricReco3D:
             n_ch = cache['n_ch']
             pw = cache['pw']
         else:
-            ch1_loc = self.ant_locs[1]
-            ch2_loc = self.ant_locs[2]
-            pa_center = (ch1_loc + ch2_loc) / 2.0
+            pa_center = self._pa_center
             ant_pos = np.array([self.ant_locs[ch][:2] for ch in channels])
             ch_idx = list(range(len(channels)))
             pair_ch1 = np.array([p[0] for p in
@@ -1959,7 +2215,7 @@ class InterferometricReco3D:
 
         pair_weights = None
         if config.get('snr_pair_weighting', False):
-            pair_weights = self._compute_snr_pair_weights(
+            pair_weights, _ = self._compute_snr_pair_weights(
                 volt_arrays, channels
             )
 
@@ -2005,10 +2261,13 @@ class InterferometricReco3D:
 
         phi_best = phi_best % 360.0
 
-        station.set_parameter(stnp.rec_max_correlation, corr_best)
-        station.set_parameter(stnp.rec_coord_0, rho_best * units.m)
-        station.set_parameter(stnp.rec_coord_1, phi_best * units.deg)
-        station.set_parameter(stnp.rec_coord_2, z_best * units.m)
+        try:
+            station.set_parameter(stnp.rec_max_correlation, corr_best)
+            station.set_parameter(stnp.rec_coord_0, rho_best * units.m)
+            station.set_parameter(stnp.rec_coord_1, phi_best * units.deg)
+            station.set_parameter(stnp.rec_coord_2, z_best * units.m)
+        except AttributeError:
+            pass
 
         return {
             'rho': rho_best,
@@ -2060,10 +2319,13 @@ class InterferometricReco3D:
             time_arrays.append(channel.get_times())
 
         pair_weights = None
-        if config.get('snr_pair_weighting', False):
-            pair_weights = self._compute_snr_pair_weights(
+        channel_snrs = {}
+        if config.get('snr_pair_weighting', False) or config.get('validation', False):
+            pair_weights, channel_snrs = self._compute_snr_pair_weights(
                 volt_arrays, channels
             )
+            if not config.get('snr_pair_weighting', False):
+                pair_weights = None
 
         v_pairs = list(itertools.combinations(volt_arrays, 2))
         corr_data = self._prepare_corr_funcs(
@@ -2089,7 +2351,12 @@ class InterferometricReco3D:
             rho_vec_c = np.arange(rho_min_c, rho_max_c + coarse_steps[0],
                                   coarse_steps[0])
         phi_vec_c = np.arange(phi_min_c, phi_max_c, coarse_steps[1]) * (np.pi / 180.0)
-        z_vec_c = np.arange(z_min_c, z_max_c + coarse_steps[2], coarse_steps[2])
+
+        n_z_coarse = config.get('coarse_n_z', 0)
+        if n_z_coarse > 0:
+            z_vec_c = np.linspace(z_min_c, z_max_c, n_z_coarse)
+        else:
+            z_vec_c = np.arange(z_min_c, z_max_c + coarse_steps[2], coarse_steps[2])
 
         coarse_cache_key = (
             'coarse', station_id, tuple(sorted(channels)),
@@ -2133,7 +2400,10 @@ class InterferometricReco3D:
 
         if not coarse_peaks:
             logger.warning("No coarse peaks found")
-            station.set_parameter(stnp.rec_max_correlation, np.nan)
+            try:
+                station.set_parameter(stnp.rec_max_correlation, np.nan)
+            except AttributeError:
+                pass
             return {'rho': np.nan, 'phi': np.nan, 'z': np.nan,
                     'max_corr': np.nan}
 
@@ -2231,8 +2501,9 @@ class InterferometricReco3D:
         t0_opt = time.time()
 
         if skip_optimizer:
-            best = refined_peaks[0]
-            rho_best, phi_best, z_best, corr_best = best
+            all_optimized = [(p[0], p[1] % 360.0, p[2], p[3])
+                             for p in refined_peaks]
+            rho_best, phi_best, z_best, corr_best = all_optimized[0]
         else:
             bounds = [
                 (max(full_limits[0], 1.0), full_limits[1]),
@@ -2263,7 +2534,7 @@ class InterferometricReco3D:
                         (rho_seed, top[1], top[2], top[3] * 0.99)
                     )
 
-            best = None
+            all_optimized = []
             for rho_p, phi_p, z_p, corr_p in refined_peaks:
                 phi_seed = phi_p % 360.0
                 rho_opt, phi_opt, z_opt, corr_opt = self._optimize_from_seed(
@@ -2271,9 +2542,12 @@ class InterferometricReco3D:
                     pair_weights, method=opt_method, maxiter=opt_maxiter,
                     _cache=opt_cache
                 )
-                if best is None or corr_opt > best[3]:
-                    best = (rho_opt, phi_opt, z_opt, corr_opt)
-            rho_best, phi_best, z_best, corr_best = best
+                all_optimized.append(
+                    (rho_opt, phi_opt % 360.0, z_opt, corr_opt))
+
+            all_optimized.sort(key=lambda x: x[3], reverse=True)
+            all_optimized = self._deduplicate_peaks(all_optimized)
+            rho_best, phi_best, z_best, corr_best = all_optimized[0]
 
         t_opt = time.time() - t0_opt
 
@@ -2410,19 +2684,54 @@ class InterferometricReco3D:
         t_raw_refine = time.time() - t0_raw
         phi_best = phi_best % 360.0
 
+        # Stage 6: Multi-peak quality metrics and coherent waveforms
+        t0_peaks = time.time()
+        n_peaks_save = config.get('n_peaks_save', 1)
+        save_coh_wf = config.get('save_coherent_waveforms', False)
+        n_coh_wf = config.get('n_coherent_waveforms', 1)
+
+        phi_vec_deg_c = phi_vec_c * (180.0 / np.pi)
+        saved_peaks = all_optimized[:n_peaks_save]
+
+        peak_map_snrs = []
+        for rho_p, phi_p, z_p, corr_p in saved_peaks:
+            pidx = self._find_peak_bin(
+                rho_p, phi_p, z_p, rho_vec_c, phi_vec_deg_c, z_vec_c)
+            peak_map_snrs.append(self._compute_map_snr(mean_corr_c, pidx))
+
+        coherent_waveforms = []
+        coherent_times = None
+        if save_coh_wf and not self._multi_ray_types:
+            for i, (rho_p, phi_p, z_p, corr_p) in enumerate(saved_peaks):
+                if i >= n_coh_wf:
+                    break
+                t_coh, v_coh = self._compute_coherent_waveform(
+                    rho_p, phi_p, z_p, volt_arrays, time_arrays, channels)
+                if t_coh is not None:
+                    if coherent_times is None:
+                        coherent_times = t_coh
+                    coherent_waveforms.append(v_coh)
+
+        t_peaks = time.time() - t0_peaks
+
+
         logger.debug(
             "3D hierarchical: coarse=%.3fs, refine=%.3fs, opt=%.3fs, "
-            "post=%.3fs, raw=%.3fs, rho=%.1f phi=%.1f z=%.1f corr=%.4f",
-            t_coarse, t_refine, t_opt, t_post, t_raw_refine,
-            rho_best, phi_best, z_best, corr_best
+            "post=%.3fs, raw=%.3fs, peaks=%.3fs, rho=%.1f phi=%.1f z=%.1f "
+            "corr=%.4f, n_saved=%d",
+            t_coarse, t_refine, t_opt, t_post, t_raw_refine, t_peaks,
+            rho_best, phi_best, z_best, corr_best, len(saved_peaks)
         )
 
-        station.set_parameter(stnp.rec_max_correlation, corr_best)
-        station.set_parameter(stnp.rec_coord_0, rho_best * units.m)
-        station.set_parameter(stnp.rec_coord_1, phi_best * units.deg)
-        station.set_parameter(stnp.rec_coord_2, z_best * units.m)
+        try:
+            station.set_parameter(stnp.rec_max_correlation, corr_best)
+            station.set_parameter(stnp.rec_coord_0, rho_best * units.m)
+            station.set_parameter(stnp.rec_coord_1, phi_best * units.deg)
+            station.set_parameter(stnp.rec_coord_2, z_best * units.m)
+        except AttributeError:
+            pass
 
-        return {
+        result = {
             'rho': rho_best,
             'phi': phi_best,
             'z': z_best,
@@ -2432,10 +2741,100 @@ class InterferometricReco3D:
             'opt_time': t_opt,
             'post_time': t_post if post_mode else 0.0,
             'raw_refine_time': t_raw_refine if refine_envelope != 'UNSET' else 0.0,
+            'peak_time': t_peaks,
             'n_coarse_peaks': len(coarse_peaks),
             'n_refined_peaks': len(refined_peaks),
+            'n_saved_peaks': len(saved_peaks),
             'coarse_peaks': coarse_peaks,
         }
+
+        # Multi-peak output: per-peak position, correlation, and map SNR
+        for i, (rho_p, phi_p, z_p, corr_p) in enumerate(saved_peaks):
+            result[f'peak_{i}_rho'] = rho_p
+            result[f'peak_{i}_phi'] = phi_p
+            result[f'peak_{i}_z'] = z_p
+            result[f'peak_{i}_corr'] = corr_p
+            result[f'peak_{i}_map_snr'] = peak_map_snrs[i]
+
+        # Coherent waveforms (stored as arrays in result dict)
+        for i, wf in enumerate(coherent_waveforms):
+            result[f'coherent_wf_{i}'] = wf
+        if coherent_times is not None:
+            result['coherent_times'] = coherent_times
+
+        # Backwards-compatible alt reco fields
+
+        if config.get('validation', False):
+            from reco_validation import extract_metrics
+            pa_center_z = self._pa_center[2]
+            val = extract_metrics(
+                mean_corr_c, rho_vec_c, phi_vec_c, z_vec_c,
+                channel_snrs, coarse_peaks, pa_center_z, config)
+            result.update(val)
+
+        return result
+
+    def _run_per_polarization(self, evt, station, det, config):
+        """Run independent reconstruction per polarization group.
+
+        Each polarization gets its own correlation map, peak finding, and
+        optimizer. No cross-pol pairs are ever formed. The first group
+        (typically VPOL) provides the primary result; subsequent groups
+        add supplementary fields with a group-name suffix.
+
+        Parameters
+        ----------
+        evt : Event
+            NuRadioReco Event object.
+        station : Station
+            Station object.
+        det : Detector
+            Detector description.
+        config : dict
+            Must contain 'polarization_groups' mapping group names to
+            channel lists.
+
+        Returns
+        -------
+        dict
+            Primary result from first group, plus per-group results
+            keyed as '{field}_{group_name}'.
+        """
+        pol_groups = config['polarization_groups']
+        all_channels = config['channels']
+        results = {}
+        primary_group = None
+
+        for group_name, group_chs in pol_groups.items():
+            active = [ch for ch in all_channels if ch in group_chs]
+            if len(active) < 2:
+                logger.info("Pol group '%s': %d channels, skipping (need >= 2)",
+                            group_name, len(active))
+                continue
+
+            group_config = dict(config)
+            group_config['channels'] = active
+            group_config.pop('polarization_groups', None)
+            group_config.pop('hpol_weight_scale', None)
+
+            logger.info("Running %s reco: %d channels %s",
+                         group_name, len(active), active)
+
+            grp_result = self.run(evt, station, det, group_config)
+
+            for key, val in grp_result.items():
+                results[f'{key}_{group_name}'] = val
+
+            if primary_group is None:
+                primary_group = group_name
+                results.update(grp_result)
+
+        if primary_group is None:
+            logger.warning("No polarization group had >= 2 channels")
+            return {'rho': np.nan, 'phi': np.nan, 'z': np.nan,
+                    'max_corr': np.nan}
+
+        return results
 
     def run(self, evt, station, det, config):
         """Run 3D interferometric reconstruction on one event.
@@ -2463,6 +2862,9 @@ class InterferometricReco3D:
             with open(config) as f:
                 config = yaml.safe_load(f)
 
+        if config.get('polarization_groups', None) is not None:
+            return self._run_per_polarization(evt, station, det, config)
+
         if config.get('tdoa_mode', False):
             return self.run_tdoa(evt, station, det, config)
 
@@ -2487,10 +2889,12 @@ class InterferometricReco3D:
             volt_arrays.append(channel.get_trace())
             time_arrays.append(channel.get_times())
 
-        if config.get('snr_pair_weighting', False) and pair_weights is None:
-            pair_weights = self._compute_snr_pair_weights(
+        if (config.get('snr_pair_weighting', False) or config.get('validation', False)) and pair_weights is None:
+            pair_weights, _ = self._compute_snr_pair_weights(
                 volt_arrays, channels
             )
+            if not config.get('snr_pair_weighting', False):
+                pair_weights = None
 
         v_pairs = list(itertools.combinations(volt_arrays, 2))
 
@@ -2524,7 +2928,10 @@ class InterferometricReco3D:
 
         if not peaks:
             logger.warning("No peaks found in coarse grid")
-            station.set_parameter(stnp.rec_max_correlation, np.nan)
+            try:
+                station.set_parameter(stnp.rec_max_correlation, np.nan)
+            except AttributeError:
+                pass
             return {'rho': np.nan, 'phi': np.nan, 'z': np.nan,
                     'max_corr': np.nan}
 
@@ -2552,10 +2959,13 @@ class InterferometricReco3D:
             t_grid, t_opt, rho_best, phi_best, z_best, corr_best
         )
 
-        station.set_parameter(stnp.rec_max_correlation, corr_best)
-        station.set_parameter(stnp.rec_coord_0, rho_best * units.m)
-        station.set_parameter(stnp.rec_coord_1, phi_best * units.deg)
-        station.set_parameter(stnp.rec_coord_2, z_best * units.m)
+        try:
+            station.set_parameter(stnp.rec_max_correlation, corr_best)
+            station.set_parameter(stnp.rec_coord_0, rho_best * units.m)
+            station.set_parameter(stnp.rec_coord_1, phi_best * units.deg)
+            station.set_parameter(stnp.rec_coord_2, z_best * units.m)
+        except AttributeError:
+            pass
 
         return {
             'rho': rho_best,

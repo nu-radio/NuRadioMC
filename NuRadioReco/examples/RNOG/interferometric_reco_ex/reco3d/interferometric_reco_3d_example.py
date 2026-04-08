@@ -34,6 +34,7 @@ from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
 from NuRadioMC.utilities.medium import greenland_simple
 
 from NuRadioReco.modules.interferometricDirectionReconstruction3D import InterferometricReco3D
+from NuRadioReco.framework.channel import Channel
 
 logger = logging.getLogger("reco3d.iterative")
 
@@ -260,6 +261,91 @@ def _z_profile_pass2(reco2, evt, stn, det, config, config_p2_template,
     return best
 
 
+HELPER_B_CHANNELS = [9, 10]
+HELPER_C_CHANNELS = [22, 23]
+HELPER_CHANNELS = HELPER_B_CHANNELS + HELPER_C_CHANNELS
+PA_CHANNELS = [0, 1, 2, 3]
+SHALLOW_CHANNELS = [5, 6, 7]
+
+
+def check_helper_snr(station, threshold=5.0):
+    """Check whether any helper channel exceeds SNR threshold.
+
+    Args:
+        station: NuRadioReco Station with preprocessed traces.
+        threshold: Minimum SNR (max|V|/noise_rms) to count as signal.
+
+    Returns:
+        True if at least one helper channel is above threshold.
+    """
+    from NuRadioReco.utilities.trace_utilities import (
+        get_split_trace_noise_RMS, get_signal_to_noise_ratio)
+
+    for ch_id in HELPER_CHANNELS:
+        try:
+            trace = station.get_channel(ch_id).get_trace()
+            noise_rms = get_split_trace_noise_RMS(trace)
+            snr = get_signal_to_noise_ratio(trace, noise_rms) if noise_rms > 0 else 0.0
+            if snr >= threshold:
+                return True
+        except (KeyError, AttributeError):
+            continue
+    return False
+
+
+def make_fallback_config(config):
+    """Create a plane-wave fallback config for PA-only zenith reconstruction.
+
+    Uses only PA channels with a coarse phi grid (unconstrained dimension).
+
+    Args:
+        config: Original reco config dict.
+
+    Returns:
+        Modified config dict for plane-wave fallback.
+    """
+    fb = dict(config)
+    fb['channels'] = PA_CHANNELS + SHALLOW_CHANNELS
+    fb['coarse_step_sizes'] = [0, 60, 0]
+    return fb
+
+
+def preprocess_station(evt, stn, det, config, modules, apply_upsample=True,
+                       apply_dedisp=False):
+    """Apply standard preprocessing chain to a station.
+
+    Args:
+        evt: NuRadioReco Event.
+        stn: Station object.
+        det: Detector description.
+        config: Reco config dict.
+        modules: Dict with keys 'cable_delay', 'hw_response', 'resampler',
+            'cw_filter', 'bandpass_filter', 'antenna_dedispersion'.
+        apply_upsample: Apply upsampling (pass 1 only).
+        apply_dedisp: Apply antenna dedispersion (pass 1 only).
+    """
+    if config.get('apply_cable_delay', True):
+        modules['cable_delay'].run(evt, stn, det, mode='subtract')
+    if config.get('apply_hw_phase_removal', True):
+        modules['hw_response'].run(evt, stn, det, sim_to_data=False,
+                                    mode='phase_only')
+    if apply_upsample and config.get('apply_upsampling', True):
+        modules['resampler'].run(evt, stn, det,
+                                  sampling_rate=10 * units.GHz)
+    if config.get('apply_cw_removal', False):
+        peak_prominence = config.get('cw_peak_prominence', 4.0)
+        modules['cw_filter'].run(evt, stn, det,
+                                  peak_prominence=peak_prominence)
+    if config.get('apply_bandpass', False):
+        bp_band = config.get('bandpass_band', [0.1, 0.7])
+        modules['bandpass_filter'].run(evt, stn, det,
+            passband=[bp_band[0] * units.GHz, bp_band[1] * units.GHz],
+            filter_type=config.get('bandpass_filter_type', 'butter'),
+            order=config.get('bandpass_order', 10))
+    if apply_dedisp and config.get('apply_dedispersion', False):
+        modules['antenna_dedispersion'].run(evt, stn, det)
+
+
 def main():
     """Run iterative 3D interferometric reconstruction on input events."""
     parser = argparse.ArgumentParser(
@@ -273,7 +359,20 @@ def main():
     parser.add_argument("--max_events", type=int, default=None)
     parser.add_argument("--skip_events", type=int, default=0,
                         help="Skip this many events at the start of each file")
+    parser.add_argument("--event-list", type=str, default=None,
+                        help="JSON file mapping run_number -> [event_numbers] to filter events")
+    parser.add_argument("--validation", action="store_true",
+                        help="Record per-channel SNR and correlation quality metrics")
+    parser.add_argument("--save-nur", type=str, default=None,
+                        help="Write events with coherent WF channels to NUR file")
     args = parser.parse_args()
+
+    event_filter = None
+    if args.event_list:
+        import json as _json
+        with open(args.event_list) as _f:
+            raw = _json.load(_f)
+        event_filter = {int(k): set(v) for k, v in raw.items()}
 
     logging.basicConfig(level=logging.INFO,
                         format='%(name)s - %(levelname)s - %(message)s')
@@ -284,6 +383,9 @@ def main():
     for key, val in config.items():
         if isinstance(val, str) and '$' in val:
             config[key] = os.path.expandvars(val)
+
+    if args.validation:
+        config['validation'] = True
 
     det = init_detector(config)
     station_id = config['station_id']
@@ -304,6 +406,12 @@ def main():
         freq_band=tuple(config.get('cw_freq_band', [0.1, 0.6]))
     )
     antenna_dedispersion = channelAntennaDedispersion()
+    pp_modules = {
+        'cable_delay': cable_delay, 'hw_response': hw_response,
+        'resampler': resampler, 'cw_filter': cw_filter,
+        'bandpass_filter': bandpass_filter,
+        'antenna_dedispersion': antenna_dedispersion,
+    }
 
     provider = AntennaPatternProvider()
     tx_model = config.get('tx_antenna_model', 'RNOG_vpol_v3_5inch_center_n1.74')
@@ -358,6 +466,16 @@ def main():
         reco2 = InterferometricReco3D()
         reco2.begin(station_id, config_p2_template, det)
 
+    COH_WF_CHANNEL_BASE = 100
+
+    nur_writer = None
+    if args.save_nur:
+        from NuRadioReco.modules.io.eventWriter import eventWriter
+        from NuRadioReco.framework.event import Event as NREvent
+        from NuRadioReco.framework.station import Station as NRStation
+        nur_writer = eventWriter()
+        nur_writer.begin(args.save_nur)
+
     results = []
     n_processed = 0
     t_total = 0
@@ -371,7 +489,8 @@ def main():
             event_ids = reader._eventReader__fin.get_event_ids()
         else:
             reader = readRNOGData()
-            reader.begin(input_file)
+            reader.begin(input_file,
+                         mattak_kwargs={'read_daq_status': False})
             event_ids = reader.get_event_ids()
 
         emitter_pos = None
@@ -386,6 +505,12 @@ def main():
         event_ids = event_ids[args.skip_events:]
 
         for eid in event_ids:
+            if event_filter is not None:
+                run_nr = int(eid[0])
+                evt_nr = int(eid[1])
+                if run_nr not in event_filter or evt_nr not in event_filter[run_nr]:
+                    continue
+
             t0 = time.time()
 
             if is_nur:
@@ -395,56 +520,48 @@ def main():
             stn1 = evt1.get_station(station_id)
 
             t_preproc_start = time.time()
-            if config.get('apply_cable_delay', True):
-                cable_delay.run(evt1, stn1, det, mode='subtract')
-            if config.get('apply_hw_phase_removal', True):
-                hw_response.run(evt1, stn1, det, sim_to_data=False,
-                                mode='phase_only')
-
-            if config.get('apply_upsampling', True):
-                resampler.run(evt1, stn1, det,
-                              sampling_rate=10 * units.GHz)
-            if config.get('apply_cw_removal', False):
-                peak_prominence = config.get('cw_peak_prominence', 4.0)
-                cw_filter.run(evt1, stn1, det,
-                              peak_prominence=peak_prominence)
-            if config.get('apply_bandpass', False):
-                bandpass_filter.run(evt1, stn1, det,
-                    passband=[0.1 * units.GHz, 0.6 * units.GHz],
-                    filter_type='butter', order=10)
-            if config.get('apply_dedispersion', False):
-                antenna_dedispersion.run(evt1, stn1, det)
+            preprocess_station(evt1, stn1, det, config, pp_modules,
+                               apply_upsample=True, apply_dedisp=True)
             t_preproc = time.time() - t_preproc_start
 
-            t_p1_start = time.time()
-            r1 = reco1.run(evt1, stn1, det, config)
-            t_p1 = time.time() - t_p1_start
-            logger.info("  pass1: %.2fs (preproc: %.2fs)", t_p1, t_preproc)
+            use_fallback = False
+            pw_threshold = config.get('plane_wave_snr_threshold', 5.0)
+            if config.get('plane_wave_fallback', False):
+                if not check_helper_snr(stn1, threshold=pw_threshold):
+                    use_fallback = True
 
-            r1['preproc_time'] = t_preproc
-
-            if args.mode == "hw":
+            if use_fallback:
+                fb_config = make_fallback_config(config)
+                t_p1_start = time.time()
+                r1 = reco1.run(evt1, stn1, det, fb_config)
+                t_p1 = time.time() - t_p1_start
+                logger.info("  pass1 [FALLBACK]: %.2fs (preproc: %.2fs)",
+                            t_p1, t_preproc)
+                r1['preproc_time'] = t_preproc
+                r1['phi'] = np.nan
+                r1['plane_wave_fallback'] = 1
+                result = r1
+            elif args.mode == "hw":
+                t_p1_start = time.time()
+                r1 = reco1.run(evt1, stn1, det, config)
+                t_p1 = time.time() - t_p1_start
+                logger.info("  pass1: %.2fs (preproc: %.2fs)", t_p1, t_preproc)
+                r1['preproc_time'] = t_preproc
                 result = r1
             else:
+                t_p1_start = time.time()
+                r1 = reco1.run(evt1, stn1, det, config)
+                t_p1 = time.time() - t_p1_start
+                logger.info("  pass1: %.2fs (preproc: %.2fs)", t_p1, t_preproc)
+                r1['preproc_time'] = t_preproc
                 if is_nur:
                     evt2 = reader._eventReader__fin.get_event(event_id=eid)
                 else:
                     evt2 = reader.get_event(eid[0], eid[1])
                 stn2 = evt2.get_station(station_id)
 
-                if config.get('apply_cable_delay', True):
-                    cable_delay.run(evt2, stn2, det, mode='subtract')
-                if config.get('apply_hw_phase_removal', True):
-                    hw_response.run(evt2, stn2, det, sim_to_data=False,
-                                    mode='phase_only')
-                if config.get('apply_cw_removal', False):
-                    peak_prominence = config.get('cw_peak_prominence', 4.0)
-                    cw_filter.run(evt2, stn2, det,
-                                  peak_prominence=peak_prominence)
-                if config.get('apply_bandpass', False):
-                    bandpass_filter.run(evt2, stn2, det,
-                        passband=[0.1 * units.GHz, 0.6 * units.GHz],
-                        filter_type='butter', order=10)
+                preprocess_station(evt2, stn2, det, config, pp_modules,
+                                   apply_upsample=False, apply_dedisp=False)
 
                 t_p2_pre = time.time()
                 rx_angles = compute_arrival_angles(
@@ -507,6 +624,28 @@ def main():
             result['run_number'] = int(eid[0])
             result['event_number'] = int(eid[1])
             result['source_file'] = os.path.basename(input_file)
+
+            if nur_writer is not None:
+                n_coh = config.get('n_coherent_waveforms', 1)
+                coh_ch_ids = [COH_WF_CHANNEL_BASE + i for i in range(n_coh)]
+                stn1_out = evt1.get_station(station_id)
+                for wf_key in sorted(k for k in result
+                                     if k.startswith('coherent_wf_')):
+                    pk_idx = int(wf_key.split('_')[-1])
+                    ch_id = COH_WF_CHANNEL_BASE + pk_idx
+                    ch = Channel(channel_id=ch_id)
+                    wf_times = result.get('coherent_times')
+                    sr = 1.0 / (wf_times[1] - wf_times[0]) * 1e9 if wf_times is not None else 10e9
+                    ch.set_trace(result[wf_key], sr)
+                    stn1_out.add_channel(ch)
+                evt_out = NREvent(evt1.get_run_number(), evt1.get_id())
+                stn_out = NRStation(station_id)
+                for ch_id in coh_ch_ids:
+                    if stn1_out.has_channel(ch_id):
+                        stn_out.add_channel(stn1_out.get_channel(ch_id))
+                evt_out.set_station(stn_out)
+                nur_writer.run(evt_out)
+
             results.append(result)
 
             n_processed += 1
@@ -525,22 +664,53 @@ def main():
     if reco2 is not None:
         reco2.end()
 
+    if nur_writer is not None:
+        nur_writer.end()
+
     if results:
         outdir = os.path.dirname(args.outputfile)
         if outdir:
             os.makedirs(outdir, exist_ok=True)
 
         numeric_keys = ['rho', 'phi', 'z', 'max_corr']
+
+        if args.validation:
+            channels = config['channels']
+            for ch in channels:
+                numeric_keys.append(f'ch{ch}_snr')
+            numeric_keys.extend([
+                'surf_corr_z', 'surf_corr_zen', 'peak_isolation_ratio',
+                'pa_avg_snr', 'pa_max_snr',
+                'helper_b_max_snr', 'helper_b_min_snr',
+                'helper_c_max_snr', 'helper_c_min_snr',
+            ])
+
         optional_keys = ['pass1_rho', 'pass1_phi', 'pass1_z', 'pass1_corr',
                          'grid_time', 'opt_time', 'coarse_time', 'refine_time',
                          'preproc_time', 'post_time', 'raw_refine_time',
+                         'peak_time',
                          'p1_preproc_time', 'p1_total_time',
                          'p1_coarse_time', 'p1_refine_time', 'p1_opt_time',
                          'p2_dedisp_time', 'p2_reco_time',
                          'p2_coarse_time', 'p2_refine_time', 'p2_opt_time',
-                         'p2_grid_time']
+                         'p2_grid_time',
+                         'plane_wave_fallback', 'n_saved_peaks']
+
+        # Discover multi-peak and per-polarization keys from first result
+        if results:
+            existing = set(numeric_keys) | set(optional_keys)
+            skip = {'run_number', 'event_number', 'source_file',
+                    'coarse_peaks', 'coherent_times'}
+            for k in sorted(results[0]):
+                if k in existing or k in skip:
+                    continue
+                if k.startswith('peak_') or k.endswith(('_vpol', '_hpol')):
+                    optional_keys.append(k)
+                elif isinstance(results[0][k], (int, float, np.floating)):
+                    optional_keys.append(k)
+
         for k in optional_keys:
-            if k in results[0]:
+            if k in results[0] and k not in numeric_keys:
                 numeric_keys.append(k)
 
         with h5py.File(args.outputfile, 'w') as f:
@@ -556,13 +726,36 @@ def main():
                 'event_number',
                 data=np.array([r['event_number'] for r in results], dtype=int))
 
-            # Store source filenames for pulser truth matching
             filenames = [r.get('source_file', '') for r in results]
             dt = h5py.special_dtype(vlen=str)
             grp.create_dataset('source_file', data=filenames, dtype=dt)
 
+            if results and 'coherent_times' in results[0]:
+                wf_grp = f.create_group('coherent_waveforms')
+                wf_grp.create_dataset(
+                    'times', data=results[0]['coherent_times'])
+                for wf_key in sorted(k for k in results[0]
+                                     if k.startswith('coherent_wf_')):
+                    peak_idx = wf_key.split('_')[-1]
+                    wfs = np.array([r.get(wf_key, np.zeros_like(
+                        results[0][wf_key])) for r in results])
+                    wf_grp.create_dataset(f'peak_{peak_idx}', data=wfs)
+
+            if args.validation:
+                for val_key, val_dtype, val_default in [
+                    ('n_helpers_above', int, 0),
+                    ('n_channels_above', int, 0),
+                    ('has_helper_signal', bool, False),
+                ]:
+                    if val_key not in grp:
+                        grp.create_dataset(
+                            val_key,
+                            data=np.array([r.get(val_key, val_default)
+                                           for r in results], dtype=val_dtype))
+
             f.attrs['mode'] = args.mode
             f.attrs['n_events'] = n_processed
+            f.attrs['validation'] = args.validation
 
         logger.info("Saved %d results to %s", len(results), args.outputfile)
 

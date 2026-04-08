@@ -1,10 +1,4 @@
-"""
-I/O utilities for interferometric reconstruction
-
-This module provides functions for saving/loading interferometric reconstruction results
-in various formats (HDF5, NUR, pickle), as well as utilities for organizing file paths
-and extracting metadata from file names.
-"""
+"""I/O utilities for interferometric reconstruction results."""
 
 import os
 import re
@@ -16,6 +10,14 @@ import argparse
 logger = logging.getLogger('NuRadioReco.utilities.interferometry_io_utilities')
 
 def parse_event_ids(s):
+    """Parse comma-separated RUN:EVENT pairs from a CLI argument string.
+
+    Args:
+        s: String like "123:0,456:1".
+
+    Returns:
+        List of (run_number, event_id) integer tuples.
+    """
     pairs = []
     for token in s.split(","):
         if ":" not in token:
@@ -226,31 +228,49 @@ def save_reco_results_hdf5(results, filepath, config):
     return filepath
 
 
-def save_reco_results_nur(events, filepath):
-    """
-    Save interferometric reconstruction results to NUR format.
-    
-    Parameters
-    ----------
-    events : list
-        List of NuRadio Event objects with reconstruction parameters stored
-    filepath : str
-        Path to output NUR file
+def save_reco_results_nur(events, filepath, channels_only=None):
+    """Save interferometric reconstruction results to NUR format.
+
+    Args:
+        events: List of NuRadio Event objects with reconstruction
+            parameters stored.
+        filepath: Path to output NUR file.
+        channels_only: If provided, a list of channel IDs to keep.
+            All other channels are removed before writing, reducing
+            file size. Useful for saving only coherent waveform
+            channels (e.g., [100, 101]) without the full raw traces.
+
+    Returns:
+        Output filepath.
     """
     from NuRadioReco.framework.event import Event
-    from NuRadioReco.modules.io.NuRadioRecoio import NuRadioRecoio
-    
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    
-    writer = NuRadioRecoio(filepath)
-    
+    from NuRadioReco.framework.station import Station
+    from NuRadioReco.modules.io.eventWriter import eventWriter
+
+    outdir = os.path.dirname(filepath)
+    if outdir:
+        os.makedirs(outdir, exist_ok=True)
+
+    writer = eventWriter()
+    writer.begin(filepath)
+
     for event in events:
-        writer.write_event(event)
-    
+        if channels_only is not None:
+            evt_out = Event(event.get_run_number(), event.get_id())
+            for stn in event.get_stations():
+                stn_out = Station(stn.get_id())
+                for ch_id in channels_only:
+                    if stn.has_channel(ch_id):
+                        stn_out.add_channel(stn.get_channel(ch_id))
+                evt_out.set_station(stn_out)
+            writer.run(evt_out)
+        else:
+            writer.run(event)
+
     writer.end()
-    
+
     logger.info(f"Saved {len(events)} events to NUR file: {filepath}")
-    
+
     return filepath
 
 

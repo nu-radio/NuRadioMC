@@ -275,25 +275,71 @@ Each HDF5 output file contains a `results` group with these datasets:
 
 For neutrino truth comparison, the paired HDF5 files contain `xx`, `yy`, `zz` vertex coordinates in the simulation frame. Convert to cylindrical relative to the phased array center for angular separation calculations.
 
+### Multi-peak output
+
+Set `n_peaks_save: 3` in the config to retain the top N peaks from the correlation map. Each peak gets its own fields: `peak_0_rho`, `peak_0_phi`, `peak_0_z`, `peak_0_corr`, `peak_0_map_snr` (and similarly for peaks 1, 2). The primary result (`rho`, `phi`, `z`, `max_corr`) always matches peak 0.
+
+### Per-polarization reconstruction
+
+Set `polarization_groups` in the config to run independent reconstructions per polarization:
+
+```yaml
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23, 4, 8, 11, 21]
+polarization_groups:
+  vpol: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
+  hpol: [4, 8, 11, 21]
+```
+
+VPOL is the primary result. HPOL results are stored with `_hpol` suffix (`rho_hpol`, `phi_hpol`, etc.). No cross-polarization pairs are formed.
+
+### Validation metrics
+
+Pass `--validation` to the driver to record per-channel SNR and quality metrics:
+
+| Field | Description |
+|-------|-------------|
+| `ch{N}_snr` | Per-channel SNR (max|V|/std) |
+| `pa_max_snr`, `pa_avg_snr` | Phased array SNR summary |
+| `helper_b_max_snr`, `helper_c_max_snr` | Helper string max SNR |
+| `n_helpers_above`, `n_channels_above` | Channels above SNR threshold |
+| `has_helper_signal` | Boolean: any helper above threshold |
+| `peak_isolation_ratio` | Ratio of peak 0 correlation to peak 1. Higher = more confident. |
+| `surf_corr_z`, `surf_corr_zen` | Surface correlation quality metrics |
+
+### Coherent waveforms
+
+Set `save_coherent_waveforms: true` and `n_coherent_waveforms: 3` to save the beam-formed waveform at each peak's reconstructed position. Only available in singleray mode (`multi_ray_types: false`). Stored in a separate `coherent_waveforms` HDF5 group. Useful for CNN-based peak selection or signal quality assessment.
+
 ## Validated results
+
+All results below are on station 23 with the shipped configs and validation datasets. Numbers are angular separation between the reconstructed vertex direction and the true vertex direction.
 
 ### Neutrino GZK (hw mode, 27,667 events, 300K noise)
 
-| Table scheme | Median | 68th | < 1 deg | < 2 deg | Runtime |
-|-------------|--------|------|---------|---------|---------|
-| Solution-ordered (2-table) | 1.48 deg | 2.89 deg | 38% | 59% | ~1.4 s/event |
-| Ray-type (3-table) | 1.48 deg | 2.89 deg | 38% | 59% | ~2.2 s/event |
+| Cut | N | Median | p68 | < 1 deg | < 3 deg |
+|-----|------|--------|------|---------|---------|
+| All events | 27,667 | 1.48 deg | 3.30 deg | 39% | 66% |
+| corr >= 0.3 | 14,915 | 1.15 deg | 2.18 deg | 46% | 75% |
+| corr >= 0.5 | 9,346 | 1.04 deg | 1.93 deg | 49% | 78% |
+| corr >= 0.7 | 4,314 | 0.82 deg | 1.39 deg | 58% | 89% |
+| corr >= 0.3, reco z < -200m | 12,863 | 0.94 deg | 1.65 deg | 52% | 82% |
 
-### Pulser sim (rxtx mode, 18,879 events)
+Runtime: ~2.2 s/event (ray-type tables), ~1.4 s/event (solution-ordered tables). Both schemes give identical accuracy.
 
-| Table scheme | Median | 68th | 90th | < 1 deg | < 2 deg | Runtime |
-|-------------|--------|------|------|---------|---------|---------|
-| Solution-ordered (2-table) | 0.41 deg | 1.20 deg | 11.20 deg | 65% | 76% | ~7.8 s/event |
-| Ray-type (3-table) | 0.42 deg | 1.21 deg | 13.99 deg | 65% | 76% | ~9.5 s/event |
+### Pulser sim (hw mode, 18,879 events)
 
-The 2-table scheme is recommended: same or better accuracy with 1.2-1.6x faster runtime. The 90th percentile improvement on pulsers (11.2 vs 14.0 deg) comes from fewer optimizer combos leading to more reliable convergence.
+| Distance | N | Median | p68 |
+|----------|------|--------|------|
+| 10-30m | 3,149 | 3.57 deg | 4.54 deg |
+| 30-50m | 2,782 | 1.49 deg | 2.59 deg |
+| 50-100m | 5,681 | 1.00 deg | 1.55 deg |
+| 100-150m | 4,354 | 0.77 deg | 1.41 deg |
+| 150-200m | 2,663 | 0.52 deg | 0.92 deg |
+| All | 18,879 | 1.42 deg | 2.38 deg |
 
-Neutrino results use `reco3d_neutrino_gzk.yaml` (or `_2table` variant). Pulser results use `reco3d_pulser_sim.yaml` (or `_2table` variant) in rxtx mode. Your results should match when using the same configs, tables, and datasets. For other simulation sets, stations, or energy ranges, treat these as a ballpark reference rather than an exact target.
+With rxtx mode (antenna dedispersion): 0.42 deg median on the full set.
+
+Configs: `reco3d_neutrino_gzk.yaml` (neutrino), `reco3d_pulser_sim.yaml` (pulser). Your results should match when using the same configs, tables, and datasets.
 
 ## Benchmarking
 
@@ -310,6 +356,33 @@ python benchmarking/benchmark_kernels.py \
     --nur-file /path/to/neutrino.nur
 ```
 
+## Real data (ROOT files)
+
+The driver auto-detects ROOT vs NUR input. For ROOT files, it uses `readRNOGData` with `read_daq_status=False` to avoid requiring the `combined` tree (not present in all data versions). No other changes needed.
+
+```bash
+python interferometric_reco_3d_example.py \
+    --config configs/reco3d_neutrino_gzk.yaml \
+    --mode hw \
+    -i /path/to/station21/run1234/waveforms.root \
+    -o results/run1234.h5
+```
+
+For real data, set `detector_file` in the config to a local detector export (MongoDB is unavailable on most compute nodes).
+
+## Optional features summary
+
+All optional features are off by default. Enable via config YAML or CLI flags.
+
+| Feature | Config key | CLI flag | Default |
+|---------|-----------|----------|---------|
+| Multi-peak retention | `n_peaks_save: 3` | -- | 1 (single peak) |
+| Per-polarization | `polarization_groups: {vpol: [...], hpol: [...]}` | -- | None (all channels together) |
+| Coherent waveforms | `save_coherent_waveforms: true`, `n_coherent_waveforms: 3` | -- | false |
+| Validation metrics | `validation: true` | `--validation` | false |
+| Plane wave fallback | `plane_wave_fallback: true`, `plane_wave_snr_threshold: 5.0` | -- | false |
+| Bandpass filter | `apply_bandpass: true`, `bandpass_band: [0.1, 0.7]` | -- | false |
+
 ## File listing
 
 ```
@@ -318,23 +391,26 @@ NuRadioReco/modules/
 
 NuRadioReco/examples/RNOG/interferometric_reco_ex/
   tables/
-    rz_lookup_table_creator_inice.py      Table generator (multiray, combined, or both)
-    submit_rz_table_jobs.slurm            SLURM submission for all VPOL channels
+    rz_lookup_table_creator_inice.py      Table generator (multiray, combined, solution-ordered)
+    submit_rz_table_jobs.slurm            SLURM submission for all channels
   reco3d/
     interferometric_reco_3d_example.py    Driver: preprocessing + pass1 + optional pass2
-    evaluate_reco_results.py          Evaluate reco results against sim truth (neutrino or pulser)
+    evaluate_reco_results.py              Evaluate reco results against sim truth
     fast_grouped_multiray.py              Numba-accelerated grouped multiray correlator
-    submit_reco3d_example.sh              Example SLURM batch submission
+    submit_reco3d_example.sh              SLURM batch submission with chunking and merge
     RECO3D_QUICKSTART.md                  This file
     benchmarking/
       README.md                           Benchmark results and methodology
-      benchmark_kernels.py                Single-event kernel comparison
-      summarize_batch_timing.py           Summarize timing from batch HDF5 results
-      profile_memory.py                   Peak RSS memory profiling
+      benchmark_kernels.py                Single-event kernel timing
+      summarize_batch_timing.py           Batch timing summary
+      profile_memory.py                   Memory profiling
     configs/
-      reco3d_neutrino_gzk.yaml           Neutrino config, ray-type tables (hw mode)
-      reco3d_neutrino_gzk_2table.yaml    Neutrino config, solution-ordered tables (recommended)
-      reco3d_pulser_sim.yaml             Pulser config, ray-type tables (rxtx mode)
-      reco3d_pulser_sim_2table.yaml      Pulser config, solution-ordered tables (recommended)
-      reco3d_pulser_sim_fast.yaml        Fast pulser config (hw mode, no dedispersion)
+      reco3d_neutrino_gzk.yaml            Neutrino, ray-type tables, hw mode
+      reco3d_neutrino_gzk_2table.yaml     Neutrino, solution-ordered tables (recommended)
+      reco3d_neutrino_gzk_full.yaml       Neutrino + multi-peak + HPOL + validation
+      reco3d_pulser_sim.yaml              Pulser, ray-type tables, rxtx mode
+      reco3d_pulser_sim_2table.yaml       Pulser, solution-ordered tables (recommended)
+      reco3d_pulser_sim_fast.yaml         Pulser, hw mode, no dedispersion
+      reco3d_pulser_sim_full.yaml         Pulser + multi-peak + HPOL + validation
+      reco3d_cr_v9_c1opt_singleray_hpol_multipeak.yaml  CR proxy, singleray + HPOL + multi-peak
 ```

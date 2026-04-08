@@ -1425,20 +1425,28 @@ Table generation scripts (shared with the 2D scripts) live in `tables/`:
 
 | File | Description |
 |------|-------------|
-| `rz_lookup_table_creator_inice.py` | Table generator: multiray, combined, or both |
+| `rz_lookup_table_creator_inice.py` | Table generator: multiray, combined, solution-ordered, or all |
 | `submit_rz_table_jobs.slurm` | SLURM submission for all VPOL channels |
+
+HPOL channels (ch4, ch8, ch11, ch21) need separate tables for per-polarization reconstruction. Generate them with the same script using `--channel 4` etc. Use `--detector-file` for batch jobs where MongoDB is unreachable.
 
 ### Configs
 
-Three validated configs are provided in `reco3d/configs/`:
+Validated configs in `reco3d/configs/`. All results below are on 300K-noise simulations at station 23.
 
-| Config | Dataset | Best mode | Median ang. sep. | Runtime |
-|--------|---------|-----------|-------------------|---------|
-| `reco3d_neutrino_gzk.yaml` | GZK neutrino sim (10^18 - 10^20 eV) | hw | 1.04 deg | ~6 s/event |
-| `reco3d_pulser_sim.yaml` | Simulated pulser calibration (10-200m) | rxtx | 0.27 deg | ~94 s/event |
-| `reco3d_pulser_sim_fast.yaml` | Simulated pulser calibration (10-200m) | hw | 1.53 deg | ~9 s/event |
+| Config | Dataset | Mode | Median | Runtime | Notes |
+|--------|---------|------|--------|---------|-------|
+| `reco3d_neutrino_gzk.yaml` | GZK neutrino (27,667 events) | hw | 1.48 deg | ~2.2 s/event | Sub-degree with corr >= 0.5 (1.04 deg, 34% eff) |
+| `reco3d_pulser_sim.yaml` | Sim pulser (18,879 events) | rxtx | 0.42 deg | ~10 s/event | Sub-degree above 50m distance |
+| `reco3d_pulser_sim.yaml` | Sim pulser | hw | 1.42 deg | ~5 s/event | 0.52 deg at 150-200m |
+| `reco3d_pulser_sim_fast.yaml` | Sim pulser | hw | ~1.5 deg | ~3.5 s/event | Hilbert traces, no pass 2 |
 
-The fast pulser config skips the antenna dedispersion pass (pass2) that dominates runtime in the full config. It compensates with Hilbert trace envelope and Hann windowing, which smooth over phase distortion from the antenna response. Use `reco3d_pulser_sim.yaml` with rxtx mode when sub-degree accuracy is needed and the transmitter position is known; use the fast config when runtime matters more (10x faster, still under 2 deg).
+Additional configs with multi-peak retention and per-polarization HPOL:
+- `reco3d_neutrino_gzk_full.yaml`: adds `n_peaks_save: 3`, `polarization_groups`, validation output
+- `reco3d_pulser_sim_full.yaml`: same additions for pulsers
+- `reco3d_cr_v9_c1opt_singleray_hpol_multipeak.yaml`: CR-optimized singleray with bandpass [0.1, 0.7] GHz
+
+See `RECO3D_QUICKSTART.md` for full documentation of multi-peak, per-polarization, validation, and coherent waveform output options.
 
 ### Quick example
 
