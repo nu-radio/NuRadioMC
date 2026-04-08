@@ -227,7 +227,6 @@ def compute_shower_metrics(df, truth_dir):
         DataFrame with added columns: n_showers, shower_energy_ratio,
         dominance_pattern, dominant_shower_type.
     """
-    import glob
     import h5py
     import os
 
@@ -240,15 +239,17 @@ def compute_shower_metrics(df, truth_dir):
 
     reco_channels = ALL_RECO_CHANNELS
 
+    hdf5_lookup = {}
+    for root, _, files in os.walk(truth_dir):
+        if 'final_set' in root:
+            continue
+        for fname in files:
+            if fname.endswith('.hdf5'):
+                hdf5_lookup[fname] = os.path.join(root, fname)
+
     for source_file in df['source_file'].unique():
         hdf5_name = source_file.replace('.nur', '.hdf5')
-        hdf5_path = None
-        for pattern in [os.path.join(truth_dir, '**', hdf5_name)]:
-            candidates = glob.glob(pattern, recursive=True)
-            candidates = [c for c in candidates if 'final_set' not in c]
-            if candidates:
-                hdf5_path = candidates[0]
-                break
+        hdf5_path = hdf5_lookup.get(hdf5_name)
         if hdf5_path is None:
             continue
 

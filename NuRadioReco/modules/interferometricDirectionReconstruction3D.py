@@ -250,6 +250,20 @@ class InterferometricReco3D:
         self._active_ray_types = RAY_TYPES
         self._n_ray_slots = len(RAY_TYPES)
 
+    def _set_station_parameters(self, station, rho, phi, z, corr):
+        """Set reconstruction parameters on station, if supported.
+
+        Args:
+            station: Station object.
+            rho, phi, z, corr: Reconstructed position and correlation.
+        """
+        if not hasattr(station, 'set_parameter'):
+            return
+        station.set_parameter(stnp.rec_max_correlation, corr)
+        station.set_parameter(stnp.rec_coord_0, rho * units.m)
+        station.set_parameter(stnp.rec_coord_1, phi * units.deg)
+        station.set_parameter(stnp.rec_coord_2, z * units.m)
+
     _KNOWN_CONFIG_KEYS = {
         'time_delay_tables', 'station_id', 'channels', 'limits', 'step_sizes',
         'coord_system', 'rec_type', 'fixed_coord',
@@ -267,6 +281,9 @@ class InterferometricReco3D:
         'apply_bandpass', 'apply_cable_delay', 'apply_hw_phase_removal',
         'apply_dedispersion',
         'bandpass_band', 'bandpass_order', 'bandpass_filter_type',
+        'cw_peak_prominence', 'cw_freq_band',
+        'peak_separation_threshold',
+        'helper_snr_threshold', 'surf_corr_z_max', 'surf_corr_zen_max',
         'mode', 'hierarchical', 'tdoa_mode',
         'multi_ray_types', 'multiray_combo_mode',
         'multiray_table_name_pattern', 'table_name_pattern', 'table_scheme',
@@ -308,6 +325,9 @@ class InterferometricReco3D:
         if 1 in self.ant_locs and 2 in self.ant_locs:
             self._pa_center = (self.ant_locs[1] + self.ant_locs[2]) / 2.0
         else:
+            logger.warning(
+                "Channels 1 and 2 not in ant_locs (available: %s). "
+                "PA center defaulting to origin.", sorted(self.ant_locs.keys()))
             self._pa_center = np.zeros(3)
 
     def _validate_config(self, config):
@@ -2261,13 +2281,8 @@ class InterferometricReco3D:
 
         phi_best = phi_best % 360.0
 
-        try:
-            station.set_parameter(stnp.rec_max_correlation, corr_best)
-            station.set_parameter(stnp.rec_coord_0, rho_best * units.m)
-            station.set_parameter(stnp.rec_coord_1, phi_best * units.deg)
-            station.set_parameter(stnp.rec_coord_2, z_best * units.m)
-        except AttributeError:
-            pass
+        self._set_station_parameters(
+            station, rho_best, phi_best, z_best, corr_best)
 
         return {
             'rho': rho_best,
@@ -2400,10 +2415,8 @@ class InterferometricReco3D:
 
         if not coarse_peaks:
             logger.warning("No coarse peaks found")
-            try:
-                station.set_parameter(stnp.rec_max_correlation, np.nan)
-            except AttributeError:
-                pass
+            self._set_station_parameters(
+                station, np.nan, np.nan, np.nan, np.nan)
             return {'rho': np.nan, 'phi': np.nan, 'z': np.nan,
                     'max_corr': np.nan}
 
@@ -2714,7 +2727,6 @@ class InterferometricReco3D:
 
         t_peaks = time.time() - t0_peaks
 
-
         logger.debug(
             "3D hierarchical: coarse=%.3fs, refine=%.3fs, opt=%.3fs, "
             "post=%.3fs, raw=%.3fs, peaks=%.3fs, rho=%.1f phi=%.1f z=%.1f "
@@ -2723,13 +2735,8 @@ class InterferometricReco3D:
             rho_best, phi_best, z_best, corr_best, len(saved_peaks)
         )
 
-        try:
-            station.set_parameter(stnp.rec_max_correlation, corr_best)
-            station.set_parameter(stnp.rec_coord_0, rho_best * units.m)
-            station.set_parameter(stnp.rec_coord_1, phi_best * units.deg)
-            station.set_parameter(stnp.rec_coord_2, z_best * units.m)
-        except AttributeError:
-            pass
+        self._set_station_parameters(
+            station, rho_best, phi_best, z_best, corr_best)
 
         result = {
             'rho': rho_best,
@@ -2748,7 +2755,6 @@ class InterferometricReco3D:
             'coarse_peaks': coarse_peaks,
         }
 
-        # Multi-peak output: per-peak position, correlation, and map SNR
         for i, (rho_p, phi_p, z_p, corr_p) in enumerate(saved_peaks):
             result[f'peak_{i}_rho'] = rho_p
             result[f'peak_{i}_phi'] = phi_p
@@ -2756,21 +2762,84 @@ class InterferometricReco3D:
             result[f'peak_{i}_corr'] = corr_p
             result[f'peak_{i}_map_snr'] = peak_map_snrs[i]
 
-        # Coherent waveforms (stored as arrays in result dict)
         for i, wf in enumerate(coherent_waveforms):
             result[f'coherent_wf_{i}'] = wf
         if coherent_times is not None:
             result['coherent_times'] = coherent_times
 
-        # Backwards-compatible alt reco fields
-
         if config.get('validation', False):
-            from reco_validation import extract_metrics
-            pa_center_z = self._pa_center[2]
-            val = extract_metrics(
+            val = self._compute_validation_metrics(
                 mean_corr_c, rho_vec_c, phi_vec_c, z_vec_c,
-                channel_snrs, coarse_peaks, pa_center_z, config)
+                channel_snrs, coarse_peaks, config)
             result.update(val)
+
+        return result
+
+    def _compute_validation_metrics(self, mean_corr, rho_vec, phi_vec, z_vec,
+                                       channel_snrs, coarse_peaks, config):
+        """Compute per-channel SNR summaries, surface correlation, and peak isolation.
+
+        Args:
+            mean_corr: 3D coarse correlation array.
+            rho_vec: Coarse rho grid (meters).
+            phi_vec: Coarse phi grid (radians).
+            z_vec: Coarse z grid (meters).
+            channel_snrs: Dict mapping channel_id to SNR.
+            coarse_peaks: List of (rho, phi, z, corr) tuples.
+            config: Reco config dict.
+
+        Returns:
+            Dict of validation metrics.
+        """
+        result = {}
+
+        for ch, snr in channel_snrs.items():
+            result[f'ch{ch}_snr'] = snr
+
+        pa = self.DEFAULT_DEPTH_GROUPS['pa']
+        hb = self.DEFAULT_DEPTH_GROUPS['helper_b']
+        hc = self.DEFAULT_DEPTH_GROUPS['helper_c']
+        helpers = hb + hc
+        all_chs = pa + hb + hc
+
+        def _safe_stat(chs, func):
+            vals = [channel_snrs.get(ch, 0.0) for ch in chs]
+            return float(func(vals)) if vals else 0.0
+
+        threshold = config.get('helper_snr_threshold', 5.0)
+        result['pa_avg_snr'] = _safe_stat(pa, np.mean)
+        result['pa_max_snr'] = _safe_stat(pa, np.max)
+        result['helper_b_max_snr'] = _safe_stat(hb, np.max)
+        result['helper_b_min_snr'] = _safe_stat(hb, np.min)
+        result['helper_c_max_snr'] = _safe_stat(hc, np.max)
+        result['helper_c_min_snr'] = _safe_stat(hc, np.min)
+        helper_snrs = [channel_snrs.get(ch, 0.0) for ch in helpers]
+        all_snrs = [channel_snrs.get(ch, 0.0) for ch in all_chs]
+        result['n_helpers_above'] = int(sum(1 for s in helper_snrs if s > threshold))
+        result['n_channels_above'] = int(sum(1 for s in all_snrs if s > threshold))
+        result['has_helper_signal'] = result['n_helpers_above'] > 0
+
+        # Surface correlation
+        pa_center_z = self._pa_center[2]
+        surf_z_max = config.get('surf_corr_z_max', -10.0)
+        z_mask = z_vec >= surf_z_max
+        result['surf_corr_z'] = (float(np.nanmax(mean_corr[:, :, z_mask]))
+                                 if z_mask.any() else np.nan)
+        surf_zen_max = config.get('surf_corr_zen_max', 65.0)
+        rho_g, _, z_g = np.meshgrid(rho_vec, phi_vec, z_vec, indexing='ij')
+        zen_grid = np.degrees(np.arctan2(rho_g, z_g - pa_center_z))
+        zen_mask = zen_grid <= surf_zen_max
+        result['surf_corr_zen'] = (float(np.nanmax(mean_corr[zen_mask]))
+                                   if zen_mask.any() else np.nan)
+
+        # Peak isolation
+        if len(coarse_peaks) >= 2:
+            corrs = sorted([p[3] for p in coarse_peaks], reverse=True)
+            top_mean = np.mean(corrs[:5])
+            result['peak_isolation_ratio'] = (
+                float(corrs[0] / top_mean) if top_mean > 0 else np.nan)
+        else:
+            result['peak_isolation_ratio'] = np.nan
 
         return result
 
@@ -2928,10 +2997,8 @@ class InterferometricReco3D:
 
         if not peaks:
             logger.warning("No peaks found in coarse grid")
-            try:
-                station.set_parameter(stnp.rec_max_correlation, np.nan)
-            except AttributeError:
-                pass
+            self._set_station_parameters(
+                station, np.nan, np.nan, np.nan, np.nan)
             return {'rho': np.nan, 'phi': np.nan, 'z': np.nan,
                     'max_corr': np.nan}
 
@@ -2959,13 +3026,8 @@ class InterferometricReco3D:
             t_grid, t_opt, rho_best, phi_best, z_best, corr_best
         )
 
-        try:
-            station.set_parameter(stnp.rec_max_correlation, corr_best)
-            station.set_parameter(stnp.rec_coord_0, rho_best * units.m)
-            station.set_parameter(stnp.rec_coord_1, phi_best * units.deg)
-            station.set_parameter(stnp.rec_coord_2, z_best * units.m)
-        except AttributeError:
-            pass
+        self._set_station_parameters(
+            station, rho_best, phi_best, z_best, corr_best)
 
         return {
             'rho': rho_best,

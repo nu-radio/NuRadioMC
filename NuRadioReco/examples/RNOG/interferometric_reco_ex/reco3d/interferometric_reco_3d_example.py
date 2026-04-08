@@ -261,11 +261,10 @@ def _z_profile_pass2(reco2, evt, stn, det, config, config_p2_template,
     return best
 
 
-HELPER_B_CHANNELS = [9, 10]
-HELPER_C_CHANNELS = [22, 23]
-HELPER_CHANNELS = HELPER_B_CHANNELS + HELPER_C_CHANNELS
-PA_CHANNELS = [0, 1, 2, 3]
-SHALLOW_CHANNELS = [5, 6, 7]
+from reco_validation import (
+    PA_CHANNELS, SHALLOW_CHANNELS, HELPER_CHANNELS,
+    compute_channel_snrs,
+)
 
 
 def check_helper_snr(station, threshold=5.0):
@@ -278,19 +277,18 @@ def check_helper_snr(station, threshold=5.0):
     Returns:
         True if at least one helper channel is above threshold.
     """
-    from NuRadioReco.utilities.trace_utilities import (
-        get_split_trace_noise_RMS, get_signal_to_noise_ratio)
-
+    traces = []
+    ch_ids = []
     for ch_id in HELPER_CHANNELS:
         try:
-            trace = station.get_channel(ch_id).get_trace()
-            noise_rms = get_split_trace_noise_RMS(trace)
-            snr = get_signal_to_noise_ratio(trace, noise_rms) if noise_rms > 0 else 0.0
-            if snr >= threshold:
-                return True
+            traces.append(station.get_channel(ch_id).get_trace())
+            ch_ids.append(ch_id)
         except (KeyError, AttributeError):
             continue
-    return False
+    if not traces:
+        return False
+    snrs = compute_channel_snrs(traces, ch_ids)
+    return any(s >= threshold for s in snrs.values())
 
 
 def make_fallback_config(config):
@@ -530,30 +528,22 @@ def main():
                 if not check_helper_snr(stn1, threshold=pw_threshold):
                     use_fallback = True
 
+            p1_config = make_fallback_config(config) if use_fallback else config
+            t_p1_start = time.time()
+            r1 = reco1.run(evt1, stn1, det, p1_config)
+            t_p1 = time.time() - t_p1_start
+            tag = " [FALLBACK]" if use_fallback else ""
+            logger.info("  pass1%s: %.2fs (preproc: %.2fs)",
+                        tag, t_p1, t_preproc)
+            r1['preproc_time'] = t_preproc
+
             if use_fallback:
-                fb_config = make_fallback_config(config)
-                t_p1_start = time.time()
-                r1 = reco1.run(evt1, stn1, det, fb_config)
-                t_p1 = time.time() - t_p1_start
-                logger.info("  pass1 [FALLBACK]: %.2fs (preproc: %.2fs)",
-                            t_p1, t_preproc)
-                r1['preproc_time'] = t_preproc
                 r1['phi'] = np.nan
                 r1['plane_wave_fallback'] = 1
                 result = r1
             elif args.mode == "hw":
-                t_p1_start = time.time()
-                r1 = reco1.run(evt1, stn1, det, config)
-                t_p1 = time.time() - t_p1_start
-                logger.info("  pass1: %.2fs (preproc: %.2fs)", t_p1, t_preproc)
-                r1['preproc_time'] = t_preproc
                 result = r1
             else:
-                t_p1_start = time.time()
-                r1 = reco1.run(evt1, stn1, det, config)
-                t_p1 = time.time() - t_p1_start
-                logger.info("  pass1: %.2fs (preproc: %.2fs)", t_p1, t_preproc)
-                r1['preproc_time'] = t_preproc
                 if is_nur:
                     evt2 = reader._eventReader__fin.get_event(event_id=eid)
                 else:
