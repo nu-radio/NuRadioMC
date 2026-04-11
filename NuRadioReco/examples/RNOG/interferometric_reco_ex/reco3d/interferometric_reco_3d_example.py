@@ -363,7 +363,23 @@ def main():
                         help="Record per-channel SNR and correlation quality metrics")
     parser.add_argument("--save-nur", type=str, default=None,
                         help="Write events with coherent WF channels to NUR file")
+    parser.add_argument("--auto-gpu", action="store_true",
+                        help="Detect an available GPU and enable the GPU "
+                             "reco backend (overrides use_gpu in config).")
     args = parser.parse_args()
+
+    # Resource detection (print only for visibility).
+    slurm_cpus = int(os.environ.get('SLURM_CPUS_PER_TASK', 0)) or None
+    host_cpus = os.cpu_count()
+    has_gpu = False
+    try:
+        import cupy as _cp
+        has_gpu = _cp.cuda.runtime.getDeviceCount() > 0
+    except Exception:
+        pass
+    print(f"[reco3d] detected: cpus={slurm_cpus or host_cpus} "
+          f"(SLURM={slurm_cpus}, host={host_cpus}), "
+          f"cupy_device_count={_cp.cuda.runtime.getDeviceCount() if has_gpu else 0}")
 
     event_filter = None
     if args.event_list:
@@ -384,6 +400,13 @@ def main():
 
     if args.validation:
         config['validation'] = True
+
+    if args.auto_gpu:
+        if has_gpu:
+            config['use_gpu'] = True
+            print("[reco3d] --auto-gpu: enabling GPU backend")
+        else:
+            print("[reco3d] --auto-gpu: no GPU detected, staying on CPU")
 
     det = init_detector(config)
     station_id = config['station_id']

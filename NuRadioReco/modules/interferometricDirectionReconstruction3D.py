@@ -37,6 +37,7 @@ except ImportError:
     pass
 
 USE_CUPY = False
+_FUSED_CORR_KERNEL = None
 try:
     import cupy as cp
     # Check that a CUDA device is actually visible; cupy can import on
@@ -45,6 +46,45 @@ try:
         USE_CUPY = True
         logger.info("CuPy GPU backend available (device count=%d)",
                     cp.cuda.runtime.getDeviceCount())
+
+        # Fused CUDA kernel: one thread per grid point, iterates all pairs,
+        # single read of each delay cell, single write of each output cell.
+        # Pair-major delay_stack layout (n_pairs, n_points) gives coalesced
+        # access across warps since adjacent threads handle adjacent points.
+        _FUSED_CORR_KERNEL = cp.RawKernel(r'''
+extern "C" __global__ void fused_correlator(
+    const double* __restrict__ delay_stack,
+    const double* __restrict__ corr_packed,
+    const long long* __restrict__ corr_lens,
+    const double* __restrict__ dts,
+    const double* __restrict__ offsets,
+    const double* __restrict__ pair_weights,
+    const double w_sum,
+    const int n_pairs,
+    const long long n_points,
+    const long long corr_stride,
+    double* __restrict__ out
+) {
+    long long pt = (long long)blockIdx.x * blockDim.x + threadIdx.x;
+    if (pt >= n_points) return;
+
+    double acc = 0.0;
+    for (int p = 0; p < n_pairs; ++p) {
+        double d = delay_stack[(long long)p * n_points + pt];
+        if (isnan(d)) continue;
+        double kf = (d - offsets[p]) / dts[p];
+        long long k = (long long)floor(kf);
+        long long clen = corr_lens[p];
+        if (k < 0 || k >= clen - 1) continue;
+        double alpha = kf - (double)k;
+        double y0 = corr_packed[(long long)p * corr_stride + k];
+        double y1 = corr_packed[(long long)p * corr_stride + k + 1];
+        double v = y0 + (y1 - y0) * alpha;
+        acc += v * pair_weights[p];
+    }
+    out[pt] = (w_sum > 0.0) ? (acc / w_sum) : 0.0;
+}
+''', 'fused_correlator')
 except Exception:
     cp = None
 
@@ -1150,13 +1190,12 @@ class InterferometricReco3D:
 
     def _correlator_lean_gpu(self, corr_data, delay_matrices, pair_weights=None,
                              delay_cache_key=None):
-        """Batched GPU correlator: one fused kernel over all pairs and cells.
+        """Batched GPU correlator: one fused CUDA kernel over all pairs and cells.
 
-        Stacks delay matrices and per-pair correlation arrays, then runs the
-        uniform-grid linear interpolation and weighted accumulation as a
-        single vectorized cupy expression. The delay-matrix stack is cached
-        on the GPU across calls, so only the (small) per-event correlation
-        arrays transfer each time.
+        Uses a custom CUDA RawKernel when available (much less HBM traffic
+        than the cupy elementwise path), otherwise falls back to vectorized
+        cupy. The delay-matrix stack is cached on the GPU across calls so
+        only the (small) per-event correlation arrays transfer each time.
 
         Args:
             corr_data: List of (corr_array, dt, offset) per pair.
@@ -1194,34 +1233,57 @@ class InterferometricReco3D:
             M_per_pair[p] = corr_arr.shape[0]
 
         corr_stack_gpu = cp.asarray(corr_stack)
-        dts_gpu = cp.asarray(dts).reshape((n_pairs,) + (1,) * len(grid_shape))
-        offsets_gpu = cp.asarray(offsets).reshape(
-            (n_pairs,) + (1,) * len(grid_shape))
-        M_gpu = cp.asarray(M_per_pair).reshape(
-            (n_pairs,) + (1,) * len(grid_shape))
-        w_gpu = cp.asarray(w_np).reshape((n_pairs,) + (1,) * len(grid_shape))
+        dts_gpu = cp.asarray(dts)
+        offsets_gpu = cp.asarray(offsets)
+        M_gpu = cp.asarray(M_per_pair)
+        w_gpu = cp.asarray(w_np)
 
-        # Uniform-grid linear interpolation, same formula as the Numba path.
-        kf = (delay_gpu - offsets_gpu) / dts_gpu
-        k = cp.floor(kf).astype(cp.int64)
-        alpha = kf - k
-        in_bounds = (k >= 0) & (k < (M_gpu - 1)) & cp.isfinite(delay_gpu)
-        k_safe = cp.where(in_bounds, k, 0)
+        n_points = int(np.prod(grid_shape))
 
-        # Per-pair gather from corr_stack_gpu: corr_stack_gpu[p, k_safe[p,...]].
-        # Use fancy indexing with an explicit pair index.
-        pair_idx = cp.arange(n_pairs).reshape(
-            (n_pairs,) + (1,) * len(grid_shape))
-        y0 = corr_stack_gpu[pair_idx, k_safe]
-        y1 = corr_stack_gpu[pair_idx, cp.minimum(k_safe + 1, M_gpu - 1)]
-        vals = y0 + (y1 - y0) * alpha
-        vals = cp.where(in_bounds, vals, 0.0)
+        if _FUSED_CORR_KERNEL is not None:
+            # Ensure contiguous layout required by the RawKernel: delay_gpu
+            # must be (n_pairs, n_points) C-contiguous. Reshape the cached
+            # stack once.
+            delay_flat = delay_gpu.reshape(n_pairs, n_points)
+            if not delay_flat.flags.c_contiguous:
+                delay_flat = cp.ascontiguousarray(delay_flat)
+            mean_corr_gpu = cp.empty(n_points, dtype=cp.float64)
+            corr_stride = corr_stack_gpu.strides[0] // corr_stack_gpu.itemsize
 
-        # Weighted sum across pairs, then normalize.
-        weighted = vals * w_gpu
-        mean_corr_gpu = weighted.sum(axis=0)
-        if w_sum > 0:
-            mean_corr_gpu /= w_sum
+            threads = 256
+            blocks = (n_points + threads - 1) // threads
+            _FUSED_CORR_KERNEL(
+                (blocks,), (threads,),
+                (delay_flat, corr_stack_gpu, M_gpu,
+                 dts_gpu, offsets_gpu, w_gpu,
+                 cp.float64(w_sum),
+                 np.int32(n_pairs), np.int64(n_points),
+                 np.int64(corr_stride),
+                 mean_corr_gpu)
+            )
+            mean_corr_gpu = mean_corr_gpu.reshape(grid_shape)
+        else:
+            # Fallback: elementwise cupy path (many kernel launches).
+            dts_gpu = dts_gpu.reshape((n_pairs,) + (1,) * len(grid_shape))
+            offsets_gpu = offsets_gpu.reshape(
+                (n_pairs,) + (1,) * len(grid_shape))
+            M_gpu = M_gpu.reshape((n_pairs,) + (1,) * len(grid_shape))
+            w_gpu = w_gpu.reshape((n_pairs,) + (1,) * len(grid_shape))
+            kf = (delay_gpu - offsets_gpu) / dts_gpu
+            k = cp.floor(kf).astype(cp.int64)
+            alpha = kf - k
+            in_bounds = (k >= 0) & (k < (M_gpu - 1)) & cp.isfinite(delay_gpu)
+            k_safe = cp.where(in_bounds, k, 0)
+            pair_idx = cp.arange(n_pairs).reshape(
+                (n_pairs,) + (1,) * len(grid_shape))
+            y0 = corr_stack_gpu[pair_idx, k_safe]
+            y1 = corr_stack_gpu[pair_idx, cp.minimum(k_safe + 1, M_gpu - 1)]
+            vals = y0 + (y1 - y0) * alpha
+            vals = cp.where(in_bounds, vals, 0.0)
+            weighted = vals * w_gpu
+            mean_corr_gpu = weighted.sum(axis=0)
+            if w_sum > 0:
+                mean_corr_gpu /= w_sum
 
         mean_corr = cp.asnumpy(mean_corr_gpu)
         max_corr = float(np.max(mean_corr)) if mean_corr.size > 0 else np.nan
