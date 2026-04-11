@@ -226,10 +226,25 @@ if USE_NUMBA:
             j0 = int(np.floor(zi))
             nr_ch = td_nr[ci]
             nz_ch = td_nz[ci]
-            if i0 < 0 or i0 >= nr_ch - 1 or j0 < 0 or j0 >= nz_ch - 1:
+            if i0 < 0 or j0 < 0:
                 continue
-            fx = ri - i0
-            fy = zi - j0
+            # Clamp boundary queries (matches _bilinear_scalar_numba).
+            if i0 >= nr_ch - 1:
+                if ri <= nr_ch - 1 + 1e-9:
+                    i0 = nr_ch - 2
+                    fx = 1.0
+                else:
+                    continue
+            else:
+                fx = ri - i0
+            if j0 >= nz_ch - 1:
+                if zi <= nz_ch - 1 + 1e-9:
+                    j0 = nz_ch - 2
+                    fy = 1.0
+                else:
+                    continue
+            else:
+                fy = zi - j0
             v = ((1.0 - fx) * (1.0 - fy) * td_values[ci, i0, j0]
                  + fx * (1.0 - fy) * td_values[ci, i0 + 1, j0]
                  + (1.0 - fx) * fy * td_values[ci, i0, j0 + 1]
@@ -527,7 +542,7 @@ class InterferometricReco3D:
         'n_peaks_save', 'save_coherent_waveforms', 'n_coherent_waveforms',
         'polarization_groups', 'hpol_weight_scale',
         'validation', 'use_gpu', 'gpu_min_grid_cells', 'use_fused_correlator',
-        'warmup_numba', 'warmup_gpu',
+        'warmup_numba', 'warmup_gpu', 'primary_polarization',
         'post_optimizer_mode', 'rho_scan_step',
         'refinement_envelope_mode', 'refinement_window', 'refinement_maxiter',
         'de_window', 'de_maxiter', 'de_popsize',
@@ -3509,7 +3524,19 @@ class InterferometricReco3D:
         results = {}
         primary_group = None
 
-        for group_name, group_chs in pol_groups.items():
+        # Prefer VPOL as the primary result when it exists, otherwise fall
+        # back to iteration order. This makes the reco robust against
+        # yaml.safe_dump's alphabetical key sort, which previously caused
+        # HPOL to silently become primary on any round-tripped config.
+        primary_pol_override = config.get('primary_polarization', None)
+        group_items = list(pol_groups.items())
+        if primary_pol_override and primary_pol_override in pol_groups:
+            group_items.sort(
+                key=lambda kv: 0 if kv[0] == primary_pol_override else 1)
+        elif 'vpol' in pol_groups:
+            group_items.sort(key=lambda kv: 0 if kv[0] == 'vpol' else 1)
+
+        for group_name, group_chs in group_items:
             active = [ch for ch in all_channels if ch in group_chs]
             if len(active) < 2:
                 logger.info("Pol group '%s': %d channels, skipping (need >= 2)",
