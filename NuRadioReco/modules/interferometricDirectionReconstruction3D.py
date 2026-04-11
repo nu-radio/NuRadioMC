@@ -135,18 +135,108 @@ if USE_NUMBA:
                 out[i] = y[k] + (y[k + 1] - y[k]) * alpha
         return out
 
+    @njit(fastmath=True, cache=True)
+    def _scalar_singleray_corr_numba(
+            rho, phi_rad, z, pa_x, pa_y,
+            ant_xy, td_values, td_r_min, td_dr_inv, td_nr,
+            td_z_min, td_dz_inv, td_nz,
+            corr_packed, corr_lengths, corr_dts, corr_offsets,
+            pair_ch1, pair_ch2, pair_weights, w_total):
+        """Fused single-point singleray correlation for the optimizer.
+
+        Computes all channel travel times via bilinear table lookup, then
+        accumulates the weighted correlation over all pairs, in a single
+        Numba kernel. Replaces the per-call Python loops in
+        ``_correlation_at_point`` for the non-multiray path.
+
+        Args:
+            rho, phi_rad, z: Scalar source coordinates (m, rad, m).
+            pa_x, pa_y: PA center absolute coordinates (m).
+            ant_xy: (n_ch, 2) float64, channel absolute (x, y).
+            td_values: (n_ch, nr_max, nz_max) float64, packed TT tables.
+            td_r_min, td_dr_inv: (n_ch,) float64 per-channel grid origin
+                and inverse spacing in r.
+            td_nr: (n_ch,) int64 per-channel grid size in r.
+            td_z_min, td_dz_inv: same in z.
+            td_nz: (n_ch,) int64 per-channel grid size in z.
+            corr_packed: (n_pairs, max_corr_len) padded.
+            corr_lengths, corr_dts, corr_offsets: (n_pairs,).
+            pair_ch1, pair_ch2: (n_pairs,) int64.
+            pair_weights: (n_pairs,) float64.
+            w_total: sum(pair_weights).
+
+        Returns:
+            Negative weighted mean correlation (for minimization).
+        """
+        n_ch = ant_xy.shape[0]
+        x_src = rho * np.cos(phi_rad) + pa_x
+        y_src = rho * np.sin(phi_rad) + pa_y
+
+        tts = np.empty(n_ch, dtype=np.float64)
+        valid = np.zeros(n_ch, dtype=np.bool_)
+        for ci in range(n_ch):
+            dx = x_src - ant_xy[ci, 0]
+            dy = y_src - ant_xy[ci, 1]
+            r = np.sqrt(dx * dx + dy * dy)
+            if r < 1.0:
+                r = 1.0
+            ri = (r - td_r_min[ci]) * td_dr_inv[ci]
+            zi = (z - td_z_min[ci]) * td_dz_inv[ci]
+            i0 = int(np.floor(ri))
+            j0 = int(np.floor(zi))
+            nr_ch = td_nr[ci]
+            nz_ch = td_nz[ci]
+            if i0 < 0 or i0 >= nr_ch - 1 or j0 < 0 or j0 >= nz_ch - 1:
+                continue
+            fx = ri - i0
+            fy = zi - j0
+            v = ((1.0 - fx) * (1.0 - fy) * td_values[ci, i0, j0]
+                 + fx * (1.0 - fy) * td_values[ci, i0 + 1, j0]
+                 + (1.0 - fx) * fy * td_values[ci, i0, j0 + 1]
+                 + fx * fy * td_values[ci, i0 + 1, j0 + 1])
+            if v > 0.0 and np.isfinite(v):
+                tts[ci] = v
+                valid[ci] = True
+
+        n_pairs = pair_ch1.shape[0]
+        total = 0.0
+        for pidx in range(n_pairs):
+            c1 = pair_ch1[pidx]
+            c2 = pair_ch2[pidx]
+            if not valid[c1] or not valid[c2]:
+                continue
+            delay = tts[c1] - tts[c2]
+            dt = corr_dts[pidx]
+            offset = corr_offsets[pidx]
+            clen = corr_lengths[pidx]
+            kf = (delay - offset) / dt
+            k = int(np.floor(kf))
+            if k < 0 or k >= clen - 1:
+                continue
+            alpha = kf - k
+            v = (corr_packed[pidx, k]
+                 + (corr_packed[pidx, k + 1] - corr_packed[pidx, k]) * alpha)
+            total += v * pair_weights[pidx]
+
+        if w_total > 0.0:
+            return -total / w_total
+        return 0.0
+
     @njit(parallel=True, fastmath=True, cache=True)
-    def _all_pairs_corr_numba(delay_stack, corr_packed, corr_lengths,
+    def _all_pairs_corr_numba(delay_T, corr_packed, corr_lengths,
                               corr_dts, corr_offsets, pair_weights):
         """Fused all-pairs weighted correlation sum.
 
         Parallelizes over grid points (outer prange). Inner sequential loop
-        over pairs. Each thread accumulates into its own point, so there's
-        no race. Replaces the Python per-pair loop in _correlator_lean with
-        a single kernel launch.
+        over pairs. Each thread accumulates into its own point, no race.
+
+        Uses a points-major delay layout ``delay_T[pt, pidx]`` so the inner
+        pair loop is stride-1 over cache lines. A pair-major layout is
+        cache-unfriendly at grid sizes where a single point slice doesn't
+        fit in L1, causing 3-5x slowdowns at production grid sizes.
 
         Args:
-            delay_stack: (n_pairs, n_points) float64. NaN = skip.
+            delay_T: (n_points, n_pairs) float64. NaN = skip.
             corr_packed: (n_pairs, M_max) float64, zero-padded.
             corr_lengths: (n_pairs,) int64.
             corr_dts: (n_pairs,) float64.
@@ -156,7 +246,7 @@ if USE_NUMBA:
         Returns:
             (n_points,) float64 weighted-mean correlation.
         """
-        n_pairs, n_points = delay_stack.shape
+        n_points, n_pairs = delay_T.shape
         w_sum = 0.0
         for p in range(n_pairs):
             w_sum += pair_weights[p]
@@ -167,7 +257,7 @@ if USE_NUMBA:
         for pt in prange(n_points):
             acc = 0.0
             for pidx in range(n_pairs):
-                d = delay_stack[pidx, pt]
+                d = delay_T[pt, pidx]
                 if not (d == d):  # NaN check
                     continue
                 dt = corr_dts[pidx]
@@ -990,11 +1080,11 @@ class InterferometricReco3D:
 
         if USE_NUMBA and self._use_fused_correlator:
             # Fused all-pairs kernel: one launch, parallel over cells.
-            # Avoids Python per-pair loop overhead.
+            # Points-major layout so the inner pair loop is cache-friendly.
             n_points = int(np.prod(grid_shape))
-            delay_stack = np.empty((n_pairs, n_points), dtype=np.float64)
+            delay_T = np.empty((n_points, n_pairs), dtype=np.float64)
             for pidx in range(n_pairs):
-                delay_stack[pidx] = delay_matrices[pidx].reshape(-1)
+                delay_T[:, pidx] = delay_matrices[pidx].reshape(-1)
 
             corr_lens = np.array([c[0].shape[0] for c in corr_data],
                                  dtype=np.int64)
@@ -1008,7 +1098,7 @@ class InterferometricReco3D:
                 offsets[pidx] = offset
 
             flat = _all_pairs_corr_numba(
-                delay_stack, corr_packed, corr_lens, dts, offsets, w)
+                delay_T, corr_packed, corr_lens, dts, offsets, w)
             mean_corr = flat.reshape(grid_shape)
         else:
             mean_corr = np.zeros(grid_shape, dtype=np.float64)
@@ -1662,6 +1752,38 @@ class InterferometricReco3D:
             cache['corr_dts'] = corr_dts
             cache['corr_offsets'] = corr_offsets
 
+        # Pack per-channel TT tables for the fused singleray kernel
+        if USE_NUMBA and not self._multi_ray_types:
+            nr_arr = np.array([td_list[ci][0].nr for ci in range(n_ch)],
+                              dtype=np.int64)
+            nz_arr = np.array([td_list[ci][0].nz for ci in range(n_ch)],
+                              dtype=np.int64)
+            nr_max = int(nr_arr.max())
+            nz_max = int(nz_arr.max())
+            td_values_packed = np.zeros((n_ch, nr_max, nz_max),
+                                        dtype=np.float64)
+            td_r_min = np.empty(n_ch, dtype=np.float64)
+            td_dr_inv = np.empty(n_ch, dtype=np.float64)
+            td_z_min = np.empty(n_ch, dtype=np.float64)
+            td_dz_inv = np.empty(n_ch, dtype=np.float64)
+            for ci in range(n_ch):
+                td = td_list[ci][0]
+                nr, nz = td.nr, td.nz
+                td_values_packed[ci, :nr, :nz] = td.values
+                td_r_min[ci] = td.r_min
+                td_dr_inv[ci] = td.dr_inv
+                td_z_min[ci] = td.z_min
+                td_dz_inv[ci] = td.dz_inv
+            cache['td_values_packed'] = td_values_packed
+            cache['td_nr'] = nr_arr
+            cache['td_nz'] = nz_arr
+            cache['td_r_min'] = td_r_min
+            cache['td_dr_inv'] = td_dr_inv
+            cache['td_z_min'] = td_z_min
+            cache['td_dz_inv'] = td_dz_inv
+            cache['pa_x'] = float(pa_center[0])
+            cache['pa_y'] = float(pa_center[1])
+
         return cache
 
     def _correlation_at_point(self, params, corr_data, channels,
@@ -1707,6 +1829,21 @@ class InterferometricReco3D:
                 pw = np.ones(len(ch_pairs))
             w_total = float(pw.sum())
             ant_pos = None
+
+        # Fast path: fused singleray Numba kernel
+        if (not self._multi_ray_types and USE_NUMBA and _cache is not None
+                and 'td_values_packed' in _cache
+                and 'corr_packed' in _cache):
+            return _scalar_singleray_corr_numba(
+                float(rho), float(phi_rad), float(z),
+                _cache['pa_x'], _cache['pa_y'],
+                _cache['ant_pos'],
+                _cache['td_values_packed'],
+                _cache['td_r_min'], _cache['td_dr_inv'], _cache['td_nr'],
+                _cache['td_z_min'], _cache['td_dz_inv'], _cache['td_nz'],
+                _cache['corr_packed'], _cache['corr_lengths'],
+                _cache['corr_dts'], _cache['corr_offsets'],
+                _cache['pair_ch1'], _cache['pair_ch2'], pw, w_total)
 
         x = rho * np.cos(phi_rad) + pa_center[0]
         y = rho * np.sin(phi_rad) + pa_center[1]
