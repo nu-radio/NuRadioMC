@@ -1122,9 +1122,21 @@ class InterferometricReco3D:
             # Fused all-pairs kernel: one launch, parallel over cells.
             # Points-major layout so the inner pair loop is cache-friendly.
             n_points = int(np.prod(grid_shape))
-            delay_T = np.empty((n_points, n_pairs), dtype=np.float64)
-            for pidx in range(n_pairs):
-                delay_T[:, pidx] = delay_matrices[pidx].reshape(-1)
+            # Cache the stacked delay_T by cache key to avoid rebuilding
+            # every call for stable coarse grids. Key None means skip cache.
+            delay_T = None
+            if delay_cache_key is not None:
+                if not hasattr(self, '_cpu_delay_T_cache'):
+                    self._cpu_delay_T_cache = {}
+                cached = self._cpu_delay_T_cache.get(delay_cache_key)
+                if cached is not None and cached.shape[0] == n_points and cached.shape[1] == n_pairs:
+                    delay_T = cached
+            if delay_T is None:
+                delay_T = np.empty((n_points, n_pairs), dtype=np.float64)
+                for pidx in range(n_pairs):
+                    delay_T[:, pidx] = delay_matrices[pidx].reshape(-1)
+                if delay_cache_key is not None:
+                    self._cpu_delay_T_cache[delay_cache_key] = delay_T
 
             corr_lens = np.array([c[0].shape[0] for c in corr_data],
                                  dtype=np.int64)
