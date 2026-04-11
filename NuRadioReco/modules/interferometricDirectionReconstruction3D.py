@@ -1720,6 +1720,11 @@ class InterferometricReco3D:
     def _build_optimizer_cache(self, channels, pair_weights, corr_data=None):
         """Pre-compute invariant data for the optimizer objective.
 
+        Event-invariant geometry (channel positions, pair indices, TT tables)
+        is stored in ``self._opt_geom_cache`` keyed by the channel tuple so
+        repeated calls across events reuse it. Only the per-event pieces
+        (pair weights, packed correlation arrays) are rebuilt each call.
+
         Args:
             channels: Channel IDs.
             pair_weights: Per-pair weights or None.
@@ -1728,6 +1733,36 @@ class InterferometricReco3D:
         Returns:
             Dict with cached arrays for fast objective evaluation.
         """
+        geom_key = (tuple(channels), bool(self._multi_ray_types),
+                    self._multiray_combo_mode)
+        if not hasattr(self, '_opt_geom_cache'):
+            self._opt_geom_cache = {}
+        geom = self._opt_geom_cache.get(geom_key)
+        if geom is not None:
+            cache = dict(geom)
+            n_pairs = cache['n_pairs']
+            pw = np.ones(n_pairs, dtype=np.float64)
+            if pair_weights is not None:
+                pw = np.asarray(pair_weights, dtype=np.float64)
+            cache['pw'] = pw
+            cache['w_total'] = float(pw.sum())
+            if corr_data is not None and USE_NUMBA:
+                lengths = np.array([len(cd[0]) for cd in corr_data],
+                                   dtype=np.int64)
+                max_len = int(lengths.max())
+                corr_packed = np.zeros((n_pairs, max_len), dtype=np.float64)
+                corr_dts = np.empty(n_pairs, dtype=np.float64)
+                corr_offsets = np.empty(n_pairs, dtype=np.float64)
+                for i in range(n_pairs):
+                    corr_packed[i, :lengths[i]] = corr_data[i][0]
+                    corr_dts[i] = corr_data[i][1]
+                    corr_offsets[i] = corr_data[i][2]
+                cache['corr_packed'] = corr_packed
+                cache['corr_lengths'] = lengths
+                cache['corr_dts'] = corr_dts
+                cache['corr_offsets'] = corr_offsets
+            return cache
+
         ch_pairs = list(itertools.combinations(channels, 2))
         n_pairs = len(ch_pairs)
         pw = np.ones(n_pairs, dtype=np.float64)
@@ -1857,6 +1892,14 @@ class InterferometricReco3D:
             cache['td_dz_inv'] = td_dz_inv
             cache['pa_x'] = float(pa_center[0])
             cache['pa_y'] = float(pa_center[1])
+
+        # Store event-invariant geometry for reuse across events. The
+        # per-event parts (pw, w_total, corr_packed, corr_dts, corr_offsets)
+        # will be overwritten on subsequent calls.
+        geom = {k: v for k, v in cache.items()
+                if k not in ('pw', 'w_total', 'corr_packed',
+                             'corr_lengths', 'corr_dts', 'corr_offsets')}
+        self._opt_geom_cache[geom_key] = geom
 
         return cache
 
