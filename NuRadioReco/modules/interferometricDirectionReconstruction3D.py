@@ -3524,46 +3524,61 @@ class InterferometricReco3D:
         results = {}
         primary_group = None
 
-        # Prefer VPOL as the primary result when it exists, otherwise fall
-        # back to iteration order. This makes the reco robust against
-        # yaml.safe_dump's alphabetical key sort, which previously caused
-        # HPOL to silently become primary on any round-tripped config.
+        # Choose the primary group deterministically. Not "first in yaml
+        # order", which silently changes when configs round-trip through
+        # yaml.safe_dump (alphabetical sort). Rules:
+        #   1. If config.primary_polarization is set, use that group.
+        #   2. Otherwise, pick the group with the most active channels,
+        #      which is the most-constrained reco. Ties broken
+        #      alphabetically for reproducibility.
+        active_groups = [
+            (name, [ch for ch in all_channels if ch in chs])
+            for name, chs in pol_groups.items()
+        ]
+        active_groups = [(n, chs) for n, chs in active_groups if len(chs) >= 2]
+        if not active_groups:
+            logger.warning("No polarization group had >= 2 channels")
+            return {'rho': np.nan, 'phi': np.nan, 'z': np.nan,
+                    'max_corr': np.nan}
+
         primary_pol_override = config.get('primary_polarization', None)
-        group_items = list(pol_groups.items())
-        if primary_pol_override and primary_pol_override in pol_groups:
-            group_items.sort(
-                key=lambda kv: 0 if kv[0] == primary_pol_override else 1)
-        elif 'vpol' in pol_groups:
-            group_items.sort(key=lambda kv: 0 if kv[0] == 'vpol' else 1)
+        if primary_pol_override is not None:
+            if primary_pol_override not in dict(active_groups):
+                raise ValueError(
+                    f"primary_polarization='{primary_pol_override}' not in "
+                    f"active polarization groups "
+                    f"{[n for n, _ in active_groups]}")
+            primary_name = primary_pol_override
+        else:
+            # Largest group wins; alphabetical tiebreak.
+            primary_name = sorted(
+                active_groups,
+                key=lambda kv: (-len(kv[1]), kv[0]))[0][0]
+        logger.info("Primary polarization group: %s (channels: %s)",
+                    primary_name,
+                    dict(active_groups).get(primary_name))
 
-        for group_name, group_chs in group_items:
-            active = [ch for ch in all_channels if ch in group_chs]
-            if len(active) < 2:
-                logger.info("Pol group '%s': %d channels, skipping (need >= 2)",
-                            group_name, len(active))
-                continue
+        # Run primary first so its result lands at the top level, then
+        # the remaining groups in their original yaml order.
+        group_items = ([(n, chs) for n, chs in active_groups if n == primary_name]
+                       + [(n, chs) for n, chs in active_groups if n != primary_name])
 
+        for group_name, active in group_items:
             group_config = dict(config)
             group_config['channels'] = active
             group_config.pop('polarization_groups', None)
             group_config.pop('hpol_weight_scale', None)
 
             logger.info("Running %s reco: %d channels %s",
-                         group_name, len(active), active)
+                        group_name, len(active), active)
 
             grp_result = self.run(evt, station, det, group_config)
 
             for key, val in grp_result.items():
                 results[f'{key}_{group_name}'] = val
 
-            if primary_group is None:
-                primary_group = group_name
+            if group_name == primary_name:
                 results.update(grp_result)
-
-        if primary_group is None:
-            logger.warning("No polarization group had >= 2 channels")
-            return {'rho': np.nan, 'phi': np.nan, 'z': np.nan,
-                    'max_corr': np.nan}
 
         return results
 
