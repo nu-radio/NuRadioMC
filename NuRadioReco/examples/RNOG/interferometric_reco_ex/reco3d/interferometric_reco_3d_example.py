@@ -381,12 +381,24 @@ def main():
           f"(SLURM={slurm_cpus}, host={host_cpus}), "
           f"cupy_device_count={_cp.cuda.runtime.getDeviceCount() if has_gpu else 0}")
 
+    # Two supported event-list formats:
+    #   Legacy: {run_number: [event_numbers]}
+    #     Filter is ambiguous when multiple input files share run_numbers.
+    #   File-aware: {"by_file": {source_file_basename: [[run, evt], ...]}}
+    #     Matches (file, run, evt) triples exactly.
     event_filter = None
+    event_filter_by_file = None
     if args.event_list:
         import json as _json
         with open(args.event_list) as _f:
             raw = _json.load(_f)
-        event_filter = {int(k): set(v) for k, v in raw.items()}
+        if isinstance(raw, dict) and 'by_file' in raw:
+            event_filter_by_file = {
+                src: set(tuple(x) for x in events)
+                for src, events in raw['by_file'].items()
+            }
+        else:
+            event_filter = {int(k): set(v) for k, v in raw.items()}
 
     logging.basicConfig(level=logging.INFO,
                         format='%(name)s - %(levelname)s - %(message)s')
@@ -508,6 +520,13 @@ def main():
     is_nur = args.input[0].endswith('.nur')
 
     for input_file in args.input:
+        file_basename = os.path.basename(input_file)
+
+        # File-aware filter: skip files with no matching events.
+        if event_filter_by_file is not None \
+                and file_basename not in event_filter_by_file:
+            continue
+
         if is_nur:
             reader = eventReader()
             reader.begin(input_file)
@@ -522,17 +541,24 @@ def main():
         launch_angles = {}
         if args.mode == "rxtx":
             emitter_pos = parse_pulser_position(
-                os.path.basename(input_file), pa_abs)
+                file_basename, pa_abs)
             if emitter_pos is not None:
                 launch_angles = compute_launch_angles(
                     emitter_pos, station_id, det, channels)
 
         event_ids = event_ids[args.skip_events:]
 
+        file_event_set = None
+        if event_filter_by_file is not None:
+            file_event_set = event_filter_by_file[file_basename]
+
         for eid in event_ids:
-            if event_filter is not None:
-                run_nr = int(eid[0])
-                evt_nr = int(eid[1])
+            run_nr = int(eid[0])
+            evt_nr = int(eid[1])
+            if file_event_set is not None:
+                if (run_nr, evt_nr) not in file_event_set:
+                    continue
+            elif event_filter is not None:
                 if run_nr not in event_filter or evt_nr not in event_filter[run_nr]:
                     continue
 
