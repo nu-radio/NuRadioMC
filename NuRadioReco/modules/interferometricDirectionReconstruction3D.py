@@ -136,6 +136,56 @@ if USE_NUMBA:
         return out
 
     @njit(parallel=True, fastmath=True, cache=True)
+    def _all_pairs_corr_numba(delay_stack, corr_packed, corr_lengths,
+                              corr_dts, corr_offsets, pair_weights):
+        """Fused all-pairs weighted correlation sum.
+
+        Parallelizes over grid points (outer prange). Inner sequential loop
+        over pairs. Each thread accumulates into its own point, so there's
+        no race. Replaces the Python per-pair loop in _correlator_lean with
+        a single kernel launch.
+
+        Args:
+            delay_stack: (n_pairs, n_points) float64. NaN = skip.
+            corr_packed: (n_pairs, M_max) float64, zero-padded.
+            corr_lengths: (n_pairs,) int64.
+            corr_dts: (n_pairs,) float64.
+            corr_offsets: (n_pairs,) float64.
+            pair_weights: (n_pairs,) float64.
+
+        Returns:
+            (n_points,) float64 weighted-mean correlation.
+        """
+        n_pairs, n_points = delay_stack.shape
+        w_sum = 0.0
+        for p in range(n_pairs):
+            w_sum += pair_weights[p]
+
+        out = np.empty(n_points, dtype=np.float64)
+        inv_w_sum = 1.0 / w_sum if w_sum > 0.0 else 0.0
+
+        for pt in prange(n_points):
+            acc = 0.0
+            for pidx in range(n_pairs):
+                d = delay_stack[pidx, pt]
+                if not (d == d):  # NaN check
+                    continue
+                dt = corr_dts[pidx]
+                offset = corr_offsets[pidx]
+                clen = corr_lengths[pidx]
+                kf = (d - offset) / dt
+                k = int(np.floor(kf))
+                if k < 0 or k >= clen - 1:
+                    continue
+                alpha = kf - k
+                val = (corr_packed[pidx, k]
+                       + (corr_packed[pidx, k + 1]
+                          - corr_packed[pidx, k]) * alpha)
+                acc += val * pair_weights[pidx]
+            out[pt] = acc * inv_w_sum
+        return out
+
+    @njit(parallel=True, fastmath=True, cache=True)
     def _bilinear_batch_numba(values, r_min, dr_inv, nr, z_min, dz_inv, nz,
                               r_coords, z_coords):
         """Batch 2D bilinear interpolation on a uniform grid.
@@ -283,6 +333,7 @@ class InterferometricReco3D:
     def __init__(self):
         """Initialize with empty caches and default settings."""
         self._delay_matrix_cache = {}
+        self._gpu_delay_stack_cache = {}
         self._interpolators = {}
         self._multiray_interpolators = {}
         self.ant_locs = None
@@ -291,6 +342,12 @@ class InterferometricReco3D:
         self._active_ray_types = RAY_TYPES
         self._n_ray_slots = len(RAY_TYPES)
         self._use_gpu = False
+        # Grids smaller than this fall back to CPU path when GPU is active,
+        # since kernel-launch overhead exceeds compute time for tiny grids.
+        self._gpu_min_grid_cells = 10000
+        # Use the fused all-pairs Numba kernel by default. Can be disabled
+        # for debugging via config 'use_fused_correlator: false'.
+        self._use_fused_correlator = True
 
     def _set_station_parameters(self, station, rho, phi, z, corr):
         """Set reconstruction parameters on station, if supported.
@@ -339,7 +396,7 @@ class InterferometricReco3D:
         'interpolation_method', 'table_type',
         'n_peaks_save', 'save_coherent_waveforms', 'n_coherent_waveforms',
         'polarization_groups', 'hpol_weight_scale',
-        'validation', 'use_gpu',
+        'validation', 'use_gpu', 'gpu_min_grid_cells', 'use_fused_correlator',
         'post_optimizer_mode', 'rho_scan_step',
         'refinement_envelope_mode', 'refinement_window', 'refinement_maxiter',
         'de_window', 'de_maxiter', 'de_popsize',
@@ -382,8 +439,15 @@ class InterferometricReco3D:
             self._use_gpu = False
         else:
             self._use_gpu = want_gpu
+        self._gpu_min_grid_cells = int(
+            config.get('gpu_min_grid_cells', self._gpu_min_grid_cells))
+        self._use_fused_correlator = bool(
+            config.get('use_fused_correlator', self._use_fused_correlator))
         if self._use_gpu:
-            logger.info("InterferometricReco3D running on GPU (CuPy).")
+            logger.info(
+                "InterferometricReco3D running on GPU (CuPy). "
+                "Grids < %d cells fall back to CPU.",
+                self._gpu_min_grid_cells)
 
     def _validate_config(self, config):
         """Check config for common mistakes and warn about unknown keys."""
@@ -878,7 +942,8 @@ class InterferometricReco3D:
         time_lags = np.arange(M) * dt + offset
         return np.interp(delays, time_lags, corr_arr)
 
-    def _correlator_lean(self, corr_data, delay_matrices, pair_weights=None):
+    def _correlator_lean(self, corr_data, delay_matrices, pair_weights=None,
+                         delay_cache_key=None):
         """Memory-efficient correlator that accumulates in place.
 
         Unlike ``_correlator``, does not allocate the full (n_pairs, *grid)
@@ -892,6 +957,11 @@ class InterferometricReco3D:
             3D delay matrices, one per pair.
         pair_weights : list or None
             Per-pair weights.
+        delay_cache_key : hashable or None
+            If provided and GPU path is active, cache the stacked delay
+            matrices on the GPU under this key. The caller is responsible
+            for ensuring the key uniquely identifies the geometry of
+            ``delay_matrices``. Pass None to skip caching (safe default).
 
         Returns
         -------
@@ -899,8 +969,14 @@ class InterferometricReco3D:
             (mean_corr_map, max_corr)
         """
         if self._use_gpu and USE_CUPY:
-            return self._correlator_lean_gpu(
-                corr_data, delay_matrices, pair_weights=pair_weights)
+            # Small grids (refine stages) are dominated by kernel launch
+            # overhead; run them on CPU. Threshold chosen so the coarse
+            # scan (>=100k cells) always goes to GPU.
+            grid_size = int(np.prod(delay_matrices[0].shape))
+            if grid_size >= self._gpu_min_grid_cells:
+                return self._correlator_lean_gpu(
+                    corr_data, delay_matrices, pair_weights=pair_weights,
+                    delay_cache_key=delay_cache_key)
 
         n_pairs = len(corr_data)
         grid_shape = delay_matrices[0].shape
@@ -912,45 +988,78 @@ class InterferometricReco3D:
             w = np.ones(n_pairs, dtype=np.float64)
             w_sum = float(n_pairs)
 
-        mean_corr = np.zeros(grid_shape, dtype=np.float64)
+        if USE_NUMBA and self._use_fused_correlator:
+            # Fused all-pairs kernel: one launch, parallel over cells.
+            # Avoids Python per-pair loop overhead.
+            n_points = int(np.prod(grid_shape))
+            delay_stack = np.empty((n_pairs, n_points), dtype=np.float64)
+            for pidx in range(n_pairs):
+                delay_stack[pidx] = delay_matrices[pidx].reshape(-1)
 
-        for pidx in range(n_pairs):
-            corr_arr, dt, offset = corr_data[pidx]
-            delays = delay_matrices[pidx]
-            valid = np.isfinite(delays)
+            corr_lens = np.array([c[0].shape[0] for c in corr_data],
+                                 dtype=np.int64)
+            M_max = int(corr_lens.max())
+            corr_packed = np.zeros((n_pairs, M_max), dtype=np.float64)
+            dts = np.empty(n_pairs, dtype=np.float64)
+            offsets = np.empty(n_pairs, dtype=np.float64)
+            for pidx, (corr_arr, dt, offset) in enumerate(corr_data):
+                corr_packed[pidx, :corr_arr.shape[0]] = corr_arr
+                dts[pidx] = dt
+                offsets[pidx] = offset
 
-            if not np.any(valid):
-                continue
+            flat = _all_pairs_corr_numba(
+                delay_stack, corr_packed, corr_lens, dts, offsets, w)
+            mean_corr = flat.reshape(grid_shape)
+        else:
+            mean_corr = np.zeros(grid_shape, dtype=np.float64)
+            for pidx in range(n_pairs):
+                corr_arr, dt, offset = corr_data[pidx]
+                delays = delay_matrices[pidx]
+                valid = np.isfinite(delays)
 
-            flat_delays = delays[valid].ravel().astype(np.float64)
-            vals = self._interp_delays(corr_arr, dt, offset, flat_delays)
-            np.nan_to_num(vals, copy=False, nan=0.0)
-            mean_corr[valid] += vals * w[pidx]
+                if not np.any(valid):
+                    continue
 
-        if w_sum > 0:
-            mean_corr /= w_sum
+                flat_delays = delays[valid].ravel().astype(np.float64)
+                vals = self._interp_delays(corr_arr, dt, offset, flat_delays)
+                np.nan_to_num(vals, copy=False, nan=0.0)
+                mean_corr[valid] += vals * w[pidx]
+
+            if w_sum > 0:
+                mean_corr /= w_sum
 
         max_corr = float(np.max(mean_corr)) if mean_corr.size > 0 else np.nan
         return mean_corr, max_corr
 
-    def _stack_delay_matrices_gpu(self, delay_matrices):
+    def _stack_delay_matrices_gpu(self, delay_matrices, cache_key=None):
         """Stack per-pair delay matrices into one GPU array.
 
-        Transfers every call (no id-based cache). id() can be reused after
-        GC, so caching by id is unsafe across refine/coarse boundaries where
-        delay matrices have different shapes. For the ~100 MB coarse stack
-        the PCIe transfer is a few ms, dwarfed by the kernel time savings.
+        When cache_key is provided, stores the stacked GPU tensor under that
+        key and returns the cached value on subsequent calls, skipping the
+        host→device transfer. When cache_key is None, transfers fresh every
+        call. The caller owns the key: it must be stable across calls that
+        share the same geometry (same grid, same pair ordering) and unique
+        otherwise.
 
         Args:
             delay_matrices: List of numpy delay matrices, one per pair.
+            cache_key: Optional hashable cache key.
 
         Returns:
             cupy array of shape (n_pairs, *grid_shape), dtype float64.
         """
+        if cache_key is not None:
+            cached = self._gpu_delay_stack_cache.get(cache_key)
+            if cached is not None and cached.shape[0] == len(delay_matrices):
+                return cached
         stacked = np.stack(delay_matrices, axis=0).astype(np.float64)
-        return cp.asarray(stacked)
+        stacked_gpu = cp.asarray(stacked)
+        if cache_key is not None:
+            self._gpu_delay_stack_cache[cache_key] = stacked_gpu
+        return stacked_gpu
 
-    def _correlator_lean_gpu(self, corr_data, delay_matrices, pair_weights=None):
+    def _correlator_lean_gpu(self, corr_data, delay_matrices, pair_weights=None,
+                             delay_cache_key=None):
         """Batched GPU correlator: one fused kernel over all pairs and cells.
 
         Stacks delay matrices and per-pair correlation arrays, then runs the
@@ -976,8 +1085,9 @@ class InterferometricReco3D:
             w_np = np.ones(n_pairs, dtype=np.float64)
         w_sum = float(w_np.sum())
 
-        # Stack delay matrices (cached on GPU across calls).
-        delay_gpu = self._stack_delay_matrices_gpu(delay_matrices)
+        # Stack delay matrices (optionally cached on GPU across calls).
+        delay_gpu = self._stack_delay_matrices_gpu(
+            delay_matrices, cache_key=delay_cache_key)
 
         # Stack corr arrays (varies per event). Pad to max length in case
         # pair trace lengths differ.
@@ -2568,7 +2678,8 @@ class InterferometricReco3D:
             )
         else:
             mean_corr_c, max_corr_c = self._correlator_lean(
-                corr_data, delay_data_c, pair_weights=pair_weights
+                corr_data, delay_data_c, pair_weights=pair_weights,
+                delay_cache_key=coarse_cache_key,
             )
         t_coarse = time.time() - t0
 
