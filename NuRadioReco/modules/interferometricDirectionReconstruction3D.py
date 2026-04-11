@@ -527,6 +527,7 @@ class InterferometricReco3D:
         'n_peaks_save', 'save_coherent_waveforms', 'n_coherent_waveforms',
         'polarization_groups', 'hpol_weight_scale',
         'validation', 'use_gpu', 'gpu_min_grid_cells', 'use_fused_correlator',
+        'warmup_numba',
         'post_optimizer_mode', 'rho_scan_step',
         'refinement_envelope_mode', 'refinement_window', 'refinement_maxiter',
         'de_window', 'de_maxiter', 'de_popsize',
@@ -578,6 +579,70 @@ class InterferometricReco3D:
                 "InterferometricReco3D running on GPU (CuPy). "
                 "Grids < %d cells fall back to CPU.",
                 self._gpu_min_grid_cells)
+
+        # Trigger Numba JIT compilation on tiny dummy data so the first
+        # real event doesn't pay the compile cost. Kernels with
+        # ``cache=True`` only compile once per (type signature, host)
+        # anyway; this just moves the work into begin() rather than
+        # the first run() call.
+        if USE_NUMBA and config.get('warmup_numba', True):
+            try:
+                self._warmup_numba_kernels()
+            except Exception as exc:
+                logger.debug("Numba warmup skipped: %s", exc)
+
+    def _warmup_numba_kernels(self):
+        """Compile Numba kernels with tiny dummy inputs.
+
+        Eliminates first-event JIT compile latency. The compiled kernels
+        are cached (cache=True on the decorators) so the cost is paid
+        once per host across runs.
+        """
+        # _interp_uniform_numba
+        y = np.arange(16, dtype=np.float64)
+        x = np.array([0.5, 1.5, 2.5], dtype=np.float64)
+        _interp_uniform_numba(y, 1.0, 0.0, x)
+
+        # _bilinear_batch_numba and scalar variant
+        values = np.ones((4, 4), dtype=np.float64)
+        r_coords = np.array([0.5, 1.5], dtype=np.float64)
+        z_coords = np.array([0.5, 1.5], dtype=np.float64)
+        _bilinear_batch_numba(values, 0.0, 1.0, 4, 0.0, 1.0, 4,
+                              r_coords, z_coords)
+        _bilinear_scalar_numba(values, 0.0, 1.0, 4, 0.0, 1.0, 4, 1.5, 1.5)
+
+        # Fused all-pairs correlator
+        n_points = 8
+        n_pairs = 3
+        delay_T = np.zeros((n_points, n_pairs), dtype=np.float64)
+        corr_packed = np.ones((n_pairs, 16), dtype=np.float64)
+        corr_lens = np.full(n_pairs, 16, dtype=np.int64)
+        dts = np.ones(n_pairs, dtype=np.float64)
+        offsets = np.zeros(n_pairs, dtype=np.float64)
+        weights = np.ones(n_pairs, dtype=np.float64)
+        _all_pairs_corr_numba(delay_T, corr_packed, corr_lens,
+                              dts, offsets, weights)
+
+        # Fused singleray optimizer kernel
+        n_ch = 3
+        ant_xy = np.zeros((n_ch, 2), dtype=np.float64)
+        td_values = np.ones((n_ch, 4, 4), dtype=np.float64)
+        td_r_min = np.zeros(n_ch, dtype=np.float64)
+        td_dr_inv = np.ones(n_ch, dtype=np.float64)
+        td_nr = np.full(n_ch, 4, dtype=np.int64)
+        td_z_min = np.zeros(n_ch, dtype=np.float64)
+        td_dz_inv = np.ones(n_ch, dtype=np.float64)
+        td_nz = np.full(n_ch, 4, dtype=np.int64)
+        pair_ch1 = np.array([0, 0, 1], dtype=np.int64)
+        pair_ch2 = np.array([1, 2, 2], dtype=np.int64)
+        _scalar_singleray_corr_numba(
+            1.0, 0.0, -1.0, 0.0, 0.0, ant_xy,
+            td_values, td_r_min, td_dr_inv, td_nr,
+            td_z_min, td_dz_inv, td_nz,
+            corr_packed, corr_lens, dts, offsets,
+            pair_ch1, pair_ch2, weights, 3.0)
+
+        logger.debug("Numba kernels warmed up")
 
     def _validate_config(self, config):
         """Check config for common mistakes and warn about unknown keys."""
