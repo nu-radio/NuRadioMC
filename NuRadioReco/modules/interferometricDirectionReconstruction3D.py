@@ -527,7 +527,7 @@ class InterferometricReco3D:
         'n_peaks_save', 'save_coherent_waveforms', 'n_coherent_waveforms',
         'polarization_groups', 'hpol_weight_scale',
         'validation', 'use_gpu', 'gpu_min_grid_cells', 'use_fused_correlator',
-        'warmup_numba',
+        'warmup_numba', 'warmup_gpu',
         'post_optimizer_mode', 'rho_scan_step',
         'refinement_envelope_mode', 'refinement_window', 'refinement_maxiter',
         'de_window', 'de_maxiter', 'de_popsize',
@@ -590,6 +590,43 @@ class InterferometricReco3D:
                 self._warmup_numba_kernels()
             except Exception as exc:
                 logger.debug("Numba warmup skipped: %s", exc)
+
+        # Same idea for the CuPy RawKernel: compile on dummy data so the
+        # first real reco doesn't pay CUDA nvrtc compile cost.
+        if self._use_gpu and USE_CUPY and _FUSED_CORR_KERNEL is not None \
+                and config.get('warmup_gpu', True):
+            try:
+                self._warmup_gpu_kernels()
+            except Exception as exc:
+                logger.debug("GPU warmup skipped: %s", exc)
+
+    def _warmup_gpu_kernels(self):
+        """Launch the fused CUDA RawKernel on tiny dummy data.
+
+        Triggers nvrtc JIT compilation and cache-warming for the fused
+        correlator. The compiled kernel is then reused for real events
+        without the ~200-500 ms first-launch compile cost.
+        """
+        n_pairs = 3
+        n_points = 16
+        delay = cp.zeros((n_pairs, n_points), dtype=cp.float64)
+        corr_packed = cp.ones((n_pairs, 32), dtype=cp.float64)
+        corr_lens = cp.full(n_pairs, 32, dtype=cp.int64)
+        dts = cp.ones(n_pairs, dtype=cp.float64)
+        offsets = cp.zeros(n_pairs, dtype=cp.float64)
+        weights = cp.ones(n_pairs, dtype=cp.float64)
+        out = cp.empty(n_points, dtype=cp.float64)
+        threads = 256
+        blocks = (n_points + threads - 1) // threads
+        _FUSED_CORR_KERNEL(
+            (blocks,), (threads,),
+            (delay, corr_packed, corr_lens, dts, offsets, weights,
+             cp.float64(3.0), np.int32(n_pairs), np.int64(n_points),
+             np.int64(corr_packed.strides[0] // corr_packed.itemsize),
+             out)
+        )
+        cp.cuda.Device().synchronize()
+        logger.debug("GPU kernels warmed up")
 
     def _warmup_numba_kernels(self):
         """Compile Numba kernels with tiny dummy inputs.
