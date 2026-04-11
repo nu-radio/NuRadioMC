@@ -443,11 +443,15 @@ def main():
             'limits': [1, 100, 0, 360, -100, 0],
             'step_sizes': p2_steps,
             'n_rho': 0,
+            'n_z': config.get('pass2_n_z', config.get('n_z', 0)),
+            'z_spacing': config.get('z_spacing', 'linear'),
+            'z_surface_offset': config.get('z_surface_offset', 0.1),
         }
         if p2_hierarchical:
             config_p2_template.update({
                 'coarse_limits': [1, 100, 0, 360, -100, 0],
                 'coarse_n_rho': 0,
+                'coarse_n_z': config.get('pass2_coarse_n_z', 0),
                 'coarse_step_sizes': config.get(
                     'pass2_coarse_step_sizes', [2, 1, 2]),
                 'coarse_n_peaks': config.get('pass2_coarse_n_peaks', 3),

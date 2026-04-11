@@ -36,6 +36,18 @@ try:
 except ImportError:
     pass
 
+USE_CUPY = False
+try:
+    import cupy as cp
+    # Check that a CUDA device is actually visible; cupy can import on
+    # CPU-only nodes but fail at first kernel launch.
+    if cp.cuda.runtime.getDeviceCount() > 0:
+        USE_CUPY = True
+        logger.info("CuPy GPU backend available (device count=%d)",
+                    cp.cuda.runtime.getDeviceCount())
+except Exception:
+    cp = None
+
 USE_NUMBA_GROUPED = False
 try:
     from fast_grouped_multiray import (
@@ -224,6 +236,35 @@ SOLUTION_TYPES = ['solution_0', 'solution_1']
 RAY_TYPE_COMBOS = list(itertools.product(RAY_TYPES, RAY_TYPES))
 
 
+def _build_z_vec(z_min, z_max, n_z, spacing='linear', surface_offset=0.1):
+    """Build a z-axis vector with linear or log spacing.
+
+    Log spacing concentrates grid density near the ice surface (z=0) and is
+    useful for near-surface sources (CR) when the search volume spans the
+    full ice depth. Falls back to linear with a warning if the z range does
+    not straddle zero.
+
+    Args:
+        z_min: Minimum z (meters, negative, below surface).
+        z_max: Maximum z (meters, should be >= 0 for log mode).
+        n_z: Number of grid points.
+        spacing: 'linear' or 'log'.
+        surface_offset: Minimum |z| for the shallowest log bin (meters).
+            Only used when spacing='log'.
+
+    Returns:
+        np.ndarray of length n_z, sorted ascending.
+    """
+    if spacing == 'log':
+        if z_max >= 0 and z_min < 0:
+            z_depths = np.geomspace(surface_offset, -z_min, n_z)
+            return -z_depths[::-1]
+        logger.warning(
+            "z_spacing='log' requires z_min < 0 and z_max >= 0; "
+            "got [%s, %s]. Falling back to linear.", z_min, z_max)
+    return np.linspace(z_min, z_max, n_z)
+
+
 class InterferometricReco3D:
     """3D interferometric reconstruction: coarse grid + L-BFGS-B refinement."""
 
@@ -249,6 +290,7 @@ class InterferometricReco3D:
         self._multiray_combo_mode = 'per_pair'
         self._active_ray_types = RAY_TYPES
         self._n_ray_slots = len(RAY_TYPES)
+        self._use_gpu = False
 
     def _set_station_parameters(self, station, rho, phi, z, corr):
         """Set reconstruction parameters on station, if supported.
@@ -269,9 +311,11 @@ class InterferometricReco3D:
         'coord_system', 'rec_type', 'fixed_coord',
         'coarse_limits', 'coarse_step_sizes', 'coarse_n_rho', 'coarse_n_z',
         'coarse_n_peaks', 'coarse_peak_separation',
+        'n_z', 'z_spacing', 'z_surface_offset',
         'refine_step_sizes', 'refine_window', 'refine_n_peaks', 'refine_radius',
         'refine_levels',
         'pass2_step_sizes', 'pass2_coarse_step_sizes', 'pass2_n_rho',
+        'pass2_n_z', 'pass2_coarse_n_z',
         'pass2_window', 'pass2_hierarchical',
         'pass2_coarse_n_peaks', 'pass2_coarse_peak_separation',
         'pass2_refine_window', 'z_profile_step',
@@ -295,7 +339,7 @@ class InterferometricReco3D:
         'interpolation_method', 'table_type',
         'n_peaks_save', 'save_coherent_waveforms', 'n_coherent_waveforms',
         'polarization_groups', 'hpol_weight_scale',
-        'validation',
+        'validation', 'use_gpu',
         'post_optimizer_mode', 'rho_scan_step',
         'refinement_envelope_mode', 'refinement_window', 'refinement_maxiter',
         'de_window', 'de_maxiter', 'de_popsize',
@@ -329,6 +373,17 @@ class InterferometricReco3D:
                 "Channels 1 and 2 not in ant_locs (available: %s). "
                 "PA center defaulting to origin.", sorted(self.ant_locs.keys()))
             self._pa_center = np.zeros(3)
+
+        want_gpu = bool(config.get('use_gpu', False))
+        if want_gpu and not USE_CUPY:
+            logger.warning(
+                "use_gpu=True requested but CuPy or CUDA device is not "
+                "available. Falling back to CPU path.")
+            self._use_gpu = False
+        else:
+            self._use_gpu = want_gpu
+        if self._use_gpu:
+            logger.info("InterferometricReco3D running on GPU (CuPy).")
 
     def _validate_config(self, config):
         """Check config for common mistakes and warn about unknown keys."""
@@ -536,9 +591,15 @@ class InterferometricReco3D:
 
         rho_min = max(rho_min, 1.0)  # avoid R=0 table edge effects
 
+        z_spacing = config.get('z_spacing', 'linear')
+        n_z_cfg = config.get('n_z', 0)
+
         n_rho = len(np.arange(rho_min, rho_max + d_rho, d_rho))
         n_phi = len(np.arange(phi_min, phi_max, d_phi))
-        n_z = len(np.arange(z_min, z_max + d_z, d_z))
+        if n_z_cfg > 0:
+            n_z = n_z_cfg
+        else:
+            n_z = len(np.arange(z_min, z_max + d_z, d_z))
         n_total = n_rho * n_phi * n_z
 
         if n_total > self._MAX_GRID_POINTS:
@@ -561,7 +622,12 @@ class InterferometricReco3D:
 
         rho_vec = np.arange(rho_min, rho_max + d_rho, d_rho)
         phi_vec = np.arange(phi_min, phi_max, d_phi) * (np.pi / 180.0)
-        z_vec = np.arange(z_min, z_max + d_z, d_z)
+        if n_z_cfg > 0:
+            z_surf_offset = config.get('z_surface_offset', 0.1)
+            z_vec = _build_z_vec(
+                z_min, z_max, n_z_cfg, z_spacing, z_surf_offset)
+        else:
+            z_vec = np.arange(z_min, z_max + d_z, d_z)
 
         return rho_vec, phi_vec, z_vec
 
@@ -832,6 +898,10 @@ class InterferometricReco3D:
         tuple
             (mean_corr_map, max_corr)
         """
+        if self._use_gpu and USE_CUPY:
+            return self._correlator_lean_gpu(
+                corr_data, delay_matrices, pair_weights=pair_weights)
+
         n_pairs = len(corr_data)
         grid_shape = delay_matrices[0].shape
 
@@ -860,6 +930,100 @@ class InterferometricReco3D:
         if w_sum > 0:
             mean_corr /= w_sum
 
+        max_corr = float(np.max(mean_corr)) if mean_corr.size > 0 else np.nan
+        return mean_corr, max_corr
+
+    def _stack_delay_matrices_gpu(self, delay_matrices):
+        """Stack per-pair delay matrices into one GPU array.
+
+        Transfers every call (no id-based cache). id() can be reused after
+        GC, so caching by id is unsafe across refine/coarse boundaries where
+        delay matrices have different shapes. For the ~100 MB coarse stack
+        the PCIe transfer is a few ms, dwarfed by the kernel time savings.
+
+        Args:
+            delay_matrices: List of numpy delay matrices, one per pair.
+
+        Returns:
+            cupy array of shape (n_pairs, *grid_shape), dtype float64.
+        """
+        stacked = np.stack(delay_matrices, axis=0).astype(np.float64)
+        return cp.asarray(stacked)
+
+    def _correlator_lean_gpu(self, corr_data, delay_matrices, pair_weights=None):
+        """Batched GPU correlator: one fused kernel over all pairs and cells.
+
+        Stacks delay matrices and per-pair correlation arrays, then runs the
+        uniform-grid linear interpolation and weighted accumulation as a
+        single vectorized cupy expression. The delay-matrix stack is cached
+        on the GPU across calls, so only the (small) per-event correlation
+        arrays transfer each time.
+
+        Args:
+            corr_data: List of (corr_array, dt, offset) per pair.
+            delay_matrices: List of 3D delay arrays, one per pair.
+            pair_weights: Per-pair weights or None.
+
+        Returns:
+            (mean_corr_map, max_corr) with mean_corr_map as a numpy array.
+        """
+        n_pairs = len(corr_data)
+        grid_shape = delay_matrices[0].shape
+
+        if pair_weights is not None:
+            w_np = np.asarray(pair_weights, dtype=np.float64)
+        else:
+            w_np = np.ones(n_pairs, dtype=np.float64)
+        w_sum = float(w_np.sum())
+
+        # Stack delay matrices (cached on GPU across calls).
+        delay_gpu = self._stack_delay_matrices_gpu(delay_matrices)
+
+        # Stack corr arrays (varies per event). Pad to max length in case
+        # pair trace lengths differ.
+        corr_lens = [c[0].shape[0] for c in corr_data]
+        M_max = max(corr_lens)
+        corr_stack = np.zeros((n_pairs, M_max), dtype=np.float64)
+        dts = np.empty(n_pairs, dtype=np.float64)
+        offsets = np.empty(n_pairs, dtype=np.float64)
+        M_per_pair = np.empty(n_pairs, dtype=np.int64)
+        for p, (corr_arr, dt, offset) in enumerate(corr_data):
+            corr_stack[p, :corr_arr.shape[0]] = corr_arr
+            dts[p] = dt
+            offsets[p] = offset
+            M_per_pair[p] = corr_arr.shape[0]
+
+        corr_stack_gpu = cp.asarray(corr_stack)
+        dts_gpu = cp.asarray(dts).reshape((n_pairs,) + (1,) * len(grid_shape))
+        offsets_gpu = cp.asarray(offsets).reshape(
+            (n_pairs,) + (1,) * len(grid_shape))
+        M_gpu = cp.asarray(M_per_pair).reshape(
+            (n_pairs,) + (1,) * len(grid_shape))
+        w_gpu = cp.asarray(w_np).reshape((n_pairs,) + (1,) * len(grid_shape))
+
+        # Uniform-grid linear interpolation, same formula as the Numba path.
+        kf = (delay_gpu - offsets_gpu) / dts_gpu
+        k = cp.floor(kf).astype(cp.int64)
+        alpha = kf - k
+        in_bounds = (k >= 0) & (k < (M_gpu - 1)) & cp.isfinite(delay_gpu)
+        k_safe = cp.where(in_bounds, k, 0)
+
+        # Per-pair gather from corr_stack_gpu: corr_stack_gpu[p, k_safe[p,...]].
+        # Use fancy indexing with an explicit pair index.
+        pair_idx = cp.arange(n_pairs).reshape(
+            (n_pairs,) + (1,) * len(grid_shape))
+        y0 = corr_stack_gpu[pair_idx, k_safe]
+        y1 = corr_stack_gpu[pair_idx, cp.minimum(k_safe + 1, M_gpu - 1)]
+        vals = y0 + (y1 - y0) * alpha
+        vals = cp.where(in_bounds, vals, 0.0)
+
+        # Weighted sum across pairs, then normalize.
+        weighted = vals * w_gpu
+        mean_corr_gpu = weighted.sum(axis=0)
+        if w_sum > 0:
+            mean_corr_gpu /= w_sum
+
+        mean_corr = cp.asnumpy(mean_corr_gpu)
         max_corr = float(np.max(mean_corr)) if mean_corr.size > 0 else np.nan
         return mean_corr, max_corr
 
@@ -2368,8 +2532,11 @@ class InterferometricReco3D:
         phi_vec_c = np.arange(phi_min_c, phi_max_c, coarse_steps[1]) * (np.pi / 180.0)
 
         n_z_coarse = config.get('coarse_n_z', 0)
+        z_spacing = config.get('z_spacing', 'linear')
+        z_surf_offset = config.get('z_surface_offset', 0.1)
         if n_z_coarse > 0:
-            z_vec_c = np.linspace(z_min_c, z_max_c, n_z_coarse)
+            z_vec_c = _build_z_vec(
+                z_min_c, z_max_c, n_z_coarse, z_spacing, z_surf_offset)
         else:
             z_vec_c = np.arange(z_min_c, z_max_c + coarse_steps[2], coarse_steps[2])
 
@@ -2378,6 +2545,7 @@ class InterferometricReco3D:
             n_rho_coarse, rho_min_c, rho_max_c,
             coarse_steps[1], phi_min_c, phi_max_c,
             coarse_steps[2], z_min_c, z_max_c,
+            n_z_coarse, z_spacing, float(z_surf_offset),
         )
 
         if coarse_cache_key in self._delay_matrix_cache:
