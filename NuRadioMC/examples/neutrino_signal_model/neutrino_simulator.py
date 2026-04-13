@@ -1,39 +1,17 @@
 import os
 from matplotlib.pylab import det
-import yaml
 import numpy as np
 from NuRadioMC.simulation import simulation as sim
-# from NuRadioReco.detector import detector
-# from NuRadioMC.SignalProp import propagation
-# from NuRadioMC.utilities import medium
 import NuRadioReco.framework.radio_shower
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units
 import datetime
 from radiotools import helper as hp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
-# import matplotlib.pyplot as plt
-# import scipy as scp
 import NuRadioReco.framework.event
 
 from NuRadioReco.framework.parameters import showerParameters as shp
 import NuRadioReco.modules.channelAddCableDelay
-import NuRadioReco.modules.channelBandPassFilter
 
 channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
-
-
-import logging
-import NuRadioMC.simulation.time_logger
-logger = logging.getLogger("NuRadioMC.simulation")
-time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger, update_interval=5)
-
-ABS_PATH_HERE = os.path.dirname(__file__)
-
-# import NuRadioReco.modules.triggerTimeAdjuster
-# triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
-# triggerTimeAdjuster.begin(pre_trigger_time=200*units.ns)
-
-print_erros = False
 
 class NeutrinoSimulator():
     """
@@ -210,5 +188,3 @@ class NeutrinoSimulator():
             traces[i_ch] = readout_channel.get_trace()
 
         return station, traces, trace_start_times
-
-

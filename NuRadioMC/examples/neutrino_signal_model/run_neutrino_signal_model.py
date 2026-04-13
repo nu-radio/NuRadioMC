@@ -7,7 +7,6 @@ from radiotools import helper as hp
 #import NuRadioReco.detector.RNO_G.rnog_detector
 import NuRadioReco.detector.detector
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 from NuRadioReco.utilities import units
 from NuRadioMC.examples.neutrino_signal_model.neutrino_simulator import NeutrinoSimulator
 #import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
