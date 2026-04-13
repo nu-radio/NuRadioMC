@@ -93,6 +93,34 @@ The 2-table scheme also slightly improves the 90th percentile accuracy
 (11.2 vs 14.0 deg) because fewer combos help the optimizer converge more
 reliably.
 
+## Canonical timing: CR v9 proxy (hw mode, singleray)
+
+279,288 triggered events from 1,031 NUR files spanning lgE 16.0-19.0
+(flat energy spectrum), station 23, 300K noise.
+
+### Solution-ordered tables (2-table, singleray + HPOL + multi-peak)
+
+Config: `reco3d_cr_v9_c1opt_singleray_hpol_multipeak.yaml` (hilbert=none,
+hann=on, bandpass [0.1, 0.7] GHz, snr_weight=on, energy_norm=on,
+n_peaks_save=3, polarization_groups={vpol, hpol}, validation=true).
+
+| Stage | Median (s) | p95 (s) |
+|-------|-----------|---------|
+| Preprocessing | 0.060 | 0.083 |
+| Coarse scan | 0.345 | 0.559 |
+| Refine scan | 0.120 | 0.159 |
+| Optimizer | 0.182 | 0.271 |
+| Peak finding | 0.007 | 0.012 |
+| **Total** | **0.720** | **0.999** |
+
+Timing is flat across energies (0.62-0.82 s/event median). The singleray
+config skips multiray combo evaluation, making it ~2x faster than the
+neutrino ray-type config and ~3x faster than pulser rxtx mode.
+
+Accuracy: 10.46 deg median all events; 4.30 deg with corr >= 0.3 and
+3+ helper channels (18% efficiency); 3.96 deg adding peak isolation >= 1.15
+(13% efficiency).
+
 ## Memory usage
 
 Peak RSS measured from SLURM MaxRSS across the validation batches:

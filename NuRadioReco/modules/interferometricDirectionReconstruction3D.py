@@ -3,7 +3,7 @@
 
 Searches all three cylindrical coordinates (rho, phi, z) simultaneously using
 a coarse 3D grid scan followed by L-BFGS-B optimizer refinement from the top-N
-coarse peaks.
+coarse peaks. Compute kernels (Numba, CUDA) live in ``_reco3d_kernels.py``.
 """
 
 import numpy as np
@@ -27,437 +27,41 @@ TableData = namedtuple('TableData', [
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
-logger = logging.getLogger("reco3d.interferometric_reco_3d")
-
-USE_NUMBA = False
+from NuRadioReco.modules._reco3d_kernels import (
+    USE_NUMBA, USE_CUPY, USE_CPP_EXTENSION, USE_NUMBA_GROUPED,
+    _FUSED_CORR_KERNEL, _build_z_vec,
+    RAY_TYPES, SOLUTION_TYPES, RAY_TYPE_COMBOS,
+)
 try:
-    from numba import njit, prange
-    USE_NUMBA = True
+    from NuRadioReco.modules._reco3d_kernels import _FUSED_MULTIRAY_CORR_KERNEL
 except ImportError:
-    pass
+    _FUSED_MULTIRAY_CORR_KERNEL = None
 
-USE_CUPY = False
-_FUSED_CORR_KERNEL = None
-try:
+if USE_NUMBA:
+    from NuRadioReco.modules._reco3d_kernels import (
+        _scalar_grouped_corr_numba,
+        _interp_uniform_numba,
+        _scalar_singleray_corr_numba,
+        _all_pairs_corr_numba,
+        _bilinear_batch_numba,
+        _bilinear_scalar_numba,
+        _fused_multiray_grid_numba,
+    )
+
+if USE_CUPY:
     import cupy as cp
-    # Check that a CUDA device is actually visible; cupy can import on
-    # CPU-only nodes but fail at first kernel launch.
-    if cp.cuda.runtime.getDeviceCount() > 0:
-        USE_CUPY = True
-        logger.info("CuPy GPU backend available (device count=%d)",
-                    cp.cuda.runtime.getDeviceCount())
 
-        # Fused CUDA kernel: one thread per grid point, iterates all pairs,
-        # single read of each delay cell, single write of each output cell.
-        # Pair-major delay_stack layout (n_pairs, n_points) gives coalesced
-        # access across warps since adjacent threads handle adjacent points.
-        _FUSED_CORR_KERNEL = cp.RawKernel(r'''
-extern "C" __global__ void fused_correlator(
-    const double* __restrict__ delay_stack,
-    const double* __restrict__ corr_packed,
-    const long long* __restrict__ corr_lens,
-    const double* __restrict__ dts,
-    const double* __restrict__ offsets,
-    const double* __restrict__ pair_weights,
-    const double w_sum,
-    const int n_pairs,
-    const long long n_points,
-    const long long corr_stride,
-    double* __restrict__ out
-) {
-    long long pt = (long long)blockIdx.x * blockDim.x + threadIdx.x;
-    if (pt >= n_points) return;
+if USE_CPP_EXTENSION:
+    from NuRadioReco.modules._reco3d_kernels import _compute_delay_matrices_cpp
 
-    double acc = 0.0;
-    for (int p = 0; p < n_pairs; ++p) {
-        double d = delay_stack[(long long)p * n_points + pt];
-        if (isnan(d)) continue;
-        double kf = (d - offsets[p]) / dts[p];
-        long long k = (long long)floor(kf);
-        long long clen = corr_lens[p];
-        if (k < 0 || k >= clen - 1) continue;
-        double alpha = kf - (double)k;
-        double y0 = corr_packed[(long long)p * corr_stride + k];
-        double y1 = corr_packed[(long long)p * corr_stride + k + 1];
-        double v = y0 + (y1 - y0) * alpha;
-        acc += v * pair_weights[p];
-    }
-    out[pt] = (w_sum > 0.0) ? (acc / w_sum) : 0.0;
-}
-''', 'fused_correlator')
-except Exception:
-    cp = None
-
-USE_NUMBA_GROUPED = False
-try:
-    from fast_grouped_multiray import (
+if USE_NUMBA_GROUPED:
+    from NuRadioReco.modules._reco3d_kernels import (
         grouped_multiray_numba, perpair_multiray_numba,
         pack_tt_grids, pack_corr_data, build_combo_table,
         _grouped_multiray_kernel,
     )
-    if USE_NUMBA:
-        USE_NUMBA_GROUPED = True
-        logger.info("Numba grouped multiray kernels loaded")
-except ImportError:
-    pass
 
-if USE_NUMBA:
-    @njit(fastmath=True, cache=True)
-    def _scalar_grouped_corr_numba(
-            tt_vals, tt_valid, corr_packed, corr_lengths,
-            corr_dts, corr_offsets, pair_ch1, pair_ch2, pair_weights,
-            combo_table, n_combos, n_pairs, w_sum):
-        """Numba-compiled scalar grouped correlation at a single point.
-
-        Args:
-            tt_vals: float64 array (n_ch, n_rt). Travel times per channel per ray type.
-            tt_valid: bool array (n_ch, n_rt). Whether each TT is valid.
-            corr_packed: float64 array (n_pairs, max_corr_len). Padded correlations.
-            corr_lengths: int64 array (n_pairs,). Actual correlation lengths.
-            corr_dts: float64 array (n_pairs,). Sample spacing per pair.
-            corr_offsets: float64 array (n_pairs,). Time offset per pair.
-            pair_ch1: int64 array (n_pairs,). First channel index per pair.
-            pair_ch2: int64 array (n_pairs,). Second channel index per pair.
-            pair_weights: float64 array (n_pairs,). Weight per pair.
-            combo_table: int64 array (n_combos, n_ch). Ray type per channel per combo.
-            n_combos: int. Number of combos.
-            n_pairs: int. Number of pairs.
-            w_sum: float64. Sum of weights.
-
-        Returns:
-            Negative best weighted mean correlation (for minimization).
-        """
-        best_total = -np.inf
-        for ci in range(n_combos):
-            total = 0.0
-            for pidx in range(n_pairs):
-                c1 = pair_ch1[pidx]
-                c2 = pair_ch2[pidx]
-                rt1 = combo_table[ci, c1]
-                rt2 = combo_table[ci, c2]
-                if not tt_valid[c1, rt1] or not tt_valid[c2, rt2]:
-                    continue
-                delay = tt_vals[c1, rt1] - tt_vals[c2, rt2]
-
-                dt = corr_dts[pidx]
-                offset = corr_offsets[pidx]
-                clen = corr_lengths[pidx]
-                kf = (delay - offset) / dt
-                k = int(np.floor(kf))
-                if k < 0 or k >= clen - 1:
-                    val = 0.0
-                else:
-                    alpha = kf - k
-                    val = (corr_packed[pidx, k]
-                           + (corr_packed[pidx, k + 1]
-                              - corr_packed[pidx, k]) * alpha)
-                total += val * pair_weights[pidx]
-            if total > best_total:
-                best_total = total
-
-        if best_total == -np.inf:
-            return 0.0
-        return -best_total / w_sum if w_sum > 0.0 else 0.0
-
-    @njit(parallel=True, fastmath=True)
-    def _interp_uniform_numba(y, dt, offset, x):
-        """Fast uniform-grid linear interpolation via Numba."""
-        M = y.shape[0]
-        n = x.shape[0]
-        out = np.empty(n, dtype=np.float64)
-        for i in prange(n):
-            kf = (x[i] - offset) / dt
-            k = int(np.floor(kf))
-            if k < 0 or k >= M - 1:
-                out[i] = np.nan
-            else:
-                alpha = kf - k
-                out[i] = y[k] + (y[k + 1] - y[k]) * alpha
-        return out
-
-    @njit(fastmath=True, cache=True)
-    def _scalar_singleray_corr_numba(
-            rho, phi_rad, z, pa_x, pa_y,
-            ant_xy, td_values, td_r_min, td_dr_inv, td_nr,
-            td_z_min, td_dz_inv, td_nz,
-            corr_packed, corr_lengths, corr_dts, corr_offsets,
-            pair_ch1, pair_ch2, pair_weights, w_total):
-        """Fused single-point singleray correlation for the optimizer.
-
-        Computes all channel travel times via bilinear table lookup, then
-        accumulates the weighted correlation over all pairs, in a single
-        Numba kernel. Replaces the per-call Python loops in
-        ``_correlation_at_point`` for the non-multiray path.
-
-        Args:
-            rho, phi_rad, z: Scalar source coordinates (m, rad, m).
-            pa_x, pa_y: PA center absolute coordinates (m).
-            ant_xy: (n_ch, 2) float64, channel absolute (x, y).
-            td_values: (n_ch, nr_max, nz_max) float64, packed TT tables.
-            td_r_min, td_dr_inv: (n_ch,) float64 per-channel grid origin
-                and inverse spacing in r.
-            td_nr: (n_ch,) int64 per-channel grid size in r.
-            td_z_min, td_dz_inv: same in z.
-            td_nz: (n_ch,) int64 per-channel grid size in z.
-            corr_packed: (n_pairs, max_corr_len) padded.
-            corr_lengths, corr_dts, corr_offsets: (n_pairs,).
-            pair_ch1, pair_ch2: (n_pairs,) int64.
-            pair_weights: (n_pairs,) float64.
-            w_total: sum(pair_weights).
-
-        Returns:
-            Negative weighted mean correlation (for minimization).
-        """
-        n_ch = ant_xy.shape[0]
-        x_src = rho * np.cos(phi_rad) + pa_x
-        y_src = rho * np.sin(phi_rad) + pa_y
-
-        tts = np.empty(n_ch, dtype=np.float64)
-        valid = np.zeros(n_ch, dtype=np.bool_)
-        for ci in range(n_ch):
-            dx = x_src - ant_xy[ci, 0]
-            dy = y_src - ant_xy[ci, 1]
-            r = np.sqrt(dx * dx + dy * dy)
-            if r < 1.0:
-                r = 1.0
-            ri = (r - td_r_min[ci]) * td_dr_inv[ci]
-            zi = (z - td_z_min[ci]) * td_dz_inv[ci]
-            i0 = int(np.floor(ri))
-            j0 = int(np.floor(zi))
-            nr_ch = td_nr[ci]
-            nz_ch = td_nz[ci]
-            if i0 < 0 or j0 < 0:
-                continue
-            # Clamp boundary queries (matches _bilinear_scalar_numba).
-            if i0 >= nr_ch - 1:
-                if ri <= nr_ch - 1 + 1e-9:
-                    i0 = nr_ch - 2
-                    fx = 1.0
-                else:
-                    continue
-            else:
-                fx = ri - i0
-            if j0 >= nz_ch - 1:
-                if zi <= nz_ch - 1 + 1e-9:
-                    j0 = nz_ch - 2
-                    fy = 1.0
-                else:
-                    continue
-            else:
-                fy = zi - j0
-            v = ((1.0 - fx) * (1.0 - fy) * td_values[ci, i0, j0]
-                 + fx * (1.0 - fy) * td_values[ci, i0 + 1, j0]
-                 + (1.0 - fx) * fy * td_values[ci, i0, j0 + 1]
-                 + fx * fy * td_values[ci, i0 + 1, j0 + 1])
-            if v > 0.0 and np.isfinite(v):
-                tts[ci] = v
-                valid[ci] = True
-
-        n_pairs = pair_ch1.shape[0]
-        total = 0.0
-        for pidx in range(n_pairs):
-            c1 = pair_ch1[pidx]
-            c2 = pair_ch2[pidx]
-            if not valid[c1] or not valid[c2]:
-                continue
-            delay = tts[c1] - tts[c2]
-            dt = corr_dts[pidx]
-            offset = corr_offsets[pidx]
-            clen = corr_lengths[pidx]
-            kf = (delay - offset) / dt
-            k = int(np.floor(kf))
-            if k < 0 or k >= clen - 1:
-                continue
-            alpha = kf - k
-            v = (corr_packed[pidx, k]
-                 + (corr_packed[pidx, k + 1] - corr_packed[pidx, k]) * alpha)
-            total += v * pair_weights[pidx]
-
-        if w_total > 0.0:
-            return -total / w_total
-        return 0.0
-
-    @njit(parallel=True, fastmath=True, cache=True)
-    def _all_pairs_corr_numba(delay_T, corr_packed, corr_lengths,
-                              corr_dts, corr_offsets, pair_weights):
-        """Fused all-pairs weighted correlation sum.
-
-        Parallelizes over grid points (outer prange). Inner sequential loop
-        over pairs. Each thread accumulates into its own point, no race.
-
-        Uses a points-major delay layout ``delay_T[pt, pidx]`` so the inner
-        pair loop is stride-1 over cache lines. A pair-major layout is
-        cache-unfriendly at grid sizes where a single point slice doesn't
-        fit in L1, causing 3-5x slowdowns at production grid sizes.
-
-        Args:
-            delay_T: (n_points, n_pairs) float64. NaN = skip.
-            corr_packed: (n_pairs, M_max) float64, zero-padded.
-            corr_lengths: (n_pairs,) int64.
-            corr_dts: (n_pairs,) float64.
-            corr_offsets: (n_pairs,) float64.
-            pair_weights: (n_pairs,) float64.
-
-        Returns:
-            (n_points,) float64 weighted-mean correlation.
-        """
-        n_points, n_pairs = delay_T.shape
-        w_sum = 0.0
-        for p in range(n_pairs):
-            w_sum += pair_weights[p]
-
-        out = np.empty(n_points, dtype=np.float64)
-        inv_w_sum = 1.0 / w_sum if w_sum > 0.0 else 0.0
-
-        for pt in prange(n_points):
-            acc = 0.0
-            for pidx in range(n_pairs):
-                d = delay_T[pt, pidx]
-                if not (d == d):  # NaN check
-                    continue
-                dt = corr_dts[pidx]
-                offset = corr_offsets[pidx]
-                clen = corr_lengths[pidx]
-                kf = (d - offset) / dt
-                k = int(np.floor(kf))
-                if k < 0 or k >= clen - 1:
-                    continue
-                alpha = kf - k
-                val = (corr_packed[pidx, k]
-                       + (corr_packed[pidx, k + 1]
-                          - corr_packed[pidx, k]) * alpha)
-                acc += val * pair_weights[pidx]
-            out[pt] = acc * inv_w_sum
-        return out
-
-    @njit(parallel=True, fastmath=True, cache=True)
-    def _bilinear_batch_numba(values, r_min, dr_inv, nr, z_min, dz_inv, nz,
-                              r_coords, z_coords):
-        """Batch 2D bilinear interpolation on a uniform grid.
-
-        Args:
-            values: 2D array of table values, shape (nr, nz).
-            r_min: Minimum r value of the grid.
-            dr_inv: Inverse of r spacing (1/dr).
-            nr: Number of r grid points.
-            z_min: Minimum z value of the grid.
-            dz_inv: Inverse of z spacing (1/dz).
-            nz: Number of z grid points.
-            r_coords: 1D array of query r coordinates.
-            z_coords: 1D array of query z coordinates.
-
-        Returns:
-            1D array of interpolated values. Out-of-bounds returns -inf.
-        """
-        n = r_coords.shape[0]
-        out = np.empty(n, dtype=np.float64)
-        for i in prange(n):
-            ri = (r_coords[i] - r_min) * dr_inv
-            zi = (z_coords[i] - z_min) * dz_inv
-            i0 = int(np.floor(ri))
-            j0 = int(np.floor(zi))
-            if i0 < 0 or i0 >= nr - 1 or j0 < 0 or j0 >= nz - 1:
-                out[i] = -np.inf
-            else:
-                fx = ri - i0
-                fy = zi - j0
-                out[i] = ((1 - fx) * (1 - fy) * values[i0, j0]
-                          + fx * (1 - fy) * values[i0 + 1, j0]
-                          + (1 - fx) * fy * values[i0, j0 + 1]
-                          + fx * fy * values[i0 + 1, j0 + 1])
-        return out
-
-    @njit(fastmath=True, cache=True)
-    def _bilinear_scalar_numba(values, r_min, dr_inv, nr, z_min, dz_inv, nz,
-                               r_val, z_val):
-        """Single-point 2D bilinear interpolation on a uniform grid.
-
-        Args:
-            values: 2D array of table values, shape (nr, nz).
-            r_min: Minimum r value of the grid.
-            dr_inv: Inverse of r spacing (1/dr).
-            nr: Number of r grid points.
-            z_min: Minimum z value of the grid.
-            dz_inv: Inverse of z spacing (1/dz).
-            nz: Number of z grid points.
-            r_val: Query r coordinate.
-            z_val: Query z coordinate.
-
-        Returns:
-            Interpolated value, or -inf if out of bounds.
-        """
-        ri = (r_val - r_min) * dr_inv
-        zi = (z_val - z_min) * dz_inv
-        i0 = int(np.floor(ri))
-        j0 = int(np.floor(zi))
-        if i0 < 0 or j0 < 0:
-            return -np.inf
-        # Clamp to last valid cell for exact boundary queries
-        if i0 >= nr - 1:
-            if ri <= nr - 1 + 1e-9:
-                i0 = nr - 2
-                fx = 1.0
-            else:
-                return -np.inf
-        else:
-            fx = ri - i0
-        if j0 >= nz - 1:
-            if zi <= nz - 1 + 1e-9:
-                j0 = nz - 2
-                fy = 1.0
-            else:
-                return -np.inf
-        else:
-            fy = zi - j0
-        return ((1 - fx) * (1 - fy) * values[i0, j0]
-                + fx * (1 - fy) * values[i0 + 1, j0]
-                + (1 - fx) * fy * values[i0, j0 + 1]
-                + fx * fy * values[i0 + 1, j0 + 1])
-
-USE_CPP_EXTENSION = False
-try:
-    cpp_path = os.path.join(os.path.dirname(__file__), "cpp")
-    if cpp_path not in sys.path:
-        sys.path.insert(0, cpp_path)
-    from fast_delay_matrices_3d import compute_delay_matrices_3d as _compute_delay_matrices_cpp
-    USE_CPP_EXTENSION = True
-    logger.info("3D C++ extension loaded")
-except (ImportError, OSError):
-    logger.info("3D C++ extension not available, using Python fallback")
-
-
-RAY_TYPES = ['direct', 'refracted', 'reflected']
-SOLUTION_TYPES = ['solution_0', 'solution_1']
-RAY_TYPE_COMBOS = list(itertools.product(RAY_TYPES, RAY_TYPES))
-
-
-def _build_z_vec(z_min, z_max, n_z, spacing='linear', surface_offset=0.1):
-    """Build a z-axis vector with linear or log spacing.
-
-    Log spacing concentrates grid density near the ice surface (z=0) and is
-    useful for near-surface sources (CR) when the search volume spans the
-    full ice depth. Falls back to linear with a warning if the z range does
-    not straddle zero.
-
-    Args:
-        z_min: Minimum z (meters, negative, below surface).
-        z_max: Maximum z (meters, should be >= 0 for log mode).
-        n_z: Number of grid points.
-        spacing: 'linear' or 'log'.
-        surface_offset: Minimum |z| for the shallowest log bin (meters).
-            Only used when spacing='log'.
-
-    Returns:
-        np.ndarray of length n_z, sorted ascending.
-    """
-    if spacing == 'log':
-        if z_max >= 0 and z_min < 0:
-            z_depths = np.geomspace(surface_offset, -z_min, n_z)
-            return -z_depths[::-1]
-        logger.warning(
-            "z_spacing='log' requires z_min < 0 and z_max >= 0; "
-            "got [%s, %s]. Falling back to linear.", z_min, z_max)
-    return np.linspace(z_min, z_max, n_z)
+logger = logging.getLogger("reco3d.interferometric_reco_3d")
 
 
 class InterferometricReco3D:
@@ -516,6 +120,8 @@ class InterferometricReco3D:
         'n_z', 'z_spacing', 'z_surface_offset',
         'refine_step_sizes', 'refine_window', 'refine_n_peaks', 'refine_radius',
         'refine_levels',
+        'n_refinements', 'refinement_factor', 'refinement_window_bins',
+        'refinement_convergence_db', 'n_refinements_max', 'rho_spacing',
         'pass2_step_sizes', 'pass2_coarse_step_sizes', 'pass2_n_rho',
         'pass2_n_z', 'pass2_coarse_n_z',
         'pass2_window', 'pass2_hierarchical',
@@ -1418,6 +1024,254 @@ class InterferometricReco3D:
         max_corr = float(np.max(mean_corr)) if mean_corr.size > 0 else np.nan
         return mean_corr, max_corr
 
+    def _multiray_correlate_gpu(self, corr_data, tt_packed_np, channels,
+                                pair_weights=None):
+        """GPU multiray per-pair correlator using CUDA RawKernel.
+
+        Args:
+            corr_data: List of (corr_array, dt, offset) per pair.
+            tt_packed_np: numpy array (n_ch, n_rt, n_points).
+            channels: Channel list.
+            pair_weights: Per-pair weights or None.
+
+        Returns:
+            (mean_corr_map_flat, max_corr)
+        """
+        n_ch, n_rt, n_points = tt_packed_np.shape
+        ch_pairs = list(itertools.combinations(range(n_ch), 2))
+        n_pairs = len(ch_pairs)
+
+        if pair_weights is not None:
+            w_np = np.asarray(pair_weights, dtype=np.float64)
+        else:
+            w_np = np.ones(n_pairs, dtype=np.float64)
+        w_sum = float(w_np.sum())
+
+        corr_lens = [c[0].shape[0] for c in corr_data]
+        M_max = max(corr_lens)
+        corr_stack = np.zeros((n_pairs, M_max), dtype=np.float64)
+        dts = np.empty(n_pairs, dtype=np.float64)
+        offsets = np.empty(n_pairs, dtype=np.float64)
+        M_per = np.empty(n_pairs, dtype=np.int64)
+        pair_ch1 = np.empty(n_pairs, dtype=np.int32)
+        pair_ch2 = np.empty(n_pairs, dtype=np.int32)
+        for pidx, (c1i, c2i) in enumerate(ch_pairs):
+            corr_stack[pidx, :corr_lens[pidx]] = corr_data[pidx][0]
+            dts[pidx] = corr_data[pidx][1]
+            offsets[pidx] = corr_data[pidx][2]
+            M_per[pidx] = corr_lens[pidx]
+            pair_ch1[pidx] = c1i
+            pair_ch2[pidx] = c2i
+
+        tt_gpu = cp.asarray(tt_packed_np.reshape(n_ch * n_rt, n_points))
+        corr_gpu = cp.asarray(corr_stack)
+        dts_gpu = cp.asarray(dts)
+        off_gpu = cp.asarray(offsets)
+        M_gpu = cp.asarray(M_per)
+        w_gpu = cp.asarray(w_np)
+        ch1_gpu = cp.asarray(pair_ch1)
+        ch2_gpu = cp.asarray(pair_ch2)
+        out_gpu = cp.empty(n_points, dtype=cp.float64)
+        corr_stride = np.int64(M_max)
+
+        threads = 256
+        blocks = (n_points + threads - 1) // threads
+        _FUSED_MULTIRAY_CORR_KERNEL(
+            (blocks,), (threads,),
+            (tt_gpu, corr_gpu, M_gpu, dts_gpu, off_gpu, w_gpu,
+             cp.float64(w_sum), ch1_gpu, ch2_gpu,
+             np.int32(n_pairs), np.int32(n_ch), np.int32(n_rt),
+             np.int64(n_points), np.int64(corr_stride),
+             out_gpu)
+        )
+        mean_corr = cp.asnumpy(out_gpu)
+        max_corr = float(np.max(mean_corr)) if mean_corr.size > 0 else np.nan
+        return mean_corr, max_corr
+
+    def _pack_multiray_tables(self, channels):
+        """Pack multiray TT tables into arrays for the fused kernel.
+
+        Returns:
+            Tuple of (td_values, td_r_min, td_dr_inv, td_nr,
+                      td_z_min, td_dz_inv, td_nz, ant_xy, n_rt)
+            where td_* have shape (n_ch, n_rt, ...).
+        """
+        if hasattr(self, '_packed_multiray_tables'):
+            cached = self._packed_multiray_tables
+            if cached[0] == tuple(channels):
+                return cached[1:]
+        n_ch = len(channels)
+        rts = self._active_ray_types
+        n_rt = len(rts)
+        nr_max = 0
+        nz_max = 0
+        for ch in channels:
+            for rt in rts:
+                td = self._multiray_interpolators[ch][rt]
+                nr_max = max(nr_max, td.nr)
+                nz_max = max(nz_max, td.nz)
+        td_values = np.full((n_ch, n_rt, nr_max, nz_max), np.nan, dtype=np.float64)
+        td_r_min = np.empty((n_ch, n_rt), dtype=np.float64)
+        td_dr_inv = np.empty((n_ch, n_rt), dtype=np.float64)
+        td_nr = np.empty((n_ch, n_rt), dtype=np.int64)
+        td_z_min = np.empty((n_ch, n_rt), dtype=np.float64)
+        td_dz_inv = np.empty((n_ch, n_rt), dtype=np.float64)
+        td_nz = np.empty((n_ch, n_rt), dtype=np.int64)
+        ant_xy = np.empty((n_ch, 2), dtype=np.float64)
+        for ci, ch in enumerate(channels):
+            ant_xy[ci] = [self.ant_locs[ch][0], self.ant_locs[ch][1]]
+            for ri, rt in enumerate(rts):
+                td = self._multiray_interpolators[ch][rt]
+                td_values[ci, ri, :td.nr, :td.nz] = td.values
+                td_r_min[ci, ri] = td.r_min
+                td_dr_inv[ci, ri] = td.dr_inv
+                td_nr[ci, ri] = td.nr
+                td_z_min[ci, ri] = td.z_min
+                td_dz_inv[ci, ri] = td.dz_inv
+                td_nz[ci, ri] = td.nz
+        self._packed_multiray_tables = (
+            tuple(channels), td_values, td_r_min, td_dr_inv, td_nr,
+            td_z_min, td_dz_inv, td_nz, ant_xy, n_rt)
+        return (td_values, td_r_min, td_dr_inv, td_nr,
+                td_z_min, td_dz_inv, td_nz, ant_xy, n_rt)
+
+    def _fused_multiray_refine(self, peak_grids, corr_data, channels,
+                               pair_weights, n_extract, level_sep):
+        """Run all refine peaks through the fused multiray kernel.
+
+        Processes each peak's grid in one fused Numba call (inline TT
+        lookup + combo evaluation), avoiding per-channel per-rt Numba
+        launch overhead.
+        """
+        (td_values, td_r_min, td_dr_inv, td_nr,
+         td_z_min, td_dz_inv, td_nz, ant_xy, n_rt) = \
+            self._pack_multiray_tables(channels)
+        n_ch = len(channels)
+        ch_pairs = list(itertools.combinations(range(n_ch), 2))
+        n_pairs = len(ch_pairs)
+
+        corr_lens = [c[0].shape[0] for c in corr_data]
+        M_max = max(corr_lens)
+        corr_packed = np.zeros((n_pairs, M_max), dtype=np.float64)
+        corr_lengths = np.empty(n_pairs, dtype=np.int64)
+        corr_dts = np.empty(n_pairs, dtype=np.float64)
+        corr_offsets = np.empty(n_pairs, dtype=np.float64)
+        pair_ch1 = np.empty(n_pairs, dtype=np.int64)
+        pair_ch2 = np.empty(n_pairs, dtype=np.int64)
+        pw = np.ones(n_pairs, dtype=np.float64)
+        for pidx, (c1i, c2i) in enumerate(ch_pairs):
+            corr_packed[pidx, :corr_lens[pidx]] = corr_data[pidx][0]
+            corr_lengths[pidx] = corr_lens[pidx]
+            corr_dts[pidx] = corr_data[pidx][1]
+            corr_offsets[pidx] = corr_data[pidx][2]
+            pair_ch1[pidx] = c1i
+            pair_ch2[pidx] = c2i
+        if pair_weights is not None:
+            pw = np.asarray(pair_weights, dtype=np.float64)
+        w_total = float(pw.sum())
+
+        pa_x, pa_y = float(self._pa_center[0]), float(self._pa_center[1])
+
+        level_peaks = []
+        for src_enu_r, rho_vec_r, phi_vec_r, z_vec_r in peak_grids:
+            corr_flat = _fused_multiray_grid_numba(
+                rho_vec_r, phi_vec_r, z_vec_r,
+                pa_x, pa_y, ant_xy, n_ch,
+                td_values, td_r_min, td_dr_inv, td_nr,
+                td_z_min, td_dz_inv, td_nz, n_rt,
+                corr_packed, corr_lengths, corr_dts, corr_offsets,
+                pair_ch1, pair_ch2, pw, w_total)
+            local_shape = (len(rho_vec_r), len(phi_vec_r), len(z_vec_r))
+            local_corr = corr_flat.reshape(local_shape)
+            phi_vec_deg_r = phi_vec_r * (180.0 / np.pi)
+            local_peaks = self._extract_top_n_peaks(
+                local_corr, rho_vec_r, phi_vec_deg_r, z_vec_r,
+                n_extract, level_sep)
+            level_peaks.extend(local_peaks)
+        return level_peaks
+
+    def _combo_table_for_channels(self, channels, n_rt):
+        """Build or retrieve the combo table for grouped multiray."""
+        if hasattr(self, '_cached_combo_table'):
+            ct, ct_key = self._cached_combo_table
+            if ct_key == (tuple(channels), n_rt):
+                return ct
+        n_ch = len(channels)
+        n_combos = n_rt ** n_ch
+        if n_combos > 4096:
+            combo = np.zeros((1, n_ch), dtype=np.int64)
+            self._cached_combo_table = (combo, (tuple(channels), n_rt))
+            return combo
+        combo = np.empty((n_combos, n_ch), dtype=np.int64)
+        for ci in range(n_combos):
+            val = ci
+            for ch_idx in range(n_ch):
+                combo[ci, ch_idx] = val % n_rt
+                val //= n_rt
+        self._cached_combo_table = (combo, (tuple(channels), n_rt))
+        return combo
+
+    def _refine_batched_gpu(self, peak_grids, corr_data, channels,
+                            pair_weights, n_extract, level_sep):
+        """Batch all refine peaks into one GPU kernel call.
+
+        Concatenates delay matrices from all local grids along the
+        point dimension, runs one fused RawKernel, then splits the
+        result back per peak for independent peak extraction.
+
+        Args:
+            peak_grids: List of (src_enu, rho_vec, phi_vec_rad, z_vec).
+            corr_data: Pre-computed correlation data.
+            channels: Channel list.
+            pair_weights: Per-pair weights or None.
+            n_extract: Peaks to extract per local grid.
+            level_sep: Peak separation threshold.
+
+        Returns:
+            List of (rho, phi_deg, z, corr) peak tuples.
+        """
+        per_peak_delays = []
+        per_peak_npts = []
+        for src_enu_r, rho_vec_r, phi_vec_r, z_vec_r in peak_grids:
+            delay_data_r = self._compute_delay_matrices(
+                src_enu_r, channels)
+            per_peak_delays.append(delay_data_r)
+            per_peak_npts.append(int(np.prod(delay_data_r[0].shape)))
+
+        n_pairs = len(corr_data)
+        total_points = sum(per_peak_npts)
+
+        combined_delays = []
+        for p in range(n_pairs):
+            combined_delays.append(
+                np.concatenate([d[p].ravel() for d in per_peak_delays]))
+
+        combined_delay_list = [d.reshape(1, -1)[0] for d in combined_delays]
+        dummy_shape = (total_points,)
+        combined_delay_matrices = [d.reshape(dummy_shape)
+                                   for d in combined_delay_list]
+
+        mean_corr_flat, _ = self._correlator_lean_gpu(
+            corr_data, combined_delay_matrices,
+            pair_weights=pair_weights)
+
+        level_peaks = []
+        offset = 0
+        for i, (src_enu_r, rho_vec_r, phi_vec_r, z_vec_r) in enumerate(
+                peak_grids):
+            n_pts = per_peak_npts[i]
+            local_shape = (len(rho_vec_r), len(phi_vec_r), len(z_vec_r))
+            local_corr = mean_corr_flat[offset:offset + n_pts].reshape(
+                local_shape)
+            phi_vec_deg_r = phi_vec_r * (180.0 / np.pi)
+            local_peaks = self._extract_top_n_peaks(
+                local_corr, rho_vec_r, phi_vec_deg_r, z_vec_r,
+                n_extract, level_sep)
+            level_peaks.extend(local_peaks)
+            offset += n_pts
+
+        return level_peaks
+
     def _correlator_lean_multiray(self, corr_data, tt_all, channels,
                                   pair_weights=None):
         """Multi-ray-type correlator: take max across ray combinations per pair.
@@ -1688,6 +1542,32 @@ class InterferometricReco3D:
             return self._correlator_grouped_multiray(
                 corr_data, tt_all, channels, pair_weights=pair_weights
             )
+        if (self._use_gpu and USE_CUPY
+                and _FUSED_MULTIRAY_CORR_KERNEL is not None
+                and not use_grouped):
+            rts = self._active_ray_types
+            n_rt = len(rts)
+            ch_list = list(channels)
+            n_ch = len(ch_list)
+            grid_shape = None
+            for ch in ch_list:
+                for rt in rts:
+                    if rt in tt_all.get(ch, {}):
+                        grid_shape = tt_all[ch][rt].shape
+                        break
+                if grid_shape is not None:
+                    break
+            if grid_shape is not None:
+                n_pts = int(np.prod(grid_shape))
+                if n_pts >= self._gpu_min_grid_cells:
+                    tt_np = np.full((n_ch, n_rt, n_pts), np.nan, dtype=np.float64)
+                    for ci, ch in enumerate(ch_list):
+                        for ri, rt in enumerate(rts):
+                            if rt in tt_all.get(ch, {}):
+                                tt_np[ci, ri] = tt_all[ch][rt].ravel()
+                    mc, mx = self._multiray_correlate_gpu(
+                        corr_data, tt_np, ch_list, pair_weights=pair_weights)
+                    return mc.reshape(grid_shape), mx
         if USE_NUMBA_GROUPED:
             return perpair_multiray_numba(
                 corr_data, tt_all, channels, pair_weights=pair_weights
@@ -2313,6 +2193,72 @@ class InterferometricReco3D:
 
         logger.debug("SNR pair weights: %d pairs", len(weights))
         return weights, channel_snrs
+
+    def _build_adaptive_refine_levels(self, config, n_refinements):
+        """Build refine_levels dict from n_refinements + factor + bins.
+
+        Each level is an adaptive dict that the refine loop evaluates
+        per-peak using the local coarse grid spacing. Returned levels
+        have 'adaptive': True, 'factor', 'window_bins', 'n_peaks'.
+        The actual window and step are computed per-peak at refine time.
+
+        Args:
+            config: Dict with refinement_factor, refinement_window_bins.
+            n_refinements: Int, number of refinement levels.
+
+        Returns:
+            List of dicts, one per level.
+        """
+        factor = config.get('refinement_factor', 4)
+        window_bins = config.get('refinement_window_bins', 2)
+        n_peaks_per_level = config.get('n_optimizer_seeds', 3)
+        levels = []
+        for k in range(n_refinements):
+            levels.append({
+                'adaptive': True,
+                'factor': factor,
+                'window_bins': window_bins,
+                'n_peaks': n_peaks_per_level,
+            })
+        return levels
+
+    def _local_coarse_spacing(self, rho_vec_c, phi_vec_c, z_vec_c,
+                              rho_p, z_p, n_refinements_so_far=0, factor=4):
+        """Compute local coarse grid spacing at (rho_p, z_p).
+
+        For log-spaced axes, the spacing at a given location is the
+        difference between the nearest two grid points. For uniform
+        spacing it's just a constant. For subsequent refine levels,
+        the "coarse" step shrinks by factor^n_refinements_so_far
+        (since each previous level divided the step by factor).
+
+        Args:
+            rho_vec_c, phi_vec_c, z_vec_c: Coarse grid arrays (rho/z
+                absolute, phi in radians).
+            rho_p, z_p: Peak coordinates.
+            n_refinements_so_far: Refinement level index (0-based). The
+                "effective coarse spacing" at level k is divided by
+                factor^k since previous levels already narrowed in.
+            factor: Refinement factor.
+
+        Returns:
+            (drho, dphi_deg, dz) tuple, each a positive scalar.
+        """
+        # rho spacing: find nearest-index spacing in rho_vec_c
+        i_rho = int(np.clip(np.searchsorted(rho_vec_c, rho_p),
+                            1, len(rho_vec_c) - 1))
+        drho = float(rho_vec_c[i_rho] - rho_vec_c[i_rho - 1])
+        # z spacing: similar
+        # z_vec_c is sorted ascending (negative to 0 with log spacing)
+        i_z = int(np.clip(np.searchsorted(z_vec_c, z_p),
+                          1, len(z_vec_c) - 1))
+        dz = float(z_vec_c[i_z] - z_vec_c[i_z - 1])
+        # phi spacing (uniform, in degrees)
+        dphi_rad = float(phi_vec_c[1] - phi_vec_c[0])
+        dphi_deg = dphi_rad * (180.0 / np.pi)
+        # Account for previous refinements already narrowing the step
+        scale = 1.0 / (factor ** n_refinements_so_far)
+        return drho * scale, dphi_deg * scale, dz * scale
 
     def _extract_top_n_peaks(self, corr_map, rho_vec, phi_vec_deg, z_vec, n,
                              separation):
@@ -3073,7 +3019,17 @@ class InterferometricReco3D:
         # Stage 2: Refined linear scan around each coarse peak
         full_limits = config.get('limits', coarse_limits)
 
+        # Adaptive refinement: if n_refinements is configured, build
+        # refine_levels programmatically from the coarse grid spacing.
+        # Each level reduces step by refinement_factor; window covers
+        # refinement_window_bins previous-level bins on each side.
+        n_refinements = config.get('n_refinements', None)
         refine_levels = config.get('refine_levels', None)
+
+        if refine_levels is None and n_refinements is not None:
+            refine_levels = self._build_adaptive_refine_levels(
+                config, n_refinements)
+
         if refine_levels is None:
             refine_levels = [{
                 'window': config.get('refine_window', [150, 20, 150]),
@@ -3081,34 +3037,55 @@ class InterferometricReco3D:
                 'n_peaks': config.get('coarse_n_peaks', 3),
             }]
 
+        # Convergence early-stop (optional)
+        conv_db = config.get('refinement_convergence_db', None)
+        n_refinements_max = config.get('n_refinements_max', len(refine_levels))
+
         t0_ref = time.time()
         current_peaks = coarse_peaks
 
         for level_idx, level in enumerate(refine_levels):
-            level_window = level['window']
-            level_steps = level['steps']
+            level_window = level.get('window', None)
+            level_steps = level.get('steps', None)
+            level_adaptive = level.get('adaptive', False)
+            level_factor = level.get('factor', 4)
+            level_bins = level.get('window_bins', 2)
             level_n_peaks = level.get('n_peaks', 3)
             level_sep = level.get('peak_separation',
                                   config.get('peak_separation_threshold',
                                              [10, 5, 10]))
 
-            level_peaks = []
+            peak_grids = []
+            prev_level_peaks_by_input = list(current_peaks)
             for rho_p, phi_p, z_p, corr_p in current_peaks:
-                rho_lo = max(max(full_limits[0], 1.0),
-                             rho_p - level_window[0])
-                rho_hi = min(full_limits[1], rho_p + level_window[0])
-                phi_lo = phi_p - level_window[1]
-                phi_hi = phi_p + level_window[1]
-                z_lo = max(full_limits[4], z_p - level_window[2])
-                z_hi = min(full_limits[5], z_p + level_window[2])
+                if level_adaptive:
+                    # Look up local coarse spacing at (rho_p, z_p)
+                    local_drho, local_dphi, local_dz = self._local_coarse_spacing(
+                        rho_vec_c, phi_vec_c, z_vec_c, rho_p, z_p,
+                        n_refinements_so_far=level_idx,
+                        factor=level_factor)
+                    win_rho = level_bins * local_drho
+                    win_phi_deg = level_bins * local_dphi
+                    win_z = level_bins * local_dz
+                    step_rho = local_drho / level_factor
+                    step_phi_deg = local_dphi / level_factor
+                    step_z = local_dz / level_factor
+                else:
+                    win_rho, win_phi_deg, win_z = level_window
+                    step_rho, step_phi_deg, step_z = level_steps
+
+                rho_lo = max(max(full_limits[0], 1.0), rho_p - win_rho)
+                rho_hi = min(full_limits[1], rho_p + win_rho)
+                phi_lo = phi_p - win_phi_deg
+                phi_hi = phi_p + win_phi_deg
+                z_lo = max(full_limits[4], z_p - win_z)
+                z_hi = min(full_limits[5], z_p + win_z)
 
                 rho_vec_r = np.arange(max(rho_lo, 1.0),
-                                      rho_hi + level_steps[0],
-                                      level_steps[0])
-                phi_vec_r = np.arange(phi_lo, phi_hi + level_steps[1],
-                                      level_steps[1]) * (np.pi / 180.0)
-                z_vec_r = np.arange(z_lo, z_hi + level_steps[2],
-                                    level_steps[2])
+                                      rho_hi + step_rho, step_rho)
+                phi_vec_r = np.arange(phi_lo, phi_hi + step_phi_deg,
+                                      step_phi_deg) * (np.pi / 180.0)
+                z_vec_r = np.arange(z_lo, z_hi + step_z, step_z)
 
                 if (len(rho_vec_r) == 0 or len(phi_vec_r) == 0
                         or len(z_vec_r) == 0):
@@ -3116,38 +3093,101 @@ class InterferometricReco3D:
 
                 src_enu_r = self._build_source_enu_matrix(
                     rho_vec_r, phi_vec_r, z_vec_r)
+                peak_grids.append((src_enu_r, rho_vec_r, phi_vec_r, z_vec_r,
+                                   step_rho, step_phi_deg, step_z))
 
-                if self._multi_ray_types:
-                    tt_data_r = self._compute_tt_multiray(
-                        src_enu_r, channels
-                    )
-                    mean_corr_r, _ = self._multiray_correlate(
-                        corr_data, tt_data_r, channels,
-                        pair_weights=pair_weights
-                    )
-                else:
-                    delay_data_r = self._compute_delay_matrices(
-                        src_enu_r, channels
-                    )
-                    mean_corr_r, _ = self._correlator_lean(
-                        corr_data, delay_data_r,
-                        pair_weights=pair_weights
-                    )
+            if not peak_grids:
+                current_peaks = current_peaks[:level_n_peaks]
+                continue
 
-                phi_vec_deg_r = phi_vec_r * (180.0 / np.pi)
-                n_extract = config.get('n_optimizer_seeds', 3)
+            # Downstream dispatchers expect 4-tuples; strip the step info.
+            peak_grids_4 = [(pg[0], pg[1], pg[2], pg[3])
+                            for pg in peak_grids]
 
-                local_peaks = self._extract_top_n_peaks(
-                    mean_corr_r, rho_vec_r, phi_vec_deg_r, z_vec_r,
-                    n_extract, level_sep
-                )
-                level_peaks.extend(local_peaks)
+            n_extract = config.get('n_optimizer_seeds', 3)
+            use_batched_gpu = (
+                self._use_gpu and USE_CUPY
+                and not self._multi_ray_types
+                and len(peak_grids_4) > 1
+                and _FUSED_CORR_KERNEL is not None
+            )
+            use_fused_multiray = (
+                self._multi_ray_types
+                and USE_NUMBA
+                and hasattr(self, '_multiray_interpolators')
+                and self._use_fused_correlator
+            )
+
+            if use_batched_gpu:
+                level_peaks = self._refine_batched_gpu(
+                    peak_grids_4, corr_data, channels,
+                    pair_weights, n_extract, level_sep)
+            elif use_fused_multiray:
+                level_peaks = self._fused_multiray_refine(
+                    peak_grids_4, corr_data, channels,
+                    pair_weights, n_extract, level_sep)
+            else:
+                level_peaks = []
+                for src_enu_r, rho_vec_r, phi_vec_r, z_vec_r in peak_grids_4:
+                    if self._multi_ray_types:
+                        tt_data_r = self._compute_tt_multiray(
+                            src_enu_r, channels)
+                        mean_corr_r, _ = self._multiray_correlate(
+                            corr_data, tt_data_r, channels,
+                            pair_weights=pair_weights)
+                    else:
+                        delay_data_r = self._compute_delay_matrices(
+                            src_enu_r, channels)
+                        mean_corr_r, _ = self._correlator_lean(
+                            corr_data, delay_data_r,
+                            pair_weights=pair_weights)
+                    phi_vec_deg_r = phi_vec_r * (180.0 / np.pi)
+                    local_peaks = self._extract_top_n_peaks(
+                        mean_corr_r, rho_vec_r, phi_vec_deg_r, z_vec_r,
+                        n_extract, level_sep)
+                    level_peaks.extend(local_peaks)
 
             if not level_peaks:
-                level_peaks = current_peaks
+                level_peaks = list(current_peaks)
 
             level_peaks.sort(key=lambda x: x[3], reverse=True)
-            current_peaks = level_peaks[:level_n_peaks]
+            new_peaks = level_peaks[:level_n_peaks]
+
+            # Position-convergence early-stop (optional, dB-based).
+            # Compute delta/step ratio per axis for the best peak at this
+            # level vs its best parent from the previous level. Stop if
+            # all three axes are below the threshold.
+            if (conv_db is not None and len(new_peaks) > 0
+                    and len(prev_level_peaks_by_input) > 0
+                    and level_adaptive):
+                new_best = new_peaks[0]
+                # Nearest parent by position (proxy for "which level-prev
+                # peak did this refine peak come from")
+                parent = min(
+                    prev_level_peaks_by_input,
+                    key=lambda p: ((new_best[0] - p[0]) ** 2
+                                   + (new_best[2] - p[2]) ** 2))
+                # Step sizes from first peak_grids entry (all peaks share
+                # the same factor/bins structure so step scales are ~same)
+                _, _, _, _, s_rho, s_phi, s_z = peak_grids[0]
+                d_rho = abs(new_best[0] - parent[0])
+                d_phi = abs(new_best[1] - parent[1])
+                d_phi = min(d_phi, 360.0 - d_phi)  # wrap
+                d_z = abs(new_best[2] - parent[2])
+                eps = 1e-12
+                rho_db = 20.0 * np.log10(max(d_rho / max(s_rho, eps), eps))
+                phi_db = 20.0 * np.log10(max(d_phi / max(s_phi, eps), eps))
+                z_db = 20.0 * np.log10(max(d_z / max(s_z, eps), eps))
+                if (rho_db < conv_db and phi_db < conv_db
+                        and z_db < conv_db):
+                    current_peaks = new_peaks
+                    break  # converged, stop refinement
+
+            current_peaks = new_peaks
+
+            # Hard cap enforcement
+            if level_idx + 1 >= n_refinements_max:
+                break
 
         t_refine = time.time() - t0_ref
         refined_peaks = current_peaks

@@ -407,10 +407,7 @@ NuRadioReco/examples/RNOG/interferometric_reco_ex/
     configs/
       reco3d_neutrino_gzk.yaml            Neutrino, ray-type tables, hw mode
       reco3d_neutrino_gzk_2table.yaml     Neutrino, solution-ordered tables (recommended)
-      reco3d_neutrino_gzk_full.yaml       Neutrino + multi-peak + HPOL + validation
       reco3d_pulser_sim.yaml              Pulser, ray-type tables, rxtx mode
       reco3d_pulser_sim_2table.yaml       Pulser, solution-ordered tables (recommended)
       reco3d_pulser_sim_fast.yaml         Pulser, hw mode, no dedispersion
-      reco3d_pulser_sim_full.yaml         Pulser + multi-peak + HPOL + validation
-      reco3d_cr_v9_c1opt_singleray_hpol_multipeak.yaml  CR proxy, singleray + HPOL + multi-peak
 ```
