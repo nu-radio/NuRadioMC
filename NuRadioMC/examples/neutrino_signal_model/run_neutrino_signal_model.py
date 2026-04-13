@@ -27,16 +27,20 @@ def detector_simulation_filter_amp(evt, station, det):
     channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],
                                 filter_type='butter', order=10)
 
+station_id = 11
+
 signal_model = NeutrinoSimulator(
             config_file="../07_RNO_G_simulation/RNO_config.yaml",
             det = det,
-            station_id=11,
+            station_id=station_id,
             reference_channel=0,
             evt_time=datetime(2022, 7, 1),
             use_channels=None,
-            detector_simulation_filter_amp=detector_simulation_filter_amp
+            detector_simulation_filter_amp=detector_simulation_filter_amp,
+            pre_pulse_time=100 * units.ns
         )
 
+# Simple neutrino event that is likely to give a strong signal in the detector:
 E_shower = 1 * units.EeV
 zenith = 90 * units.deg
 azimuth = 45 * units.deg
@@ -45,12 +49,30 @@ vertex_zenith = 90 * units.deg + 56 * units.deg # the same as zenith plus Cheren
 vertex_azimuth = 45 * units.deg # the same as azimuth
 vertex_xyz = hp.spherical_to_cartesian(vertex_zenith, vertex_azimuth) * vertex_r
 vertex_xyz[2] -= 100 * units.m # assuming ~100 m antenna depth
+interaction_time = 0
 
-signal_model.simulate(
+station, traces, trace_start_times = signal_model.simulate(
     energy=E_shower,
     zenith=zenith,
     azimuth=azimuth,
     vertex=vertex_xyz,
+    interaction_time=interaction_time,
     type="HAD",
-    interaction_time=0
+    charge_excess_profile_id=None,
 )
+
+
+# Plot results:
+n_channels = len(traces)
+fig, ax = plt.subplots(6, 4, figsize=(20, 12))
+ax = ax.flatten()
+channel_ids = station.get_channel_ids(station_id)
+for i_ch, channel_id in enumerate(channel_ids):
+    trace = traces[i_ch]
+    times = np.arange(len(trace)) / station.get_channel(channel_id).get_sampling_rate() + trace_start_times[i_ch]
+    ax[i_ch].plot(times, trace)
+    ax[i_ch].set_title(f"Channel {channel_id}")
+    ax[i_ch].set_xlabel("Time [ns]")
+    ax[i_ch].set_ylabel("Voltage [V]")
+plt.tight_layout()
+plt.savefig("simulated_traces.png")

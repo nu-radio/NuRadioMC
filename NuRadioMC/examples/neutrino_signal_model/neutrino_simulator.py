@@ -103,7 +103,7 @@ class NeutrinoSimulator():
         self.pre_pulse_time = pre_pulse_time
 
 
-    def simulate(self, energy, zenith, azimuth, vertex, type, interaction_time, charge_excess_profile_id=1, trace_start_times=None):
+    def simulate(self, energy, zenith, azimuth, vertex, interaction_time, type, charge_excess_profile_id=1, trace_start_times=None):
         """
         Simulate a neutrino signal with a given energy, direction, and vertex position. 
         
@@ -117,10 +117,10 @@ class NeutrinoSimulator():
             Azimuth angle of the neutrino shower to simulate in radians
         vertex: array-like
             Vertex position of the neutrino interaction in Cartesian coordinates (x,y,z) in meters
-        type: string
-            Type of the neutrino interaction, either "HAD" or "EM"
         interaction_time: float
             Time of the neutrino interaction in seconds since the epoch, used to calculate the hardware response
+        type: string
+            Type of the neutrino interaction, either "HAD" or "EM"
         charge_excess_profile_id: int
             Id of the charge excess profile to use for the simulation, default 1.
         trace_start_times: array-like
@@ -157,7 +157,8 @@ class NeutrinoSimulator():
 
             sim_station = sim.calculate_sim_efield(showers, self.station_id, channel_id, self.det, self.propagator, self.ice, self.config)
 
-            sim.apply_det_response_sim(sim_station, self.det, self.config, self.detector_simulation_filter_amp)
+            if len(sim_station.get_electric_fields()) != 0:
+                sim.apply_det_response_sim(sim_station, self.det, self.config, self.detector_simulation_filter_amp)
 
             if self.add_cable_delay:
                 channelAddCableDelay.run(evt, sim_station, self.det, mode="add")
