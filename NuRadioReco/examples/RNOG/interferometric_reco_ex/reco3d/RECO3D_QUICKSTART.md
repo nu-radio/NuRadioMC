@@ -9,7 +9,7 @@ This guide explains how to reproduce the 3D interferometric reconstruction resul
 3. **Multiray travel time tables** for your station. Two table schemes are supported:
    - **Ray-type tables** (default): 44 NPZ files per station (11 channels x 4 tables: direct, refracted, reflected, combined). File pattern: `st{ID}_ch{CH}_rz_table_{ray_type}.npz`.
    - **Solution-ordered tables** (recommended, faster): 22 NPZ files per station (11 channels x 2 tables: solution_0 = fastest arrival, solution_1 = slowest). File pattern: `st{ID}_ch{CH}_rz_table_solution_{0,1}.npz`. Set `table_scheme: "solution_ordered"` in the config to use these. See [Solution-ordered tables](#solution-ordered-tables) below.
-   
+
    Tables are not included in the repo. On the Chicago cluster, pre-generated tables (both ray-type and solution-ordered) for stations 11, 12, 13, 21, 22, 23, and 24 are at `/data/reconstruction/validation_sets/test_tables/multiray_tables/`. For other stations, generate them using the scripts in `../tables/` (see below).
 4. **RNO-G MongoDB access** (detector description is loaded from `radio.zeuthen.desy.de:27017` by default) or a local detector export file (set `detector_file` in the config)
 5. **Simulation datasets** (see below)

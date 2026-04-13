@@ -1,11 +1,8 @@
 """
 Compute kernels for 3D interferometric direction reconstruction.
 
-Contains Numba JIT-compiled functions, the CUDA RawKernel for fused
-GPU correlation, bilinear table interpolation, and z-vector
-construction. These are pure compute functions with no class
-dependency; the main reconstruction module imports and dispatches
-to them.
+Pure compute functions with no class dependency; the main reconstruction
+module imports and dispatches to them.
 """
 
 import itertools
@@ -355,7 +352,7 @@ if USE_NUMBA:
             acc = 0.0
             for pidx in range(n_pairs):
                 d = delay_T[pt, pidx]
-                if not (d == d):
+                if np.isnan(d):
                     continue
                 dt = corr_dts[pidx]
                 offset = corr_offsets[pidx]
@@ -505,7 +502,6 @@ if USE_NUMBA:
             x_src = rho * np.cos(phi) + pa_x
             y_src = rho * np.sin(phi) + pa_y
 
-            # Compute travel times for all channels and ray types
             tts = np.empty((n_ch, n_rt), dtype=np.float64)
             tt_valid = np.zeros((n_ch, n_rt), dtype=np.bool_)
 

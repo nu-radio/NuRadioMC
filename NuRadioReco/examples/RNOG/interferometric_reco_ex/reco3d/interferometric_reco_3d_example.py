@@ -368,7 +368,6 @@ def main():
                              "reco backend (overrides use_gpu in config).")
     args = parser.parse_args()
 
-    # Resource detection (print only for visibility).
     slurm_cpus = int(os.environ.get('SLURM_CPUS_PER_TASK', 0)) or None
     host_cpus = os.cpu_count()
     has_gpu = False

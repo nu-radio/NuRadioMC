@@ -256,12 +256,10 @@ class InterferometricReco3D:
         are cached (cache=True on the decorators) so the cost is paid
         once per host across runs.
         """
-        # _interp_uniform_numba
         y = np.arange(16, dtype=np.float64)
         x = np.array([0.5, 1.5, 2.5], dtype=np.float64)
         _interp_uniform_numba(y, 1.0, 0.0, x)
 
-        # _bilinear_batch_numba and scalar variant
         values = np.ones((4, 4), dtype=np.float64)
         r_coords = np.array([0.5, 1.5], dtype=np.float64)
         z_coords = np.array([0.5, 1.5], dtype=np.float64)
@@ -269,7 +267,6 @@ class InterferometricReco3D:
                               r_coords, z_coords)
         _bilinear_scalar_numba(values, 0.0, 1.0, 4, 0.0, 1.0, 4, 1.5, 1.5)
 
-        # Fused all-pairs correlator
         n_points = 8
         n_pairs = 3
         delay_T = np.zeros((n_points, n_pairs), dtype=np.float64)
@@ -281,7 +278,6 @@ class InterferometricReco3D:
         _all_pairs_corr_numba(delay_T, corr_packed, corr_lens,
                               dts, offsets, weights)
 
-        # Fused singleray optimizer kernel
         n_ch = 3
         ant_xy = np.zeros((n_ch, 2), dtype=np.float64)
         td_values = np.ones((n_ch, 4, 4), dtype=np.float64)
@@ -2244,16 +2240,13 @@ class InterferometricReco3D:
         Returns:
             (drho, dphi_deg, dz) tuple, each a positive scalar.
         """
-        # rho spacing: find nearest-index spacing in rho_vec_c
         i_rho = int(np.clip(np.searchsorted(rho_vec_c, rho_p),
                             1, len(rho_vec_c) - 1))
         drho = float(rho_vec_c[i_rho] - rho_vec_c[i_rho - 1])
-        # z spacing: similar
         # z_vec_c is sorted ascending (negative to 0 with log spacing)
         i_z = int(np.clip(np.searchsorted(z_vec_c, z_p),
                           1, len(z_vec_c) - 1))
         dz = float(z_vec_c[i_z] - z_vec_c[i_z - 1])
-        # phi spacing (uniform, in degrees)
         dphi_rad = float(phi_vec_c[1] - phi_vec_c[0])
         dphi_deg = dphi_rad * (180.0 / np.pi)
         # Account for previous refinements already narrowing the step
@@ -3059,7 +3052,6 @@ class InterferometricReco3D:
             prev_level_peaks_by_input = list(current_peaks)
             for rho_p, phi_p, z_p, corr_p in current_peaks:
                 if level_adaptive:
-                    # Look up local coarse spacing at (rho_p, z_p)
                     local_drho, local_dphi, local_dz = self._local_coarse_spacing(
                         rho_vec_c, phi_vec_c, z_vec_c, rho_p, z_p,
                         n_refinements_so_far=level_idx,
@@ -3760,3 +3752,6 @@ class InterferometricReco3D:
     def end(self):
         """Clean up caches."""
         self._delay_matrix_cache.clear()
+        self._gpu_delay_stack_cache.clear()
+        if hasattr(self, '_cpu_delay_T_cache'):
+            self._cpu_delay_T_cache.clear()
