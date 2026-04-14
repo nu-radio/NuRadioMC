@@ -1,12 +1,11 @@
 """Reconstruction validation metrics for 3D interferometric reco.
 
 Computes per-channel SNR, surface correlation, peak isolation, and
-derived per-string visibility metrics. Used by the reco driver (inline
-during reconstruction) and by build_validation_df.py (post-hoc).
+derived per-string visibility metrics. Called inline by the reco driver
+when ``--validation`` is passed, or post-hoc by downstream analysis code.
 """
 
 import numpy as np
-import pandas as pd
 
 PA_CHANNELS = [0, 1, 2, 3]
 HELPER_B_CHANNELS = [9, 10]
@@ -217,7 +216,7 @@ def compute_shower_metrics(df, truth_dir):
     different channels see different showers as dominant (mixed dominance).
     Mixed dominance events have ~2.5x worse reco accuracy.
 
-    Requires columns: source_file, runNum (or run_number).
+    Requires columns: source_file, run_number.
 
     Args:
         df: DataFrame with event identifiers.
@@ -230,7 +229,7 @@ def compute_shower_metrics(df, truth_dir):
     import h5py
     import os
 
-    run_col = 'run_number' if 'run_number' in df.columns else 'runNum'
+    run_col = 'run_number'
 
     df['n_showers'] = 1
     df['shower_energy_ratio'] = 0.0

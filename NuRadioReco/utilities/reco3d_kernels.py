@@ -1,8 +1,10 @@
 """
 Compute kernels for 3D interferometric direction reconstruction.
 
-Pure compute functions with no class dependency; the main reconstruction
-module imports and dispatches to them.
+Pure compute functions with no class dependency; the sole intended
+consumer is ``NuRadioReco.modules.interferometricDirectionReconstruction3D``.
+Function signatures and available symbols may change without notice to
+support performance work on that module.
 """
 
 import itertools

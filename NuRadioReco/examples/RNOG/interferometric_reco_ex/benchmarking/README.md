@@ -137,17 +137,6 @@ the antenna model loaded for Tx dedispersion.
 
 ## Reproducing these results
 
-### Quick check: single-event kernel benchmark
-
-Compares point-major and pair-major kernels on one event (takes ~2 min
-including JIT warmup):
-
-```bash
-python benchmarking/benchmark_kernels.py \
-    --config configs/reco3d_neutrino_gzk.yaml \
-    --nur-file /path/to/neutrino.nur
-```
-
 ### Summarize timing from a batch run
 
 After running a SLURM batch with `submit_reco3d_example.sh`, summarize the

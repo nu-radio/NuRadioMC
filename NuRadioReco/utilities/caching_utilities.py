@@ -4,8 +4,8 @@ Caching utilities for NuRadioReco/NuRadioMC
 This module provides general-purpose caching functions that can be used by various
 modules to cache computed data to disk and avoid repeated expensive calculations.
 
-Example usage
-    
+Example usage::
+
     # Generate cache key from configuration
     cache_key = generate_cache_key(station_id, channels, limits, step_sizes)
 

@@ -232,13 +232,10 @@ def save_reco_results_nur(events, filepath, channels_only=None):
     """Save interferometric reconstruction results to NUR format.
 
     Args:
-        events: List of NuRadio Event objects with reconstruction
-            parameters stored.
+        events: List of NuRadio Event objects with reconstruction parameters stored.
         filepath: Path to output NUR file.
-        channels_only: If provided, a list of channel IDs to keep.
-            All other channels are removed before writing, reducing
-            file size. Useful for saving only coherent waveform
-            channels (e.g., [100, 101]) without the full raw traces.
+        channels_only: Optional list of channel IDs to keep; other channels are
+            stripped before writing to reduce file size.
 
     Returns:
         Output filepath.

@@ -52,10 +52,10 @@ if USE_CUPY:
     import cupy as cp
 
 if USE_CPP_EXTENSION:
-    from NuRadioReco.modules._reco3d_kernels import _compute_delay_matrices_cpp
+    from NuRadioReco.utilities.reco3d_kernels import _compute_delay_matrices_cpp
 
 if USE_NUMBA_GROUPED:
-    from NuRadioReco.modules._reco3d_kernels import (
+    from NuRadioReco.utilities.reco3d_kernels import (
         grouped_multiray_numba, perpair_multiray_numba,
         pack_tt_grids, pack_corr_data, build_combo_table,
         _grouped_multiray_kernel,
@@ -2804,7 +2804,6 @@ class InterferometricReco3D:
         Returns:
             Reconstruction results dict, or None on failure.
         """
-        station_id = station.get_id()
         channels = config['channels']
         hilbert_mode = config.get('hilbert_envelope_mode', None)
         apply_hann = config.get('apply_hann_window', False)
@@ -3554,7 +3553,6 @@ class InterferometricReco3D:
         pol_groups = config['polarization_groups']
         all_channels = config['channels']
         results = {}
-        primary_group = None
 
         # Choose the primary group deterministically. Not "first in yaml
         # order", which silently changes when configs round-trip through
