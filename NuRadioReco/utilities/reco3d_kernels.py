@@ -12,7 +12,7 @@ import sys
 
 import numpy as np
 
-logger = logging.getLogger("reco3d.kernels")
+logger = logging.getLogger("NuRadioReco.utilities.reco3d_kernels")
 
 USE_NUMBA = False
 try:

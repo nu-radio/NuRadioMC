@@ -3,7 +3,7 @@
 
 Searches all three cylindrical coordinates (rho, phi, z) simultaneously using
 a coarse 3D grid scan followed by L-BFGS-B optimizer refinement from the top-N
-coarse peaks. Compute kernels (Numba, CUDA) live in ``_reco3d_kernels.py``.
+coarse peaks. Compute kernels (Numba, CUDA) live in ``NuRadioReco/utilities/reco3d_kernels.py``.
 """
 
 import numpy as np
@@ -27,18 +27,18 @@ TableData = namedtuple('TableData', [
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
-from NuRadioReco.modules._reco3d_kernels import (
+from NuRadioReco.utilities.reco3d_kernels import (
     USE_NUMBA, USE_CUPY, USE_CPP_EXTENSION, USE_NUMBA_GROUPED,
     _FUSED_CORR_KERNEL, _build_z_vec,
     RAY_TYPES, SOLUTION_TYPES, RAY_TYPE_COMBOS,
 )
 try:
-    from NuRadioReco.modules._reco3d_kernels import _FUSED_MULTIRAY_CORR_KERNEL
+    from NuRadioReco.utilities.reco3d_kernels import _FUSED_MULTIRAY_CORR_KERNEL
 except ImportError:
     _FUSED_MULTIRAY_CORR_KERNEL = None
 
 if USE_NUMBA:
-    from NuRadioReco.modules._reco3d_kernels import (
+    from NuRadioReco.utilities.reco3d_kernels import (
         _scalar_grouped_corr_numba,
         _interp_uniform_numba,
         _scalar_singleray_corr_numba,

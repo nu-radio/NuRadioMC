@@ -1,1488 +1,413 @@
-# Interferometric Direction Reconstruction
+# 3D interferometric reconstruction: quickstart
 
-This module performs directional reconstruction of radio signals by fitting time delays between channels to pre-calculated time delay maps.
+This guide explains how to reproduce the 3D interferometric reconstruction results on the GZK neutrino simulation and the simulated pulser calibration dataset.
 
-## Files in this Directory
+## Prerequisites
 
-- **`interferometric_reco_example.py`**: Simple reconstruction script with core functionality (recommended starting point)
-- **`interferometric_reco_example_advanced.py`**: Advanced reconstruction script with additional features:
-  - SNR-based channel filtering (`--snr-threshold`)
-  - SNR-based pair weighting (`--snr-weighting`)
-  - Edge signal detection (`--edge-sigma`)
-  - Antenna dedispersion (`apply_dedispersion` in config)
-  - Two-stage automatic reconstruction (`mode: 'auto'` in config)
-  - Helper channel validation for quality control
-- **`correlation_map_plotter.py`**: Standalone script for plotting saved correlation maps with full visualization options
-- **`example_config.yaml`**: Example configuration file with all available options
-- **`INTERFEROMETRIC_RECONSTRUCTION_README.md`**: This documentation file
-- **`reco3d/`**: Full 3D reconstruction module (searches all three cylindrical coordinates simultaneously). See [3D Reconstruction](#3d-reconstruction) and `reco3d/RECO3D_QUICKSTART.md`.
+1. **NuRadioMC/NuRadioReco** installed (this repo, `reco3d_release` branch)
+2. **Python 3.11+** with numpy, scipy, h5py, pyyaml, numba (optional but recommended for speed)
+3. **Multiray travel time tables** for your station. Two table schemes are supported:
+   - **Ray-type tables** (default): 44 NPZ files per station (11 channels x 4 tables: direct, refracted, reflected, combined). File pattern: `st{ID}_ch{CH}_rz_table_{ray_type}.npz`.
+   - **Solution-ordered tables** (recommended, faster): 22 NPZ files per station (11 channels x 2 tables: solution_0 = fastest arrival, solution_1 = slowest). File pattern: `st{ID}_ch{CH}_rz_table_solution_{0,1}.npz`. Set `table_scheme: "solution_ordered"` in the config to use these. See [Solution-ordered tables](#solution-ordered-tables) below.
 
-### Which Script Should I Use?
+   Tables are not included in the repo. On the Chicago cluster, pre-generated tables (both ray-type and solution-ordered) for stations 11, 12, 13, 21, 22, 23, and 24 are at `/data/reconstruction/validation_sets/test_tables/multiray_tables/`. For other stations, generate them using the scripts in `../tables/` (see below).
+4. **RNO-G MongoDB access** (detector description is loaded from `radio.zeuthen.desy.de:27017` by default) or a local detector export file (set `detector_file` in the config)
+5. **Simulation datasets** (see below)
 
-**Use `interferometric_reco_example.py` (simple version) if:**
-- You're new to the reconstruction module
-- You want straightforward event processing
-- Your data is clean and doesn't need quality filtering
-- You're processing calibration pulser data or high-quality events
+## Datasets
 
-**Use `interferometric_reco_example_advanced.py` (advanced version) if:**
-- You need automatic channel quality filtering based on SNR
-- You want to detect and exclude channels with cut-off signals at trace edges
-- You want fully automatic two-stage reconstruction (finds distance first, then direction)
-- You're processing noisy data or need event-level quality cuts
-- You want to skip events where no helper channels pass quality thresholds
+### GZK neutrino simulation
 
-Both scripts share the same configuration file format and output structures. The simple version is documented in the Quick Start section below, while the advanced features are detailed in the [Advanced Options](#advanced-options) section.
+200 paired NUR/HDF5 files. 27,667 triggered events at station 23 with 300K thermal noise, energy range 10^18 to 10^20 eV with GZK-weighted spectrum.
 
-## Supporting Modules
-
-The reconstruction uses several NuRadioReco utility modules:
-
-- **`NuRadioReco.utilities.interferometry_io_utilities`**: I/O functions for saving/loading results and correlation maps
-  - `save_reco_results_hdf5()`: Save reconstruction results to HDF5
-  - `save_reco_results_nur()`: Save results to NUR format
-  - `save_corr_map()`: Save correlation map data to pickle
-  - `load_corr_map()`: Load correlation map from pickle
-  - `create_organized_paths()`: Create organized directory structure for outputs
-
-- **`NuRadioReco.utilities.caching_utilities`**: Caching system for delay matrices
-  - Automatically caches computed delay matrices in `~/.cache/nuradio_delay_matrices/`
-  - Cache key based on station, channels, grid parameters, and interpolation method
-  - Significantly speeds up repeated runs with same configuration
-
-## Overview
-
-The interferometric direction reconstruction works by:
-1. Computing cross-correlations between pairs of antenna channels
-2. Comparing measured time delays to pre-calculated time delay maps
-3. Finding the source location that maximizes the correlation
-
-The core reconstruction functionality is implemented in the NuRadioReco module:
-`NuRadioReco.modules.interferometricDirectionReconstruction`
-
-## Table of Contents
-- [Files in this Directory](#files-in-this-directory)
-- [Supporting Modules](#supporting-modules)
-- [Overview](#overview)
-- [Requirements](#requirements)
-- [Quick Start](#quick-start)
-- [Configuration File](#configuration-file)
-- [Usage Examples](#usage-examples)
-- [Output Formats](#output-formats)
-- [Visualizing Results](#visualizing-results)
-- [Coordinate Systems](#coordinate-systems)
-- [Time Delay Tables](#time-delay-tables)
-- [Advanced Options](#advanced-options)
-  - [SNR-Based Channel Filtering](#snr-based-channel-filtering)
-  - [Edge Signal Detection](#edge-signal-detection)
-  - [Two-Stage Automatic Reconstruction](#two-stage-automatic-reconstruction)
-  - [Alternate Reconstruction](#alternate-reconstruction)
-  - [Plane Wave Fallback](#plane-wave-fallback)
-  - [Signal Processing Options](#signal-processing-options)
-  - [Caching](#caching)
-  - [Simulation Truth Fixed Coordinate](#simulation-truth-fixed-coordinate-nur-files-only)
-  - [Combining Advanced Features](#combining-advanced-features)
-  - [Parallel Processing](#parallel-processing)
-- [Logging Configuration](#logging-configuration)
-- [Troubleshooting](#troubleshooting)
-- [Command-Line Arguments Reference](#command-line-arguments-reference)
-- [3D Reconstruction](#3d-reconstruction)
-- [Contact & Support](#contact--support)
-
----
-
-## Requirements
-
-### Pre-calculated Time Delay Tables
-You **must** have pre-calculated time delay tables for your station and channels. These are `.npz` files containing travel time information for each channel.
-
-**Location:** Tables should be in: `{time_delay_tables}/station{station_id}/st{station}_ch{channel}_rz_table.npz`
-
-**Format:** Each table is a 2D grid of travel times as a function of (r, z) coordinates:
-- **r**: perpendicular distance from the antenna (relative)
-- **z**: absolute depth coordinate (NOT relative to antenna)
-
-### Python Dependencies
-- NuRadioReco
-- Mattak
-- numpy
-- scipy
-- matplotlib
-- h5py
-- pyyaml
-
-**Note:** The detector configuration is automatically loaded from the RNO-G MongoDB database. No detector JSON file is needed.
-
-### Optional: C++ Extension for Faster Performance
-
-The reconstruction can optionally use a C++ extension to compute delay matrices ~2x faster. This is **highly recommended** for processing large datasets.
-
-**Setup (one-time):**
-
-```bash
-# Navigate to the interferometric_reco_ex directory
-cd /path/to/NuRadioReco/examples/RNOG/interferometric_reco_ex/
-
-# Install pybind11 if not already installed
-pip install pybind11
-
-# Compile the C++ extension
-python setup.py build_ext --inplace
+Filename pattern:
+```
+nu_e_ccnc_1e18_1e20eV_GZK-2_IceCube-nu-2022_{NNNNNN}.nur
+nu_e_ccnc_1e18_1e20eV_GZK-2_IceCube-nu-2022_{NNNNNN}.hdf5
 ```
 
-That's it! The module will automatically detect and use the C++ extension when available.
+On the Chicago cluster, the dataset is at `/data/reconstruction/validation_sets/sim_neutrinos/sim_output_gzk/`.
 
-**Verification:**
+### Simulated pulser calibration
 
-Run any reconstruction - you should see this message:
-```
-WARNING - C++ extension loaded successfully - will use fast C++ implementation for building time delay matrices
-```
+6,840 NUR files covering a 3D grid of emitter positions around station 23.
 
-If you see "C++ extension not found - using Python implementation" instead, the compilation failed.
+| Parameter | Range | Steps |
+|-----------|-------|-------|
+| Distance from PA center | 10-200 m | 20 values |
+| Zenith angle | 20-160 deg | 15 values |
+| Azimuth angle | 0-350 deg | 36 values |
+| Events per grid point | 3 | |
+| Total triggered events | 18,879 | |
 
-**Cluster Usage Note:**
+Filename pattern: `output_r{R}_zen{ZEN}_az{AZ}.nur`
 
-If you're using a SLURM cluster with different CPU types across nodes, the compiled binary should still work on all nodes without recompilation. The `setup.py` is configured to use generic x86-64 instructions that are compatible with all modern processors.
+On the Chicago cluster, the dataset is at `/data/reconstruction/validation_sets/sim_cal_pulsers/test_set/`.
 
----
+## Setup
 
-## Quick Start
-
-### 0. Try the Example First
-
-To quickly see the reconstruction in action, you need a calibration pulser ROOT file and pre-generated time tables for the corresponding station. On the Chicago cluster, these are at `/data/reconstruction/validation_sets/cal_pulsers/station21/run476/combined.root` and `/data/reconstruction/travel_times_analytic/`. Update the `time_delay_tables` path in `example_config.yaml` to point to your table location, then run:
-
-```bash
-# Run reconstruction with example config and data
-python interferometric_reco_example.py \
-    --config example_config.yaml \
-    --input combined.root \
-    --events 7 \
-    --save_maps \
-
-# Plot the correlation map
-python correlation_map_plotter.py \
-    --input results/station21/run476/corr_map_data/station21_run476_event7_corrmap.pkl \
-    --minimaps
-```
-
-The "combined.root" file is from a calibration pulsing run with the pulser on helper string C.
-
-### 1. Create a Configuration File
-
-Create a YAML file (e.g., `reco_config.yaml`) with your reconstruction parameters:
+1. Edit `time_delay_tables` in the config file to point to the parent directory of `station23/`:
 
 ```yaml
-# Coordinate system: "cylindrical" or "spherical"
-coord_system: "cylindrical"
-
-# Reconstruction type (depends on coord_system):
-#   For cylindrical: "phiz" (azimuth + depth) or "rhoz" (radius + depth)
-#   For spherical: not used (automatically uses azimuth + zenith)
-rec_type: "phiz"
-
-# Channels to use for reconstruction (list of antenna channel IDs)
-channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
-
-# Search grid limits: [coord_0_min, coord_0_max, coord_1_min, coord_1_max]
-# Units depend on coordinate system:
-#   phiz: [phi_min(deg), phi_max(deg), z_min(m), z_max(m)]
-#   rhoz: [rho_min(m), rho_max(m), z_min(m), z_max(m)]
-#   spherical: [phi_min(deg), phi_max(deg), theta_min(deg), theta_max(deg)]
-limits: [0, 360, -200, 0]
-
-# Step sizes for grid: [coord_0_step, coord_1_step]
-# Same units as limits
-step_sizes: [0.5, 0.5]
-
-# Fixed coordinate (the coordinate not being reconstructed)
-#   For phiz: fixed rho (radius) in meters
-#   For rhoz: fixed phi (azimuth) in degrees
-#   For spherical: fixed r (radial distance) in meters
-fixed_coord: 125.0
-
-# Station ID (required for processing and cache organization)
-station_id: 21
-
-# Path to time delay tables directory
-time_delay_tables: "/path/to/time_delay_tables/"
-
-# Interpolation method for time delay tables (optional - defaults to 'linear')
-interp_method: "linear"          # Options: 'linear' or 'nearest'
-
-# Output directory settings (optional - will use defaults if not specified)
-save_results_to: "./results/"    # Base directory for all reconstruction data (default: "./results/")
-                                 # Structure: {base}/station{ID}/run{NUM}/reco_data/ (results)
-                                 #           {base}/station{ID}/run{NUM}/corr_map_data/ (correlation maps)
-
-# Signal processing options
-apply_cable_delay: true          # Apply cable delay correction (default: true)
-                                 # WARNING: Only set to false if using preprocessed data 
-                                 # that already has cable delays removed!
-apply_upsampling: true           # Upsample waveforms to 5 GHz
-apply_bandpass: false             # Apply bandpass filter
-apply_cw_removal: false           # Remove CW interference
-apply_hann_window: false          # Apply Hann window to correlations
-hilbert_envelope_mode: null        # Hilbert envelope: null, "traces", or "correlation"
-
-# Alternate reconstruction options
-find_alternate_reco: false        # Find alternate reconstruction coordinates
-alternate_exclude_radius_deg: 5.0 # Exclusion radius around primary maximum (degrees)
-
-# CW removal parameters (if apply_cw_removal: true)
-cw_freq_band: [0.1, 0.7]         # Frequency band in GHz
-cw_peak_prominence: 4.0          # Peak prominence threshold
+time_delay_tables: "/path/to/multiray_tables"
 ```
 
-### 2. Run Reconstruction
+The code appends `station{ID}/` internally, so it will look for files at `<time_delay_tables>/station23/st23_ch{N}_rz_table_{ray_type}.npz`.
 
-**Basic usage:**
-```bash
-python interferometric_reco_example.py \
-    --config reco_config.yaml \
-    --input /path/to/data.root \
-    --output_type hdf5
-```
-
-**Process specific events:**
-```bash
-python interferometric_reco_example.py \
-    --config reco_config.yaml \
-    --input /path/to/data.root \
-    --events 7 10 15 \
-    --save_maps \
-```
-
-**Multiple input files (same station):**
-```bash
-python interferometric_reco_example.py \
-    --config reco_config.yaml \
-    --input file1.root file2.root file3.root \
-    --output_type hdf5
-```
-
-**NUR simulation files with unique file identifiers:**
-```bash
-# For simulation files where internal run numbers don't match filenames,
-# use --file-id to create unique output directories without run filtering
-python interferometric_reco_example.py \
-    --config reco_config.yaml \
-    --input simulation.nur \
-    --file-id abc123ef \
-    --output_type hdf5
-```
-
-### 3. Visualize Correlation Maps (Optional)
-
-If you saved correlation maps with `--save_maps`, use the separate plotting script:
+2. Verify the table files are present:
 
 ```bash
-# Plot a single correlation map
-python correlation_map_plotter.py --input results/station21/run476/corr_map_data/station21_run476_event7_corrmap.pkl
-
-# Plot all maps in a directory
-python correlation_map_plotter.py --input results/station21/run476/corr_map_data/
-
-# Plot with minimaps enabled
-python correlation_map_plotter.py --input results/station21/run476/corr_map_data/ --minimaps
-
-# Custom output directory
-python correlation_map_plotter.py --input map.pkl --output custom_figures/
-
-# Create comprehensive plot with waveforms and event information
-python correlation_map_plotter.py \
-    --input results/station21/run476/corr_map_data/station21_run476_event7_corrmap.pkl \
-    --comprehensive results/station21/run476/reco_data/station21_run476_reco_results.h5 \
-    --minimaps
-```
-
-The `--comprehensive` option creates a multi-panel visualization including:
-- Correlation map with reconstruction results
-- Ray path visualization showing signal propagation
-- Event information table with reconstruction parameters
-- Waveform grid showing all channels used in reconstruction
-
----
-
-## Configuration File
-
-### Required Parameters
-
-| Parameter | Type | Description | Example |
-|-----------|------|-------------|---------|
-| `coord_system` | string | Coordinate system: "cylindrical" or "spherical" | `"cylindrical"` |
-| `rec_type` | string | Type of reconstruction (only for cylindrical) | `"phiz"` |
-| `channels` | list[int] | Antenna channels to use | `[0, 1, 2, 3]` |
-| `limits` | list[float] | Search grid bounds [min0, max0, min1, max1] | `[0, 360, -200, 0]` |
-| `step_sizes` | list[float] | Grid step sizes [step0, step1] | `[5, 5]` |
-| `fixed_coord` | float | Value of fixed coordinate (not needed if `mode: 'auto'`) | `125.0` |
-| `time_delay_tables` | string | Path to time delay tables directory | `"/path/to/tables/"` |
-| `station_id` | int | Station ID for processing | `21` |
-
-### Reconstruction Types
-
-| `coord_system` | `rec_type` | What it reconstructs | Units |
-|----------------|------------|---------------------|-------|
-| `cylindrical` | `phiz` | Azimuth (φ) and depth (z), with fixed radius (ρ) | φ: degrees, z: meters |
-| `cylindrical` | `rhoz` | Radius (ρ) and depth (z), with fixed azimuth (φ) | ρ: meters, z: meters |
-| `spherical` | `phitheta` | Azimuth (φ) and zenith (θ), with fixed radius (r) | φ, θ: degrees |
-| `spherical` | `rtheta` | Radius (r) and zenith (θ), with fixed azimuth (φ) | r: meters, θ: degrees |
-
-### Optional Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `mode` | string | `"manual"` | **Advanced script only.** Reconstruction mode: `"manual"` (standard single-stage) or `"auto"` (two-stage automatic). See [Two-Stage Automatic Reconstruction](#two-stage-automatic-reconstruction) |
-| `plane_wave_fallback` | bool | `false` | **Advanced script only.** Enable plane wave fallback reconstruction when only one string has signal. See [Plane Wave Fallback](#plane-wave-fallback) |
-| `apply_cable_delay` | bool | `true` | Apply cable delay correction. **WARNING:** Only disable if using preprocessed data with cable delays already removed! |
-| `apply_upsampling` | bool | `false` | Upsample to 5 GHz |
-| `apply_bandpass` | bool | `false` | Apply 100-600 MHz bandpass filter |
-| `apply_cw_removal` | bool | `false` | Remove CW interference |
-| `apply_hann_window` | bool | `false` | Apply Hann window to correlations |
-| `apply_dedispersion` | bool | `false` | **Advanced script only.** Remove antenna phase dispersion before correlating. Sharpens pulses by undoing frequency-dependent phase shifts introduced by the antenna response. |
-| `hilbert_envelope_mode` | string/null | `null` | Hilbert envelope mode: `null` (disabled), `"traces"` (envelope traces before correlating), `"correlation"` (envelope the cross-correlation) |
-| `find_alternate_reco` | bool | `false` | Find alternate reconstruction coordinates |
-| `alternate_exclude_radius_deg` | float | `5.0` | Exclusion radius around primary maximum (degrees) |
-| `save_results_to` | string | `"./results/"` | Base directory for organized output structure |
-| `cw_freq_band` | list[float] | `[0.1, 0.7]` | CW removal frequency band (GHz) |
-| `cw_peak_prominence` | float | `4.0` | CW peak detection threshold |
-| `interp_method` | string | `"linear"` | Interpolation method: 'linear' or 'nearest' |
-| `detector_date` | string | `"2022-10-01"` | Date for detector description lookup (format: `YYYY-MM-DD`) |
-
----
-
-## Usage Examples
-
-### Example 1: Azimuth Reconstruction (phiz)
-
-Reconstruct azimuth and depth with fixed perpendicular distance of 30m:
-
-```yaml
-# config_phiz.yaml
-coord_system: "cylindrical"
-rec_type: "phiz"
-channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
-limits: [0, 360, -200, 0]        # φ: 0-360°, z: 0 to -200m
-step_sizes: [0.5, 0.5]           # 0.5° in φ, 0.5m in z
-fixed_coord: 30.0               # ρ = 30m
-station_id: 23
-time_delay_tables: "/path/to/tables/"
-```
-
-```bash
-python interferometric_reco_example.py \
-    --config config_phiz.yaml \
-    --input station23_run1234.root \
-    --output_type hdf5
-```
-
-### Example 2: Zenith Reconstruction (rhoz)
-
-Reconstruct radius and depth with fixed azimuth:
-
-```yaml
-# config_rhoz.yaml
-coord_system: "cylindrical"
-rec_type: "rhoz"
-channels: [0, 1, 2, 3, 5, 6, 7]
-limits: [0, 200, -200, 0]        # ρ: 0-200m, z: 0 to -200m
-step_sizes: [0.5, 0.5]           # 0.5m in both
-fixed_coord: 0.0                 # φ = 0° (east) - doesn't matter if only using antennas on power string
-station_id: 23
-time_delay_tables: "/path/to/tables/"
-```
-
-### Example 3: Full Spherical
-
-Reconstruct both azimuth and zenith with fixed distance:
-
-```yaml
-# config_spherical.yaml
-coord_system: "spherical"
-# rec_type not needed for spherical
-channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
-limits: [0, 360, 0, 180]         # φ: 0-360°, θ: 0° (up) to 180° (down)
-step_sizes: [0.5, 0.2]           # 0.5° in φ, 0.2° in θ
-fixed_coord: 50.0               # r = 50m
-station_id: 23
-time_delay_tables: "/path/to/tables/"
-```
-
-### Example 4: With Signal Processing
-
-Apply upsampling and CW removal:
-
-```yaml
-mode: "auto"
-coord_system: "spherical"
-rec_type: "phitheta"
-channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
-limits: [0, 360, 0, 180]
-step_sizes: [0.5, 0.5]
-station_id: 23
-time_delay_tables: "/path/to/tables/"
-
-apply_upsampling: true           # Upsample to 5 GHz
-apply_cw_removal: true           # Remove CW interference
-apply_hann_window: false         # Apply Hann window to correlations
-hilbert_envelope_mode: "correlation"  # Hilbert envelope: null, "traces", or "correlation"
-find_alternate_reco: true        # Find alternate reconstruction coordinates
-alternate_exclude_radius_deg: 20.0 # Exclusion radius around primary (degrees)
-```
-
----
-
-## Visualizing Results
-
-### Basic Correlation Map Plots
-
-The `correlation_map_plotter.py` script can create standalone correlation map visualizations:
-
-```bash
-# Plot a single correlation map
-python correlation_map_plotter.py --input station21_run476_event7_corrmap.pkl
-
-# Plot all maps in a directory
-python correlation_map_plotter.py --input results/station21/run476/corr_map_data/
-
-# Enable minimap insets (zoomed views around peaks)
-python correlation_map_plotter.py --input map.pkl --minimaps
-
-# Plot specific pattern
-python correlation_map_plotter.py --input results/ --pattern "*run476*" --minimaps
-```
-
-### Comprehensive Event Visualization
-
-For detailed event analysis, use the `--comprehensive` flag to create multi-panel plots combining:
-- **Correlation map** with reconstruction results including alternate coordinates if enabled during the reconstruction
-- **Ray path visualization** showing signal propagation from vertex to antennas
-- **Event information table** with truth values from simulations
-- **Waveform grid** displaying all channels used in reconstruction
-
-```bash
-python correlation_map_plotter.py \
-    --input results/station21/run476/corr_map_data/station21_run476_event7_corrmap.pkl \
-    --comprehensive results/station21/run476/reco_data/station21_run476_reco_results.h5 \
-    --minimaps
-```
-
-**Requirements for comprehensive plots:**
-- Correlation map pickle file (saved with `--save_maps`)
-- Reconstruction results HDF5 file (contains event metadata and data filename)
-- Access to original data file (for waveform extraction)
-
-### Channel Pair Correlation Grids
-
-If you saved pairwise correlation maps with `--save-pair-maps`, you can visualize all channel pair correlations:
-
-```bash
-python correlation_map_plotter.py \
-    --pair-grid results/station21/run476/corr_map_data/pairwise_maps/
-```
-
-This creates a grid showing individual correlation maps for each antenna pair.
-
-### Visualizing Multi-Stage Reconstructions
-
-When using `--save-maps both` with auto mode reconstruction, you can visualize both stages side-by-side:
-
-```bash
-# First, run reconstruction with multi-stage map saving
-python interferometric_reco_example_advanced.py \
-    --config auto_config.yaml \
-    --input data.root \
-    --save-maps both
-
-# Then plot the multi-stage correlation maps (note: --multistage flag is required!)
-python correlation_map_plotter.py \
-    --input results/station23/run100/corr_map_data/station23_run100_event5_corrmap_multistage.pkl \
-    --multistage
-```
-
-**Important:** The `--multistage` flag is required when plotting multi-stage correlation maps. Without it, the plotter will not recognize the multi-stage file format.
-
-This creates a two-panel plot showing:
-- **Left panel:** Stage 1 (rhoz) correlation map showing the distance and depth finding
-- **Right panel:** Stage 2 (spherical) correlation map showing the azimuth and zenith finding
-
-The plot titles show which channels and fixed coordinates were used in each stage.
-
----
-
-## Output Formats
-
-The reconstruction automatically creates an organized directory structure:
-
-```
-results/
-└── station{ID}/
-    └── run{NUM}/
-        ├── reco_data/
-        │   └── station{ID}_run{NUM}_reco.h5  (or .nur)
-        └── corr_map_data/  (if --save_maps used)
-            ├── station{ID}_run{NUM}_event{N}_corrmap.pkl
-            └── ...
-```
-
-You can customize the base directory with the `save_results_to` config parameter.
-
-### HDF5 Output (`.h5`)
-
-Structured table with reconstruction results saved to `{base}/station{ID}/run{NUM}/reco_data/`:
-
-```python
-import h5py
-import pandas as pd
-
-# Read HDF5 file
-with h5py.File('results/station21/run476/reco_data/station21_run476_reco.h5', 'r') as f:
-    data = f['reconstruction'][:]
-    config = dict(f.attrs)  # Configuration stored as attributes
-
-df = pd.DataFrame(data)
-print(df.columns)
-# Columns depend on rec_type:
-# - All: runNum, eventNum, maxCorr, surfCorr
-# - phiz: phi, z, phi_alt, z_alt (if alternate reconstruction enabled)
-# - rhoz: rho, z, rho_alt, z_alt (if alternate reconstruction enabled)
-# - phitheta: phi, theta, phi_alt, theta_alt (if alternate reconstruction enabled)
-```
-
-**Column Descriptions:**
-- `runNum`: Run number
-- `eventNum`: Event ID
-- `maxCorr`: Maximum correlation value (0-1, higher is better)
-- `surfCorr`: Maximum correlation in top 10m (surface correlation)
-- `phi`: Reconstructed azimuth in degrees (for phiz, phitheta)
-- `phi_alt`: Alternate reconstructed azimuth in degrees (if find_alternate_reco enabled)
-- `theta`: Reconstructed zenith in degrees (for spherical)
-- `theta_alt`: Alternate reconstructed zenith in degrees (if find_alternate_reco enabled)
-- `rho`: Reconstructed perpendicular distance in meters (for rhoz)
-- `rho_alt`: Alternate reconstructed perpendicular distance in meters (if find_alternate_reco enabled)
-- `z`: Reconstructed depth in meters (for phiz, rhoz)
-- `z_alt`: Alternate reconstructed depth in meters (if find_alternate_reco enabled)
-
-### NUR Output (`.nur`)
-
-NuRadioReco event format with reconstruction parameters stored in station parameters:
-
-```python
-from NuRadioReco.modules.io.eventReader import eventReader
-
-reader = eventReader()
-reader.begin('output.nur', read_detector=True)
-
-for event in reader.run():
-    station = event.get_station()
-    
-    max_corr = station.get_parameter(stnp.rec_max_correlation)
-    surf_corr = station.get_parameter(stnp.rec_surf_corr)
-    coord_0 = station.get_parameter(stnp.rec_coord_0)
-    coord_1 = station.get_parameter(stnp.rec_coord_1)
-    
-    # For phiz: coord_0 = phi, coord_1 = z
-    # For rhoz: coord_0 = rho, coord_1 = z
-    # For spherical: coord_0 = phi, coord_1 = theta
-```
-
-### Correlation Map Data
-
-When using `--save_maps`, correlation map data is saved to pickle files in `{base}/station{ID}/run{NUM}/corr_map_data/`:
-
-Each `.pkl` file contains:
-- `corr_matrix`: 2D correlation map
-- `station_id`, `run_number`, `event_number`: Event identifiers
-- `config`: Reconstruction configuration
-- `coord_system`, `rec_type`: Coordinate system information
-- `limits`: Grid boundaries
-- `channels`: Channels used
-- `fixed_coord`: Fixed coordinate value
-- `coord_0_alt`, `coord_1_alt`: Alternate reconstruction coordinates (if enabled)
-- `exclusion_bounds`: Exclusion zone information (if alternate reco enabled)
-
-These files can be visualized using `correlation_map_plotter.py` (see next section).
-
-**Retrieving the configuration from saved maps:**
-
-If you need to check what configuration was used to generate a correlation map (useful if you've forgotten your settings), you can load it back:
-
-```python
-from NuRadioReco.utilities.interferometry_io_utilities import load_corr_map
-
-# Load the saved correlation map
-map_data = load_corr_map('path/to/corrmap.pkl')
-
-# Extract the full config dictionary
-config = map_data['config']
-
-# Access any config parameter
-print(f"Coordinate system: {config['coord_system']}")
-print(f"Reconstruction type: {config['rec_type']}")
-print(f"Channels used: {config['channels']}")
-print(f"Grid limits: {config['limits']}")
-print(f"Step sizes: {config['step_sizes']}")
-print(f"Fixed coordinate: {config['fixed_coord']}")
-# ... and all other config parameters
-
-# or just list them all like so:
-print(config)
-```
-
----
-
-## Visualizing Results
-
-### Plotting Correlation Maps
-
-Use the standalone `correlation_map_plotter.py` script to visualize saved correlation maps:
-
-```bash
-# Plot a single event
-python correlation_map_plotter.py --input results/station21/run476/corr_map_data/station21_run476_event7_corrmap.pkl
-
-# Plot all events in a run
-python correlation_map_plotter.py --input results/station21/run476/corr_map_data/
-
-# Enable minimap insets for detailed views
-python correlation_map_plotter.py --input results/station21/run476/corr_map_data/ --minimaps
-
-# Save to custom directory
-python correlation_map_plotter.py --input map.pkl --output my_figures/
-
-# Process with pattern matching
-python correlation_map_plotter.py --input results/station21/run476/corr_map_data/ --pattern "*evt7*"
-```
-
-**Output:** Plots are automatically saved to an organized structure:
-- Default: `figures/station{ID}/run{NUM}/station{ID}_run{NUM}_event{N}_corrmap.png`
-- Custom: `{output_dir}/station{ID}/run{NUM}/station{ID}_run{NUM}_event{N}_corrmap.png`
-
-### Enhanced Plotting
-
-The `correlation_map_plotter.py` script has options for enhanced visualizations with minimap insets.
-
-**Note:** The `create_minimaps` parameter is used in the **plotter script**, not in the reconstruction config:
-
-```bash
-# Enable minimaps when plotting
-python correlation_map_plotter.py --input corr_map_data/ --minimaps
-```
-
-It also allows for plotting an arbitrary number of additional points through the optional --extra-points argument. It expects 3 values: x value, y value, and label. This is most useful for adding a known location point to the map to compare to the reconstructed location. For example, let's say I know that my calibration pulser is at 182.1 degrees in azimuth and 87.5 m in depth with respect to the center of the phased array (the origin for the spherical case) and I want the known pulser location to be on the map. Then I would do:
-
-```bash
-# Enable extra point when plotting
-python correlation_map_plotter.py --input corr_map_data/ --extra-points "182.1, 87.5, Pulser"
-```
-
----
-
-## Coordinate Systems
-
-Coordinates are relative to the power string position at the surface.
-
-### Cylindrical Coordinates
-
-#### phiz Mode
-- **Reconstructed:** φ (azimuth), z (depth)
-- **Fixed:** ρ (perpendicular distance)
-- **Use case:** When you know the approximate distance and want to find direction and depth
-
-```
-φ: Azimuth angle (0° = East, 90° = North, 180° = West, 270° = South)
-z: Depth (negative values represent going under the surface, positive above)
-ρ: Perpendicular distance from power string
-```
-
-#### rhoz Mode
-- **Reconstructed:** ρ (perpendicular distance), z (depth)
-- **Fixed:** φ (azimuth)
-- **Use case:** When you know the direction and want to find distance and depth (zenith angle reconstruction)
-
-```
-ρ: Perpendicular distance from power string
-z: Depth (negative values represent going under the surface, positive above)
-φ: Fixed azimuth direction (0° = East, 90° = North, 180° = West, 270° = South)
-```
-
-### Spherical Coordinates
-
-**For spherical coordinate system (no rec_type needed)**
-- **Reconstructed:** φ (azimuth), θ (zenith angle)
-- **Fixed:** r (radial distance)
-- **Use case:** Full directional reconstruction with known distance
-
-```
-φ: Azimuth angle (0° = East, 90° = North, 180° = West, 270° = South)
-θ: Zenith angle (0° = up, 90° = perpendicular, 180° = down)
-r: Radial distance from power string at surface of the ice.
-```
-
----
-
-## Time Delay Tables
-
-### Required Directory Structure
-
-For the 2D scripts (single-ray tables, one per channel):
-```
-time_delay_tables/
-└── station23/
-    ├── st23_ch0_rz_table.npz
-    ├── st23_ch1_rz_table.npz
-    └── ...
-```
-
-For the 3D module (multiray tables, three per channel):
-```
-time_delay_tables/
-└── station23/
-    ├── st23_ch0_rz_table_direct.npz
-    ├── st23_ch0_rz_table_refracted.npz
-    ├── st23_ch0_rz_table_reflected.npz
-    ├── st23_ch1_rz_table_direct.npz
-    └── ...
-```
-
-### Table Format
-
-Each `.npz` file must contain:
-- `data`: 2D array of travel times (nanoseconds) with shape: (len(r_range_vals), len(z_range_vals))
-- `r_range_vals`: 1D array of **perpendicular distances** from the antenna (meters)
-- `z_range_vals`: 1D array of **absolute depths** (meters)
-
-**Important coordinate details:**
-- **r (perpendicular)**: Distance from antenna in the perpendicular plane (relative to antenna)
-  - Example: r=100m means 100 meters away perpendicularly from the antenna
-- **z (depth)**: **Absolute depth coordinate** (NOT relative to antenna)
-  - Example: z=-50m means 50 meters below the ice surface (absolute depth)
-  - z=0 is at the ice surface, z<0 is below surface (in the ice)
-
-**Table interpretation:**
-- `data[i, j]` = travel time from source at position `(ant_x + r[i], ant_y, z[j])` to the antenna
-- The source is placed at perpendicular distance `r[i]` from the antenna, at absolute depth `z[j]`
-- The horizontal position is offset by `r` from the antenna, but the vertical position is **absolute**, not relative to antenna depth
-
-### Generating Time Delay Tables
-
-Table generation scripts are in `tables/`. See `reco3d/RECO3D_QUICKSTART.md` for usage.
-
-- `rz_lookup_table_creator_inice.py`: generates per-ray-type tables (direct, refracted, reflected), combined tables (min across ray types), or both.
-- `submit_rz_table_jobs.slurm`: SLURM submission for all VPOL channels.
-
-Each table stores travel times on a 2D (R, Z) grid computed via NuRadioMC analytic raytracing with the `greenland_simple` ice model. The shortest travel time per ray solution type is stored.
-
-## Advanced Options
-
-### SNR-Based Channel Filtering
-
-**Available in:** `interferometric_reco_example_advanced.py` only
-
-The advanced script can automatically filter out low-SNR channels and skip events with insufficient signal quality.
-
-**Usage:**
-```bash
-python interferometric_reco_example_advanced.py \
-    --config config.yaml \
-    --input data.root \
-    --snr-threshold 2.0 \
-```
-
-**How it works:**
-1. Calculates SNR for each channel
-2. Drops channels below the specified threshold
-3. Checks if at least one "helper channel" (channels 9, 10, 22, or 23) passes the threshold
-4. Skips the entire event if no helper channels pass (indicates poor event quality)
-
-**Helper channels:** Channels 9, 10, 22, 23 are on the so-called 'Helper' strings that are separate from the primary 'Power' string that the phased array antennas that are responsible for our trigger are on. At least one must have good SNR for reliable azimuthal reconstruction.
-
-**Example output:**
-```
-Processing event 42:
-  Channel SNRs: {0: 1.2, 1: 5.1, 2: 4.8, 3: 1.9, 9: 6.2, 10: 5.5}
-    Channel 0 DROPPED: SNR too low (SNR=1.20 < threshold=2.00)
-    Channel 3 DROPPED: SNR too low (SNR=1.90 < threshold=4.00)
-  Summary: 4 channel(s) passed SNR threshold: [1, 2, 9, 10]
-  Helper channels passing: [9, 10]
-  Running reconstruction with 4 channels...
-```
-
----
-### Edge Signal Detection
-
-**Available in:** `interferometric_reco_example_advanced.py` only
-
-Detects and filters out channels where signals are cut off at the edges of the trace window. This can happen when very early/late arriving signals are partially outside the readout window.
-
-**Usage:**
-```bash
-python interferometric_reco_example_advanced.py \
-    --config config.yaml \
-    --input data.root \
-    --edge-sigma 3.0 \
-```
-
-**How it works:**
-1. Divides each trace into chunks (default: 10 chunks)
-2. Calculates RMS for each chunk
-3. Compares edge chunk RMS to statistics from middle chunks
-4. Flags channel as edge signal if edge RMS > median(middle) + N×std(middle)
-5. Drops flagged channels from reconstruction
-6. Similar to the SNR threshold, skips event if no helper channels remain
-
-
-**Example output:**
-```
-Processing event 15:
-  Edge detection for channel 2:
-    First edge RMS: 12.3 mV, Last edge RMS: 45.8 mV
-    Middle chunks: median=8.2 mV, std=2.1 mV
-    Threshold: 14.5 mV
-    EDGE DETECTED (last edge high)
-  Summary: 1 channel(s) dropped due to edge signals: [2]
-  Summary: 3 channel(s) passed edge detection: [0, 1, 3]
-```
-
-**Combining with SNR filtering:**
-```bash
-python interferometric_reco_example_advanced.py \
-    --config config.yaml \
-    --input data.root \
-    --snr-threshold 2.0 \
-    --edge-sigma 3.0 \
-```
-
-Both filters are applied sequentially: first edge detection, then SNR filtering, so only clean channels are used for reconstruction.
-
----
-
-### Two-Stage Automatic Reconstruction
-
-**Available in:** `interferometric_reco_example_advanced.py` only
-
-The two-stage automatic mode performs a fully automatic reconstruction without needing to specify a fixed coordinate. It works in two stages:
-
-1. **Stage 1 (rhoz mode):** Reconstruct perpendicular distance (ρ) and depth (z).
-2. **Stage 2 (spherical mode):** Using the radial distance calculated from stage 1's ρ and z value, reconstruct azimuth (φ) and zenith (θ) to find the direction.
-
-**Configuration:**
-```yaml
-# example_auto_config.yaml
-mode: "auto"  # Enable two-stage automatic reconstruction
-
-coord_system: "spherical"  # Final output will be in spherical coordinates
-channels: [0, 1, 2, 3, 5, 6, 7, 9, 10]
-step_sizes: [0.5, 0.5]  # Used in both stages
-station_id: 23
-time_delay_tables: "/path/to/tables/"
-
-# Note: fixed_coord is NOT needed in auto mode
-# limits will be set automatically for each stage
-```
-
-**Usage:**
-```bash
-python interferometric_reco_example_advanced.py \
-    --config example_auto_config.yaml \
-    --input data.root \
-    --save-maps
-```
-
-**Saving Multi-Stage Correlation Maps:**
-
-When using auto mode, you can save correlation maps from both stages in a single file for side-by-side visualization when plotting:
-
-```bash
-python interferometric_reco_example_advanced.py \
-    --config example_auto_config.yaml \
-    --input data.root \
-    --save-maps both
-```
-
-Using `--save-maps both` creates files like `station{ID}_run{NUM}_event{N}_corrmap_multistage.pkl` containing both stage 1 and stage 2 correlation maps. These can be visualized side-by-side using:
-
-```bash
-python correlation_map_plotter.py \
-    --input results/station23/run100/corr_map_data/station23_run100_event5_corrmap_multistage.pkl \
-    --multistage
-```
-
-This creates a two-panel plot showing the coarse distance finding (stage 1 rhoz) and fine direction finding (stage 2 spherical) correlation maps together. See [Visualizing Multi-Stage Reconstructions](#visualizing-multi-stage-reconstructions) for more details.
-
-**Note:** Using `--save-maps` (without `both`) in auto mode will only save the final stage 2 correlation map.
-
-**How it works:**
-
-**Stage 1 (rhoz reconstruction):**
-- Searches over: ρ = [0, 200] m, z = [-200, 0] m using power string antennas [0, 1, 2, 3, 5, 6, 7]
-- Fixed: φ = 0° (doesn't matter when using antennas on only 1 string like we are here)
-- Finds: Best-fit perpendicular distance and depth
-- Calculates: Radial distance r = √(ρ² + z²) from phased array center
-
-**Stage 2 (spherical reconstruction):**
-- Searches over: φ = [0, 360]°, θ = [0, 180]°
-- Fixed: r = result from stage 1
-- Finds: Best-fit azimuth and zenith angles
-- This is the final reconstruction output
-
-**Example output:**
-```
-[AUTO MODE] Stage 1: Running rhoz reconstruction to find optimal distance...
-[AUTO MODE] Stage 1 results: rho=125.3m, z_abs=-87.2m, z_rel_PA=-89.5m, r=153.7m, maxCorr=0.847
-[AUTO MODE] Stage 2: Running spherical reconstruction with fixed r=153.7m...
-[AUTO MODE] Stage 2 results: phi=182.4°, theta=54.2°, maxCorr=0.863
-
-=== Reconstruction Results ===
-Station: 23
-phi: 182.400°
-theta: 54.200°
-maxCorr: 0.863
-surfCorr: 0.145
-===============================
-```
-
-**When to use auto mode:**
-- You don't know the approximate source distance
-- You want fully automatic processing without parameter tuning
-- You're scanning large datasets and want consistent methodology
-
-**When to use manual mode:**
-- You know the approximate source distance (e.g., calibration pulsers)
-- You want to test specific geometric hypotheses
-- You need to scan a specific region in detail
-- You want to avoid the computational cost of two-stage reconstruction
-
-**Performance notes:**
-- Stage 1 uses a fixed grid (ρ: 0-200m, z: -200-0m) with power string channels [0, 1, 2, 3, 5, 6, 7]
-- Correlation maps saved with `--save-maps` are from the final stage only (spherical)
-
----
-
-### Alternate Reconstruction
-
-**Available in:** Both simple and advanced scripts
-
-The module can find alternate reconstruction coordinates by excluding regions around the primary maximum:
-
-```yaml
-find_alternate_reco: true        # Enable alternate coordinate finding
-alternate_exclude_radius_deg: 5.0 # Exclusion radius around primary maximum
-```
-
-When enabled, alternate coordinates are saved in the HDF5 output as `phi_alt`, `z_alt`, etc., and displayed in plots. This is useful for:
-- Identifying ambiguous reconstructions with multiple correlation peaks
-- Understanding reconstruction uncertainties
-- Detecting multi-path propagation scenarios
-
----
-
-### Plane Wave Fallback
-
-**Available in:** `interferometric_reco_example_advanced.py` only
-
-When processing cosmic ray or neutrino events, you may encounter cases where only the antennas on one string (the power string with channels 0-3) detect a signal, while helper string antennas see only noise. In these cases, standard multi-string reconstruction fails because it requires signals on multiple strings for accurate azimuthal reconstruction.
-
-The plane wave fallback mode provides a backup reconstruction strategy for these single-string events by:
-1. Using only power string channels [0, 1, 2, 3]
-2. Performing a 1D zenith angle scan (0° to 180°) with azimuth fixed at 0°
-3. Assuming a plane wave approximation with fixed radius of 10m (encompassing all 4 antennas)
-
-**Configuration:**
-```yaml
-plane_wave_fallback: true    # Enable plane wave fallback mode (default: false)
-```
-
-**Triggering conditions:**
-
-Plane wave fallback is automatically triggered when:
-- SNR filtering is enabled (`--snr-threshold`) AND no helper channels [9, 10, 22, 23] pass the threshold
-- Edge filtering is enabled (`--edge-sigma`) AND no helper channels remain after filtering
-- Both conditions apply if using both filters
-
-**Example:**
-```bash
-python interferometric_reco_example_advanced.py \
-    --config config_with_fallback.yaml \
-    --input data.root \
-    --snr-threshold 2.0 \
-```
-
-**Output characteristics:**
-- **Azimuth (φ)**: Set to `NaN` to mark fallback reconstructions
-- **Zenith (θ)**: Reconstructed value from 1D scan
-- **Filtering in analysis**: Easy to identify fallback events with `df[np.isnan(df['phi'])]`
-
-**Example output:**
-```
-Processing event 42:
-  Channel SNRs: {0: 3.2, 1: 4.1, 2: 3.8, 3: 2.9, 9: 1.5, 10: 1.3, 22: 1.7, 23: 1.4}
-    Channel 9 DROPPED: SNR too low (SNR=1.50 < threshold=2.00)
-    Channel 10 DROPPED: SNR too low (SNR=1.30 < threshold=2.00)
-    Channel 22 DROPPED: SNR too low (SNR=1.70 < threshold=2.00)
-    Channel 23 DROPPED: SNR too low (SNR=1.40 < threshold=2.00)
-  No helper channels passed SNR threshold - will attempt plane wave fallback
-  [PLANE WAVE FALLBACK] No helper channels remaining - triggering fallback mode
-[PLANE WAVE FALLBACK] Using channels [0,1,2,3] with fixed r=10m, azimuth=0°, scanning zenith 0-180°
-[PLANE WAVE FALLBACK] Results: zenith=52.5°, maxCorr=0.783
-```
-
-**Analysis considerations:**
-- Fallback reconstructions have `phi=NaN` for easy filtering
-- Zenith angles are still meaningful and can provide useful directional information
-
----
-
-### Signal Processing Options
-
-**Available in:** Both simple and advanced scripts
-
-Additional correlation analysis options:
-
-```yaml
-apply_hann_window: true          # Apply Hann window to reduce spectral leakage
-hilbert_envelope_mode: "correlation"  # Envelope the cross-correlation for better SNR
-```
-
-**Hann window:** Reduces edge effects in correlation by tapering the trace edges.
-
-**Hilbert envelope:** Uses signal envelope instead of raw waveform for correlation. Can improve reconstruction when:
-- SNR is low
-- Phase information is unreliable
-
-**Antenna dedispersion** (`apply_dedispersion: true`): Removes frequency-dependent phase shifts introduced by the antenna response, sharpening received pulses. Uses `channelAntennaDedispersion` from NuRadioReco. This is applied before correlation and can improve time delay resolution for broadband signals.
-
-**SNR pair weighting** (`--snr-weighting`): Weights each channel pair's correlation by the geometric mean of the two channels' SNR values, so that high-SNR pairs contribute more to the final correlation map. Applied per-event.
-
----
-
-### Caching
-
-**Available in:** Both simple and advanced scripts
-
-The module can use `NuRadioReco.utilities.caching_utilities` to cache delay matrices if you use the --use-cache argument like so:
-```bash
-python interferometric_reco_example.py \
-    --config config.yaml \
-    --input data.root \
-    --use-cache 1
-```
-
-Cache details:
-- **Cache location:** `~/.cache/nuradio_delay_matrices/`
-- **Cache key:** Generated from station ID, channels, grid parameters, and interpolation method
-- **Behavior:** Automatically loads from cache if available, significantly speeding up repeated runs
-- **Cache management:** To force regeneration, delete the cache directory (by default at ~/.cache/nuradio) or specific cache files
-
-The cache is usable when:
-- Running the same configuration multiple times with a single fixed coordinate
-- Testing different preprocessing options with the same reconstruction grid
-
-### Simulation Truth Fixed Coordinate (NUR files only)
-
-**Available in:** `interferometric_reco_example_advanced.py` only
-
-When processing NUR simulation files, you can use the `--sim-truth-fixed-coord` flag to automatically set the fixed coordinate to the true simulation value for each event. This is useful for validation and debugging reconstruction performance:
-
-```bash
-python interferometric_reco_example_advanced.py \
-    --config config.yaml \
-    --input simulation.nur \
-    --sim-truth-fixed-coord \
-```
-
-**How it works:**
-- For **phiz** reconstruction (fixed ρ): Uses true perpendicular distance from simulation vertex to PA center
-- For **rhoz** reconstruction (fixed φ): Uses true azimuth from PA center to simulation vertex
-- For **spherical** reconstruction (fixed r): Uses true radial distance from PA center to simulation vertex
-
-**Important notes:**
-- Works with NUR simulation files that contain shower information (`event.get_sim_showers()`). If no sim showers are present (e.g. pulser sim output from A02), falls back to parsing the emitter position from the filename (expects a label like `r50.0_zen90.0_az0.0`).
-- The fixed coordinate is calculated **per-event** from the true interaction vertex
-- Delay matrix caching is disabled when using this flag (since fixed_coord varies per event)
-- This mode is primarily for validation - it tells you "if I knew the correct fixed coordinate, how well could I reconstruct the other coordinates?"
-
-**Example use case:**
-To test if your phiz reconstruction can accurately find azimuth and depth when given the true radius:
-
-```bash
-python interferometric_reco_example_advanced.py \
-    --config phiz_config.yaml \
-    --input some_sim_file.nur \
-    --sim-truth-fixed-coord \
-    --save-maps \
-```
-
-This will reconstruct φ and z for each event using the true ρ value, allowing you to isolate reconstruction errors in the free parameters.
-
----
-
-### Combining Advanced Features
-
-**Available in:** `interferometric_reco_example_advanced.py` only
-
-All advanced features can be combined for fully automatic processing:
-
-```bash
-# Fully automatic processing with quality filters
-python interferometric_reco_example_advanced.py \
-    --config auto_config.yaml \
-    --input data.root \
-    --snr-threshold 2.0 \
-    --edge-sigma 3.0 \
-    --save-maps \
-```
-
-**Configuration file (auto_config.yaml):**
-```yaml
-mode: "auto"                     # Two-stage automatic reconstruction
-coord_system: "spherical"        # Final output coordinate system
-channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]  # Include helper channels
-step_sizes: [0.5, 0.5]
-station_id: 23
-time_delay_tables: "/path/to/tables/"
-
-# Signal processing
-apply_upsampling: true
-apply_cw_removal: true
-apply_hilbert_envelope: true
-apply_bandpass: false
-interp_method: "linear"
-
-# Alternate reconstruction
-find_alternate_reco: true
-alternate_exclude_radius_deg: 20.0
-```
-
-**Processing flow:**
-1. Load event and apply signal processing (upsampling, CW removal, etc.)
-2. **Edge detection:** Drop channels with signals at trace edges
-3. **SNR filtering:** Drop low-SNR channels, check helper channel requirement
-4. If quality checks pass:
-   - **Stage 1 (rhoz):** Find optimal perpendicular distance and depth
-   - **Stage 2 (spherical):** Find direction using perpendicular distance and depth from stage 1
-   - **Alternate reco:** Find second-best correlation peak in case of azimuthal degeneracy from only 2/3 strings seeing signals
-5. Save results and correlation maps
-```
-
-### Parallel Processing
-
-For processing many files, use job arrays:
-
-```bash
-#!/bin/bash
-#SBATCH --array=0-99
-
-FILES=(run_*.root)
-FILE=${FILES[$SLURM_ARRAY_TASK_ID]}
-
-python interferometric_reco_example.py \
-    --config config.yaml \
-    --input $FILE \
-    --output_type hdf5
-```
-
----
-
-## Logging Configuration
-
-**Available in:** Both simple and advanced scripts
-
-By default, the scripts are configured to show only WARNING level messages from most packages, but INFO level messages from the reconstruction modules. This reduces clutter from detector loading, MongoDB connections, and other imported packages while keeping reconstruction progress visible. To reduce clutter even further, you can restrict the INFO level from the reconstruction modules to WARNING instead as well.
-
-**Current logging configuration** (in both scripts):
-```python
-from NuRadioReco.utilities.logging import set_general_log_level
-
-# Set general logging to WARNING to suppress noisy packages
-set_general_log_level(logging.WARNING)
-
-# But set INFO level for the specific modules we want to see
-logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction").setLevel(logging.INFO)
-logging.getLogger("NuRadioReco.utilities.interferometry_io_utilities").setLevel(logging.INFO)
-```
-
-**Logging Levels:**
-
-| Level | Code | What you see |
-|-------|------|--------------|
-| **DEBUG** | `logging.DEBUG` or `10` | Everything: detailed algorithm steps, intermediate values, cache hits |
-| **INFO** | `logging.INFO` or `20` | **Default for reconstruction:** Progress messages, stage results, fallback triggers |
-| **WARNING** | `logging.WARNING` or `30` | **Default for other packages:** Only warnings and errors |
-| **ERROR** | `logging.ERROR` or `40` | Only errors |
-
-**To see MORE detail** (e.g., for debugging):
-
-Edit the script to set DEBUG level for reconstruction:
-```python
-set_general_log_level(logging.WARNING)
-logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction").setLevel(logging.DEBUG)
-```
-
-You'll see additional messages like:
-```
-[DEBUG] Entering _correlator: 6 channel pairs, 6 delay matrices
-[DEBUG] Correlation matrix shape: (400, 721), max_corr: 0.863
-[DEBUG] Found delay matrices in memory cache for key abc123
-```
-
-**To see EVERYTHING** (very verbose, not recommended):
-
-```python
-set_general_log_level(logging.INFO)  # Show INFO from all packages
-```
-
-This will flood your output with detector queries, MongoDB connections, etc.:
-```
-[INFO] Query information for station 11 at 2022-10-01 00:00:00
-[INFO] Query information for station 12 at 2022-10-01 00:00:00
-[INFO] Query information for station 13 at 2022-10-01 00:00:00
-... (many lines)
-[INFO] Attempting to connect to the database ...
-[INFO] ... connection to RNOG_hardware_v0 established
-```
-
-**To see LESS** (only errors):
-
-```python
-set_general_log_level(logging.ERROR)
-logging.getLogger("NuRadioReco.modules.interferometricDirectionReconstruction").setLevel(logging.ERROR)
-```
-
-## Troubleshooting
-
-**General debugging tip:** If you're having issues, try enabling DEBUG logging to see detailed information about what the reconstruction is doing. See the [Logging Configuration](#logging-configuration) section for details.
-
-### "No results to save"
-**Cause:** No events matched the selection criteria or all events failed processing.
-
-**Solutions:**
-- Check that event IDs exist in input file
-- For `.nur` files, use run numbers (not event IDs)
-- Remove `--events` flag to process all events
-- If using `--snr-threshold` or `--edge-sigma`, try lowering thresholds or disabling filters
-- Check if all events are being skipped due to failed helper channel criteria
-- **Advanced script only:** Enable `plane_wave_fallback: true` to recover single-string events instead of skipping them
-
-### No clear maximum correlation
-**Cause:** Poor signal quality, wrong channels, or incorrect grid.
-
-**Solutions:**
-- **Enable DEBUG logging** to see correlation matrix details and intermediate values
-- Check SNR of event (use quality cuts with `--snr-threshold` in advanced script)
-- Verify channel selection
-- Adjust search grid (`limits`, `step_sizes`)
-- Try different `fixed_coord` value, or use `mode: 'auto'` (advanced script)
-- Consider using `hilbert_envelope_mode: "correlation"` for better correlation
-- Check for edge signals with `--edge-sigma` (advanced script)
-
-### Slow performance
-**Cause:** Large search grids or missing cache.
-
-**Solutions:**
-- Use coarser grid (`step_sizes`)
-- Enable caching with `--use-cache` if you're repeating the reconstruction with the same config many times
-- Let cache build (first run is slower)
-- **Check DEBUG logging** to see if delay matrices are being computed or loaded from cache
-- Process fewer events at once
-- For advanced script in auto mode: expect ~2× slower than manual mode
-
-### "Invalid mode" or "mode must be 'manual' or 'auto'"
-**Cause:** (Advanced script only) Config file has invalid `mode` parameter.
-
-**Solutions:**
-- Set `mode: "manual"` for standard single-stage reconstruction
-- Set `mode: "auto"` for two-stage automatic reconstruction
-- If omitted, defaults to `"manual"`
-- Only advanced script supports auto mode
-
-### Reconstruction fails with auto mode
-**Cause:** (Advanced script only) Stage 1 or stage 2 reconstruction failed.
-
-**Solutions:**
-- **Enable DEBUG logging** to see which stage failed and why
-- Check verbose output to see which stage failed
-- Verify time delay tables exist for all channels
-- Ensure channels list includes sufficient coverage (recommend: [0,1,2,3,5,6,7,9,10,22,23])
-- Try manual mode first to verify basic functionality
-
-### Too much logging output / Can't find my messages
-**Cause:** INFO level enabled for all packages, flooding output with detector queries and database connections.
-
-**Solutions:**
-- Check logging configuration at top of script
-- Default should be: `set_general_log_level(logging.WARNING)` with specific modules at INFO - set other modules to WARNING as well to restrict output
-- See [Logging Configuration](#logging-configuration) section for details
-- Don't set general level to INFO unless you need to debug package imports
-
-### Events being skipped that should have signal
-**Cause:** (Advanced script only) SNR or edge filtering too aggressive, no fallback enabled.
-
-**Solutions:**
-- Lower `--snr-threshold` or `--edge-sigma` values
-- Enable `plane_wave_fallback: true` in config to recover single-string events
-- Verify that at least one helper channel [9, 10, 22, 23] has good signal
-
----
-
-## Command-Line Arguments Reference
-
-### Simple Script (`interferometric_reco_example.py`)
-
-```bash
-python interferometric_reco_example.py [OPTIONS]
-
-Required:
-  --config CONFIG              Path to YAML configuration file
-  --input FILE [FILE ...]  Input data file(s) (.root or .nur)
-
-Optional:
-  --output_type {hdf5,nur}     Output format (default: hdf5)
-  --outputfile FILE            Manually specify output file path
-  --events N [N ...]           Specific event IDs to process
-  --runs N [N ...]             Specific run numbers (NUR files only)
-  --file-id ID                 Unique identifier for output organization
-                               (useful for simulation files with internal run numbers)
-  --use-cache                  Enable delay matrix caching
-  --save-maps                  Save correlation map data
-  --save-pair-maps             Save channel pair correlation maps
-```
-
-### Advanced Script (`interferometric_reco_example_advanced.py`)
-
-```bash
-python interferometric_reco_example_advanced.py [OPTIONS]
-
-Required:
-  --config CONFIG              Path to YAML configuration file
-  --input FILE [FILE ...]  Input data file(s) (.root or .nur)
-
-Optional:
-  --output_type {hdf5,nur}     Output format (default: hdf5)
-  --outputfile FILE            Manually specify output file path
-  --events N [N ...]           Specific event IDs to process
-  --runs N [N ...]             Specific run numbers (NUR files only)
-  --file-id ID                 Unique identifier for output organization
-                               (useful for simulation files with internal run numbers)
-  --use-cache                  Enable delay matrix caching
-  --save-maps                  Save correlation map data
-  --save-pair-maps             Save channel pair correlation maps
-
-Advanced Options:
-  --snr-threshold FLOAT        SNR threshold for channel filtering
-                               Drops channels below threshold
-                               Skips event if no helper channels [9,10,22,23] pass
-  --snr-weighting              Weight pair correlations by geometric mean of
-                               per-channel SNR. Low-SNR pairs contribute less.
-  --edge-sigma FLOAT           Edge signal detection threshold (in std devs)
-                               Drops channels with signals at trace edges
-                               Skips event if no helper channels remain
-  --sim-truth-fixed-coord      Use simulation truth for fixed coordinate
-                               (NUR simulation files only, for validation)
-                               Falls back to parsing position from filename if
-                               no sim showers are present
+ls /path/to/multiray_tables/station23/st23_ch0_rz_table_direct.npz
 ```
-
----
-
-## 3D Reconstruction
-
-The `reco3d/` subdirectory contains a full 3D reconstruction module that searches all three cylindrical coordinates (rho, phi, z) simultaneously, rather than fixing one coordinate as the 2D scripts above do. This is the recommended approach for production reconstruction of both neutrino and pulser calibration data.
-
-### How it differs from the 2D scripts
-
-The 2D scripts (`interferometric_reco_example.py`, `interferometric_reco_example_advanced.py`) scan two coordinates with the third fixed (e.g., phi and z at fixed rho). The 3D module instead:
-
-1. Performs a coarse 3D grid scan over (rho, phi, z) with log-spaced rho points
-2. Identifies the top-N coarse peaks (default N=3)
-3. Builds a fine linear grid around each peak and re-evaluates the correlation
-4. Refines the best fine-grid result with L-BFGS-B optimization
-5. Optionally runs a second pass with antenna dedispersion at estimated arrival angles
-
-### Multiray support
-
-The 3D module supports per-ray-type travel time tables (direct, reflected, refracted). In `grouped` mode, it evaluates all valid ray-type combinations per channel pair and selects the combination that maximizes the summed correlation. This handles the ambiguity of which ray path each channel's signal took, which is important for sources at geometries where multiple ray solutions of sufficient amplitude exist.
-
-### Files
-
-The core module lives in `NuRadioReco/modules/`:
-
-| File | Description |
-|------|-------------|
-| `interferometricDirectionReconstruction3D.py` | Core 3D reconstruction module with hierarchical grid search and L-BFGS-B refinement |
-
-The example scripts live in `reco3d/`:
-
-| File | Description |
-|------|-------------|
-| `interferometric_reco_3d_example.py` | Driver script: detector setup, preprocessing, pass 1 + optional pass 2 with antenna dedispersion |
-| `evaluate_reco_results.py` | Evaluate reco results against sim truth (neutrino or pulser) |
-| `fast_grouped_multiray.py` | Numba-accelerated grouped multiray correlator |
-| `submit_reco3d_example.sh` | Example SLURM batch submission with automatic chunking and merge |
-
-Table generation scripts (shared with the 2D scripts) live in `tables/`:
-
-| File | Description |
-|------|-------------|
-| `rz_lookup_table_creator_inice.py` | Table generator: multiray, combined, solution-ordered, or all |
-| `submit_rz_table_jobs.slurm` | SLURM submission for all VPOL channels |
-
-HPOL channels (ch4, ch8, ch11, ch21) need separate tables for per-polarization reconstruction. Generate them with the same script using `--channel 4` etc. Use `--detector-file` for batch jobs where MongoDB is unreachable.
-
-### Configs
-
-Validated configs in `reco3d/configs/`. All results below are on 300K-noise simulations at station 23.
 
-| Config | Dataset | Mode | Median | Runtime | Notes |
-|--------|---------|------|--------|---------|-------|
-| `reco3d_neutrino_gzk.yaml` | GZK neutrino (27,667 events) | hw | 1.48 deg | ~2.2 s/event | Sub-degree with corr >= 0.5 (1.04 deg, 34% eff) |
-| `reco3d_pulser_sim.yaml` | Sim pulser (18,879 events) | rxtx | 0.42 deg | ~10 s/event | Sub-degree above 50m distance |
-| `reco3d_pulser_sim.yaml` | Sim pulser | hw | 1.42 deg | ~5 s/event | 0.52 deg at 150-200m |
-| `reco3d_pulser_sim_fast.yaml` | Sim pulser | hw | ~1.5 deg | ~3.5 s/event | Hilbert traces, no pass 2 |
+## Using a different station
 
-Additional configs with multi-peak retention and per-polarization HPOL:
-- `reco3d_neutrino_gzk_full.yaml`: adds `n_peaks_save: 3`, `polarization_groups`, validation output
-- `reco3d_pulser_sim_full.yaml`: same additions for pulsers
-- `reco3d_cr_v9_c1opt_singleray_hpol_multipeak.yaml`: CR-optimized singleray with bandpass [0.1, 0.7] GHz
+The shipped configs are for station 23. To run on a different station, copy a config and change `station_id` to your station number. Make sure travel time tables for your station exist at the path specified by `time_delay_tables`. The code looks for files at `<time_delay_tables>/station{ID}/st{ID}_ch{N}_rz_table_{ray_type}.npz`. All other config parameters (channels, grid limits, preprocessing) are the same across stations.
 
-See `RECO3D_QUICKSTART.md` for full documentation of multi-peak, per-polarization, validation, and coherent waveform output options.
+## Running reconstruction
 
-### Quick example
+### Single file (interactive)
 
 ```bash
 cd reco3d/
 
-# Single neutrino file, hw mode
+# Neutrino, hw mode (no antenna dedispersion, ~2 s/event)
 python interferometric_reco_3d_example.py \
     --config configs/reco3d_neutrino_gzk.yaml \
     --mode hw \
-    -i /path/to/neutrino_000000.nur \
+    -i /path/to/nu_e_ccnc_1e18_1e20eV_GZK-2_IceCube-nu-2022_000000.nur \
     -o results/test_neutrino_hw.h5
 
-# Single pulser file, fast hw mode (no dedispersion pass)
+# Pulser, rxtx mode (Rx + Tx antenna dedispersion, ~10 s/event)
 python interferometric_reco_3d_example.py \
-    --config configs/reco3d_pulser_sim_fast.yaml \
-    --mode hw \
-    -i /path/to/pulser_sim.nur \
-    -o results/test_pulser_fast.h5
+    --config configs/reco3d_pulser_sim.yaml \
+    --mode rxtx \
+    -i /path/to/output_r50.0_zen90.0_az0.0.nur \
+    -o results/test_pulser_rxtx.h5
 
-# Batch (edit submit script for your cluster first)
-bash submit_reco3d_example.sh \
-    configs/reco3d_neutrino_gzk.yaml \
-    /path/to/nur_files/ \
-    /path/to/output/ \
-    hw
+# Pulser, hw mode (no antenna dedispersion, ~5 s/event)
+python interferometric_reco_3d_example.py \
+    --config configs/reco3d_pulser_sim.yaml \
+    --mode hw \
+    -i /path/to/output_r50.0_zen90.0_az0.0.nur \
+    -o results/test_pulser_hw.h5
 ```
 
-See `reco3d/RECO3D_QUICKSTART.md` for full setup instructions, dataset descriptions, resource estimates, and validated benchmark numbers.
+### Batch (SLURM)
 
----
+```bash
+# Neutrino GZK, hw mode, 100 chunks
+bash submit_reco3d_example.sh \
+    --config configs/reco3d_neutrino_gzk.yaml \
+    --data-dir /path/to/gzk_nur_files/ \
+    --output-dir /path/to/output/neutrino_hw/ \
+    --account your_account \
+    --mode hw --n-chunks 100
 
-## Contact & Support
+# Pulser sim, rxtx mode, 200 chunks
+bash submit_reco3d_example.sh \
+    --config configs/reco3d_pulser_sim.yaml \
+    --data-dir /path/to/pulser_scan_data/ \
+    --output-dir /path/to/output/pulser_rxtx/ \
+    --account your_account \
+    --mode rxtx --n-chunks 200
+```
 
-For questions or issues:
-- Review examples in this README
-- Check NuRadioReco documentation
-- Open an issue on the NuRadioMC GitHub repository
+The script splits NUR files across chunks, submits parallel SLURM jobs, and queues a merge job (inline HDF5 concatenation) that runs after all chunks complete. The final output is `merged_reco_results.h5`.
 
+### Evaluating results
+
+Use `evaluate_reco_results.py` to compute angular separations against simulation truth and compare to the validated results:
+
+```bash
+# Neutrino GZK (truth from paired HDF5 files)
+python evaluate_reco_results.py \
+    --reco-file /path/to/output/neutrino_hw/merged_reco_results.h5 \
+    --dataset neutrino \
+    --sim-dir /path/to/gzk_hdf5_files/
+
+# Pulser sim (truth parsed from NUR filenames)
+python evaluate_reco_results.py \
+    --reco-file /path/to/output/pulser_rxtx/merged_reco_results.h5 \
+    --dataset pulser
+```
+
+The script prints median angular separation, percentiles, and the fraction of events below 1 and 2 degrees. It also prints reference values from the validated results below for comparison. These reference values are specific to the shipped validation datasets and station 23. If you are running on a different simulation set or station, your numbers will differ; treat them as a ballpark sanity check, not an exact target.
+
+## Multiray travel time tables
+
+Standard interferometric reconstruction assumes a single ray path between source and receiver. In a medium with a depth-dependent refractive index profile, signals can propagate via multiple paths: direct, reflected (off the surface), and refracted (bent by the index gradient). At many source geometries, two or more of these paths arrive with comparable amplitude, so the correct ray type varies by channel and source position.
+
+The 3D module uses per-channel, per-ray-type travel time tables. In `grouped` mode (`multiray_combo_mode: "grouped"` in the config), it evaluates all physically valid ray-type combinations and selects the one that maximizes the summed correlation. Channels at similar depths are grouped together (they see the same ray type), reducing the combinatorial cost.
+
+Each table is a 2D (R, Z) grid of travel times for one channel and one ray type, stored as an NPZ file. For station 23 with 11 channels and 4 table types (direct, reflected, refracted, plus combined), this is 44 files. The 3D configs in this directory use the per-ray-type tables (direct, refracted, reflected). The combined tables (no suffix, min travel time across ray types) are used when `multi_ray_types: false`.
+
+### Generating tables
+
+The table generator and SLURM submission template are in `../tables/` (shared with the 2D scripts):
+
+```bash
+cd ../tables/
+
+# Single channel, multiray only (default)
+python rz_lookup_table_creator_inice.py \
+    --station 23 --channel 0 --num_threads 8 \
+    --output-dir /path/to/multiray_tables/station23
+
+# Multiray + combined tables in one pass
+python rz_lookup_table_creator_inice.py \
+    --station 23 --channel 0 --mode all --num_threads 8 \
+    --output-dir /path/to/multiray_tables/station23
+
+# All 11 VPOL channels via SLURM
+# Args: STATION (default 23), MODE (default "all"), DET_DATE, OUTPUT_DIR
+sbatch submit_rz_table_jobs.slurm 23 all "2022-10-01" /path/to/multiray_tables/station23
+```
+
+The `--mode` flag controls output: `multiray` (3 per-ray-type files), `combined` (1 min-time file), `solution_ordered` (2 solution-ordered files), or `all` (all of the above). The `--det-date` argument sets the detector description date used for antenna positions (default `2022-10-01`). Use `--detector-file` for batch jobs where MongoDB is unreachable. Tables are computed using NuRadioMC analytic raytracing with the `greenland_simple` exponential ice model. Each channel takes roughly 6 minutes on 9 cores and uses about 5 GB of memory.
+
+### Solution-ordered tables
+
+With the `greenland_simple` ice model, each (R,Z) geometry has 0 or 2 ray solutions (direct + refracted). The reflected solution is rare. Solution-ordered tables reorder by travel time: solution_0 = fastest arrival, solution_1 = slowest. This reduces the grouped correlator combinations from 3^N_groups (81 for 4 depth groups) to 2^N_groups (16), giving a 1.2-1.6x speedup with slightly better accuracy in the optimization tail.
+
+To generate solution-ordered tables:
+
+```bash
+python rz_lookup_table_creator_inice.py \
+    --station 23 --channel 0 --mode solution_ordered --num_threads 8 \
+    --output-dir /path/to/multiray_tables/station23
+```
+
+To use them, set `table_scheme: "solution_ordered"` in the config (see the `_2table` config variants).
+
+## Mode reference
+
+| Mode | What it does | When to use | Runtime |
+|------|-------------|-------------|---------|
+| `hw` | Pass 1 only: cable delay + HW phase removal + grid search | Neutrinos (unknown source), fast pulser baseline | ~2 s/event |
+| `rx` | Pass 1 + Pass 2: Rx antenna dedispersion at estimated arrival angles, local re-search | Neutrinos when runtime is acceptable | ~15 s/event |
+| `rxtx` | Pass 1 + Pass 2: Rx + Tx antenna dedispersion (requires known emitter position in filename) | Pulser simulations only | ~10 s/event |
+
+All modes run pass 1: a hierarchical 3D grid search (coarse log-spaced rho scan, peak extraction, linear refine grid, L-BFGS-B optimization) using the multiray tables.
+
+In `rx` and `rxtx` modes, pass 2 re-reads the event and removes antenna phase dispersion before a local re-search around the pass 1 result. Antenna dispersion introduces frequency-dependent phase shifts that broaden the cross-correlation peak. Removing them sharpens the peak and improves localization.
+
+- **Rx dedispersion** removes the receiving antenna's phase response at the arrival angles estimated from pass 1. Since the arrival direction is unknown beforehand, it requires the pass 1 result.
+- **Tx dedispersion** (rxtx only) also removes the transmitting antenna's phase response at the launch angles computed from the known emitter position. The emitter position is parsed from the NUR filename (pattern `output_r{R}_zen{ZEN}_az{AZ}.nur`), so this mode only applies to pulser simulations where the source location is known.
+
+## Input format and preprocessing
+
+The driver script (`interferometric_reco_3d_example.py`) expects standard NuRadioMC simulation output: NUR files containing voltage traces (not electric fields). No manual preprocessing is needed. The driver applies all necessary waveform processing (cable delays, hardware response removal, upsampling, optional bandpass/CW filtering) internally before calling the reconstruction module. You do not need to apply voltage calibration, antenna deconvolution, bandpass filtering, or any other signal processing yourself.
+
+Which preprocessing steps are applied is controlled by the config file (see table below). The shipped configs use validated defaults, so for a first pass you only need to update the paths.
+
+If you are integrating the reconstruction module into your own processing chain rather than using the driver script, the module expects waveforms that have at minimum had cable delays applied. See the config options below for the full set of preprocessing the driver applies.
+
+All preprocessing options are set in the YAML config file and default to the values shown below.
+
+| Config key | Default | Description |
+|------------|---------|-------------|
+| `apply_cable_delay` | `true` | Subtract cable delays (`channelAddCableDelay`) |
+| `apply_hw_phase_removal` | `true` | Remove hardware phase response (`hardwareResponseIncorporator`, phase-only) |
+| `apply_upsampling` | `true` | Resample to 10 GHz (`channelResampler`) |
+| `apply_bandpass` | `false` | Bandpass filter, 100-600 MHz Butterworth order 10 (`channelBandPassFilter`) |
+| `apply_cw_removal` | `false` | CW sinewave subtraction (`channelSinewaveSubtraction`) |
+| `apply_dedispersion` | `false` | Antenna phase dedispersion at broadside (`channelAntennaDedispersion`) |
+
+The reconstruction module handles additional correlation-level options internally (hilbert envelope mode, hann windowing, correlation normalization, SNR pair weighting). These are also set in the config file and match the interface of the 2D `interferometricDirectionReconstruction` module.
+
+For simulation data, bandpass, CW removal, and dedispersion are typically unnecessary (the permutation study confirmed bandpass is negligible for neutrinos). For real data with CW contamination, enable `apply_cw_removal: true`.
+
+## Resource estimates
+
+Estimates below use the solution-ordered (2-table) scheme. Ray-type (3-table) runtimes are 1.2-1.6x longer.
+
+### Neutrino GZK (27,667 events, hw mode)
+
+| Resource | Estimate |
+|----------|----------|
+| Time per event | ~1.4 s |
+| Total CPU time | ~11 CPU-hours |
+| Recommended chunks | 200 |
+| Walltime per chunk | 10 min |
+| Memory per chunk | 4 GB |
+
+### Pulser sim (18,879 events, rxtx mode)
+
+| Resource | Estimate |
+|----------|----------|
+| Time per event | ~7.8 s |
+| Total CPU time | ~41 CPU-hours |
+| Recommended chunks | 200 |
+| Walltime per chunk | 25 min |
+| Memory per chunk | 4 GB |
+
+### Pulser sim (18,879 events, hw mode)
+
+| Resource | Estimate |
+|----------|----------|
+| Time per event | ~3.5 s |
+| Total CPU time | ~18 CPU-hours |
+| Recommended chunks | 100 |
+| Walltime per chunk | 15 min |
+| Memory per chunk | 4 GB |
+
+See [`benchmarking/README.md`](benchmarking/README.md) for detailed per-stage
+breakdowns and percentile distributions.
+
+## Output format
+
+Each HDF5 output file contains a `results` group with these datasets:
+
+| Dataset | Shape | Description |
+|---------|-------|-------------|
+| `rho` | (N,) | Reconstructed radial distance (m) |
+| `phi` | (N,) | Reconstructed azimuth (deg) |
+| `z` | (N,) | Reconstructed depth (m) |
+| `max_corr` | (N,) | Peak correlation value |
+| `run_number` | (N,) | Event group ID from NUR file |
+| `event_number` | (N,) | Sub-event index |
+| `source_file` | (N,) | Source NUR filename |
+| `pass1_rho` | (N,) | Pass 1 rho (rx/rxtx mode only) |
+| `pass1_phi` | (N,) | Pass 1 phi (rx/rxtx mode only) |
+| `pass1_z` | (N,) | Pass 1 z (rx/rxtx mode only) |
+| `pass1_corr` | (N,) | Pass 1 correlation (rx/rxtx mode only) |
+
+For neutrino truth comparison, the paired HDF5 files contain `xx`, `yy`, `zz` vertex coordinates in the simulation frame. Convert to cylindrical relative to the phased array center for angular separation calculations.
+
+### Multi-peak output
+
+Set `n_peaks_save: 3` in the config to retain the top N peaks from the correlation map. Each peak gets its own fields: `peak_0_rho`, `peak_0_phi`, `peak_0_z`, `peak_0_corr`, `peak_0_map_snr` (and similarly for peaks 1, 2). The primary result (`rho`, `phi`, `z`, `max_corr`) always matches peak 0.
+
+### Per-polarization reconstruction
+
+Set `polarization_groups` in the config to run independent reconstructions per polarization:
+
+```yaml
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23, 4, 8, 11, 21]
+polarization_groups:
+  vpol: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
+  hpol: [4, 8, 11, 21]
+```
+
+VPOL is the primary result. HPOL results are stored with `_hpol` suffix (`rho_hpol`, `phi_hpol`, etc.). No cross-polarization pairs are formed.
+
+### Validation metrics
+
+Pass `--validation` to the driver to record per-channel SNR and quality metrics:
+
+| Field | Description |
+|-------|-------------|
+| `ch{N}_snr` | Per-channel SNR (max|V|/std) |
+| `pa_max_snr`, `pa_avg_snr` | Phased array SNR summary |
+| `helper_b_max_snr`, `helper_c_max_snr` | Helper string max SNR |
+| `n_helpers_above`, `n_channels_above` | Channels above SNR threshold |
+| `has_helper_signal` | Boolean: any helper above threshold |
+| `peak_isolation_ratio` | Ratio of peak 0 correlation to peak 1. Higher = more confident. |
+| `surf_corr_z`, `surf_corr_zen` | Surface correlation quality metrics |
+
+### Coherent waveforms
+
+Set `save_coherent_waveforms: true` and `n_coherent_waveforms: 3` to save the beam-formed waveform at each peak's reconstructed position. Only available in singleray mode (`multi_ray_types: false`). Stored in a separate `coherent_waveforms` HDF5 group. Useful for CNN-based peak selection or signal quality assessment.
+
+## Validated results
+
+All results below are on station 23 with the shipped configs and validation datasets. Numbers are angular separation between the reconstructed vertex direction and the true vertex direction.
+
+### Neutrino GZK (hw mode, 27,667 events, 300K noise)
+
+| Cut | N | Median | p68 | < 1 deg | < 3 deg |
+|-----|------|--------|------|---------|---------|
+| All events | 27,667 | 1.48 deg | 3.30 deg | 39% | 66% |
+| corr >= 0.3 | 14,915 | 1.15 deg | 2.18 deg | 46% | 75% |
+| corr >= 0.5 | 9,346 | 1.04 deg | 1.93 deg | 49% | 78% |
+| corr >= 0.7 | 4,314 | 0.82 deg | 1.39 deg | 58% | 89% |
+| corr >= 0.3, reco z < -200m | 12,863 | 0.94 deg | 1.65 deg | 52% | 82% |
+
+Runtime: ~2.2 s/event (ray-type tables), ~1.4 s/event (solution-ordered tables). Both schemes give identical accuracy.
+
+### Pulser sim (hw mode, 18,879 events)
+
+| Distance | N | Median | p68 |
+|----------|------|--------|------|
+| 10-30m | 3,149 | 3.57 deg | 4.54 deg |
+| 30-50m | 2,782 | 1.49 deg | 2.59 deg |
+| 50-100m | 5,681 | 1.00 deg | 1.55 deg |
+| 100-150m | 4,354 | 0.77 deg | 1.41 deg |
+| 150-200m | 2,663 | 0.52 deg | 0.92 deg |
+| All | 18,879 | 1.42 deg | 2.38 deg |
+
+With rxtx mode (antenna dedispersion): 0.42 deg median on the full set.
+
+Configs: `reco3d_neutrino_gzk.yaml` (neutrino), `reco3d_pulser_sim.yaml` (pulser). Your results should match when using the same configs, tables, and datasets.
+
+## Benchmarking
+
+Detailed per-stage timing breakdowns, memory profiles, and profiling scripts
+are in the `benchmarking/` directory. See
+[`benchmarking/README.md`](benchmarking/README.md) for canonical results on the
+GZK neutrino and simulated pulser datasets.
+
+Quick timing check for a single event:
+
+```bash
+python benchmarking/benchmark_kernels.py \
+    --config configs/reco3d_neutrino_gzk.yaml \
+    --nur-file /path/to/neutrino.nur
+```
+
+## Real data (ROOT files)
+
+The driver auto-detects ROOT vs NUR input. For ROOT files, it uses `readRNOGData` with `read_daq_status=False` to avoid requiring the `combined` tree (not present in all data versions). No other changes needed.
+
+```bash
+python interferometric_reco_3d_example.py \
+    --config configs/reco3d_neutrino_gzk.yaml \
+    --mode hw \
+    -i /path/to/station21/run1234/waveforms.root \
+    -o results/run1234.h5
+```
+
+For real data, set `detector_file` in the config to a local detector export (MongoDB is unavailable on most compute nodes).
+
+## Optional features summary
+
+All optional features are off by default. Enable via config YAML or CLI flags.
+
+| Feature | Config key | CLI flag | Default |
+|---------|-----------|----------|---------|
+| Multi-peak retention | `n_peaks_save: 3` | -- | 1 (single peak) |
+| Per-polarization | `polarization_groups: {vpol: [...], hpol: [...]}` | -- | None (all channels together) |
+| Coherent waveforms | `save_coherent_waveforms: true`, `n_coherent_waveforms: 3` | -- | false |
+| Validation metrics | `validation: true` | `--validation` | false |
+| Plane wave fallback | `plane_wave_fallback: true`, `plane_wave_snr_threshold: 5.0` | -- | false |
+| Bandpass filter | `apply_bandpass: true`, `bandpass_band: [0.1, 0.7]` | -- | false |
+
+## File listing
+
+```
+NuRadioReco/modules/
+  interferometricDirectionReconstruction3D.py   Core 3D reconstruction module
+
+NuRadioReco/examples/RNOG/interferometric_reco_ex/
+  tables/
+    rz_lookup_table_creator_inice.py      Table generator (multiray, combined, solution-ordered)
+    submit_rz_table_jobs.slurm            SLURM submission for all channels
+  reco3d/
+    interferometric_reco_3d_example.py    Driver: preprocessing + pass1 + optional pass2
+    evaluate_reco_results.py              Evaluate reco results against sim truth
+    fast_grouped_multiray.py              Numba-accelerated grouped multiray correlator
+    submit_reco3d_example.sh              SLURM batch submission with chunking and merge
+    RECO3D_QUICKSTART.md                  This file
+    benchmarking/
+      README.md                           Benchmark results and methodology
+      benchmark_kernels.py                Single-event kernel timing
+      summarize_batch_timing.py           Batch timing summary
+      profile_memory.py                   Memory profiling
+    configs/
+      reco3d_neutrino_gzk.yaml            Neutrino, ray-type tables, hw mode
+      reco3d_neutrino_gzk_2table.yaml     Neutrino, solution-ordered tables (recommended)
+      reco3d_pulser_sim.yaml              Pulser, ray-type tables, rxtx mode
+      reco3d_pulser_sim_2table.yaml       Pulser, solution-ordered tables (recommended)
+      reco3d_pulser_sim_fast.yaml         Pulser, hw mode, no dedispersion
+```
