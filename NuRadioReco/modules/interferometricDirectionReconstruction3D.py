@@ -24,6 +24,7 @@ TableData = namedtuple('TableData', [
     'interp', 'values', 'r_min', 'z_min', 'dr_inv', 'dz_inv', 'nr', 'nz',
 ])
 
+from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 
@@ -3612,6 +3613,7 @@ class InterferometricReco3D:
 
         return results
 
+    @register_run()
     def run(self, evt, station, det, config):
         """Run 3D interferometric reconstruction on one event.
 

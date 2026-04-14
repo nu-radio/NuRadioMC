@@ -234,8 +234,7 @@ def save_reco_results_nur(events, filepath, channels_only=None):
     Args:
         events: List of NuRadio Event objects with reconstruction parameters stored.
         filepath: Path to output NUR file.
-        channels_only: Optional list of channel IDs to keep; other channels are
-            stripped before writing to reduce file size.
+        channels_only: Optional list of channel IDs to keep; other channels are stripped before writing to reduce file size.
 
     Returns:
         Output filepath.
