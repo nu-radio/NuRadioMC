@@ -1,13 +1,12 @@
-import os
-from matplotlib.pylab import det
 import numpy as np
-from NuRadioMC.simulation import simulation as sim
-import NuRadioReco.framework.radio_shower
-from NuRadioReco.utilities import units
 import datetime
 from radiotools import helper as hp
-import NuRadioReco.framework.event
 
+from NuRadioReco.utilities import units
+from NuRadioMC.simulation import simulation as sim
+import NuRadioReco.framework.event
+import NuRadioReco.framework.station
+import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import showerParameters as shp
 import NuRadioReco.modules.channelAddCableDelay
 
@@ -17,11 +16,11 @@ class ShowerSimulator():
     """
     Class to simulate voltage traces for a specific shower(s) with user-defined vertex,
     energy, direction, etc. The Askaryan emission, propagation effects and detector response
-    are simulated consistently with simulation.py, but no noise is added and not trigger
-    simulation is run. This is, e.g., useful for studies where only the MC true neutrino
-    signal is of interrrest, and it can act as a pure neutrino signal model, which is needed
-    in forward-folding reconstruction.
-    
+    are simulated consistently with simulation.py, but no noise is added and triggers aren't
+    run. This is, e.g., useful for studies where only the MC true neutrino signal is of
+    interrrest, and it can act as a pure neutrino signal model, which is needed in forward-folding
+    reconstruction.
+
     Parameters
     ----------
     config_file: string
@@ -36,11 +35,8 @@ class ShowerSimulator():
         Channels in the station to run the simulation for. If None, all 
         channels in the station will be used.
     reference_channel: int
-        Channel to clalculate reference time for (only works with reference_channel=0 for now)
-    reference_channel: int
-        Channel to clalculate reference time for (only works with reference_channel=0 for now)
-        if no trace_start_times are provided. Pulse should appear pre_pulse_time into the trace
-        for this channel.
+        Channel to clalculate reference time for if no trace_start_times are provided. The pulse should
+        appear pre_pulse_time into the trace for this channel.
     evt_time: datetime object
         The time of the simulated event, default 1/1/2018
     detector_simulation_filter_amp: function
@@ -86,12 +82,12 @@ class ShowerSimulator():
         self.reference_channel = reference_channel
 
         # Initialize the relavant modules using the simulation class:
-        dummy_imput_file = [{"xx": [None, None]}, [None, None]]
+        dummy_input_file = [{"xx": [None, None]}, [None, None]]
         class mySimulation(sim.simulation):
             def _detector_simulation_filter_amp(self, evt, station, det):
                 detector_simulation_filter_amp(evt, station, det)
         sim_class = mySimulation(
-            inputfilename = dummy_imput_file,
+            inputfilename = dummy_input_file,
             outputfilename = "dummy_output_file.hdf5",
             detectorfile=detectorfile,
             det=det,
@@ -125,7 +121,7 @@ class ShowerSimulator():
             List of shower objects to simulate.
         trace_start_times: array-like
             Start times of the traces for each readout channel. If None, the start times will be set such
-            that the pulse appears pre_pulse_time + vertex_time into the trace of
+            that the pulse appears self.pre_pulse_time + shower[shp.vertex_time] into the trace of the reference channel.
 
         Returns
         -------
@@ -134,13 +130,25 @@ class ShowerSimulator():
         traces: numpy.ndarray
             Numpy array of the simulated traces
         trace_start_times:
-            Start times of the traces for each readout channel. If None, the start times will be set such
-            that the pulse appears self.pre_pulse_time + shower[shp.vertex_time] into the trace of the reference channel.
+            Start times of the traces for each readout channel calculated dynamically if not trace_start_times is provided.
         """
 
         evt = NuRadioReco.framework.event.Event(0, 0)
         station = NuRadioReco.framework.station.Station(self.station_id)
         traces = np.zeros(len(self.channel_ids), dtype=object)
+
+        # Calculate trace start times if not provided:
+        if trace_start_times is None:
+
+            start_point = showers[0][shp.vertex]
+            end_point = self.det.get_relative_position(self.station_id, self.reference_channel)
+            self.propagator.set_start_and_end_point(start_point, end_point)
+            self.propagator.find_solutions()
+            reference_travel_time = self.propagator.get_travel_time(0)
+
+            reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel)
+
+            trace_start_times = np.repeat(reference_travel_time + reference_cable_delay - self.pre_pulse_time, len(self.channel_ids))
 
         for i_ch, channel_id in enumerate(self.channel_ids):
 
@@ -151,11 +159,6 @@ class ShowerSimulator():
 
             if self.add_cable_delay:
                 channelAddCableDelay.run(evt, sim_station, self.det, mode="add")
-
-            if trace_start_times is None and channel_id == self.reference_channel:
-                reference_travel_time = self.propagator.get_travel_time(0)
-                reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel)
-                trace_start_times = np.repeat(reference_travel_time + reference_cable_delay - self.pre_pulse_time, len(self.channel_ids))
 
             # Make empty channel and add sim channels to it:
             channel_info = self.det.get_channel(self.station_id, channel_id)
