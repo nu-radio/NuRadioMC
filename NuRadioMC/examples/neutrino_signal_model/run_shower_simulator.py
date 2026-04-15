@@ -8,7 +8,7 @@ from radiotools import helper as hp
 import NuRadioReco.detector.detector
 import NuRadioReco.modules.channelBandPassFilter
 from NuRadioReco.utilities import units
-from NuRadioMC.examples.neutrino_signal_model.neutrino_simulator import NeutrinoSimulator
+from NuRadioMC.examples.neutrino_signal_model.shower_simulator import ShowerSimulator
 #import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 
 #hardware_response = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
@@ -29,7 +29,7 @@ def detector_simulation_filter_amp(evt, station, det):
 
 station_id = 11
 
-signal_model = NeutrinoSimulator(
+signal_model = ShowerSimulator(
             config_file="../07_RNO_G_simulation/RNO_config.yaml",
             det = det,
             station_id=station_id,
@@ -49,16 +49,16 @@ vertex_zenith = 90 * units.deg + 56 * units.deg # the same as zenith plus Cheren
 vertex_azimuth = 45 * units.deg # the same as azimuth
 vertex_xyz = hp.spherical_to_cartesian(vertex_zenith, vertex_azimuth) * vertex_r
 vertex_xyz[2] -= 100 * units.m # assuming ~100 m antenna depth
-interaction_time = 0
+vertex_time = 0
 
-station, traces, trace_start_times = signal_model.simulate(
+station, traces, trace_start_times = signal_model.simulate_single_shower(
     energy=E_shower,
     zenith=zenith,
     azimuth=azimuth,
     vertex=vertex_xyz,
-    interaction_time=interaction_time,
-    type="HAD",
-    charge_excess_profile_id=None,
+    vertex_time=vertex_time,
+    type="EM",
+    charge_excess_profile_id=5,
 )
 
 
