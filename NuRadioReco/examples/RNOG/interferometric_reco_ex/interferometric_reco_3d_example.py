@@ -533,7 +533,8 @@ def main():
         else:
             reader = readRNOGData()
             reader.begin(input_file,
-                         mattak_kwargs={'read_daq_status': False})
+                         mattak_kwargs={'read_daq_status': False,
+                                        'backend': 'uproot'})
             event_ids = reader.get_event_ids()
 
         emitter_pos = None
