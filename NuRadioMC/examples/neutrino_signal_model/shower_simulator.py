@@ -110,6 +110,20 @@ class ShowerSimulator():
 
         self.pre_pulse_time = pre_pulse_time
 
+        # Get readout sampling rates and number of samples for the channels to be simulated:
+        self.readout_sampling_rates = np.zeros(len(self.channel_ids))
+        self.readout_n_samples = np.zeros(len(self.channel_ids), dtype=int)
+        for i_ch, channel_id in enumerate(self.channel_ids):
+            channel_info = self.det.get_channel(self.station_id, channel_id)
+            self.readout_sampling_rates[i_ch] = channel_info["adc_sampling_frequency"]
+            self.readout_n_samples[i_ch] = channel_info["adc_n_samples"]
+
+        # Determine wether the channels have equal number of samples and sampling rate:
+        if np.all(self.readout_sampling_rates == self.readout_sampling_rates[0]) and np.all(self.readout_n_samples == self.readout_n_samples[0]):
+            self.channels_are_similar = True
+        else:
+            self.channels_are_similar = False
+
 
     def simulate_showers(self, showers, trace_start_times=None):
         """
@@ -135,11 +149,13 @@ class ShowerSimulator():
 
         evt = NuRadioReco.framework.event.Event(0, 0)
         station = NuRadioReco.framework.station.Station(self.station_id)
-        traces = np.zeros(len(self.channel_ids), dtype=object)
+        if self.channels_are_similar:
+            traces = np.zeros([len(self.channel_ids), self.readout_n_samples[0]], dtype=float)
+        else:
+            traces = np.zeros(len(self.channel_ids), dtype=object)
 
         # Calculate trace start times if not provided:
         if trace_start_times is None:
-
             start_point = showers[0][shp.vertex]
             end_point = self.det.get_relative_position(self.station_id, self.reference_channel)
             self.propagator.set_start_and_end_point(start_point, end_point)
@@ -149,34 +165,34 @@ class ShowerSimulator():
             reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel)
 
             trace_start_times = np.repeat(reference_travel_time + reference_cable_delay - self.pre_pulse_time, len(self.channel_ids))
+        elif len(np.atleast_1d(trace_start_times)) == 1:
+            trace_start_times = np.repeat(trace_start_times, len(self.channel_ids))
 
         for i_ch, channel_id in enumerate(self.channel_ids):
 
+            # Electric field simulation:
             sim_station = sim.calculate_sim_efield(showers, self.station_id, channel_id, self.det, self.propagator, self.ice, self.config)
 
+            # Detector simulation:
             if len(sim_station.get_electric_fields()) != 0:
                 sim.apply_det_response_sim(sim_station, self.det, self.config, self.detector_simulation_filter_amp)
 
+            # Add cable delays:
             if self.add_cable_delay:
                 channelAddCableDelay.run(evt, sim_station, self.det, mode="add")
 
             # Make empty channel and add sim channels to it:
-            channel_info = self.det.get_channel(self.station_id, channel_id)
-            readout_sampling_rate = channel_info["adc_sampling_frequency"]
-            readout_n_samples = channel_info["adc_n_samples"]
             readout_channel = NuRadioReco.framework.channel.Channel(channel_id)
             readout_channel.set_trace(
-                np.zeros(readout_n_samples),
-                readout_sampling_rate,
-                trace_start_time=trace_start_times[i_ch]
+                trace = np.zeros(self.readout_n_samples[i_ch]),
+                sampling_rate = self.readout_sampling_rates[i_ch],
+                trace_start_time = trace_start_times[i_ch]
             )
-            
             for sim_channel in sim_station.get_channels_by_channel_id(channel_id):
-
-                sim_channel.resample(readout_sampling_rate)
-
+                sim_channel.resample(self.readout_sampling_rates[i_ch])
                 readout_channel.add_to_trace(sim_channel, raise_error=False,  min_residual_time_offset=0 * units.ns)
 
+            # Add readout channel to station and save trace:
             station.add_channel(readout_channel)
             traces[i_ch] = readout_channel.get_trace()
 
@@ -207,6 +223,7 @@ class ShowerSimulator():
         trace_start_times: array-like
             Start times of the traces for each readout channel. If None, the start times will be set such
             that the pulse appears self.pre_pulse_time + vertex_time into the trace of the reference channel.
+            If a single trace_start_time is provided, it will be used for all channels.
 
         Returns
         -------
@@ -262,6 +279,7 @@ class ShowerSimulator():
         trace_start_times: array-like
             Start times of the traces for each readout channel. If None, the start times will be set such
             that the pulse appears self.pre_pulse_time + vertex_time into the trace of the reference channel.
+            If a single trace_start_time is provided, it will be used for all channels.
 
         Returns
         -------
@@ -270,8 +288,9 @@ class ShowerSimulator():
         traces: numpy.ndarray
             Numpy array of the simulated traces
         trace_start_times:
-            Start times of the traces for each readout channel which
-            are automatically calcualted if trace_start_times is None.
+            Start times of the traces for each readout channel. If None, the start times will be set such
+            that the pulse appears self.pre_pulse_time + vertex_time into the trace of the reference channel.
+            If a single trace_start_time is provided, it will be used for all channels.
         """
 
         shower = NuRadioReco.framework.radio_shower.RadioShower(0)
