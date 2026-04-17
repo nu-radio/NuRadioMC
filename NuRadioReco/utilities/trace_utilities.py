@@ -856,13 +856,6 @@ def get_variable_window_size_correlation(data_trace, template_trace, window_size
         return correlation
 
 
-# -----------------------------------------------------------------------------
-# RNO-G deep cosmic-ray search extensions (merged from deep_cr_search /
-# data_processing custom_trace_utilities.py, 2026-04). These are generic
-# trace-observable utilities used by the CR search pipeline that do not
-# depend on NuRadioReco framework state.
-# -----------------------------------------------------------------------------
-
 from scipy import stats as _stats
 from scipy.ndimage import (maximum_filter1d as _max_filter1d,
                            minimum_filter1d as _min_filter1d)
