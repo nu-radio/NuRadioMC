@@ -867,14 +867,6 @@ def get_maximum_peak_to_peak_amplitude(trace, win_size=6):
     return _max_filter1d(trace, win_size) - _min_filter1d(trace, win_size)
 
 
-def get_nrmc_coherent_sum(wf_dict, ref_channel, channels, use_envelope=False):
-    """Thin wrapper around ``get_coherent_sum`` that takes a
-    ``{channel_id: trace}`` dictionary input."""
-    ref_trace = wf_dict[ref_channel]
-    trace_set = [wf_dict[ch] for ch in channels if ch != ref_channel]
-    return get_coherent_sum(trace_set, ref_trace, use_envelope=use_envelope)
-
-
 def get_spectral_features(trace, sampling_rate, fmin=None, fmax=None,
                           low_band_boundary=0.1):
     """Compute spectral shape descriptors for a voltage trace.
@@ -1074,37 +1066,3 @@ def get_extended_impulsivity(trace):
     }
 
 
-def get_coherent_sum_custom(wf_dict, ref_channel, channels):
-    """Coherent sum using Hilbert-envelope progressive alignment.
-
-    Unlike ``get_coherent_sum``, this aligns each channel against the
-    running sum's Hilbert envelope (not the reference's), giving a
-    different sensitivity profile for impulsive signals buried in
-    channel-correlated noise.
-
-    Parameters
-    ----------
-    wf_dict : dict
-        ``{channel_id: trace_array}``.
-    ref_channel : int
-        Reference channel seeding the sum.
-    channels : iterable of int
-        Channels to include.
-    """
-    sum_chan = wf_dict[ref_channel].copy()
-    for ch in channels:
-        if ch == ref_channel:
-            continue
-        sum_hilbert = np.abs(_hilbert(sum_chan))
-        ch_hilbert = np.abs(_hilbert(wf_dict[ch]))
-        cor = _correlate(sum_hilbert, ch_hilbert, mode="full")
-        lag = np.argmax(cor) - (len(cor) // 2)
-        sum_chan += np.roll(wf_dict[ch], lag)
-    return sum_chan
-
-
-def get_surf_corr(corr_map, num_rows_for_10m):
-    """Maximum correlation value in the surface region of a reco
-    correlation map (shallowest ``num_rows_for_10m`` rows).
-    """
-    return np.max(corr_map[:num_rows_for_10m])
