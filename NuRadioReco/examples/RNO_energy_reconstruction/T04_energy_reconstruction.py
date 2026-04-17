@@ -7,12 +7,21 @@ import NuRadioReco.modules.io.eventReader
 import NuRadioReco.detector.generic_detector
 import argparse
 
-from NuRadioReco.detector.RNO_G import rnog_detector as RNO_G_detector
+from NuRadioReco.detector.RNO_G import rnog_detector_mod as RNO_G_detector
 from astropy.time import Time
-
-Detector= RNO_G_detector.Detector(select_stations=11)
+Detector = RNO_G_detector.ModDetector(
+    select_stations=11,
+    always_query_entire_description=True,
+    signal_chain_measurement_name="calibrated_impulse_response_v0"
+)
 # Set detector time to now
-Detector.update(time=Time.now())
+Detector.update(time=Time("2023-08-01"))
+for chennel_id in Detector.get_channel_ids(11):
+    delay = Detector.get_cable_delay(11, chennel_id)
+    print(f"Channel {chennel_id} has a cable delay of {delay:.2f} ns")
+    Detector.add_manual_time_delay(11, chennel_id, delay, weight=-1)
+
+
 
 
 
@@ -20,16 +29,16 @@ parser = argparse.ArgumentParser('Use the reconstructed vertex position and elec
 parser.add_argument(
     '--input_file',
     type=str,
-    default='reconstructed_efield.nur',
+    default='reconstructed_efield_normal_trace_same_size.nur',
     help='Name of the input file. Should be output file of T03_electric_field_reco.py'
 )
-parser.add_argument(
-    '--detector_file',
-    type=str,
-    default='../../detector/RNO_G/RNO_single_station.json',
-    help='JSON file containing the detector description. Here, we assume it is written for the GenericDetector class.'
+# parser.add_argument(
+#     '--detector_file',
+#     type=str,
+#     default='../../detector/RNO_G/RNO_single_station.json',
+#     help='JSON file containing the detector description. Here, we assume it is written for the GenericDetector class.'
 
-)
+# )
 
 args = parser.parse_args()
 
@@ -113,4 +122,4 @@ ax1_2.set_ylabel('# of events')
 ax1_2.set_xlabel('$E_{rec} / E_{sim}$')
 ax1_2.grid()
 fig1.tight_layout()
-fig1.savefig('plots/energy_reconstruction_1920.png')
+fig1.savefig('plots/energy_reconstruction_19.png')
