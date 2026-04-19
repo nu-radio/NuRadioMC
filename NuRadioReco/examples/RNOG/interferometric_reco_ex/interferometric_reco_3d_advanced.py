@@ -24,11 +24,8 @@ import h5py
 import NuRadioReco.detector.detector as detector
 from NuRadioReco.detector.RNO_G import rnog_detector
 from NuRadioReco.modules.channelResampler import channelResampler
-from NuRadioReco.modules.channelAddCableDelay import channelAddCableDelay
-from NuRadioReco.modules.channelBandPassFilter import channelBandPassFilter
-from NuRadioReco.modules.channelSinewaveSubtraction import channelSinewaveSubtraction
 from NuRadioReco.modules.channelAntennaDedispersion import channelAntennaDedispersion
-from NuRadioReco.modules.RNO_G.hardwareResponseIncorporator import hardwareResponseIncorporator
+from NuRadioReco.modules.RNO_G.channelPreprocessor import channelPreprocessor
 from NuRadioReco.modules.io.eventReader import eventReader
 from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
 from NuRadioReco.utilities import units
@@ -313,36 +310,32 @@ def make_fallback_config(config):
 
 def preprocess_station(evt, stn, det, config, modules, apply_upsample=True,
                        apply_dedisp=False):
-    """Apply standard preprocessing chain to a station.
+    """Apply the reco preprocessing chain to a station.
+
+    Delegates the timing-agnostic steps (cable delay, hardware phase
+    removal, CW subtraction, bandpass) to the shared ``channelPreprocessor``
+    via ``modules['preprocessor']``. Keeps upsampling and antenna
+    dedispersion driver-owned because the reco two-pass flow controls
+    their timing explicitly (pass 2 dedisperses before upsampling).
 
     Args:
         evt: NuRadioReco Event.
         stn: Station object.
         det: Detector description.
-        config: Reco config dict.
-        modules: Dict with keys 'cable_delay', 'hw_response', 'resampler',
-            'cw_filter', 'bandpass_filter', 'antenna_dedispersion'.
+        config: Reco config dict. Reads ``apply_upsampling`` and
+            ``apply_dedispersion`` at top level for the driver-owned
+            steps; everything else lives in the ``preprocessor:`` block
+            consumed by ``channelPreprocessor`` at begin() time.
+        modules: Dict with keys ``'preprocessor'``, ``'resampler'``,
+            ``'antenna_dedispersion'``.
         apply_upsample: Apply upsampling (pass 1 only).
-        apply_dedisp: Apply antenna dedispersion (pass 1 only).
+        apply_dedisp: Apply generic antenna dedispersion (pass 1 only;
+            distinct from the rx/tx dedispersion applied between passes).
     """
-    if config.get('apply_cable_delay', True):
-        modules['cable_delay'].run(evt, stn, det, mode='subtract')
-    if config.get('apply_hw_phase_removal', True):
-        modules['hw_response'].run(evt, stn, det, sim_to_data=False,
-                                    mode='phase_only')
+    modules['preprocessor'].run(evt, stn, det)
     if apply_upsample and config.get('apply_upsampling', True):
         modules['resampler'].run(evt, stn, det,
                                   sampling_rate=10 * units.GHz)
-    if config.get('apply_cw_removal', False):
-        peak_prominence = config.get('cw_peak_prominence', 4.0)
-        modules['cw_filter'].run(evt, stn, det,
-                                  peak_prominence=peak_prominence)
-    if config.get('apply_bandpass', False):
-        bp_band = config.get('bandpass_band', [0.1, 0.7])
-        modules['bandpass_filter'].run(evt, stn, det,
-            passband=[bp_band[0] * units.GHz, bp_band[1] * units.GHz],
-            filter_type=config.get('bandpass_filter_type', 'butter'),
-            order=config.get('bandpass_order', 10))
     if apply_dedisp and config.get('apply_dedispersion', False):
         modules['antenna_dedispersion'].run(evt, stn, det)
 
@@ -439,20 +432,22 @@ def main():
     ch2_rel = np.array(det.get_relative_position(station_id, 2))
     pa_abs = station_pos + 0.5 * (ch1_rel + ch2_rel)
 
-    cable_delay = channelAddCableDelay(); cable_delay.begin()
+    # Shared preprocessing chain (cable delay, hw phase removal, CW,
+    # bandpass). Upsampling and antenna dedispersion stay driver-owned
+    # because reco's two-pass flow orders them around rx/tx dedispersion.
+    # The reco driver always controls upsampling externally, so force it
+    # off inside channelPreprocessor regardless of what the preprocessor
+    # config block says.
+    preproc_config = dict(config.get('preprocessor', {}))
+    preproc_config['apply_upsampling'] = False
+    preprocessor = channelPreprocessor()
+    preprocessor.begin(config=preproc_config)
+
     resampler = channelResampler(); resampler.begin()
-    hw_response = hardwareResponseIncorporator(); hw_response.begin()
-    bandpass_filter = channelBandPassFilter(); bandpass_filter.begin()
-    cw_filter = channelSinewaveSubtraction()
-    cw_filter.begin(
-        save_filtered_freqs=False,
-        freq_band=tuple(config.get('cw_freq_band', [0.1, 0.6]))
-    )
     antenna_dedispersion = channelAntennaDedispersion()
     pp_modules = {
-        'cable_delay': cable_delay, 'hw_response': hw_response,
-        'resampler': resampler, 'cw_filter': cw_filter,
-        'bandpass_filter': bandpass_filter,
+        'preprocessor': preprocessor,
+        'resampler': resampler,
         'antenna_dedispersion': antenna_dedispersion,
     }
 
