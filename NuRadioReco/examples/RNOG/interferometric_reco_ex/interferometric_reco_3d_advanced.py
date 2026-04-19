@@ -25,9 +25,8 @@ import NuRadioReco.detector.detector as detector
 from NuRadioReco.detector.RNO_G import rnog_detector
 from NuRadioReco.modules.channelResampler import channelResampler
 from NuRadioReco.modules.channelAntennaDedispersion import channelAntennaDedispersion
-from NuRadioReco.modules.RNO_G.channelPreprocessor import channelPreprocessor
-from NuRadioReco.modules.io.eventReader import eventReader
-from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
+from NuRadioReco.modules.RNO_G.dataProviderRNOG import dataProviderRNOG
+from NuRadioReco.modules.RNO_G.dataProviderNuRadio import dataProviderNuRadio
 from NuRadioReco.utilities import units
 from NuRadioReco.detector.antennapattern import AntennaPatternProvider
 from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
@@ -308,38 +307,6 @@ def make_fallback_config(config):
     return fb
 
 
-def preprocess_station(evt, stn, det, config, modules, apply_upsample=True,
-                       apply_dedisp=False):
-    """Apply the reco preprocessing chain to a station.
-
-    Delegates the timing-agnostic steps (cable delay, hardware phase
-    removal, CW subtraction, bandpass) to the shared ``channelPreprocessor``
-    via ``modules['preprocessor']``. Keeps upsampling and antenna
-    dedispersion driver-owned because the reco two-pass flow controls
-    their timing explicitly (pass 2 dedisperses before upsampling).
-
-    Args:
-        evt: NuRadioReco Event.
-        stn: Station object.
-        det: Detector description.
-        config: Reco config dict. Reads ``apply_upsampling`` and
-            ``apply_dedispersion`` at top level for the driver-owned
-            steps; everything else lives in the ``preprocessor:`` block
-            consumed by ``channelPreprocessor`` at begin() time.
-        modules: Dict with keys ``'preprocessor'``, ``'resampler'``,
-            ``'antenna_dedispersion'``.
-        apply_upsample: Apply upsampling (pass 1 only).
-        apply_dedisp: Apply generic antenna dedispersion (pass 1 only;
-            distinct from the rx/tx dedispersion applied between passes).
-    """
-    modules['preprocessor'].run(evt, stn, det)
-    if apply_upsample and config.get('apply_upsampling', True):
-        modules['resampler'].run(evt, stn, det,
-                                  sampling_rate=10 * units.GHz)
-    if apply_dedisp and config.get('apply_dedispersion', False):
-        modules['antenna_dedispersion'].run(evt, stn, det)
-
-
 def main():
     """Run iterative 3D interferometric reconstruction on input events."""
     parser = argparse.ArgumentParser(
@@ -432,24 +399,18 @@ def main():
     ch2_rel = np.array(det.get_relative_position(station_id, 2))
     pa_abs = station_pos + 0.5 * (ch1_rel + ch2_rel)
 
-    # Shared preprocessing chain (cable delay, hw phase removal, CW,
-    # bandpass). Upsampling and antenna dedispersion stay driver-owned
-    # because reco's two-pass flow orders them around rx/tx dedispersion.
-    # The reco driver always controls upsampling externally, so force it
-    # off inside channelPreprocessor regardless of what the preprocessor
-    # config block says.
+    # Shared preprocessing chain (block-offset, glitch, cable delay,
+    # hw phase removal, CW, bandpass) runs inside the dataProvider
+    # instantiated per input file below. Upsampling and antenna
+    # dedispersion stay driver-owned because reco's two-pass flow orders
+    # them around rx/tx dedispersion; always force apply_upsampling=False
+    # in the preprocessor config so the driver controls upsampling
+    # externally via the explicit resampler calls.
     preproc_config = dict(config.get('preprocessor', {}))
     preproc_config['apply_upsampling'] = False
-    preprocessor = channelPreprocessor()
-    preprocessor.begin(config=preproc_config)
 
     resampler = channelResampler(); resampler.begin()
     antenna_dedispersion = channelAntennaDedispersion()
-    pp_modules = {
-        'preprocessor': preprocessor,
-        'resampler': resampler,
-        'antenna_dedispersion': antenna_dedispersion,
-    }
 
     provider = AntennaPatternProvider()
     tx_model = config.get('tx_antenna_model', 'RNOG_vpol_v3_5inch_center_n1.74')
@@ -533,15 +494,18 @@ def main():
             continue
 
         if is_nur:
-            reader = eventReader()
-            reader.begin(input_file)
-            event_ids = reader._eventReader__fin.get_event_ids()
+            data_provider = dataProviderNuRadio()
+            data_provider.begin(
+                input_file, det, preprocessor_config=preproc_config)
         else:
-            reader = readRNOGData()
-            reader.begin(input_file,
-                         mattak_kwargs={'read_daq_status': False,
-                                        'backend': 'uproot'})
-            event_ids = reader.get_event_ids()
+            data_provider = dataProviderRNOG()
+            data_provider.begin(
+                input_file, det,
+                reader_kwargs={'mattak_kwargs': {
+                    'read_daq_status': False, 'backend': 'uproot'}},
+                preprocessor_config=preproc_config,
+            )
+        event_ids = data_provider.get_event_ids()
 
         emitter_pos = None
         launch_angles = {}
@@ -570,15 +534,17 @@ def main():
 
             t0 = time.time()
 
-            if is_nur:
-                evt1 = reader._eventReader__fin.get_event(event_id=eid)
-            else:
-                evt1 = reader.get_event(eid[0], eid[1])
-            stn1 = evt1.get_station(station_id)
-
             t_preproc_start = time.time()
-            preprocess_station(evt1, stn1, det, config, pp_modules,
-                               apply_upsample=True, apply_dedisp=True)
+            evt1 = data_provider.get_event(int(eid[0]), int(eid[1]))
+            stn1 = evt1.get_station(station_id)
+            # channelPreprocessor already ran inside data_provider;
+            # apply the driver-owned pass-1 steps (upsample + optional
+            # generic dedispersion).
+            if config.get('apply_upsampling', True):
+                resampler.run(evt1, stn1, det,
+                              sampling_rate=10 * units.GHz)
+            if config.get('apply_dedispersion', False):
+                antenna_dedispersion.run(evt1, stn1, det)
             t_preproc = time.time() - t_preproc_start
 
             use_fallback = False
@@ -603,14 +569,12 @@ def main():
             elif args.mode == "hw":
                 result = r1
             else:
-                if is_nur:
-                    evt2 = reader._eventReader__fin.get_event(event_id=eid)
-                else:
-                    evt2 = reader.get_event(eid[0], eid[1])
+                # Re-read the event for pass 2 so we start from fresh
+                # traces with only channelPreprocessor applied (no
+                # upsampling, no generic dedispersion). rx/tx dedispersion
+                # below uses arrival angles from pass 1.
+                evt2 = data_provider.get_event(int(eid[0]), int(eid[1]))
                 stn2 = evt2.get_station(station_id)
-
-                preprocess_station(evt2, stn2, det, config, pp_modules,
-                                   apply_upsample=False, apply_dedisp=False)
 
                 t_p2_pre = time.time()
                 rx_angles = compute_arrival_angles(
@@ -705,7 +669,7 @@ def main():
             if args.max_events and n_processed >= args.max_events:
                 break
 
-        reader.end()
+        data_provider.end()
         if args.max_events and n_processed >= args.max_events:
             break
 
