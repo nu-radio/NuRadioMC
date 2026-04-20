@@ -156,10 +156,7 @@ def build_feature_row(per_ch, traces, sampling_rate, config):
         for name, val in feats.items():
             row[f"ch{ch}_{name}"] = val
 
-    row["pa_avg_snr"] = _mean_over({c: per_ch[c]["snr"] for c in per_ch if "snr" in per_ch[c]}, PA_CHS)
-    row["vpol_avg_snr"] = _mean_over({c: per_ch[c]["snr"] for c in per_ch if "snr" in per_ch[c]}, VPOL_CHS)
-
-    for key in ("kurtosis", "entropy"):
+    for key in ("snr", "kurtosis", "entropy", "max_amplitude", "impulsivity"):
         vals_per_ch = {c: per_ch[c][key] for c in per_ch if key in per_ch[c]}
         row[f"{key}_avg_pa"] = _mean_over(vals_per_ch, PA_CHS)
         row[f"{key}_avg_vpol"] = _mean_over(vals_per_ch, VPOL_CHS)
@@ -196,7 +193,8 @@ def build_feature_row(per_ch, traces, sampling_rate, config):
         if cs_pa is not None:
             pa_feats = _coherent_sum_features(
                 cs_pa, sampling_rate, n_bins, spec_fmin, spec_fmax, spec_low)
-            row.update(pa_feats)
+            for k, v in pa_feats.items():
+                row[k + "_pa"] = v
         if cs_vpol is not None:
             vpol_feats = _coherent_sum_features(
                 cs_vpol, sampling_rate, n_bins, spec_fmin, spec_fmax, spec_low)

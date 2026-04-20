@@ -23,15 +23,17 @@ Per-event rows are flattened into a single DataFrame with these
 conventions:
 
 - `ch{N}_{feature}` — per-channel values from the generic extractor
-  (`snr`, `noise_rms`, `impulsivity`, `kurtosis`, spectral descriptors,
-  impulse-template correlations, etc.).
+  (`snr`, `noise_rms`, `rpr`, `max_amplitude`, `impulsivity`,
+  `kurtosis`, `entropy`, spectral descriptors, impulse-template
+  correlations, etc.).
 - `{feature}_avg_{pa,vpol,deep}` — mean of the per-channel value over
   the PA (ch0-3), VPOL (ch0,1,2,3,5,6,7,9,10,22,23), and deep
-  (VPOL + HPOL) groups.
-- `pa_avg_snr`, `vpol_avg_snr` — mean of the per-channel SNR over PA
-  and VPOL groups.
-- `coherent_*` — features of the PA coherent sum.
-- `coherent_*_vpol` — features of the VPOL coherent sum.
+  (VPOL + HPOL) groups. Covers `snr`, `kurtosis`, `entropy`,
+  `max_amplitude`, `impulsivity`, each spectral descriptor, and each
+  impulse-template correlation.
+- `coherent_{feature}_{pa,vpol}` — features of the PA-coherent-sum and
+  VPOL-coherent-sum traces (SNR, impulsivity, kurtosis, entropy,
+  spectral descriptors, impulse-template correlations).
 - `passed_hit_filter`, `n_coincident_pairs_{pa,in_ice}`,
   `n_high_hits_{pa,in_ice}` — only present when `hit_filter.enabled` is
   set in the config (see below).
