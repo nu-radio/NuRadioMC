@@ -26,7 +26,7 @@ class Minimizer:
     Parameters
     ----------
         objective_function : function
-            If no signal_function is provided, this is a function which takes a number of parameters (as a numpy.ndarray)
+            If no signal_function is provided, this is a function which takes a number of parameters (as one numpy.ndarray)
             as input and returns the objective value to minimize, e.g., a minus two log likelihood or chi-square, i.e.,
             objective_function(parameters).
             If a signal_function is provided, the objective_function takes the the output of the signal_function and the
@@ -36,9 +36,10 @@ class Minimizer:
         parameters_bounds : numpy.ndarray
             Upper and lower bounds on parameters in the minimization. Should have dimensions [2,n_parameters]
         signal_function : function (optional)
-            Function which takes a list of parameter values as input and returns a signal. The type and shape of the output
-            depends on what happens in the user-defined objective_function, but it could be a numpy array with shape
-            [n_antennas, n_samples] containing a radio signal in a number channels, or a list of channels.
+            Function which takes a numpy array with parameter values as input (i.e., signal_function(parameters)) and
+            returns a signal. The type and shape of the output depends on what happens in the user-defined objective_function,
+            but it could be a numpy array with shape [n_antennas, n_samples] containing a radio signal in a number channels,
+            or a list of channels.
         save_history : bool (optional)
             Whether to save the history the parameters in the minimization process. This should only be used for debugging as it can create very large arrays
             and make the minimization slow.
