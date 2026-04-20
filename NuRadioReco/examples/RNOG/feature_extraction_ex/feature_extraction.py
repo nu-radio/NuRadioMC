@@ -72,11 +72,15 @@ def init_detector(config):
     """Build a detector from a config entry.
 
     Config keys:
-        detector_source: "json" (NuRadioReco JSON) or "rnog_file"
-            (exported MongoDB snapshot, ``.json.xz``).
-        detector_file: path to the file (required).
+        detector_source: "rnog_mongo" (live MongoDB query, default),
+            "rnog_file" (exported MongoDB snapshot, ``.json.xz``),
+            or "json" (NuRadioReco JSON).
+        detector_file: path to the file. Required for "rnog_file" and
+            "json"; ignored for "rnog_mongo".
     """
-    source = config.get("detector_source", "json")
+    source = config.get("detector_source", "rnog_mongo")
+    if source == "rnog_mongo":
+        return detector.Detector(source="rnog_mongo")
     path = config["detector_file"]
     if source == "rnog_file":
         return rnog_detector.Detector(detector_file=path)

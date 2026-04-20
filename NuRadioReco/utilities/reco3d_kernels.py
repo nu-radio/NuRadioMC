@@ -124,30 +124,42 @@ except Exception:
     _FUSED_MULTIRAY_CORR_KERNEL = None
 
 USE_NUMBA_GROUPED = False
-try:
-    from fast_grouped_multiray import (
-        grouped_multiray_numba, perpair_multiray_numba,
-        pack_tt_grids, pack_corr_data, build_combo_table,
-        _grouped_multiray_kernel,
+grouped_multiray_numba = None
+perpair_multiray_numba = None
+pack_tt_grids = None
+pack_corr_data = None
+build_combo_table = None
+_grouped_multiray_kernel = None
+if USE_NUMBA:
+    # fast_grouped_multiray lives next to the RNO-G reco3d example driver
+    # rather than here, because it's an optional numba fast-path specific
+    # to the multiray case. Load it by absolute path so this module
+    # doesn't depend on sys.path state.
+    import importlib.util as _importlib_util
+    _fgm_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "examples", "RNOG", "interferometric_reco_ex",
+        "fast_grouped_multiray.py",
     )
-    if USE_NUMBA:
-        USE_NUMBA_GROUPED = True
-        logger.info("Numba grouped multiray kernels loaded")
-except ImportError:
-    pass
+    if os.path.isfile(_fgm_path):
+        try:
+            _spec = _importlib_util.spec_from_file_location(
+                "fast_grouped_multiray", _fgm_path)
+            _mod = _importlib_util.module_from_spec(_spec)
+            _spec.loader.exec_module(_mod)
+            grouped_multiray_numba = _mod.grouped_multiray_numba
+            perpair_multiray_numba = _mod.perpair_multiray_numba
+            pack_tt_grids = _mod.pack_tt_grids
+            pack_corr_data = _mod.pack_corr_data
+            build_combo_table = _mod.build_combo_table
+            _grouped_multiray_kernel = _mod._grouped_multiray_kernel
+            USE_NUMBA_GROUPED = True
+            logger.info("Numba grouped multiray kernels loaded")
+        except Exception:
+            pass
 
 USE_CPP_EXTENSION = False
-try:
-    cpp_path = os.path.join(os.path.dirname(__file__), "cpp")
-    if cpp_path not in sys.path:
-        sys.path.insert(0, cpp_path)
-    from fast_delay_matrices_3d import (
-        compute_delay_matrices_3d as _compute_delay_matrices_cpp,
-    )
-    USE_CPP_EXTENSION = True
-    logger.info("3D C++ extension loaded")
-except (ImportError, OSError):
-    logger.info("3D C++ extension not available, using Python fallback")
+_compute_delay_matrices_cpp = None
 
 RAY_TYPES = ['direct', 'refracted', 'reflected']
 SOLUTION_TYPES = ['solution_0', 'solution_1']
