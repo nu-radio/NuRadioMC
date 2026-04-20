@@ -44,6 +44,7 @@ from scipy import stats
 from NuRadioReco.modules.channelFeatureExtractor import channelFeatureExtractor
 from NuRadioReco.modules.RNO_G.dataProviderRNOG import dataProviderRNOG
 from NuRadioReco.modules.RNO_G.dataProviderNuRadio import dataProviderNuRadio
+from NuRadioReco.modules.RNO_G.stationHitFilter import stationHitFilter
 from NuRadioReco.detector import detector
 from NuRadioReco.detector.RNO_G import rnog_detector
 import NuRadioReco.utilities.trace_utilities as trace_utils
@@ -205,6 +206,38 @@ def build_feature_row(per_ch, traces, sampling_rate, config):
     return row
 
 
+def compute_hit_filter_features(event, station, det, hit_filter):
+    """Run the station hit filter and return summary features for one event.
+
+    Columns:
+        passed_hit_filter: 1 if event passes the filter, else 0.
+        n_coincident_pairs_pa: coincident channel pairs inside the PA group.
+        n_high_hits_pa: PA channels with Hilbert max above threshold.
+        n_coincident_pairs_in_ice: coincident pairs across all in-ice groups.
+        n_high_hits_in_ice: in-ice channels with Hilbert max above threshold.
+    """
+    passed = hit_filter.run(event, station, det)
+
+    in_time_window = hit_filter.is_in_time_window()
+    over_hit_threshold = hit_filter.is_over_hit_threshold()
+
+    n_pairs_pa = int(sum(in_time_window[0]))
+    n_high_pa = int(sum(over_hit_threshold[:4]))
+
+    n_pairs_in_ice = n_pairs_pa + int(
+        sum(in_time_window[grp][0] for grp in range(1, 4))
+    )
+    n_high_in_ice = int(sum(over_hit_threshold[:15]))
+
+    return {
+        "passed_hit_filter": int(passed),
+        "n_coincident_pairs_pa": n_pairs_pa,
+        "n_high_hits_pa": n_high_pa,
+        "n_coincident_pairs_in_ice": n_pairs_in_ice,
+        "n_high_hits_in_ice": n_high_in_ice,
+    }
+
+
 def extract_station_traces(station, channel_ids):
     """Read current traces off the station into ``{ch: np.ndarray}``."""
     out = {}
@@ -224,6 +257,15 @@ def main(config, input_files, run_chunk, event_filter=None):
     extractor = channelFeatureExtractor()
     extractor.begin(config=config.get("features", {}))
 
+    hf_cfg = config.get("hit_filter", {})
+    hit_filter = None
+    if hf_cfg.get("enabled", False):
+        hit_filter = stationHitFilter(
+            complete_time_check=hf_cfg.get("complete_time_check", True),
+            complete_hit_check=hf_cfg.get("complete_hit_check", True),
+        )
+        hit_filter.begin()
+
     results = []
     for event in provider.run():
         station = event.get_station()
@@ -232,6 +274,12 @@ def main(config, input_files, run_chunk, event_filter=None):
         evt_num = event.get_id()
         if event_filter is not None and evt_num not in event_filter:
             continue
+
+        hf_features = {}
+        if hit_filter is not None:
+            hf_features = compute_hit_filter_features(event, station, det, hit_filter)
+            if hf_cfg.get("require_pass", False) and not hf_features["passed_hit_filter"]:
+                continue
 
         per_ch = extractor.run(event, station, det, channel_ids=channels)
 
@@ -243,6 +291,9 @@ def main(config, input_files, run_chunk, event_filter=None):
         traces = extract_station_traces(station, channels)
         row = build_feature_row(per_ch, traces, sampling_rate, config)
 
+        if hit_filter is not None and hf_cfg.get("add_features", True):
+            row.update(hf_features)
+
         row["run_number"] = run_num
         row["event_number"] = evt_num
         row["source_file"] = _source_for_event(event, input_files)
@@ -253,6 +304,9 @@ def main(config, input_files, run_chunk, event_filter=None):
                 row["log10_energy"] = lge
 
         results.append(row)
+
+    if hit_filter is not None and hf_cfg.get("log_summary", True):
+        hit_filter.end()
 
     provider.end()
 

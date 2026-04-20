@@ -32,6 +32,25 @@ conventions:
   and VPOL groups.
 - `coherent_*` — features of the PA coherent sum.
 - `coherent_*_vpol` — features of the VPOL coherent sum.
+- `passed_hit_filter`, `n_coincident_pairs_{pa,in_ice}`,
+  `n_high_hits_{pa,in_ice}` — only present when `hit_filter.enabled` is
+  set in the config (see below).
+
+## Optional: station hit filter
+
+The driver can run `NuRadioReco.modules.RNO_G.stationHitFilter` per
+event, emit its outputs as extra columns, and optionally skip events
+that fail the filter. Enable via the config:
+
+```yaml
+hit_filter:
+  enabled: true          # run the filter (default: false)
+  require_pass: false    # drop events that don't pass (default: false)
+  add_features: true     # write hit-filter columns to output (default: true)
+  complete_time_check: true
+  complete_hit_check: true
+  log_summary: true      # log pass/fail summary at end of chunk
+```
 
 ## Relation to the generic module
 
