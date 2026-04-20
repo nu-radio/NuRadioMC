@@ -433,6 +433,9 @@ class IftElectricFieldReconstructor:
             ax1_2.grid()
             fig2 = plt.figure(figsize=(12, 12))
         channel_trace_templates = np.zeros((len(self.__used_channel_ids), len(self.__electric_field_template.get_trace())))
+        template_length = self.__electric_field_template.get_number_of_samples()
+        trace_length = max_channel_length
+
         lags=signal.correlation_lags(template_length, trace_length, mode="full")
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
