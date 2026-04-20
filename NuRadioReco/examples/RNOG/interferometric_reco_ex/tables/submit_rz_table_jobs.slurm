@@ -4,8 +4,10 @@
 #SBATCH --cpus-per-task=9
 #SBATCH --mem=8GB
 #SBATCH --time=04:00:00
-#SBATCH --account=open
 #SBATCH -o ./slurm_outputs/slurm-tables-%A_%a.out
+
+# Set SLURM account/partition via your site's normal mechanism
+# (e.g. sbatch --account=... --partition=... submit_rz_table_jobs.slurm).
 
 export NUMBA_CACHE_DIR=/tmp/numba_cache_${SLURM_JOB_ID}_${SLURM_ARRAY_TASK_ID}
 mkdir -p $NUMBA_CACHE_DIR

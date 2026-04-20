@@ -17,6 +17,8 @@ import yaml
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 RECO3D_DIR = os.path.dirname(SCRIPT_DIR)
+# interferometric_reco_3d_advanced is a plain script, not an installable
+# module, so add its parent dir to sys.path to import functions from it.
 sys.path.insert(0, RECO3D_DIR)
 
 
