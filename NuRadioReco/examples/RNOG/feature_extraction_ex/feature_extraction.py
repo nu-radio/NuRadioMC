@@ -253,7 +253,6 @@ def extract_station_traces(station, channel_ids):
 def main(config, input_files, run_chunk, event_filter=None):
     """Run the RNO-G feature extraction pipeline over ``input_files``."""
     det = init_detector(config)
-    provider = select_provider(config, input_files, det)
 
     channels = tuple(config.get("channels", DEEP_CHS))
     extractor = channelFeatureExtractor()
@@ -268,60 +267,57 @@ def main(config, input_files, run_chunk, event_filter=None):
         )
         hit_filter.begin()
 
+    # Iterate one input file at a time so each event's source_file is
+    # unambiguous. eventReader does not tag events with their originating
+    # file, and feeding a multi-file list would require guessing.
     results = []
-    for event in provider.run():
-        station = event.get_station()
+    for src_file in input_files:
+        provider = select_provider(config, [src_file], det)
+        for event in provider.run():
+            station = event.get_station()
 
-        run_num = event.get_run_number()
-        evt_num = event.get_id()
-        if event_filter is not None and evt_num not in event_filter:
-            continue
-
-        hf_features = {}
-        if hit_filter is not None:
-            hf_features = compute_hit_filter_features(event, station, det, hit_filter)
-            if hf_cfg.get("require_pass", False) and not hf_features["passed_hit_filter"]:
+            run_num = event.get_run_number()
+            evt_num = event.get_id()
+            if event_filter is not None and evt_num not in event_filter:
                 continue
 
-        per_ch = extractor.run(event, station, det, channel_ids=channels)
+            hf_features = {}
+            if hit_filter is not None:
+                hf_features = compute_hit_filter_features(event, station, det, hit_filter)
+                if hf_cfg.get("require_pass", False) and not hf_features["passed_hit_filter"]:
+                    continue
 
-        sampling_rate = None
-        for ch in station.iter_channels():
-            sampling_rate = ch.get_sampling_rate()
-            break
+            per_ch = extractor.run(event, station, det, channel_ids=channels)
 
-        traces = extract_station_traces(station, channels)
-        row = build_feature_row(per_ch, traces, sampling_rate, config)
+            sampling_rate = None
+            for ch in station.iter_channels():
+                sampling_rate = ch.get_sampling_rate()
+                break
 
-        if hit_filter is not None and hf_cfg.get("add_features", True):
-            row.update(hf_features)
+            traces = extract_station_traces(station, channels)
+            row = build_feature_row(per_ch, traces, sampling_rate, config)
 
-        row["run_number"] = run_num
-        row["event_number"] = evt_num
-        row["source_file"] = _source_for_event(event, input_files)
+            if hit_filter is not None and hf_cfg.get("add_features", True):
+                row.update(hf_features)
 
-        if config.get("data_type", "root") == "nur":
-            lge = _extract_log10_energy(row["source_file"])
-            if lge is not None:
-                row["log10_energy"] = lge
+            row["run_number"] = run_num
+            row["event_number"] = evt_num
+            row["source_file"] = src_file
 
-        results.append(row)
+            if config.get("data_type", "root") == "nur":
+                lge = _extract_log10_energy(src_file)
+                if lge is not None:
+                    row["log10_energy"] = lge
+
+            results.append(row)
+
+        provider.end()
 
     if hit_filter is not None and hf_cfg.get("log_summary", True):
         hit_filter.end()
 
-    provider.end()
-
     df = pd.DataFrame(results)
     _save(df, config, run_chunk)
-
-
-def _source_for_event(event, input_files):
-    """Best-effort event-to-source mapping. Falls back to first input."""
-    try:
-        return event.get_parameter("source_file")
-    except Exception:
-        return input_files[0] if input_files else ""
 
 
 def _save(df, config, run_chunk):
