@@ -43,21 +43,21 @@ ls /path/to/multiray_tables/station23/st23_ch0_rz_table_direct.npz
 cd NuRadioReco/examples/RNOG/interferometric_reco_ex/
 
 # Neutrino, hw mode (no antenna dedispersion, ~2 s/event)
-python interferometric_reco_3d_example.py \
+python interferometric_reco_3d_advanced.py \
     --config configs/reco3d_neutrino_gzk.yaml \
     --mode hw \
     -i /path/to/nu_e_ccnc_1e18_1e20eV_GZK-2_IceCube-nu-2022_000000.nur \
     -o results/test_neutrino_hw.h5
 
 # Pulser, rxtx mode (Rx + Tx antenna dedispersion, ~10 s/event)
-python interferometric_reco_3d_example.py \
+python interferometric_reco_3d_advanced.py \
     --config configs/reco3d_pulser_sim.yaml \
     --mode rxtx \
     -i /path/to/output_r50.0_zen90.0_az0.0.nur \
     -o results/test_pulser_rxtx.h5
 
 # Pulser, hw mode (no antenna dedispersion, ~5 s/event)
-python interferometric_reco_3d_example.py \
+python interferometric_reco_3d_advanced.py \
     --config configs/reco3d_pulser_sim.yaml \
     --mode hw \
     -i /path/to/output_r50.0_zen90.0_az0.0.nur \
@@ -122,7 +122,7 @@ In `rx` and `rxtx` modes, pass 2 re-reads the event and removes antenna phase di
 
 ## Input format and preprocessing
 
-The driver script (`interferometric_reco_3d_example.py`) expects standard NuRadioMC simulation output: NUR files containing voltage traces (not electric fields). No manual preprocessing is needed. The driver applies all necessary waveform processing (cable delays, hardware response removal, upsampling, optional bandpass/CW filtering) internally before calling the reconstruction module. You do not need to apply voltage calibration, antenna deconvolution, bandpass filtering, or any other signal processing yourself.
+The driver script (`interferometric_reco_3d_advanced.py`) expects standard NuRadioMC simulation output: NUR files containing voltage traces (not electric fields). No manual preprocessing is needed. The driver applies all necessary waveform processing (cable delays, hardware response removal, upsampling, optional bandpass/CW filtering) internally before calling the reconstruction module. You do not need to apply voltage calibration, antenna deconvolution, bandpass filtering, or any other signal processing yourself.
 
 Which preprocessing steps are applied is controlled by the config file (see table below). The shipped configs use validated defaults, so for a first pass you only need to update the paths.
 
@@ -203,7 +203,7 @@ Set `save_coherent_waveforms: true` and `n_coherent_waveforms: 3` to save the be
 The driver auto-detects ROOT vs NUR input. For ROOT files, it uses `readRNOGData` with `read_daq_status=False` to avoid requiring the `combined` tree (not present in all data versions). No other changes needed.
 
 ```bash
-python interferometric_reco_3d_example.py \
+python interferometric_reco_3d_advanced.py \
     --config configs/reco3d_neutrino_gzk.yaml \
     --mode hw \
     -i /path/to/station21/run1234/waveforms.root \
@@ -368,7 +368,8 @@ NuRadioReco/utilities/
 
 NuRadioReco/examples/RNOG/interferometric_reco_ex/
   INTERFEROMETRIC_RECONSTRUCTION_README.md  This file
-  interferometric_reco_3d_example.py        Driver: preprocessing + pass1 + optional pass2
+  interferometric_reco_3d_advanced.py        Full driver: preprocessing + pass1 + optional pass2
+  interferometric_reco_3d_simple.py          Minimal reference example
   evaluate_reco_results.py                  Evaluate reco results against sim truth
   fast_grouped_multiray.py                  Numba-accelerated grouped multiray correlator
   reco_validation.py                        Per-channel SNR and correlation-quality metrics

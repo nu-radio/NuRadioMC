@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Example script for 3D interferometric direction reconstruction.
+"""Driver script for 3D interferometric direction reconstruction on RNO-G data.
 
 Pass 1: hierarchical 3D grid search (coarse scan, peak extraction, refine,
 L-BFGS-B optimization) using multiray travel time tables.
@@ -7,6 +7,9 @@ Pass 2 (optional): antenna dedispersion at pass-1 estimated angles, then
 local re-search. In rx mode, only the Rx antenna phase is removed. In rxtx
 mode, both Rx and Tx antenna phases are removed (requires known emitter
 position). Use hw mode to skip pass 2 entirely.
+
+For a minimal reference example, see
+``interferometric_reco_3d_simple.py`` in the same directory.
 """
 
 import argparse
@@ -366,6 +369,11 @@ def main():
     parser.add_argument("--auto-gpu", action="store_true",
                         help="Detect an available GPU and enable the GPU "
                              "reco backend (overrides use_gpu in config).")
+    parser.add_argument("--station_id", type=int, default=None,
+                        help="Override config['station_id']. Useful when real "
+                             "and sim inputs were produced for different "
+                             "stations (e.g. running station-21 data against "
+                             "station-23 sim NURs).")
     args = parser.parse_args()
 
     slurm_cpus = int(os.environ.get('SLURM_CPUS_PER_TASK', 0)) or None
@@ -418,6 +426,9 @@ def main():
             print("[reco3d] --auto-gpu: enabling GPU backend")
         else:
             print("[reco3d] --auto-gpu: no GPU detected, staying on CPU")
+
+    if args.station_id is not None:
+        config['station_id'] = args.station_id
 
     det = init_detector(config)
     station_id = config['station_id']

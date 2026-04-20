@@ -1,6 +1,6 @@
 """Summarize per-stage timing from merged HDF5 reco results.
 
-Reads timing keys written by interferometric_reco_3d_example.py and prints
+Reads timing keys written by interferometric_reco_3d_advanced.py and prints
 a markdown-formatted table of statistics per reconstruction stage.
 """
 
