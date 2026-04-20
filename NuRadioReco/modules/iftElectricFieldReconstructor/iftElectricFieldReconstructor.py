@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import signal
 from NuRadioReco.utilities import units, fft, trace_utilities, signal_processing
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.detector.RNO_G.analog_components
@@ -77,7 +78,7 @@ class IftElectricFieldReconstructor:
         energy_fluence_passbands=None,
         slope_passbands=None,
         phase_slope='both',
-        debug=True,
+        debug=False,
         plot_folder='.'
     ):
         """
@@ -143,7 +144,7 @@ class IftElectricFieldReconstructor:
         self.__pulse_time_uncertainty = pulse_time_uncertainty
         self.__plot_folder = plot_folder
         if phase_slope not in ['both', 'negative', 'positive']:
-            raise ValueError('Phase slope has to be either both, negative or positive.')
+            raise ValueError('Phase slope has to be either both, negative of positive.')
         self.__phase_slope = phase_slope
         if slope_passbands is None:
             self.__slope_passbands = [
@@ -242,7 +243,7 @@ class IftElectricFieldReconstructor:
         self.__used_channel_ids = np.array(self.__used_channel_ids)
         self.__use_sim = use_sim
         self.__prepare_traces(event, station, detector, ray_type)
-        ref_channel = station.get_channel(self.__used_channel_ids[0]) #what all things have been donehere .
+        ref_channel = station.get_channel(self.__used_channel_ids[0])
         sampling_rate = ref_channel.get_sampling_rate()
         time_domain = ift.RGSpace(self.__trace_samples)
         frequency_domain = time_domain.get_default_codomain()
@@ -266,7 +267,6 @@ class IftElectricFieldReconstructor:
                 'sv': phase_uncertainty,
                 'im': 0.,
                 'iv': 10.
-
             }
             likelihood = self.__get_likelihood_operator(
                 frequency_domain,
@@ -375,158 +375,6 @@ class IftElectricFieldReconstructor:
             )
         return True
 
-    # def __prepare_traces(
-    #     self,
-    #     event,
-    #     station,
-    #     det,
-    #     ray_type
-    # ):
-    #     """
-    #     Prepares the channel waveforms for the reconstruction by correcting
-    #     for time differences between channels, cutting them to the
-    #     right size and locating the radio pulse.
-    #     """
-    #     if self.__debug:
-    #         plt.close('all')
-    #         fig1 = plt.figure(figsize=(18, 12))
-    #         ax1_1 = fig1.add_subplot(len(self.__used_channel_ids), 2, (1, 2 * len(self.__used_channel_ids) - 1))
-    #         fig2 = plt.figure(figsize=(18, 12))
-
-    #     self.__noise_levels = np.zeros(len(self.__used_channel_ids))
-    #     self.__n_shifts = np.zeros_like(self.__used_channel_ids)
-    #     self.__trace_start_times = np.zeros(len(self.__used_channel_ids))
-    #     self.__receive_zeniths = np.zeros(len(self.__used_channel_ids))
-    #     self.__receive_azimuths = np.zeros(len(self.__used_channel_ids))
-    #     self.__time_offsets = np.zeros(len(self.__used_channel_ids))
-    #     self.__data_traces = np.zeros((len(self.__used_channel_ids), self.__trace_samples))
-    #     max_channel_length = 0
-    #     passband = self.__passband #[100. * units.MHz, 200 * units.MHz]
-    #     sim_channel_traces = []
-    #     for i_channel, channel_id in enumerate(self.__used_channel_ids):
-    #         channel = station.get_channel(channel_id)
-    #         if self.__use_sim:
-    #             sim_channel_sum = NuRadioReco.framework.base_trace.BaseTrace()
-    #             sim_channel_sum.set_trace(np.zeros_like(channel.get_trace()), channel.get_sampling_rate())
-    #             sim_channel_sum.set_trace_start_time(channel.get_trace_start_time())
-    #             for sim_channel in station.get_sim_station().get_channels_by_channel_id(channel_id):
-    #                 sim_channel_sum += sim_channel                #summing to get all the rays together
-    #             if sim_channel_sum.get_number_of_samples() > max_channel_length:
-    #                 max_channel_length = sim_channel_sum.get_number_of_samples()
-    #             sim_channel_traces.append(sim_channel_sum)
-    #         else:
-    #             if channel.get_number_of_samples() > max_channel_length:
-    #                 print(channel.get_number_of_samples())     #all must be same length.
-    #                 max_channel_length = channel.get_number_of_samples()
-    #         for i_ray_type, signal_ray_type in enumerate(channel.get_parameter(chp.signal_ray_type)):
-    #             if signal_ray_type == ray_type:
-    #                 self.__receive_zeniths[i_channel] = channel.get_parameter(chp.signal_receiving_zenith)[i_ray_type]
-    #                 self.__time_offsets[i_channel] = channel.get_parameter(chp.signal_time_offset)[i_ray_type]
-    #                 if channel.has_parameter(chp.signal_receiving_azimuth):
-    #                     self.__receive_azimuths[i_channel] = channel.get_parameter(chp.signal_receiving_azimuth)[i_ray_type]
-    #     correlation_sum = np.zeros(self.__electric_field_template.get_number_of_samples() + max_channel_length)
-    #     if self.__debug:
-    #         plt.close('all')
-    #         fig1 = plt.figure(figsize=(16, 8))
-    #         ax1_1 = fig1.add_subplot(121)
-    #         ax1_1.grid()
-    #         ax1_2 = fig1.add_subplot(122)
-    #         ax1_2.grid()
-    #         fig2 = plt.figure(figsize=(12, 12))
-    #     channel_trace_templates = np.zeros((len(self.__used_channel_ids), len(self.__electric_field_template.get_trace())))
-    #     for i_channel, channel_id in enumerate(self.__used_channel_ids):
-    #         channel = station.get_channel(channel_id)
-    #         amp_response = det.get_amplifier_response(station.get_id(), channel_id, self.__electric_field_template.get_frequencies()) #building of the trace
-    #         antenna_orientation = det.get_antenna_orientation(station.get_id(), channel_id)
-    #         antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(det.get_antenna_model(station.get_id(), channel_id))
-    #         antenna_response = antenna_pattern.get_antenna_response_vectorized(
-    #             self.__electric_field_template.get_frequencies(),
-    #             self.__receive_zeniths[i_channel],
-    #             self.__receive_azimuths[i_channel],
-    #             antenna_orientation[0],
-    #             antenna_orientation[1],
-    #             antenna_orientation[2],
-    #             antenna_orientation[3]
-    #         )
-    #         channel_spectrum_template = fft.time2freq(
-    #             self.__electric_field_template.get_filtered_trace(passband, filter_type='butterabs'),
-    #             self.__electric_field_template.get_sampling_rate()
-    #         ) * amp_response * (antenna_response['theta'] + antenna_response['phi'])
-    #         channel_trace_template = fft.freq2time(channel_spectrum_template, self.__electric_field_template.get_sampling_rate())
-    #         channel_trace_templates[i_channel] = channel_trace_template
-    #         channel.apply_time_shift(-self.__time_offsets[i_channel], True)                            #applying the shift.
-    #         if self.__use_sim:
-    #             sim_channel_traces[i_channel].apply_time_shift(-self.__time_offsets[i_channel], True)
-    #             channel_trace = sim_channel_traces[i_channel].get_filtered_trace(passband, filter_type='butterabs')
-    #             for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
-    #                 if channel.get_parameter(chp.signal_ray_type)[i_region]  == self.__ray_type:
-    #                     channel_trace[sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
-    #                     channel_trace[sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
-    #         else:
-    #             channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
-    #             for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
-    #                 if channel.get_parameter(chp.signal_ray_type)[i_region] == self.__ray_type:
-    #                     channel_trace[channel.get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
-    #                     channel_trace[channel.get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
-    #         if self.__use_sim:
-    #             correlation = radiotools.helper.get_normalized_xcorr(np.abs(scipy.signal.hilbert(channel_trace_template)), np.abs(scipy.signal.hilbert(channel_trace)))
-    #         else:
-    #             correlation = radiotools.helper.get_normalized_xcorr(channel_trace_template, channel_trace)
-    #         correlation = np.abs(correlation)
-    #         correlation_sum[:len(correlation)] += correlation
-    #         toffset = -(np.arange(0, correlation.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()
-    #         print(toffset)  # - propagation_times[i_channel, i_solution] - channel.get_trace_start_time()
-    #         if self.__use_sim:
-    #             sim_channel_traces[i_channel].apply_time_shift(self.__time_offsets[i_channel], True)
-    #         # else:
-    #         #     channel.apply_time_shift(channel.get_parameter(chp.signal_time_offset), True)
-    #         if self.__debug:
-    #             ax1_1.plot(toffset, correlation)
-
-    #     for i_channel, channel_id in enumerate(self.__used_channel_ids):
-    #         channel = station.get_channel(channel_id)
-    #         channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
-    #         toffset = -(np.arange(0, correlation_sum.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()
-    #         if self.__debug:
-    #             ax2_1 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 1)
-    #             ax2_1.grid()
-    #             ax2_1.plot(channel.get_times(), channel_trace / units.mV, c='C0', alpha=1.)
-    #             ax2_1.set_title('Channel {}'.format(channel_id))
-    #             ax2_1.plot(self.__electric_field_template.get_times() + channel.get_trace_start_time() + toffset[np.argmax(correlation_sum)], channel_trace_templates[i_channel] / np.max(channel_trace_templates[i_channel]) * np.max(channel_trace) / units.mV, c='C1')
-    #             sim_channel_sum = None
-    #             if station.get_sim_station() is not None:
-    #                 for sim_channel in station.get_sim_station().iter_channels():
-    #                     if sim_channel.get_id() == channel_id:
-    #                         if sim_channel_sum is None:
-    #                             sim_channel_sum = sim_channel
-    #                         else:
-    #                             sim_channel_sum += sim_channel
-    #             if sim_channel_sum is not None:
-    #                 sim_channel_sum.apply_time_shift(-self.__time_offsets[i_channel], True)
-    #                 ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband, filter_type='butterabs') / units.mV, c='k', alpha=.5)
-    #                 ax2_1.set_xlim([sim_channel_sum.get_trace_start_time() - 50, sim_channel_sum.get_times()[-1] + 50])
-    #                 sim_channel_sum.apply_time_shift(self.__time_offsets[i_channel], True)
-
-    #         channel.apply_time_shift(-toffset[np.argmax(correlation_sum)])
-    #         self.__data_traces[i_channel] = channel.get_trace()[:self.__trace_samples]
-    #         self.__noise_levels[i_channel] = np.sqrt(np.mean(channel.get_trace()[self.__trace_samples + 1:]**2))
-    #         self.__n_shifts[i_channel] = int((toffset[np.argmax(correlation_sum)] + self.__time_offsets[i_channel]) * channel.get_sampling_rate())
-    #         self.__trace_start_times[i_channel] = channel.get_trace_start_time() + (toffset[np.argmax(correlation_sum)] + self.__time_offsets[i_channel])
-    #         if self.__debug:
-    #             ax2_2 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 2)
-    #             ax2_2.grid()
-    #             ax2_2.plot(np.arange(len(self.__data_traces[i_channel])) / channel.get_sampling_rate(), self.__data_traces[i_channel])
-    #         channel.apply_time_shift(self.__time_offsets[i_channel] + toffset[np.argmax(correlation_sum)], True)
-    #     self.__scaling_factor = np.max(self.__data_traces)
-    #     self.__data_traces /= self.__scaling_factor
-    #     self.__noise_levels /= self.__scaling_factor                                  
-
-    #     if self.__debug:
-    #         ax1_2.plot(correlation_sum)
-    #         fig2.tight_layout()
-    #         fig2.savefig('{}/{}_{}_traces.png'.format(self.__plot_folder, event.get_run_number(), event.get_id()))
-
-
     def __prepare_traces(
         self,
         event,
@@ -539,9 +387,6 @@ class IftElectricFieldReconstructor:
         for time differences between channels, cutting them to the
         right size and locating the radio pulse.
         """
-
-        import scipy.signal
-
         if self.__debug:
             plt.close('all')
             fig1 = plt.figure(figsize=(18, 12))
@@ -555,48 +400,30 @@ class IftElectricFieldReconstructor:
         self.__receive_azimuths = np.zeros(len(self.__used_channel_ids))
         self.__time_offsets = np.zeros(len(self.__used_channel_ids))
         self.__data_traces = np.zeros((len(self.__used_channel_ids), self.__trace_samples))
-
         max_channel_length = 0
-        passband = self.__passband
-
+        passband = [100. * units.MHz, 200 * units.MHz]
         sim_channel_traces = []
-
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
-
             channel = station.get_channel(channel_id)
-
             if self.__use_sim:
-
                 sim_channel_sum = NuRadioReco.framework.base_trace.BaseTrace()
                 sim_channel_sum.set_trace(np.zeros_like(channel.get_trace()), channel.get_sampling_rate())
                 sim_channel_sum.set_trace_start_time(channel.get_trace_start_time())
-
                 for sim_channel in station.get_sim_station().get_channels_by_channel_id(channel_id):
                     sim_channel_sum += sim_channel
-
                 if sim_channel_sum.get_number_of_samples() > max_channel_length:
                     max_channel_length = sim_channel_sum.get_number_of_samples()
-
                 sim_channel_traces.append(sim_channel_sum)
-
             else:
-
                 if channel.get_number_of_samples() > max_channel_length:
-                    print(channel.get_number_of_samples())
                     max_channel_length = channel.get_number_of_samples()
-
             for i_ray_type, signal_ray_type in enumerate(channel.get_parameter(chp.signal_ray_type)):
-
                 if signal_ray_type == ray_type:
-
                     self.__receive_zeniths[i_channel] = channel.get_parameter(chp.signal_receiving_zenith)[i_ray_type]
                     self.__time_offsets[i_channel] = channel.get_parameter(chp.signal_time_offset)[i_ray_type]
-
                     if channel.has_parameter(chp.signal_receiving_azimuth):
                         self.__receive_azimuths[i_channel] = channel.get_parameter(chp.signal_receiving_azimuth)[i_ray_type]
-
         correlation_sum = np.zeros(self.__electric_field_template.get_number_of_samples() + max_channel_length)
-
         if self.__debug:
             plt.close('all')
             fig1 = plt.figure(figsize=(16, 8))
@@ -605,27 +432,13 @@ class IftElectricFieldReconstructor:
             ax1_2 = fig1.add_subplot(122)
             ax1_2.grid()
             fig2 = plt.figure(figsize=(12, 12))
-
-        channel_trace_templates = np.zeros(
-            (len(self.__used_channel_ids), len(self.__electric_field_template.get_trace()))
-        )
-
+        channel_trace_templates = np.zeros((len(self.__used_channel_ids), len(self.__electric_field_template.get_trace())))
+        lags=signal.correlation_lags(template_length, trace_length, mode="full")
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
-
             channel = station.get_channel(channel_id)
-
-            amp_response = det.get_amplifier_response(
-                station.get_id(),
-                channel_id,
-                self.__electric_field_template.get_frequencies()
-            )
-
+            amp_response = det.get_amplifier_response(station.get_id(), channel_id, self.__electric_field_template.get_frequencies())
             antenna_orientation = det.get_antenna_orientation(station.get_id(), channel_id)
-
-            antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(
-                det.get_antenna_model(station.get_id(), channel_id)
-            )
-
+            antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(det.get_antenna_model(station.get_id(), channel_id))
             antenna_response = antenna_pattern.get_antenna_response_vectorized(
                 self.__electric_field_template.get_frequencies(),
                 self.__receive_zeniths[i_channel],
@@ -635,179 +448,90 @@ class IftElectricFieldReconstructor:
                 antenna_orientation[2],
                 antenna_orientation[3]
             )
-
             channel_spectrum_template = fft.time2freq(
                 self.__electric_field_template.get_filtered_trace(passband, filter_type='butterabs'),
                 self.__electric_field_template.get_sampling_rate()
             ) * amp_response * (antenna_response['theta'] + antenna_response['phi'])
-
-            channel_trace_template = fft.freq2time(
-                channel_spectrum_template,
-                self.__electric_field_template.get_sampling_rate()
-            )
-
+            channel_trace_template = fft.freq2time(channel_spectrum_template, self.__electric_field_template.get_sampling_rate())
             channel_trace_templates[i_channel] = channel_trace_template
-
             channel.apply_time_shift(-self.__time_offsets[i_channel], True)
-
             if self.__use_sim:
-
                 sim_channel_traces[i_channel].apply_time_shift(-self.__time_offsets[i_channel], True)
-
-                channel_trace = sim_channel_traces[i_channel].get_filtered_trace(
-                    passband,
-                    filter_type='butterabs'
-                )
-
+                channel_trace = sim_channel_traces[i_channel].get_filtered_trace(passband, filter_type='butterabs')
                 for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
-
-                    if channel.get_parameter(chp.signal_ray_type)[i_region] == self.__ray_type:
-
-                        channel_trace[
-                            sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] < signal_region[0]
-                        ] = 0
-
-                        channel_trace[
-                            sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] > signal_region[1]
-                        ] = 0
-
+                    if channel.get_parameter(chp.signal_ray_type) == self.__ray_type:
+                        channel_trace[sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
+                        channel_trace[sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
             else:
-
                 channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
-
                 for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
-
                     if channel.get_parameter(chp.signal_ray_type)[i_region] == self.__ray_type:
-
                         channel_trace[channel.get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
                         channel_trace[channel.get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
-
             if self.__use_sim:
-
-                correlation = radiotools.helper.get_normalized_xcorr(
-                    np.abs(scipy.signal.hilbert(channel_trace_template)),
-                    np.abs(scipy.signal.hilbert(channel_trace))
-                )
-
+                correlation = radiotools.helper.get_normalized_xcorr(np.abs(scipy.signal.hilbert(channel_trace_template)), np.abs(scipy.signal.hilbert(channel_trace)))
             else:
-
-                correlation = radiotools.helper.get_normalized_xcorr(
-                    channel_trace_template,
-                    channel_trace
-                )
-
-            correlation = np.abs(correlation)
-
-            correlation_sum[:len(correlation)] += correlation
-
-            lags = scipy.signal.correlation_lags(
-                len(channel_trace_template),
-                len(channel_trace),
+                # correlation = radiotools.helper.get_normalized_xcorr(channel_trace_template, channel_trace)
+                correlation = signal.correlate(
+                channel_trace_template,
+                channel_trace,
                 mode="full"
             )
-
-            toffset = -lags / channel.get_sampling_rate()
-
-            print(toffset)
-
+            correlation = np.abs(correlation)
+            correlation_sum[:len(correlation)] += correlation
+            toffset = -lags / channel.get_sampling_rate()  # - propagation_times[i_channel, i_solution] - channel.get_trace_start_time()
             if self.__use_sim:
                 sim_channel_traces[i_channel].apply_time_shift(self.__time_offsets[i_channel], True)
-
+            # else:
+            #     channel.apply_time_shift(channel.get_parameter(chp.signal_time_offset), True)
             if self.__debug:
                 ax1_1.plot(toffset, correlation)
 
+        best_index = np.argmax(correlation_sum)
+        best_offset = -lags[best_index] / channel.get_sampling_rate()
+
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
-
             channel = station.get_channel(channel_id)
-
             channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
-
-            lags = scipy.signal.correlation_lags(
-                len(channel_trace_templates[i_channel]),
-                len(channel_trace),
-                mode="full"
-            )
-
             toffset = -lags / channel.get_sampling_rate()
-
             if self.__debug:
-
                 ax2_1 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 1)
                 ax2_1.grid()
-
-                ax2_1.plot(
-                    channel.get_times(),
-                    channel_trace / units.mV,
-                    c='C0',
-                    alpha=1.
-                )
-
+                ax2_1.plot(channel.get_times(), channel_trace / units.mV, c='C0', alpha=1.)
                 ax2_1.set_title('Channel {}'.format(channel_id))
-
-                ax2_1.plot(
-                    self.__electric_field_template.get_times()
-                    + channel.get_trace_start_time()
-                    + toffset[np.argmax(correlation_sum)],
-                    channel_trace_templates[i_channel] /
-                    np.max(channel_trace_templates[i_channel])
-                    * np.max(channel_trace) / units.mV,
-                    c='C1'
-                )
+                ax2_1.plot(self.__electric_field_template.get_times() + channel.get_trace_start_time() + toffset[np.argmax(correlation_sum)], channel_trace_templates[i_channel] / np.max(channel_trace_templates[i_channel]) * np.max(channel_trace) / units.mV, c='C1')
+                sim_channel_sum = None
+                if station.get_sim_station() is not None:
+                    for sim_channel in station.get_sim_station().iter_channels():
+                        if sim_channel.get_id() == channel_id:
+                            if sim_channel_sum is None:
+                                sim_channel_sum = sim_channel
+                            else:
+                                sim_channel_sum += sim_channel
+                if sim_channel_sum is not None:
+                    sim_channel_sum.apply_time_shift(-self.__time_offsets[i_channel], True)
+                    ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband, filter_type='butterabs') / units.mV, c='k', alpha=.5)
+                    ax2_1.set_xlim([sim_channel_sum.get_trace_start_time() - 50, sim_channel_sum.get_times()[-1] + 50])
+                    sim_channel_sum.apply_time_shift(self.__time_offsets[i_channel], True)
 
             channel.apply_time_shift(-toffset[np.argmax(correlation_sum)])
-
             self.__data_traces[i_channel] = channel.get_trace()[:self.__trace_samples]
-
-            self.__noise_levels[i_channel] = np.sqrt(
-                np.mean(channel.get_trace()[self.__trace_samples + 1:] ** 2)
-            )
-
-            self.__n_shifts[i_channel] = int(
-                (toffset[np.argmax(correlation_sum)] + self.__time_offsets[i_channel])
-                * channel.get_sampling_rate()
-            )
-
-            self.__trace_start_times[i_channel] = (
-                channel.get_trace_start_time()
-                + (toffset[np.argmax(correlation_sum)] + self.__time_offsets[i_channel])
-            )
-
+            self.__noise_levels[i_channel] = np.sqrt(np.mean(channel.get_trace()[self.__trace_samples + 1:]**2))
+            self.__n_shifts[i_channel] = int((toffset[np.argmax(correlation_sum)] + self.__time_offsets[i_channel]) * channel.get_sampling_rate())
+            self.__trace_start_times[i_channel] = channel.get_trace_start_time() + (toffset[np.argmax(correlation_sum)] + self.__time_offsets[i_channel])
             if self.__debug:
-
                 ax2_2 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 2)
                 ax2_2.grid()
-
-                ax2_2.plot(
-                    np.arange(len(self.__data_traces[i_channel])) /
-                    channel.get_sampling_rate(),
-                    self.__data_traces[i_channel]
-                )
-
-            channel.apply_time_shift(
-                self.__time_offsets[i_channel] +
-                toffset[np.argmax(correlation_sum)],
-                True
-            )
-
+                ax2_2.plot(np.arange(len(self.__data_traces[i_channel])) / channel.get_sampling_rate(), self.__data_traces[i_channel])
+            channel.apply_time_shift(self.__time_offsets[i_channel] + toffset[np.argmax(correlation_sum)], True)
         self.__scaling_factor = np.max(self.__data_traces)
-
         self.__data_traces /= self.__scaling_factor
         self.__noise_levels /= self.__scaling_factor
 
         if self.__debug:
-
             ax1_2.plot(correlation_sum)
-
             fig2.tight_layout()
-
-            fig2.savefig(
-                '{}/{}_{}_{}_traces.png'.format(
-                    self.__plot_folder,
-                    event.get_run_number(),
-                    event.get_id(),
-                    ray_type
-                )
-            )
+            fig2.savefig('{}/{}_{}_{}_traces.png'.format(self.__plot_folder, event.get_run_number(), event.get_id(), self.__ray_type))
 
     def __get_detector_operators(
         self,
@@ -1128,7 +852,7 @@ class IftElectricFieldReconstructor:
         ax1_3.set_title('Channel Spectrum')
         ax1_4.set_title('Channel Trace')
         fig1.tight_layout()
-        fig1.savefig('{}/priors_{}_{}_{}.png'.format(self.__plot_folder,event.get_id(), event.get_run_number(), self.__ray_type))
+        fig1.savefig('{}/priors_{}_{}_{}_.png'.format(self.__plot_folder, event.get_id(), event.get_run_number(), self.__ray_type))
 
     def __draw_reconstruction(
         self,
