@@ -88,21 +88,26 @@ def init_detector(config):
 
 
 def select_provider(config, input_files, det):
-    """Instantiate the right data provider for the input type."""
-    data_type = config.get("data_type", "root")
+    """Instantiate the right data provider for the input type.
+
+    Picks between ``dataProviderNuRadio`` (NUR simulation) and
+    ``dataProviderRNOG`` (ROOT data) from the first input file's
+    extension. All inputs must share the same extension.
+    """
+    exts = {os.path.splitext(f)[1].lower() for f in input_files}
+    if len(exts) != 1 or next(iter(exts)) not in {".nur", ".root"}:
+        raise ValueError(
+            f"Inputs must share a single extension (.nur or .root); got {exts}"
+        )
+    is_nur = next(iter(exts)) == ".nur"
+
     preproc_cfg = config.get("preprocessor", None)
     reader_kwargs = config.get("reader_kwargs", {})
-    if data_type == "nur":
-        provider = dataProviderNuRadio()
-        provider.begin(input_files, det,
-                       reader_kwargs=reader_kwargs,
-                       preprocessor_config=preproc_cfg)
-    else:
-        provider = dataProviderRNOG()
-        provider.begin(input_files, det,
-                       reader_kwargs=reader_kwargs,
-                       preprocessor_config=preproc_cfg)
-    return provider
+    provider = dataProviderNuRadio() if is_nur else dataProviderRNOG()
+    provider.begin(input_files, det,
+                   reader_kwargs=reader_kwargs,
+                   preprocessor_config=preproc_cfg)
+    return provider, is_nur
 
 
 def _coherent_sum(traces, ref_ch, chs):
@@ -271,8 +276,9 @@ def main(config, input_files, run_chunk, event_filter=None):
     # unambiguous. eventReader does not tag events with their originating
     # file, and feeding a multi-file list would require guessing.
     results = []
+    is_nur = False
     for src_file in input_files:
-        provider = select_provider(config, [src_file], det)
+        provider, is_nur = select_provider(config, [src_file], det)
         for event in provider.run():
             station = event.get_station()
 
@@ -304,7 +310,7 @@ def main(config, input_files, run_chunk, event_filter=None):
             row["event_number"] = evt_num
             row["source_file"] = src_file
 
-            if config.get("data_type", "root") == "nur":
+            if is_nur:
                 lge = _extract_log10_energy(src_file)
                 if lge is not None:
                     row["log10_energy"] = lge
@@ -317,10 +323,10 @@ def main(config, input_files, run_chunk, event_filter=None):
         hit_filter.end()
 
     df = pd.DataFrame(results)
-    _save(df, config, run_chunk)
+    _save(df, config, run_chunk, is_nur)
 
 
-def _save(df, config, run_chunk):
+def _save(df, config, run_chunk, is_nur):
     """Write feature DataFrame to HDF5 (+ config metadata group)."""
     if df is None or df.empty:
         logger.warning("No feature rows to save.")
@@ -332,7 +338,7 @@ def _save(df, config, run_chunk):
                        os.path.join(os.getcwd(), "feature_extraction")),
     )
     experiment = config.get("experiment_id", "default")
-    category = "sim_data" if config.get("data_type", "root") == "nur" else "real_data"
+    category = "sim_data" if is_nur else "real_data"
     save_dir = os.path.join(
         output_root, "results", category, experiment,
         f"station{config.get('station_id', 0)}",
@@ -383,8 +389,6 @@ if __name__ == "__main__":
     parser.add_argument("--station_id", type=int, default=None,
                         help="Override config['station_id']")
     parser.add_argument("--year", type=int, default=None)
-    parser.add_argument("--data_type", type=str, default=None,
-                        choices=[None, "root", "nur"])
     parser.add_argument("--experiment_id", type=str, default=None)
     parser.add_argument("--run_chunk", type=str, default="0",
                         help="Chunk identifier for output filename")
@@ -398,7 +402,7 @@ if __name__ == "__main__":
     with open(args.config) as f:
         config = yaml.safe_load(f)
 
-    for key in ("station_id", "year", "data_type", "experiment_id"):
+    for key in ("station_id", "year", "experiment_id"):
         cli_val = getattr(args, key)
         if cli_val is not None:
             config[key] = cli_val
