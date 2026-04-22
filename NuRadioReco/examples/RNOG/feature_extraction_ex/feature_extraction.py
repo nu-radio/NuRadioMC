@@ -266,9 +266,21 @@ def main(config, input_files, run_chunk, event_filter=None):
     hf_cfg = config.get("hit_filter", {})
     hit_filter = None
     if hf_cfg.get("enabled", False):
+        time_check = hf_cfg.get("complete_time_check", True)
+        hit_check = hf_cfg.get("complete_hit_check", True)
+        if hf_cfg.get("add_features", True) and not (time_check and hit_check):
+            raise ValueError(
+                "hit_filter.add_features requires complete_time_check=True "
+                "and complete_hit_check=True. With either disabled the "
+                "stationHitFilter skips populating is_in_time_window / "
+                "is_over_hit_threshold, and the n_coincident_pairs_* / "
+                "n_high_hits_* feature columns would silently be None. "
+                f"Got complete_time_check={time_check}, "
+                f"complete_hit_check={hit_check}."
+            )
         hit_filter = stationHitFilter(
-            complete_time_check=hf_cfg.get("complete_time_check", True),
-            complete_hit_check=hf_cfg.get("complete_hit_check", True),
+            complete_time_check=time_check,
+            complete_hit_check=hit_check,
         )
         hit_filter.begin()
 
