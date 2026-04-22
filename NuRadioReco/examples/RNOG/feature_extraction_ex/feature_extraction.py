@@ -4,14 +4,22 @@
 Reads RNO-G data (ROOT via ``dataProviderRNOG`` or NUR via
 ``dataProviderNuRadio``), runs the shared
 ``NuRadioReco.modules.channelFeatureExtractor`` on every event to get
-per-channel features, then applies RNO-G-specific aggregation:
+per-channel features, then applies RNO-G-specific aggregation. Which
+antenna groups receive aggregate and coherent-sum columns is controlled
+by the top-level ``antenna_groups`` config key; valid names are defined
+by ``ANTENNA_GROUPS`` (``pa``, ``vpol``, ``hpol``, ``deep``) and the
+default is all four. Coherent-sum features are built only for groups
+that also appear in ``COHERENT_SUM_GROUPS``.
 
-- Phased-array (PA) coherent sum and VPOL coherent sum
-- Coherent-sum features (SNR, impulsivity, kurtosis, entropy,
-  spectral descriptors, impulse-template correlations)
-- Group-level aggregates over the PA, VPOL, and deep (VPOL + HPOL)
-  channel groups (mean of per-channel kurtosis, entropy, spectral
-  features, impulse correlations; mean SNR for PA and VPOL)
+Aggregates produced per enabled antenna group:
+
+- ``{feature}_avg_{group}`` for every per-channel feature (SNR,
+  kurtosis, entropy, max amplitude, impulsivity, spectral descriptors,
+  impulse-template correlations).
+- For groups in ``COHERENT_SUM_GROUPS``: a coherent sum across that
+  group's available channels plus ``coherent_{feature}_{group}``
+  columns (SNR, impulsivity, kurtosis, entropy, spectral features,
+  impulse-template correlations).
 
 Results for every processed event are flattened into a single row and
 written as a pandas DataFrame to HDF5 with the original config saved as
@@ -57,7 +65,21 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="seaborn")
 PA_CHS = (0, 1, 2, 3)
 VPOL_CHS = (0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23)
 HPOL_CHS = (4, 8, 11, 21)
+# `deep` = all VPOLs and HPOLs (string-deployed antennas on power +
+# helper strings). Does NOT include the surface LPDAs (ch12-20).
 DEEP_CHS = tuple(sorted(set(VPOL_CHS) | set(HPOL_CHS)))
+
+ANTENNA_GROUPS = {
+    "pa": PA_CHS,
+    "vpol": VPOL_CHS,
+    "hpol": HPOL_CHS,
+    "deep": DEEP_CHS,
+}
+# Subset of ANTENNA_GROUPS for which coherent-sum features are defined.
+# Extending to hpol or deep requires picking a reference channel + the
+# aligned-shift logic in _coherent_sum, which is out of scope for the
+# initial config-ification.
+COHERENT_SUM_GROUPS = ("pa", "vpol")
 
 SPECTRAL_KEYS = (
     "spectral_centroid", "spectral_bandwidth", "spectral_skewness",
@@ -158,70 +180,98 @@ def _coherent_sum_features(trace, sampling_rate, n_entropy_bins,
 
 
 def build_feature_row(per_ch, traces, sampling_rate, config):
-    """Flatten per-channel features + RNO-G aggregates into one row."""
+    """Flatten per-channel features + RNO-G aggregates into one row.
+
+    ``antenna_groups`` in the config controls which RNO-G groups get
+    per-channel-average columns (``{feature}_avg_{group}``) and, for
+    groups in ``COHERENT_SUM_GROUPS``, coherent-sum feature columns
+    (``coherent_{feature}_{group}``). Default is every group in
+    ``ANTENNA_GROUPS`` so the column set matches historical output.
+    """
     row = {}
 
     for ch, feats in per_ch.items():
         for name, val in feats.items():
             row[f"ch{ch}_{name}"] = val
 
+    groups = _resolve_antenna_groups(config)
+
     for key in ("snr", "kurtosis", "entropy", "max_amplitude", "impulsivity"):
         vals_per_ch = {c: per_ch[c][key] for c in per_ch if key in per_ch[c]}
-        row[f"{key}_avg_pa"] = _mean_over(vals_per_ch, PA_CHS)
-        row[f"{key}_avg_vpol"] = _mean_over(vals_per_ch, VPOL_CHS)
-        row[f"{key}_avg_deep"] = _mean_over(vals_per_ch, DEEP_CHS)
+        for group_name in groups:
+            row[f"{key}_avg_{group_name}"] = _mean_over(
+                vals_per_ch, ANTENNA_GROUPS[group_name])
 
     for key in SPECTRAL_KEYS:
         vals_per_ch = {c: per_ch[c][key] for c in per_ch if key in per_ch[c]}
-        row[f"{key}_avg_pa"] = _mean_over(vals_per_ch, PA_CHS)
-        row[f"{key}_avg_vpol"] = _mean_over(vals_per_ch, VPOL_CHS)
-        row[f"{key}_avg_deep"] = _mean_over(vals_per_ch, DEEP_CHS)
+        for group_name in groups:
+            row[f"{key}_avg_{group_name}"] = _mean_over(
+                vals_per_ch, ANTENNA_GROUPS[group_name])
 
     for tmpl in IMPULSE_TEMPLATE_NAMES:
         col = f"impulse_corr_{tmpl}"
         vals_per_ch = {c: per_ch[c][col] for c in per_ch if col in per_ch[c]}
-        row[f"{col}_avg_pa"] = _mean_over(vals_per_ch, PA_CHS)
-        row[f"{col}_avg_vpol"] = _mean_over(vals_per_ch, VPOL_CHS)
-        row[f"{col}_avg_deep"] = _mean_over(vals_per_ch, DEEP_CHS)
+        for group_name in groups:
+            row[f"{col}_avg_{group_name}"] = _mean_over(
+                vals_per_ch, ANTENNA_GROUPS[group_name])
 
     if config.get("build_coherent_sums", True):
-        pa_avail = [c for c in PA_CHS if c in traces]
-        vpol_avail = [c for c in VPOL_CHS if c in traces]
-        pa_ref = pa_avail[0] if pa_avail else None
-        vpol_ref = vpol_avail[0] if vpol_avail else None
-
-        cs_pa = _coherent_sum(traces, pa_ref, pa_avail) if pa_ref is not None else None
-        cs_vpol = _coherent_sum(traces, vpol_ref, vpol_avail) if vpol_ref is not None else None
-
         cfg = config.get("features", {})
         n_bins = cfg.get("n_entropy_bins", 50)
         spec_fmin = cfg.get("spectral_fmin", 0.08)
         spec_fmax = cfg.get("spectral_fmax", 0.6)
         spec_low = cfg.get("spectral_low_band_boundary", 0.1)
 
-        if cs_pa is not None:
-            pa_feats = _coherent_sum_features(
-                cs_pa, sampling_rate, n_bins, spec_fmin, spec_fmax, spec_low)
-            for k, v in pa_feats.items():
-                row[k + "_pa"] = v
-        if cs_vpol is not None:
-            vpol_feats = _coherent_sum_features(
-                cs_vpol, sampling_rate, n_bins, spec_fmin, spec_fmax, spec_low)
-            for k, v in vpol_feats.items():
-                row[k + "_vpol"] = v
+        for group_name in groups:
+            if group_name not in COHERENT_SUM_GROUPS:
+                continue
+            group_chs = ANTENNA_GROUPS[group_name]
+            avail = [c for c in group_chs if c in traces]
+            ref = avail[0] if avail else None
+            if ref is None:
+                continue
+            cs = _coherent_sum(traces, ref, avail)
+            if cs is None:
+                continue
+            cs_feats = _coherent_sum_features(
+                cs, sampling_rate, n_bins, spec_fmin, spec_fmax, spec_low)
+            for k, v in cs_feats.items():
+                row[f"{k}_{group_name}"] = v
 
     return row
+
+
+def _resolve_antenna_groups(config):
+    """Return the ordered list of antenna-group names to build aggregates for.
+
+    Reads ``config['antenna_groups']``. If absent, defaults to every
+    group in ``ANTENNA_GROUPS`` so column layout matches historical output.
+    Unknown group names raise ValueError so typos fail loudly instead of
+    silently dropping expected columns.
+    """
+    requested = config.get("antenna_groups", list(ANTENNA_GROUPS.keys()))
+    unknown = [g for g in requested if g not in ANTENNA_GROUPS]
+    if unknown:
+        raise ValueError(
+            f"antenna_groups contains unknown group(s) {unknown}; "
+            f"valid options are {list(ANTENNA_GROUPS.keys())}."
+        )
+    return list(requested)
 
 
 def compute_hit_filter_features(event, station, det, hit_filter):
     """Run the station hit filter and return summary features for one event.
 
+    Column names follow the driver's antenna-group naming convention:
+    ``_pa`` = scoped to the PA group, ``_deep`` = scoped to string-deployed
+    antennas (VPOL ∪ HPOL). See ``ANTENNA_GROUPS``.
+
     Columns:
         passed_hit_filter: 1 if event passes the filter, else 0.
         n_coincident_pairs_pa: coincident channel pairs inside the PA group.
         n_high_hits_pa: PA channels with Hilbert max above threshold.
-        n_coincident_pairs_in_ice: coincident pairs across all in-ice groups.
-        n_high_hits_in_ice: in-ice channels with Hilbert max above threshold.
+        n_coincident_pairs_deep: coincident pairs across PA + string helpers.
+        n_high_hits_deep: string-deployed channels with Hilbert max above threshold.
     """
     passed = hit_filter.run(event, station, det)
 
@@ -231,17 +281,17 @@ def compute_hit_filter_features(event, station, det, hit_filter):
     n_pairs_pa = int(sum(in_time_window[0]))
     n_high_pa = int(sum(over_hit_threshold[:4]))
 
-    n_pairs_in_ice = n_pairs_pa + int(
+    n_pairs_deep = n_pairs_pa + int(
         sum(in_time_window[grp][0] for grp in range(1, 4))
     )
-    n_high_in_ice = int(sum(over_hit_threshold[:15]))
+    n_high_deep = int(sum(over_hit_threshold[:15]))
 
     return {
         "passed_hit_filter": int(passed),
         "n_coincident_pairs_pa": n_pairs_pa,
         "n_high_hits_pa": n_high_pa,
-        "n_coincident_pairs_in_ice": n_pairs_in_ice,
-        "n_high_hits_in_ice": n_high_in_ice,
+        "n_coincident_pairs_deep": n_pairs_deep,
+        "n_high_hits_deep": n_high_deep,
     }
 
 
