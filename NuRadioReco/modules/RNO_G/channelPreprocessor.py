@@ -3,6 +3,7 @@ from NuRadioReco.utilities import units
 
 import NuRadioReco.modules.RNO_G.channelBlockOffsetFitter
 import NuRadioReco.modules.RNO_G.channelGlitchDetector
+import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelSinewaveSubtraction
@@ -29,11 +30,13 @@ class channelPreprocessor:
     2. ``channelGlitchDetector`` (flag scrambled readout blocks; does not
        fix them, only sets ``channelParameter.glitch``)
     3. ``channelAddCableDelay`` (subtract cable delays)
-    4. ``channelResampler`` (upsample to a target rate, typically 5 GHz)
-    5. ``channelSinewaveSubtraction`` (CW peak removal)
-    6. ``channelBandPassFilter`` (apply analysis passband)
+    4. ``hardwareResponseIncorporator`` (invert hardware phase response;
+       angle-independent, unlike antenna dedispersion which is reco-only)
+    5. ``channelResampler`` (upsample to a target rate, typically 5 GHz)
+    6. ``channelSinewaveSubtraction`` (CW peak removal)
+    7. ``channelBandPassFilter`` (apply analysis passband)
 
-    Steps 4-6 are off by default; 1-3 mirror the baseline chain that was
+    Steps 4-7 are off by default; 1-3 mirror the baseline chain that was
     previously inlined in ``dataProviderRNOG``.
 
     See Also
@@ -52,6 +55,9 @@ class channelPreprocessor:
         "apply_glitch_detection": True,
         "apply_cable_delay": True,
         "cable_delay_mode": "subtract",
+        "apply_hw_phase_removal": False,
+        "hw_phase_mode": "phase_only",
+        "hw_phase_sim_to_data": False,
         "apply_upsampling": False,
         "target_sampling_rate": 5.0 * units.GHz,
         "apply_cw_removal": False,
@@ -69,6 +75,7 @@ class channelPreprocessor:
         self._block_offset = NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets()
         self._glitch_detector = None
         self._cable_delay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
+        self._hw_response = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
         self._resampler = NuRadioReco.modules.channelResampler.channelResampler()
         self._cw_filter = NuRadioReco.modules.channelSinewaveSubtraction.channelSinewaveSubtraction()
         self._bandpass = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
@@ -95,6 +102,7 @@ class channelPreprocessor:
         self._block_offset.begin()
         self._glitch_detector.begin()
         self._cable_delay.begin()
+        self._hw_response.begin()
         self._resampler.begin()
         self._bandpass.begin()
         self._cw_filter.begin(
@@ -129,6 +137,13 @@ class channelPreprocessor:
 
         if cfg["apply_cable_delay"]:
             self._cable_delay.run(event, station, det, mode=cfg["cable_delay_mode"])
+
+        if cfg["apply_hw_phase_removal"]:
+            self._hw_response.run(
+                event, station, det,
+                sim_to_data=cfg["hw_phase_sim_to_data"],
+                mode=cfg["hw_phase_mode"],
+            )
 
         if cfg["apply_upsampling"]:
             self._resampler.run(event, station, det,
