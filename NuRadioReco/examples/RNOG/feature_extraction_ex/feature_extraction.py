@@ -340,14 +340,27 @@ def main(config, input_files, run_chunk, event_filter=None):
     results = []
     is_nur = False
     for src_file in input_files:
+        src_basename = os.path.basename(src_file)
+        if event_filter is not None and 'by_file' in event_filter \
+                and src_basename not in event_filter['by_file']:
+            continue
         provider, is_nur = select_provider(config, [src_file], det)
         for event in provider.run():
             station = event.get_station()
 
             run_num = event.get_run_number()
             evt_num = event.get_id()
-            if event_filter is not None and evt_num not in event_filter:
-                continue
+            if event_filter is not None:
+                if 'by_file' in event_filter:
+                    if (run_num, evt_num) not in event_filter['by_file'][src_basename]:
+                        continue
+                elif 'by_run' in event_filter:
+                    if run_num not in event_filter['by_run'] \
+                            or evt_num not in event_filter['by_run'][run_num]:
+                        continue
+                elif 'by_event' in event_filter:
+                    if evt_num not in event_filter['by_event']:
+                        continue
 
             hf_features = {}
             if hit_filter is not None:
@@ -454,8 +467,15 @@ if __name__ == "__main__":
     parser.add_argument("--experiment_id", type=str, default=None)
     parser.add_argument("--run_chunk", type=str, default="0",
                         help="Chunk identifier for output filename")
-    parser.add_argument("--events", type=int, nargs="+", default=None,
-                        help="Only process these event numbers")
+    parser.add_argument("--events", type=str, nargs="+", default=None,
+                        help=(
+                            "Filter to a subset of events. Accepts either a "
+                            "space-separated list of integer event numbers, or "
+                            "a path to a JSON file, auto-detected: run-keyed "
+                            "{run: [events]} if keys parse as integers, else "
+                            "file-aware {src: [[run, evt], ...]}. See "
+                            "NuRadioReco.utilities.io_utilities.parse_event_ids."
+                        ))
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO,
@@ -473,6 +493,9 @@ if __name__ == "__main__":
         if isinstance(val, str) and "$" in val:
             config[key] = os.path.expandvars(val)
 
-    event_filter = set(args.events) if args.events else None
+    event_filter = None
+    if args.events:
+        from NuRadioReco.utilities.io_utilities import parse_event_ids
+        event_filter = parse_event_ids(args.events)
     print(f"Processing {len(args.input)} input file(s)", flush=True)
     main(config, args.input, args.run_chunk, event_filter=event_filter)

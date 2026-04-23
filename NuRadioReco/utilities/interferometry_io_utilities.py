@@ -1,30 +1,12 @@
 """I/O utilities for interferometric reconstruction results."""
 
 import os
-import re
 import pickle
 import logging
 import numpy as np
-import argparse
 
 logger = logging.getLogger('NuRadioReco.utilities.interferometry_io_utilities')
 
-def parse_event_ids(s):
-    """Parse comma-separated RUN:EVENT pairs from a CLI argument string.
-
-    Args:
-        s: String like "123:0,456:1".
-
-    Returns:
-        List of (run_number, event_id) integer tuples.
-    """
-    pairs = []
-    for token in s.split(","):
-        if ":" not in token:
-            raise argparse.ArgumentTypeError(f"Bad token '{token}', expected RUN:EVENT")
-        r, e = token.split(":")
-        pairs.append((int(r), int(e)))
-    return pairs
 
 def create_organized_paths(config, event_id, output_type, ray_type_mode=None, use_run_in_path=True):
     """

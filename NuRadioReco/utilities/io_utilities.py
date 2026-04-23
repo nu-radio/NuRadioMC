@@ -7,6 +7,8 @@ for faster, numpy 2 cross-compatible pickled numpy arrays. This mostly happens
 
 """
 
+import argparse
+import json
 import pickle
 import copyreg
 import numpy as np
@@ -194,3 +196,60 @@ def _time_object_to_astropy(time_object):
 
     logger.error(f"Time object not recognized: {time_object}")
     raise ValueError(f"Time object not recognized: {time_object}")
+
+
+def parse_event_ids(tokens):
+    """Parse a CLI ``--events`` argument into a normalized filter dict.
+
+    Three input shapes, all auto-detected:
+
+    - Path to a JSON file (single token ending in ``.json``). Run-keyed
+      ``{run: [events]}`` or file-aware ``{src: [[run, evt], ...]}``; the
+      shape is inferred from the JSON itself (int-parseable keys = run,
+      else filename). An explicit ``{"by_file": {...}}`` wrapper is also
+      accepted. Use the file-aware form when the same ``run_number``
+      appears in multiple input files (e.g. NuRadioMC sim NUR files reuse
+      ``event_group_id`` across shower realizations), or to drive a
+      targeted multi-file rerun from a single process.
+    - One or more integer tokens: a run-agnostic list of event numbers to
+      keep in any input file.
+
+    Returns
+    -------
+    dict
+        Exactly one key:
+
+        - ``'by_file'``: ``{source_basename: set of (run, event) tuples}``
+        - ``'by_run'``:  ``{run_number: set of event_numbers}``
+        - ``'by_event'``: ``set of event_numbers``
+    """
+    if isinstance(tokens, str):
+        tokens = [tokens]
+
+    if len(tokens) == 1 and tokens[0].endswith('.json'):
+        with open(tokens[0]) as fh:
+            raw = json.load(fh)
+        # Accept the explicit {"by_file": {...}} wrapper if someone writes it.
+        if isinstance(raw, dict) and list(raw.keys()) == ['by_file']:
+            raw = raw['by_file']
+        # Empty JSON is ambiguous but equivalent either way; pick by_run.
+        if not raw:
+            return {'by_run': {}}
+        # Infer shape from the first key: int-parseable -> run-keyed.
+        first_key = next(iter(raw))
+        try:
+            int(first_key)
+            return {'by_run': {int(k): set(v) for k, v in raw.items()}}
+        except (ValueError, TypeError):
+            return {'by_file': {
+                src: set(tuple(x) for x in events)
+                for src, events in raw.items()
+            }}
+
+    try:
+        return {'by_event': set(int(t) for t in tokens)}
+    except ValueError as err:
+        raise argparse.ArgumentTypeError(
+            "--events expected a path to a .json file or a list of integer "
+            f"event numbers; got {tokens!r} ({err})"
+        ) from err
