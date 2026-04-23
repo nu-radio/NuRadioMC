@@ -156,9 +156,8 @@ def _coherent_sum_features(trace, sampling_rate, n_entropy_bins,
     noise_rms = trace_utils.get_split_trace_noise_RMS(trace)
     row["coherent_snr"] = float(
         trace_utils.get_signal_to_noise_ratio(trace, noise_rms))
-    row["coherent_impulsivity_nrmc"] = float(trace_utils.get_impulsivity(trace))
-    ext = trace_utils.get_extended_impulsivity(trace)
-    row["coherent_impulsivity"] = ext["impulsivity_custom"]
+    ext = trace_utils.get_impulsivity(trace, return_diagnostics=True)
+    row["coherent_impulsivity"] = float(ext["impulsivity"])
     row["coherent_impulsivity_r_squared"] = ext["impulsivity_r_squared"]
     row["coherent_impulsivity_slope"] = ext["impulsivity_slope"]
     row["coherent_impulsivity_intercept"] = ext["impulsivity_intercept"]
