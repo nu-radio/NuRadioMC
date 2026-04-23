@@ -8,7 +8,7 @@ from radiotools import helper as hp
 import NuRadioReco.detector.detector
 import NuRadioReco.modules.channelBandPassFilter
 from NuRadioReco.utilities import units
-from NuRadioMC.examples.neutrino_signal_model.shower_simulator import ShowerSimulator
+from NuRadioMC.examples.shower_simulation.shower_simulator import ShowerSimulator
 #import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 
 #hardware_response = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
@@ -35,7 +35,7 @@ signal_model = ShowerSimulator(
             station_id=station_id,
             reference_channel=0,
             evt_time=datetime(2022, 7, 1),
-            use_channels=None,
+            use_channels=[0,1,2,3,4,5,6,7,8,9,10,11,21,22,23],
             detector_simulation_filter_amp=detector_simulation_filter_amp,
             pre_pulse_time=100 * units.ns
         )
@@ -59,12 +59,13 @@ station, traces, trace_start_times = signal_model.simulate_single_shower(
     vertex_time=vertex_time,
     type="EM",
     charge_excess_profile_id=5,
+    trace_start_times=None # <- Automatically calculates start times based on pulse in reference antenna
 )
 
 
 # Plot results:
 n_channels = len(traces)
-fig, ax = plt.subplots(6, 4, figsize=(20, 12))
+fig, ax = plt.subplots(4, 4, figsize=(20, 8))
 ax = ax.flatten()
 channel_ids = station.get_channel_ids(station_id)
 for i_ch, channel_id in enumerate(channel_ids):

@@ -114,9 +114,8 @@ class ShowerSimulator():
         self.readout_sampling_rates = np.zeros(len(self.channel_ids))
         self.readout_n_samples = np.zeros(len(self.channel_ids), dtype=int)
         for i_ch, channel_id in enumerate(self.channel_ids):
-            channel_info = self.det.get_channel(self.station_id, channel_id)
-            self.readout_sampling_rates[i_ch] = channel_info["adc_sampling_frequency"]
-            self.readout_n_samples[i_ch] = channel_info["adc_n_samples"]
+            self.readout_sampling_rates[i_ch] = self.det.get_sampling_frequency(self.station_id, channel_id)
+            self.readout_n_samples[i_ch] =  self.det.get_number_of_samples(self.station_id, channel_id)
 
         # Determine wether the channels have equal number of samples and sampling rate:
         if np.all(self.readout_sampling_rates == self.readout_sampling_rates[0]) and np.all(self.readout_n_samples == self.readout_n_samples[0]):
