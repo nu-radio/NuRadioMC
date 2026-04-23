@@ -36,8 +36,8 @@ class channelPreprocessor:
     6. ``channelSinewaveSubtraction`` (CW peak removal)
     7. ``channelBandPassFilter`` (apply analysis passband)
 
-    Steps 4-7 are off by default; 1-3 mirror the baseline chain that was
-    previously inlined in ``dataProviderRNOG``.
+    Block-offset removal is on by default. Glitch detection and steps
+    4-7 are off by default.
 
     See Also
     --------
@@ -52,7 +52,7 @@ class channelPreprocessor:
 
     _DEFAULT_CONFIG = {
         "apply_block_offset_removal": True,
-        "apply_glitch_detection": True,
+        "apply_glitch_detection": False,
         "apply_cable_delay": True,
         "cable_delay_mode": "subtract",
         "apply_hw_phase_removal": False,
