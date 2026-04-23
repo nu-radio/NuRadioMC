@@ -569,43 +569,88 @@ def get_hilbert_envelope(trace):
     return envelope
 
 
-def get_impulsivity(trace, envelope=None):
+def get_impulsivity(trace, envelope=None, return_diagnostics=False):
     """
     Calculates the impulsivity of a signal (trace).
 
-    This function computes the impulsivity of a trace by first performing the Hilbert Transform
-    to obtain an analytic signal (Hilbert envelope) and then determining the
-    cumulative distribution function (CDF) of the square of the sorted envelope values i.e. power values based on their
-    closeness to the maximum value. The average of the CDF is then scaled and returned
-    as the impulsivity value.
+    Builds the Hilbert-envelope power CDF sorted by distance from the
+    envelope peak, then returns ``2 * mean(CDF) - 1`` (clipped to the
+    non-negative range). When ``return_diagnostics`` is true, also
+    returns linear-fit + KS-test diagnostics of the same CDF.
 
     Parameters
     ----------
     trace: array of floats
-        Trace of a waveform
+        Trace of a waveform.
     envelope: array of floats, optional
         Precomputed Hilbert envelope. Computed from ``trace`` if omitted.
+    return_diagnostics: bool, optional
+        If True, return a dict with the scalar plus linear-fit slope,
+        intercept, R², and a KS statistic against a purely linear CDF.
+        Default False (returns the scalar only).
 
     Returns
     -------
     impulsivity: float
-        Impulsivity of the signal (scaled between 0 and 1)
+        Scaled between 0 and 1 (scalar mode).
+    or dict
+        ``{"impulsivity", "impulsivity_slope", "impulsivity_intercept",
+        "impulsivity_r_squared", "impulsivity_ks_statistic"}`` when
+        ``return_diagnostics=True``. Diagnostics describe linearity of
+        the same power CDF the scalar summarises.
     """
-
     if envelope is None:
         envelope = get_hilbert_envelope(trace)
-    maxv = np.argmax(envelope)
-    closeness = np.abs(np.arange(len(envelope)) - maxv)
 
-    sorted_envelope = envelope[np.argsort(closeness)]
-    cdf = np.cumsum(sorted_envelope**2)
-    cdf = cdf / cdf[-1]
+    peak_idx = np.argmax(envelope)
+    closeness = np.abs(np.arange(len(envelope)) - peak_idx)
+    order = np.argsort(closeness)
+    sorted_envelope = envelope[order]
+    power = sorted_envelope * sorted_envelope
+    total = power.sum()
+    if total == 0:
+        if return_diagnostics:
+            return {
+                "impulsivity": 0.0,
+                "impulsivity_slope": float("nan"),
+                "impulsivity_intercept": float("nan"),
+                "impulsivity_r_squared": float("nan"),
+                "impulsivity_ks_statistic": float("nan"),
+            }
+        return 0.0
 
-    impulsivity = (np.mean(cdf) * 2.0) - 1.0
-    if impulsivity < 0:
-        impulsivity = 0.0
+    cdf = np.cumsum(power) / total
+    impulsivity = max(0.0, float(2.0 * cdf.mean() - 1.0))
 
-    return impulsivity
+    if not return_diagnostics:
+        return impulsivity
+
+    # Linear fit + KS against a purely linear CDF, both on the power
+    # CDF. Direct numpy (bypasses scipy's axis_nan_policy wrapper).
+    x = closeness[order].astype(float)
+    n = len(x)
+    sx = x.sum(); sy = cdf.sum()
+    sxy = (x * cdf).sum()
+    sxx = (x * x).sum(); syy = (cdf * cdf).sum()
+    denom = n * sxx - sx * sx
+    slope = (n * sxy - sx * sy) / denom
+    intercept = (sy - slope * sx) / n
+    r_value = (n * sxy - sx * sy) / np.sqrt(denom * (n * syy - sy * sy))
+
+    linear_pred = np.clip(slope * x + intercept, 0.0, 1.0)
+    linear_pred.sort()
+    pooled = np.concatenate([cdf, linear_pred])
+    f_cdf = np.searchsorted(cdf, pooled, side="right") / n
+    f_lin = np.searchsorted(linear_pred, pooled, side="right") / n
+    ks_stat = float(np.max(np.abs(f_cdf - f_lin)))
+
+    return {
+        "impulsivity": impulsivity,
+        "impulsivity_slope": float(slope),
+        "impulsivity_intercept": float(intercept),
+        "impulsivity_r_squared": float(r_value ** 2),
+        "impulsivity_ks_statistic": ks_stat,
+    }
 
 
 def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
@@ -867,10 +912,9 @@ def get_variable_window_size_correlation(data_trace, template_trace, window_size
         return correlation
 
 
-from scipy import stats as _stats
 from scipy.ndimage import (maximum_filter1d as _max_filter1d,
                            minimum_filter1d as _min_filter1d)
-from scipy.signal import correlate as _correlate, hilbert as _hilbert
+from scipy.signal import correlate as _correlate
 
 
 def get_maximum_peak_to_peak_amplitude(trace, win_size=6):
@@ -1102,67 +1146,6 @@ def get_impulse_template_correlations(trace, sampling_rate):
     return {
         names[i]: float(max_abs_corr[i]) if valid[i] else 0.0
         for i in range(len(names))
-    }
-
-
-def get_extended_impulsivity(trace, envelope=None):
-    """Extended impulsivity diagnostics complementing ``get_impulsivity``.
-
-    Augments the standard CDF-based impulsivity scalar with linear-fit
-    diagnostics and a KS test against a purely linear CDF.
-
-    Parameters
-    ----------
-    trace : array of floats
-    envelope : array of floats, optional
-        Precomputed Hilbert envelope. Computed from ``trace`` if omitted.
-
-    Returns
-    -------
-    dict with keys ``impulsivity_custom``, ``impulsivity_r_squared``,
-    ``impulsivity_slope``, ``impulsivity_intercept``, and
-    ``impulsivity_ks_statistic``.
-    """
-    if envelope is None:
-        envelope = np.abs(_hilbert(trace))
-    peak_idx = np.argmax(envelope)
-    closeness = np.abs(np.arange(len(envelope)) - peak_idx)
-
-    sort_order = np.argsort(closeness)
-    sorted_env = envelope[sort_order]
-    cdf = np.cumsum(sorted_env) / np.sum(sorted_env)
-
-    impulsivity_custom = float(2.0 * np.mean(cdf) - 1.0)
-
-    x = closeness[sort_order].astype(float)
-    # Direct least-squares linear fit (equivalent to scipy.stats.linregress
-    # but bypasses scipy's axis_nan_policy wrapper, the single largest cost
-    # in the pre-optimization feature stage).
-    n = len(x)
-    sx = x.sum(); sy = cdf.sum()
-    sxy = (x * cdf).sum()
-    sxx = (x * x).sum(); syy = (cdf * cdf).sum()
-    denom = n * sxx - sx * sx
-    slope = (n * sxy - sx * sy) / denom
-    intercept = (sy - slope * sx) / n
-    r_value = (n * sxy - sx * sy) / np.sqrt(denom * (n * syy - sy * sy))
-
-    linear_pred = np.clip(slope * x + intercept, 0.0, 1.0)
-    linear_pred.sort()
-    # KS two-sample statistic: max | F_cdf(x) - F_linear(x) | at pooled
-    # support points. cdf and linear_pred are each already sorted, so
-    # np.searchsorted gives the per-array empirical-CDF values directly.
-    pooled = np.concatenate([cdf, linear_pred])
-    f_cdf = np.searchsorted(cdf, pooled, side="right") / n
-    f_lin = np.searchsorted(linear_pred, pooled, side="right") / n
-    ks_stat = float(np.max(np.abs(f_cdf - f_lin)))
-
-    return {
-        "impulsivity_custom": impulsivity_custom,
-        "impulsivity_r_squared": float(r_value ** 2),
-        "impulsivity_slope": float(slope),
-        "impulsivity_intercept": float(intercept),
-        "impulsivity_ks_statistic": float(ks_stat),
     }
 
 

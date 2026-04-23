@@ -172,14 +172,9 @@ class channelFeatureExtractor:
             row["max_amplitude_envelope"] = float(np.amax(envelope))
 
         if compute_all or "impulsivity" in groups:
-            row["impulsivity_nrmc"] = float(
-                trace_utils.get_impulsivity(trace, envelope=envelope))
-            ext = trace_utils.get_extended_impulsivity(trace, envelope=envelope)
-            row["impulsivity"] = ext["impulsivity_custom"]
-            row["impulsivity_r_squared"] = ext["impulsivity_r_squared"]
-            row["impulsivity_slope"] = ext["impulsivity_slope"]
-            row["impulsivity_intercept"] = ext["impulsivity_intercept"]
-            row["impulsivity_ks_statistic"] = ext["impulsivity_ks_statistic"]
+            imp = trace_utils.get_impulsivity(
+                trace, envelope=envelope, return_diagnostics=True)
+            row.update(imp)
 
         if compute_all or "kurtosis_entropy" in groups:
             row["kurtosis"] = float(trace_utils.get_kurtosis(trace))
