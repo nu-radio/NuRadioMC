@@ -8,15 +8,18 @@ per-channel features, then applies RNO-G-specific aggregation. Which
 antenna groups receive aggregate and coherent-sum columns is controlled
 by the top-level ``antenna_groups`` config key; valid names are defined
 by ``ANTENNA_GROUPS`` (``pa``, ``vpol``, ``hpol``, ``deep``) and the
-default is all four. Coherent-sum features are built only for groups
-that also appear in ``COHERENT_SUM_GROUPS``.
+default is all four. Coherent-sum features are produced for every
+enabled group when ``build_coherent_sums`` is true (``hpol`` and
+``deep`` mix or have only a handful of channels, so their coherent
+alignment can be less physically meaningful than ``pa``/``vpol`` but
+still useful as classifier features).
 
 Aggregates produced per enabled antenna group:
 
 - ``{feature}_avg_{group}`` for every per-channel feature (SNR,
   kurtosis, entropy, max amplitude, impulsivity, spectral descriptors,
   impulse-template correlations).
-- For groups in ``COHERENT_SUM_GROUPS``: a coherent sum across that
+- When ``build_coherent_sums`` is true: a coherent sum across the
   group's available channels plus ``coherent_{feature}_{group}``
   columns (SNR, impulsivity, kurtosis, entropy, spectral features,
   impulse-template correlations).
@@ -75,11 +78,6 @@ ANTENNA_GROUPS = {
     "hpol": HPOL_CHS,
     "deep": DEEP_CHS,
 }
-# Subset of ANTENNA_GROUPS for which coherent-sum features are defined.
-# Extending to hpol or deep requires picking a reference channel + the
-# aligned-shift logic in _coherent_sum, which is out of scope for the
-# initial config-ification.
-COHERENT_SUM_GROUPS = ("pa", "vpol")
 
 SPECTRAL_KEYS = (
     "spectral_centroid", "spectral_bandwidth", "spectral_skewness",
@@ -182,8 +180,8 @@ def build_feature_row(per_ch, traces, sampling_rate, config):
     """Flatten per-channel features + RNO-G aggregates into one row.
 
     ``antenna_groups`` in the config controls which RNO-G groups get
-    per-channel-average columns (``{feature}_avg_{group}``) and, for
-    groups in ``COHERENT_SUM_GROUPS``, coherent-sum feature columns
+    per-channel-average columns (``{feature}_avg_{group}``) and, when
+    ``build_coherent_sums`` is true, coherent-sum feature columns
     (``coherent_{feature}_{group}``). Default is every group in
     ``ANTENNA_GROUPS`` so the column set matches historical output.
     """
@@ -222,8 +220,6 @@ def build_feature_row(per_ch, traces, sampling_rate, config):
         spec_low = cfg.get("spectral_low_band_boundary", 0.1)
 
         for group_name in groups:
-            if group_name not in COHERENT_SUM_GROUPS:
-                continue
             group_chs = ANTENNA_GROUPS[group_name]
             avail = [c for c in group_chs if c in traces]
             ref = avail[0] if avail else None

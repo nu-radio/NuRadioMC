@@ -3,7 +3,7 @@
 Per-event scalar feature extraction for RNO-G. Reads data with
 `dataProviderRNOG` (ROOT) or `dataProviderNuRadio` (NUR), runs
 `NuRadioReco.modules.channelFeatureExtractor` per channel, then applies
-RNO-G-specific aggregation (PA/VPOL coherent sums, channel-group
+RNO-G-specific aggregation (per-group coherent sums, channel-group
 averages) and writes a pandas DataFrame to HDF5.
 
 ## Files
@@ -26,14 +26,19 @@ conventions:
   (`snr`, `noise_rms`, `rpr`, `max_amplitude`, `impulsivity`,
   `kurtosis`, `entropy`, spectral descriptors, impulse-template
   correlations, etc.).
-- `{feature}_avg_{pa,vpol,deep}` — mean of the per-channel value over
-  the PA (ch0-3), VPOL (ch0,1,2,3,5,6,7,9,10,22,23), and deep
-  (VPOL + HPOL) groups. Covers `snr`, `kurtosis`, `entropy`,
-  `max_amplitude`, `impulsivity`, each spectral descriptor, and each
-  impulse-template correlation.
-- `coherent_{feature}_{pa,vpol}` — features of the PA-coherent-sum and
-  VPOL-coherent-sum traces (SNR, impulsivity, kurtosis, entropy,
-  spectral descriptors, impulse-template correlations).
+- `{feature}_avg_{pa,vpol,hpol,deep}` — mean of the per-channel value
+  over each named antenna group. PA = ch0-3, VPOL = all string-deployed
+  VPOLs (ch0,1,2,3,5,6,7,9,10,22,23), HPOL = all string-deployed HPOLs
+  (ch4,8,11,21), deep = VPOL ∪ HPOL (15 in-ice channels, no surface
+  LPDAs). Covers `snr`, `kurtosis`, `entropy`, `max_amplitude`,
+  `impulsivity`, each spectral descriptor, and each impulse-template
+  correlation.
+- `coherent_{feature}_{pa,vpol,hpol,deep}` — features of the per-group
+  coherent-sum trace (SNR, impulsivity, kurtosis, entropy, spectral
+  descriptors, impulse-template correlations). The `hpol` group has
+  only 4 channels and the `deep` group mixes polarizations, so their
+  coherent alignment is less physically interpretable than `pa`/`vpol`
+  but still useful as classifier features.
 - `passed_hit_filter`, `n_coincident_pairs_{pa,in_ice}`,
   `n_high_hits_{pa,in_ice}` — only present when `hit_filter.enabled` is
   set in the config (see below).
