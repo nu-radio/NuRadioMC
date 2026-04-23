@@ -83,11 +83,41 @@ class dataProviderRNOG:
         """
 
         for event in self.reader.run():
+            yield self._preprocess_and_return(event)
 
-            # This will throw an error if the event has more than one station
-            station = event.get_station()
-            self.detector.update(station.get_station_time())
+    def get_event_ids(self):
+        """List ``(run_number, event_number)`` pairs in the opened file(s).
 
-            self.preprocessor.run(event, station, self.detector)
+        For callers that want random access via ``get_event`` instead of
+        iterating the generator from ``run()``.
+        """
+        return self.reader.get_event_ids()
 
-            yield event
+    def get_event(self, run_number, event_number):
+        """Return a single preprocessed event by ``(run, event_number)``.
+
+        Returns
+        -------
+        event : NuRadioReco.framework.event.Event or None
+            The preprocessed event, or None if the reader returned None
+            (event not present in the opened file(s)).
+
+        Notes
+        -----
+        Random access is appreciably faster than iterating ``run()`` and
+        skipping for workloads that only touch a subset of events in the
+        file(s) (e.g. chunked reco, burn-sample filtering). The returned
+        event has the same preprocessing applied as events yielded by
+        ``run()``.
+        """
+        event = self.reader.get_event(run_number, event_number)
+        if event is None:
+            return None
+        return self._preprocess_and_return(event)
+
+    def _preprocess_and_return(self, event):
+        # This will throw an error if the event has more than one station
+        station = event.get_station()
+        self.detector.update(station.get_station_time())
+        self.preprocessor.run(event, station, self.detector)
+        return event
