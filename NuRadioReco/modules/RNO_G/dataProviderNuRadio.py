@@ -77,7 +77,7 @@ class dataProviderNuRadio:
         For callers that want random access via ``get_event`` instead of
         iterating the generator from ``run()``.
         """
-        return self._fin().get_event_ids()
+        return self.reader.get_event_ids()
 
     def get_event(self, run_number, event_number):
         """Return a single preprocessed event by ``(run, event_number)``.
@@ -95,18 +95,10 @@ class dataProviderNuRadio:
         between passes). The returned event has the same preprocessing
         as events yielded by ``run()``.
         """
-        event = self._fin().get_event(event_id=(run_number, event_number))
+        event = self.reader.get_event((run_number, event_number))
         if event is None:
             return None
         return self._preprocess_and_return(event)
-
-    def _fin(self):
-        # eventReader's underlying NuRadioRecoio handle. The `_eventReader__fin`
-        # attribute is name-mangled; accessing it from outside the class is
-        # what the rest of the NuRadioReco RNO-G examples do. A proper
-        # `get_event` / `get_event_ids` on eventReader itself would be
-        # cleaner; for now we keep the access here so callers don't have to.
-        return self.reader._eventReader__fin
 
     def _preprocess_and_return(self, event):
         station = event.get_station()
