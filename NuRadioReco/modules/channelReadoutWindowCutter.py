@@ -25,9 +25,10 @@ class channelReadoutWindowCutter:
         pass
 
     @register_run()
-    def run(self, event, station, detector):
+    def run(self, event, station, detector, trace_start_times=None):
         """
-        Cuts the traces to the readout window defined in the trigger.
+        Cuts the traces to the readout window defined in the trigger or using
+        user provided trace_start_times.
 
         If multiple triggers exist, the primary trigger is used. If multiple
         primary triggers exist, an error is raised.
@@ -41,6 +42,11 @@ class channelReadoutWindowCutter:
         station: `NuRadioReco.framework.base_station.Station`
 
         detector: `NuRadioReco.detector.detector.Detector`
+
+        trace_start_times: array-like of shape (n_channels,), optional
+            If provided, the readout window is set using the provided trace start
+            times instead of the trigger information. The order of the trace start
+            times should be the same as the order of the channels in `station.get_channel_ids()`.
         """
         counter = 0
         for i, (name, instance, kwargs) in enumerate(event.iter_modules(station.get_id())):
@@ -51,91 +57,114 @@ class channelReadoutWindowCutter:
                            'This is likely a mistake. The module will not be applied again.')
             return 0
 
-        # determine which trigger to use
-        # if no primary trigger exists, use the trigger with the earliest trigger time
-        trigger = station.get_primary_trigger()
-        if trigger is None: # no primary trigger found
-            logger.debug('No primary trigger found. Using the trigger with the earliest trigger time.')
-            trigger = station.get_first_trigger()
-            if trigger is not None:
-                logger.info(f"setting trigger {trigger.get_name()} primary because it triggered first")
-                trigger.set_primary(True)
+        if trace_start_times is None:
+            # determine which trigger to use
+            # if no primary trigger exists, use the trigger with the earliest trigger time
+            trigger = station.get_primary_trigger()
+            if trigger is None: # no primary trigger found
+                logger.debug('No primary trigger found. Using the trigger with the earliest trigger time.')
+                trigger = station.get_first_trigger()
+                if trigger is not None:
+                    logger.info(f"setting trigger {trigger.get_name()} primary because it triggered first")
+                    trigger.set_primary(True)
 
-        if trigger is None or not trigger.has_triggered():
-            logger.info('No trigger found (which triggered)! Channel timings will not be changed.')
-            return
+            if trigger is None or not trigger.has_triggered():
+                logger.info('No trigger found (which triggered)! Channel timings will not be changed.')
+                return
 
-        trigger_time = trigger.get_trigger_time()
-        for channel in station.iter_channels():
+            trigger_time = trigger.get_trigger_time()
+            for channel in station.iter_channels():
 
-            detector_sampling_rate = detector.get_sampling_frequency(station.get_id(), channel.get_id())
-            sampling_rate = channel.get_sampling_rate()
-            detector_n_samples = detector.get_number_of_samples(station.get_id(), channel.get_id())
+                detector_sampling_rate = detector.get_sampling_frequency(station.get_id(), channel.get_id())
+                sampling_rate = channel.get_sampling_rate()
+                detector_n_samples = detector.get_number_of_samples(station.get_id(), channel.get_id())
 
-            number_of_samples, valid_sampling_rate = _get_number_of_samples(
-                sampling_rate, detector_sampling_rate, detector_n_samples,
-                issue_error=not self.__sampling_rate_error_issued
+                number_of_samples, valid_sampling_rate = _get_number_of_samples(
+                    sampling_rate, detector_sampling_rate, detector_n_samples,
+                    issue_error=not self.__sampling_rate_error_issued
+                    )
+
+                if not self.__sampling_rate_error_issued:
+                    self.__sampling_rate_error_issued = not valid_sampling_rate # this ensures the warning is printed only once
+
+                trace = channel.get_trace()
+                if number_of_samples > trace.shape[0]:
+                    logger.error((
+                        "Input has fewer samples than desired output. "
+                        "Channels has only {} samples but {} samples are requested.").format(
+                        trace.shape[0], number_of_samples))
+                    raise AttributeError
+
+                channel_id = channel.get_id()
+                pre_trigger_time = trigger.get_pre_trigger_time_channel(channel_id)
+
+                pre_trigger_time_channel = trigger_time - pre_trigger_time - channel.get_trace_start_time()
+
+                # throw error if the trigger time is outside the trace or warnings if the readout window is partially outside the trace
+                trace_length = len(trace)
+                if (trigger_time < channel.get_trace_start_time() or
+                    trigger_time > channel.get_trace_start_time() + trace_length / sampling_rate):
+                    msg = ("Trigger time outside trace for station.channel {}.{} (trigger time = {:.2f}ns, "
+                        "start of trace {:.2f}ns, end of trace {:.2f}ns, this would result in rolling over "
+                        "the edge of the trace and is not the intended use of this function (Run: {}, Event: {})").format(
+                            station.get_id(), channel_id, trigger_time, channel.get_trace_start_time(),
+                            channel.get_trace_start_time() + trace_length / sampling_rate,
+                            event.get_run_number(), event.get_id())
+                    logger.error(msg)
+                    raise AttributeError(msg)
+                elif pre_trigger_time_channel < 0:
+                    msg = ("Start of the readout window is before the start of the trace for station.channel {}.{}. "
+                        "This can happen with an accidental noise trigger but should not happen otherwise. "
+                        "(trigger time = {:.2f}ns, pre-trigger time = {:.2f}ns, start of trace {:.2f}ns, "
+                        "requested time before trace = {:.2f}ns), the trace will be rolled over the edge to "
+                        "fit in the readout window (Run: {}, Event: {})").format(
+                            station.get_id(), channel_id, trigger_time, pre_trigger_time,
+                            channel.get_trace_start_time(), pre_trigger_time_channel,
+                            event.get_run_number(), event.get_id())
+                    logger.warning(msg)
+                elif pre_trigger_time_channel + number_of_samples / sampling_rate > trace_length / sampling_rate:
+                    msg = ("End of the readout window is outside the end of the trace for station.channel {}.{}. "
+                        "(trigger time = {:.2f}ns, pre-trigger time = {:.2f}ns, start of sim. trace = {:.2f}ns, "
+                        "end of sim. trace {:.2f}, length of readout window {:.2f}ns, requested time after trace = "
+                        "{:.2f}ns), the trace will be rolled over the edge to fit in the readout window (Run: {}, Event: {})").format(
+                            station.get_id(), channel_id, trigger_time, pre_trigger_time, channel.get_trace_start_time(),
+                            channel.get_trace_start_time() + trace_length / sampling_rate, number_of_samples / sampling_rate,
+                            pre_trigger_time_channel + number_of_samples / sampling_rate - trace_length / sampling_rate,
+                            event.get_run_number(), event.get_id())
+                    logger.warning(msg)
+
+                # "roll" the start of the readout window to the start of the trace
+                channel.apply_time_shift(-pre_trigger_time_channel, silent=True)
+
+                # cut the trace
+                trace = channel.get_trace()
+                trace = trace[:number_of_samples]
+
+                channel.set_trace(trace, channel.get_sampling_rate())
+                channel.set_trace_start_time(trigger_time - pre_trigger_time)
+
+        elif trace_start_times is not None:
+            logger.info('Using provided trace start times to set the readout windows.')
+            for i_ch, channel in enumerate(station.iter_channels()):
+                channel_id = channel.get_id()
+
+                # Get information about readout channels
+                detector_sampling_rate = detector.get_sampling_frequency(station.get_id(), channel.get_id())
+                sampling_rate = channel.get_sampling_rate()
+                detector_n_samples = detector.get_number_of_samples(station.get_id(), channel.get_id())
+                number_of_samples, valid_sampling_rate = _get_number_of_samples(
+                    sampling_rate, detector_sampling_rate, detector_n_samples,
+                    issue_error=not self.__sampling_rate_error_issued
+                    )
+
+                readout_channel = NuRadioReco.framework.channel.Channel(channel_id)
+                readout_channel.set_trace(
+                    trace = np.zeros(number_of_samples),
+                    sampling_rate = sampling_rate,
+                    trace_start_time = trace_start_times[i_ch]
                 )
-
-            if not self.__sampling_rate_error_issued:
-                self.__sampling_rate_error_issued = not valid_sampling_rate # this ensures the warning is printed only once
-
-            trace = channel.get_trace()
-            if number_of_samples > trace.shape[0]:
-                logger.error((
-                    "Input has fewer samples than desired output. "
-                    "Channels has only {} samples but {} samples are requested.").format(
-                    trace.shape[0], number_of_samples))
-                raise AttributeError
-
-            channel_id = channel.get_id()
-            pre_trigger_time = trigger.get_pre_trigger_time_channel(channel_id)
-
-            pre_trigger_time_channel = trigger_time - pre_trigger_time - channel.get_trace_start_time()
-
-            # throw error if the trigger time is outside the trace or warnings if the readout window is partially outside the trace
-            trace_length = len(trace)
-            if (trigger_time < channel.get_trace_start_time() or
-                trigger_time > channel.get_trace_start_time() + trace_length / sampling_rate):
-                msg = ("Trigger time outside trace for station.channel {}.{} (trigger time = {:.2f}ns, "
-                       "start of trace {:.2f}ns, end of trace {:.2f}ns, this would result in rolling over "
-                       "the edge of the trace and is not the intended use of this function (Run: {}, Event: {})").format(
-                        station.get_id(), channel_id, trigger_time, channel.get_trace_start_time(),
-                        channel.get_trace_start_time() + trace_length / sampling_rate,
-                        event.get_run_number(), event.get_id())
-                logger.error(msg)
-                raise AttributeError(msg)
-            elif pre_trigger_time_channel < 0:
-                msg = ("Start of the readout window is before the start of the trace for station.channel {}.{}. "
-                       "This can happen with an accidental noise trigger but should not happen otherwise. "
-                       "(trigger time = {:.2f}ns, pre-trigger time = {:.2f}ns, start of trace {:.2f}ns, "
-                       "requested time before trace = {:.2f}ns), the trace will be rolled over the edge to "
-                       "fit in the readout window (Run: {}, Event: {})").format(
-                        station.get_id(), channel_id, trigger_time, pre_trigger_time,
-                        channel.get_trace_start_time(), pre_trigger_time_channel,
-                        event.get_run_number(), event.get_id())
-                logger.warning(msg)
-            elif pre_trigger_time_channel + number_of_samples / sampling_rate > trace_length / sampling_rate:
-                msg = ("End of the readout window is outside the end of the trace for station.channel {}.{}. "
-                       "(trigger time = {:.2f}ns, pre-trigger time = {:.2f}ns, start of sim. trace = {:.2f}ns, "
-                       "end of sim. trace {:.2f}, length of readout window {:.2f}ns, requested time after trace = "
-                       "{:.2f}ns), the trace will be rolled over the edge to fit in the readout window (Run: {}, Event: {})").format(
-                        station.get_id(), channel_id, trigger_time, pre_trigger_time, channel.get_trace_start_time(),
-                        channel.get_trace_start_time() + trace_length / sampling_rate, number_of_samples / sampling_rate,
-                        pre_trigger_time_channel + number_of_samples / sampling_rate - trace_length / sampling_rate,
-                        event.get_run_number(), event.get_id())
-                logger.warning(msg)
-
-            # "roll" the start of the readout window to the start of the trace
-            channel.apply_time_shift(-pre_trigger_time_channel, silent=True)
-
-            # cut the trace
-            trace = channel.get_trace()
-            trace = trace[:number_of_samples]
-
-            channel.set_trace(trace, channel.get_sampling_rate())
-            channel.set_trace_start_time(trigger_time - pre_trigger_time)
-
+                readout_channel.add_to_trace(channel, raise_error=True, min_residual_time_offset=0 * units.ns)
+                channel.set_trace(readout_channel.get_trace(), sampling_rate, trace_start_times[i_ch])
 
 def _get_number_of_samples(sampling_rate, detector_sampling_rate, detector_n_samples, issue_error=True):
     """
