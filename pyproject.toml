@@ -47,8 +47,9 @@ sphinx-rtd-theme = {version = "*", optional = true}
 numpydoc = {version = "*", optional = true}
 proposal = {version = "7.6.2", optional = true}
 pylfmap = {version = "*", optional = true}
-pygdsm = {version = "<1.7", optional = true, python = "<3.9"}
-pygdsm = {version = "*", optional = true, python = ">=3.9"}
+pygdsm = [
+    {version = "<1.7", optional = true, python = "<3.9"},
+    {version = "*", optional = true, python = ">=3.9"}]
 healpy = {version = "*", optional = true}
 MCEq = {version = "*", optional = true}
 crflux = {version = "*", optional = true}
