@@ -11,7 +11,8 @@
 #
 # Required:
 #   --config       Reco config YAML (e.g., configs/reco3d_neutrino_gzk.yaml)
-#   --data-dir     Directory containing input .nur files
+#   --data-dir     Directory searched recursively for .nur files, or for
+#                  combined.root / waveforms.root under run* subdirs
 #   --output-dir   Where to write per-chunk HDF5 results
 #   --account      SLURM account
 #
@@ -83,12 +84,15 @@ DRIVER="${SCRIPT_DIR}/interferometric_reco_3d_advanced.py"
 
 mkdir -p "${OUT_DIR}/slurm_outputs"
 
-# Collect all NUR files and split into chunks
-mapfile -t ALL_FILES < <(find "$DATA_DIR" -name "*.nur" -type f | sort)
+# Collect input files. .nur, combined.root, and waveforms.root are all
+# supported; the driver auto-detects NUR vs ROOT by extension.
+mapfile -t ALL_FILES < <(find "$DATA_DIR" \
+    \( -name "*.nur" -o -name "combined.root" -o -name "waveforms.root" \) \
+    -type f | sort)
 N_FILES=${#ALL_FILES[@]}
 
 if [ "$N_FILES" -eq 0 ]; then
-    echo "No .nur files found in $DATA_DIR"
+    echo "No .nur, combined.root, or waveforms.root files found under $DATA_DIR"
     exit 1
 fi
 
