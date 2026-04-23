@@ -320,8 +320,15 @@ def main():
     parser.add_argument("--max_events", type=int, default=None)
     parser.add_argument("--skip_events", type=int, default=0,
                         help="Skip this many events at the start of each file")
-    parser.add_argument("--event-list", type=str, default=None,
-                        help="JSON file mapping run_number -> [event_numbers] to filter events")
+    parser.add_argument("--events", type=str, nargs="+", default=None,
+                        help=(
+                            "Filter to a subset of events. Accepts either a "
+                            "space-separated list of integer event numbers, or "
+                            "a path to a JSON file, auto-detected: run-keyed "
+                            "{run: [events]} if keys parse as integers, else "
+                            "file-aware {src: [[run, evt], ...]}. See "
+                            "NuRadioReco.utilities.io_utilities.parse_event_ids."
+                        ))
     parser.add_argument("--validation", action="store_true",
                         help="Record per-channel SNR and correlation quality metrics")
     parser.add_argument("--save-nur", type=str, default=None,
@@ -348,24 +355,10 @@ def main():
           f"(SLURM={slurm_cpus}, host={host_cpus}), "
           f"cupy_device_count={_cp.cuda.runtime.getDeviceCount() if has_gpu else 0}")
 
-    # Two supported event-list formats:
-    #   Legacy: {run_number: [event_numbers]}
-    #     Filter is ambiguous when multiple input files share run_numbers.
-    #   File-aware: {"by_file": {source_file_basename: [[run, evt], ...]}}
-    #     Matches (file, run, evt) triples exactly.
     event_filter = None
-    event_filter_by_file = None
-    if args.event_list:
-        import json as _json
-        with open(args.event_list) as _f:
-            raw = _json.load(_f)
-        if isinstance(raw, dict) and 'by_file' in raw:
-            event_filter_by_file = {
-                src: set(tuple(x) for x in events)
-                for src, events in raw['by_file'].items()
-            }
-        else:
-            event_filter = {int(k): set(v) for k, v in raw.items()}
+    if args.events:
+        from NuRadioReco.utilities.io_utilities import parse_event_ids
+        event_filter = parse_event_ids(args.events)
 
     logging.basicConfig(level=logging.INFO,
                         format='%(name)s - %(levelname)s - %(message)s')
@@ -488,9 +481,8 @@ def main():
     for input_file in args.input:
         file_basename = os.path.basename(input_file)
 
-        # File-aware filter: skip files with no matching events.
-        if event_filter_by_file is not None \
-                and file_basename not in event_filter_by_file:
+        if event_filter is not None and 'by_file' in event_filter \
+                and file_basename not in event_filter['by_file']:
             continue
 
         if is_nur:
@@ -518,19 +510,20 @@ def main():
 
         event_ids = event_ids[args.skip_events:]
 
-        file_event_set = None
-        if event_filter_by_file is not None:
-            file_event_set = event_filter_by_file[file_basename]
-
         for eid in event_ids:
             run_nr = int(eid[0])
             evt_nr = int(eid[1])
-            if file_event_set is not None:
-                if (run_nr, evt_nr) not in file_event_set:
-                    continue
-            elif event_filter is not None:
-                if run_nr not in event_filter or evt_nr not in event_filter[run_nr]:
-                    continue
+            if event_filter is not None:
+                if 'by_file' in event_filter:
+                    if (run_nr, evt_nr) not in event_filter['by_file'][file_basename]:
+                        continue
+                elif 'by_run' in event_filter:
+                    if run_nr not in event_filter['by_run'] \
+                            or evt_nr not in event_filter['by_run'][run_nr]:
+                        continue
+                elif 'by_event' in event_filter:
+                    if evt_nr not in event_filter['by_event']:
+                        continue
 
             t0 = time.time()
 
