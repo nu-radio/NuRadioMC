@@ -4,7 +4,6 @@ from NuRadioReco.utilities import units
 import NuRadioReco.utilities.trace_utilities as trace_utils
 
 import numpy as np
-from scipy import stats
 
 import logging
 logger = logging.getLogger("NuRadioReco.channelFeatureExtractor")
@@ -160,17 +159,22 @@ class channelFeatureExtractor:
             row["root_power_ratio"] = float(
                 trace_utils.get_root_power_ratio(trace, times, noise_rms))
 
+        need_envelope = (compute_all
+                         or "max_amplitude" in groups
+                         or "impulsivity" in groups)
+        envelope = trace_utils.get_hilbert_envelope(trace) if need_envelope else None
+
         if compute_all or "max_amplitude" in groups:
             std = np.std(trace)
             normalized = trace / std if std > 0 else trace
             row["max_amplitude_norm"] = float(np.amax(
                 trace_utils.get_maximum_peak_to_peak_amplitude(normalized)))
-            envelope = trace_utils.get_hilbert_envelope(trace)
             row["max_amplitude_envelope"] = float(np.amax(envelope))
 
         if compute_all or "impulsivity" in groups:
-            row["impulsivity_nrmc"] = float(trace_utils.get_impulsivity(trace))
-            ext = trace_utils.get_extended_impulsivity(trace)
+            row["impulsivity_nrmc"] = float(
+                trace_utils.get_impulsivity(trace, envelope=envelope))
+            ext = trace_utils.get_extended_impulsivity(trace, envelope=envelope)
             row["impulsivity"] = ext["impulsivity_custom"]
             row["impulsivity_r_squared"] = ext["impulsivity_r_squared"]
             row["impulsivity_slope"] = ext["impulsivity_slope"]
@@ -178,7 +182,7 @@ class channelFeatureExtractor:
             row["impulsivity_ks_statistic"] = ext["impulsivity_ks_statistic"]
 
         if compute_all or "kurtosis_entropy" in groups:
-            row["kurtosis"] = float(stats.kurtosis(trace))
+            row["kurtosis"] = float(trace_utils.get_kurtosis(trace))
             row["entropy"] = float(trace_utils.get_entropy(
                 trace, n_hist_bins=cfg["n_entropy_bins"]))
 

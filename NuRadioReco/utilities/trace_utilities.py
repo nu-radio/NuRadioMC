@@ -459,14 +459,17 @@ def get_split_trace_noise_RMS(trace, segments=4, lowest=2):
     noise_root_mean_square: float
         The mean of the lowest few segments' RMS values
     """
-    split_array = np.array_split(trace, segments)
-    split_array = np.array(split_array, dtype="object") #Objectify dtype to allow timetraces indivisible by amount of segments
-    rms_of_splits = [np.std(split) for split in split_array]
-    ordered_rmss = np.sort(rms_of_splits)
-    lowest_rmss = ordered_rmss[:lowest]
-    noise_root_mean_square = np.mean(lowest_rmss)
+    n = len(trace)
+    if n % segments == 0:
+        # Vectorised: reshape into (segments, seg_len) and take std along axis=1.
+        seg_len = n // segments
+        rms_of_splits = np.std(trace[:segments * seg_len].reshape(segments, seg_len), axis=1)
+    else:
+        # Fallback for traces not evenly divisible by ``segments``.
+        rms_of_splits = np.array([np.std(split) for split in np.array_split(trace, segments)])
 
-    return noise_root_mean_square
+    rms_of_splits.partition(lowest)
+    return float(np.mean(rms_of_splits[:lowest]))
 
 
 def get_signal_to_noise_ratio(trace, noise_rms, window_size=3):
@@ -566,7 +569,7 @@ def get_hilbert_envelope(trace):
     return envelope
 
 
-def get_impulsivity(trace):
+def get_impulsivity(trace, envelope=None):
     """
     Calculates the impulsivity of a signal (trace).
 
@@ -580,6 +583,8 @@ def get_impulsivity(trace):
     ----------
     trace: array of floats
         Trace of a waveform
+    envelope: array of floats, optional
+        Precomputed Hilbert envelope. Computed from ``trace`` if omitted.
 
     Returns
     -------
@@ -587,18 +592,16 @@ def get_impulsivity(trace):
         Impulsivity of the signal (scaled between 0 and 1)
     """
 
-    envelope = get_hilbert_envelope(trace)
+    if envelope is None:
+        envelope = get_hilbert_envelope(trace)
     maxv = np.argmax(envelope)
-    envelope_indexes = np.arange(len(envelope)) ## just a list of indices the same length as the array
-    closeness = list(
-        np.abs(envelope_indexes - maxv)
-    )  ## create an array containing index distance to max voltage (lower the value, the closer it is)
+    closeness = np.abs(np.arange(len(envelope)) - maxv)
 
-    sorted_envelope = np.array([x for _, x in sorted(zip(closeness, envelope))])
+    sorted_envelope = envelope[np.argsort(closeness)]
     cdf = np.cumsum(sorted_envelope**2)
     cdf = cdf / cdf[-1]
 
-    impulsivity = (np.mean(np.asarray([cdf])) * 2.0) - 1.0
+    impulsivity = (np.mean(cdf) * 2.0) - 1.0
     if impulsivity < 0:
         impulsivity = 0.0
 
@@ -673,21 +676,24 @@ def get_entropy(trace, n_hist_bins = 50):
     # Step 1: Discretize the signal into bins
     # If density = True, the result is the value of the probability density function at the bin,
     # normalized such that the integral over the range is 1.
-    hist, bin_edges = np.histogram(trace, bins = n_hist_bins, density = True)
+    hist, _ = np.histogram(trace, bins=n_hist_bins, density=True)
 
     # Step 2: Calculate the probability distribution (normalized)
     probabilities = hist / np.sum(hist)
 
-    # Step 3: Calculate Shannon Entropy
-    # Using base = 2 for entropy in bits
-    entropy = scipy.stats.entropy(probabilities, base = 2)
-
-    return entropy
+    # Step 3: Shannon entropy in bits. Bypass scipy.stats.entropy (which
+    # applies axis_nan_policy overhead per call). Equivalent: p*log2(1/p)
+    # summed, with p=0 contributing 0.
+    p_nz = probabilities[probabilities > 0]
+    return float(-np.sum(p_nz * np.log2(p_nz)))
 
 
 def get_kurtosis(trace):
     """
     Calculates the kurtosis (tailedness) of a trace.
+
+    Equivalent to ``scipy.stats.kurtosis(trace)`` (Fisher's, biased) but
+    bypasses scipy's axis_nan_policy wrapper.
 
     Parameters
     ----------
@@ -699,8 +705,13 @@ def get_kurtosis(trace):
     kurtosis: float
         Kurtosis of the signal (trace)
     """
-    kurtosis = scipy.stats.kurtosis(trace)
-    return kurtosis
+    centered = trace - trace.mean()
+    squared = centered * centered
+    m2 = squared.mean()
+    if m2 == 0:
+        return float("-inf")
+    m4 = (squared * squared).mean()
+    return float(m4 / (m2 * m2) - 3.0)
 
 
 def get_teager_kaiser_energy(trace):
@@ -932,7 +943,11 @@ def get_spectral_features(trace, sampling_rate, fmin=None, fmax=None,
     entropy = float(-np.sum(p_norm * np.log(p_safe)))
 
     log_p = np.log10(np.clip(p, 1e-30, None))
-    slope, _, _, _, _ = _stats.linregress(f, log_p)
+    # Direct least-squares slope (bypass scipy's axis_nan_policy wrapper).
+    n_f = len(f)
+    sx = f.sum(); sy = log_p.sum()
+    slope = ((n_f * (f * log_p).sum() - sx * sy)
+             / (n_f * (f * f).sum() - sx * sx))
 
     cum_power = np.cumsum(p)
     cum_power_norm = cum_power / cum_power[-1]
@@ -962,7 +977,18 @@ _IMPULSE_TEMPLATE_CACHE = {}
 
 
 def _build_impulse_templates(n_samples, sampling_rate):
-    """Build a library of idealised impulse templates for correlation."""
+    """Return ``{name: template}``; also primes the FFT cache used by
+    ``get_impulse_template_correlations``."""
+    return _build_impulse_template_cache(n_samples, sampling_rate)["templates"]
+
+
+def _build_impulse_template_cache(n_samples, sampling_rate):
+    """Build the impulse-template library and its cached FFT conjugates.
+
+    Templates are normalised (zero-mean, unit-std), zero-padded to length
+    ``2 * n_samples``, and their conjugate rFFTs are cached so per-channel
+    correlations can be done in a single batched rFFT/irFFT pair.
+    """
     key = (n_samples, sampling_rate)
     if key in _IMPULSE_TEMPLATE_CACHE:
         return _IMPULSE_TEMPLATE_CACHE[key]
@@ -996,8 +1022,29 @@ def _build_impulse_templates(n_samples, sampling_rate):
     sinc_pulse = np.nan_to_num(sinc_pulse, nan=1.0)
     templates["sinc"] = sinc_pulse
 
-    _IMPULSE_TEMPLATE_CACHE[key] = templates
-    return templates
+    names = tuple(templates.keys())
+    stacked = np.stack([templates[name] for name in names])
+    means = stacked.mean(axis=1, keepdims=True)
+    stds = stacked.std(axis=1, keepdims=True)
+    valid = stds.squeeze(1) > 1e-10
+    stacked_norm = np.where(
+        valid[:, None], (stacked - means) / np.maximum(stds, 1e-30), 0.0)
+
+    fft_len = 2 * n_samples
+    padded = np.zeros((len(names), fft_len))
+    padded[:, :n_samples] = stacked_norm
+    template_fft_conj = np.conj(np.fft.rfft(padded, axis=1))
+
+    entry = {
+        "templates": templates,
+        "names": names,
+        "template_fft_conj": template_fft_conj,
+        "template_valid": valid,
+        "fft_len": fft_len,
+        "n_samples": n_samples,
+    }
+    _IMPULSE_TEMPLATE_CACHE[key] = entry
+    return entry
 
 
 def _normalized_correlation_max(trace, template, floor=1e-10):
@@ -1020,20 +1067,55 @@ def get_impulse_template_correlations(trace, sampling_rate):
     Returns a dict mapping template name (``delta``, ``bipolar``,
     ``gaussian``, ``bipolar_wide``, ``sinc``) to max |normalised
     correlation| in [0, 1].
+
+    Uses cached conjugate rFFTs of the zero-padded templates so all five
+    correlations are computed in a single batched rFFT/irFFT pair per
+    trace.
     """
     n = len(trace)
-    templates = _build_impulse_templates(n, sampling_rate)
+    cache = _build_impulse_template_cache(n, sampling_rate)
+    names = cache["names"]
+    valid = cache["template_valid"]
+
+    t_std = np.std(trace)
+    if t_std < 1e-10:
+        return {name: 0.0 for name in names}
+
+    t_norm = (trace - np.mean(trace)) / t_std
+    fft_len = cache["fft_len"]
+    t_padded = np.zeros(fft_len)
+    t_padded[:n] = t_norm
+    trace_fft = np.fft.rfft(t_padded)
+
+    full = np.fft.irfft(
+        trace_fft[None, :] * cache["template_fft_conj"], n=fft_len, axis=1)
+    # Reorder the 2N-length circular output into scipy "full" ordering
+    # (length 2N-1, lags -(N-1) .. N-1), then take the centered "same"
+    # slice of length N.
+    neg = full[:, fft_len - (n - 1):fft_len]
+    pos = full[:, :n]
+    full_ordered = np.concatenate([neg, pos], axis=1)
+    same_start = (2 * n - 1 - n) // 2
+    same = full_ordered[:, same_start:same_start + n] / n
+    max_abs_corr = np.max(np.abs(same), axis=1)
+
     return {
-        name: _normalized_correlation_max(trace, tmpl)
-        for name, tmpl in templates.items()
+        names[i]: float(max_abs_corr[i]) if valid[i] else 0.0
+        for i in range(len(names))
     }
 
 
-def get_extended_impulsivity(trace):
+def get_extended_impulsivity(trace, envelope=None):
     """Extended impulsivity diagnostics complementing ``get_impulsivity``.
 
     Augments the standard CDF-based impulsivity scalar with linear-fit
     diagnostics and a KS test against a purely linear CDF.
+
+    Parameters
+    ----------
+    trace : array of floats
+    envelope : array of floats, optional
+        Precomputed Hilbert envelope. Computed from ``trace`` if omitted.
 
     Returns
     -------
@@ -1041,7 +1123,8 @@ def get_extended_impulsivity(trace):
     ``impulsivity_slope``, ``impulsivity_intercept``, and
     ``impulsivity_ks_statistic``.
     """
-    envelope = np.abs(_hilbert(trace))
+    if envelope is None:
+        envelope = np.abs(_hilbert(trace))
     peak_idx = np.argmax(envelope)
     closeness = np.abs(np.arange(len(envelope)) - peak_idx)
 
@@ -1052,10 +1135,27 @@ def get_extended_impulsivity(trace):
     impulsivity_custom = float(2.0 * np.mean(cdf) - 1.0)
 
     x = closeness[sort_order].astype(float)
-    slope, intercept, r_value, _, _ = _stats.linregress(x, cdf)
+    # Direct least-squares linear fit (equivalent to scipy.stats.linregress
+    # but bypasses scipy's axis_nan_policy wrapper, the single largest cost
+    # in the pre-optimization feature stage).
+    n = len(x)
+    sx = x.sum(); sy = cdf.sum()
+    sxy = (x * cdf).sum()
+    sxx = (x * x).sum(); syy = (cdf * cdf).sum()
+    denom = n * sxx - sx * sx
+    slope = (n * sxy - sx * sy) / denom
+    intercept = (sy - slope * sx) / n
+    r_value = (n * sxy - sx * sy) / np.sqrt(denom * (n * syy - sy * sy))
+
     linear_pred = np.clip(slope * x + intercept, 0.0, 1.0)
-    linear_pred = np.sort(linear_pred)
-    ks_stat, _ = _stats.ks_2samp(cdf, linear_pred)
+    linear_pred.sort()
+    # KS two-sample statistic: max | F_cdf(x) - F_linear(x) | at pooled
+    # support points. cdf and linear_pred are each already sorted, so
+    # np.searchsorted gives the per-array empirical-CDF values directly.
+    pooled = np.concatenate([cdf, linear_pred])
+    f_cdf = np.searchsorted(cdf, pooled, side="right") / n
+    f_lin = np.searchsorted(linear_pred, pooled, side="right") / n
+    ks_stat = float(np.max(np.abs(f_cdf - f_lin)))
 
     return {
         "impulsivity_custom": impulsivity_custom,
