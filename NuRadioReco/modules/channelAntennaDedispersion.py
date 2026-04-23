@@ -21,7 +21,7 @@ class channelAntennaDedispersion:
         if("LPDA" in antenna_name):
             zen = zen_ori  # the sensitive direction of an LPDA is the boresight direction
             az = az_ori
-        elif("bicone" in antenna_name or "dipole" in antenna_name):
+        elif("bicone" in antenna_name or "dipole" in antenna_name or "vpol" in antenna_name.lower() or "hpol" in antenna_name.lower()):
             zen = 90 * units.deg + zen_ori  # the sensitive direction of a dipole is perpendicular to its orientatoin
             az = 0
         else:

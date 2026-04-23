@@ -1,0 +1,62 @@
+# 3D interferometric reconstruction config: simulated pulser calibration (fast)
+#
+# Single-pass (hw mode only, no antenna dedispersion pass2). Use this when
+# runtime matters more than sub-degree precision.
+#
+# Validated on 27 stratified pulser events from the same 6,840-file dataset
+# as the full rxtx config. Median angular separation: 1.53 deg (hw mode).
+# Runtime: ~9 s/event.
+#
+# Preprocessing: cable delay subtraction, HW phase removal, 10 GHz upsampling,
+# Hilbert envelope on traces, SNR pair weighting, energy normalization,
+# Hann window on correlations. No bandpass.
+#
+# Best hw-mode permutation from 432-config permutation study (perm 217):
+# hilbert=traces, hann=on, bandpass=off, hw_phase=on, dedispersion=hw,
+# snr_weight=on, correlation_normalization=energy.
+#
+# Without antenna dedispersion, the Hilbert trace envelope compensates by
+# smoothing over phase distortion from the antenna response.
+#
+# Search volume: rho 1-200m, z -230 to 0m.
+# Fine grid with grouped multiray.
+#
+# Update paths below before running.
+
+station_id: 23
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
+
+coord_system: "cylindrical"
+hierarchical: true
+multi_ray_types: true
+multiray_combo_mode: "grouped"
+
+coarse_limits: [1, 200, 0, 360, -230, 0]
+coarse_n_rho: 100
+coarse_step_sizes: [0, 4, 1]
+coarse_n_peaks: 3
+coarse_peak_separation: [10, 10, 10]
+
+refine_window: [5, 5, 5]
+refine_step_sizes: [0.2, 0.3, 0.2]
+
+limits: [1, 200, 0, 360, -230, 0]
+
+# Paths: update these for your environment
+time_delay_tables: "/path/to/multiray_tables"
+multiray_table_name_pattern: "st{station_id}_ch{ch}_rz_table_{ray_type}.npz"
+detector_date: "2022-10-01"
+
+# Preprocessing (driver-level, applied before reconstruction module)
+apply_cable_delay: true
+apply_hw_phase_removal: true
+apply_upsampling: true
+apply_bandpass: false
+apply_cw_removal: false
+apply_dedispersion: false
+
+hilbert_envelope_mode: "traces"
+apply_hann_window: true
+interp_method: "linear"
+snr_pair_weighting: true
+correlation_normalization: "energy"

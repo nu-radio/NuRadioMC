@@ -854,3 +854,215 @@ def get_variable_window_size_correlation(data_trace, template_trace, window_size
         return correlation, time_diff
     else:
         return correlation
+
+
+from scipy import stats as _stats
+from scipy.ndimage import (maximum_filter1d as _max_filter1d,
+                           minimum_filter1d as _min_filter1d)
+from scipy.signal import correlate as _correlate, hilbert as _hilbert
+
+
+def get_maximum_peak_to_peak_amplitude(trace, win_size=6):
+    """Sliding-window peak-to-peak amplitude (max - min in each window)."""
+    return _max_filter1d(trace, win_size) - _min_filter1d(trace, win_size)
+
+
+def get_spectral_features(trace, sampling_rate, fmin=None, fmax=None,
+                          low_band_boundary=0.1):
+    """Compute spectral shape descriptors for a voltage trace.
+
+    All moments are computed on the power spectrum (|FFT|^2), not the
+    magnitude spectrum.
+
+    Parameters
+    ----------
+    trace : ndarray
+        Voltage trace (1-D).
+    sampling_rate : float
+        Sampling rate. Units are arbitrary but must match fmin / fmax /
+        low_band_boundary. Use GHz when working inside NuRadioReco.
+    fmin, fmax : float, optional
+        Frequency bounds in the same units as ``sampling_rate``.
+    low_band_boundary : float
+        Frequency below which power is counted as "low-band". Default
+        0.1 GHz (= 100 MHz in NuRadioReco's native units).
+
+    Returns
+    -------
+    dict with keys: spectral_centroid, spectral_bandwidth,
+    spectral_skewness, spectral_kurtosis, spectral_entropy,
+    spectral_slope, spectral_rolloff_90, spectral_flatness,
+    low_band_fraction.
+    """
+    n = len(trace)
+    fft_vals = np.fft.rfft(trace)
+    freqs = np.fft.rfftfreq(n, d=1.0 / sampling_rate)
+    power = np.abs(fft_vals) ** 2
+
+    if fmin is None:
+        fmin = freqs[1]
+    if fmax is None:
+        fmax = freqs[-1]
+
+    mask = (freqs >= fmin) & (freqs <= fmax)
+    f = freqs[mask]
+    p = power[mask]
+
+    total_power = p.sum()
+    if total_power == 0 or len(f) < 2:
+        return {k: np.nan for k in (
+            "spectral_centroid", "spectral_bandwidth", "spectral_skewness",
+            "spectral_kurtosis", "spectral_entropy", "spectral_slope",
+            "spectral_rolloff_90", "spectral_flatness", "low_band_fraction",
+        )}
+
+    p_norm = p / total_power
+    centroid = float(np.sum(f * p_norm))
+    variance = np.sum((f - centroid) ** 2 * p_norm)
+    bandwidth = float(np.sqrt(variance))
+
+    if bandwidth > 0:
+        skewness = float(np.sum((f - centroid) ** 3 * p_norm) / bandwidth ** 3)
+        kurtosis = float(np.sum((f - centroid) ** 4 * p_norm) / bandwidth ** 4 - 3.0)
+    else:
+        skewness = 0.0
+        kurtosis = 0.0
+
+    p_safe = np.clip(p_norm, 1e-30, None)
+    entropy = float(-np.sum(p_norm * np.log(p_safe)))
+
+    log_p = np.log10(np.clip(p, 1e-30, None))
+    slope, _, _, _, _ = _stats.linregress(f, log_p)
+
+    cum_power = np.cumsum(p)
+    cum_power_norm = cum_power / cum_power[-1]
+    rolloff_90 = float(np.interp(0.9, cum_power_norm, f))
+
+    log_mean = np.exp(np.mean(np.log(np.clip(p, 1e-30, None))))
+    arith_mean = np.mean(p)
+    flatness = float(log_mean / arith_mean) if arith_mean > 0 else 0.0
+
+    low_mask = f < low_band_boundary
+    low_band_fraction = float(p[low_mask].sum() / total_power) if low_mask.any() else 0.0
+
+    return {
+        "spectral_centroid": centroid,
+        "spectral_bandwidth": bandwidth,
+        "spectral_skewness": skewness,
+        "spectral_kurtosis": kurtosis,
+        "spectral_entropy": entropy,
+        "spectral_slope": float(slope),
+        "spectral_rolloff_90": rolloff_90,
+        "spectral_flatness": flatness,
+        "low_band_fraction": low_band_fraction,
+    }
+
+
+_IMPULSE_TEMPLATE_CACHE = {}
+
+
+def _build_impulse_templates(n_samples, sampling_rate):
+    """Build a library of idealised impulse templates for correlation."""
+    key = (n_samples, sampling_rate)
+    if key in _IMPULSE_TEMPLATE_CACHE:
+        return _IMPULSE_TEMPLATE_CACHE[key]
+
+    center = n_samples // 2
+    x = np.arange(n_samples) - center
+    templates = {}
+
+    delta = np.zeros(n_samples)
+    delta[center] = 1.0
+    templates["delta"] = delta
+
+    sigma_narrow = max(int(5e-9 * sampling_rate * 1e9), 2)
+    sigma_wide   = max(int(10e-9 * sampling_rate * 1e9), 3)
+    sinc_width   = max(int(3e-9 * sampling_rate * 1e9), 1)
+
+    bipolar = -x * np.exp(-x ** 2 / (2.0 * sigma_narrow ** 2))
+    bipolar /= np.max(np.abs(bipolar))
+    templates["bipolar"] = bipolar
+
+    gaussian = np.exp(-x ** 2 / (2.0 * sigma_narrow ** 2))
+    gaussian /= np.max(gaussian)
+    templates["gaussian"] = gaussian
+
+    bipolar_wide = -x * np.exp(-x ** 2 / (2.0 * sigma_wide ** 2))
+    bipolar_wide /= np.max(np.abs(bipolar_wide))
+    templates["bipolar_wide"] = bipolar_wide
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        sinc_pulse = np.sinc(x / sinc_width)
+    sinc_pulse = np.nan_to_num(sinc_pulse, nan=1.0)
+    templates["sinc"] = sinc_pulse
+
+    _IMPULSE_TEMPLATE_CACHE[key] = templates
+    return templates
+
+
+def _normalized_correlation_max(trace, template, floor=1e-10):
+    """Return the maximum absolute normalised cross-correlation in [0, 1]."""
+    t_norm = trace - np.mean(trace)
+    p_norm = template - np.mean(template)
+    t_std = np.std(t_norm)
+    p_std = np.std(p_norm)
+    if t_std < floor or p_std < floor:
+        return 0.0
+    t_norm = t_norm / t_std
+    p_norm = p_norm / p_std
+    corr = _correlate(t_norm, p_norm, mode="same") / len(trace)
+    return float(np.max(np.abs(corr)))
+
+
+def get_impulse_template_correlations(trace, sampling_rate):
+    """Correlate a trace against idealised impulse templates.
+
+    Returns a dict mapping template name (``delta``, ``bipolar``,
+    ``gaussian``, ``bipolar_wide``, ``sinc``) to max |normalised
+    correlation| in [0, 1].
+    """
+    n = len(trace)
+    templates = _build_impulse_templates(n, sampling_rate)
+    return {
+        name: _normalized_correlation_max(trace, tmpl)
+        for name, tmpl in templates.items()
+    }
+
+
+def get_extended_impulsivity(trace):
+    """Extended impulsivity diagnostics complementing ``get_impulsivity``.
+
+    Augments the standard CDF-based impulsivity scalar with linear-fit
+    diagnostics and a KS test against a purely linear CDF.
+
+    Returns
+    -------
+    dict with keys ``impulsivity_custom``, ``impulsivity_r_squared``,
+    ``impulsivity_slope``, ``impulsivity_intercept``, and
+    ``impulsivity_ks_statistic``.
+    """
+    envelope = np.abs(_hilbert(trace))
+    peak_idx = np.argmax(envelope)
+    closeness = np.abs(np.arange(len(envelope)) - peak_idx)
+
+    sort_order = np.argsort(closeness)
+    sorted_env = envelope[sort_order]
+    cdf = np.cumsum(sorted_env) / np.sum(sorted_env)
+
+    impulsivity_custom = float(2.0 * np.mean(cdf) - 1.0)
+
+    x = closeness[sort_order].astype(float)
+    slope, intercept, r_value, _, _ = _stats.linregress(x, cdf)
+    linear_pred = np.clip(slope * x + intercept, 0.0, 1.0)
+    linear_pred = np.sort(linear_pred)
+    ks_stat, _ = _stats.ks_2samp(cdf, linear_pred)
+
+    return {
+        "impulsivity_custom": impulsivity_custom,
+        "impulsivity_r_squared": float(r_value ** 2),
+        "impulsivity_slope": float(slope),
+        "impulsivity_intercept": float(intercept),
+        "impulsivity_ks_statistic": float(ks_stat),
+    }
+
+

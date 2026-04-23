@@ -48,3 +48,38 @@ class eventReader:
         event is given.
         """
         return self.__fin.get_detector()
+
+    def get_event_ids(self):
+        """
+        Return the list of ``(run_number, event_number)`` tuples available in the opened file(s).
+
+        Useful for callers that want random access via ``get_event`` instead
+        of iterating the ``run()`` generator.
+        """
+        return self.__fin.get_event_ids()
+
+    def get_event(self, event_id):
+        """
+        Return a specific event by ``event_id=(run_number, event_number)``.
+
+        Parameters
+        ----------
+        event_id: tuple of (int, int)
+            ``(run_number, event_number)`` identifying the event.
+
+        Returns
+        -------
+        event: NuRadioReco.framework.event.Event or None
+            The requested event, or None if it is not present in the
+            opened file(s).
+        """
+        return self.__fin.get_event(event_id)
+
+    def get_event_i(self, event_number):
+        """
+        Return the Nth event in the file by 0-indexed position.
+
+        Note: ``event_number`` here is the file-internal position, NOT
+        the event's ``event_id``. Use ``get_event`` for lookup by id.
+        """
+        return self.__fin.get_event_i(event_number)

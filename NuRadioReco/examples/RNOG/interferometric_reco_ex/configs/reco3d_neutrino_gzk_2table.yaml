@@ -1,0 +1,50 @@
+# 3D interferometric reconstruction config: GZK neutrino simulation (2-table)
+#
+# Same as reco3d_neutrino_gzk.yaml but uses solution-ordered tables (2 per
+# channel instead of 3). With 4 depth groups this reduces grouped multiray
+# combos from 3^4=81 to 2^4=16, speeding up the refine stage.
+#
+# Accuracy should be identical: same ray solutions, different ordering.
+
+station_id: 23
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
+
+coord_system: "cylindrical"
+hierarchical: true
+multi_ray_types: true
+multiray_combo_mode: "grouped"
+table_scheme: "solution_ordered"
+
+coarse_limits: [1, 1500, 0, 360, -1500, 0]
+coarse_n_rho: 50
+coarse_step_sizes: [0, 4, 10]
+coarse_n_peaks: 5
+coarse_peak_separation: [30, 10, 30]
+
+refine_window: [30, 5, 30]
+refine_step_sizes: [2, 0.5, 2]
+
+limits: [1, 1500, 0, 360, -1500, 0]
+
+# Paths: set NURADIO_TABLE_DIR in your environment
+time_delay_tables: "${NURADIO_TABLE_DIR}"
+multiray_table_name_pattern: "st{station_id}_ch{ch}_rz_table_{ray_type}.npz"
+detector_file: "${NURADIO_DETECTOR_DIR}/rnog_all_stations_2022-10-01.json.xz"
+detector_date: "2022-10-01"
+
+# Preprocessing (driver-level, applied before reconstruction module)
+apply_cable_delay: true
+apply_hw_phase_removal: true
+apply_upsampling: true
+apply_bandpass: false
+apply_cw_removal: false
+apply_dedispersion: false
+
+hilbert_envelope_mode: "traces"
+interp_method: "linear"
+snr_pair_weighting: false
+apply_hann_window: true
+
+# Pass 2 (local re-search after dedispersion in rx/rxtx mode)
+pass2_window: [100, 30, 100]
+pass2_step_sizes: [2, 0.5, 2]

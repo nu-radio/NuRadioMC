@@ -102,6 +102,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+*.bak
 
 # Spyder project settings
 .spyderproject
@@ -154,3 +155,6 @@ NuRadioReco/examples/Interactive/data/
 # Simulation output
 NuRadioMC/examples/simulate_effective_ice_temperature/*.json
 NuRadioMC/examples/simulate_effective_ice_temperature/__output_tempfile.h5
+
+# Local-only dev helpers (not user-facing)
+NuRadioReco/examples/RNOG/interferometric_reco_ex/benchmarking/benchmark_kernels.py
