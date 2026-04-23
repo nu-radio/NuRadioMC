@@ -494,23 +494,6 @@ def forced_trigger_injection(event,station,detector,**kwargs):
                     trig_ch.get_sampling_rate())
 
 _original_resampler = NuRadioReco.modules.channelResampler.channelResampler()
-# _noise_importer_instance = noiseImporter()
-# _noise_importer_instance.begin(
-#             noise_files=ft_files,
-#             match_station_id=True,
-#             scramble_noise_file_order=True,
-#             random_seed=args.ft_seed,
-#             inject_trigger_copies=True,
-#             trigger_channels=DEEP_TRIGGER_CHANNELS,
-#             hardware_response_incorporator=hw_resp,
-#             reader_kwargs={
-#                 "selectors": ft_selectors,
-#                 "select_runs": False,
-#                 "convert_to_voltage": True,
-#                 "apply_baseline_correction": "median",
-#             },
-#         )
-# _noise_importer = _noise_importer_instance
 def resampler_with_noise_and_clip(event, station, detector, **kwargs):
     """Resample, optionally inject FT noise for readout, then clip."""
     _original_resampler.run(event, station, detector, **kwargs)
@@ -670,7 +653,6 @@ if __name__ == "__main__":
     )
 
     efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-    # efieldToVoltageConverter.begin(post_pulse_time=100 * units.ns, pre_pulse_time=100 * units.ns)
     efieldToVoltageConverter.begin(post_pulse_time=400 * units.ns, pre_pulse_time=200  * units.ns)
 
     efieldToVoltageConverterPerEfield = NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
@@ -744,9 +726,6 @@ if __name__ == "__main__":
                             event, station, det_rnog,
                             amplitude=vrms_300K_in_min_max, min_freq=min_freq, max_freq=max_freq,
                             type='rayleigh')
-                        # channelIceThermalNoiseAdder.run(
-                        #     event,station,det_rnog,passband=[min_freq,max_freq]
-                        # )
 
                     rnogHardwareResponse.run(event, station, det_rnog, sim_to_data=True)
                 print("Running rnog_flower_board_high_low_trigger_simulations with thresholds:", thresholds)
@@ -754,7 +733,7 @@ if __name__ == "__main__":
                 print("trigger_noise_vrms from Temperature:", trigger_noise_vrms)
                 rnog_flower_board_high_low_trigger_simulations(
                     event, station, det_rnog, trigger_channels=trigger_channels,
-                    trigger_channel_noise_vrms=list(TRIGGER_VRMS_FT.values()), # TRIGGER_VRMS_FT, #trigger_noise_vrms,
+                    trigger_channel_noise_vrms=list(TRIGGER_VRMS_FT.values())
                     high_low_trigger_thresholds=thresholds)
                 print('triggered?:',station.has_triggered())
                 channelReadoutWindowCutter.run(event, station, det_rnog)
