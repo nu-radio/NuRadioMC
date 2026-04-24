@@ -421,9 +421,20 @@ class IftElectricFieldReconstructor:
                 if signal_ray_type == ray_type:
                     self.__receive_zeniths[i_channel] = channel.get_parameter(chp.signal_receiving_zenith)[i_ray_type]
                     self.__time_offsets[i_channel] = channel.get_parameter(chp.signal_time_offset)[i_ray_type]
+                    print("the time offset for channel {} is {}".format(channel_id, self.__time_offsets[i_channel]))
                     if channel.has_parameter(chp.signal_receiving_azimuth):
                         self.__receive_azimuths[i_channel] = channel.get_parameter(chp.signal_receiving_azimuth)[i_ray_type]
-        correlation_sum = np.zeros(self.__electric_field_template.get_number_of_samples() + max_channel_length)
+
+
+        min_offset = np.min(self.__time_offsets)
+        self.__time_offsets -= min_offset
+
+        # optional debug
+        for i_channel, channel_id in enumerate(self.__used_channel_ids):
+            print(f"[NORMALIZED] channel {channel_id} offset = {self.__time_offsets[i_channel]}")
+
+
+        correlation_sum = np.zeros(self.__electric_field_template.get_number_of_samples() + max_channel_length -1)
         if self.__debug:
             plt.close('all')
             fig1 = plt.figure(figsize=(16, 8))
@@ -434,9 +445,12 @@ class IftElectricFieldReconstructor:
             fig2 = plt.figure(figsize=(12, 12))
         channel_trace_templates = np.zeros((len(self.__used_channel_ids), len(self.__electric_field_template.get_trace())))
         template_length = self.__electric_field_template.get_number_of_samples()
+        print("template length", template_length)
+        print("max channel length", max_channel_length)
         trace_length = max_channel_length
 
-        lags=signal.correlation_lags(template_length, trace_length, mode="full")
+        lags=-signal.correlation_lags(template_length, trace_length, mode="full")
+        correlations_per_channel = np.zeros((len(self.__used_channel_ids), len(lags)))
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
             amp_response = det.get_amplifier_response(station.get_id(), channel_id, self.__electric_field_template.get_frequencies())
@@ -467,22 +481,121 @@ class IftElectricFieldReconstructor:
                         channel_trace[sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
             else:
                 channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
+                import os
+
+                # create folder if it does not exist
+                signal_dir = "signal_regions_with_shift"
+                os.makedirs(signal_dir, exist_ok=True)
+
+                plt.figure(figsize=(10,5))
+                plt.plot(channel.get_times(), channel_trace, label=f"Channel {channel_id}")
+                times = channel.get_times()
+
                 for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
+                    start = signal_region[0] - self.__time_offsets[i_channel]
+                    end = signal_region[1] - self.__time_offsets[i_channel]
+                    if start < times[0] or end > times[-1]:
+                        continue
+
+
+                    # plot vertical boundaries
+                    plt.axvline(start, color='red', linestyle='--', label='signal start' if i_region == 0 else "")
+                    plt.axvline(end, color='green', linestyle='--', label='signal end' if i_region == 0 else "")
+
+                    # plot the signal region boundaries as verticalline  in difrectory name signal region on the channel traces with channel it and event number and ray type
+
+
+                    # if channel.get_parameter(chp.signal_ray_type)[i_region] == self.__ray_type:
+                    #     print("hello the data has the parameter chp.signal_ray_type and the value is", channel.get_parameter(chp.signal_ray_type)[i_region])
+                    #     channel_trace[channel.get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
+                    #     channel_trace[channel.get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
+
                     if channel.get_parameter(chp.signal_ray_type)[i_region] == self.__ray_type:
-                        channel_trace[channel.get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
-                        channel_trace[channel.get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
+
+                        start = signal_region[0] - self.__time_offsets[i_channel]
+                        end = signal_region[1] - self.__time_offsets[i_channel]
+
+                        times = channel.get_times()
+
+                        channel_trace[times < start] = 0
+                        channel_trace[times > end] = 0
+
+                        masked_dir = "masked_traces"
+                        os.makedirs(masked_dir, exist_ok=True)
+
+                        plt.figure(figsize=(10,5))
+
+                        plt.plot(channel.get_times(), channel.get_filtered_trace(passband, filter_type='butterabs'),
+                                label="original", alpha=0.5)
+
+                        plt.plot(channel.get_times(), channel_trace,
+                                label="masked", linewidth=2)
+
+                        plt.axvline(start, color='red', linestyle='--', label='signal start')
+                        plt.axvline(end, color='green', linestyle='--', label='signal end')
+
+                        plt.title(
+                            f"Masked Trace - Run {event.get_run_number()} Event {event.get_id()} Channel {channel_id} Ray {self.__ray_type}"
+                        )
+
+                        plt.xlabel("Time")
+                        plt.ylabel("Amplitude")
+                        plt.grid()
+                        plt.legend()
+
+                        plt.savefig(
+                            f"{masked_dir}/Run_{event.get_run_number()}_event_{event.get_id()}_ch_{channel_id}_ray_{self.__ray_type}.png",
+                            dpi=300
+                        )
+
+                        plt.close()
+
+
+                plt.title(f"Signal Region - - Run {event.get_run_number()} Event {event.get_id()} Channel {channel_id} Ray {self.__ray_type}")
+                plt.xlabel("Time")
+                plt.ylabel("Amplitude")
+                plt.legend()
+                plt.grid()
+
+                plt.savefig(
+                    f"{signal_dir}/Run_{event.get_run_number()}_event_{event.get_id()}_ch_{channel_id}_ray_{self.__ray_type}.png",
+                    dpi=300
+                )
+
+                plt.close()
             if self.__use_sim:
                 correlation = radiotools.helper.get_normalized_xcorr(np.abs(scipy.signal.hilbert(channel_trace_template)), np.abs(scipy.signal.hilbert(channel_trace)))
             else:
-                # correlation = radiotools.helper.get_normalized_xcorr(channel_trace_template, channel_trace)
-                correlation = signal.correlate(
-                channel_trace_template,
-                channel_trace,
-                mode="full"
-            )
+                correlation = radiotools.helper.get_normalized_xcorr(channel_trace_template, channel_trace)
+                import os
+
+                corr_dir = "correlations"
+                os.makedirs(corr_dir, exist_ok=True)
+
+                plt.figure(figsize=(10,5))
+
+                plt.plot(lags, correlation)
+
+                plt.title(
+                    f"Correlation - Run {event.get_run_number()} Event {event.get_id()} Channel {channel_id} Ray {self.__ray_type}"
+                )
+
+                plt.xlabel("Lag (samples)")
+                plt.ylabel("Correlation")
+                plt.grid()
+
+                plt.savefig(
+                    f"{corr_dir}/Run_{event.get_run_number()}_event_{event.get_id()}_ch_{channel_id}_ray_{self.__ray_type}.png",
+                    dpi=300
+                )
+
+                plt.close()
+                
+        
             correlation = np.abs(correlation)
+            correlations_per_channel[i_channel] = correlation
             correlation_sum[:len(correlation)] += correlation
-            toffset = -lags / channel.get_sampling_rate()  # - propagation_times[i_channel, i_solution] - channel.get_trace_start_time()
+            toffset = lags / channel.get_sampling_rate()  # - propagation_times[i_channel, i_solution] - channel.get_trace_start_time()
             if self.__use_sim:
                 sim_channel_traces[i_channel].apply_time_shift(self.__time_offsets[i_channel], True)
             # else:
@@ -491,12 +604,71 @@ class IftElectricFieldReconstructor:
                 ax1_1.plot(toffset, correlation)
 
         best_index = np.argmax(correlation_sum)
-        best_offset = -lags[best_index] / channel.get_sampling_rate()
+        best_offset = lags[best_index] / channel.get_sampling_rate()
+        import os
+
+        # create folder
+        corrsum_dir = "correlation_sums"
+        os.makedirs(corrsum_dir, exist_ok=True)
+
+        plt.figure(figsize=(12,6))
+
+        for i_channel, channel_id in enumerate(self.__used_channel_ids):
+            plt.plot(lags, correlations_per_channel[i_channel], alpha=0.5,
+                    label=f"ch {channel_id}")
+
+        plt.plot(lags, correlation_sum, color='black', linewidth=3, label='sum')
+
+        plt.axvline(lags[best_index], color='red', linestyle='--', label='best lag')
+
+        plt.xlabel("Lag (samples)")
+        plt.ylabel("Correlation")
+        plt.title(f"Correlation Sum - Run {event.get_run_number()} Event {event.get_id()} Ray {self.__ray_type}")
+
+        plt.legend()
+        plt.grid()
+
+        plt.savefig(
+            f"{corrsum_dir}/Run_{event.get_run_number()}_event_{event.get_id()}_ray_{self.__ray_type}.png",
+            dpi=300
+        )
+
+        plt.close()
+
+        # best_index = np.argmax(correlation_sum)
+        # best_offset = lags[best_index] / channel.get_sampling_rate()
+
+        import os
+
+        corrsum_dir = "correlation_sum"
+        os.makedirs(corrsum_dir, exist_ok=True)
+
+        plt.figure(figsize=(10,5))
+
+        plt.plot(lags, correlation_sum)
+
+        plt.axvline(lags[best_index], color='red', linestyle='--', label="best lag")
+
+        plt.title(
+            f"Correlation SUM - Run {event.get_run_number()} Event {event.get_id()} Ray {self.__ray_type}"
+        )
+
+        plt.xlabel("Lag (samples)")
+        plt.ylabel("Correlation sum")
+        plt.grid()
+        plt.legend()
+
+        plt.savefig(
+            f"{corrsum_dir}/Run_{event.get_run_number()}_event_{event.get_id()}_ray_{self.__ray_type}.png",
+            dpi=300
+        )
+
+        plt.close()
 
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
             channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
-            toffset = -lags / channel.get_sampling_rate()
+            toffset = lags / channel.get_sampling_rate()
             if self.__debug:
                 ax2_1 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 1)
                 ax2_1.grid()
