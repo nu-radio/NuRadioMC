@@ -516,9 +516,8 @@ class IftElectricFieldReconstructor:
                         end = signal_region[1] - self.__time_offsets[i_channel]
 
                         times = channel.get_times()
-
-                        channel_trace[times < start] = 0
-                        channel_trace[times > end] = 0
+                        mask = (times >= start) & (times <= end)
+                        channel_trace = channel_trace * mask
 
                         masked_dir = "masked_traces"
                         os.makedirs(masked_dir, exist_ok=True)
