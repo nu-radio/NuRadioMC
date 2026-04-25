@@ -34,7 +34,7 @@ class channelAntennaDedispersion:
         zen_ori, az_ori, zen_rot, az_rot = det.get_antenna_orientation(station_id, channel_id)
 
         match = next(
-            (key_name for key_name in self.antennas_most_sensitive_directions if key_name in antenna_name), None
+            (key_name for key_name in self.antennas_most_sensitive_directions if key_name.lower() in antenna_name.lower()), None
         )
         if match is None:
             raise AttributeError(f"Antenna name {antenna_name} can't be interpreted. "
@@ -52,7 +52,15 @@ class channelAntennaDedispersion:
         return response
 
     @register_run()
-    def run(self, evt, station, det, debug=False):
+    def run(self, evt, station, det, add_ant=None, debug=False):
+        if add_ant is not None:
+            if not isinstance(add_ant, dict):
+                raise ValueError("To add antennas provide a dictionary with antenna names as keys and direction arrays as values")
+            for ant_name, direction in add_ant.items():
+                if not isinstance(direction, (list, np.ndarray)) or len(direction) != 2:
+                    raise ValueError(f"Antenna direction for {ant_name} requires zenith and azimuth")
+                self.antennas_most_sensitive_directions[ant_name] = direction
+
         for channel in station.iter_channels():
             ff = channel.get_frequencies()
             response = self._get_response(det, station.get_id(), channel.get_id(), tuple(ff))
