@@ -65,7 +65,7 @@ class channelPreprocessor:
         "cw_freq_band": (0.1, 0.6),
         "cw_algorithm": "sliding",
         "apply_bandpass": False,
-        "bandpass_band": (0.1 * units.GHz, 0.6 * units.GHz),
+        "bandpass_band": (0.1 * units.GHz, 0.7 * units.GHz),
         "bandpass_filter_type": "butter",
         "bandpass_order": 10,
         "glitch_cut_value": 0.0,
