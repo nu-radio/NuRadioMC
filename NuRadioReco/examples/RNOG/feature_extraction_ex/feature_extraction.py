@@ -107,12 +107,44 @@ def init_detector(config):
     return detector.Detector(json_filename=path)
 
 
-def select_provider(config, input_files, det):
+def _build_event_filter_selector(event_filter, src_basename):
+    """Translate the parsed --events filter into a reader-level selector lambda.
+
+    ``readRNOGDataMattak.begin`` accepts a ``selectors=[Callable(eventInfo)
+    -> bool]`` kwarg whose lambdas run BEFORE the preprocessor. Pushing the
+    event-id filter into that list (instead of dropping non-matching events
+    after preprocessing in the main loop) avoids paying the full
+    block-offset / glitch / cable-delay / bandpass / CW preprocessor cost
+    on the ~90% of events the burn / arbitrary-list user does not want.
+
+    Returns a list (possibly empty) of selector callables to merge into
+    reader_kwargs['selectors'].
+    """
+    if event_filter is None:
+        return []
+    if 'by_file' in event_filter:
+        allowed = event_filter['by_file'].get(src_basename, set())
+        return [lambda info, _a=allowed: (info.run, info.eventNumber) in _a]
+    if 'by_run' in event_filter:
+        by_run = event_filter['by_run']
+        return [lambda info, _b=by_run: info.run in _b
+                and info.eventNumber in _b[info.run]]
+    if 'by_event' in event_filter:
+        allowed = event_filter['by_event']
+        return [lambda info, _a=allowed: info.eventNumber in _a]
+    return []
+
+
+def select_provider(config, input_files, det, extra_selectors=()):
     """Instantiate the right data provider for the input type.
 
     Picks between ``dataProviderNuRadio`` (NUR simulation) and
     ``dataProviderRNOG`` (ROOT data) from the first input file's
     extension. All inputs must share the same extension.
+
+    ``extra_selectors`` (ROOT only) is a list of reader-level lambdas
+    appended to ``reader_kwargs['selectors']`` so they run BEFORE the
+    preprocessor inside ``provider.run()``. Used by the event-id filter.
     """
     exts = {os.path.splitext(f)[1].lower() for f in input_files}
     if len(exts) != 1 or next(iter(exts)) not in {".nur", ".root"}:
@@ -122,7 +154,10 @@ def select_provider(config, input_files, det):
     is_nur = next(iter(exts)) == ".nur"
 
     preproc_cfg = config.get("preprocessor", None)
-    reader_kwargs = config.get("reader_kwargs", {})
+    reader_kwargs = dict(config.get("reader_kwargs", {}) or {})
+    if extra_selectors and not is_nur:
+        existing = list(reader_kwargs.get("selectors", []) or [])
+        reader_kwargs["selectors"] = existing + list(extra_selectors)
     provider = dataProviderNuRadio() if is_nur else dataProviderRNOG()
     provider.begin(input_files, det,
                    reader_kwargs=reader_kwargs,
@@ -339,7 +374,9 @@ def main(config, input_files, run_chunk, event_filter=None):
         if event_filter is not None and 'by_file' in event_filter \
                 and src_basename not in event_filter['by_file']:
             continue
-        provider, is_nur = select_provider(config, [src_file], det)
+        extra_selectors = _build_event_filter_selector(event_filter, src_basename)
+        provider, is_nur = select_provider(
+            config, [src_file], det, extra_selectors=extra_selectors)
         for event in provider.run():
             station = event.get_station()
 
