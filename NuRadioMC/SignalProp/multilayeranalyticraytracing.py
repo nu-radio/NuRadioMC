@@ -93,6 +93,13 @@ from numba import njit
 from numba.typed import List
 from functools import lru_cache
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
+from NuRadioMC.utilities import attenuation
+from NuRadioReco.utilities import units
+
+from math import sqrt, log, sin
+
+import logging
+logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 
 # ------------------------------
 # Layer definitions
@@ -157,14 +164,23 @@ LAYERS = [
         "region_name": "Ice"
     }
 ]
-
-LAYERS_AIR = [
-    {
+'''    {
         "z_min": 0.0,
         "z_max": np.inf,
         "n_ice": 1.0,
         "delta_n": 0.000001,
         "z_0": -500.0,
+        "region": "air",
+        "region_name": "Air"
+    },'''
+LAYERS_AIR = [
+
+        {
+        "z_min": 0.0,
+        "z_max": np.inf,
+        "n_ice": 1.00027,
+        "delta_n": 2.7e-4,
+        "z_0": -8000.0,
         "region": "air",
         "region_name": "Air"
     },
@@ -413,11 +429,12 @@ def analytic_F(z, C0, n_ice, delta_n, z0):
     z0 = float(z0)
     b = 2.0 * n_ice
     n = n_ice - delta_n*np.exp(z / z0)
-    c = n_ice*n_ice - 1.0/(C0*C0)
+    c = max(abs(n_ice*n_ice - 1.0/(C0*C0)),1e-14)
 
     # F only valid for positive c
-    if c <= 0 :
+    if c < 0 :
         return np.nan
+    
     
     gamma = delta_n * np.exp(z / z0)
     root = np.abs(gamma*gamma - gamma*b + c)
@@ -584,65 +601,34 @@ def evaluate_y(C0, C1, z, layers):
     F = analytic_F(z, C0, n_ice[idx], delta_n[idx], z0[idx])
     return float(F + C1[idx])
 
-@njit(cache = True)
+
+@njit(cache=True)
 def find_z_turn(C0, layers):
-    """
-    Determine the depth of the ray turning point.
-
-    A turning point occurs where the refractive index satisfies
-
-        n(z) = 1 / C0
-
-    which corresponds to horizontal propagation of the ray.
-
-    Parameters
-    ----------
-    C0 : float
-        Ray parameter.
-
-    layers : tuple of ndarray
-        Layer parameter arrays.
-
-    Returns
-    -------
-    float
-        Depth coordinate of the turning point.
-
-    Notes
-    -----
-    If no turning point exists within the medium, the function returns
-    the maximum depth boundary of the defined layers.
-    """
-
     eps = 1e-12
 
-    C0 = float(C0)
     z_min, z_max, n_ice, delta_n, z0 = layers
-    target_n = 1.0 / C0
-    n_layers = len(z_min)
-    for i in range(n_layers):
-        n_min = n_ice[i] - delta_n[i] * np.exp(z_min[i] / z0[i])
-        n_max = n_ice[i] - delta_n[i] * np.exp(z_max[i] / z0[i])
+    target_n = 1.0 / float(C0)
 
-        if abs(target_n - n_min) <= eps:
-            return z_min[i]
-        if abs(target_n - n_max) <= eps:
-            return z_max[i]
+    best_z = np.inf
+    found = False
 
-        if (n_min + eps) >= target_n >= (n_max - eps):
-            val = (n_ice[i] - target_n) / delta_n[i]
+    for i in range(len(z_min)):
+        val = (n_ice[i] - target_n) / delta_n[i]
 
-            if val < 0.0:
-                continue
-            
-            z = z0[i] * np.log(np.abs(val))
+        # must be positive for log
+        if val <= 0.0:
+            continue
 
-            if np.isnan(z):
-                continue
+        z = z0[i] * np.log(val)
 
-            if (z_min[i] - eps) <= z <= (z_max[i] + eps):
-                return z
-            #return float(z0[i] * np.log((n_ice[i] - target_n) / delta_n[i]))
+        if (z_min[i] - eps) <= z <= (z_max[i]):
+            if z < best_z:
+                best_z = z
+                found = True
+
+    if found:
+        return best_z
+
     return np.max(z_max)
 
 @njit(cache = True)
@@ -687,9 +673,6 @@ def get_turning_point(C0, y_start, z_start, layers, C1=None,
     turning point is clamped to the surface depth.
     """
 
-    #if with_air:
-    #    return None,None
-
     if C1 is None:
         # Compute offsets once
         C1, _, _, _ = compute_offsets(C0, y_start, z_start, layers)
@@ -697,7 +680,7 @@ def get_turning_point(C0, y_start, z_start, layers, C1=None,
     # Find depth of turning point
     z_turn = find_z_turn(C0, layers)
     
-    numerical_safety_offset = 1e-8
+    numerical_safety_offset = 1e-12
     z_surface = 0.0 - numerical_safety_offset
 
     if (z_turn >= z_surface) and not with_air:
@@ -764,15 +747,16 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
         return -np.inf
     C1, _ , _, _= compute_offsets(C0, y1, z1, layers)
     y_turn, z_turn = get_turning_point(C0,y1,z1,layers,C1,downgoing,with_air)
+
     
     if (y_turn is not None) and (z_turn is not None):
-        if z_turn < z2:
+        if z_turn <= z2:
             dz = z_turn - z2
             dy = y_turn - y2
             diff = np.sqrt(dz*dz + dy*dy) + 10.0 * np.abs(dz)
             return -diff
             #return -np.inf
-        elif y_turn > y2:
+        elif y_turn >= y2:
             y_fit = evaluate_y(C0, C1, z2, layers)
             return y2 - y_fit
         else:
@@ -840,36 +824,6 @@ def get_C0_from_theta(z_start, theta, layers):
     return 1.0 / p
 
 @njit(cache = True)
-def get_launch_angle_old(z_start, C0, layers):
-    """
-    Convert a launch angle to the corresponding ray parameter. Other way
-
-    Parameters
-    ----------
-    z_start : float
-        Starting depth of the ray.
-
-    theta : float
-        Launch angle in radians.
-
-    layers : tuple of ndarray
-        Layer parameter arrays.
-
-    Returns
-    -------
-    float
-        Ray parameter C0.
-    """
-    # Convert launch angle to ray parameter
-    n_start = get_refractive_index(z_start, layers)
-    p = C0*n_start
-    if p == 0.0:
-        return 1e12  # avoid division by zero
-    theta = np.arccos(1/p)
-
-    return theta
-
-@njit(cache = True)
 def get_skim_angle(y1, z1, zskim, layers):
     """
     Compute the critical launch angle for a ray that skims a given depth.
@@ -916,7 +870,7 @@ def get_skim_angle(y1, z1, zskim, layers):
 # ------------------------------
 # Optimization helpers
 # ------------------------------
-def get_C0_from_log(logC0, n_ice):
+def get_C0_from_log_scalar(logC0, n_ice):
     """
     Convert the logarithmic optimization parameter to a ray parameter.
 
@@ -943,6 +897,11 @@ def get_C0_from_log(logC0, n_ice):
     during optimization.
     """
     return float(np.exp(logC0) + 1. / n_ice)
+
+def get_C0_from_log(logC0, n_ice):
+    if isinstance(logC0, np.ndarray):
+        logC0 = logC0[0]
+    return float(get_C0_from_log_scalar(logC0, n_ice))
 
 def obj_delta_y_sqr(logC0, y1, z1, y2, z2, layers, n_deep,
                     downgoing, with_air):
@@ -1125,7 +1084,7 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air):
         #return solution_types_revert['direct']
         return DIRECT
 
-    if z_turn >= -1e-8:
+    if z_turn >= 1e-12:
         #return solution_types_revert['reflected']
         return REFLECTED
     
@@ -1220,75 +1179,31 @@ def find_solutions(x1, x2, layers,tol=1e-6):
 
     ## Here something is still wrong
     ## theta skim goes to inf for too horizontal geometries when z1 is on the same height as z2.
-    theta_straight = np.arctan(max((z2-z1),1e-10)/(y2-y1))
+    theta_straight = np.arctan(max((z2-z1),1e-14)/(y2-y1))
+
     if theta_straight < np.pi/4 and not with_air: 
         theta_straight = np.pi/4
-    #print(f"theta_straight: {theta_straight}")
 
-    _, theta_skim = get_skim_angle(
-        y1, z1,
-        z2,
-        layers
-        )
-
-    if not np.isfinite(theta_skim):
-        theta_skim = np.arctan(z1/y1)
-    #print(f"theta_skim: {theta_skim}")
     
+    air_solution_found = False
 
-    C0skim = get_C0_from_theta(
-        z1,
-        np.abs(theta_skim),
-        layers
-    )
-    #print(f"C0skim: {C0skim}")
+    '''    
+    if with_air:
+        #air_solution_found = False
+        try:
+            n_s_air = get_refractive_index(0.001,layers)
+            n_s_ice = get_refractive_index(-0.001,layers)
+            air_theta_min = np.arccos(n_s_air/n_s_ice)
 
-    C0straight = get_C0_from_theta(
-        z1,
-        np.abs(theta_straight),
-        layers
-    )
-    #print(f"C0straight: {C0straight}")
-    n_z = get_refractive_index(z1,layers)
-    logC0straight = np.log(max(C0straight - 1./n_deep, 1e-12))
-    logC0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
-    logC0skim = np.log(max(C0skim- 1./n_deep, 1e-12))
-    #print(f"logC0skim: {logC0skim}")
-    print(f"-------------------------------------------------------")
-    print(f"Original x1 and x2: {x1} and {x2}. With air: {with_air}. Downgoing: {downgoing}")
-    print(f"Searching for Ray-Tracing Solutions from x1 ({y1},{z1}) to x2 ({y2},{z2})...")
-    result = optimize.root(obj_delta_y_sqr, x0=logC0straight, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
-    print(f"result of root otimization with C0 {get_C0_from_log(result.x[0],n_deep)}: {result}")
-    if(result.fun < 1e-7):
-        if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
-            C_0 = get_C0_from_log(result.x[0],n_deep)
-            C0s.append(C_0)
-            solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+            if theta_straight < air_theta_min:
+                theta_straight = air_theta_min
             
-            results.append({'type': solution_type,
-                            'C0': C_0,
-                            'D' : result.x[0],
-                            'x1': x1})
-    else:
-        # or maybe just see again what this brings us and keep it if it's new
-        result = optimize.root(obj_delta_y_sqr, x0=logC0skim, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
-        if(result.fun < 1e-7):
-            if(np.round(result.x[0], 5) not in np.round(C0s, 5)):
-                C_0 = get_C0_from_log(result.x[0],n_deep)
-                C0s.append(C_0)
-                solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
-                
-                results.append({'type': solution_type,
-                                'C0': C_0,
-                                'D' : result.x[0],
-                                'x1': x1})
-                    
-                
-                
-            '''else:
-            logC0_stop = 100.
+            C0_air_min = get_C0_from_theta(z1,np.abs(air_theta_min),layers)
+            logC0_start = np.log(max(C0_air_min - 1./n_deep, 1e-14))
+            logC0_stop = 100.0
+
             delta_start = obj_delta_y(
-                logC0skim,
+                logC0_start,
                 y1, z1, y2, z2,
                 layers,
                 n_deep,downgoing,with_air
@@ -1300,131 +1215,236 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                 layers,
                 n_deep,downgoing,with_air
                 )
-            
-            print("delta_start: ", delta_start)
-            print("delta_stop: ", delta_stop)
 
+            
             if(np.sign(delta_start) != np.sign(delta_stop)):
-                result = optimize.brentq(obj_delta_y, logC0skim, logC0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
-                if(np.round(result, 5) not in np.round(C0s, 5)):
-                    C_0 = get_C0_from_log(result,n_deep)
+                result_air = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
+                if(np.round(result_air, 3) not in np.round(C0s, 3)):
+                    C_0 = get_C0_from_log(result_air,n_deep)
                     C0s.append(C_0)
                     solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
 
                     results.append({'type': solution_type,
                                     'C0': C_0,
-                                    'D' : result2,
-                                    'x1': x1})'''
+                                    'D' : result_air,
+                                    'x1': x1,
+                                    'flag' : 3})
+                    air_solution_found = True
+        except ValueError:
+            air_solution_found = False'''
+        
+    if not air_solution_found:
+        #if np.abs(z1-z2) < 1: theta_straight = np.pi/4 + 0.15 
+        #print(f"theta_straight: {theta_straight}")
 
-    # check if another solution with higher logC0 exists
-    if result.x[0] is None: 
-        result_x = logC0skim_nz
-    else:
-        result_x = result.x[0]
+        _, theta_skim = get_skim_angle(
+            y1, z1,
+            z2,
+            layers
+                )
 
-    logC0_start = result_x + 0.00001
-    #logC0_start = 0.0
-    if with_air:
-        C0cross_min = 1.0
-        logC0_start = np.log(max(C0cross_min - 1./n_deep, 1e-12))
+        if not np.isfinite(theta_skim):
+            theta_skim = np.arctan(z1/y1)
+        #print(f"theta_skim: {theta_skim}")
+        
 
-    logC0_stop = 100.0
-
-    delta_test = obj_delta_y(
-        -10.,
-        y1, z1, y2, z2,
-        layers,
-        n_deep,downgoing,with_air
+        C0skim = get_C0_from_theta(
+            z1,
+            np.abs(theta_skim),
+            layers
         )
+        #print(f"C0skim: {C0skim}")
 
-    delta_start = obj_delta_y(
-        logC0_start,
-        y1, z1, y2, z2,
-        layers,
-        n_deep,downgoing,with_air
+        C0straight = get_C0_from_theta(
+            z1,
+            np.abs(theta_straight),
+            layers
         )
+        #print(f"C0straight: {C0straight}")
+        n_z = get_refractive_index(z1,layers)
+        logC0straight = np.log(max(C0straight - 1./n_deep, 1e-12))
+        logC0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
+        logC0skim = np.log(max(C0skim- 1./n_deep, 1e-12))
 
-    delta_stop = obj_delta_y(
-        logC0_stop,
-        y1, z1, y2, z2,
-        layers,
-        n_deep,downgoing,with_air
-        )
-    
-    #print("with_air: ", with_air)
-    #print("downgoing: ", downgoing)
-    #print("logC0_start: ", logC0_start)
-    #print("logC0_stop: ", logC0_stop)
-    #print("delta_start: ", delta_start)
-    #print("delta_stop: ", delta_stop)
-    #print("delta_test: ", delta_test)
 
-    if(np.sign(delta_start) != np.sign(delta_stop)):
+        
+        
+        #print(f"logC0skim: {logC0skim}")
+        print(f"-------------------------------------------------------")
+        print(f"Original x1 and x2: {x1} and {x2}. With air: {with_air}. Downgoing: {downgoing}")
+        print(f"Searching for Ray-Tracing Solutions from x1 ({y1},{z1}) to x2 ({y2},{z2})...")
+        result = optimize.root(obj_delta_y_sqr, x0=logC0straight, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
+        print(f"result of root otimization with C0 {get_C0_from_log(result.x[0],n_deep)}: {result}")
+        if(result.fun < 1e-7):
+            if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
+                C_0 = get_C0_from_log(result.x[0],n_deep)
+                C0s.append(C_0)
+                solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+                
+                results.append({'type': solution_type,
+                                'C0': C_0,
+                                'D' : result.x[0],
+                                'x1': x1,
+                                'flag' : 1})
+        else:
+            # or maybe just see again what this brings us and keep it if it's new
+            result = optimize.root(obj_delta_y_sqr, x0=logC0skim, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
+            if(result.fun < 1e-7):
+                if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
+                    C_0 = get_C0_from_log(result.x[0],n_deep)
+                    C0s.append(C_0)
+                    solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+                    
+                    results.append({'type': solution_type,
+                                    'C0': C_0,
+                                    'D' : result.x[0],
+                                    'x1': x1,
+                                    'flag' : 1})
+                        
+                    
+                    
+                '''else:
+                logC0_stop = 100.
+                delta_start = obj_delta_y(
+                    logC0skim,
+                    y1, z1, y2, z2,
+                    layers,
+                    n_deep,downgoing,with_air
+                    )
 
-        result2 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
+                delta_stop = obj_delta_y(
+                    logC0_stop,
+                    y1, z1, y2, z2,
+                    layers,
+                    n_deep,downgoing,with_air
+                    )
+                
+                print("delta_start: ", delta_start)
+                print("delta_stop: ", delta_stop)
 
-        if(np.round(result2, 5) not in np.round(C0s, 5)):
-            C_0 = get_C0_from_log(result2,n_deep)
-            C0s.append(C_0)
-            solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+                if(np.sign(delta_start) != np.sign(delta_stop)):
+                    result = optimize.brentq(obj_delta_y, logC0skim, logC0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
+                    if(np.round(result, 5) not in np.round(C0s, 5)):
+                        C_0 = get_C0_from_log(result,n_deep)
+                        C0s.append(C_0)
+                        solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
 
-            results.append({'type': solution_type,
-                            'C0': C_0,
-                            'D' : result2,
-                            'x1': x1})
-    else:
-        print("no solution with logC0 > {:.3f} exists".format(result.x[0]))
+                        results.append({'type': solution_type,
+                                        'C0': C_0,
+                                        'D' : result2,
+                                        'x1': x1})'''
+        
+        # check if another solution with higher logC0 exists
+        if result.x[0] is None: 
+            result_x = logC0skim_nz
+        else:
+            result_x = result.x[0]
 
-    
-    theta_min =  1e-5
-    C0theta_min = get_C0_from_theta(
-        z1,
-        theta_min,
-        layers
-        )
-    if C0theta_min <= 1/n_deep:
-        C0theta_min = 1/n_deep + 1e-12  # small buffer to avoid log(0)
+        logC0_start = result_x + 0.00001
+        #logC0_start = 0.0
+        if with_air:
+            C0cross_min = 1.0
+            logC0_start = np.log(max(C0cross_min - 1./n_deep, 1e-12))
 
-    logC0_start = max(np.log(C0theta_min - 1. / n_deep),-100)
-    #print('logC0_start: ',logC0_start)
-    
-    
-    logC0_stop = result_x - 0.00001
-    delta_start = obj_delta_y(
-        logC0_start,
-        y1, z1, y2, z2,
-        layers,
-        n_deep,downgoing,with_air
-        )
+        logC0_stop = 100.0
 
-    delta_stop = obj_delta_y(
-            logC0_stop,
+        delta_test = obj_delta_y(
+            -10.,
             y1, z1, y2, z2,
             layers,
             n_deep,downgoing,with_air
             )
 
-    if(np.sign(delta_start) != np.sign(delta_stop)):
-        print("solution with logC0 < {:.3f} exists".format(result.x[0]))
-        result3 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
+        delta_start = obj_delta_y(
+            logC0_start,
+            y1, z1, y2, z2,
+            layers,
+            n_deep,downgoing,with_air
+            )
+
+        delta_stop = obj_delta_y(
+            logC0_stop,
+            y1, z1, y2, z2,
+            layers,
+            n_deep,downgoing,with_air
+            )
+        
+        #print("with_air: ", with_air)
+        #print("downgoing: ", downgoing)
+        #print("logC0_start: ", logC0_start)
+        #print("logC0_stop: ", logC0_stop)
+        #print("delta_start: ", delta_start)
+        #print("delta_stop: ", delta_stop)
+        #print("delta_test: ", delta_test)
+
+        if(np.sign(delta_start) != np.sign(delta_stop)):
+
+            result2 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
+
+            if(np.round(result2, 3) not in np.round(C0s, 3)):
+                C_0 = get_C0_from_log(result2,n_deep)
+                C0s.append(C_0)
+                solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+
+                results.append({'type': solution_type,
+                                'C0': C_0,
+                                'D' : result2,
+                                'x1': x1,
+                                'flag' : 3})
+        else:
+            print("no solution with logC0 > {:.3f} exists".format(result.x[0]))
+
+        
+        theta_min =  1e-5
+        C0theta_min = get_C0_from_theta(
+            z1,
+            theta_min,
+            layers
+            )
+        if C0theta_min <= 1/n_deep:
+            C0theta_min = 1/n_deep + 1e-12  # small buffer to avoid log(0)
+
+        logC0_start = max(np.log(C0theta_min - 1. / n_deep),-100)
+        #print('logC0_start: ',logC0_start)
+        
+        
+        logC0_stop = result_x - 0.00001
+        delta_start = obj_delta_y(
+            logC0_start,
+            y1, z1, y2, z2,
+            layers,
+            n_deep,downgoing,with_air
+            )
+
+        delta_stop = obj_delta_y(
+                logC0_stop,
+                y1, z1, y2, z2,
+                layers,
+                n_deep,downgoing,with_air
+                )
+
+        if(np.sign(delta_start) != np.sign(delta_stop)):
+            print("solution with logC0 < {:.3f} exists".format(result.x[0]))
+            result3 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
 
 
-        if(np.round(result3, 5) not in np.round(C0s, 5)):
-            C_0 = get_C0_from_log(result3, n_deep)
-            C0s.append(C_0)
-            solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+            if(np.round(result3, 3) not in np.round(C0s, 3)):
+                C_0 = get_C0_from_log(result3, n_deep)
+                C0s.append(C_0)
+                solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
 
-            print("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
-            results.append({'type': solution_type,
-                            'C0': C_0,
-                            'D' : result3,
-                            'x1': x1})
-    else:
-        print("no solution with logC0 < {:.3f} exists".format(result.x[0]))
+                print("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
+                results.append({'type': solution_type,
+                                'C0': C_0,
+                                'D' : result3,
+                                'x1': x1,
+                                'flag' : 4})
+        else:
+            print("no solution with logC0 < {:.3f} exists".format(result.x[0]))
 
 
-    print(f"Solution found for x1 ({y1},{z1}) to x2 ({y2},{z2}): {results}")
-    print(f"-------------------------------------------------------")
+        print(f"Solution found for x1 ({y1},{z1}) to x2 ({y2},{z2}): {results}")
+        print(f"-------------------------------------------------------")
     return sorted(results, key=itemgetter('type', 'C0'))
 
 # ------------------------------
@@ -1698,12 +1718,6 @@ def get_path_segments(C0, x1, x2, layers):
 
     return segments
 
-
-#def get_path_length_analytic(C0,x1,x2,layers):
-
-
-from math import sqrt, log, sin
-
 @njit(cache=True)
 def get_path_length_analytic(C0, x1, x2, layers):
     """
@@ -1885,16 +1899,150 @@ def get_receiving_angle(C0, x1, x2, layers):
     solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
     n = get_refractive_index(x2[1],layers)
 
-    if solution_type == 1:
-        if not downgoing:
-            angle = np.pi - np.arcsin(1/(n*C0))
-        else:
-            angle = np.arcsin(1/(n*C0))
+    if solution_type == 1 and not downgoing:
+        angle = np.pi - np.arcsin(1/(n*C0))
     else:
         angle = np.arcsin(1/(n*C0))
     return angle
 
+@njit
+def get_launch_vector(C0, x1, x2, layers):
+    """
+    Compute the launch direction vector of the ray.
 
+    The launch vector is constructed from the launch angle at the
+    starting point and expressed in Cartesian (y, z) coordinates.
+    The angle is measured with respect to the horizontal, so the
+    vector components are given by (cos(theta), sin(theta)).
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter (inverse horizontal slowness).
+
+    x1 : tuple of float
+        Start point (y, z).
+
+    x2 : tuple of float
+        End point (y, z).
+
+    layers : tuple of ndarray
+        Medium definition.
+
+    Returns
+    -------
+    ndarray of shape (2,)
+        Launch direction vector (vy, vz). The vector is normalized and
+        points along the ray at the emission point.
+    """
+    angle = get_launch_angle(C0, x1, x2, layers)
+
+    vy = np.cos(angle)
+    vz = np.sin(angle)
+
+    return np.array((vy, vz))
+
+@njit
+def get_receiving_vector(C0, x1, x2, layers):
+    """
+    Compute the receiving direction vector of the ray.
+
+    The receiving vector is constructed from the receiving angle at
+    the endpoint and expressed in Cartesian (y, z) coordinates. The
+    vector points toward the receiver, i.e. opposite to the local ray
+    propagation direction, such that the vertical component is inverted.
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter (inverse horizontal slowness).
+
+    x1 : tuple of float
+        Start point (y, z).
+
+    x2 : tuple of float
+        End point (y, z).
+
+    layers : tuple of ndarray
+        Medium definition.
+
+    Returns
+    -------
+    ndarray of shape (2,)
+        Receiving direction vector (vy, vz). The vector is normalized
+        and points toward the receiver at the arrival point.
+    """
+    angle = get_receiving_angle(C0, x1, x2, layers)
+
+    vy = np.cos(angle)
+    vz = -np.sin(angle)
+
+    return np.array((vy, vz))
+
+
+@njit
+def get_reflection_angle(C0, x1, x2, layers):
+    """
+    Compute the surface reflection angle of a ray solution.
+
+    For surface-reflected solutions, the incidence angle is evaluated
+    just below the surface (z ≈ 0) and the reflection angle is defined
+    as twice the incidence angle. This corresponds to the angle between
+    the incoming and reflected ray directions for specular reflection
+    at a horizontal interface.
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter (inverse horizontal slowness).
+
+    x1 : tuple of float
+        Start point (y, z).
+
+    x2 : tuple of float
+        End point (y, z).
+
+    layers : tuple of ndarray
+        Medium definition.
+
+    Returns
+    -------
+    float or None
+        Reflection angle in radians for reflected solutions. Returns
+        None if the ray solution is not surface-reflected.
+
+    Notes
+    -----
+    The solution type is determined using :func:`determine_solution_type`.
+    The incidence angle is evaluated at z = -1e-12 to avoid numerical
+    issues at the surface boundary.
+    """
+
+    y1, z1 = float(x1[0]), float(x1[1])
+    y2, z2 = float(x2[0]), float(x2[1])
+
+    with_air = False
+    if (z1 > 0.0) or (z2 > 0.0):
+        with_air = True
+
+    downgoing = False
+    if z1 > z2:
+        z1, z2 = z2, z1
+        downgoing = True
+
+    solution_type = determine_solution_type(
+        y1, z1, y2, z2, C0, layers, downgoing, with_air
+    )
+
+    if solution_type != REFLECTED:
+        return None
+    
+    # evaluate just below surface
+    x_surface = (y1, -1e-12)
+
+    incidence_angle = get_launch_angle(C0, x_surface, x2, layers)
+
+    return 2.0 * incidence_angle
 
 @njit(cache=True)
 def get_travel_time_analytic(C0, x1, x2, layers):
@@ -1979,3 +2127,307 @@ def get_travel_time_analytic(C0, x1, x2, layers):
         total_t += t_seg
     print(f"Total travel time: {total_t}")
     return total_t
+
+
+def get_frequencies_for_attenuation(
+        frequency,
+        n_frequencies_integration=32,
+        max_detector_freq=None):
+    """
+    Construct a reduced set of frequencies for attenuation integration.
+
+    The function selects a sparse set of frequencies spanning the non-zero
+    entries of the input frequency array. If ``max_detector_freq`` is provided,
+    the frequency range is split into a dense region up to the detector
+    bandwidth and a sparser region above it.
+
+    Parameters
+    ----------
+    frequency : array_like
+        Frequency array. Only positive values are considered.
+    n_frequencies_integration : int, optional
+        Maximum number of frequencies used for attenuation integration.
+        Default is 32.
+    max_detector_freq : float or None, optional
+        Maximum detector frequency. If provided, frequencies up to this value
+        are sampled densely, while higher frequencies are sampled more
+        sparsely. If None, a single evenly spaced grid is returned.
+        Default is None.
+
+    Returns
+    -------
+    ndarray
+        Array of frequencies used for attenuation integration. Returns an empty
+        array if no positive frequencies are provided.
+
+    Notes
+    -----
+    This function is implemented as an alternative to analyticraytracing.ray_tracing_2D.__get_frequencies_for_attenuation to test functionality without class structure. 
+    Should be omitted once the class structure is implemented and the other function can be used.
+    """
+
+    mask = frequency > 0
+    freq_nonzero = frequency[mask]
+
+    if len(freq_nonzero) == 0:
+        return np.array([])
+
+    fmin = freq_nonzero.min()
+    fmax = freq_nonzero.max()
+
+    n = min(n_frequencies_integration, len(freq_nonzero))
+
+    # simple case
+    if max_detector_freq is None:
+        return np.linspace(fmin, fmax, n)
+
+    # split detector / above detector
+    det_mask = freq_nonzero <= max_detector_freq
+
+    if np.sum(det_mask) < 2:
+        return np.linspace(fmin, fmax, n)
+
+    f_det = np.linspace(
+        freq_nonzero[det_mask].min(),
+        freq_nonzero[det_mask].max(),
+        n
+    )
+
+    # upper half sparse
+    if np.sum(~det_mask) > 1:
+        f_hi = np.linspace(
+            freq_nonzero[~det_mask].min(),
+            freq_nonzero[~det_mask].max(),
+            n // 2
+        )
+        return np.concatenate((f_det, f_hi))
+
+    return f_det
+
+@njit(cache=True, fastmath=True)
+def ds_dz_layer(z, C0, idx, layers):
+    """
+    Compute differential path length factor ds/dz for a layered refractive index.
+
+    This function evaluates the geometrical factor
+
+        ds/dz = n / sqrt(n^2 - beta^2)
+
+    for a refractive index profile of the form
+
+        n(z) = n_ice - delta_n * exp(z / z0)
+
+    within a given layer.
+
+    Parameters
+    ----------
+    z : ndarray
+        Depth coordinates at which to evaluate the differential path length.
+    C0 : float
+        Ray tracing constant. The parameter ``beta`` is defined as ``1 / C0``.
+    idx : int
+        Layer index selecting parameters from ``layers``.
+    layers : tuple of ndarray
+        Layer parameter arrays in the form
+        ``(z_min, z_max, n_ice_arr, delta_n_arr, z0_arr)``.
+
+    Returns
+    -------
+    ndarray
+        Differential path length factor ``ds/dz`` evaluated at ``z``.
+
+    Notes
+    -----
+    A small floor is applied to the denominator to avoid numerical
+    singularities near turning points.
+    """
+
+    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers
+
+    n_ice = n_ice_arr[idx]
+    delta_n = delta_n_arr[idx]
+    z0 = z0_arr[idx]
+
+    beta = 1.0 / C0
+
+    n = n_ice - delta_n * np.exp(z / z0)
+
+    gamma = n * n - beta * beta
+
+    # avoid turning-point singularity
+    gamma = np.maximum(gamma, 1e-14)
+
+    return n / np.sqrt(gamma)
+
+def get_attenuation_along_path(
+        x1,
+        x2,
+        C0,
+        layers,
+        frequency,
+        attenuation_model="GL3",
+        dz=10 * units.m,
+        n_frequencies_integration=32,
+        max_detector_freq=None):
+    """
+    Compute frequency-dependent attenuation along a ray path.
+
+    The attenuation is calculated by integrating the inverse attenuation
+    length along ray segments within ice layers. The computation is performed
+    on a reduced set of frequencies and interpolated to the full frequency
+    array for efficiency.
+
+    Parameters
+    ----------
+    x1 : array_like
+        Starting position of the ray.
+    x2 : array_like
+        End position of the ray.
+    C0 : float
+        Ray tracing constant defining the trajectory.
+    layers : tuple
+        Layered medium definition passed to the ray tracing and refractive
+        index evaluation routines.
+    frequency : ndarray
+        Frequencies at which the attenuation factor is evaluated.
+    attenuation_model : str, optional
+        Name of the attenuation model passed to
+        ``attenuation.get_attenuation_length``. Default is "GL3".
+    dz : float, optional
+        Step size in depth for numerical integration. Default is 10 m.
+    n_frequencies_integration : int, optional
+        Number of frequencies used for sparse attenuation integration.
+        Default is 32.
+    max_detector_freq : float or None, optional
+        Maximum detector frequency used to bias frequency sampling toward the
+        detector band. Default is None.
+
+    Returns
+    -------
+    ndarray
+        Frequency-dependent attenuation factor along the full path.
+
+    Notes
+    -----
+    - Only segments below the surface (z < 0) contribute to attenuation.
+    - The integral is evaluated as
+
+      exp(-∫ ds / L(f, z))
+
+      where ``L`` is the attenuation length.
+    - The exponent is clipped to avoid overflow in the exponential.
+    - Sparse-frequency attenuation is interpolated to the full frequency grid.
+    """
+
+    # We can again use our segment function to get monotonous segments contained into one layer
+    segments = get_path_segments(C0, x1, x2, layers)
+
+    turning_z = None
+    z_receiver = x2[1]
+
+    for i in range(len(segments) - 1):
+        _, z2_prev, _, _, up1 = segments[i]
+        _, _, _, _, up2 = segments[i + 1]
+
+        # upgoing -> downgoing transition
+        if up1 == 1 and up2 == 2:
+            turning_z = z2_prev
+            break
+
+    dz_fine = dz / 500.0          # finer resolution near turning point
+    turning_window = 20 * dz      # refine within this distance
+    receiver_window = 20 * dz
+
+    attenuation_factor = np.ones_like(frequency)
+
+    # Get sparser frequencies that we use for calculation, can then interpolate for finer results afterwards
+    freqs = get_frequencies_for_attenuation(
+        frequency,
+        n_frequencies_integration,
+        max_detector_freq
+    )
+
+    if len(freqs) == 0:
+        return attenuation_factor
+
+    mask = frequency > 0
+
+    for seg in segments:
+
+        z1, z2, C0, idx, direction = seg
+
+        # Skip air segments (above z=0.0) since we assume the attenuation to be neglegible there
+        if z1 >= 0 and z2 >= 0:
+            continue
+
+        z1 = min(z1, 0.0)
+        z2 = min(z2, 0.0)
+
+        z_edges = [z1]
+        z = z1
+
+        direction = 1 if z2 > z1 else -1
+
+        while (z < z2 if direction > 0 else z > z2):
+
+            use_fine = False
+
+            # refine near turning point
+            if turning_z is not None:
+                if abs(z - turning_z) < turning_window:
+                    use_fine = True
+
+            # refine near receiver
+            if abs(z - z_receiver) < receiver_window:
+                use_fine = True
+
+            dz_local = dz_fine if use_fine else dz
+
+            z_next = z + direction * dz_local
+
+            # avoid overshoot
+            if (direction > 0 and z_next > z2) or (direction < 0 and z_next < z2):
+                z_next = z2
+
+            z_edges.append(z_next)
+            z = z_next
+
+        z_edges = np.array(z_edges)
+
+        dz_actual = np.abs(np.diff(z_edges))
+        z_mid = z_edges[:-1] + 0.5 * np.diff(z_edges)
+
+        # Get ds_dz factor used in the integral
+        ds_dz = ds_dz_layer(z_mid, C0, idx, layers)
+        
+        # Compute sparse frequencies
+        attenuation_sparse = np.empty_like(freqs)
+
+        for i, f in enumerate(freqs):
+
+            L = attenuation.get_attenuation_length(
+                z_mid,
+                f,
+                attenuation_model
+            )
+
+            exponent = np.sum((ds_dz * dz_actual) / L)
+
+            if exponent > 700.0:
+                exponent = 700.0
+
+            attenuation_sparse[i] = np.exp(-exponent)
+
+        attenuation_segment = np.ones_like(frequency)
+
+        attenuation_segment[mask] = np.interp(
+            frequency[mask],
+            freqs,
+            attenuation_sparse
+        )
+
+        # Overall attenuation: each individual attenuation contribution reduces the signal 
+        # -> multiply factor of each integration segment
+        attenuation_factor *= attenuation_segment
+
+    return attenuation_factor
