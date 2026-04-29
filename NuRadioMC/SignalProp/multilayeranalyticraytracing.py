@@ -162,17 +162,8 @@ LAYERS = [
         "z_0": 1/0.0387882,
         "region": "bubbly_ice",
         "region_name": "Ice"
-    }
-]
-'''    {
-        "z_min": 0.0,
-        "z_max": np.inf,
-        "n_ice": 1.0,
-        "delta_n": 0.000001,
-        "z_0": -500.0,
-        "region": "air",
-        "region_name": "Air"
-    },'''
+    }]
+
 LAYERS_AIR = [
 
         {
@@ -210,8 +201,7 @@ LAYERS_AIR = [
         "z_0": 1/0.0387882,
         "region": "bubbly_ice",
         "region_name": "Ice"
-    }
-]
+    }]
 
 LAYERS_TEST = [
     {
@@ -258,10 +248,7 @@ LAYERS_TEST = [
         "z_0": 1/0.0387882,
         "region": "lower_ice",
         "region_name": "Lower Ice"
-    }
-]
-
-
+    }]
 
 def layers_to_arrays(layers):
     """
@@ -604,6 +591,33 @@ def evaluate_y(C0, C1, z, layers):
 
 @njit(cache=True)
 def find_z_turn(C0, layers):
+    """
+    Determine the depth of the ray turning point.
+
+    A turning point occurs where the refractive index satisfies
+
+        n(z) = 1 / C0
+
+    which corresponds to horizontal propagation of the ray.
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter.
+
+    layers : tuple of ndarray
+        Layer parameter arrays.
+
+    Returns
+    -------
+    float
+        Depth coordinate of the turning point.
+
+    Notes
+    -----
+    If no turning point exists within the medium, the function returns
+    the maximum depth boundary of the defined layers.
+    """
     eps = 1e-12
 
     z_min, z_max, n_ice, delta_n, z0 = layers
