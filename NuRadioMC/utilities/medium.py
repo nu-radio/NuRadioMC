@@ -152,6 +152,7 @@ class greenland_simple(medium_base.IceModelSimple):
             z_0 = 37.25*units.meter,
             delta_n = 0.51,
             )
+                
 
 class greenland_firn(medium_base.IceModel):
     """
@@ -370,63 +371,97 @@ def get_ice_model(name):
     else:
         return globals()[name]()
 
-class IceModel_Exp3(medium_base.IceModel):
-    """
-    This model can only be used with the radiopropa raytracer.
-    Therefore, the model is implemented through radiopropa.
-    Notes
-    -----
-    The 3 part exponential ice model currently has the following default values as found here under ior_exp3 
-    https://github.com/philippwindischhofer/Reconal/blob/main/defs.py
-    n_snow = 1.51188 
-    delta_n_snow = 0.271579
-    z_shift_snow = 0.114553
-    n_firn = 1.89957
-    delta_n_firn = 0.529715
-    z_shift_firn = 0.0129175
-    n_bubbly = 1.77468
-    delta_n_bubbly = 1.41573
-    z_shift_bubbly = 0.0387882
-    z_firn = -14.9
-    z_bubbly = -80.5
-    
-    """
+
+class greenland_simple_layered(medium_base.IceModelExpLayers):
     def __init__(self):
-        """
-        initiation of a 3 part exponential ice model
-        The bottom defined here is a boundary condition used in simulations and
-        should always be defined. Note: it is not the same as reflective bottom.
-        The z_shift is a variable introduced to be able to shift the exponential
-        up or down along the z direction.
-        
-        """
-        if not medium_base.radiopropa_is_imported:
-            logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used.'+
-                         '\nMore info on https://github.com/nu-radio/RadioPropa')
-            raise ImportError('This ice model depends fully on RadioPropa, which could not be imported')
 
-        super().__init__(z_bottom = -3000 * units.meter)
-        self._scalarfield = RP.IceModel_Exp3(n_snow = 1.51188, 
-                delta_n_snow = 0.271579,
-                z_shift_snow = 0.114553,
-                n_firn = 1.89957,
-                delta_n_firn = 0.529715,
-                z_shift_firn = 0.0129175,
-                n_bubbly = 1.77468,
-                delta_n_bubbly = 1.41573,
-                z_shift_bubbly = 0.0387882,
-                z_firn = -14.9, 
-                z_bubbly = -80.5)
+        layers = [{
+            "z_min": -3000.0,
+            "z_max": 0.0,
+            "n_ice": 1.78,
+            "delta_n": 0.51,
+            "z_0": 37.25,
+            "region": "single",
+            "region_name": "SingleModel"
+        }]
 
-    def get_index_of_refraction(self, position):
-        position = RP.Vector3d(*(position / units.meter))
-        return self._scalarfield.getValue(position)
-    def get_average_index_of_refraction(self, position1, position2):
-        position1 = RP.Vector3d(*(position1 / units.meter))
-        position2 = RP.Vector3d(*(position2 / units.meter))
-        return self._scalarfield.getAverageValue(position1, position2)
-    def get_gradient_of_index_of_refraction(self, position):
-        pos = RP.Vector3d(*(position / units.meter))
-        return self._scalarfield.getGradient(pos) / units.meter
-    def _compute_default_ice_model_radiopropa(self):
-        return medium_base.RadioPropaIceWrapper(self, self._scalarfield)
+        super().__init__(
+            layers=layers,
+            z_bottom=-3000.0,
+        )
+
+class greenland_firn_layered(medium_base.IceModelExpLayers):
+    def __init__(self):
+
+        layers = [
+            {
+                "z_min": -14.9,
+                "z_max": 0.0,
+                "n_ice": 1.78,
+                "delta_n": 0.502,
+                "z_0": 30.8,
+                "region": "firn",
+                "region_name": "Firn"
+            },
+            {
+                "z_min": -3000.0,
+                "z_max": -14.9,
+                "n_ice": 1.78,
+                "delta_n": 0.446,
+                "z_0": 40.9,
+                "region": "ice",
+                "region_name": "Ice"
+            }
+        ]
+
+        super().__init__(
+            layers=layers,
+            z_bottom=-3000.0,
+        )
+
+class greenland_3exp_layered(medium_base.IceModelExpLayers):
+    def __init__(self):
+
+        layers = [
+            {
+                "z_min": 0.0,
+                "z_max": np.inf,
+                "n_ice": 1.00027,
+                "delta_n": 2.7e-4,
+                "z_0": -8000.0,
+                "region": "air",
+                "region_name": "Air"
+            },
+            {
+                "z_min": -14.9,
+                "z_max": 0.0,
+                "n_ice": 1.51188,
+                "delta_n": 0.271579,
+                "z_0": 1/0.114553,
+                "region": "snow",
+                "region_name": "Snow"
+            },
+            {
+                "z_min": -80.5,
+                "z_max": -14.9,
+                "n_ice": 1.89957,
+                "delta_n": 0.529715,
+                "z_0": 1/0.0129175,
+                "region": "firn",
+                "region_name": "Firn"
+            },
+            {
+                "z_min": -3000.0,
+                "z_max": -80.5,
+                "n_ice": 1.77468,
+                "delta_n": 1.41573,
+                "z_0": 1/0.0387882,
+                "region": "bubbly_ice",
+                "region_name": "Ice"
+            }
+        ]
+
+        super().__init__(
+            layers=layers,
+            z_bottom=-3000.0,
+        )

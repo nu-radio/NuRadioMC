@@ -4,6 +4,8 @@ from scipy import interpolate, integrate, linalg
 import numpy as np
 import logging
 
+from NuRadioMC.SignalProp.multilayeranalyticraytracing import layers_to_arrays
+
 try:
     import radiopropa as RP
     # nu2rp_meter = RP.meter / units.meter
@@ -830,3 +832,47 @@ if radiopropa_is_imported:
             pos = np.array([position.x, position.y, position.z]) / nu2rp_meter
             gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos) / nu2rp_meter
             return RP.Vector3d(*gradient)
+
+class IceModelExpLayers(IceModel):
+    """
+    Medium class for defining multilayered media
+    Dedicated to media where the refractive index within each layer can be described by an exponential model. Needed for the usage of the multilayer analytic raytracer.
+    """
+    def __init__(self, layers, z_air_boundary=0.0, z_bottom=None):
+        super().__init__(z_air_boundary, z_bottom)
+
+        self.layers = layers
+
+        self.layers = sorted(layers, key=lambda L: L["z_min"])
+        self._validate_layers()
+
+        self._layers_arr = layers_to_arrays(layers)
+
+    def _validate_layers(self):
+        for i in range(len(self.layers) - 1):
+            assert np.isclose(
+                self.layers[i]["z_max"],
+                self.layers[i+1]["z_min"]
+            ), "Layer boundaries are not continuous! Check definition!"
+
+    def get_index_of_refraction(self, position):
+
+        def n_of_z(z):
+            for L in self.layers:
+                if L["z_min"] <= z < L["z_max"]:
+                    return L["n_ice"] - L["delta_n"] * np.exp(z / L["z_0"])
+
+        if isinstance(position, list) or position.ndim == 1:
+            return n_of_z(position[2])
+        else:
+            return np.array([n_of_z(z) for z in position[:,2]])
+        
+    def get_layer_name(self, z):
+        for L in self.layers:
+            if L["z_min"] <= z < L["z_max"]:
+                return L["region_name"]
+            
+    def get_layers_array(self):
+        return self._layers_arr
+            
+    
