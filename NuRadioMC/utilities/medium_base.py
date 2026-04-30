@@ -4,7 +4,6 @@ from scipy import interpolate, integrate, linalg
 import numpy as np
 import logging
 
-from NuRadioMC.SignalProp.multilayeranalyticraytracing import layers_to_arrays
 
 try:
     import radiopropa as RP
@@ -846,7 +845,7 @@ class IceModelExpLayers(IceModel):
         self.layers = sorted(layers, key=lambda L: L["z_min"])
         self._validate_layers()
 
-        self._layers_arr = layers_to_arrays(layers)
+        self._layers_arr = self._layers_to_arrays()
 
     def _validate_layers(self):
         for i in range(len(self.layers) - 1):
@@ -855,12 +854,62 @@ class IceModelExpLayers(IceModel):
                 self.layers[i+1]["z_min"]
             ), "Layer boundaries are not continuous! Check definition!"
 
+    def _layers_to_arrays(self):
+        """
+        Convert layer definitions from dictionaries to NumPy arrays.
+
+        The Numba implementation of the ray tracing solver requires all
+        layer parameters to be stored in contiguous arrays rather than
+        Python dictionaries. This helper function performs that conversion.
+
+        Parameters
+        ----------
+        layers : list of dict
+            List of layer definitions.
+
+        Returns
+        -------
+        tuple of ndarray
+            Arrays describing the layer parameters:
+
+            z_min : ndarray
+                Lower depth boundary of each layer.
+
+            z_max : ndarray
+                Upper depth boundary of each layer.
+
+            n_ice : ndarray
+                Asymptotic refractive index in each layer.
+
+            delta_n : ndarray
+                Refractive index contrast.
+
+            z0 : ndarray
+                Exponential scale depth. 
+        """
+        n = len(self.layers)
+        z_min = np.zeros(n)
+        z_max = np.zeros(n)
+        n_ice = np.zeros(n)
+        delta_n = np.zeros(n)
+        z0 = np.zeros(n)
+
+        for i,L in enumerate(self.layers):
+            z_min[i] = L["z_min"]
+            z_max[i] = L["z_max"]
+            n_ice[i] = L["n_ice"]
+            delta_n[i] = L["delta_n"]
+            z0[i] = L["z_0"]
+
+        return z_min, z_max, n_ice, delta_n, z0
+
     def get_index_of_refraction(self, position):
 
         def n_of_z(z):
             for L in self.layers:
                 if L["z_min"] <= z < L["z_max"]:
                     return L["n_ice"] - L["delta_n"] * np.exp(z / L["z_0"])
+            return 1.0 # fallback value
 
         if isinstance(position, list) or position.ndim == 1:
             return n_of_z(position[2])
