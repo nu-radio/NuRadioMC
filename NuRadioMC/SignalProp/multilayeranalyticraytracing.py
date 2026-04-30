@@ -96,6 +96,10 @@ from NuRadioMC.SignalProp.propagation import solution_types, solution_types_reve
 from NuRadioMC.utilities import attenuation
 from NuRadioReco.utilities import units
 
+from NuRadioReco.utilities import units, geometryUtilities
+from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
+from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+
 from math import sqrt, log, sin
 
 import logging
@@ -1292,11 +1296,13 @@ def find_solutions(x1, x2, layers,tol=1e-6):
         if(result.fun < 1e-7):
             if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
                 C_0 = get_C0_from_log(result.x[0],n_deep)
+                C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
                 C0s.append(C_0)
                 solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
                 
                 results.append({'type': solution_type,
                                 'C0': C_0,
+                                'C1': C_1,
                                 'D' : result.x[0],
                                 'x1': x1,
                                 'flag' : 1})
@@ -1306,11 +1312,13 @@ def find_solutions(x1, x2, layers,tol=1e-6):
             if(result.fun < 1e-7):
                 if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
                     C_0 = get_C0_from_log(result.x[0],n_deep)
+                    C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
                     C0s.append(C_0)
                     solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
                     
                     results.append({'type': solution_type,
                                     'C0': C_0,
+                                    'C1': C_1,
                                     'D' : result.x[0],
                                     'x1': x1,
                                     'flag' : 1})
@@ -1397,11 +1405,13 @@ def find_solutions(x1, x2, layers,tol=1e-6):
 
             if(np.round(result2, 3) not in np.round(C0s, 3)):
                 C_0 = get_C0_from_log(result2,n_deep)
+                C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
                 C0s.append(C_0)
                 solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
 
                 results.append({'type': solution_type,
                                 'C0': C_0,
+                                'C1': C_1,
                                 'D' : result2,
                                 'x1': x1,
                                 'flag' : 3})
@@ -1444,12 +1454,14 @@ def find_solutions(x1, x2, layers,tol=1e-6):
 
             if(np.round(result3, 3) not in np.round(C0s, 3)):
                 C_0 = get_C0_from_log(result3, n_deep)
+                C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
                 C0s.append(C_0)
                 solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
 
                 print("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                 results.append({'type': solution_type,
                                 'C0': C_0,
+                                'C1': C_1,
                                 'D' : result3,
                                 'x1': x1,
                                 'flag' : 4})
@@ -2279,10 +2291,13 @@ def get_attenuation_along_path(
         C0,
         layers,
         frequency,
+        freqs=None,
         attenuation_model="GL3",
         dz=10 * units.m,
+        refine=True,
         n_frequencies_integration=32,
-        max_detector_freq=None):
+        max_detector_freq=None
+        ):
     """
     Compute frequency-dependent attenuation along a ray path.
 
@@ -2304,6 +2319,8 @@ def get_attenuation_along_path(
         index evaluation routines.
     frequency : ndarray
         Frequencies at which the attenuation factor is evaluated.
+    freqs : ndarray
+        Coarser frequencies that were calculated from ``frequency`` using the ``__get_frequencies_for_attenuation`` function. If not provided, this will be calculated using the adapted function above. Default is None.
     attenuation_model : str, optional
         Name of the attenuation model passed to
         ``attenuation.get_attenuation_length``. Default is "GL3".
@@ -2347,19 +2364,24 @@ def get_attenuation_along_path(
         if up1 == 1 and up2 == 2:
             turning_z = z2_prev
             break
+    if refine:
+        dz_fine = dz / 20.0          # finer resolution near turning point
+        turning_window = 25 * dz      # refine within this distance
+        receiver_window = 25 * dz
 
-    dz_fine = dz / 500.0          # finer resolution near turning point
-    turning_window = 20 * dz      # refine within this distance
-    receiver_window = 20 * dz
+        dz_very_fine = dz / 100.0          # finer resolution near turning point
+        turning_window_fine = 5 * dz      # refine within this distance
+        receiver_window_fine = 5 * dz
 
     attenuation_factor = np.ones_like(frequency)
 
-    # Get sparser frequencies that we use for calculation, can then interpolate for finer results afterwards
-    freqs = get_frequencies_for_attenuation(
-        frequency,
-        n_frequencies_integration,
-        max_detector_freq
-    )
+    if freqs is None:
+        # Get sparser frequencies that we use for calculation, can then interpolate for finer results afterwards
+        freqs = get_frequencies_for_attenuation(
+            frequency,
+            n_frequencies_integration,
+            max_detector_freq
+        )
 
     if len(freqs) == 0:
         return attenuation_factor
@@ -2383,19 +2405,36 @@ def get_attenuation_along_path(
         direction = 1 if z2 > z1 else -1
 
         while (z < z2 if direction > 0 else z > z2):
+            
+            if refine:
+                use_fine = False
+                use_very_fine = False
 
-            use_fine = False
+                # refine near turning point
+                if turning_z is not None:
+                    if abs(z - turning_z) < turning_window:
+                        use_fine = True
+                    if abs(z - turning_z) < turning_window_fine:
+                        use_very_fine = True
 
-            # refine near turning point
-            if turning_z is not None:
-                if abs(z - turning_z) < turning_window:
+                # refine near receiver
+                if abs(z - z_receiver) < receiver_window:
                     use_fine = True
+                
+                if abs(z - z_receiver) < receiver_window_fine:
+                    use_very_fine = True
 
-            # refine near receiver
-            if abs(z - z_receiver) < receiver_window:
-                use_fine = True
+                #dz_local = dz_fine if use_fine else dz
 
-            dz_local = dz_fine if use_fine else dz
+                if use_very_fine:
+                    dz_local = dz_very_fine
+                elif use_fine:
+                    dz_local = dz_fine
+                else:
+                    dz_local = dz
+            else:
+                dz_local = dz
+
 
             z_next = z + direction * dz_local
 
@@ -2445,3 +2484,281 @@ def get_attenuation_along_path(
         attenuation_factor *= attenuation_segment
 
     return attenuation_factor
+
+@njit(cache=True)
+def get_focusing_factor(x1, x2, C0, layers):
+    """
+    Analytic solution to calculate the focusing factor
+
+    This was adapted from analyticraytracing.py and evaluates the path integrals taken from Sjoerd Bouma's PhD thesis. 
+    The segments to evaulate are again calculated with the get_path_segments function, analogously to how it is done in the other functions here.
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter (inverse horizontal slowness).
+
+    x1 : tuple of float
+        Start point (y, z).
+
+    x2 : tuple of float
+        End point (y, z).
+
+    layers : tuple of ndarray
+        Medium definition consisting of:
+        (z_min, z_max, n_ice_arr, delta_n_arr, z0_arr)
+
+    Returns
+    -------
+    focusing_factor : float
+        Total focusing factor of the path
+
+    """
+
+    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers    
+    beta = 1.0 / C0
+
+    segments = get_path_segments(C0, x1, x2, layers)
+
+    w_phi = 0.0
+    w_theta = 0.0
+
+    for seg in segments:
+        z1, z2, C0, idx, direction = seg
+
+        n_ice = n_ice_arr[idx]
+        delta_n = delta_n_arr[idx]
+        z0 = z0_arr[idx]
+
+        alpha = n_ice**2 - beta**2
+
+        # --- helper functions ---
+        def n_of_z(z):
+            return n_ice - delta_n * np.exp(z / z0)
+
+        def gamma(z):
+            g = n_of_z(z)**2 - beta**2
+            return max(g, 1e-14)   # avoid instability
+
+        def phi_F(z):
+            val = np.sqrt(alpha * gamma(z)) + n_ice * n_of_z(z) - beta**2
+            return (1.0 / np.sqrt(alpha)) * (
+                z - z0 * np.log(abs(val))
+            )
+
+        def theta_F(z):
+            val = np.sqrt(alpha * gamma(z)) + n_ice * n_of_z(z) - beta**2
+
+            return (
+                n_ice**2 * z / (alpha**1.5)
+                + z0 * (n_ice * n_of_z(z) + beta**2) / (alpha * np.sqrt(gamma(z)))
+                - n_ice**2 * z0 / (alpha**1.5) * np.log(abs(val))
+            )
+
+        # --- segment contribution ---
+        if direction == UPGOING:
+            w_phi += phi_F(z2) - phi_F(z1)
+            w_theta += theta_F(z2) - theta_F(z1)
+        else:
+            w_phi += phi_F(z1) - phi_F(z2)
+            w_theta += theta_F(z1) - theta_F(z2)
+
+    # --- endpoints ---
+    # You still need launch/receive angles!
+    launch_angle = get_launch_angle(C0, x1, x2, layers)
+    receive_angle = get_receiving_angle(C0, x1, x2, layers)
+
+    n1 = get_refractive_index(x1[1], layers)
+    n2 = get_refractive_index(x2[1], layers)
+
+    s = get_path_length_analytic(C0, x1, x2, layers)
+
+    f_inv_sq = (
+        n1 * n2
+        * abs(np.cos(launch_angle) * np.cos(receive_angle))
+        * (w_theta * w_phi / (s**2))
+        )
+    
+    return 
+
+
+
+class mulan_ray_tracing_2D(ray_tracing_base):
+
+    def __init__(self, medium, attenuation_model=None,
+                 log_level=logging.NOTSET,
+                 n_frequencies_integration=None,
+                 use_optimized_start_values=False,
+                 overwrite_speedup=None,
+                 use_cpp=None,
+                 compile_numba=False):
+        """
+        initialize 2D analytic ray tracing class for multilayer analytic raytracing
+
+        This class is designed to have the same appearance and user interface as the corresponding 2D class from analyticraytracing.py, 
+        which is why sometimes there are seemingly unnecessary variables defined and the naming and structure of some functions might seem a bit off.
+        This is done, so that we can reuse the ray_tracing class from analyticraytracing.py which maps from 3D to 2D and then back after the relevant parameters are calculated.
+
+        Parameters
+        ----------
+        medium: NuRadioMC.utilities.medium class
+            details of the medium
+        attenuation_model: string
+            specifies which attenuation model to use
+            (default: None -> 'SP1' (see `ray_tracing_base._set__set_arguments`))
+        log_level: logging.loglevel object
+            Overrides verbosity (default NOTSET)
+        n_frequencies_integration: int
+            specifies for how many frequencies the signal attenuation is being calculated
+            (default: None -> 100 (see `ray_tracing_base._set__set_arguments`))
+
+        """
+        self.__logger = logging.getLogger('NuRadioMC.ray_tracing_2D')
+        self.__logger.setLevel(log_level)
+        
+        if isinstance(medium, medium_util.uniform_ice):
+            msg = ('Analytic raytracer does not work with a uniform ice model. '
+                    'Abort.... ! Use direct raytracing or a non-uniform ice model instead.')
+            self.__logger.error(msg)
+            raise RuntimeError(msg)
+
+        self.medium = medium
+
+        if not hasattr(self.medium, "reflection"):
+            self.medium.reflection = None
+
+        # This variable is needed for numba optimization as numba cannot associate None to a type
+        self.reflection = 100
+        if self.medium.reflection is not None:
+            self.reflection = self.medium.reflection
+
+        self.attenuation_model = attenuation_model or "SP1"
+        if self.attenuation_model not in attenuation_util.model_to_int:
+            raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
+
+        self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
+
+        self.__n_frequencies_integration = n_frequencies_integration
+
+    def determine_solution_type(self, x1, x2, C0):
+        layers_arr = layers_to_arrays(self.medium)
+
+        y1, z1 = x1
+        y2, z2 = x2
+
+        with_air = False
+        if (z1 > 0.0) or (z2 > 0.0):
+            with_air = True
+
+        downgoing = False
+        if z1 > z2:
+            z1, z2 = z2, z1
+            downgoing = True
+
+        return determine_solution_type(y1, z1, y2, z2, C0, layers_arr, downgoing, with_air)
+    
+    def find_solutions(self, x1, x2, plot=False, *_, **__):
+        layers_arr = layers_to_arrays(self.medium)
+        return find_solutions(x1, x2, layers_arr)
+
+    def get_travel_time_analytic(self, x1, x2, C0, *_, **__):
+        layers_arr = layers_to_arrays(self.medium)
+        return get_travel_time_analytic(x1, x2, C0, layers_arr)
+
+    def get_path_length_analytic(self, x1, x2, C0, *_, **__):
+        layers_arr = layers_to_arrays(self.medium)
+        return get_path_length_analytic(x1, x2, C0, layers_arr)
+    
+    def get_launch_vector(self, x1, x2, C0):
+        layers_arr = layers_to_arrays(self.medium)
+        return get_launch_vector(x1, x2, C0, layers_arr)
+    
+    def get_receive_vector(self, x1, x2, C0):
+        layers_arr = layers_to_arrays(self.medium)
+        return get_receiving_vector(x1, x2, C0, layers_arr)
+    
+    def get_launch_angle(self, x1, C0, *_, **__):
+        layers_arr = layers_to_arrays(self.medium)
+        return get_launch_angle(x1, x1, C0, layers_arr)
+    
+    def get_receive_angle(self, x1, x2, C0, *_, **__):
+        layers_arr = layers_to_arrays(self.medium)
+        return get_receiving_angle(x1, x2, C0, layers_arr)
+    
+    def get_reflection_angle(self, x1, x2, C0, *_, **__):
+        layers_arr = layers_to_arrays(self.medium)
+        return get_reflection_angle(x1, x2, C0, layers_arr)
+
+    def get_path_reflections(self, x1, x2, C0, npoints=1000,*_, **__):
+        layers_arr = layers_to_arrays(self.medium)
+        return get_path(C0, x1, x2, layers_arr, npoints)
+    
+    def get_path_segments(self, x1, x2, C0, *_, **__):
+        layers_arr = layers_to_arrays(self.medium)
+        return get_path_segments(C0, x1, x2,layers_arr)
+    
+    def get_turning_point(self, x1, C0):
+        layers_arr = layers_to_arrays(self.medium)
+        with_air = False
+        if x1[1] > 0.0 : with_air = True
+        return get_turning_point(x1[0], x1[1], C0, layers_arr, with_air=with_air)
+
+
+    def get_focusing_analytic(self, x1, x2, C0, *_, **__):
+        layers_arr = layers_to_arrays(self.medium)
+        return get_focusing_factor(x1, x2, C0, layers_arr)
+
+    def __get_frequencies_for_attenuation(self, frequency, max_detector_freq=None):
+        """ Returns a frequency vector for the attenuation calculation.
+
+        It takes the frequency vector of a simulated electric field and makes it sparser.
+        This function is used to reduce the number of frequencies for which the attenuation
+        is calculated (which is time consuming). Afterwards the attenuation factors for the
+        missing frequencies can be interpolated.
+
+        If max_detector_freq is None, the function will return a frequency vector (0, f_max] with
+        self.__n_frequencies_integration frequencies (unless the original frequency vector is already sparser).
+        If max_detector_freq is not None, the function will return a frequency vector (0, max_detector_freq] + (max_detector_freq, f_max]
+        with the first part having self.__n_frequencies_integration frequencies and the second part having
+        self.__n_frequencies_integration // 2 frequencies.
+
+        Parameters
+        ----------
+        frequency: array
+            Frequency vector of the simulated electric field
+        max_detector_freq: float
+            Maximum frequency of the detector (the nyquist frequency)
+
+        Returns
+        -------
+        freqs: array
+            Sparse frequency vector for the attenuation calculation
+        """
+
+        non_null_freqs = frequency > 0
+        n_freqs = min(self.__n_frequencies_integration, np.sum(non_null_freqs))
+
+        freqs = np.linspace(frequency[non_null_freqs].min(), frequency[non_null_freqs].max(), n_freqs)
+
+        if (n_freqs < np.sum(non_null_freqs)  # original frequency vector is already sparse
+            and max_detector_freq is not None):
+
+            det_mask = frequency <= max_detector_freq
+            total_mask = det_mask & non_null_freqs
+
+            n_freqs = min(self.__n_frequencies_integration, np.sum(total_mask))
+            freqs = np.linspace(frequency[total_mask].min(), frequency[total_mask].max(), n_freqs)
+            # Append n_freqs // 2 frequencies between detector nyquist frequency and simulated nyquist frequency
+            if np.sum(~det_mask) > 1:
+                freqs = np.append(freqs, np.linspace(frequency[~det_mask].min(), frequency[~det_mask].max(), n_freqs // 2))
+
+
+        self.__logger.debug("Frequency vector for attenuation calculation: {}".format(freqs))
+        return freqs
+    
+    def get_attenuation_along_path(self, x1, x2, C0, frequency, max_detector_frequency=None, *_, **__):
+        layers_arr = layers_to_arrays(self.medium)
+        attenuation_model =  self.attenuation_model
+        dz = self.dz
+        freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_frequency)
+        return get_attenuation_along_path(x1, x2, C0, layers_arr, frequency, freqs, attenuation_model, dz)
