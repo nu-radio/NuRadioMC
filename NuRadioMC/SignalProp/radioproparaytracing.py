@@ -43,7 +43,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
     how to install it can be found at https://github.com/nu-radio/RadioPropa"""
 
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
-                 n_frequencies_integration=None, n_reflections=None, config=None, detector=None):
+                 n_frequencies_integration=None, n_reflections=None, config=None, detector=None, use_cpp=None):
 
         """
         class initilization
@@ -85,6 +85,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 config['propagation']['radiopropa']['auto_step_size'] = False
                 config['propagation']['radiopropa']['iter_steps_zenith'] = [.5, .05, .005]
         detector: detector object
+        use_cpp: bool
+            Not used here. For compatibility with analytic ray tracer.
         """
         self.__logger = logging.getLogger('NuRadioMC.SignalProp.radiopropa_ray_tracing')
         self.__logger.setLevel(log_level)
@@ -332,7 +334,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                     viewing = np.arccos(np.dot(shower_dir, ray_dir)) * units.radian
                     return viewing - cherenkov_angle
 
-                if (self._shower_axis is None) or (abs(delta(ray_dir,self._shower_axis)) < self._cut_viewing_angle):
+                if (self._shower_axis is None) or (abs(delta(ray_dir, self._shower_axis)) < self._cut_viewing_angle):
 
                     source = radiopropa.Source()
                     source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*X1)))
@@ -1122,7 +1124,9 @@ class radiopropa_ray_tracing(ray_tracing_base):
         recPos1 = np.array([self._X2[0], self._X2[1], self._X2[2] + dz])
         if not hasattr(self, "_r1"):
             self._r1 = radiopropa_ray_tracing(self._medium, self._attenuation_model, logging.WARNING, self._n_frequencies_integration, self._n_reflections, config = self._config)
-        self._r1.set_shower_axis(self._shower_axis)
+        if self._shower_axis is not None:
+            self._r1.set_shower_axis(self._shower_axis)
+
         self._r1.set_start_and_end_point(vetPos, recPos1)
         self._r1.find_solutions()
         if iS < self._r1.get_number_of_solutions():

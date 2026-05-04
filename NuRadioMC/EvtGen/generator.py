@@ -1038,7 +1038,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 max_n_events_batch=1e5,
                                 write_events=True,
                                 seed=None,
-                                interaction_type="ccnc"):
+                                interaction_type="ccnc",
+                                cross_sections_model="hedis_bgr18"):
     """
     Event generator
 
@@ -1229,7 +1230,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         logger.debug("interaction type")
         if interaction_type == "ccnc":
             data_sets["interaction_type"] = inelasticities.get_ccnc(
-                n_events_batch, rnd=rnd, model="hedis_bgr18",
+                n_events_batch, rnd=rnd, model=cross_sections_model,
                 energy=data_sets["energies"], flavors=data_sets["flavors"])
         elif interaction_type == "cc" or interaction_type == "nc":
             data_sets["interaction_type"] = np.full(n_events_batch, interaction_type, dtype='U2')
@@ -1240,7 +1241,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         # generate inelasticity
         logger.debug("generating inelasticities")
         data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(
-            n_events_batch, rnd=rnd, model="hedis_bgr18",  nu_energies=data_sets["energies"],
+            n_events_batch, rnd=rnd, model=cross_sections_model,  nu_energies=data_sets["energies"],
             flavors=data_sets["flavors"], ncccs=data_sets["interaction_type"])
 
         if deposited:
