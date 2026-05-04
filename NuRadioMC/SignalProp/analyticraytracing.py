@@ -291,7 +291,7 @@ class ray_tracing(ray_tracing_base):
 
         ice_n = self._medium
         ice_birefringence = medium_util.get_ice_model('birefringence_medium')
-        ice_birefringence.__init__(bire_model)
+        ice_birefringence.load_birefringence_model(bire_model)
 
         acc = int(self.get_path_length(i_solution) / units.m)
         path = self.get_path(i_solution, n_points=acc)

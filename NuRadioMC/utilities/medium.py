@@ -295,7 +295,7 @@ class greenland_perturbation(greenland_firn):
     def __init__(self):
         greenland_firn.__init__(self)
 
-    def _compute_default_ice_model_radiopropa(self,discontinuity=False):
+    def _compute_default_ice_model_radiopropa(self, discontinuity=False):
         """
         Computes a default object holding the radiopropa scalarfield and necessary radiopropa
         moduldes that define the medium in radiopropa. It uses the parameters of the medium
