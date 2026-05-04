@@ -74,7 +74,8 @@ def iter_events(input_path):
             yield evt, evt.get_station(evt.get_station_ids()[0])
     else:
         reader = readRNOGData()
-        reader.begin([input_path])
+        reader.begin([input_path], mattak_kwargs={
+            "backend": "uproot", "read_daq_status": False, "read_run_info": False})
         for evt in reader.run():
             yield evt, evt.get_station(evt.get_station_ids()[0])
 

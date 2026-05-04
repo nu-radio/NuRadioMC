@@ -491,10 +491,24 @@ def main():
                 input_file, det, preprocessor_config=preproc_config)
         else:
             data_provider = dataProviderRNOG()
+            # pyroot is installed in the container but segfaults when
+            # daqstatus/runinfo are missing (common in handcarry).
+            mattak_defaults = {
+                'read_daq_status': False,
+                'read_run_info': False,
+                'backend': 'uproot',
+            }
+            user_rk = config.get('reader_kwargs') or {}
+            reader_kwargs = {
+                **user_rk,
+                'mattak_kwargs': {
+                    **mattak_defaults,
+                    **(user_rk.get('mattak_kwargs') or {}),
+                },
+            }
             data_provider.begin(
                 input_file, det,
-                reader_kwargs={'mattak_kwargs': {
-                    'read_daq_status': False, 'backend': 'uproot'}},
+                reader_kwargs=reader_kwargs,
                 preprocessor_config=preproc_config,
             )
         event_ids = data_provider.get_event_ids()

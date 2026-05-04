@@ -139,25 +139,51 @@ def select_provider(config, input_files, det, extra_selectors=()):
     """Instantiate the right data provider for the input type.
 
     Picks between ``dataProviderNuRadio`` (NUR simulation) and
-    ``dataProviderRNOG`` (ROOT data) from the first input file's
-    extension. All inputs must share the same extension.
+    ``dataProviderRNOG`` (ROOT data) from the first input. NUR inputs
+    must end in ``.nur``; ROOT inputs may be either ``.root`` files or
+    run directories (mattak rundir layout: ``waveforms.root`` +
+    ``headers.root`` + optional ``daqstatus.root``). All inputs must be
+    the same kind.
 
     ``extra_selectors`` (ROOT only) is a list of reader-level lambdas
     appended to ``reader_kwargs['selectors']`` so they run BEFORE the
     preprocessor inside ``provider.run()``. Used by the event-id filter.
     """
-    exts = {os.path.splitext(f)[1].lower() for f in input_files}
-    if len(exts) != 1 or next(iter(exts)) not in {".nur", ".root"}:
+    def _kind(p):
+        ext = os.path.splitext(p)[1].lower()
+        if ext == ".nur":
+            return "nur"
+        if ext == ".root":
+            return "root"
+        if os.path.isdir(p):
+            return "root"
+        return ext or "<no-ext>"
+
+    kinds = {_kind(f) for f in input_files}
+    if len(kinds) != 1 or next(iter(kinds)) not in {"nur", "root"}:
         raise ValueError(
-            f"Inputs must share a single extension (.nur or .root); got {exts}"
+            f"Inputs must all be NUR files (.nur) or ROOT data "
+            f"(.root files or rundirs); got {kinds}"
         )
-    is_nur = next(iter(exts)) == ".nur"
+    is_nur = next(iter(kinds)) == "nur"
 
     preproc_cfg = config.get("preprocessor", None)
     reader_kwargs = dict(config.get("reader_kwargs", {}) or {})
     if extra_selectors and not is_nur:
         existing = list(reader_kwargs.get("selectors", []) or [])
         reader_kwargs["selectors"] = existing + list(extra_selectors)
+    if not is_nur:
+        # pyroot is installed in the container but segfaults when
+        # daqstatus/runinfo are missing (common in handcarry).
+        mattak_defaults = {
+            "read_daq_status": False,
+            "read_run_info": False,
+            "backend": "uproot",
+        }
+        reader_kwargs["mattak_kwargs"] = {
+            **mattak_defaults,
+            **(reader_kwargs.get("mattak_kwargs") or {}),
+        }
     provider = dataProviderNuRadio() if is_nur else dataProviderRNOG()
     provider.begin(input_files, det,
                    reader_kwargs=reader_kwargs,
@@ -416,6 +442,14 @@ def main(config, input_files, run_chunk, event_filter=None):
             row["run_number"] = run_num
             row["event_number"] = evt_num
             row["source_file"] = src_file
+            # trigger_time so downstream analyses don't have to re-open
+            # headers.root just to time-stratify feature data. Real (mattak)
+            # data has it on the station object; sim doesn't, so absorb
+            # AttributeError and emit NaN.
+            try:
+                row["trigger_time"] = float(station.get_station_time().unix)
+            except Exception:
+                row["trigger_time"] = float("nan")
 
             if is_nur:
                 lge = _extract_log10_energy(src_file)
