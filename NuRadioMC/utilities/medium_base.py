@@ -397,6 +397,24 @@ class IceModelBirefringence(IceModelSimple):
         self.f2 = interpolate.UnivariateSpline._from_tck(bir_model[1])
         self.f3 = interpolate.UnivariateSpline._from_tck(bir_model[2])
 
+    def load_birefringence_model(self, bir_model):
+
+        """
+        function to load a birefringent ice model with an interpolation of the data as described in:
+        https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+
+        Parameters
+        ----------
+        bire_model: string
+            choose the interpolation to fit the measured refractive index data
+            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
+
+        """
+
+        self.f1 = interpolate.UnivariateSpline._from_tck(bir_model[0])
+        self.f2 = interpolate.UnivariateSpline._from_tck(bir_model[1])
+        self.f3 = interpolate.UnivariateSpline._from_tck(bir_model[2])
+
     def get_birefringence_index_of_refraction(self, position):
 
         """
