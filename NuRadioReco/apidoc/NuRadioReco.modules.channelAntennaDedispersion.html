@@ -644,15 +644,48 @@
 <span id="nuradioreco-modules-channelantennadedispersion-module"></span><h1>NuRadioReco.modules.channelAntennaDedispersion module<a class="headerlink" href="#module-NuRadioReco.modules.channelAntennaDedispersion" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelAntennaDedispersion.</span></span><span class="sig-name descname"><span class="pre">channelAntennaDedispersion</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelAntennaDedispersion.html#channelAntennaDedispersion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelAntennaDedispersion.</span></span><span class="sig-name descname"><span class="pre">channelAntennaDedispersion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">additional_antennas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelAntennaDedispersion.html#channelAntennaDedispersion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>The goal of this module is to unfold the group delay (i.e., dedispersing the channel signal) introduced by the
+antenna at a point where the direction of the incoming signal is not known. Hence, we choose the most sensitive
+direction (and polarisation) for each antenna as a proxy. The goal is to improve the signal-to-noise ratio on
+the channel level.</p>
+<p>For a proper reconstruction of the electric field, please look at the voltage2EFieldConverter module.</p>
 <p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion.run" title="NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, debug])</p></td>
+<td><p>Unfold the group delay introduced by the antenna for each channel without proper knowledge of the incoming signal direction.</p></td>
+</tr>
+</tbody>
+</table>
 <table class="docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><strong>end</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>run</strong></p></td>
+</tbody>
+</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>additional_antennas: dict, optional</strong></dt><dd><p>A dictionary with antenna names as keys and the most sensitive direction (zenith, azimuth) relative to the antenna orientation
+as values to add to the default list of antennas.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion.run" title="NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, debug])</p></td>
+<td><p>Unfold the group delay introduced by the antenna for each channel without proper knowledge of the incoming signal direction.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>end</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -660,7 +693,23 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelAntennaDedispersion.html#channelAntennaDedispersion.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion.run" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Unfold the group delay introduced by the antenna for each channel without proper
+knowledge of the incoming signal direction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>evt: Event</strong></dt><dd><p>The event containing the station and channel information.</p>
+</dd>
+<dt><strong>station: Station</strong></dt><dd><p>The station for which the dedispersion is to be applied.</p>
+</dd>
+<dt><strong>det: Detector</strong></dt><dd><p>The detector containing the antenna information.</p>
+</dd>
+<dt><strong>debug: bool, optional</strong></dt><dd><p>If True, plots the trace before and after dedispersion for debugging purposes. Default is False.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion.end">
