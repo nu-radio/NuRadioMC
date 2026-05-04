@@ -413,12 +413,12 @@ class ray_tracing_2D(ray_tracing_base):
             if use_cpp:
                 msg = ('C++ raytracer was explicitly requested, but is not available (i.e. on-the-fly compilation failed). '
 					   'Abort.... ! Either fix the compilation or set use_cpp to False. '
-					   'For compilation see NuRadioMC/SignalProp/install.sh resp. NuRadioMC/SignalProp/CPPAnalyticRayTracing.')
+					   'For compilation see NuRadioMC/SignalProp/AnalyticRayTracing/install.sh resp. NuRadioMC/SignalProp/AnalyticRayTracing/CPPAnalyticRayTracing.')
                 self.__logger.error(msg)
                 raise RuntimeError(msg)
             else:
                 self.__logger.warning('C++ raytracer is not available. Using Python raytracer.')
-                self.__logger.warning("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
+                self.__logger.warning("check NuRadioMC/NuRadioMC/SignalProp/AnalyticRayTracing/CPPAnalyticRayTracing for manual compilation")
 
         if isinstance(medium, medium_util.uniform_ice):
             msg = ('Analytic raytracer does not work with a uniform ice model. '
