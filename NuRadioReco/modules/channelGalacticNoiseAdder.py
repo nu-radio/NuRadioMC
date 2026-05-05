@@ -607,19 +607,32 @@ def get_local_coordinates(coordinates, obs_time, n_side):
 
 
 def Tb_quiet_sun(nu, kind='linear'):
-    """ Returns the apparent brigthness temperature for the quite sun for a given frequency """
-    f = Tb_quiet_sun_paper(kind=kind)
+    """ Returns the apparent brigthness temperature for the quite sun for a given frequency
+
+    Returned values are interpolated from digitized data from Fig. 5, of the paper:
+    https://iopscience.iop.org/article/10.3847/1538-4357/ac6b37/pdf
+
+    Parameters
+    ----------
+    nu : float or array of floats
+        Frequency
+    kind : str (default: 'linear')
+        Interpolation method used with ``scipy.interpolate.interp1d``
+
+    Returns
+    -------
+    tb : float or array of floats
+        Sun's apparent brightness temperature in K
+    """
+    f = _Tb_quiet_sun(kind=kind)
     return np.power(10, f(np.log10(nu)))
 
 @functools.lru_cache(maxsize=2)
-def Tb_quiet_sun_paper(kind='linear'):
+def _Tb_quiet_sun(kind='linear'):
     """ Returns function of Tb(f) """
     
-    # This is data of the quiet sun brightness temperature digitized from Fig. 5, of the paper:
-    # https://iopscience.iop.org/article/10.3847/1538-4357/ac6b37/pdf
     # First column (i.e., entires data[::2]) is the frequency in MHz,
-    # second column (i.e., entries data[1::2]) is the brightness temperature in K.
-    
+    # second column (i.e., entries data[1::2]) is the brightness temperature in K.    
     data = np.array([
         15.060724325205065, 122701.78220087259,
         15.876542140124316, 146675.73927896278,
