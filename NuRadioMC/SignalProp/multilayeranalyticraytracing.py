@@ -1292,6 +1292,8 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                 results.append({'type': solution_type,
                                 'C0': C_0,
                                 'C1': C_1,
+                                'reflection': 0,
+                                'reflection_case': 0,
                                 'D' : result.x[0],
                                 'x1': x1,
                                 'flag' : 1})
@@ -1308,6 +1310,8 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                     results.append({'type': solution_type,
                                     'C0': C_0,
                                     'C1': C_1,
+                                    'reflection': 0,
+                                    'reflection_case': 0,
                                     'D' : result.x[0],
                                     'x1': x1,
                                     'flag' : 1})
@@ -1393,6 +1397,8 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                 results.append({'type': solution_type,
                                 'C0': C_0,
                                 'C1': C_1,
+                                'reflection': 0,
+                                'reflection_case': 0,
                                 'D' : result2,
                                 'x1': x1,
                                 'flag' : 3})
@@ -1441,6 +1447,8 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                 results.append({'type': solution_type,
                                 'C0': C_0,
                                 'C1': C_1,
+                                'reflection': 0,
+                                'reflection_case': 0,
                                 'D' : result3,
                                 'x1': x1,
                                 'flag' : 4})
@@ -2597,6 +2605,8 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
         self.__n_frequencies_integration = n_frequencies_integration
         self.dz = dz
+        self.use_cpp = None # For compatibility with old raytracer
+        self.compile_numba = None # For compatibility with old raytracer
 
     @property
     def _layers_arr(self):

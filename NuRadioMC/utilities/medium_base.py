@@ -1025,7 +1025,7 @@ class IceModelExpLayers(IceModel):
         Returns
         -------
         tuple of ndarray
-            See `_layers_to_arrays` for details.
+            See the internal method _layers_to_arrays for details.
         """
         return self._layers_arr
             
