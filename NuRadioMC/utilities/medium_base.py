@@ -837,22 +837,17 @@ class IceModelExpLayers(IceModel):
     Medium class for defining multilayered media
     Dedicated to media where the refractive index within each layer can be described by an exponential model. Needed for the usage of the multilayer analytic raytracer.
     """
-    def __init__(self, layers, z_air_boundary=0.0, z_bottom=None):
-        super().__init__(z_air_boundary, z_bottom)
+    def __init__(self, layers):
 
-        self.layers = layers
-
-        self.layers = sorted(layers, key=lambda L: L["z_min"])
+        self.layers = sorted(layers, key=lambda L: L["z_min"],reverse = True)
         self._validate_layers()
 
         self._layers_arr = self._layers_to_arrays()
 
     def _validate_layers(self):
         for i in range(len(self.layers) - 1):
-            assert np.isclose(
-                self.layers[i]["z_max"],
-                self.layers[i+1]["z_min"]
-            ), "Layer boundaries are not continuous! Check definition!"
+            if not np.isclose(self.layers[i]["z_min"], self.layers[i+1]["z_max"]):
+                raise ValueError(f"Layers {i} and {i+1} don't overlap, boundaries are not continuous! Check definition!")
 
     def _layers_to_arrays(self):
         """
@@ -894,7 +889,7 @@ class IceModelExpLayers(IceModel):
         delta_n = np.zeros(n)
         z0 = np.zeros(n)
 
-        for i,L in enumerate(self.layers):
+        for i, L in enumerate(self.layers):
             z_min[i] = L["z_min"]
             z_max[i] = L["z_max"]
             n_ice[i] = L["n_ice"]
@@ -909,7 +904,7 @@ class IceModelExpLayers(IceModel):
             for L in self.layers:
                 if L["z_min"] <= z < L["z_max"]:
                     return L["n_ice"] - L["delta_n"] * np.exp(z / L["z_0"])
-            return 1.0 # fallback value
+            raise ValueError(f"Position z={z} is not covered by any layer!")
 
         if isinstance(position, list) or position.ndim == 1:
             return n_of_z(position[2])
@@ -920,7 +915,7 @@ class IceModelExpLayers(IceModel):
         for L in self.layers:
             if L["z_min"] <= z < L["z_max"]:
                 return L["region_name"]
-            
+    @property        
     def get_layers_array(self):
         return self._layers_arr
             

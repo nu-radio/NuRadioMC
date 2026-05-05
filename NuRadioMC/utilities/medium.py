@@ -387,7 +387,7 @@ class greenland_simple_layered(medium_base.IceModelExpLayers):
 
         super().__init__(
             layers=layers,
-            z_bottom=-3000.0,
+            #z_bottom=-3000.0,
         )
 
 class greenland_firn_layered(medium_base.IceModelExpLayers):
@@ -416,7 +416,7 @@ class greenland_firn_layered(medium_base.IceModelExpLayers):
 
         super().__init__(
             layers=layers,
-            z_bottom=-3000.0,
+            #z_bottom=-3000.0,
         )
 
 class greenland_3exp_layered(medium_base.IceModelExpLayers):
@@ -463,5 +463,5 @@ class greenland_3exp_layered(medium_base.IceModelExpLayers):
 
         super().__init__(
             layers=layers,
-            z_bottom=-3000.0,
+            #z_bottom=-3000.0,
         )
