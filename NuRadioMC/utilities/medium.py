@@ -11,6 +11,8 @@ import numpy as np
 import os
 from NuRadioReco.utilities import units
 
+import functools
+
 logger = medium_base.logger
 
 try:
@@ -103,10 +105,14 @@ class ARA_2022(medium_base.IceModelSimple):
 class birefringence_medium(medium_base.IceModelBirefringence):
 
     def __init__(self, bir_model='southpole_A'):
+        f = self._load_binary_data(bir_model)
+        self.load_birefringence_model(bir_model=f)
+
+    @functools.lru_cache(maxsize=8)
+    def _load_binary_data(self, bir_model):
         # from https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
         filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/birefringence_' + bir_model + '.npy'
-        super().__init__(bir_model=np.load(filepath, allow_pickle=True))
-
+        return np.load(filepath, allow_pickle=True)
 
 class mooresbay_simple(medium_base.IceModelSimple):
     def __init__(self):
