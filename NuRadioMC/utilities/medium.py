@@ -373,6 +373,11 @@ def get_ice_model(name):
 
 
 class greenland_simple_layered(medium_base.IceModelExpLayers):
+    """
+    Single layer refractive index model.
+    
+    greenland_simple model adapted to match the expected medium definition needed for the multi layer analytic raytracer. Used as a comparison to the single layer analytic raytracer.
+    """
     def __init__(self):
 
         layers = [{
@@ -391,8 +396,13 @@ class greenland_simple_layered(medium_base.IceModelExpLayers):
         )
 
 class greenland_firn_layered(medium_base.IceModelExpLayers):
+    """
+    Two layer refractive index model.
+     
+    values taken from greenland_firn and adapted to match the expected medium definition needed for the multi layer analytic raytracer. Combination of firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
+    """
     def __init__(self):
-
+        
         layers = [
             {
                 "z_min": -14.9,
@@ -420,6 +430,11 @@ class greenland_firn_layered(medium_base.IceModelExpLayers):
         )
 
 class greenland_3exp_layered(medium_base.IceModelExpLayers):
+    """
+    Four layer refractive index model.
+     
+    Values for below the ice taken from https://github.com/philippwindischhofer/Reconal/blob/7204049c755a0678178821073fa73a476c49c491/defs.py#L72-L82. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
+    """
     def __init__(self):
 
         layers = [

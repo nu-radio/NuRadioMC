@@ -765,19 +765,22 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
 
     
     if (y_turn is not None) and (z_turn is not None):
+
         if z_turn <= z2:
             dz = z_turn - z2
             dy = y_turn - y2
             diff = np.sqrt(dz*dz + dy*dy) + 10.0 * np.abs(dz)
             return -diff
-            #return -np.inf
+        
         elif y_turn >= y2:
             y_fit = evaluate_y(C0, C1, z2, layers)
             return y2 - y_fit
+        
         else:
             y_raw = evaluate_y(C0, C1, z2, layers)
             y_fit = 2.0*y_turn - y_raw
             return -(y2 - y_fit)
+        
     elif (y_turn is None) and (z_turn is None): 
         y_fit = evaluate_y(C0, C1, z2, layers)
         return y2 - y_fit
@@ -872,8 +875,8 @@ def get_skim_angle(y1, z1, zskim, layers):
     """
     nlaunch = get_refractive_index(z1, layers)
     nsurf = get_refractive_index(zskim, layers)
-    #sinthcrit = nsurf / nlaunch
-    sinthcrit = min(nsurf / nlaunch, 0.999999)
+    
+    sinthcrit = min(nsurf / nlaunch, 0.999999999)
     if sinthcrit <= 1.0:
         thcrit = np.arcsin(sinthcrit)
         C0crit = get_C0_from_theta(z1, thcrit, layers)
@@ -1070,7 +1073,7 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air):
     The logic proceeds as follows:
 
     1. If the ray originates from air (``with_air`` and ``downgoing``),
-       the solution is classified as ``from_air``.
+       the solution is classified as direct, since there are only direct rays in this case.
 
     2. If the receiver lies before the turning point in horizontal
        distance (``y2 < y_turn``), the ray is a direct solution.
@@ -1090,20 +1093,17 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air):
     )
 
     if with_air and downgoing:
-        #return solution_types_revert['direct']
+        # from air we only find direct solutions (very sloppy check, I know)
         return DIRECT
     
     if y2 < y_turn:
         # receiver reached before turning point -> direct ray
-        #return solution_types_revert['direct']
         return DIRECT
 
     if z_turn >= 1e-12:
-        #return solution_types_revert['reflected']
+        # turning point above ice -> reflection of upwards going ray
         return REFLECTED
     
-
-    #return solution_types_revert['refracted']
     return REFRACTED
 
 def find_solutions(x1, x2, layers,tol=1e-6):
@@ -1191,8 +1191,6 @@ def find_solutions(x1, x2, layers,tol=1e-6):
 
     n_deep = n_ice[-1]
 
-    ## Here something is still wrong
-    ## theta skim goes to inf for too horizontal geometries when z1 is on the same height as z2.
     theta_straight = np.arctan(max((z2-z1),1e-14)/(y2-y1))
 
     if theta_straight < np.pi/4 and not with_air: 
@@ -1248,9 +1246,6 @@ def find_solutions(x1, x2, layers,tol=1e-6):
             air_solution_found = False'''
         
     if not air_solution_found:
-        #if np.abs(z1-z2) < 1: theta_straight = np.pi/4 + 0.15 
-        #print(f"theta_straight: {theta_straight}")
-
         _, theta_skim = get_skim_angle(
             y1, z1,
             z2,
@@ -1259,22 +1254,20 @@ def find_solutions(x1, x2, layers,tol=1e-6):
 
         if not np.isfinite(theta_skim):
             theta_skim = np.arctan(z1/y1)
-        #print(f"theta_skim: {theta_skim}")
-        
+
 
         C0skim = get_C0_from_theta(
             z1,
             np.abs(theta_skim),
             layers
         )
-        #print(f"C0skim: {C0skim}")
 
         C0straight = get_C0_from_theta(
             z1,
             np.abs(theta_straight),
             layers
         )
-        #print(f"C0straight: {C0straight}")
+
         n_z = get_refractive_index(z1,layers)
         logC0straight = np.log(max(C0straight - 1./n_deep, 1e-12))
         logC0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
@@ -1359,7 +1352,7 @@ def find_solutions(x1, x2, layers,tol=1e-6):
             result_x = result.x[0]
 
         logC0_start = result_x + 0.00001
-        #logC0_start = 0.0
+        
         if with_air:
             C0cross_min = 1.0
             logC0_start = np.log(max(C0cross_min - 1./n_deep, 1e-12))
@@ -1386,14 +1379,6 @@ def find_solutions(x1, x2, layers,tol=1e-6):
             layers,
             n_deep,downgoing,with_air
             )
-        
-        #print("with_air: ", with_air)
-        #print("downgoing: ", downgoing)
-        #print("logC0_start: ", logC0_start)
-        #print("logC0_stop: ", logC0_stop)
-        #print("delta_start: ", delta_start)
-        #print("delta_stop: ", delta_stop)
-        #print("delta_test: ", delta_test)
 
         if(np.sign(delta_start) != np.sign(delta_stop)):
 
@@ -1425,8 +1410,6 @@ def find_solutions(x1, x2, layers,tol=1e-6):
             C0theta_min = 1/n_deep + 1e-12  # small buffer to avoid log(0)
 
         logC0_start = max(np.log(C0theta_min - 1. / n_deep),-100)
-        #print('logC0_start: ',logC0_start)
-        
         
         logC0_stop = result_x - 0.00001
         delta_start = obj_delta_y(
@@ -1469,10 +1452,6 @@ def find_solutions(x1, x2, layers,tol=1e-6):
         #print(f"Solution found for x1 ({y1},{z1}) to x2 ({y2},{z2}): {results}")
         #print(f"-------------------------------------------------------")
     return sorted(results, key=itemgetter('type', 'C0'))
-
-# ------------------------------
-# Path builder
-# ------------------------------
 
 def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, get_segments = False):
     """
@@ -1722,9 +1701,9 @@ def get_path_segments(C0, x1, x2, layers):
         z_end = points_up[i+1]
         z_mid = 0.5 * (z_start + z_end)
         idx = get_layer_index(z_mid, z_min, z_max)
-        segments.append((z_start, z_end, C0, idx, 1)) # Set flag to 1
+        segments.append((z_start, z_end, C0, idx, 1)) # Set upgoing flag to 1
 
-    if solution_type != 1:
+    if solution_type != DIRECT:
 
         # Downgoing segments
         for i in range(len(points_down)-1):
@@ -1732,7 +1711,7 @@ def get_path_segments(C0, x1, x2, layers):
             z_end = points_down[i+1]
             z_mid = 0.5 * (z_start + z_end)
             idx = get_layer_index(z_mid, z_min, z_max)
-            segments.append((z_start, z_end, C0, idx, 0)) # Set flag to 0
+            segments.append((z_start, z_end, C0, idx, 0)) # Set upgoing flag to 0
 
     return segments
 
@@ -1801,11 +1780,11 @@ def get_path_length_analytic(C0, x1, x2, layers):
         def l1(z):
             n_z = n_ice - delta_n * np.exp(z / z0)
             val = sqrt(alpha * gamma(z)) + n_ice * n_z - beta**2
-            return abs(val) #if val > EPS else EPS
+            return abs(val)
 
         def l2(z):
             val = sqrt(gamma(z)) + (n_ice - delta_n * np.exp(z / z0))
-            return abs(val) # if val > EPS else EPS
+            return abs(val)
 
         def get_s(z):
             return n_ice / sqrt(alpha) * (z - z0 * log(l1(z))) + z0 * log(l2(z))
@@ -1815,9 +1794,8 @@ def get_path_length_analytic(C0, x1, x2, layers):
         else:
             s_seg = get_s(z1) - get_s(z2)
 
-        #print(f"length of segment: {s_seg}")
         total_s += s_seg
-    #print(f"Total path length: {total_s}")
+
     return total_s
 
 @njit
@@ -2141,9 +2119,8 @@ def get_travel_time_analytic(C0, x1, x2, layers):
         else:
             t_seg = get_t(z1) - get_t(z2)
 
-        #print(f"travel time of segment: {t_seg}")
         total_t += t_seg
-    #print(f"Total travel time: {total_t}")
+
     return total_t
 
 
@@ -2416,8 +2393,6 @@ def get_attenuation_along_path(
                 if abs(z - z_receiver) < receiver_window_fine:
                     use_very_fine = True
 
-                #dz_local = dz_fine if use_fine else dz
-
                 if use_very_fine:
                     dz_local = dz_very_fine
                 elif use_fine:
@@ -2524,7 +2499,6 @@ def get_focusing_factor(C0, x1, x2, layers):
 
         alpha = n_ice**2 - beta**2
 
-        # --- helper functions ---
         def n_of_z(z):
             return n_ice - delta_n * np.exp(z / z0)
 
@@ -2547,7 +2521,6 @@ def get_focusing_factor(C0, x1, x2, layers):
                 - n_ice**2 * z0 / (alpha**1.5) * np.log(abs(val))
             )
 
-        # --- segment contribution ---
         if direction == 1:
             w_phi += phi_F(z2) - phi_F(z1)
             w_theta += theta_F(z2) - theta_F(z1)
@@ -2555,8 +2528,6 @@ def get_focusing_factor(C0, x1, x2, layers):
             w_phi += phi_F(z1) - phi_F(z2)
             w_theta += theta_F(z1) - theta_F(z2)
 
-    # --- endpoints ---
-    # You still need launch/receive angles!
     launch_angle = get_launch_angle(C0, x1, x2, layers)
     receive_angle = get_receiving_angle(C0, x1, x2, layers)
 
