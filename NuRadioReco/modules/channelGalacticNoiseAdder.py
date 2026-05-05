@@ -373,10 +373,9 @@ class channelGalacticNoiseAdder:
             channel_depth = detector.get_relative_position(station.get_id(), channel.get_id())[2]
             channel_depths.append(channel_depth)
 
-            # calculate the signal attenuation for in-ice channels. This is a very rough approximation,
-            # since it assumes a straight line path and not a bend ray.
-            if self._attenuation_model is not None and channel_depth < -10:
-                # Approximate attenuation along a straight line and 10 steps.
+            # Calculate signal attenuation for in-ice channels. This is a (good) approximation,
+            # assumes a straight line path and not a bend trajectory.
+            if self._attenuation_model is not None and channel_depth < -10 * units.meter:
                 depth_bins = np.linspace(0, channel_depth)
                 depths = depth_bins[:-1] + np.diff(depth_bins) / 2
                 one_over_average_attenuation_length[channel.get_id()] = np.mean(
