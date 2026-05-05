@@ -562,7 +562,7 @@ class ray_tracing(ray_tracing_base):
         Notes
         -----
         The analytic solution is based on the equation in the appendix of Sjoerd Bouma's PhD thesis.
-        For more details, see there, or see the notes of `ray_tracing_2D.get_path_length_analytic`.
+        For more details, see there, or see the notes of ``ray_tracing_2D.get_path_length_analytic``.
 
         """
         n = self.get_number_of_solutions()
@@ -609,7 +609,7 @@ class ray_tracing(ray_tracing_base):
         Notes
         -----
         The analytic solution is based on the equation in the appendix of Sjoerd Bouma's PhD thesis.
-        For more details, see there, or see the notes of `ray_tracing_2D.get_travel_time_analytic`.
+        For more details, see there, or see the notes of ``ray_tracing_2D.get_travel_time_analytic``.
 
         """
         n = self.get_number_of_solutions()
