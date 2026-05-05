@@ -6,9 +6,8 @@ refractive index can be described as layers of exponentials where each layer fol
 
 n(z) = n_ice - delta_n * exp(z / z_0)
 
-This also suppports propagation across layer boundaries where n(z) is not continuous, so also air-to-ice tracing.
-We can also model the refractive index of air as an exponential layer of course.
-Internal layer reflections inside the ice are not yet implemented, but should be easily available in the future.
+This also supports propagation across layer boundaries where n(z) is not continuous, so also air-to-ice tracing.
+We can also model the refractive index of air as one or more exponential layers. Note that we expect the ice surface at z=0 and an in-ice antenna (z<0). This is important, since we search for the in-ice reflected rays for signals from within the ice and for the ones passing through the surface coming from the air and therefore treat both situations a bit differently. 
 
 To find the ray solutions we needed to implement a number of functions
 that you can use to :
@@ -19,7 +18,15 @@ that you can use to :
 * solve for ray parameters connecting two points
 * classify solutions (direct, refracted, reflected)
 
-...if they are in our nice layer format that expects smooth boundaries of the n(z) definition that we apply
+Once a solution is found we can evaluate a number of path specific parameters, such as:
+
+* 2D path coordinates
+* path length
+* light travel time
+* signal path angles at the emitter and receiver
+* possibly reflection angle
+* attenuation factor (frequency dependent)
+* focusing factor
 
 The implementation is an expansion of the previous analytic ray
 tracing solver used in NuRadioMC . In order to enable compilation with
@@ -31,27 +38,17 @@ to have a look at the companion note to this module ``MultilayerAnalyticRayTract
 This appendix describes the implementation of the previously used single layer analytic raytracer.
 
 
-Examples
---------
-Typical workflow:
-
-1. Define the ice layers (e.g. ``LAYERS``).
-2. Call :func:`find_solutions` to determine valid ray parameters between
-   two points.
-3. For each solution, compute the ray path using :func:`get_path`.
-
 Notes
 -----
 Coordinates are given as (y, z) with units of meters:
 
 * y : horizontal distance
-* z : depth (negative downward)
+* z : vertical coordinate
 
-z = 0 corresponds to the surface.
+z = 0 corresponds to the ice surface.
 
-The ray parameter ``C0`` represents the **inverse horizontal slowness**
-of the ray and determines the curvature of the trajectory.
-It can also be defined as C0 = 1/(n(z)*sin(theta)) where theta is the angle relative to the horizontal.
+The ray parameter ``C0`` determines the curvature of the trajectory.
+It can be seen as C0 = 1/(n(z)*sin(theta)) where n(z) is the refractive index and theta is the angle relative to the horizontal at the current depth z.
 
 Layer definitions
 -----------------
@@ -67,16 +64,16 @@ n_ice : float
     Asymptotic refractive index of deep ice.
 
 delta_n : float
-    Surface-to-deep refractive index contrast.
+    Steepness factor of refractive index change.
 
 z_0 : float
-    Exponential scale depth controlling the transition of the index profile.
+    Depth factor controlling the transition depth of the index profile.
 
 region : str
     Internal identifier of the physical region.
 
 region_name : str
-    Human-readable name of the region.
+    Human-readable name of the region. For plotting.
 
 Internally these definitions are converted to arrays using
 :func:`layers_to_arrays` in order to support Numba compilation.
@@ -97,7 +94,7 @@ from NuRadioMC.utilities import attenuation
 from NuRadioReco.utilities import units
 
 from NuRadioReco.utilities import units, geometryUtilities
-from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
+#from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 
 from math import sqrt, log, sin
@@ -1004,10 +1001,10 @@ def obj_delta_y(logC0, y1, z1, y2, z2, layers, n_deep,
             return 1e30
     return dy
 
-DIRECT = 1
-REFRACTED = 2
-REFLECTED = 3
-FROM_AIR = 1
+# To keep it numba compatible:
+DIRECT = solution_types_revert['direct']
+REFLECTED = solution_types_revert['reflected']
+REFRACTED = solution_types_revert['refracted']
 
 @njit(cache=True)
 def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air):
@@ -1093,10 +1090,9 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air):
     )
 
     if with_air and downgoing:
-        #return solution_types_revert['from_air']
-        return FROM_AIR
-        #return 0
-
+        #return solution_types_revert['direct']
+        return DIRECT
+    
     if y2 < y_turn:
         # receiver reached before turning point -> direct ray
         #return solution_types_revert['direct']
@@ -1288,11 +1284,11 @@ def find_solutions(x1, x2, layers,tol=1e-6):
         
         
         #print(f"logC0skim: {logC0skim}")
-        print(f"-------------------------------------------------------")
-        print(f"Original x1 and x2: {x1} and {x2}. With air: {with_air}. Downgoing: {downgoing}")
-        print(f"Searching for Ray-Tracing Solutions from x1 ({y1},{z1}) to x2 ({y2},{z2})...")
+        #print(f"-------------------------------------------------------")
+        #print(f"Original x1 and x2: {x1} and {x2}. With air: {with_air}. Downgoing: {downgoing}")
+        #print(f"Searching for Ray-Tracing Solutions from x1 ({y1},{z1}) to x2 ({y2},{z2})...")
         result = optimize.root(obj_delta_y_sqr, x0=logC0straight, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
-        print(f"result of root otimization with C0 {get_C0_from_log(result.x[0],n_deep)}: {result}")
+        #print(f"result of root otimization with C0 {get_C0_from_log(result.x[0],n_deep)}: {result}")
         if(result.fun < 1e-7):
             if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
                 C_0 = get_C0_from_log(result.x[0],n_deep)
@@ -1415,8 +1411,8 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                                 'D' : result2,
                                 'x1': x1,
                                 'flag' : 3})
-        else:
-            print("no solution with logC0 > {:.3f} exists".format(result.x[0]))
+        #else:
+        #    print("no solution with logC0 > {:.3f} exists".format(result.x[0]))
 
         
         theta_min =  1e-5
@@ -1448,7 +1444,7 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                 )
 
         if(np.sign(delta_start) != np.sign(delta_stop)):
-            print("solution with logC0 < {:.3f} exists".format(result.x[0]))
+            #print("solution with logC0 < {:.3f} exists".format(result.x[0]))
             result3 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
 
 
@@ -1458,19 +1454,20 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                 C0s.append(C_0)
                 solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
 
-                print("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
+                #print("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                 results.append({'type': solution_type,
                                 'C0': C_0,
                                 'C1': C_1,
                                 'D' : result3,
                                 'x1': x1,
                                 'flag' : 4})
-        else:
-            print("no solution with logC0 < {:.3f} exists".format(result.x[0]))
+        
+        #else:
+        #    print("no solution with logC0 < {:.3f} exists".format(result.x[0]))
 
 
-        print(f"Solution found for x1 ({y1},{z1}) to x2 ({y2},{z2}): {results}")
-        print(f"-------------------------------------------------------")
+        #print(f"Solution found for x1 ({y1},{z1}) to x2 ({y2},{z2}): {results}")
+        #print(f"-------------------------------------------------------")
     return sorted(results, key=itemgetter('type', 'C0'))
 
 # ------------------------------
@@ -1586,11 +1583,6 @@ def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, ge
         else:
             return y_path, z_path
 
-
-
-
-UPGOING = 1
-DOWNGOING = 2
 
 @njit(cache=True)
 def get_path_segments(C0, x1, x2, layers):
@@ -1730,7 +1722,7 @@ def get_path_segments(C0, x1, x2, layers):
         z_end = points_up[i+1]
         z_mid = 0.5 * (z_start + z_end)
         idx = get_layer_index(z_mid, z_min, z_max)
-        segments.append((z_start, z_end, C0, idx, UPGOING))
+        segments.append((z_start, z_end, C0, idx, 1)) # Set flag to 1
 
     if solution_type != 1:
 
@@ -1740,7 +1732,7 @@ def get_path_segments(C0, x1, x2, layers):
             z_end = points_down[i+1]
             z_mid = 0.5 * (z_start + z_end)
             idx = get_layer_index(z_mid, z_min, z_max)
-            segments.append((z_start, z_end, C0, idx, DOWNGOING))
+            segments.append((z_start, z_end, C0, idx, 0)) # Set flag to 0
 
     return segments
 
@@ -1823,9 +1815,9 @@ def get_path_length_analytic(C0, x1, x2, layers):
         else:
             s_seg = get_s(z1) - get_s(z2)
 
-        print(f"length of segment: {s_seg}")
+        #print(f"length of segment: {s_seg}")
         total_s += s_seg
-    print(f"Total path length: {total_s}")
+    #print(f"Total path length: {total_s}")
     return total_s
 
 @njit
@@ -1853,7 +1845,7 @@ def get_launch_angle(C0, x1, x2, layers):
     Returns
     -------
     angle : float
-        Launch angle in radians, measured with respect to the horizontal.
+        Launch angle in radians, measured with respect to the vertical. 
     """
 
     y1, z1 = float(x1[0]), float(x1[1])
@@ -1871,7 +1863,7 @@ def get_launch_angle(C0, x1, x2, layers):
     solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
     n = get_refractive_index(x1[1],layers)
 
-    if solution_type == 1 and downgoing: 
+    if solution_type == DIRECT and downgoing: 
         angle = np.pi - np.arcsin(1/(n*C0))
     else:
         angle = np.arcsin(1/(n*C0))
@@ -1904,7 +1896,7 @@ def get_receiving_angle(C0, x1, x2, layers):
     Returns
     -------
     angle : float
-        Receiving angle in radians, measured with respect to the horizontal.
+        Receiving angle in radians, measured with respect to the vertical.
 
     """
     
@@ -1925,7 +1917,7 @@ def get_receiving_angle(C0, x1, x2, layers):
     solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
     n = get_refractive_index(x2[1],layers)
 
-    if solution_type == 1 and not downgoing:
+    if solution_type == DIRECT and not downgoing:
         angle = np.pi - np.arcsin(1/(n*C0))
     else:
         angle = np.arcsin(1/(n*C0))
@@ -2149,9 +2141,9 @@ def get_travel_time_analytic(C0, x1, x2, layers):
         else:
             t_seg = get_t(z1) - get_t(z2)
 
-        print(f"travel time of segment: {t_seg}")
+        #print(f"travel time of segment: {t_seg}")
         total_t += t_seg
-    print(f"Total travel time: {total_t}")
+    #print(f"Total travel time: {total_t}")
     return total_t
 
 
@@ -2286,9 +2278,9 @@ def ds_dz_layer(z, C0, idx, layers):
     return n / np.sqrt(gamma)
 
 def get_attenuation_along_path(
+        C0,
         x1,
         x2,
-        C0,
         layers,
         frequency,
         freqs=None,
@@ -2361,7 +2353,7 @@ def get_attenuation_along_path(
         _, _, _, _, up2 = segments[i + 1]
 
         # upgoing -> downgoing transition
-        if up1 == 1 and up2 == 2:
+        if up1 == 1 and up2 == 0:
             turning_z = z2_prev
             break
     if refine:
@@ -2486,7 +2478,7 @@ def get_attenuation_along_path(
     return attenuation_factor
 
 @njit(cache=True)
-def get_focusing_factor(x1, x2, C0, layers):
+def get_focusing_factor(C0, x1, x2, layers):
     """
     Analytic solution to calculate the focusing factor
 
@@ -2556,7 +2548,7 @@ def get_focusing_factor(x1, x2, C0, layers):
             )
 
         # --- segment contribution ---
-        if direction == UPGOING:
+        if direction == 1:
             w_phi += phi_F(z2) - phi_F(z1)
             w_theta += theta_F(z2) - theta_F(z1)
         else:
@@ -2579,15 +2571,15 @@ def get_focusing_factor(x1, x2, C0, layers):
         * (w_theta * w_phi / (s**2))
         )
     
-    return 
+    return np.sqrt(1 / f_inv_sq)
 
 
 
-class mulan_ray_tracing_2D(ray_tracing_base):
+class multi_layer_ray_tracing_2D(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model=None,
                  log_level=logging.NOTSET,
-                 n_frequencies_integration=None,
+                 n_frequencies_integration=32, dz=10*units.m,
                  use_optimized_start_values=False,
                  overwrite_speedup=None,
                  use_cpp=None,
@@ -2616,32 +2608,31 @@ class mulan_ray_tracing_2D(ray_tracing_base):
         self.__logger = logging.getLogger('NuRadioMC.ray_tracing_2D')
         self.__logger.setLevel(log_level)
         
-        if isinstance(medium, medium_util.uniform_ice):
-            msg = ('Analytic raytracer does not work with a uniform ice model. '
-                    'Abort.... ! Use direct raytracing or a non-uniform ice model instead.')
-            self.__logger.error(msg)
-            raise RuntimeError(msg)
+        #if isinstance(medium, medium_util.uniform_ice):
+        #    msg = ('Analytic raytracer does not work with a uniform ice model. '
+        #            'Abort.... ! Use direct raytracing or a non-uniform ice model instead.')
+        #    self.__logger.error(msg)
+        #    raise RuntimeError(msg)
 
         self.medium = medium
+        #self._layers_arr = self.medium.get_layers_array
 
-        if not hasattr(self.medium, "reflection"):
-            self.medium.reflection = None
-
-        # This variable is needed for numba optimization as numba cannot associate None to a type
-        self.reflection = 100
-        if self.medium.reflection is not None:
-            self.reflection = self.medium.reflection
 
         self.attenuation_model = attenuation_model or "SP1"
-        if self.attenuation_model not in attenuation_util.model_to_int:
-            raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
+        #if self.attenuation_model not in attenuation_util.model_to_int:
+        #    raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
 
-        self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
+        #self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
 
         self.__n_frequencies_integration = n_frequencies_integration
+        self.dz = dz
 
+    @property
+    def _layers_arr(self):
+        return self.medium.get_layers_array
+
+        
     def determine_solution_type(self, x1, x2, C0):
-        layers_arr = layers_to_arrays(self.medium)
 
         y1, z1 = x1
         y2, z2 = x2
@@ -2655,58 +2646,46 @@ class mulan_ray_tracing_2D(ray_tracing_base):
             z1, z2 = z2, z1
             downgoing = True
 
-        return determine_solution_type(y1, z1, y2, z2, C0, layers_arr, downgoing, with_air)
+        return determine_solution_type(y1, z1, y2, z2, C0, self._layers_arr, downgoing, with_air)
     
     def find_solutions(self, x1, x2, plot=False, *_, **__):
-        layers_arr = layers_to_arrays(self.medium)
-        return find_solutions(x1, x2, layers_arr)
+        return find_solutions(x1, x2, self._layers_arr)
 
     def get_travel_time_analytic(self, x1, x2, C0, *_, **__):
-        layers_arr = layers_to_arrays(self.medium)
-        return get_travel_time_analytic(x1, x2, C0, layers_arr)
+        return get_travel_time_analytic(C0, x1, x2, self._layers_arr)
 
     def get_path_length_analytic(self, x1, x2, C0, *_, **__):
-        layers_arr = layers_to_arrays(self.medium)
-        return get_path_length_analytic(x1, x2, C0, layers_arr)
+        return get_path_length_analytic(C0, x1, x2, self._layers_arr)
     
     def get_launch_vector(self, x1, x2, C0):
-        layers_arr = layers_to_arrays(self.medium)
-        return get_launch_vector(x1, x2, C0, layers_arr)
+        return get_launch_vector(C0, x1, x2, self._layers_arr)
     
     def get_receive_vector(self, x1, x2, C0):
-        layers_arr = layers_to_arrays(self.medium)
-        return get_receiving_vector(x1, x2, C0, layers_arr)
+        return get_receiving_vector(C0, x1, x2, self._layers_arr)
     
     def get_launch_angle(self, x1, C0, *_, **__):
-        layers_arr = layers_to_arrays(self.medium)
-        return get_launch_angle(x1, x1, C0, layers_arr)
+        return get_launch_angle(C0, x1, x1, self._layers_arr)
     
     def get_receive_angle(self, x1, x2, C0, *_, **__):
-        layers_arr = layers_to_arrays(self.medium)
-        return get_receiving_angle(x1, x2, C0, layers_arr)
+        return get_receiving_angle(C0, x1, x2, self._layers_arr)
     
     def get_reflection_angle(self, x1, x2, C0, *_, **__):
-        layers_arr = layers_to_arrays(self.medium)
-        return get_reflection_angle(x1, x2, C0, layers_arr)
+        return get_reflection_angle(C0, x1, x2, self._layers_arr)
 
     def get_path_reflections(self, x1, x2, C0, npoints=1000,*_, **__):
-        layers_arr = layers_to_arrays(self.medium)
-        return get_path(C0, x1, x2, layers_arr, npoints)
+        return get_path(C0, x1, x2, self._layers_arr, npoints)
     
     def get_path_segments(self, x1, x2, C0, *_, **__):
-        layers_arr = layers_to_arrays(self.medium)
-        return get_path_segments(C0, x1, x2,layers_arr)
+        return get_path_segments(C0, x1, x2, self._layers_arr)
     
     def get_turning_point(self, x1, C0):
-        layers_arr = layers_to_arrays(self.medium)
         with_air = False
         if x1[1] > 0.0 : with_air = True
-        return get_turning_point(x1[0], x1[1], C0, layers_arr, with_air=with_air)
+        return get_turning_point(x1[0], x1[1], C0, self._layers_arr, with_air=with_air)
 
 
     def get_focusing_analytic(self, x1, x2, C0, *_, **__):
-        layers_arr = layers_to_arrays(self.medium)
-        return get_focusing_factor(x1, x2, C0, layers_arr)
+        return get_focusing_factor(C0, x1, x2, self._layers_arr)
 
     def __get_frequencies_for_attenuation(self, frequency, max_detector_freq=None):
         """ Returns a frequency vector for the attenuation calculation.
@@ -2757,8 +2736,7 @@ class mulan_ray_tracing_2D(ray_tracing_base):
         return freqs
     
     def get_attenuation_along_path(self, x1, x2, C0, frequency, max_detector_frequency=None, *_, **__):
-        layers_arr = layers_to_arrays(self.medium)
         attenuation_model =  self.attenuation_model
         dz = self.dz
         freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_frequency)
-        return get_attenuation_along_path(x1, x2, C0, layers_arr, frequency, freqs, attenuation_model, dz)
+        return get_attenuation_along_path(C0, x1, x2, self._layers_arr, frequency, freqs, attenuation_model, dz)
