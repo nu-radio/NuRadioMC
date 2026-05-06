@@ -8,6 +8,8 @@ import json
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+
 from scipy.interpolate import interp1d
 
 try:
@@ -57,11 +59,11 @@ def get_angles_rhos(file):
 
     unique_sn, counts = np.unique(d["SN"], return_counts=True)
     if len(unique_sn) > 1:
-        assert counts[0] > counts[1], "Something went wrong, thre reflected ray should be longer than throughpassing one"
+        assert counts[0] > counts[1], "Something went wrong, the reflected ray should be longer than the through passing one"
 
     have_reflection = len(unique_sn) > 1
     # select only the reflected ray, not the throughpassing one (through the surface layer)
-    d = d[d["SN"] == d["SN"][0]]
+    d = d[d["SN"] == unique_sn[0]]
 
     # ray path
     x = d['X']
@@ -78,7 +80,7 @@ def get_angles_rhos(file):
     return theta, x, z, distance, power, have_reflection
 
 
-def get_trace_file(theta, z_antenna, freq=403 * 1e6, in_file=False, filename='__output_tempfile.h5'):
+def get_trace_file(theta, z_antenna, freq=400 * 1e6, in_file=False, filename='__output_tempfile.h5'):
     """
     Perfrom ray tracing from an antenna at z_antenna in the direction defined by theta in the Z-X plane.
     The ray tracing is stopped when the ray reaches the surface (actually a layer 10m above the surface)
@@ -98,10 +100,11 @@ def get_trace_file(theta, z_antenna, freq=403 * 1e6, in_file=False, filename='__
         radiopropa.Plane(
             radiopropa.Vector3d(0, 0, -0.001), radiopropa.Vector3d(0, 0, 1)),
         iceModelScalar.getValue(radiopropa.Vector3d(0, 0, -0.001)), 1.)
-
-    # add a reflective layer at the surface
-    reflective = radiopropa.ReflectiveLayer(radiopropa.Plane(radiopropa.Vector3d(0, 0, -0.001), radiopropa.Vector3d(0, 0, 1)),1)
     sim.add(firnLayer)
+
+    # This seems to add a perfect reflactor at the surface...
+    ## add a reflective layer at the surface
+    ## reflective = radiopropa.ReflectiveLayer(radiopropa.Plane(radiopropa.Vector3d(0, 0, -0.001), radiopropa.Vector3d(0, 0, 1)), 1)
 
     # Define the surfaces at which the ray tracing is stopped
     obs2 = radiopropa.Observer()
@@ -146,7 +149,7 @@ def get_trace_file(theta, z_antenna, freq=403 * 1e6, in_file=False, filename='__
         # Do something with the ray ...
 
 
-def get_trace(theta, z_antenna, freq=403 * 1e6):
+def get_trace(theta, z_antenna, freq=400 * 1e6):
     """ Wrapper around get_trace_file """
     file = get_trace_file(theta, z_antenna, in_file=True, freq=freq)
     return get_angles_rhos(file)
@@ -254,8 +257,8 @@ def get_eff_temperature(z_antenna=-100, n_theta=100, plot=False, attenuation_mod
 
     if plot:
         fig, ax = plt.subplots()
-        ax.plot(np.rad2deg(thetas), eff_temperatures)
-        ax.set_xlabel("theta / deg")
+        ax.plot(np.cos(thetas), eff_temperatures)
+        ax.set_xlabel("cos(theta)")
         ax.set_ylabel("temperature / K")
         plt.show()
 
@@ -263,25 +266,27 @@ def get_eff_temperature(z_antenna=-100, n_theta=100, plot=False, attenuation_mod
 def plot_ray_paths(z_antenna=-100, n_theta=100):
     thetas = np.linspace(0, np.pi, n_theta)
 
-    import matplotlib as mpl
     cmap = plt.get_cmap('plasma')
 
-    norm = mpl.colors.Normalize(vmin=0, vmax=180)
+    norm = mpl.colors.Normalize(vmin=0, vmax=1)
     sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
 
     fig, ax = plt.subplots()
     for theta in thetas:
-        _, x, z, _, _, _ = get_trace(theta, z_antenna)
-        ax.plot(x, z, color=sm.to_rgba(np.rad2deg(theta)), alpha=0.8)
+        _, x, z, _, power, _ = get_trace(theta, z_antenna)
+        power = np.around(power, 4)  # round to avoid too many different colors
+        for p in np.unique(power):
+            mask = power == p
+            ax.plot(x[mask], z[mask], c=sm.to_rgba(p), lw=1)
+
     cb = plt.colorbar(sm, ax=ax, pad=0.02)
-    cb.set_label("theta / deg")
+    cb.set_label("reflected power fraction")
 
     ax.set_xlabel("x / m")
     ax.set_ylabel("z / m")
     ax.set_xlim(-10, 1000)
     fig.tight_layout()
-    plt.savefig("plot.pdf")
-
+    plt.show()
 
 def plot_ray_paths_attenuation(z_antenna=-100, n_theta=10, model="GL3"):
     thetas = np.linspace(np.pi / 2, np.pi, n_theta)
@@ -354,4 +359,3 @@ if __name__ == "__main__":
     fname = args.fname or f"eff_temperature_{args.z_antenna}m_ntheta{args.n_theta}_{args.attenuation_model}.json"
 
     get_eff_temperature(args.z_antenna, args.n_theta, args.plot, args.attenuation_model, fname)
-    # plot_ray_paths_attenuation(args.z_antenna, args.n_theta)

@@ -74,7 +74,10 @@ class ModDetector(Detector):
     @_check_detector_time
     def get_channel(self, station_id, channel_id):
         """
-        Returns a dictionary of all channel parameters
+        Returns a dictionary of all channel parameters. 
+        
+        The dictionary is returned as a "reference" (as every mutable object in python, without a copy call). 
+        That means, changing entries in this dictionary will change the detector description in memory. 
 
         Parameters
         ----------
@@ -89,7 +92,8 @@ class ModDetector(Detector):
             Dictionary of channel parameters
         """
         self.get_signal_chain_response(station_id, channel_id)  # this adds `total_response` to dict
-        channel_data = copy.deepcopy(self._Detector__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True))
+        # FS: Removed copy.deepcopy() to increase performance. This class anyway modifies the channel description
+        channel_data = self._Detector__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True)
 
         for key in self._Detector__default_values:
 
@@ -98,6 +102,14 @@ class ModDetector(Detector):
                 channel_data[key] = self._Detector__default_values[key][channel_id]
             else:
                 channel_data[key] = self._Detector__default_values[key]
+
+
+        # Add ADC parameter to channel description. This is needed for ADC and trigger modules.
+        for key, value in self._Detector__buffered_stations[station_id]["signal_digitizer_config"].items():
+            channel_data[f"adc_{key}"] = value
+
+        for key, value in self._Detector__buffered_stations[station_id]["trigger_digitizer_config"].items():
+            channel_data[f"trigger_adc_{key}"] = value
 
         return channel_data
 
@@ -203,7 +215,7 @@ class ModDetector(Detector):
 
         if time_delay < 0.0:
             raise ValueError("Expect positive additional delay; use 'weight = -1' to implement a negative delay.")
-        
+
         sampling_rate = self.get_sampling_frequency(station_id, channel_id)
 
         # number of samples a trace would have with a length at least that of the time delay

@@ -324,7 +324,6 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
                     raise RuntimeError("Fit returned invalid parameters.")
         
                 estimated_amplitude, estimated_freq, estimated_phase = params
-                print(estimated_amplitude)
 
                 filtered_freqs.append(estimated_freq)
                 # Check if the covariance matrix is invalid

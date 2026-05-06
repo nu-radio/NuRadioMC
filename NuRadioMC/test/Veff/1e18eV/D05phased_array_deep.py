@@ -2,7 +2,7 @@ import argparse
 from NuRadioMC.simulation import simulation
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
-import NuRadioReco.modules.phasedarray.triggerSimulator
+import NuRadioReco.modules.phasedarray.phasedArrayTrigger
 import NuRadioReco.modules.channelBandPassFilter
 
 from NuRadioReco.utilities import units
@@ -29,7 +29,7 @@ import yaml
 # initialize detector sim modules
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-phasedArrayTrigger = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
+phasedArrayTrigger = NuRadioReco.modules.phasedarray.phasedArrayTrigger.PhasedArrayTrigger()
 
 # assuming that PA consists out of 8 antennas (channel 0-7)
 main_low_angle = np.deg2rad(-59.54968597864437)

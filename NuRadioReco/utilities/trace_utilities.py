@@ -34,35 +34,55 @@ conversion_factor_integrated_signal = scipy.constants.c * scipy.constants.epsilo
 
 
 def get_efield_antenna_factor(*args, **kwargs):
+    """
+    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.get_efield_antenna_factor`.
+    """
     warnings.warn("get_efield_antenna_factor is moved to NuRadioReco.utilities.signal_processing.get_efield_antenna_factor", DeprecationWarning)
     return signal_processing.get_efield_antenna_factor(*args, **kwargs)
 
 
 def get_channel_voltage_from_efield(*args, **kwargs):
+    """
+    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.get_channel_voltage_from_efield`.
+    """
     warnings.warn("get_channel_voltage_from_efield is moved to NuRadioReco.utilities.signal_processing.get_channel_voltage_from_efield", DeprecationWarning)
     return signal_processing.get_channel_voltage_from_efield(*args, **kwargs)
 
 def upsampling_fir(*args, **kwargs):
+    """
+    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.upsampling_fir`.
+    """
     warnings.warn("upsampling_fir is moved to NuRadioReco.utilities.signal_processing.upsampling_fir", DeprecationWarning)
     return signal_processing.upsampling_fir(*args, **kwargs)
 
 
 def butterworth_filter_trace(*args, **kwargs):
+    """
+    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.butterworth_filter_trace`.
+    """
     warnings.warn("butterworth_filter_trace is moved to NuRadioReco.utilities.signal_processing.butterworth_filter_trace", DeprecationWarning)
     return signal_processing.butterworth_filter_trace(*args, **kwargs)
 
 
 def apply_butterworth(*args, **kwargs):
+    """
+    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.apply_butterworth`.
+    """
     warnings.warn("apply_butterworth is moved to NuRadioReco.utilities.signal_processing.apply_butterworth", DeprecationWarning)
     return signal_processing.apply_butterworth(*args, **kwargs)
 
 
 def delay_trace(*args, **kwargs):
+    """
+    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.delay_trace`.
+    """
     warnings.warn("delay_trace is moved to NuRadioReco.utilities.signal_processing.delay_trace", DeprecationWarning)
     return signal_processing.delay_trace(*args, **kwargs)
 
 
-def get_electric_field_energy_fluence(electric_field_trace, times, signal_window_mask=None, noise_window_mask=None, return_uncertainty=False, method="noise_subtraction", estimator_kwargs={}):
+def get_electric_field_energy_fluence(
+        electric_field_trace, times, signal_window_mask=None, noise_window_mask=None,
+        return_uncertainty=False, method="noise_subtraction", estimator_kwargs={}):
     """
     Returns the energy fluence of each component of a 3-dimensional electric field trace.
 
@@ -79,11 +99,9 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
     return_uncertainty : bool (optional)
         If True, the uncertainty of the energy fluence is returned
     method : str (optional)
-        The method to use for the energy fluence calculation. Can be either "noise_subtraction" or "rice_distribution".
-        The Rice distribution method implementation is based on the code published alongside S. Martinelli et al.: https://arxiv.org/pdf/2407.18654
-    estimator_kwargs : dict (optional)
-        Additional keyword arguments for the _get_noise_fluence_estimators and _get_signal_fluence_estimators functions.
-        Only used if method is "rice_distribution".
+        The method to use for the energy fluence calculation.
+        Can be either "noise_subtraction" or "rice".
+        The Rice distribution method implementation is based on the code published by S. Martinelli et al.: https://arxiv.org/abs/2407.18654
 
     Returns
     -------
@@ -91,6 +109,13 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
         The energy fluence of each component of the electric field trace
     signal_energy_fluence_error : numpy.ndarray
         The uncertainty of the energy fluences. Only returned if return_uncertainty is True
+
+    Other Parameters
+    ----------------
+    estimator_kwargs : dict (optional)
+        Additional keyword arguments passed to ``_get_noise_fluence_estimators`` and ``_get_signal_fluence_estimators`` functions.
+        Only used if method is "rice".
+
     """
 
     dt = times[1] - times[0]
@@ -120,7 +145,7 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
         else:
             signal_energy_fluence_error = np.zeros(3)
     
-    elif method == "rice_disttribution":
+    elif method.lower() == "rice":
         signal_energy_fluence = np.zeros(len(electric_field_trace))
         signal_energy_fluence_error = np.zeros(len(electric_field_trace))
         for i_pol in range(len(electric_field_trace)):
@@ -155,6 +180,8 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
 
             signal_energy_fluence[i_pol] = fluence_freq
             signal_energy_fluence_error[i_pol] = fluence_freq_error
+    else:
+        raise NotImplementedError(f"method '{method}' is not implemented, valid options are 'noise_subtraction' or 'rice'.")
 
     if return_uncertainty:
         return signal_energy_fluence, signal_energy_fluence_error
@@ -162,7 +189,10 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
         return signal_energy_fluence
 
       
-def _get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False, truncate_negative_estimators="before_sum"):
+def _get_noise_fluence_estimators(
+        trace, times, signal_window_mask, *,
+        spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143,
+        use_median_value=False, **kwargs):
     """
     Estimate the noise fluence from the trace.
 
@@ -182,8 +212,6 @@ def _get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_nois
         which corresponds to 1/7 of the window length at each end)
     use_median_value : bool (optional)
         If True, the median of the squared spectra of the noise windows is used as estimator. Otherwise, the mean is used. (default: False)
-    truncate_negative_estimators : str (optional)
-        Not used in this function. Introduced for compatibility with _get_signal_fluence_estimators.
 
     Returns
     -------
@@ -251,7 +279,9 @@ def _get_noise_fluence_estimators(trace, times, signal_window_mask, spacing_nois
     return estimators, frequencies_window
 
 
-def _get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estimators, spacing_noise_signal=20*units.ns, relative_taper_width=0.142857143, use_median_value=False, truncate_negative_estimators="before_sum"):
+def _get_signal_fluence_estimators(
+        trace, times, signal_window_mask, noise_estimators, *,
+        relative_taper_width=0.142857143, truncate_negative_estimators="before_sum", **kwargs):
     """
     Estimate the signal fluence from the trace.
 
@@ -265,16 +295,12 @@ def _get_signal_fluence_estimators(trace, times, signal_window_mask, noise_estim
         Boolean mask for the signal window.
     noise_estimators : np.ndarray
         Estimators for the noise fluence.
-    spacing_noise_signal : float (optional)
-        Not used in this function. Indroduced for compatibility with _get_noise_fluence_estimators.
     relative_taper_width : float (optional)
         Width of the taper region for the Tukey window relative to the full window length. (default: 0.142857143,
         which corresponds to 1/7 of the window length at each end)
-    use_median_value : bool (optional)
-        Not used in this function. Indroduced for compatibility with _get_noise_fluence_estimators.
     truncate_negative_estimators : str (optional)
         If "before_sum", negative estimators are set to zero before summing over frequencies,
-        which is consistent with S. Martinelli et al.: https://arxiv.org/pdf/2407.18654.
+        which is consistent with S. Martinelli et al.: https://arxiv.org/abs/2407.18654.
         If "after_sum", negative estimators are set to zero after summing over frequencies. Note
         that this is done in get_electric_field_energy_fluence. (default: "before_sum")
 

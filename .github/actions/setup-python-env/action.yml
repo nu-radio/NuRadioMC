@@ -1,0 +1,29 @@
+name: 'Setup Python Environment'
+description: 'Set up Python and restore cached environment'
+
+inputs:
+  python-version:
+    description: 'Python version to set up'
+    required: true
+  cache-key:
+    description: 'Cache key for Python environment'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python [${{ inputs.python-version }}]
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Restore Python environment
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ${{ env.pythonLocation }}
+        key: ${{ inputs.cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-env-${{ inputs.python-version }}-
+          ${{ runner.os }}-env-

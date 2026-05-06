@@ -32,9 +32,9 @@ Additional information about running a simulation can be found :doc:`here</NuRad
 
 Reading a ``.nur`` file
 -----------------------
-`Interactive notebook example showing how to read a .nur file <https://github.com/nu-radio/NuRadioMC/tree/develop/NuRadioReco/examples/Interactive/W02-reading-nur-files.ipynb>`_
+`Interactive notebook example showing how to read a .nur file <https://github.com/nu-radio/NuRadioMC/tree/develop/NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb>`_
 
-This example can be found at ``NuRadioReco/examples/Interactive/W02-reading-nur-files.ipynb``.
+This example can be found at ``NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb``.
 It shows how to navigate the quantities stored in :doc:`NuRadio's custom data structure </NuRadioReco/pages/event_structure>`, the `.nur` file.
 An extensive description of the NuRadio data structure can be found :doc:`here </NuRadioReco/pages/event_structure>`.
 
