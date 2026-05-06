@@ -642,6 +642,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_station</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.antennapattern</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -702,6 +704,17 @@
 <span class="sd">    folded with the antenna response. Since evaluating every frequency individually</span>
 <span class="sd">    would be too slow, the model is evaluated for a few frequencies and the log10</span>
 <span class="sd">    of the brightness temperature is interpolated in between.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For an accurate simulation of the galactic noise in deep in-ice antennas, you need to provide</span>
+<span class="sd">    an ice (describing the refractive index) and (ice) attenuation model. The attenuation is calculated</span>
+<span class="sd">    along a straight line path, which is obviously incorrect, but for antenna depths of maximum 100 to</span>
+<span class="sd">    200 meters, the error should be acceptable. Beyond that, the coherence in the noise from one patch</span>
+<span class="sd">    in the sky between different antennas is still not correctly simulated, as the correct calculation</span>
+<span class="sd">    of the phase shift would require ray tracing. However, keep in mind that the expected coherence from</span>
+<span class="sd">    the galactic noise is expected to be very low and will not be detectable without a large number of</span>
+<span class="sd">    antennas.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -709,6 +722,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__radio_sky</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__you_have_been_warned</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_pattern_provider</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">antennapattern</span><span class="o">.</span><span class="n">AntennaPatternProvider</span><span class="p">()</span>
 
 <div class="viewcode-block" id="channelGalacticNoiseAdder.begin">
@@ -722,7 +736,10 @@
             <span class="n">interpolation_frequencies</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">caching</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">scaling</span><span class="o">=</span><span class="mf">1.0</span>
+            <span class="n">scaling</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">ice_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">attenuation_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">simulate_sun</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set up important parameters for the module</span>
@@ -756,9 +773,15 @@
 <span class="sd">            by a lot. If the frequencies of the channels change, the cache is cleared.</span>
 <span class="sd">        scaling: float, default: 1.0</span>
 <span class="sd">            Scaling factor for the noise. This is useful when doing interferometry with extremely large arrays</span>
-<span class="sd">            such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas. </span>
-<span class="sd">            Instead, one can use every nth antenna and scale the noise by a factor of 1/\sqrt{n} (since the SNR </span>
+<span class="sd">            such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas.</span>
+<span class="sd">            Instead, one can use every nth antenna and scale the noise by a factor of 1/\sqrt{n} (since the SNR</span>
 <span class="sd">            is expected to scale with the square root of the number of antennas when using interferomtery/beamforming).</span>
+<span class="sd">        ice_model: str, default: None</span>
+<span class="sd">            The ice model to use for the simulation of in-ice antennas.</span>
+<span class="sd">        attenuation_model: str, default: None</span>
+<span class="sd">            The attenuation model to use for the simulation of in-ice antennas.</span>
+<span class="sd">        simulate_sun: bool, default: False</span>
+<span class="sd">            If True, the sun&#39;s contribution to the galactic noise is simulated. This is experimental!</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This argument is deprecated and will be removed in future versions.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
@@ -766,6 +789,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">Philox</span><span class="p">(</span><span class="n">seed</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span> <span class="o">=</span> <span class="n">n_side</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solid_angle</span> <span class="o">=</span> <span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">nside2pixarea</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_simulate_sun</span> <span class="o">=</span> <span class="n">simulate_sun</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simulate_sun</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;You are simulating the sun&#39;s contribution to the galactic noise. &quot;</span>
+                <span class="s2">&quot;This is experimental and might not be very accurate! See in-code comments for details.&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="o">=</span> <span class="n">caching</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span> <span class="o">=</span> <span class="n">scaling</span>
@@ -833,7 +861,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperature_funcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
             <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span><span class="p">[:,</span> <span class="n">i_pixel</span><span class="p">]),</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i_pixel</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">))</span>
-        <span class="p">])</span></div>
+        <span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ice</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="n">ice_model</span><span class="p">)</span> <span class="k">if</span> <span class="n">ice_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span> <span class="o">=</span> <span class="n">attenuation_model</span></div>
 
 
     <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
@@ -942,16 +973,70 @@
 
         <span class="n">site_latitude</span><span class="p">,</span> <span class="n">site_longitude</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_site_coordinates</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
         <span class="n">station_time</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_station_time</span><span class="p">()</span>
-
         <span class="n">local_coordinates</span> <span class="o">=</span> <span class="n">get_local_coordinates</span><span class="p">((</span><span class="n">site_latitude</span><span class="p">,</span> <span class="n">site_longitude</span><span class="p">),</span> <span class="n">station_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">)</span>
 
-        <span class="n">n_ice</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="o">-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simulate_sun</span><span class="p">:</span>
+            <span class="c1"># If we want to simulate the sun, we need to calculate its position in the sky and</span>
+            <span class="c1"># the corresponding pixel in the healpix map.</span>
+            <span class="n">site_location</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">EarthLocation</span><span class="p">(</span>
+                <span class="n">lat</span><span class="o">=</span><span class="n">site_latitude</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">lon</span><span class="o">=</span><span class="n">site_longitude</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+            <span class="n">local_cs</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">AltAz</span><span class="p">(</span>
+                <span class="n">obstime</span><span class="o">=</span><span class="n">station_time</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">site_location</span><span class="p">)</span>
+            <span class="n">sun_coord</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">get_sun</span><span class="p">(</span><span class="n">station_time</span><span class="p">)</span><span class="o">.</span><span class="n">transform_to</span><span class="p">(</span><span class="n">local_cs</span><span class="p">)</span>
+
+            <span class="n">sun_zen</span> <span class="o">=</span> <span class="mf">90.</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span> <span class="o">-</span> <span class="n">sun_coord</span><span class="o">.</span><span class="n">alt</span>
+            <span class="n">sun_azi</span> <span class="o">=</span> <span class="n">sun_coord</span><span class="o">.</span><span class="n">az</span>
+            <span class="n">sun_pixel</span> <span class="o">=</span> <span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">ang2pix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">,</span> <span class="n">sun_zen</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">sun_azi</span><span class="o">.</span><span class="n">rad</span><span class="p">)</span>
+
+            <span class="c1"># Angular radius of the (optical) sun as seen from the earth.</span>
+            <span class="c1"># The actual size of the sun in radio can be different and</span>
+            <span class="c1"># frequency dependent, but this is a good approximation for now.</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="p">(</span><span class="n">astropy</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">R_sun</span> <span class="o">/</span> <span class="n">sun_coord</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span><span class="o">.</span><span class="n">decompose</span><span class="p">()</span>
+            <span class="n">sun_omega</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">theta</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># small angle approximation</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Simulating the sun&#39;s contribution to the galactic noise. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Sun pixel: </span><span class="si">{</span><span class="n">sun_pixel</span><span class="si">}</span><span class="s2">, Sun zenith: </span><span class="si">{</span><span class="n">sun_zen</span><span class="si">}</span><span class="s2">, Sun azimuth: </span><span class="si">{</span><span class="n">sun_azi</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ice</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_ice_surf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ice</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.01</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># This can return n_ice_surf = n_air for sites that are not on the ice (auger, lofar, ska)</span>
+            <span class="n">n_ice_surf</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="o">-</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>
+
+        <span class="c1"># This is actually better than using the ice model for the refractive index since it returns 1 for</span>
+        <span class="c1"># in air refractive index. However, this function does currently not return a site/altitude dependent refractive index ...</span>
         <span class="n">n_air</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_refractive_index</span><span class="p">(</span><span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="n">detector</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>
 
         <span class="n">channel_spectra</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">channel_depths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">one_over_average_attenuation_length</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="n">use_channels</span><span class="o">=</span><span class="n">selected_channel_ids</span><span class="p">):</span>
             <span class="n">channel_spectra</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
+            <span class="n">channel_depth</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">channel_depths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel_depth</span><span class="p">)</span>
 
+            <span class="c1"># Calculate signal attenuation for in-ice channels. This is a (good) approximation,</span>
+            <span class="c1"># assumes a straight line path and not a bend trajectory.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">channel_depth</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">:</span>
+                <span class="n">depth_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">channel_depth</span><span class="p">)</span>
+                <span class="n">depths</span> <span class="o">=</span> <span class="n">depth_bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">depth_bins</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">one_over_average_attenuation_length</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+                    <span class="p">[</span><span class="mi">1</span> <span class="o">/</span> <span class="n">attenuation</span><span class="o">.</span><span class="n">get_attenuation_length</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">depths</span><span class="p">],</span>
+                    <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ice</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">channel_depths</span><span class="p">)</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">20</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__you_have_been_warned</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;You are simulating deep in-ice channels (below 20m) but have not provided an ice or attenuation model. &quot;</span>
+                    <span class="s2">&quot;The refractive index is thus the same for the calculation of the Fresnel coefficients &quot;</span>
+                    <span class="s2">&quot;and the phase shift as for the ice_surface, which is not correct. This warning is only printed once!&quot;</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__you_have_been_warned</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">any_in_ice_channel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">channel_depths</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i_pixel</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">)):</span>
             <span class="n">azimuth</span> <span class="o">=</span> <span class="n">local_coordinates</span><span class="p">[</span><span class="n">i_pixel</span><span class="p">]</span><span class="o">.</span><span class="n">az</span><span class="o">.</span><span class="n">rad</span>
             <span class="n">zenith</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.</span> <span class="o">-</span> <span class="n">local_coordinates</span><span class="p">[</span><span class="n">i_pixel</span><span class="p">]</span><span class="o">.</span><span class="n">alt</span><span class="o">.</span><span class="n">rad</span> <span class="c1"># this is the in-air zenith</span>
@@ -959,22 +1044,21 @@
             <span class="k">if</span> <span class="n">zenith</span> <span class="o">&gt;</span> <span class="mf">90.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>
                 <span class="k">continue</span>
 
-            <span class="k">if</span> <span class="n">n_ice</span> <span class="o">!=</span> <span class="n">n_air</span><span class="p">:</span> <span class="c1"># consider signal reflection at ice surface</span>
-                <span class="n">t_theta</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_t_p</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">n_ice</span><span class="p">,</span> <span class="n">n_air</span><span class="p">)</span>
-                <span class="n">t_phi</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_t_s</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">n_ice</span><span class="p">,</span> <span class="n">n_air</span><span class="p">)</span>
-                <span class="n">fresnel_zenith</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_angle</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">n_ice</span><span class="p">,</span> <span class="n">n_air</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span> <span class="c1"># we are at an in-air site; no refraction</span>
-                <span class="n">t_theta</span> <span class="o">=</span> <span class="mi">1</span>
-                <span class="n">t_phi</span> <span class="o">=</span> <span class="mi">1</span>
-                <span class="n">fresnel_zenith</span> <span class="o">=</span> <span class="n">zenith</span>
-
-            <span class="k">if</span> <span class="n">fresnel_zenith</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">any_in_ice_channel</span><span class="p">:</span>
+                <span class="c1"># For sites such as lofar or SKA, even if a channel has a negative z-coordinate</span>
+                <span class="c1"># and any_in_ice_channel is technically true, the resulting t_theta and t_phi will be 1,</span>
+                <span class="c1"># and surf_zenith=zenith, because n_air == n_ice_surf.</span>
+                <span class="n">t_theta</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_t_p</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">n_ice_surf</span><span class="p">,</span> <span class="n">n_air</span><span class="p">)</span>
+                <span class="n">t_phi</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_t_s</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">n_ice_surf</span><span class="p">,</span> <span class="n">n_air</span><span class="p">)</span>
+                <span class="n">surf_zenith</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_angle</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">n_ice_surf</span><span class="p">,</span> <span class="n">n_air</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
                 <span class="n">noise_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_noise_temperature_for_pixel</span><span class="p">(</span><span class="n">i_pixel</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">noise_temperature</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperature_funcs</span><span class="p">[</span><span class="n">i_pixel</span><span class="p">](</span><span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simulate_sun</span> <span class="ow">and</span> <span class="n">i_pixel</span> <span class="o">==</span> <span class="n">sun_pixel</span><span class="p">:</span>
+                <span class="n">noise_temperature</span> <span class="o">+=</span> <span class="n">sun_omega</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">solid_angle</span> <span class="o">*</span> <span class="n">Tb_quiet_sun</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">])</span>
 
             <span class="n">efield_amplitude</span> <span class="o">=</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">get_electric_field_from_temperature</span><span class="p">(</span>
                 <span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">],</span> <span class="n">noise_temperature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solid_angle</span><span class="p">)</span>
@@ -994,37 +1078,50 @@
                 <span class="k">if</span> <span class="n">channel_pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">curr_t_theta</span> <span class="o">=</span> <span class="n">t_theta</span>
                     <span class="n">curr_t_phi</span> <span class="o">=</span> <span class="n">t_phi</span>
-                    <span class="n">curr_fresnel_zenith</span> <span class="o">=</span> <span class="n">fresnel_zenith</span>
-                    <span class="n">curr_n</span> <span class="o">=</span> <span class="n">n_ice</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ice</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">curr_n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ice</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">channel_pos</span><span class="p">)</span>
+                        <span class="n">curr_fresnel_zenith</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_angle</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">curr_n</span><span class="p">,</span> <span class="n">n_air</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">curr_fresnel_zenith</span> <span class="o">=</span> <span class="n">surf_zenith</span>
+                        <span class="n">curr_n</span> <span class="o">=</span> <span class="n">n_ice_surf</span>
+
+                    <span class="c1"># The (de)focusing due to air-ice boundary is already included in the Fresnel coefficients (t_theta/phi),</span>
+                    <span class="c1"># here we account for the additional (de)focusing from the gradually changing refractive index in the firm.</span>
+                    <span class="n">focusing_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">n_ice_surf</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">surf_zenith</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">curr_n</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">curr_fresnel_zenith</span><span class="p">)))</span>
                 <span class="k">else</span><span class="p">:</span> <span class="c1"># we are in air</span>
                     <span class="n">curr_t_theta</span> <span class="o">=</span> <span class="mi">1</span>
                     <span class="n">curr_t_phi</span> <span class="o">=</span> <span class="mi">1</span>
                     <span class="n">curr_fresnel_zenith</span> <span class="o">=</span> <span class="n">zenith</span>
                     <span class="n">curr_n</span> <span class="o">=</span> <span class="n">n_air</span>
+                    <span class="n">focusing_factor</span> <span class="o">=</span> <span class="mi">1</span>
 
                 <span class="n">antenna_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_pattern_provider</span><span class="o">.</span><span class="n">load_antenna_pattern</span><span class="p">(</span>
                     <span class="n">detector</span><span class="o">.</span><span class="n">get_antenna_model</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>
                 <span class="n">antenna_orientation</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_antenna_orientation</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
 
-                <span class="c1"># calculate the phase offset in comparison to station center</span>
-                <span class="c1"># consider additional distance in air &amp; ice</span>
-                <span class="c1"># assume for air &amp; ice constant index of refraction</span>
+                <span class="c1"># Calculate the phase offset in comparison to station center</span>
+                <span class="c1"># consider additional distance in air &amp; ice. Assume for air &amp; ice</span>
+                <span class="c1"># constant index of refraction. This is incorrect in particular</span>
+                <span class="c1"># for the ice</span>
                 <span class="n">dt</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_time_delay_from_direction</span><span class="p">(</span>
                     <span class="n">curr_fresnel_zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">channel_pos</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">curr_n</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">channel_pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">5</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Galactic noise cannot be simulated accurately for deep in-ice channels. &quot;</span>
-                        <span class="s2">&quot;Coherence and arrival direction of noise are probably inaccurate.&quot;</span><span class="p">)</span>
-
                 <span class="n">delta_phases</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">*</span> <span class="n">dt</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">channel_pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">10</span><span class="p">:</span>
+                    <span class="n">attenuation_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+                        <span class="o">-</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">channel_pos</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">curr_fresnel_zenith</span><span class="p">))</span> <span class="o">*</span>
+                        <span class="n">one_over_average_attenuation_length</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">attenuation_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">efield_amplitude</span><span class="p">)</span>
+
 
                 <span class="c1"># add random polarizations and phase to electric field</span>
                 <span class="n">polarizations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">efield_amplitude</span><span class="p">))</span>
 
                 <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">=</span> <span class="n">noise_spectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
-                    <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">delta_phases</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">polarizations</span><span class="p">)</span> <span class="o">*</span> <span class="n">curr_t_theta</span>
+                    <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">delta_phases</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">polarizations</span><span class="p">)</span> <span class="o">*</span> <span class="n">curr_t_theta</span> <span class="o">*</span> <span class="n">attenuation_factor</span> <span class="o">*</span> <span class="n">focusing_factor</span>
                 <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">=</span> <span class="n">noise_spectrum</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
-                    <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">delta_phases</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">polarizations</span><span class="p">)</span> <span class="o">*</span> <span class="n">curr_t_phi</span>
+                    <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">delta_phases</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">polarizations</span><span class="p">)</span> <span class="o">*</span> <span class="n">curr_t_phi</span> <span class="o">*</span> <span class="n">attenuation_factor</span> <span class="o">*</span> <span class="n">focusing_factor</span>
 
                 <span class="c1"># fold electric field with antenna response</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span><span class="p">:</span>
@@ -1158,6 +1255,71 @@
     <span class="n">local_coordinates</span> <span class="o">=</span> <span class="n">galactic_coordinates</span><span class="o">.</span><span class="n">transform_to</span><span class="p">(</span><span class="n">local_cs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">local_coordinates</span></div>
 
+
+
+<div class="viewcode-block" id="Tb_quiet_sun">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#NuRadioReco.modules.channelGalacticNoiseAdder.Tb_quiet_sun">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">Tb_quiet_sun</span><span class="p">(</span><span class="n">nu</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns the apparent brigthness temperature for the quite sun for a given frequency</span>
+
+<span class="sd">    Returned values are interpolated from digitized data from Fig. 5, of the paper:</span>
+<span class="sd">    https://iopscience.iop.org/article/10.3847/1538-4357/ac6b37/pdf</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nu : float or array of floats</span>
+<span class="sd">        Frequency</span>
+<span class="sd">    kind : str (default: &#39;linear&#39;)</span>
+<span class="sd">        Interpolation method used with ``scipy.interpolate.interp1d``</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tb : float or array of floats</span>
+<span class="sd">        Sun&#39;s apparent brightness temperature in K</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">_Tb_quiet_sun</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">nu</span><span class="p">)))</span></div>
+
+
+<span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_Tb_quiet_sun</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns function of Tb(f) &quot;&quot;&quot;</span>
+    
+    <span class="c1"># First column (i.e., entires data[::2]) is the frequency in MHz,</span>
+    <span class="c1"># second column (i.e., entries data[1::2]) is the brightness temperature in K.    </span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="mf">15.060724325205065</span><span class="p">,</span> <span class="mf">122701.78220087259</span><span class="p">,</span>
+        <span class="mf">15.876542140124316</span><span class="p">,</span> <span class="mf">146675.73927896278</span><span class="p">,</span>
+        <span class="mf">16.84673686448343</span><span class="p">,</span> <span class="mf">183335.7686269777</span><span class="p">,</span>
+        <span class="mf">18.115666561211253</span><span class="p">,</span> <span class="mf">220786.08426477874</span><span class="p">,</span>
+        <span class="mf">20.135947446647886</span><span class="p">,</span> <span class="mf">269857.8130123856</span><span class="p">,</span>
+        <span class="mf">22.981940237261043</span><span class="p">,</span> <span class="mf">337266.16604412446</span><span class="p">,</span>
+        <span class="mf">33.512127308790284</span><span class="p">,</span> <span class="mf">474607.88378179277</span><span class="p">,</span>
+        <span class="mf">40.60340447826144</span><span class="p">,</span> <span class="mf">550580.2566932675</span><span class="p">,</span>
+        <span class="mf">48.872414216886185</span><span class="p">,</span> <span class="mf">619993.1163195028</span><span class="p">,</span>
+        <span class="mf">80.84239412333073</span><span class="p">,</span> <span class="mf">762960.8522460236</span><span class="p">,</span>
+        <span class="mf">94.1472794671951</span><span class="p">,</span> <span class="mf">785813.3991897015</span><span class="p">,</span>
+        <span class="mf">109.64068351827044</span><span class="p">,</span> <span class="mf">815394.2231007224</span><span class="p">,</span>
+        <span class="mf">142.90957239126385</span><span class="p">,</span> <span class="mf">839664.4631625947</span><span class="p">,</span>
+        <span class="mf">180.2185844542181</span><span class="p">,</span> <span class="mf">814739.8494407722</span><span class="p">,</span>
+        <span class="mf">227.28965486883104</span><span class="p">,</span> <span class="mf">739354.8333126334</span><span class="p">,</span>
+        <span class="mf">308.3786113174188</span><span class="p">,</span> <span class="mf">600026.3965025863</span><span class="p">,</span>
+        <span class="mf">412.9377214863189</span><span class="p">,</span> <span class="mf">448699.73837802495</span><span class="p">,</span>
+        <span class="mf">549.3674814026401</span><span class="p">,</span> <span class="mf">306883.5587758216</span><span class="p">,</span>
+        <span class="mf">683.9762948907373</span><span class="p">,</span> <span class="mf">217867.7976521072</span><span class="p">,</span>
+        <span class="mf">880.338134652793</span><span class="p">,</span> <span class="mf">144647.1870885708</span><span class="p">,</span>
+        <span class="mf">1074.4360119917706</span><span class="p">,</span> <span class="mf">105011.39714303697</span><span class="p">,</span>
+        <span class="mf">1373.746716952524</span><span class="p">,</span> <span class="mf">70240.73705220643</span><span class="p">,</span>
+        <span class="mf">1827.6947107331177</span><span class="p">,</span> <span class="mf">46631.862791560954</span><span class="p">,</span>
+        <span class="mf">4721.350657521103</span><span class="p">,</span> <span class="mf">16431.3945572252</span><span class="p">,</span>
+        <span class="mf">7712.462272772942</span><span class="p">,</span> <span class="mf">12375.17761046132</span><span class="p">,</span>
+        <span class="mf">19124.788361772276</span><span class="p">,</span> <span class="mf">9595.324665349062</span><span class="p">,</span>
+    <span class="p">])</span>
+    <span class="n">freq</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
+    <span class="n">Tb</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">Tb</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s2">&quot;extrapolate&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">f</span>
 </pre></div>
 
            </div>

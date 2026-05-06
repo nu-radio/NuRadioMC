@@ -668,9 +668,18 @@ of the brightness temperature is interpolated in between.</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>For an accurate simulation of the galactic noise in deep in-ice antennas, you need to provide
+an ice (describing the refractive index) and (ice) attenuation model. The attenuation is calculated
+along a straight line path, which is obviously incorrect, but for antenna depths of maximum 100 to
+200 meters, the error should be acceptable. Beyond that, the coherence in the noise from one patch
+in the sky between different antennas is still not correctly simulated, as the correct calculation
+of the phase shift would require ray tracing. However, keep in mind that the expected coherence from
+the galactic noise is expected to be very low and will not be detectable without a large number of
+antennas.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skymodel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_side</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_frequencies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caching</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#channelGalacticNoiseAdder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skymodel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_side</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_frequencies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caching</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ice_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulate_sun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#channelGalacticNoiseAdder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.begin" title="Link to this definition"></a></dt>
 <dd><p>Set up important parameters for the module</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -701,9 +710,15 @@ number generation.</p>
 by a lot. If the frequencies of the channels change, the cache is cleared.</p>
 </dd>
 <dt><strong>scaling: float, default: 1.0</strong></dt><dd><p>Scaling factor for the noise. This is useful when doing interferometry with extremely large arrays
-such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas. 
-Instead, one can use every nth antenna and scale the noise by a factor of 1/sqrt{n} (since the SNR 
+such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas.
+Instead, one can use every nth antenna and scale the noise by a factor of 1/sqrt{n} (since the SNR
 is expected to scale with the square root of the number of antennas when using interferomtery/beamforming).</p>
+</dd>
+<dt><strong>ice_model: str, default: None</strong></dt><dd><p>The ice model to use for the simulation of in-ice antennas.</p>
+</dd>
+<dt><strong>attenuation_model: str, default: None</strong></dt><dd><p>The attenuation model to use for the simulation of in-ice antennas.</p>
+</dd>
+<dt><strong>simulate_sun: bool, default: False</strong></dt><dd><p>If True, the sun’s contribution to the galactic noise is simulated. This is experimental!</p>
 </dd>
 </dl>
 </dd>
@@ -784,6 +799,30 @@ shall be calculated. By default no bandpass is applied (frequency range is from
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>local_coordinates: astropy.coordinates.SkyCoord</dt><dd><p>The local coordinates of the pixels of the healpix map</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.channelGalacticNoiseAdder.Tb_quiet_sun">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelGalacticNoiseAdder.</span></span><span class="sig-name descname"><span class="pre">Tb_quiet_sun</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGalacticNoiseAdder.html#Tb_quiet_sun"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGalacticNoiseAdder.Tb_quiet_sun" title="Link to this definition"></a></dt>
+<dd><p>Returns the apparent brigthness temperature for the quite sun for a given frequency</p>
+<p>Returned values are interpolated from digitized data from Fig. 5, of the paper:
+<a class="reference external" href="https://iopscience.iop.org/article/10.3847/1538-4357/ac6b37/pdf">https://iopscience.iop.org/article/10.3847/1538-4357/ac6b37/pdf</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>nu</strong><span class="classifier">float or array of floats</span></dt><dd><p>Frequency</p>
+</dd>
+<dt><strong>kind</strong><span class="classifier">str (default: ‘linear’)</span></dt><dd><p>Interpolation method used with <code class="docutils literal notranslate"><span class="pre">scipy.interpolate.interp1d</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>tb</strong><span class="classifier">float or array of floats</span></dt><dd><p>Sun’s apparent brightness temperature in K</p>
 </dd>
 </dl>
 </dd>
