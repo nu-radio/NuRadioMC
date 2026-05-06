@@ -106,7 +106,8 @@ class channelIceThermalNoiseAdder:
             event,
             station,
             detector,
-            passband=None
+            passband=None,
+            antenna_shift=None
     ):
 
         """
@@ -123,6 +124,9 @@ class channelIceThermalNoiseAdder:
         passband: list of float, optional
             Lower and upper bound of the frequency range in which noise shall be
             added. The default (no passband specified) is [10, 1600] MHz
+        antenna_shift: float, optional
+            shifts frequencies of the antenna VEL used by given value in GHz 
+            purely for debugging and systematic estimation
         """
 
         # check that for all channels channel.get_frequencies() is identical
@@ -178,34 +182,50 @@ class channelIceThermalNoiseAdder:
                     else:
                         phases = np.random.uniform(0, 2 * np.pi, len(efield_amplitude))
 
-                        noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
-                        noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
+                    noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
+                    noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
 
-                        antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(
-                            detector.get_antenna_model(station.get_id(), channel.get_id()),
-                            )
-                        antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel.get_id())
-
-                        # add random polarizations and phase to electric field
-                        if self.debug:
-                            polarizations = np.zeros(len(efield_amplitude))
-                        else:
-                            polarizations = np.random.uniform(0, 2 * np.pi, len(efield_amplitude))
-
-                        channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.cos(polarizations)
-                        channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.sin(polarizations)
-
-                        # fold electric field with antenna response
-                        antenna_response = self.get_cached_antenna_response(
-                            antenna_pattern, theta, phi, *antenna_orientation)
-
-                        channel_noise_spectrum = (
-                            antenna_response['theta'] * channel_noise_spec[1]
-                            + antenna_response['phi'] * channel_noise_spec[2]
+                    antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(
+                        detector.get_antenna_model(station.get_id(), channel.get_id()),
                         )
+                    antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel.get_id())
 
-                        # add noise spectrum from pixel in the sky to channel spectrum
-                        channel_spectra[channel.get_id()] += channel_noise_spectrum
+                    # add random polarizations and phase to electric field
+                    if self.debug:
+                        polarizations = np.zeros(len(efield_amplitude))
+                    else:
+                        polarizations = np.random.uniform(0, 2 * np.pi, len(efield_amplitude))
+
+                    channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.cos(polarizations)
+                    channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.sin(polarizations)
+
+                    # fold electric field with antenna response
+                    antenna_response = self.get_cached_antenna_response(
+                        antenna_pattern, theta, phi, *antenna_orientation)
+
+                    if antenna_shift is not None:
+                        freq_shift_idx = int(antenna_shift / np.diff(freqs)[0])
+                        shifted_antenna_theta = np.roll(np.abs(antenna_response["theta"]), freq_shift_idx)
+                        shifted_antenna_phi = np.roll(np.abs(antenna_response["phi"]), freq_shift_idx)
+                        if freq_shift_idx > 0:
+                            shifted_antenna_theta[:freq_shift_idx] = 0
+                            shifted_antenna_phi[:freq_shift_idx] = 0
+                        else:
+                            shifted_antenna_theta[freq_shift_idx:] = 0
+                            shifted_antenna_phi[freq_shift_idx:] = 0  
+                        antenna_response_to_use_theta = shifted_antenna_theta
+                        antenna_response_to_use_phi = shifted_antenna_phi
+                    else:
+                        antenna_response_to_use_theta = antenna_response["theta"]
+                        antenna_response_to_use_phi = antenna_response["phi"]
+
+                    channel_noise_spectrum = (
+                        antenna_response_to_use_theta * channel_noise_spec[1]
+                        + antenna_response_to_use_phi * channel_noise_spec[2]
+                    )
+
+                    # add noise spectrum from pixel in the sky to channel spectrum
+                    channel_spectra[channel.get_id()] += channel_noise_spectrum
 
         # store the updated channel spectra
         for channel in station.iter_channels():
