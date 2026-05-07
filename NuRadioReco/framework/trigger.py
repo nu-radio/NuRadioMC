@@ -68,7 +68,6 @@ class Trigger:
         gaussian_jitter: float
             standard deviation of a Gaussian time smear applied to the
             readout window position (in NuRadioReco time units).
-            by testing, before sampling rate change this value is about 10.5ns
             Default: 0 ns (no Gaussian jitter)
 
         """
