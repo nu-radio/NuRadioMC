@@ -12,7 +12,7 @@ logger = logging.getLogger("NuRadioReco.eventWriter")
 
 
 def get_header(evt):
-    header = {'stations': {}, 'showers': {} 'sim_showers': {}}
+    header = {'stations': {}, 'showers': {}, 'sim_showers': {}}
     for station in evt.get_stations():
         station_id = station.get_id()
         header['stations'][station_id] = station.get_parameters().copy()
