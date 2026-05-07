@@ -162,6 +162,7 @@ class NuRadioRecoio(object):
         self._event_specific_detector_changes = {}
 
         self.__event_headers = {}
+        self._event_showers = {}
         if self.__parse_header:
             self.__scan_files()
 
@@ -207,8 +208,6 @@ class NuRadioRecoio(object):
                     self.__event_headers[station_id]['sim_station'] = value
 
         if 'showers' in evt_header:
-            if not hasattr(self, '_event_showers'):
-                self._event_showers = {}
 
             for shower_id, shower in evt_header['showers'].items():
                 if shower_id not in self._event_showers:
