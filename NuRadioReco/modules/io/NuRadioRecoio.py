@@ -172,6 +172,7 @@ class NuRadioRecoio(object):
 
     def get_filenames(self):
         return self._filenames
+    
                         
     def _parse_event_header(self, evt_header):
         from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -179,6 +180,7 @@ class NuRadioRecoio(object):
         from NuRadioReco.utilities import io_utilities
         
         self.__event_ids.append(evt_header['event_id'])
+    
     
         for station_id, station in evt_header['stations'].items():
             if station_id not in self.__event_headers:
