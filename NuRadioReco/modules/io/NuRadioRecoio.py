@@ -208,20 +208,8 @@ class NuRadioRecoio(object):
                     self.__event_headers[station_id]['sim_station'] = value
 
         if 'showers' in evt_header:
-
-            for shower_id, shower in evt_header['showers'].items():
-                if shower_id not in self._event_showers:
-                    self._event_showers[shower_id] = {}
-    
-                for key, value in shower.items():
-                    if key not in self._event_showers[shower_id]:
-                        self._event_showers[shower_id][key] = []
-    
-                    self._event_showers[shower_id][key].append(value)
-    
-        if 'showers' in evt_header:
-            self.__event_headers['showers'] = evt_header['showers']
-
+            current_event_id = evt_header['event_id']
+            self._event_showers[current_event_id] = evt_header['showers']
 
     def __scan_files(self):
         current_byte = 12  # skip datafile header
