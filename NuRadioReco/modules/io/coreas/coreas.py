@@ -496,7 +496,16 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
         station = evt.get_station()
         sim_station = station.get_sim_station()
 
-        for observer in sim_station.get_electric_fields():
+        efields = list(sim_station.get_electric_fields())
+        if len(efields) > 0:
+            # Check consistency of sampling rates
+            sampling_rate = efields[0].get_sampling_rate()
+            for ef in efields:
+                if not np.isclose(ef.get_sampling_rate(), sampling_rate):
+                    raise ValueError("All electric field traces must have the same sampling rate to be saved in a single CoREAS HDF5 file.")
+            coreas_grp.attrs["TimeResolution"] = (1.0 / sampling_rate) / units.second
+
+        for observer in efields:
 
             dataset_name = f"station_{observer.get_unique_identifier()[0][0]}"
 
@@ -516,6 +525,8 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
             data_set = observers_grp.create_dataset(dataset_name, data=efield_corsika)
             data_set.attrs["position"] = pos_corsika
             data_set.attrs["name"] = dataset_name
+
+        coreas_grp['CoREAS'].attrs['TimeResolution']  = 
             
 
 def create_sim_shower_from_hdf5(corsika, declination=0):
