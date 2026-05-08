@@ -525,8 +525,6 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
             data_set = observers_grp.create_dataset(dataset_name, data=efield_corsika)
             data_set.attrs["position"] = pos_corsika
             data_set.attrs["name"] = dataset_name
-
-        coreas_grp['CoREAS'].attrs['TimeResolution']  = 
             
 
 def create_sim_shower_from_hdf5(corsika, declination=0):
