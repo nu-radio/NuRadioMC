@@ -1,0 +1,66 @@
+# 3D interferometric reconstruction config: cosmic-ray search (singleray, HPOL+VPOL).
+#
+# Tuned on the production_v9 final_set CR proxy (1031 files, 280k events,
+# 2026-04-12). Singleray is required: in-ice analytic ray tracer has a
+# NaN region at z~0 that creates spurious deep-z multiray ambiguity twins
+# for near-surface CR sources.
+#
+# Per-pol maps + 3 saved peaks per pol provide classifier features
+# (per-pol max_corr, peak isolation ratios). Hilbert envelope OFF gives
+# sharper peaks for CR's quasi-impulsive signals.
+#
+# Accuracy on production_v9 final_set:
+#   all events:                                     11.78 deg median
+#   helpers>=3 + iso>=1.30 + corr>=0.3 (N=9,643):    2.17 deg median
+#   per-event sweep optimum (lower bound):           0.92 deg median
+
+station_id: 23
+channels: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23, 4, 8, 11, 21]
+
+polarization_groups:
+  vpol: [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
+  hpol: [4, 8, 11, 21]
+hpol_weight_scale: 1.0
+
+coord_system: "cylindrical"
+hierarchical: true
+multi_ray_types: false
+multiray_combo_mode: "grouped"
+
+coarse_limits: [1, 250, 0, 360, -100, 0]
+coarse_n_rho: 30
+coarse_n_z: 100
+coarse_step_sizes: [0, 3, 0]
+coarse_n_peaks: 7
+coarse_peak_separation: [50, 15, 50]
+
+refine_window: [15, 3, 15]
+refine_step_sizes: [1, 0.3, 1]
+
+limits: [1, 250, 0, 360, -100, 0]
+
+n_peaks_save: 3
+n_coherent_waveforms: 3
+
+# Paths: set NURADIO_TABLE_DIR and (optionally) NURADIO_DETECTOR_DIR
+time_delay_tables: "${NURADIO_TABLE_DIR}"
+multiray_table_name_pattern: "st{station_id}_ch{ch}_rz_table_{ray_type}.npz"
+detector_file: "${NURADIO_DETECTOR_DIR}/rnog_all_stations_2022-10-01.json.xz"
+detector_date: "2022-10-01"
+
+# Preprocessing (driver-level, applied before reconstruction module)
+apply_cable_delay: true
+apply_hw_phase_removal: true
+apply_upsampling: true
+apply_bandpass: true
+bandpass_band: [0.1, 0.7]
+bandpass_order: 10
+bandpass_filter_type: "butter"
+apply_cw_removal: false
+apply_dedispersion: false
+
+hilbert_envelope_mode: null
+interp_method: "linear"
+snr_pair_weighting: true
+correlation_normalization: "energy"
+apply_hann_window: true
