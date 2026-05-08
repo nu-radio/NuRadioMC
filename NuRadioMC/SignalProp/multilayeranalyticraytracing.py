@@ -102,6 +102,7 @@ from math import sqrt, log, sin
 import logging
 logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 
+
 # ------------------------------
 # Layer definitions
 # ------------------------------
@@ -364,8 +365,10 @@ def get_layer_index(z, z_min, z_max):
     """
     z = float(z)
     for i in range(len(z_min)):
+
         if z >= z_min[i] and z <= z_max[i]:
             return i
+        
     return -1
 
 @njit(cache = True)
@@ -428,8 +431,9 @@ def analytic_F(z, C0, n_ice, delta_n, z0):
     root = np.abs(gamma*gamma - gamma*b + c)
     
     logargument = gamma / (2.0*np.sqrt(c)*np.sqrt(root) - b*gamma + 2.0*c)
-    
+
     val = z0 * (n_ice*n_ice*C0*C0 - 1.0)**-0.5 * np.log(logargument)
+
     return float(np.real(val))
 
 @njit(cache = True)
@@ -476,7 +480,9 @@ def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False
     y_start = float(y_start)
     z_start = float(z_start)
     idx_start = -1
+
     for i in range(n_layers):
+
         if z_start >= z_min[i] and z_start <= z_max[i]:
             idx_start = i
             break
@@ -489,6 +495,7 @@ def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False
         zbs = np.zeros(n_layers-1)
 
     for i in range(idx_start - 1, -1, -1):
+
         zb = float(z_min[i])
         F_deep = analytic_F(zb, C0, n_ice[i+1], delta_n[i+1], z0[i+1])
         yb = float(F_deep + C1[i+1])
@@ -537,15 +544,15 @@ def build_y_field(C0, z_array, layers, C1):
     y = np.zeros(n)
     layer_idx = np.zeros(n, dtype=np.int64)
     C0 = float(C0)
+
     for j in range(n):
+
         z = float(z_array[j])
         idx = get_layer_index(z, z_min, z_max)
         layer_idx[j] = idx
         F = analytic_F(z, C0, n_ice[idx], delta_n[idx], z0[idx])
-        #print(f"F: {F}")
-        #print(f"C1[{idx}]={C1[idx]}")
         y[j] = float(F + C1[idx])
-        #print(f"y[{j}]={y[j]}")
+
     return y, layer_idx
 
 @njit(cache = True)
@@ -587,6 +594,7 @@ def evaluate_y(C0, C1, z, layers):
     z_min, z_max, n_ice, delta_n, z0 = layers
     idx = get_layer_index(z, z_min, z_max)
     F = analytic_F(z, C0, n_ice[idx], delta_n[idx], z0[idx])
+
     return float(F + C1[idx])
 
 
@@ -756,10 +764,13 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
     y2 = float(y2)
     z2 = float(z2)
     z_min, z_max, n_ice, delta_n, z0 = layers
+
     if C0range[0] == -1.0 and C0range[1] == -1.0:
         C0range = (1. / n_ice[-1], np.inf)
+
     if C0 < C0range[0] or C0 > C0range[1]:
         return -np.inf
+    
     C1, _ , _, _= compute_offsets(C0, y1, z1, layers)
     y_turn, z_turn = get_turning_point(C0,y1,z1,layers,C1,downgoing,with_air)
 
@@ -811,6 +822,7 @@ def get_refractive_index(z, layers):
     """
     z_min, z_max, n_ice, delta_n, z0 = layers
     idx = get_layer_index(z, z_min, z_max)
+
     return n_ice[idx] - delta_n[idx] * np.exp(z / z0[idx])
 
 @njit(cache = True)
@@ -837,8 +849,10 @@ def get_C0_from_theta(z_start, theta, layers):
     # Convert launch angle to ray parameter
     n_start = get_refractive_index(z_start, layers)
     p = n_start * np.cos(theta)
+
     if p == 0.0:
         return 1e12  # avoid division by zero
+    
     return 1.0 / p
 
 @njit(cache = True)
@@ -883,6 +897,7 @@ def get_skim_angle(y1, z1, zskim, layers):
     else:
         thcrit = 1e-12  # nearly zero angle
         C0crit = -1.0
+
     return C0crit, thcrit
 
 # ------------------------------
@@ -917,8 +932,10 @@ def get_C0_from_log_scalar(logC0, n_ice):
     return float(np.exp(logC0) + 1. / n_ice)
 
 def get_C0_from_log(logC0, n_ice):
+
     if isinstance(logC0, np.ndarray):
         logC0 = logC0[0]
+
     return float(get_C0_from_log_scalar(logC0, n_ice))
 
 def obj_delta_y_sqr(logC0, y1, z1, y2, z2, layers, n_deep,
@@ -957,8 +974,10 @@ def obj_delta_y_sqr(logC0, y1, z1, y2, z2, layers, n_deep,
     """
     C0 = get_C0_from_log(logC0, n_deep)
     dy = get_delta_y(C0, y1, z1, y2, z2, layers, (-1., -1.),downgoing,with_air)
+
     if not np.isfinite(dy):
         return 1e30
+    
     return dy*dy
 
 def obj_delta_y(logC0, y1, z1, y2, z2, layers, n_deep,
@@ -1000,17 +1019,19 @@ def obj_delta_y(logC0, y1, z1, y2, z2, layers, n_deep,
     """
     C0 = get_C0_from_log(logC0, n_deep)
     dy = get_delta_y(C0, y1, z1, y2, z2, layers, (-1., -1.),downgoing,with_air)
+
     if not np.isfinite(dy):
             return 1e30
+    
     return dy
 
-# To keep it numba compatible:
+# To keep it numba compatible we not pass the soltuon_types_revert objects directly (or so... works like this):
 DIRECT = solution_types_revert['direct']
 REFLECTED = solution_types_revert['reflected']
 REFRACTED = solution_types_revert['refracted']
 
 @njit(cache=True)
-def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air):
+def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing=False, with_air=False):
     """
     Determine the physical type of a ray tracing solution.
 
@@ -1092,7 +1113,7 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air):
         layers,None,downgoing,with_air
     )
 
-    if with_air and downgoing:
+    if with_air: # and downgoing:
         # from air we only find direct solutions (very sloppy check, I know)
         return DIRECT
     
@@ -1100,7 +1121,7 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air):
         # receiver reached before turning point -> direct ray
         return DIRECT
 
-    if z_turn >= 1e-12:
+    if z_turn >= -1e-12:
         # turning point above ice -> reflection of upwards going ray
         return REFLECTED
     
@@ -2342,13 +2363,13 @@ def get_attenuation_along_path(
             turning_z = z2_prev
             break
     if refine:
-        dz_fine = dz / 20.0          # finer resolution near turning point
-        turning_window = 25 * dz      # refine within this distance
-        receiver_window = 25 * dz
+        dz_fine = dz / 2.0          # finer resolution near turning point
+        turning_window = 10 * dz      # refine within this distance
+        receiver_window = 10 * dz
 
-        dz_very_fine = dz / 100.0          # finer resolution near turning point
-        turning_window_fine = 5 * dz      # refine within this distance
-        receiver_window_fine = 5 * dz
+        dz_very_fine = dz / 200.0          # finer resolution near turning point
+        turning_window_fine = 3 * dz      # refine within this distance
+        receiver_window_fine = 3 * dz
 
     attenuation_factor = np.ones_like(frequency)
 
@@ -2493,13 +2514,36 @@ def get_focusing_factor(C0, x1, x2, layers):
     z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers    
     beta = 1.0 / C0
 
+    y1, z1 = float(x1[0]), float(x1[1])
+    y2, z2 = float(x2[0]), float(x2[1])
+
+    with_air = False
+    if (z1 >= 0.0) or (z2 >= 0.0):
+        with_air = True
+
+    downgoing = False
+    if z1 > z2:
+        z1, z2 = z2, z1
+        downgoing = True
+
+    solution_type = determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air)
+
+    if solution_type == REFRACTED:
+        return np.nan
+    
     segments = get_path_segments(C0, x1, x2, layers)
+
+
 
     w_phi = 0.0
     w_theta = 0.0
 
     for seg in segments:
         z1, z2, C0, idx, direction = seg
+
+        # Skip air segments (above z=0.0) since we assume the attenuation to be neglegible there
+        if z1 >= 0 and z2 >= 0:
+            continue
 
         n_ice = n_ice_arr[idx]
         delta_n = delta_n_arr[idx]
@@ -2536,13 +2580,29 @@ def get_focusing_factor(C0, x1, x2, layers):
             w_phi += phi_F(z1) - phi_F(z2)
             w_theta += theta_F(z1) - theta_F(z2)
 
-    launch_angle = get_launch_angle(C0, x1, x2, layers)
-    receive_angle = get_receiving_angle(C0, x1, x2, layers)
+    
 
-    n1 = get_refractive_index(x1[1], layers)
-    n2 = get_refractive_index(x2[1], layers)
 
-    s = get_path_length_analytic(C0, x1, x2, layers)
+    if x1[1] > 0:
+        launch_angle = get_launch_angle(C0, x1, (0,-0.001), layers)
+        n1 = get_refractive_index(-0.001, layers)
+    else:
+        launch_angle = get_launch_angle(C0, x1, x2, layers)
+        n1 = get_refractive_index(x1[1], layers)
+
+    if x2[1] > 0:
+        receive_angle = get_receiving_angle(C0, (0,-0.001), x2, layers)
+        n2 = get_refractive_index(-0.001, layers)
+    else:
+        receive_angle = get_receiving_angle(C0, x1, x2, layers)
+        n2 = get_refractive_index(x2[1], layers)
+
+    if x1[1] > 0:
+        s = get_path_length_analytic(C0, (0, -0.001), x2, layers)
+    elif x2[1] > 0:
+        s = get_path_length_analytic(C0, x1, (0, -0.001), layers)
+    else:
+        s = get_path_length_analytic(C0, x1, x2, layers)
 
     f_inv_sq = (
         n1 * n2
@@ -2584,7 +2644,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             (default: None -> 100 (see `ray_tracing_base._set__set_arguments`))
 
         """
-        self.__logger = logging.getLogger('NuRadioMC.ray_tracing_2D')
+        self.__logger = logging.getLogger('NuRadioMC.multi_layer_ray_tracing_2D')
         self.__logger.setLevel(log_level)
         
         #if isinstance(medium, medium_util.uniform_ice):
