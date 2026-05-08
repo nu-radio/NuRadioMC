@@ -1,15 +1,10 @@
 # 3D interferometric reconstruction config: cosmic-ray search (singleray, HPOL+VPOL).
 #
-# Tuned on the production_v9 final_set CR proxy (1031 files, 280k events,
-# 2026-04-12). Singleray is required: in-ice analytic ray tracer has a
-# NaN region at z~0 that creates spurious deep-z multiray ambiguity twins
-# for near-surface CR sources.
-#
 # Per-pol maps + 3 saved peaks per pol provide classifier features
 # (per-pol max_corr, peak isolation ratios). Hilbert envelope OFF gives
 # sharper peaks for CR's quasi-impulsive signals.
 #
-# Accuracy on production_v9 final_set:
+# Accuracy:
 #   all events:                                     11.78 deg median
 #   helpers>=3 + iso>=1.30 + corr>=0.3 (N=9,643):    2.17 deg median
 #   per-event sweep optimum (lower bound):           0.92 deg median
