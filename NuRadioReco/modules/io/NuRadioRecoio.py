@@ -67,6 +67,7 @@ class NuRadioRecoio(object):
         self.__detectors = None
         self._event_specific_detector_changes = None
         self.__event_headers = None
+        self.__event_showers = None
         self._current_event_id = None
         self._current_run_number = None
         self.__fail_on_version_mismatch = fail_on_version_mismatch
@@ -211,7 +212,7 @@ class NuRadioRecoio(object):
 
         if 'showers' in evt_header:
             current_event_id = evt_header['event_id']
-            self._event_showers[current_event_id] = evt_header['showers']
+            self.__event_showers[current_event_id] = evt_header['showers']
 
     def __scan_files(self):
         current_byte = 12  # skip datafile header
