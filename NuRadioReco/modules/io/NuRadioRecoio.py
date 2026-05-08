@@ -162,7 +162,7 @@ class NuRadioRecoio(object):
         self._event_specific_detector_changes = {}
 
         self.__event_headers = {}
-        self._event_showers = {}
+        self.__event_showers = {}
         if self.__parse_header:
             self.__scan_files()
 
