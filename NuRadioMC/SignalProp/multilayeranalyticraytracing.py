@@ -900,9 +900,7 @@ def get_skim_angle(y1, z1, zskim, layers):
 
     return C0crit, thcrit
 
-# ------------------------------
-# Optimization helpers
-# ------------------------------
+
 def get_C0_from_log_scalar(logC0, n_ice):
     """
     Convert the logarithmic optimization parameter to a ray parameter.
@@ -1220,52 +1218,6 @@ def find_solutions(x1, x2, layers,tol=1e-6):
     
     air_solution_found = False
 
-    '''    
-    if with_air:
-        #air_solution_found = False
-        try:
-            n_s_air = get_refractive_index(0.001,layers)
-            n_s_ice = get_refractive_index(-0.001,layers)
-            air_theta_min = np.arccos(n_s_air/n_s_ice)
-
-            if theta_straight < air_theta_min:
-                theta_straight = air_theta_min
-            
-            C0_air_min = get_C0_from_theta(z1,np.abs(air_theta_min),layers)
-            logC0_start = np.log(max(C0_air_min - 1./n_deep, 1e-14))
-            logC0_stop = 100.0
-
-            delta_start = obj_delta_y(
-                logC0_start,
-                y1, z1, y2, z2,
-                layers,
-                n_deep,downgoing,with_air
-                )
-
-            delta_stop = obj_delta_y(
-                logC0_stop,
-                y1, z1, y2, z2,
-                layers,
-                n_deep,downgoing,with_air
-                )
-
-            
-            if(np.sign(delta_start) != np.sign(delta_stop)):
-                result_air = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
-                if(np.round(result_air, 3) not in np.round(C0s, 3)):
-                    C_0 = get_C0_from_log(result_air,n_deep)
-                    C0s.append(C_0)
-                    solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
-
-                    results.append({'type': solution_type,
-                                    'C0': C_0,
-                                    'D' : result_air,
-                                    'x1': x1,
-                                    'flag' : 3})
-                    air_solution_found = True
-        except ValueError:
-            air_solution_found = False'''
-        
     if not air_solution_found:
         _, theta_skim = get_skim_angle(
             y1, z1,
@@ -1294,15 +1246,8 @@ def find_solutions(x1, x2, layers,tol=1e-6):
         logC0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
         logC0skim = np.log(max(C0skim- 1./n_deep, 1e-12))
 
-
-        
-        
-        #print(f"logC0skim: {logC0skim}")
-        #print(f"-------------------------------------------------------")
-        #print(f"Original x1 and x2: {x1} and {x2}. With air: {with_air}. Downgoing: {downgoing}")
-        #print(f"Searching for Ray-Tracing Solutions from x1 ({y1},{z1}) to x2 ({y2},{z2})...")
         result = optimize.root(obj_delta_y_sqr, x0=logC0straight, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
-        #print(f"result of root otimization with C0 {get_C0_from_log(result.x[0],n_deep)}: {result}")
+
         if(result.fun < 1e-7):
             if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
                 C_0 = get_C0_from_log(result.x[0],n_deep)
@@ -1319,7 +1264,7 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                                 'x1': x1,
                                 'flag' : 1})
         else:
-            # or maybe just see again what this brings us and keep it if it's new
+    
             result = optimize.root(obj_delta_y_sqr, x0=logC0skim, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
             if(result.fun < 1e-7):
                 if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
@@ -1336,39 +1281,6 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                                     'D' : result.x[0],
                                     'x1': x1,
                                     'flag' : 1})
-                        
-                    
-                    
-                '''else:
-                logC0_stop = 100.
-                delta_start = obj_delta_y(
-                    logC0skim,
-                    y1, z1, y2, z2,
-                    layers,
-                    n_deep,downgoing,with_air
-                    )
-
-                delta_stop = obj_delta_y(
-                    logC0_stop,
-                    y1, z1, y2, z2,
-                    layers,
-                    n_deep,downgoing,with_air
-                    )
-                
-                print("delta_start: ", delta_start)
-                print("delta_stop: ", delta_stop)
-
-                if(np.sign(delta_start) != np.sign(delta_stop)):
-                    result = optimize.brentq(obj_delta_y, logC0skim, logC0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
-                    if(np.round(result, 5) not in np.round(C0s, 5)):
-                        C_0 = get_C0_from_log(result,n_deep)
-                        C0s.append(C_0)
-                        solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
-
-                        results.append({'type': solution_type,
-                                        'C0': C_0,
-                                        'D' : result2,
-                                        'x1': x1})'''
         
         # check if another solution with higher logC0 exists
         if result.x[0] is None: 
@@ -1383,13 +1295,6 @@ def find_solutions(x1, x2, layers,tol=1e-6):
             logC0_start = np.log(max(C0cross_min - 1./n_deep, 1e-12))
 
         logC0_stop = 100.0
-
-        delta_test = obj_delta_y(
-            -10.,
-            y1, z1, y2, z2,
-            layers,
-            n_deep,downgoing,with_air
-            )
 
         delta_start = obj_delta_y(
             logC0_start,
@@ -1423,9 +1328,6 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                                 'D' : result2,
                                 'x1': x1,
                                 'flag' : 3})
-        #else:
-        #    print("no solution with logC0 > {:.3f} exists".format(result.x[0]))
-
         
         theta_min =  1e-5
         C0theta_min = get_C0_from_theta(
@@ -1439,6 +1341,7 @@ def find_solutions(x1, x2, layers,tol=1e-6):
         logC0_start = max(np.log(C0theta_min - 1. / n_deep),-100)
         
         logC0_stop = result_x - 0.00001
+
         delta_start = obj_delta_y(
             logC0_start,
             y1, z1, y2, z2,
@@ -1454,9 +1357,8 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                 )
 
         if(np.sign(delta_start) != np.sign(delta_stop)):
-            #print("solution with logC0 < {:.3f} exists".format(result.x[0]))
-            result3 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
 
+            result3 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
 
             if(np.round(result3, 3) not in np.round(C0s, 3)):
                 C_0 = get_C0_from_log(result3, n_deep)
@@ -1464,7 +1366,6 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                 C0s.append(C_0)
                 solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
 
-                #print("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                 results.append({'type': solution_type,
                                 'C0': C_0,
                                 'C1': C_1,
@@ -1474,12 +1375,6 @@ def find_solutions(x1, x2, layers,tol=1e-6):
                                 'x1': x1,
                                 'flag' : 4})
         
-        #else:
-        #    print("no solution with logC0 < {:.3f} exists".format(result.x[0]))
-
-
-        #print(f"Solution found for x1 ({y1},{z1}) to x2 ({y2},{z2}): {results}")
-        #print(f"-------------------------------------------------------")
     return sorted(results, key=itemgetter('type', 'C0'))
 
 def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, get_segments = False):
@@ -1547,7 +1442,6 @@ def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, ge
     else:
         C1, _, _, _ = compute_offsets(C0, y1, z1, layers)
 
-    #print(f"C1 in get_path call: {C1}")
     y_turn, z_turn = get_turning_point(C0,y1,z1,layers,C1,downgoing,with_air)
 
     if z_turn <= z1 or with_air or y_turn > y2 or y_turn is None or z_turn is None:
@@ -1558,7 +1452,6 @@ def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, ge
         z_forward = np.linspace(z1, z_turn, n_points)
         y_forward, _ = build_y_field(C0, z_forward, layers, C1)
         
-        #print(f"z_turn: {z_turn}, y_turn: {y_turn}")
         y_mirror = 2*y_turn - y_forward
         z_up = z_forward[::-1]
         y_up = y_mirror[::-1]
@@ -2613,6 +2506,50 @@ def get_focusing_factor(C0, x1, x2, layers):
     return np.sqrt(1 / f_inv_sq)
 
 
+import time
+import functools
+import logging
+
+
+def log_timing(level=logging.DEBUG):
+
+    def decorator(func):
+
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+
+            start = time.perf_counter()
+
+            try:
+                result = func(self, *args, **kwargs)
+
+            except Exception:
+
+                elapsed_ms = (time.perf_counter() - start) * 1000
+
+                self._logger.exception(
+                    "%s failed after %.3f ms",
+                    func.__name__,
+                    elapsed_ms
+                )
+
+                raise
+
+            elapsed_ms = (time.perf_counter() - start) * 1000
+
+            self._logger.info(
+                level,
+                "%s completed in %.3f ms",
+                func.__name__,
+                elapsed_ms
+            )
+
+            return result
+
+        return wrapper
+
+    return decorator
+
 
 class multi_layer_ray_tracing_2D(ray_tracing_base):
 
@@ -2644,8 +2581,8 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             (default: None -> 100 (see `ray_tracing_base._set__set_arguments`))
 
         """
-        self.__logger = logging.getLogger('NuRadioMC.multi_layer_ray_tracing_2D')
-        self.__logger.setLevel(log_level)
+        self._logger = logging.getLogger('NuRadioMC.multi_layer_ray_tracing_2D')
+        self._logger.setLevel(log_level)
         
         #if isinstance(medium, medium_util.uniform_ice):
         #    msg = ('Analytic raytracer does not work with a uniform ice model. '
@@ -2654,8 +2591,6 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         #    raise RuntimeError(msg)
 
         self.medium = medium
-        #self._layers_arr = self.medium.get_layers_array
-
 
         self.attenuation_model = attenuation_model or "SP1"
         #if self.attenuation_model not in attenuation_util.model_to_int:
@@ -2672,7 +2607,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
     def _layers_arr(self):
         return self.medium.get_layers_array
 
-        
+    @log_timing()
     def determine_solution_type(self, x1, x2, C0):
 
         y1, z1 = x1
@@ -2687,31 +2622,113 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             z1, z2 = z2, z1
             downgoing = True
 
-        return determine_solution_type(y1, z1, y2, z2, C0, self._layers_arr, downgoing, with_air)
+        
+        solution_type = determine_solution_type(y1, z1, y2, z2, C0, self._layers_arr, downgoing, with_air)
+        
+        self._logger.info(
+            "solution_type | x1=%s x2=%s C0=%s type=%s",
+            x1,
+            x2,
+            C0,
+            solution_type
+            )
+        
+        return solution_type
     
+    @log_timing()
     def find_solutions(self, x1, x2, plot=False, *_, **__):
-        return find_solutions(x1, x2, self._layers_arr)
 
+        solutions = find_solutions(x1, x2, self._layers_arr)
+
+        self._logger.info(
+            "find_solutions | x1=%s x2=%s solutions=%s",
+            x1,
+            x2,
+            solutions
+            )
+
+        return solutions
+
+    @log_timing()
     def get_travel_time_analytic(self, x1, x2, C0, *_, **__):
-        return get_travel_time_analytic(C0, x1, x2, self._layers_arr)
 
+        travel_time = get_travel_time_analytic(C0, x1, x2, self._layers_arr)
+
+        self._logger.info(
+            "get_travel_time_analytic | x1=%s x2=%s C0=%s travel_time=%s",
+            x1,
+            x2,
+            C0,
+            travel_time
+            )
+
+        return travel_time
+
+    @log_timing()
     def get_path_length_analytic(self, x1, x2, C0, *_, **__):
-        return get_path_length_analytic(C0, x1, x2, self._layers_arr)
-    
+
+        path_length = get_path_length_analytic(C0, x1, x2, self._layers_arr)
+
+        self._logger.info(
+            "get_path_length_analytic | x1=%s x2=%s C0=%s path_length=%s",
+            x1,
+            x2,
+            C0,
+            path_length
+            )
+
+        return path_length
+
     def get_launch_vector(self, x1, x2, C0):
         return get_launch_vector(C0, x1, x2, self._layers_arr)
     
     def get_receive_vector(self, x1, x2, C0):
         return get_receiving_vector(C0, x1, x2, self._layers_arr)
     
+    @log_timing()
     def get_launch_angle(self, x1, C0, *_, **__):
-        return get_launch_angle(C0, x1, x1, self._layers_arr)
+
+        launch_angle = get_launch_angle(C0, x1, x1, self._layers_arr)
+
+        self._logger.info(
+            "get_launch_angle | x1=%s C0=%s launch_angle=%s",
+            x1,
+            C0,
+            launch_angle
+            )
+
+        return launch_angle
     
+    @log_timing()
     def get_receive_angle(self, x1, x2, C0, *_, **__):
-        return get_receiving_angle(C0, x1, x2, self._layers_arr)
-    
+
+        receive_angle = get_receiving_angle(C0, x1, x2, self._layers_arr)
+
+        self._logger.info(
+            "get_receive_angle | x1=%s x2=%s C0=%s receive_angle=%s",
+            x1,
+            x2,
+            C0,
+            receive_angle
+            )
+
+        return receive_angle
+
+    @log_timing()
     def get_reflection_angle(self, x1, x2, C0, *_, **__):
-        return get_reflection_angle(C0, x1, x2, self._layers_arr)
+
+        reflection_angle = get_reflection_angle(C0, x1, x2, self._layers_arr)
+
+        self._logger.info(
+            "get_reflection_angle | x1=%s x2=%s C0=%s reflection_angle=%s",
+            x1,
+            x2,
+            C0,
+            reflection_angle
+            )
+
+        return reflection_angle
+
 
     def get_path_reflections(self, x1, x2, C0, npoints=1000,*_, **__):
         return get_path(C0, x1, x2, self._layers_arr, npoints)
@@ -2724,9 +2741,20 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         if x1[1] > 0.0 : with_air = True
         return get_turning_point(x1[0], x1[1], C0, self._layers_arr, with_air=with_air)
 
-
+    @log_timing()
     def get_focusing_analytic(self, x1, x2, C0, *_, **__):
-        return get_focusing_factor(C0, x1, x2, self._layers_arr)
+
+        focusing_factor = get_focusing_factor(C0, x1, x2, self._layers_arr)
+
+        self._logger.info(
+            "get_focusing_analytic | x1=%s x2=%s C0=%s focusing_factor=%s",
+            x1,
+            x2,
+            C0,
+            focusing_factor
+            )
+
+        return focusing_factor
 
     def __get_frequencies_for_attenuation(self, frequency, max_detector_freq=None):
         """ Returns a frequency vector for the attenuation calculation.
@@ -2776,8 +2804,21 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         self.__logger.debug("Frequency vector for attenuation calculation: {}".format(freqs))
         return freqs
     
+    @log_timing()
     def get_attenuation_along_path(self, x1, x2, C0, frequency, max_detector_frequency=None, *_, **__):
+        
         attenuation_model =  self.attenuation_model
         dz = self.dz
         freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_frequency)
-        return get_attenuation_along_path(C0, x1, x2, self._layers_arr, frequency, freqs, attenuation_model, dz)
+        
+        attenuation_factor = get_attenuation_along_path(C0, x1, x2, self._layers_arr, frequency, freqs, attenuation_model, dz)
+        
+        self._logger.info(
+            "get_attenuation_along_path | x1=%s x2=%s C0=%s attenuation_factor=%s",
+            x1,
+            x2,
+            C0,
+            attenuation_factor
+            )
+
+        return attenuation_factor
