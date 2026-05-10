@@ -95,15 +95,19 @@ class dataProviderRNOG:
         event: Event
             The processed event
         """
-
+        if self.detector is None:
+            logger.warning("The detector object is not set. Cable delays will not be added.")
+        
         for event in self.reader.run():
 
             # This will throw an error if the event has more than one station
             station = event.get_station()
-            self.detector.update(station.get_station_time())
 
+            if self.detector is not None:
+                self.detector.update(station.get_station_time())
+                self.channelCableDelayAdder.run(event, station, self.detector, mode='subtract')
+                
             self.channelBlockOffsetFitter.run(event, station, self.detector)
             self.channelGlitchDetector.run(event, station, self.detector)
-            self.channelCableDelayAdder.run(event, station, self.detector, mode='subtract')
 
             yield event
