@@ -2229,7 +2229,7 @@
 
                 <span class="c1"># group events into events based on signal arrival times</span>
                 <span class="n">events</span> <span class="o">=</span> <span class="n">group_into_events</span><span class="p">(</span>
-                    <span class="n">station</span><span class="p">,</span> <span class="n">event_group</span><span class="p">,</span> <span class="n">particle_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;split_event_time_diff&#39;</span><span class="p">])</span>
+                    <span class="n">station</span><span class="p">,</span> <span class="n">event_group</span><span class="p">,</span> <span class="n">particle_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;split_event_time_diff&#39;</span><span class="p">],</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;signal&#39;</span><span class="p">][</span><span class="s1">&#39;zerosignal&#39;</span><span class="p">]))</span>
 
                 <span class="n">evt_group_triggered</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">for</span> <span class="n">evt</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
