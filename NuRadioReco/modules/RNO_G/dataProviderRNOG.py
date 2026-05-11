@@ -61,12 +61,17 @@ class dataProviderRNOG:
         files: list of str
             List of files to read (are passed to the readRNOGDataMattak module).
         det: Detector
-            Detector object.
+            Detector object. The detector object is used to retrieve the cable delays for the channelAddCableDelay module. 
+            If set to None, channelAddCableDelay module will be skipped and no cable delays will be added.
+            channelGlitchDetector and channelBlockOffsetFitter do not use the detector object, so they will run regardless of whether the detector object is set or not.
         reader_kwargs: dict (default: {})
             Keyword arguments passed to the reader module `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`.
         """
         self.files = files
         self.detector = det
+        
+        if det is None:
+            logger.warning("The detector object is not set. Cable delays will not be added.")
 
         apply_baseline_correction = reader_kwargs.pop('apply_baseline_correction', None)
         if apply_baseline_correction is not None:
@@ -95,19 +100,19 @@ class dataProviderRNOG:
         event: Event
             The processed event
         """
-        if self.detector is None:
-            logger.warning("The detector object is not set. Cable delays will not be added.")
         
         for event in self.reader.run():
 
             # This will throw an error if the event has more than one station
             station = event.get_station()
+            
+            # Detector object is not used in the channelBlockOffsetFitter and channelGlitchDetector, so we set it to None to avoid confusion.
+            self.channelBlockOffsetFitter.run(event, station, det=None)
+            self.channelGlitchDetector.run(event, station, det=None)
 
+            # channelCableDelayAdder needs the detector object to retrieve the cable delays. If the detector object is not set, we skip this step and do not add/subtract cable delays.
             if self.detector is not None:
                 self.detector.update(station.get_station_time())
                 self.channelCableDelayAdder.run(event, station, self.detector, mode='subtract')
-                
-            self.channelBlockOffsetFitter.run(event, station, self.detector)
-            self.channelGlitchDetector.run(event, station, self.detector)
 
             yield event
