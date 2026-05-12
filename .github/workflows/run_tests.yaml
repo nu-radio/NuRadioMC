@@ -78,6 +78,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -120,6 +121,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -157,6 +159,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -189,6 +192,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -226,6 +230,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -277,6 +282,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment

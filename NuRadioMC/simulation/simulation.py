@@ -1546,7 +1546,7 @@ class simulation:
 
                 # group events into events based on signal arrival times
                 events = group_into_events(
-                    station, event_group, particle_mode, self._config['split_event_time_diff'])
+                    station, event_group, particle_mode, self._config['split_event_time_diff'], bool(self._config['signal']['zerosignal']))
 
                 evt_group_triggered = False
                 for evt in events:
