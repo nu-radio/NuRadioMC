@@ -2801,7 +2801,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
                 freqs = np.append(freqs, np.linspace(frequency[~det_mask].min(), frequency[~det_mask].max(), n_freqs // 2))
 
 
-        self.__logger.debug("Frequency vector for attenuation calculation: {}".format(freqs))
+        self._logger.debug("Frequency vector for attenuation calculation: {}".format(freqs))
         return freqs
     
     @log_timing()
