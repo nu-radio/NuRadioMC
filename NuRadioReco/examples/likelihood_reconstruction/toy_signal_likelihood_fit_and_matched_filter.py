@@ -2,8 +2,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from NuRadioReco.utilities import units, fft, signal_processing, likelihood_calculator, minimization, matched_filter
+from NuRadioReco.utilities import units, fft, signal_processing, minimization, matched_filter
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
+from NuRadioReco.modules.likelihood_reconstruction import likelihood_calculator
 
 channelGenericNoiseAdder = channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin()

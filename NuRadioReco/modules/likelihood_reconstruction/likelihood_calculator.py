@@ -7,7 +7,7 @@ import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 
 import logging
-logger = logging.getLogger('NuRadioReco.utilities.likelihood_calculator')
+logger = logging.getLogger('NuRadioReco.likelihood_calculator')
 
 
 class LikelihoodCalculator:

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import copy
 
 from NuRadioReco.utilities.analytic_pulse import get_analytic_pulse_freq
-from NuRadioReco.utilities import units, likelihood_calculator, fft, minimization, matched_filter, trace_utilities
+from NuRadioReco.utilities import units, fft, minimization, matched_filter, trace_utilities
 from NuRadioReco.framework.electric_field import ElectricField
 from NuRadioReco.framework.sim_station import SimStation
 from NuRadioReco.framework.event import Event
@@ -15,6 +15,7 @@ import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.electricFieldBandPassFilter
 import NuRadioReco.modules.channelLengthAdjuster
+from NuRadioReco.modules.likelihood_reconstruction import likelihood_calculator
 from radiotools import helper as hp
 from radiotools import coordinatesystems
 
@@ -26,10 +27,10 @@ electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.el
 channelLengthAdjuster = NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster()
 
 import logging
-logger = logging.getLogger('NuRadioReco.stationElectricFieldLikelihoodReconstructor')
+logger = logging.getLogger('NuRadioReco.electricFieldLikelihoodReconstructor')
 
 
-class stationElectricFieldLikelihoodReconstructor:
+class electricFieldLikelihoodReconstructor:
     """
     Class for reconstructing electric fields in a station, e.g., a dual polarized antenna or the
     upwardfacing LPDAs in an RNO-G shallow station. This class forward fold an analytical electric

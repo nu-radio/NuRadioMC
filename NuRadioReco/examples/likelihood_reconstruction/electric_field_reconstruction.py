@@ -15,7 +15,7 @@ import NuRadioReco.modules.electricFieldBandPassFilter
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelLengthAdjuster
-import NuRadioReco.modules.stationElectricFieldLikelihoodReconstructor
+import NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor
 
 
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
@@ -115,7 +115,7 @@ channelBandPassFilter.run(evt, station, det, **filter_settings_high)
 filter_low = channelBandPassFilter.get_filter(frequencies, station_id, channel_ids[0], det, **filter_settings_low)
 filter_high = channelBandPassFilter.get_filter(frequencies, station_id, channel_ids[0], det, **filter_settings_high)
 filter = abs(filter_low * filter_high)
-reco = NuRadioReco.modules.stationElectricFieldLikelihoodReconstructor.stationElectricFieldLikelihoodReconstructor()
+reco = NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor.electricFieldLikelihoodReconstructor()
 reco.begin(n_channels, n_samples, sampling_rate, filter, noise_amplitude, [filter_settings_low, filter_settings_high])
 signal_fit, parameters_fit, minus_two_llh = reco.run(evt, station, det, use_MC_direction=True, full_output=True)
 
