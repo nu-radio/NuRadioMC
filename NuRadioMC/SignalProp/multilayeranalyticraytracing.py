@@ -340,7 +340,7 @@ def init_layer_arrays(z_min, z_max, n_ice, delta_n, z0):
 
     return z_min, z_max, n_ice, delta_n, z0
 
-@njit(cache = True)
+#@njit(cache = True)
 def get_layer_index(z, z_min, z_max):
     """
     Determine the layer index corresponding to a given depth.
@@ -370,7 +370,7 @@ def get_layer_index(z, z_min, z_max):
         
     return -1
 
-@njit(cache = True)
+#@njit(cache = True)
 def analytic_F(z, C0, n_ice, delta_n, z0):
     """
     Evaluate the analytic ray integral F(z) for an exponential index profile.
@@ -435,7 +435,7 @@ def analytic_F(z, C0, n_ice, delta_n, z0):
 
     return float(np.real(val))
 
-@njit(cache = True)
+#@njit(cache = True)
 def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False):
     """
     Compute horizontal offset constants for all layers.
@@ -511,7 +511,7 @@ def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False
     else:
         return C1, idx_start, np.zeros(n_layers -1), np.zeros(n_layers -1)
 
-@njit(cache = True)
+#@njit(cache = True)
 def build_y_field(C0, z_array, layers, C1):
     """
     Evaluate the horizontal ray trajectory y(z).
@@ -554,7 +554,7 @@ def build_y_field(C0, z_array, layers, C1):
 
     return y, layer_idx
 
-@njit(cache = True)
+#@njit(cache = True)
 def evaluate_y(C0, C1, z, layers):
     """
     Evaluate the horizontal ray coordinate at a given depth.
@@ -597,7 +597,7 @@ def evaluate_y(C0, C1, z, layers):
     return float(F + C1[idx])
 
 
-@njit(cache=True)
+#@njit(cache=True)
 def find_z_turn(C0, layers):
     """
     Determine the depth of the ray turning point.
@@ -653,7 +653,7 @@ def find_z_turn(C0, layers):
 
     return np.max(z_max)
 
-@njit(cache = True)
+#@njit(cache = True)
 def get_turning_point(C0, y_start, z_start, layers, C1=None,
                       downgoing=False, with_air=False):
     """
@@ -713,7 +713,7 @@ def get_turning_point(C0, y_start, z_start, layers, C1=None,
     
     return y_turn, z_turn
 
-@njit(cache = True)
+#@njit(cache = True)
 def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
                 downgoing, with_air):
     """
@@ -795,7 +795,7 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
         y_fit = evaluate_y(C0, C1, z2, layers)
         return y2 - y_fit
 
-@njit(cache = True)
+#@njit(cache = True)
 def get_refractive_index(z, layers):
     """
     Evaluate the refractive index at a given depth.
@@ -824,7 +824,7 @@ def get_refractive_index(z, layers):
 
     return n_ice[idx] - delta_n[idx] * np.exp(z / z0[idx])
 
-@njit(cache = True)
+#@njit(cache = True)
 def get_C0_from_theta(z_start, theta, layers):
     """
     Convert a launch angle to the corresponding ray parameter.
@@ -854,7 +854,7 @@ def get_C0_from_theta(z_start, theta, layers):
     
     return 1.0 / p
 
-@njit(cache = True)
+#@njit(cache = True)
 def get_skim_angle(y1, z1, zskim, layers):
     """
     Compute the critical launch angle for a ray that skims a given depth.
@@ -1027,7 +1027,7 @@ DIRECT = solution_types_revert['direct']
 REFLECTED = solution_types_revert['reflected']
 REFRACTED = solution_types_revert['refracted']
 
-@njit(cache=True)
+#@njit(cache=True)
 def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing=False, with_air=False):
     """
     Determine the physical type of a ray tracing solution.
@@ -1484,7 +1484,7 @@ def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, ge
             return y_path, z_path
 
 
-@njit(cache=True)
+#@njit(cache=True)
 def get_path_segments(C0, x1, x2, layers):
     """
     Construct piecewise ray path segments in a multilayer medium.
@@ -1636,7 +1636,7 @@ def get_path_segments(C0, x1, x2, layers):
 
     return segments
 
-@njit(cache=True)
+#@njit(cache=True)
 def get_path_length_analytic(C0, x1, x2, layers):
     """
     Compute total analytic ray path length in a multilayer medium.
@@ -1719,7 +1719,7 @@ def get_path_length_analytic(C0, x1, x2, layers):
 
     return total_s
 
-@njit
+#@njit
 def get_launch_angle(C0, x1, x2, layers):
     """
     Compute the ray launch angle at the starting point.
@@ -1769,7 +1769,7 @@ def get_launch_angle(C0, x1, x2, layers):
 
     return angle
 
-@njit
+#@njit
 def get_receiving_angle(C0, x1, x2, layers):
     """
     Compute the ray receiving angle at the endpoint.
@@ -1822,7 +1822,6 @@ def get_receiving_angle(C0, x1, x2, layers):
         angle = np.arcsin(1/(n*C0))
     return angle
 
-@njit
 def get_launch_vector(C0, x1, x2, layers):
     """
     Compute the launch direction vector of the ray.
@@ -1859,7 +1858,6 @@ def get_launch_vector(C0, x1, x2, layers):
 
     return np.array((vy, vz))
 
-@njit
 def get_receiving_vector(C0, x1, x2, layers):
     """
     Compute the receiving direction vector of the ray.
@@ -1896,8 +1894,6 @@ def get_receiving_vector(C0, x1, x2, layers):
 
     return np.array((vy, vz))
 
-
-@njit
 def get_reflection_angle(C0, x1, x2, layers):
     """
     Compute the surface reflection angle of a ray solution.
@@ -1961,7 +1957,7 @@ def get_reflection_angle(C0, x1, x2, layers):
 
     return 2.0 * incidence_angle
 
-@njit(cache=True)
+#@njit(cache=True)
 def get_travel_time_analytic(C0, x1, x2, layers):
     """
     Compute total analytic ray path length in a multilayer medium.
@@ -2118,7 +2114,7 @@ def get_frequencies_for_attenuation(
 
     return f_det
 
-@njit(cache=True, fastmath=True)
+#@njit(cache=True, fastmath=True)
 def ds_dz_layer(z, C0, idx, layers):
     """
     Compute differential path length factor ds/dz for a layered refractive index.
@@ -2371,7 +2367,7 @@ def get_attenuation_along_path(
 
     return attenuation_factor
 
-@njit(cache=True)
+#@njit(cache=True)
 def get_focusing_factor(C0, x1, x2, layers):
     """
     Analytic solution to calculate the focusing factor
@@ -2597,8 +2593,48 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
         self.__n_frequencies_integration = n_frequencies_integration
         self.dz = dz
-        self.use_cpp = None # For compatibility with old raytracer
-        self.compile_numba = None # For compatibility with old raytracer
+        self.use_cpp = False # For compatibility with old raytracer
+        #self.compile_numba = None # For compatibility with old raytracer
+
+        numba_available = False
+
+        try:
+            from numba import jit, njit
+            numba_available = True
+            logger.status("Numba version of raytracer is available")
+        except ImportError:
+            logger.warning("Numba is not available")
+            numba_available = False
+
+        if compile_numba:
+            if numba_available:
+                global get_layer_index, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn
+                global get_turning_point, get_delta_y, get_refractive_index, get_C0_from_theta, get_skim_angle
+                global determine_solution_type, get_path_segments, get_path_length_analytic, get_launch_angle
+                global get_receiving_angle, get_reflection_angle, get_travel_time_analytic, ds_dz_layer, get_focusing_factor
+                try:
+                    get_layer_index = jit(get_layer_index, nopython=True, cache=True)
+                    analytic_F = jit(analytic_F, nopython=True, cache=True)
+                    compute_offsets = jit(compute_offsets, nopython=True, cache=True)
+                    build_y_field = jit(build_y_field, nopython=True, cache=True)
+                    evaluate_y = jit(evaluate_y, nopython=True, cache=True)
+                    find_z_turn = jit(find_z_turn, nopython=True, cache=True)
+                    get_refractive_index = jit(get_refractive_index, nopython=True, cache=True)
+                    get_C0_from_theta = jit(get_C0_from_theta, nopython=True, cache=True)
+                    get_skim_angle = jit(get_skim_angle, nopython=True, cache=True)
+                    determine_solution_type = jit(determine_solution_type, nopython=True, cache=True)
+                    get_path_segments = jit(get_path_segments, nopython=True, cache=True)
+                    get_path_length_analytic = jit(get_path_length_analytic, nopython=True, cache=True)
+                    get_launch_angle = jit(get_launch_angle, nopython=True, cache=True)
+                    get_receiving_angle = jit(get_receiving_angle, nopython=True, cache=True)
+                    get_reflection_angle = jit(get_reflection_angle, nopython=True, cache=True)
+                    get_travel_time_analytic = jit(get_travel_time_analytic, nopython=True, cache=True)
+                    ds_dz_layer = jit(ds_dz_layer, nopython=True, cache=True)
+                    get_focusing_factor = jit(get_focusing_factor, nopython=True, cache=True)
+                    self.use_cpp = False
+                except Exception:
+                    self.__logger.warning("Error in compiling methods using jit - proceeding without numba")
+                    compile_numba = False
 
     @property
     def _layers_arr(self):
