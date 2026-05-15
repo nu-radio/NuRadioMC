@@ -2619,6 +2619,8 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
                     build_y_field = jit(build_y_field, nopython=True, cache=True)
                     evaluate_y = jit(evaluate_y, nopython=True, cache=True)
                     find_z_turn = jit(find_z_turn, nopython=True, cache=True)
+                    get_turning_point = jit(get_turning_point, nopython=True, cache=True)
+                    get_delta_y = jit(get_delta_y, nopython=True, cache=True)
                     get_refractive_index = jit(get_refractive_index, nopython=True, cache=True)
                     get_C0_from_theta = jit(get_C0_from_theta, nopython=True, cache=True)
                     get_skim_angle = jit(get_skim_angle, nopython=True, cache=True)

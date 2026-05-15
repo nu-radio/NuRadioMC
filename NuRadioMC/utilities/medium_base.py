@@ -872,6 +872,19 @@ class IceModelExpLayers(IceModel):
         layers : list of dict
             Layer definitions (see class docstring).
         """
+        self._set_layers(layers)
+
+    def _set_layers(self, layers):
+        """
+        Setting refractive index layer definitions
+
+        Layers get sorted and validated and a numba compatible array is provided
+        
+        Parameters
+        ----------
+        layers : list of dict
+            Layer definitions (see class docstring).
+        """
         self.layers = sorted(layers, key=lambda L: L["z_min"],reverse = True)
         self._validate_layers()
 
