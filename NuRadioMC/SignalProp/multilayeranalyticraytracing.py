@@ -101,6 +101,7 @@ from math import sqrt, log, sin
 import logging
 logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 
+NumbaList = list # fallback for get_path_segments function
 
 # ------------------------------
 # Layer definitions
@@ -1574,7 +1575,7 @@ def get_path_segments(C0, x1, x2, layers):
     if solution_type != 1: # Refracted/reflected rays: go up to the turning point and down again to x2
 
         # Upwards part from z1 to z_turn
-        points_up = List()
+        points_up = NumbaList()
         points_up.append(z1)
 
         for i in range(len(zb)):
@@ -1587,7 +1588,7 @@ def get_path_segments(C0, x1, x2, layers):
         points_up.sort()
 
         # Downwards part from z_turn to z2
-        points_down = List()
+        points_down = NumbaList()
         points_down.append(z_turn)
 
         for i in range(len(zb)):
@@ -1601,7 +1602,7 @@ def get_path_segments(C0, x1, x2, layers):
         points_down.reverse()
     
     else: # Direct path: upwards going from x1 to x2
-        points_up = List()
+        points_up = NumbaList()
         points_up.append(z1)
 
         for i in range(len(zb)):
@@ -1614,7 +1615,7 @@ def get_path_segments(C0, x1, x2, layers):
         points_up.sort()
 
     # Build segments from edge points
-    segments = List()
+    segments = NumbaList()
 
     # Upgoing segments
     for i in range(len(points_up)-1):
@@ -2591,15 +2592,16 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         #self.compile_numba = None # For compatibility with old raytracer
 
         numba_available = False
-        List = list # fallback for get_path_segments function
+        
 
         try:
             from numba import jit, njit
-            from numba.typed import List
+            from numba.typed import List as NumbaList
             numba_available = True
             logger.status("Numba version of raytracer is available")
         except ImportError:
             logger.warning("Numba is not available")
+            NumbaList = list # fallback for get_path_segments function
             numba_available = False
             
 
