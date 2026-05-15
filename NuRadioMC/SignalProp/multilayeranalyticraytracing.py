@@ -2591,6 +2591,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         #self.compile_numba = None # For compatibility with old raytracer
 
         numba_available = False
+        List = list # fallback for get_path_segments function
 
         try:
             from numba import jit, njit
@@ -2599,9 +2600,6 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             logger.status("Numba version of raytracer is available")
         except ImportError:
             logger.warning("Numba is not available")
-
-            List = list # fallback for get_path_segments function
-
             numba_available = False
             
 
