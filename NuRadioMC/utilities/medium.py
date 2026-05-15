@@ -380,7 +380,17 @@ class greenland_simple_layered(medium_base.IceModelExpLayers):
     """
     def __init__(self):
 
-        layers = [{
+        layers = [
+            {
+            "z_min": 0.0,
+            "z_max": np.inf,
+            "n_ice": 1.00001,
+            "delta_n": 1e-6,
+            "z_0": -8000,
+            "region": "air",
+            "region_name": "Air"
+        },
+            {
             "z_min": -3000.0,
             "z_max": 0.0,
             "n_ice": 1.78,
