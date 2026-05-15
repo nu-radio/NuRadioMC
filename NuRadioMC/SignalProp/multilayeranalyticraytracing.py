@@ -91,9 +91,8 @@ from numba.typed import List
 from functools import lru_cache
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 from NuRadioMC.utilities import attenuation
-from NuRadioReco.utilities import units
 
-from NuRadioReco.utilities import units, geometryUtilities
+from NuRadioReco.utilities import units, geometryUtilities, constants
 #from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 
@@ -1999,8 +1998,6 @@ def get_travel_time_analytic(C0, x1, x2, layers):
         Total geometric path length of the ray.
     """
 
-    c = 299792458.0  # speed of light in vacuum [m/s]
-
     z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers    
     total_t = 0.0
 
@@ -2034,7 +2031,7 @@ def get_travel_time_analytic(C0, x1, x2, layers):
             return abs(val) 
         
         def get_t(z):
-            return ( z0 * ( sqrt(gamma(z)) + n_ice * log(l2(z)) - log(l1(z)) * (n_ice**2 / sqrt(alpha)) ) + z * (n_ice**2 / sqrt(alpha)) ) / c
+            return ( z0 * ( sqrt(gamma(z)) + n_ice * log(l2(z)) - log(l1(z)) * (n_ice**2 / sqrt(alpha)) ) + z * (n_ice**2 / sqrt(alpha)) ) / constants.c
 
         if upgoing==1:
             t_seg = get_t(z2) - get_t(z1)
@@ -2836,8 +2833,8 @@ def get_inice_quantities(pos, theta_air, layers):
     Parameters
     ----------
     pos : array-like of float
-        Receiver position given as ``(x, y, z)`` in meters.
-        Only the ``y`` and ``z`` coordinates are used internally since the
+        Receiver position given as (x, y, z) in meters.
+        Only the y and z coordinates are used internally since the
         ray tracing is performed in a 2D plane.
 
     theta_air : float
@@ -2846,7 +2843,7 @@ def get_inice_quantities(pos, theta_air, layers):
 
     layers : tuple of np.ndarray
         Layered refractive-index model as returned by
-        ``layers_to_arrays(...)``.
+        layers_to_arrays().
 
     Returns
     -------
@@ -2881,12 +2878,12 @@ def get_inice_quantities(pos, theta_air, layers):
 
     return horizontal_offset, travel_time
 
-def get_time_difference_plain_wave_analytic(pos1, pos2, theta_air, phi_air, layers):
+def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, layers):
     """
     Compute the relative arrival time of a plane wave between two receivers.
 
     The incoming signal is modeled as a plane wave arriving from air with
-    zenith angle ``theta_air`` and azimuth angle ``phi_air``. The total
+    zenith angle theta_air and azimuth angle phi_air. The total
     arrival-time difference is calculated from:
 
     1. The difference in refracted in-ice propagation times.
@@ -2899,10 +2896,10 @@ def get_time_difference_plain_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     Parameters
     ----------
     pos1 : array-like of float
-        Position of the first receiver as ``(x, y, z)`` in meters.
+        Position of the first receiver as (x, y, z) in meters.
 
     pos2 : array-like of float
-        Position of the second receiver as ``(x, y, z)`` in meters.
+        Position of the second receiver as (x, y, z) in meters.
 
     theta_air : float
         Zenith angle of the incoming plane wave in air in radians.
@@ -2913,7 +2910,7 @@ def get_time_difference_plain_wave_analytic(pos1, pos2, theta_air, phi_air, laye
 
     layers : tuple of np.ndarray
         Layered refractive-index model as returned by
-        ``layers_to_arrays(...)``.
+        layers_to_arrays().
 
     Returns
     -------
@@ -2934,9 +2931,7 @@ def get_time_difference_plain_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     The difference in air propagation length is then obtained from the
     projection of the separation vector between both surface intersection
     points onto the full 3D propagation direction.
-
     """
-    c = 299792458.0
 
     # horizontal propagation direction of incoming signal, projected onto surface
     src_hvec = -np.array([
@@ -2975,16 +2970,10 @@ def get_time_difference_plain_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     # same as multiplying by sin(theta)
 
     surface_shift = np.inner(src_hvec, dP)
-    print(f"surface_shift: {surface_shift}")
     delta_L_air = surface_shift * np.sin(theta_air)
-    print(f"delta_L_air: {delta_L_air}")
 
     # convert to travel time
-    delta_t_air = n_air * delta_L_air / c
-
-    print(f"delta_t_air: {delta_t_air}")
-    print(f"t1: {t1}")
-    print(f"t2: {t2}")
+    delta_t_air = n_air * delta_L_air*units.m / constants.c
 
     # total relative arrival time
     delta_t = (t1 - t2) + delta_t_air
