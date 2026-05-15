@@ -21,6 +21,8 @@ from NuRadioMC.SignalProp.AnalyticRayTracing.single_layer_analytic_raytracer imp
     cpp_available, numba_available, ray_tracing_2D
 )
 
+from NuRadioMC.SignalProp.multilayeranalyticraytracing import multi_layer_ray_tracing_2D
+
 import numpy as np
 
 import logging
@@ -34,7 +36,7 @@ class ray_tracing(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
-                 detector=None, ray_tracing_2D_kwards={},
+                 detector=None, ray_tracing_module='analytic', ray_tracing_2D_kwards={},
                  use_cpp=None, compile_numba=None):
         """
         class initilization
@@ -83,6 +85,9 @@ class ray_tracing(ray_tracing_base):
 
         detector: detector object
 
+        ray_tracing_module: string
+            'analytic' or 'multilayer'. Specifies which 2D raytracer to use. Default: 'analytic'
+
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
 
@@ -97,7 +102,7 @@ class ray_tracing(ray_tracing_base):
         self.__logger.setLevel(log_level)
 
         from NuRadioMC.utilities.medium_base import IceModelSimple
-        if not isinstance(medium, IceModelSimple):
+        if not isinstance(medium, IceModelSimple) and ray_tracing_module == 'analytic':
             self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
             raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
 
@@ -127,9 +132,17 @@ class ray_tracing(ray_tracing_base):
             else:
                 self.__logger.status("Using python without numba version of ray tracer")
 
-        self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
-                                    n_frequencies_integration=self._n_frequencies_integration,
-                                    **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+        if ray_tracing_module == 'multilayer':
+            self._r2d = multi_layer_ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
+                                        n_frequencies_integration=self._n_frequencies_integration,
+                                        **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+        else:
+            self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
+                                        n_frequencies_integration=self._n_frequencies_integration,
+                                        **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+            
+            if ray_tracing_module != 'analytic':
+                self.__logger.error(f"{ray_tracing_module} is not implemented. Use 'analytic' or 'multilayer'. Using default:  'analytic'")
 
         self._swap = None
         self._dPhi = None
