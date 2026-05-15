@@ -396,7 +396,6 @@ if __name__ == "__main__":
         trigger_channel_noise_vrms=trigger_channel_noise_vrms,
         event_list=args.event_list,
         use_cpp=True,
-        jitter_random_seed=root_seed,
     )
 
     sim.run()

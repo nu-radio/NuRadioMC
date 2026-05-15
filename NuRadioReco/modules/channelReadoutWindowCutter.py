@@ -32,16 +32,6 @@ class channelReadoutWindowCutter:
             Set a random seed, used if simulating a random jitter for the readout window.
             (Default: secrets.randbits(128))
 
-        gaussian_jitter : float, optional
-            Gaussian time jitter in ns (default unit) to smear the position of the trigger in the trace (nominal
-            value defined by ``trigger.pre_trigger_time``). (Default: 0)
-
-        sample_block_size : int, optional
-            Defines "block" of samples within which the trigger is uniformly smeared. (Default: 0)
-
-        Also see
-        --------
-        time_jitter
         """
 
         self.__sampling_rate_error_issued = False
