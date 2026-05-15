@@ -86,8 +86,8 @@ Developed for use in NuRadioMC ray tracing.
 import numpy as np
 from scipy import optimize
 from operator import itemgetter
-from numba import njit
-from numba.typed import List
+#from numba import njit
+#from numba.typed import List
 from functools import lru_cache
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 from NuRadioMC.utilities import attenuation
@@ -2576,12 +2576,6 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         """
         self._logger = logging.getLogger('NuRadioMC.multi_layer_ray_tracing_2D')
         self._logger.setLevel(log_level)
-        
-        #if isinstance(medium, medium_util.uniform_ice):
-        #    msg = ('Analytic raytracer does not work with a uniform ice model. '
-        #            'Abort.... ! Use direct raytracing or a non-uniform ice model instead.')
-        #    self.__logger.error(msg)
-        #    raise RuntimeError(msg)
 
         self.medium = medium
 
@@ -2600,11 +2594,16 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
         try:
             from numba import jit, njit
+            from numba.typed import List
             numba_available = True
             logger.status("Numba version of raytracer is available")
         except ImportError:
             logger.warning("Numba is not available")
+
+            List = list # fallback for get_path_segments function
+
             numba_available = False
+            
 
         if compile_numba:
             if numba_available:
