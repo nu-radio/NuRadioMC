@@ -10,7 +10,7 @@ import logging
 import math
 logger = logging.getLogger("NuRadioMC.HDF5-merger")
 
-str_type_attrs = ['trigger_names', 'NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen_version_hash', 'NuRadioMC_version', 'NuRadioMC_version_hash', 'config']
+str_type_attrs = ['trigger_names', 'NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen_version_hash', 'NuRadioMC_version', 'NuRadioMC_version_hash', 'config', 'header']
 
 
 def merge2(filenames, output_filename):
