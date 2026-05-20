@@ -6,12 +6,10 @@ import matplotlib.pyplot as plt
 from radiotools import helper as hp
 from radiotools import coordinatesystems
 
-from NuRadioReco.utilities import units
-from NuRadioReco.utilities.constants import c
+from NuRadioReco.utilities import units, constants
 import NuRadioReco.framework.station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.event
-import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -24,7 +22,7 @@ logger = logging.getLogger('NuRadioReco.coreas')
 warning_printed_coreas_py = False
 
 # convert CoREAS traces [cgs units] to SI units [V/m]
-conversion_fieldstrength_cgs_to_SI = c / (units.cm / units.s) * units.micro * units.volt / units.meter
+conversion_fieldstrength_cgs_to_SI = constants.c / (units.cm / units.s) * units.micro * units.volt / units.meter
 
 
 # DEPRECATED FUNCTIONS
