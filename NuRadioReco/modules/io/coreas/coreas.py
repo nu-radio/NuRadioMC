@@ -265,12 +265,14 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, declination=0):
 def convert_nuradio_positions_to_ground(geo_pos, declination=0):
     """
     Converts observer positions from NuRadioReco ground coordinates back to the CORSIKA CS.
+
     Parameters
     ----------
     geo_pos : np.ndarray
         Observer position(s) in NuRadioReco ground coordinates, shape (3,) or (n_observers, 3).
     declination : float
         Declination of the magnetic field (degrees).
+
     Returns
     -------
     obs_positions_corsika : np.ndarray
@@ -433,7 +435,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
         inputs_grp.attrs["RUNNR"] = evt.get_run_number()
         inputs_grp.attrs["EVTNR"] = evt.get_id()
 
-        sim_shower = evt.get_first_sim_shower()        
+        sim_shower = evt.get_first_sim_shower()
 
         inputs_grp.attrs["PRMPAR"] = sim_shower.get_parameter(shp.primary_particle)
         inputs_grp.attrs["OBSLEV"] = sim_shower.get_parameter(shp.observation_level) / units.cm
@@ -444,7 +446,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
             """
             Converting angles in local coordinates to corsika coordinates.
             """
-            zenith = zenith_NNR / units.deg            
+            zenith = zenith_NNR / units.deg
             azimuth = (azimuth_NNR - 3*np.pi / 2. - declination / units.rad) / units.deg
 
 
@@ -525,7 +527,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None):
             data_set = observers_grp.create_dataset(dataset_name, data=efield_corsika)
             data_set.attrs["position"] = pos_corsika
             data_set.attrs["name"] = dataset_name
-            
+
 
 def create_sim_shower_from_hdf5(corsika, declination=0):
     """
