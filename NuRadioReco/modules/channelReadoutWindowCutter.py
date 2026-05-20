@@ -2,10 +2,10 @@ from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.channel
 from NuRadioReco.utilities import units, signal_processing
 
-import secrets
 import numpy as np
 from numpy.random import Generator, Philox
 import functools
+
 import logging
 logger = logging.getLogger('NuRadioReco.channelReadoutWindowCutter')
 
@@ -29,13 +29,10 @@ class channelReadoutWindowCutter:
         Parameters
         ----------
         random_seed : int or None, optional
-            Set a random seed, used if simulating a random jitter for the readout window.
-            (Default: secrets.randbits(128))
-
+            Set a random seed, used if simulating a random jitter for the readout window. (Default: None)
         """
-
         self.__sampling_rate_error_issued = False
-        self._rng = Generator(Philox(random_seed or secrets.randbits(128)))
+        self._rng = Generator(Philox(random_seed))
 
 
     @register_run()
