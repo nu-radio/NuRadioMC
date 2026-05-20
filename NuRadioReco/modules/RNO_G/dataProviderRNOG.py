@@ -61,7 +61,7 @@ class dataProviderRNOG:
         files: list of str
             List of files to read (are passed to the readRNOGDataMattak module).
         det: Detector
-            Detector object. The detector object is used to retrieve the cable delays for the channelAddCableDelay module. 
+            The detector object is used to retrieve the cable delays for the channelAddCableDelay module. 
             If set to None, channelAddCableDelay module will be skipped and no cable delays will be added.
             channelGlitchDetector and channelBlockOffsetFitter do not use the detector object, so they will run regardless of whether the detector object is set or not.
         reader_kwargs: dict (default: {})
@@ -100,7 +100,7 @@ class dataProviderRNOG:
         event: Event
             The processed event
         """
-        
+
         for event in self.reader.run():
 
             # This will throw an error if the event has more than one station
@@ -110,7 +110,8 @@ class dataProviderRNOG:
             self.channelBlockOffsetFitter.run(event, station, det=None)
             self.channelGlitchDetector.run(event, station, det=None)
 
-            # channelCableDelayAdder needs the detector object to retrieve the cable delays. If the detector object is not set, we skip this step and do not add/subtract cable delays.
+            # channelCableDelayAdder needs the detector object to retrieve the cable delays. 
+            # If the detector object is not set, we skip this step and do not add/subtract cable delays.
             if self.detector is not None:
                 self.detector.update(station.get_station_time())
                 self.channelCableDelayAdder.run(event, station, self.detector, mode='subtract')
