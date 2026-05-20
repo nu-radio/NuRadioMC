@@ -282,8 +282,7 @@ def time_jitter(gaussian_spread=0*units.ns, sample_block_size=64, sampling_rate=
         time value (``jitter_time = jitter_sample / sampling_rate``).
         the input should be in GHz
     rng : numpy.random.Generator
-        Random number generator instance, e.g.
-        ``Generator(Philox(random_seed or secrets.randbits(128)))``.
+        Random number generator instance, e.g. ``Generator(Philox(None))``.
 
     Returns
     -------
@@ -294,7 +293,7 @@ def time_jitter(gaussian_spread=0*units.ns, sample_block_size=64, sampling_rate=
         Gaussian time smear drawn from ``N(0, gaussian_spread)``.
     """
     if rng is None:
-        rng = Generator(Philox(secrets.randbits(128)))
+        rng = Generator(Philox(None))
 
     jitter_sample = 0
     if sample_block_size != 0:
