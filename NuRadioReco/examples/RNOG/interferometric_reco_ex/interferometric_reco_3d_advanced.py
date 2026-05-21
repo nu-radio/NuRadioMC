@@ -593,7 +593,19 @@ def main():
                 # traces with only channelPreprocessor applied (no
                 # upsampling, no generic dedispersion). rx/tx dedispersion
                 # below uses arrival angles from pass 1.
-                evt2 = data_provider.get_event(int(eid[0]), int(eid[1]))
+                try:
+                    evt2 = data_provider.get_event(int(eid[0]), int(eid[1]))
+                except ValueError as exc:
+                    if "Found several events" in str(exc):
+                        logger.warning(
+                            "skipping ambiguous event at pass 2 (run=%s, "
+                            "event_number=%s): headers.root contains multiple "
+                            "rows with this event_number, reader cannot "
+                            "disambiguate; pass 1 result discarded for this event",
+                            eid[0], eid[1],
+                        )
+                        continue
+                    raise
                 stn2 = evt2.get_station(station_id)
 
                 t_p2_pre = time.time()
