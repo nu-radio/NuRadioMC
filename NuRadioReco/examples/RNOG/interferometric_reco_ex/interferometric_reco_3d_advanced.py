@@ -542,7 +542,20 @@ def main():
             t0 = time.time()
 
             t_preproc_start = time.time()
-            evt1 = data_provider.get_event(int(eid[0]), int(eid[1]))
+            try:
+                evt1 = data_provider.get_event(int(eid[0]), int(eid[1]))
+            except ValueError as exc:
+                if "Found several events" in str(exc):
+                    logger.warning(
+                        "skipping ambiguous event (run=%s, event_number=%s): "
+                        "headers.root contains multiple rows with this "
+                        "event_number, reader cannot disambiguate; pre-translation "
+                        "the burn sample identified this event by tree position, "
+                        "which is no longer unique under event_number convention",
+                        eid[0], eid[1],
+                    )
+                    continue
+                raise
             stn1 = evt1.get_station(station_id)
             # channelPreprocessor already ran inside data_provider;
             # apply the driver-owned pass-1 steps (upsample + optional
@@ -646,25 +659,26 @@ def main():
             result['source_file'] = os.path.basename(input_file)
 
             if nur_writer is not None:
-                n_coh = config.get('n_coherent_waveforms', 1)
-                coh_ch_ids = [COH_WF_CHANNEL_BASE + i for i in range(n_coh)]
-                stn1_out = evt1.get_station(station_id)
-                for wf_key in sorted(k for k in result
-                                     if k.startswith('coherent_wf_')):
-                    pk_idx = int(wf_key.split('_')[-1])
-                    ch_id = COH_WF_CHANNEL_BASE + pk_idx
-                    ch = Channel(channel_id=ch_id)
-                    wf_times = result.get('coherent_times')
-                    sr = 1.0 / (wf_times[1] - wf_times[0]) * 1e9 if wf_times is not None else 10e9
-                    ch.set_trace(result[wf_key], sr)
-                    stn1_out.add_channel(ch)
-                evt_out = NREvent(evt1.get_run_number(), evt1.get_id())
-                stn_out = NRStation(station_id)
-                for ch_id in coh_ch_ids:
-                    if stn1_out.has_channel(ch_id):
-                        stn_out.add_channel(stn1_out.get_channel(ch_id))
-                evt_out.set_station(stn_out)
-                nur_writer.run(evt_out)
+                wf_keys = sorted(k for k in result if k.startswith('coherent_wf_'))
+                if wf_keys:
+                    n_coh = config.get('n_coherent_waveforms', 1)
+                    coh_ch_ids = [COH_WF_CHANNEL_BASE + i for i in range(n_coh)]
+                    stn1_out = evt1.get_station(station_id)
+                    for wf_key in wf_keys:
+                        pk_idx = int(wf_key.split('_')[-1])
+                        ch_id = COH_WF_CHANNEL_BASE + pk_idx
+                        ch = Channel(channel_id=ch_id)
+                        wf_times = result.get('coherent_times')
+                        sr = 1.0 / (wf_times[1] - wf_times[0]) * 1e9 if wf_times is not None else 10e9
+                        ch.set_trace(result[wf_key], sr)
+                        stn1_out.add_channel(ch)
+                    evt_out = NREvent(evt1.get_run_number(), evt1.get_id())
+                    stn_out = NRStation(station_id)
+                    for ch_id in coh_ch_ids:
+                        if stn1_out.has_channel(ch_id):
+                            stn_out.add_channel(stn1_out.get_channel(ch_id))
+                    evt_out.set_station(stn_out)
+                    nur_writer.run(evt_out)
 
             results.append(result)
 
