@@ -102,7 +102,7 @@ class ray_tracing(ray_tracing_base):
         self.__logger.setLevel(log_level)
 
         from NuRadioMC.utilities.medium_base import IceModelSimple
-        if not isinstance(medium, IceModelSimple) and ray_tracing_module == 'analytic':
+        if ray_tracing_module == 'analytic' and not isinstance(medium, IceModelSimple):
             self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
             raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
 
@@ -236,8 +236,8 @@ class ray_tracing(ray_tracing_base):
 
         # check if not too many solutions were found (the same solution can potentially found twice because of numerical imprecision)
         if(self.get_number_of_solutions() > self.get_number_of_raytracing_solutions()):
-            self.__logger.error(f"{self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed! Returning zero solutions")
-            self._results = []
+            self.__logger.warning(f"[x1 {self._x1}, x2 {self._x2}] {self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed!")
+            #self._results = []
 
     def get_solution_type(self, iS):
         """ returns the type of the solution
@@ -259,7 +259,7 @@ class ray_tracing(ray_tracing_base):
 
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error(f"[x1 {self._x1}, x2 {self._x2}] solution number {iS + 1} requested but only {n} solutions exist")
             raise IndexError
         result = self._results[iS]
         xx, zz = self._r2d.get_path_reflections(self._x1, self._x2, result['C0'], n_points=n_points,
