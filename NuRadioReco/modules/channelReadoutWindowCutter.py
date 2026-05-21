@@ -79,9 +79,6 @@ class channelReadoutWindowCutter:
         trigger_time = trigger.get_trigger_time()
 
         # Compute jitter time caused by multiple experimental sources
-        # like readout sampling block(L4D board designed to be 128 samples 
-        # empirically data gives 64sample block) and 
-        # unknown trigger time in data(gaussian spread by empirical data is 10.5ns)
         first_channel = next(station.iter_channels())
         first_detector_sampling_rate = detector.get_sampling_frequency(
             station.get_id(), first_channel.get_id())
@@ -261,16 +258,16 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     return channel
 
 
-def time_jitter(gaussian_spread=0*units.ns, sample_block_size=64, sampling_rate=2.4*units.GHz, rng=None):
+def time_jitter(gaussian_spread=0, sample_block_size=128, sampling_rate=2.4*units.GHz, rng=None):
     """
     Generate a readout-window jitter composed of a discrete sample offset
     (converted to time) and a continuous Gaussian time smear.
 
     Parameters
     ----------
-    gaussian_spread : float
-        Standard deviation of the Gaussian time smear (in NuRadioReco
-        time units, e.g. ``10.5 * units.ns``).
+    gaussian_spread : int
+        Standard deviation of the Gaussian time smear, the input should be positive
+        (in samples, e.g. ``25`` means 25 samples, all float values are rounded to nearest integer)
         when gaussian_spread is 0, only the sample block jitter is used
     sample_block_size : int
         Range of the uniform integer jitter caused by the readout window 
@@ -289,8 +286,6 @@ def time_jitter(gaussian_spread=0*units.ns, sample_block_size=64, sampling_rate=
     sample_jitter_time : float
         Time jitter from the discrete sample offset
         (``jitter_sample / sampling_rate``).
-    norm_smear : float
-        Gaussian time smear drawn from ``N(0, gaussian_spread)``.
     """
     if rng is None:
         rng = Generator(Philox(None))
@@ -300,8 +295,8 @@ def time_jitter(gaussian_spread=0*units.ns, sample_block_size=64, sampling_rate=
         jitter_sample += rng.integers(-sample_block_size / 2, sample_block_size / 2)
 
     if gaussian_spread != 0:
-        gaussian_time = rng.normal(0, gaussian_spread)
-        jitter_sample += round(gaussian_time * sampling_rate)  # snap to nearest sample
+        gaussian_samples = rng.normal(0, gaussian_spread)
+        jitter_sample += round(gaussian_samples)  # snap to nearest sample
 
     jitter_time = jitter_sample/sampling_rate
 

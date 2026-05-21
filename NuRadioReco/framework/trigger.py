@@ -65,10 +65,10 @@ class Trigger:
             readout window being collected in sample blocks.
             An integer is drawn from ``[-sample_block_size / 2, sample_block_size / 2)``.
             Default: 0 samples(no block jitter)
-        gaussian_jitter: float
+        gaussian_jitter: positive int or float
             standard deviation of a Gaussian time smear applied to the
-            readout window position (in NuRadioReco time units).
-            Default: 0 ns (no Gaussian jitter)
+            readout window position (in samples, note check the sampling rate of the detector).
+            Default: 0 samples (no Gaussian jitter)
 
         """
         self._name = name

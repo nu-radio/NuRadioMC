@@ -144,8 +144,8 @@ def rnog_flower_board_high_low_trigger_simulations(evt, station, det, trigger_ch
             pre_trigger_time=250 * units.ns,
         )
         station.get_trigger(f"deep_high_low_{thresh_key}").set_jitter_params(
-            sample_block_size=64,
-            gaussian_jitter=0 * units.ns,
+            sample_block_size=128,
+            gaussian_jitter=0
         )
 
     return vrms_after_gain
