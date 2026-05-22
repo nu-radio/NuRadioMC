@@ -258,22 +258,19 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     return channel
 
 
-def time_jitter(gaussian_spread=0, sample_block_size=128, sampling_rate=2.4*units.GHz, rng=None):
+def time_jitter(gaussian_spread=0, sample_block_size=0, sampling_rate=2.4*units.GHz, rng=None):
     """
     Generate a readout-window jitter composed of a discrete sample offset
     (converted to time) and a continuous Gaussian time smear.
 
     Parameters
     ----------
-    gaussian_spread : int
-        Standard deviation of the Gaussian time smear, the input should be positive
-        (in samples, e.g. ``25`` means 25 samples, all float values are rounded to nearest integer)
-        when gaussian_spread is 0, only the sample block jitter is used
+    gaussian_spread : int or float
+        Standard deviation of a Gaussian time smear in samples (not time). Spread can be a float,
+        the randomly drawn jitter will be rounded to the nearest int. (Default: 0 - no jitter)
     sample_block_size : int
-        Range of the uniform integer jitter caused by the readout window 
-        being collected in sample blocks (usually 64 or 128 samples).  
-        An integer is drawn from 
-        ``[-sample_block_size / 2, sample_block_size / 2)``.
+        Range of the uniform sample jitter caused by an unknown position within a sampling block.  
+        Random sample is drawn from  ``[-sample_block_size / 2, sample_block_size / 2)``. (Default: 0 - no jitter)
     sampling_rate : float
         Sampling rate used to convert the integer sample offset to a
         time value (``jitter_time = jitter_sample / sampling_rate``).
