@@ -3328,7 +3328,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             n_z1 = self.get_refractive_index(x1)
             direct_time_lightspeed = direct_len * n_z1 / constants.c
 
-            if travel_time > direct_time_lightspeed * 2: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier) 
+            if travel_time > direct_time_lightspeed * 1.5: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier) 
                 return None
 
         self._logger.info(
@@ -3353,7 +3353,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
             direct_len = np.sqrt((x2[0]-x1[0])**2 + (x2[1]-x1[1])**2) * units.m
 
-            if path_length > direct_len * 2: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier) 
+            if path_length > direct_len * 1.5: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier) 
                 return None
 
         self._logger.info(

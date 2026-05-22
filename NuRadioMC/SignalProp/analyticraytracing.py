@@ -36,7 +36,7 @@ class ray_tracing(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
-                 detector=None, ray_tracing_module='analytic', ray_tracing_2D_kwards={},
+                 detector=None, ray_tracing_module='multilayer', ray_tracing_2D_kwards={},
                  use_cpp=None, compile_numba=None):
         """
         class initilization
