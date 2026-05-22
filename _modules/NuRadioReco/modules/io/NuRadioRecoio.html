@@ -640,12 +640,12 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.detector</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.event_parser_factory</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">io_utilities</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.time</span>
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
@@ -706,6 +706,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__detectors</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_specific_detector_changes</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__event_showers</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_event_id</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_run_number</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__fail_on_version_mismatch</span> <span class="o">=</span> <span class="n">fail_on_version_mismatch</span>
@@ -802,7 +803,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__detectors</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_specific_detector_changes</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__event_showers</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parse_header</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__scan_files</span><span class="p">()</span></div>
 
@@ -820,25 +822,20 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filenames</span></div>
 
 
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_parse_event_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt_header</span><span class="p">):</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__event_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">evt_header</span><span class="p">[</span><span class="s1">&#39;event_id&#39;</span><span class="p">])</span>
 
+
         <span class="k">for</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">evt_header</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
-            <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="c1"># treat sim_station differently</span>
-                <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;sim_station&#39;</span><span class="p">:</span>
-
-                    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span><span class="p">[</span><span class="n">station_id</span><span class="p">]:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-                    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="n">stnp</span><span class="o">.</span><span class="n">station_time</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;sim_station&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s1">&#39;sim_station&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="n">stnp</span><span class="o">.</span><span class="n">station_time</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
                         <span class="n">station_time</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_time_object_to_astropy</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-
                         <span class="k">if</span> <span class="n">station_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                             <span class="k">try</span><span class="p">:</span>
                                 <span class="n">station_time</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="s1">&#39;isot&#39;</span>
@@ -851,8 +848,10 @@
                                     <span class="k">pass</span>
 
                         <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">station_time</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">__event_headers</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;showers&#39;</span> <span class="ow">in</span> <span class="n">evt_header</span><span class="p">:</span>
+            <span class="n">current_event_id</span> <span class="o">=</span> <span class="n">evt_header</span><span class="p">[</span><span class="s1">&#39;event_id&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__event_showers</span><span class="p">[</span><span class="n">current_event_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">evt_header</span><span class="p">[</span><span class="s1">&#39;showers&#39;</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__scan_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">current_byte</span> <span class="o">=</span> <span class="mi">12</span>  <span class="c1"># skip datafile header</span>
