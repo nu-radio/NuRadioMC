@@ -3119,6 +3119,8 @@ def log_timing(level=logging.DEBUG):
     return decorator
 
 
+
+
 class multi_layer_ray_tracing_2D(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model=None,
@@ -3169,7 +3171,8 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         
 
         try:
-            from numba import jit, njit
+            from numba import njit
+            from numba.core.registry import CPUDispatcher
             from numba.typed import List as NumbaList
             numba_available = True
             self._logger.status("Numba version of raytracer is available")
@@ -3180,34 +3183,48 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             
 
         if compile_numba:
+
+            def ensure_jitted(func): # Function to check if already jitted or not and use jitted if available
+                if isinstance(func, CPUDispatcher):
+                    return func
+                return njit(cache=True)(func)
+            
             if numba_available:
+
                 global get_layer_index, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn
                 global get_turning_point, get_delta_y, get_refractive_index, get_C0_from_theta, get_skim_angle
                 global determine_solution_type, get_path_segments, get_path_length_analytic, get_launch_angle
                 global get_receiving_angle, get_reflection_angle, get_travel_time_analytic, ds_dz_layer, get_focusing_factor
+                global get_inice_quantities, get_time_difference_plane_wave_analytic
+
                 try:
-                    get_layer_index = jit(get_layer_index, nopython=True, cache=True)
-                    analytic_F = jit(analytic_F, nopython=True, cache=True)
-                    compute_offsets = jit(compute_offsets, nopython=True, cache=True)
-                    build_y_field = jit(build_y_field, nopython=True, cache=True)
-                    evaluate_y = jit(evaluate_y, nopython=True, cache=True)
-                    find_z_turn = jit(find_z_turn, nopython=True, cache=True)
-                    get_turning_point = jit(get_turning_point, nopython=True, cache=True)
-                    get_delta_y = jit(get_delta_y, nopython=True, cache=True)
-                    get_refractive_index = jit(get_refractive_index, nopython=True, cache=True)
-                    get_C0_from_theta = jit(get_C0_from_theta, nopython=True, cache=True)
-                    get_skim_angle = jit(get_skim_angle, nopython=True, cache=True)
-                    determine_solution_type = jit(determine_solution_type, nopython=True, cache=True)
-                    get_path_segments = jit(get_path_segments, nopython=True, cache=True)
-                    get_path_length_analytic = jit(get_path_length_analytic, nopython=True, cache=True)
-                    get_launch_angle = jit(get_launch_angle, nopython=True, cache=True)
-                    get_receiving_angle = jit(get_receiving_angle, nopython=True, cache=True)
-                    get_reflection_angle = jit(get_reflection_angle, nopython=True, cache=True)
-                    get_travel_time_analytic = jit(get_travel_time_analytic, nopython=True, cache=True)
-                    ds_dz_layer = jit(ds_dz_layer, nopython=True, cache=True)
-                    get_focusing_factor = jit(get_focusing_factor, nopython=True, cache=True)
+                    get_layer_index = ensure_jitted(get_layer_index)
+                    analytic_F = ensure_jitted(analytic_F)
+                    compute_offsets = ensure_jitted(compute_offsets)
+                    build_y_field = ensure_jitted(build_y_field)
+                    evaluate_y = ensure_jitted(evaluate_y)
+                    find_z_turn = ensure_jitted(find_z_turn)
+                    get_turning_point = ensure_jitted(get_turning_point)
+                    get_delta_y = ensure_jitted(get_delta_y)
+                    get_refractive_index = ensure_jitted(get_refractive_index)
+                    get_C0_from_theta = ensure_jitted(get_C0_from_theta)
+                    get_skim_angle = ensure_jitted(get_skim_angle)
+                    determine_solution_type = ensure_jitted(determine_solution_type)
+                    get_path_segments = ensure_jitted(get_path_segments)
+                    get_path_length_analytic = ensure_jitted(get_path_length_analytic)
+                    get_launch_angle = ensure_jitted(get_launch_angle)
+                    get_receiving_angle = ensure_jitted(get_receiving_angle)
+                    get_reflection_angle = ensure_jitted(get_reflection_angle)
+                    get_travel_time_analytic = ensure_jitted(get_travel_time_analytic)
+                    ds_dz_layer = ensure_jitted(ds_dz_layer)
+                    get_focusing_factor = ensure_jitted(get_focusing_factor)
+                    get_inice_quantities = ensure_jitted(get_inice_quantities)
+                    get_time_difference_plane_wave_analytic = ensure_jitted(get_time_difference_plane_wave_analytic)
+
                     self.use_cpp = False
+
                 except Exception:
+
                     self._logger.warning("Error in compiling methods using jit - proceeding without numba")
                     compile_numba = False
 
@@ -3478,6 +3495,12 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             )
 
         return attenuation_factor
+
+    def get_time_difference_plane_wave_analytic(self, x1, x2, src_zenith, src_azimuth):
+
+        dt = get_time_difference_plane_wave_analytic(x1, x2, src_zenith, src_azimuth, self._layers_arr)
+
+        return dt
     
 
 def get_inice_quantities(pos, theta_air, layers):   
@@ -3536,6 +3559,7 @@ def get_inice_quantities(pos, theta_air, layers):
     horizontal_offset =  evaluate_y(C0, C1, 0, layers) - evaluate_y(C0, C1, pos[2], layers)
 
     return horizontal_offset, travel_time
+
 
 def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, layers):
     """
@@ -3615,8 +3639,8 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     P1 = R1 + r1 * src_hvec
     P2 = R2 + r2 * src_hvec
 
-    print(f"P1: {P1}")
-    print(f"P2: {P2}")
+    #print(f"P1: {P1}")
+    #print(f"P2: {P2}")
     
     # vector connecting both surface intersection points
     dP = P2 - P1
@@ -3628,7 +3652,7 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     # difference in air travel length from projection of the surface_shift onto the actual 3D incoming ray vector
     # same as multiplying by sin(theta)
 
-    surface_shift = np.inner(src_hvec, dP)
+    surface_shift = np.dot(src_hvec, dP)
     delta_L_air = surface_shift * np.sin(theta_air)
 
     # convert to travel time

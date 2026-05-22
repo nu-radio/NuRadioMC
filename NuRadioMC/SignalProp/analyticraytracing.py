@@ -199,6 +199,34 @@ class ray_tracing(ray_tracing_base):
         self._x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self._x1, self._x2))
 
+    def set_start_and_end_point_no_swap(self, x1, x2):
+        """
+        Set the start and end points of the raytracing without automatically swapping x1 and x2 if z2 > z1.
+
+        Parameters
+        ----------
+        x1: 3dim np.array
+            start point of the ray
+        x2: 3dim np.array
+            stop point of the ray
+        """
+
+
+        super().set_start_and_end_point(x1, x2)
+
+        dX = self._X2 - self._X1
+        self._dPhi = -np.arctan2(dX[1], dX[0])
+        c, s = np.cos(self._dPhi), np.sin(self._dPhi)
+        self._R = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1)))
+        X1r = self._X1
+        X2r = np.dot(self._R, self._X2 - self._X1) + self._X1
+        self.__logger.debug("X1 = {}, X2 = {}".format(self._X1, self._X2))
+        self.__logger.debug('dphi = {:.1f}'.format(self._dPhi / units.deg))
+        self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self._X2 - self._X1, X1r, X2r))
+        self._x1 = np.array([X1r[0], X1r[2]])
+        self._x2 = np.array([X2r[0], X2r[2]])
+        self.__logger.debug("2D points {} {}".format(self._x1, self._x2))
+
     def set_solution(self, raytracing_results):
         """
         Read an already calculated raytracing solution from the input array
@@ -957,3 +985,7 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['birefringence'] = False
         else:
             self._config = config
+
+    def get_time_difference_plane_wave(self, src_zenith, src_azimuth):
+        dt = self._r2d.get_time_difference_plane_wave_analytic(self._x1, self._x2, src_zenith, src_azimuth)
+        return dt
