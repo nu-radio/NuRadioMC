@@ -56,7 +56,7 @@ in the a RadioPropaIceWrapper object, you can do this by redefining the
 """
 
 
-class southpole_simple(medium_base.IceModelSimple):
+class southpole_simple_simple(medium_base.IceModelSimple):
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 RICE2014/SP model
         # define model parameters (RICE 2014/southpole)
@@ -68,7 +68,7 @@ class southpole_simple(medium_base.IceModelSimple):
             )
 
 
-class southpole_2015(medium_base.IceModelSimple):
+class southpole_2015_simple(medium_base.IceModelSimple):
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 SPICE2015/SP model
         super().__init__(
@@ -79,7 +79,7 @@ class southpole_2015(medium_base.IceModelSimple):
             )
 
 
-class ARAsim_southpole(medium_base.IceModelSimple):
+class ARAsim_southpole_simple(medium_base.IceModelSimple):
     def __init__(self):
         # define model parameters (SPICE 2015/southpole)
         super().__init__(
@@ -148,7 +148,7 @@ class mooresbay_simple_2(medium_base.IceModelSimple):
             )
 
 
-class greenland_simple(medium_base.IceModelSimple):
+class greenland_simple_simple(medium_base.IceModelSimple):
     def __init__(self):
         # from C. Deaconu, fit to data from Hawley '08, Alley '88
         # rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0
@@ -496,3 +496,88 @@ class greenland_3exp_layered(medium_base.IceModelExpLayers):
             layers=layers,
             #z_bottom=-3000.0,
         )
+
+        
+class southpole_simple(medium_base.IceModelExpLayers):
+
+    def __init__(self):
+        # from https://doi.org/10.1088/1475-7516/2018/07/055
+        # RICE2014/SP model
+
+        z_bottom = -2820 * units.meter
+        n_ice = 1.78
+        z_0 = 71. * units.meter
+        delta_n = 0.426
+
+        # keep old API compatibility
+        self.z_bottom = z_bottom
+        self.n_ice = n_ice
+        self.z_0 = z_0
+        self.delta_n = delta_n
+        self.z_shift = 0 * units.meter
+        self.z_air_boundary = 0 * units.meter
+
+        layers = [
+            {
+                "z_min": 0.0,
+                "z_max": np.inf,
+                "n_ice": 1.000001,
+                "delta_n": 2.7e-6,
+                "z_0": -8000.0,
+                "region": "air",
+                "region_name": "Air"
+            },
+            {
+                "z_min": z_bottom,
+                "z_max": 0.0,
+                "n_ice": n_ice,
+                "delta_n": delta_n,
+                "z_0": z_0,
+                "region": "ice",
+                "region_name": "Ice"
+            }
+        ]
+
+        super().__init__(layers=layers)
+
+
+class southpole_2015(medium_base.IceModelExpLayers):
+
+    def __init__(self):
+
+        # SPICE2015/SP model
+        z_bottom = -2820 * units.meter
+        n_ice = 1.78
+        z_0 = 77. * units.meter
+        delta_n = 0.423
+
+        # backwards compatibility
+        self.z_bottom = z_bottom
+        self.n_ice = n_ice
+        self.z_0 = z_0
+        self.delta_n = delta_n
+        self.z_shift = 0 * units.meter
+        self.z_air_boundary = 0 * units.meter
+
+        layers = [
+            {
+                "z_min": 0.0,
+                "z_max": np.inf,
+                "n_ice": 1.000001,
+                "delta_n": 2.7e-6,
+                "z_0": -8000.0,
+                "region": "air",
+                "region_name": "Air"
+            },
+            {
+                "z_min": z_bottom,
+                "z_max": 0.0,
+                "n_ice": n_ice,
+                "delta_n": delta_n,
+                "z_0": z_0,
+                "region": "ice",
+                "region_name": "Ice"
+            }
+        ]
+
+        super().__init__(layers=layers)
