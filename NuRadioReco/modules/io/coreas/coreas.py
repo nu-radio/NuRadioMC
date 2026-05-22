@@ -448,7 +448,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None, detector=None)
             minBz_corsika = -np.dot(b_vec_nnr, z_hat) / (units.micro * units.tesla)
 
             x_mag = np.array([np.cos(dec), -np.sin(dec), 0.0])
-            Bx_corsika = np.dot(b_vec_nnr, x_mag) / (units.micro * units.tesla)
+            Bx_corsika = np.dot(B_vec_NNR, x_mag) / (units.micro * units.tesla)
             if abs(Bx_corsika) > 1:
                 logger.warning(f"Non-zero east-of-magnetic component (Bx_mag ~ {Bx_corsika:.3g} μT). "
                                "Implicitly assumed zero by CORSIKA MAGNET.")
