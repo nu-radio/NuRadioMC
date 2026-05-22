@@ -298,7 +298,7 @@ def time_jitter(gaussian_spread=0, sample_block_size=128, sampling_rate=2.4*unit
         gaussian_samples = rng.normal(0, gaussian_spread)
         jitter_sample += round(gaussian_samples)  # snap to nearest sample
 
-    jitter_time = jitter_sample/sampling_rate
+    jitter_time = jitter_sample / sampling_rate
 
     return jitter_time
 
