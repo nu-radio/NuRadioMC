@@ -4,7 +4,6 @@ import argparse
 import os
 
 import NuRadioReco.modules.io.coreas.readCoREASDetector
-import NuRadioReco.modules.io.coreas.readCoREASShower
 from NuRadioReco.detector.SKA.detector import Detector
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import trace_utilities, units
