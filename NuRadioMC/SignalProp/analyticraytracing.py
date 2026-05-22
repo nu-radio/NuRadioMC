@@ -987,5 +987,5 @@ class ray_tracing(ray_tracing_base):
             self._config = config
 
     def get_time_difference_plane_wave(self, src_zenith, src_azimuth):
-        dt = self._r2d.get_time_difference_plane_wave_analytic(self._x1, self._x2, src_zenith, src_azimuth)
+        dt = self._r2d.get_time_difference_plane_wave_analytic(self._X1, self._X2, src_zenith, src_azimuth)
         return dt
