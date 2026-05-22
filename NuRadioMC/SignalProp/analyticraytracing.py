@@ -103,8 +103,8 @@ class ray_tracing(ray_tracing_base):
 
         from NuRadioMC.utilities.medium_base import IceModelSimple
         if ray_tracing_module == 'analytic' and not isinstance(medium, IceModelSimple):
-            self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
-            raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
+            self.__logger.warning("The analytic raytracer can only handle ice model of the type 'IceModelSimple' or some of the 'IceModelExpLayers' (see NuRadioMC.utilities.medium), might break...")
+            #raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
 
         super().__init__(medium=medium,
                          attenuation_model=attenuation_model,

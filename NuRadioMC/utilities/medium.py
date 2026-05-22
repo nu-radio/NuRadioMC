@@ -378,13 +378,26 @@ def get_ice_model(name):
         return globals()[name]()
 
 
-class greenland_simple_layered(medium_base.IceModelExpLayers):
+class greenland_simple(medium_base.IceModelExpLayers):
     """
     Single layer refractive index model.
     
     greenland_simple model adapted to match the expected medium definition needed for the multi layer analytic raytracer. Used as a comparison to the single layer analytic raytracer.
     """
     def __init__(self):
+
+        z_bottom = -3000*units.meter
+        n_ice = 1.78
+        z_0 = 37.25*units.meter
+        delta_n = 0.51
+
+        # keep old API compatibility
+        self.z_bottom = z_bottom
+        self.n_ice = n_ice
+        self.z_0 = z_0
+        self.delta_n = delta_n
+        self.z_shift = 0 * units.meter
+        self.z_air_boundary = 0 * units.meter
 
         layers = [
             {
