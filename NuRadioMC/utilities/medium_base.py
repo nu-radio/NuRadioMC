@@ -546,7 +546,8 @@ class IceModelExpLayers(IceModel):
             raise ValueError(f"Position z={z} is not covered by any layer!")
 
         if isinstance(position, list) or position.ndim == 1:
-            return n_of_z(position[2])
+            n = n_of_z(position[2])
+            return float(n)
         else:
             return np.array([n_of_z(z) for z in position[:,2]])
         
@@ -573,6 +574,33 @@ class IceModelExpLayers(IceModel):
             if L["z_min"] <= z < L["z_max"]:
                 return L["region_name"]
         raise ValueError(f"Position z={z} is not covered by any layer!")
+    
+    def _compute_default_ice_model_radiopropa(self):
+        """
+        If radiopropa is installed this will compute and return a default object holding the
+        radiopropa scalarfield and necessary radiopropa moduldes that define the medium in
+        radiopropa. It uses the parameters of the medium object to contruct the scalar field
+        using the simple ice model implementation in radiopropa and some modules, like a
+        discontinuity object for the air boundary.
+
+        Returns
+        -------
+        ice: RadioPropaIceWrapper
+            Object holding the radiopropa scalarfield and modules
+        """
+        if not radiopropa_is_imported:
+            logger.error('The radiopropa dependency was not import and can therefore not be used.'
+                        +'\nMore info on https://github.com/nu-radio/RadioPropa')
+            raise ImportError('RadioPropa could not be imported')
+
+        scalar_field = RP.IceModel_Simple(
+            z_surface=self.z_air_boundary * nu2rp_meter,
+            n_ice=self.n_ice, delta_n=self.delta_n,
+            z_0=self.z_0 * nu2rp_meter,
+            z_shift=self.z_shift * nu2rp_meter
+        )
+
+        return RadioPropaIceWrapper(self, scalar_field)
     
     @property        
     def get_layers_array(self):

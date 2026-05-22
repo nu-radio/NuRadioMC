@@ -420,7 +420,7 @@ class greenland_simple(medium_base.IceModelExpLayers):
         }]
 
         super().__init__(
-            layers=layers,
+            layers=layers
             #z_bottom=-3000.0,
         )
 
@@ -454,7 +454,7 @@ class greenland_firn_layered(medium_base.IceModelExpLayers):
         ]
 
         super().__init__(
-            layers=layers,
+            layers=layers
             #z_bottom=-3000.0,
         )
 
@@ -506,7 +506,7 @@ class greenland_3exp_layered(medium_base.IceModelExpLayers):
         ]
 
         super().__init__(
-            layers=layers,
+            layers=layers
             #z_bottom=-3000.0,
         )
 
@@ -633,8 +633,7 @@ class ARAsim_southpole(medium_base.IceModelExpLayers):
         ]
 
         super().__init__(
-            layers=layers,
-            z_bottom=z_bottom
+            layers=layers
         )
 
 class ARA_2022(medium_base.IceModelExpLayers):
@@ -677,8 +676,7 @@ class ARA_2022(medium_base.IceModelExpLayers):
         ]
 
         super().__init__(
-            layers=layers,
-            z_bottom=z_bottom
+            layers=layers
         )
 
 class mooresbay_simple(medium_base.IceModelExpLayers):
@@ -721,8 +719,7 @@ class mooresbay_simple(medium_base.IceModelExpLayers):
         ]
 
         super().__init__(
-            layers=layers,
-            z_bottom=z_bottom
+            layers=layers
         )
 
 class mooresbay_simple_2(medium_base.IceModelExpLayers):
@@ -765,8 +762,7 @@ class mooresbay_simple_2(medium_base.IceModelExpLayers):
         ]
 
         super().__init__(
-            layers=layers,
-            z_bottom=z_bottom
+            layers=layers
         )
 
 

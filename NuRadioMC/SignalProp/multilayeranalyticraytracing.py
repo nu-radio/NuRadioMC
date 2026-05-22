@@ -798,7 +798,7 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
         return y2 - y_fit
 
 #@njit(cache = True)
-def get_refractive_index(z, layers):
+def get_n(z, layers):
     """
     Evaluate the refractive index at a given depth.
 
@@ -848,7 +848,7 @@ def get_C0_from_theta(z_start, theta, layers):
         Ray parameter C0.
     """
     # Convert launch angle to ray parameter
-    n_start = get_refractive_index(z_start, layers)
+    n_start = get_n(z_start, layers)
     p = n_start * np.cos(theta)
 
     if p == 0.0:
@@ -888,8 +888,8 @@ def get_skim_angle(y1, z1, zskim, layers):
     The critical angle is determined from the refractive index
     contrast between the launch depth and the skim depth.
     """
-    nlaunch = get_refractive_index(z1, layers)
-    nsurf = get_refractive_index(zskim, layers)
+    nlaunch = get_n(z1, layers)
+    nsurf = get_n(zskim, layers)
     
     sinthcrit = min(nsurf / nlaunch, 0.99999999)
     if sinthcrit <= 1.0:
@@ -1242,7 +1242,7 @@ def find_solutions_old(x1, x2, layers,tol=1e-12):
             layers
         )
 
-        n_z = get_refractive_index(z1,layers)
+        n_z = get_n(z1,layers)
         logC0straight = np.log(max(C0straight - 1./n_deep, 1e-12))
         logC0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
         logC0skim = np.log(max(C0skim- 1./n_deep, 1e-12))
@@ -1495,7 +1495,7 @@ def find_solutions(x1, x2, layers,tol=1e-6):
         layers
     )
 
-    n_z = get_refractive_index(z1,layers)
+    n_z = get_n(z1,layers)
     logC0straight = np.log(max(C0straight - 1./n_deep, 1e-12))
     logC0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
     logC0skim = np.log(max(C0skim- 1./n_deep, 1e-12))
@@ -1764,7 +1764,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
     )
 
 
-    n_z = get_refractive_index(z1,layers)
+    n_z = get_n(z1,layers)
     logC0straight = np.log(abs(C0straight - 1./n_deep))
     logC0skim_nz = np.log(abs(1/n_z - 1./n_deep))
     logC0skim = np.log(abs(C0skim- 1./n_deep))
@@ -2341,7 +2341,7 @@ def get_launch_angle(C0, x1, x2, layers):
         downgoing = True
 
     solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
-    n = get_refractive_index(x1[1],layers)
+    n = get_n(x1[1],layers)
 
     if solution_type == DIRECT and downgoing: 
         angle = np.pi - np.arcsin(1/(n*C0))
@@ -2395,7 +2395,7 @@ def get_receiving_angle(C0, x1, x2, layers):
         downgoing = True
 
     solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
-    n = get_refractive_index(x2[1],layers)
+    n = get_n(x2[1],layers)
 
     if solution_type == DIRECT and not downgoing:
         angle = np.pi - np.arcsin(1/(n*C0))
@@ -3052,17 +3052,17 @@ def get_focusing_factor(C0, x1, x2, layers):
 
     if x1[1] > 0:
         launch_angle = get_launch_angle(C0, x1, (0,-0.001), layers)
-        n1 = get_refractive_index(-0.001, layers)
+        n1 = get_n(-0.001, layers)
     else:
         launch_angle = get_launch_angle(C0, x1, x2, layers)
-        n1 = get_refractive_index(x1[1], layers)
+        n1 = get_n(x1[1], layers)
 
     if x2[1] > 0:
         receive_angle = get_receiving_angle(C0, (0,-0.001), x2, layers)
-        n2 = get_refractive_index(-0.001, layers)
+        n2 = get_n(-0.001, layers)
     else:
         receive_angle = get_receiving_angle(C0, x1, x2, layers)
-        n2 = get_refractive_index(x2[1], layers)
+        n2 = get_n(x2[1], layers)
 
     if x1[1] > 0:
         s = get_path_length_analytic(C0, (0, -0.001), x2, layers)
@@ -3198,7 +3198,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             if numba_available:
 
                 global get_layer_index, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn
-                global get_turning_point, get_delta_y, get_refractive_index, get_C0_from_theta, get_skim_angle
+                global get_turning_point, get_delta_y, get_n, get_C0_from_theta, get_skim_angle
                 global determine_solution_type, get_path_segments, get_path_length_analytic, get_launch_angle
                 global get_receiving_angle, get_reflection_angle, get_travel_time_analytic, ds_dz_layer, get_focusing_factor
                 global get_inice_quantities, get_time_difference_plane_wave_analytic
@@ -3212,7 +3212,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
                     find_z_turn = ensure_jitted(find_z_turn)
                     get_turning_point = ensure_jitted(get_turning_point)
                     get_delta_y = ensure_jitted(get_delta_y)
-                    get_refractive_index = ensure_jitted(get_refractive_index)
+                    get_n = ensure_jitted(get_n)
                     get_C0_from_theta = ensure_jitted(get_C0_from_theta)
                     get_skim_angle = ensure_jitted(get_skim_angle)
                     determine_solution_type = ensure_jitted(determine_solution_type)
@@ -3310,8 +3310,8 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
     
         return solutions
     
-    def get_refractive_index(self, x1):
-        n_z = get_refractive_index(x1[1],self._layers_arr)
+    def get_n(self, x1):
+        n_z = get_n(x1[1],self._layers_arr)
         return n_z
 
     #@log_timing()
@@ -3325,7 +3325,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         if solution_type == solution_types_revert['direct']:
 
             direct_len = np.sqrt((x2[0]-x1[0])**2 + (x2[1]-x1[1])**2) * units.m
-            n_z1 = self.get_refractive_index(x1)
+            n_z1 = self.get_n(x1)
             direct_time_lightspeed = direct_len * n_z1 / constants.c
 
             if travel_time > direct_time_lightspeed * 1.5: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier) 
@@ -3559,7 +3559,7 @@ def get_inice_quantities(pos, theta_air, layers):
     the corresponding trajectory and travel time.
     """
 
-    n_air = get_refractive_index(0.0001, layers)
+    n_air = get_n(0.0001, layers)
 
     p = n_air * np.sin(theta_air)
     C0 = 1.0 / p
@@ -3636,7 +3636,7 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
         np.cos(phi_air)
     ])
 
-    n_air = get_refractive_index(0.0001, layers)
+    n_air = get_n(0.0001, layers)
 
     # in-ice raytracing solution for given surface angle and antenna depth
     # r: radial distance the ray covers on the way from the surface to the antenna depth
