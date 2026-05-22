@@ -376,7 +376,219 @@ class IceModelSimple(IceModel):
         return RadioPropaIceWrapper(self, scalar_field)
 
 
-class IceModelBirefringence(IceModelSimple):
+class IceModelExpLayers(IceModel):
+    """
+    Medium model consisting of multiple exponential layers.
+
+    This class represents a stratified medium where each layer has a
+    refractive index profile described by an exponential function like this:
+
+    n(z) = n_ice - delta_n * exp(z / z_0)
+
+    It is designed for use with the multilayer analytic ray tracer.
+
+    Parameters
+    ----------
+    layers : list of dict
+        List of layer definitions. Each layer must be a dictionary
+        containing the following keys:
+
+        - ``"z_min"`` : float
+            Lower boundary of the layer (depth).
+        - ``"z_max"`` : float
+            Upper boundary of the layer (depth).
+        - ``"n_ice"`` : float
+            Asymptotic refractive index of the layer.
+        - ``"delta_n"`` : float
+            Factor defining the steepness of the refractive index change.
+        - ``"z_0"`` : float
+            Exponential scale depth, defining the vertival location of the change.
+        - ``"region_name"`` : str
+            Name/identifier of the layer.
+
+    Notes
+    -----
+    Layers are automatically sorted by decreasing ``z_min`` and validated
+    to ensure continuous boundaries between adjacent layers.
+    """
+    def __init__(self, layers):
+        """
+        Initialize the multilayer ice model.
+
+        Parameters
+        ----------
+        layers : list of dict
+            Layer definitions (see class docstring).
+        """
+        self._set_layers(layers)
+
+    def _set_layers(self, layers):
+        """
+        Setting refractive index layer definitions
+
+        Layers get sorted and validated and a numba compatible array is provided
+        
+        Parameters
+        ----------
+        layers : list of dict
+            Layer definitions (see class docstring).
+        """
+        self.layers = sorted(layers, key=lambda L: L["z_min"],reverse = True)
+        self._validate_layers()
+
+        self._layers_arr = self._layers_to_arrays()
+
+    def _validate_layers(self):
+        """
+        Validate layer continuity.
+
+        Ensures that adjacent layers have matching boundaries, i.e.,
+        the lower boundary of one layer coincides with the upper
+        boundary of the next layer.
+
+        Raises
+        ------
+        ValueError
+            If any two adjacent layers do not form a continuous boundary (which would cause undefined z regions) or the definition is inconsistent.
+        """
+        for i in range(len(self.layers) - 1):
+            if not np.isclose(self.layers[i]["z_min"], self.layers[i+1]["z_max"]):
+                raise ValueError(f"Layers {i} and {i+1} don't overlap, boundaries are not continuous! Check definition!")
+            
+        z_min = np.asarray([layer["z_min"] for layer in self.layers], dtype=float)
+        z_max = np.asarray([layer["z_max"] for layer in self.layers], dtype=float)
+        n_ice = np.asarray([layer["n_ice"] for layer in self.layers], dtype=float)
+        delta_n = np.asarray([layer["delta_n"] for layer in self.layers], dtype=float)
+        z0 = np.asarray([layer["z_0"] for layer in self.layers], dtype=float)
+
+        n = len(z_min)
+
+        # --- Length consistency check ---
+        if not (len(z_max) == len(n_ice) == len(delta_n) == len(z0) == n):
+            raise ValueError("All layer parameter arrays must have the same length. Did you forget to specify something?")
+
+    def _layers_to_arrays(self):
+        """
+        Convert layer definitions to NumPy arrays.
+
+        The Numba-based ray tracing implementation requires all layer
+        parameters to be stored in contiguous NumPy arrays instead of
+        Python dictionaries. This method performs that conversion.
+
+        Returns
+        -------
+        tuple of ndarray
+            Tuple containing:
+
+            z_min : ndarray
+                Lower boundary of each layer (depth).
+
+            z_max : ndarray
+                Upper boundary of each layer (depth).
+
+            n_ice : ndarray
+                Asymptotic refractive index of each layer.
+
+            delta_n : ndarray
+                Steepness of the refractive index change of each layer.
+
+            z0 : ndarray
+                Exponential scale depth of each layer.
+        """
+        n = len(self.layers)
+        z_min = np.zeros(n)
+        z_max = np.zeros(n)
+        n_ice = np.zeros(n)
+        delta_n = np.zeros(n)
+        z0 = np.zeros(n)
+
+        for i, L in enumerate(self.layers):
+            z_min[i] = L["z_min"]
+            z_max[i] = L["z_max"]
+            n_ice[i] = L["n_ice"]
+            delta_n[i] = L["delta_n"]
+            z0[i] = L["z_0"]
+
+        return z_min, z_max, n_ice, delta_n, z0
+
+    def get_index_of_refraction(self, position):
+        """
+        Compute the refractive index at a given position.
+
+        According to n(z) = n_ice - delta_n * exp(z / z_0), using the layer parameters corresponding to a given z.
+
+        Parameters
+        ----------
+        position : array-like
+            Position(s) at which to evaluate the refractive index.
+            Can be either:
+
+            - 1D array-like of shape (3,)
+            - 2D array-like of shape (N, 3)
+
+            The third component (``z``) is used for evaluation.
+
+        Returns
+        -------
+        float or ndarray
+            Refractive index at the given position(s). Returns a scalar
+            for a single position or an array for multiple positions.
+
+        Raises
+        ------
+        ValueError
+            If a position lies outside all defined layers.
+        """
+        def n_of_z(z):
+            for L in self.layers:
+                if L["z_min"] <= z < L["z_max"]:
+                    return L["n_ice"] - L["delta_n"] * np.exp(z / L["z_0"])
+            raise ValueError(f"Position z={z} is not covered by any layer!")
+
+        if isinstance(position, list) or position.ndim == 1:
+            return n_of_z(position[2])
+        else:
+            return np.array([n_of_z(z) for z in position[:,2]])
+        
+    def get_layer_name(self, z):
+        """
+        Return the name of the layer at a given depth.
+
+        Parameters
+        ----------
+        z : float
+            Depth coordinate.
+
+        Returns
+        -------
+        str
+            Name of the layer containing the given depth.
+
+        Raises
+        ------
+        ValueError
+            If the depth is not covered by any layer.
+        """
+        for L in self.layers:
+            if L["z_min"] <= z < L["z_max"]:
+                return L["region_name"]
+        raise ValueError(f"Position z={z} is not covered by any layer!")
+    
+    @property        
+    def get_layers_array(self):
+        """
+        Get layer parameters as NumPy arrays.
+
+        Returns
+        -------
+        tuple of ndarray
+            See the internal method _layers_to_arrays for details.
+        """
+        return self._layers_arr
+            
+    
+
+class IceModelBirefringence(IceModelExpLayers):
     """
     predefined birefringence ice model (to inherit from) including different indieces of refraction for differnt directions
     """
@@ -827,215 +1039,3 @@ if radiopropa_is_imported:
             pos = np.array([position.x, position.y, position.z]) / nu2rp_meter
             gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos) / nu2rp_meter
             return RP.Vector3d(*gradient)
-
-class IceModelExpLayers(IceModel):
-    """
-    Medium model consisting of multiple exponential layers.
-
-    This class represents a stratified medium where each layer has a
-    refractive index profile described by an exponential function like this:
-
-    n(z) = n_ice - delta_n * exp(z / z_0)
-
-    It is designed for use with the multilayer analytic ray tracer.
-
-    Parameters
-    ----------
-    layers : list of dict
-        List of layer definitions. Each layer must be a dictionary
-        containing the following keys:
-
-        - ``"z_min"`` : float
-            Lower boundary of the layer (depth).
-        - ``"z_max"`` : float
-            Upper boundary of the layer (depth).
-        - ``"n_ice"`` : float
-            Asymptotic refractive index of the layer.
-        - ``"delta_n"`` : float
-            Factor defining the steepness of the refractive index change.
-        - ``"z_0"`` : float
-            Exponential scale depth, defining the vertival location of the change.
-        - ``"region_name"`` : str
-            Name/identifier of the layer.
-
-    Notes
-    -----
-    Layers are automatically sorted by decreasing ``z_min`` and validated
-    to ensure continuous boundaries between adjacent layers.
-    """
-    def __init__(self, layers):
-        """
-        Initialize the multilayer ice model.
-
-        Parameters
-        ----------
-        layers : list of dict
-            Layer definitions (see class docstring).
-        """
-        self._set_layers(layers)
-
-    def _set_layers(self, layers):
-        """
-        Setting refractive index layer definitions
-
-        Layers get sorted and validated and a numba compatible array is provided
-        
-        Parameters
-        ----------
-        layers : list of dict
-            Layer definitions (see class docstring).
-        """
-        self.layers = sorted(layers, key=lambda L: L["z_min"],reverse = True)
-        self._validate_layers()
-
-        self._layers_arr = self._layers_to_arrays()
-
-    def _validate_layers(self):
-        """
-        Validate layer continuity.
-
-        Ensures that adjacent layers have matching boundaries, i.e.,
-        the lower boundary of one layer coincides with the upper
-        boundary of the next layer.
-
-        Raises
-        ------
-        ValueError
-            If any two adjacent layers do not form a continuous boundary (which would cause undefined z regions) or the definition is inconsistent.
-        """
-        for i in range(len(self.layers) - 1):
-            if not np.isclose(self.layers[i]["z_min"], self.layers[i+1]["z_max"]):
-                raise ValueError(f"Layers {i} and {i+1} don't overlap, boundaries are not continuous! Check definition!")
-            
-        z_min = np.asarray([layer["z_min"] for layer in self.layers], dtype=float)
-        z_max = np.asarray([layer["z_max"] for layer in self.layers], dtype=float)
-        n_ice = np.asarray([layer["n_ice"] for layer in self.layers], dtype=float)
-        delta_n = np.asarray([layer["delta_n"] for layer in self.layers], dtype=float)
-        z0 = np.asarray([layer["z_0"] for layer in self.layers], dtype=float)
-
-        n = len(z_min)
-
-        # --- Length consistency check ---
-        if not (len(z_max) == len(n_ice) == len(delta_n) == len(z0) == n):
-            raise ValueError("All layer parameter arrays must have the same length. Did you forget to specify something?")
-
-    def _layers_to_arrays(self):
-        """
-        Convert layer definitions to NumPy arrays.
-
-        The Numba-based ray tracing implementation requires all layer
-        parameters to be stored in contiguous NumPy arrays instead of
-        Python dictionaries. This method performs that conversion.
-
-        Returns
-        -------
-        tuple of ndarray
-            Tuple containing:
-
-            z_min : ndarray
-                Lower boundary of each layer (depth).
-
-            z_max : ndarray
-                Upper boundary of each layer (depth).
-
-            n_ice : ndarray
-                Asymptotic refractive index of each layer.
-
-            delta_n : ndarray
-                Steepness of the refractive index change of each layer.
-
-            z0 : ndarray
-                Exponential scale depth of each layer.
-        """
-        n = len(self.layers)
-        z_min = np.zeros(n)
-        z_max = np.zeros(n)
-        n_ice = np.zeros(n)
-        delta_n = np.zeros(n)
-        z0 = np.zeros(n)
-
-        for i, L in enumerate(self.layers):
-            z_min[i] = L["z_min"]
-            z_max[i] = L["z_max"]
-            n_ice[i] = L["n_ice"]
-            delta_n[i] = L["delta_n"]
-            z0[i] = L["z_0"]
-
-        return z_min, z_max, n_ice, delta_n, z0
-
-    def get_index_of_refraction(self, position):
-        """
-        Compute the refractive index at a given position.
-
-        According to n(z) = n_ice - delta_n * exp(z / z_0), using the layer parameters corresponding to a given z.
-
-        Parameters
-        ----------
-        position : array-like
-            Position(s) at which to evaluate the refractive index.
-            Can be either:
-
-            - 1D array-like of shape (3,)
-            - 2D array-like of shape (N, 3)
-
-            The third component (``z``) is used for evaluation.
-
-        Returns
-        -------
-        float or ndarray
-            Refractive index at the given position(s). Returns a scalar
-            for a single position or an array for multiple positions.
-
-        Raises
-        ------
-        ValueError
-            If a position lies outside all defined layers.
-        """
-        def n_of_z(z):
-            for L in self.layers:
-                if L["z_min"] <= z < L["z_max"]:
-                    return L["n_ice"] - L["delta_n"] * np.exp(z / L["z_0"])
-            raise ValueError(f"Position z={z} is not covered by any layer!")
-
-        if isinstance(position, list) or position.ndim == 1:
-            return n_of_z(position[2])
-        else:
-            return np.array([n_of_z(z) for z in position[:,2]])
-        
-    def get_layer_name(self, z):
-        """
-        Return the name of the layer at a given depth.
-
-        Parameters
-        ----------
-        z : float
-            Depth coordinate.
-
-        Returns
-        -------
-        str
-            Name of the layer containing the given depth.
-
-        Raises
-        ------
-        ValueError
-            If the depth is not covered by any layer.
-        """
-        for L in self.layers:
-            if L["z_min"] <= z < L["z_max"]:
-                return L["region_name"]
-        raise ValueError(f"Position z={z} is not covered by any layer!")
-    
-    @property        
-    def get_layers_array(self):
-        """
-        Get layer parameters as NumPy arrays.
-
-        Returns
-        -------
-        tuple of ndarray
-            See the internal method _layers_to_arrays for details.
-        """
-        return self._layers_arr
-            
-    

@@ -56,7 +56,7 @@ in the a RadioPropaIceWrapper object, you can do this by redefining the
 """
 
 
-class southpole_simple_simple(medium_base.IceModelSimple):
+class southpole_simple_old(medium_base.IceModelSimple):
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 RICE2014/SP model
         # define model parameters (RICE 2014/southpole)
@@ -68,7 +68,7 @@ class southpole_simple_simple(medium_base.IceModelSimple):
             )
 
 
-class southpole_2015_simple(medium_base.IceModelSimple):
+class southpole_2015_old(medium_base.IceModelSimple):
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 SPICE2015/SP model
         super().__init__(
@@ -79,7 +79,7 @@ class southpole_2015_simple(medium_base.IceModelSimple):
             )
 
 
-class ARAsim_southpole_simple(medium_base.IceModelSimple):
+class ARAsim_southpole_old(medium_base.IceModelSimple):
     def __init__(self):
         # define model parameters (SPICE 2015/southpole)
         super().__init__(
@@ -91,7 +91,7 @@ class ARAsim_southpole_simple(medium_base.IceModelSimple):
 
 
 
-class ARA_2022(medium_base.IceModelSimple):
+class ARA_2022_old(medium_base.IceModelSimple):
     def __init__(self):
         # define model parameters (ARA/southpole) -> https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006
         super().__init__(
@@ -114,7 +114,7 @@ class birefringence_medium(medium_base.IceModelBirefringence):
         filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/birefringence_' + bir_model + '.npy'
         return np.load(filepath, allow_pickle=True)
 
-class mooresbay_simple(medium_base.IceModelSimple):
+class mooresbay_simple_old(medium_base.IceModelSimple):
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 MB1 model
         super().__init__(
@@ -131,7 +131,7 @@ class mooresbay_simple(medium_base.IceModelSimple):
             )
 
 
-class mooresbay_simple_2(medium_base.IceModelSimple):
+class mooresbay_simple_2_old(medium_base.IceModelSimple):
     def __init__(self):\
         # from https://doi.org/10.1088/1475-7516/2018/07/055 MB2 model
         super().__init__(
@@ -148,7 +148,7 @@ class mooresbay_simple_2(medium_base.IceModelSimple):
             )
 
 
-class greenland_simple_simple(medium_base.IceModelSimple):
+class greenland_simple_old(medium_base.IceModelSimple):
     def __init__(self):
         # from C. Deaconu, fit to data from Hawley '08, Alley '88
         # rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0
@@ -594,3 +594,179 @@ class southpole_2015(medium_base.IceModelExpLayers):
         ]
 
         super().__init__(layers=layers)
+
+class ARAsim_southpole(medium_base.IceModelExpLayers):
+
+    def __init__(self):
+
+        # SPICE 2015 / South Pole
+        z_bottom = -2820 * units.meter
+        n_ice = 1.78
+        z_0 = 75.75757575757576 * units.meter
+        delta_n = 0.43
+
+        # backwards compatibility with IceModelSimple API
+        self.n_ice = n_ice
+        self.delta_n = delta_n
+        self.z_0 = z_0
+        self.z_shift = 0 * units.meter
+
+        layers = [
+            {
+                "z_min": 0.0,
+                "z_max": np.inf,
+                "n_ice": 1.00027,
+                "delta_n": 2.7e-4,
+                "z_0": -8000.0,
+                "region": "air",
+                "region_name": "Air"
+            },
+            {
+                "z_min": z_bottom,
+                "z_max": 0.0,
+                "n_ice": n_ice,
+                "delta_n": delta_n,
+                "z_0": z_0,
+                "region": "ice",
+                "region_name": "Ice"
+            }
+        ]
+
+        super().__init__(
+            layers=layers,
+            z_bottom=z_bottom
+        )
+
+class ARA_2022(medium_base.IceModelExpLayers):
+
+    def __init__(self):
+
+        # ARA South Pole model
+        # https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006
+
+        z_bottom = -2820 * units.meter
+        n_ice = 1.78
+        z_0 = 49.5049505 * units.meter
+        delta_n = 0.454
+
+        # backwards compatibility with IceModelSimple API
+        self.n_ice = n_ice
+        self.delta_n = delta_n
+        self.z_0 = z_0
+        self.z_shift = 0 * units.meter
+
+        layers = [
+            {
+                "z_min": 0.0,
+                "z_max": np.inf,
+                "n_ice": 1.00027,
+                "delta_n": 2.7e-4,
+                "z_0": -8000.0,
+                "region": "air",
+                "region_name": "Air"
+            },
+            {
+                "z_min": z_bottom,
+                "z_max": 0.0,
+                "n_ice": n_ice,
+                "delta_n": delta_n,
+                "z_0": z_0,
+                "region": "ice",
+                "region_name": "Ice"
+            }
+        ]
+
+        super().__init__(
+            layers=layers,
+            z_bottom=z_bottom
+        )
+
+class mooresbay_simple(medium_base.IceModelExpLayers):
+
+    def __init__(self):
+
+        # MB1 model
+        # https://doi.org/10.1088/1475-7516/2018/07/055
+
+        z_bottom = -576 * units.meter
+        n_ice = 1.78
+        z_0 = 34.5 * units.meter
+        delta_n = 0.46
+
+        # backwards compatibility with IceModelSimple API
+        self.n_ice = n_ice
+        self.delta_n = delta_n
+        self.z_0 = z_0
+        self.z_shift = 0 * units.meter
+
+        layers = [
+            {
+                "z_min": 0.0,
+                "z_max": np.inf,
+                "n_ice": 1.00027,
+                "delta_n": 2.7e-4,
+                "z_0": -8000.0,
+                "region": "air",
+                "region_name": "Air"
+            },
+            {
+                "z_min": z_bottom,
+                "z_max": 0.0,
+                "n_ice": n_ice,
+                "delta_n": delta_n,
+                "z_0": z_0,
+                "region": "ice",
+                "region_name": "Ice"
+            }
+        ]
+
+        super().__init__(
+            layers=layers,
+            z_bottom=z_bottom
+        )
+
+class mooresbay_simple_2(medium_base.IceModelExpLayers):
+
+    def __init__(self):
+
+        # MB2 model
+        # https://doi.org/10.1088/1475-7516/2018/07/055
+
+        z_bottom = -576 * units.meter
+        n_ice = 1.78
+        z_0 = 37.0 * units.meter
+        delta_n = 0.481
+
+        # backwards compatibility with IceModelSimple API
+        self.n_ice = n_ice
+        self.delta_n = delta_n
+        self.z_0 = z_0
+        self.z_shift = 0 * units.meter
+
+        layers = [
+            {
+                "z_min": 0.0,
+                "z_max": np.inf,
+                "n_ice": 1.00027,
+                "delta_n": 2.7e-4,
+                "z_0": -8000.0,
+                "region": "air",
+                "region_name": "Air"
+            },
+            {
+                "z_min": z_bottom,
+                "z_max": 0.0,
+                "n_ice": n_ice,
+                "delta_n": delta_n,
+                "z_0": z_0,
+                "region": "ice",
+                "region_name": "Ice"
+            }
+        ]
+
+        super().__init__(
+            layers=layers,
+            z_bottom=z_bottom
+        )
+
+
