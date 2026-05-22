@@ -1906,7 +1906,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
         
     return sorted(results, key=itemgetter('type', 'C0'))
 
-def reduce_solutions(results,tol = 1e-3):
+def reduce_solutions(results, with_air=False, tol = 1e-3):
     """
     Reduce a list of ray-tracing solutions by removing numerically
     equivalent solutions and limiting the total number of returned
@@ -1938,7 +1938,7 @@ def reduce_solutions(results,tol = 1e-3):
 
     for r in results:
 
-        key = int(r['C0'] / tol)
+        key = round(r['C0'] / tol)
 
         # keep result with lower flag
         if key not in unique_results or r['flag'] < unique_results[key]['flag']:
@@ -1946,8 +1946,14 @@ def reduce_solutions(results,tol = 1e-3):
 
     results = sorted(unique_results.values(), key=itemgetter('type', 'C0'))
 
+    if with_air:
+        results = max(results, key=itemgetter('C0'))
+        return [results]
+
     if len(results) > 2: # keep results with higher C0 (sometimes numerical issues result in wrong solutions with low C0)
         results = sorted(results, key=itemgetter('C0'))[-2:]
+    
+    results = sorted(results, key=itemgetter('type', 'C0'))
 
     return results
 
@@ -3271,8 +3277,11 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         # Since no approach or set of starting parameters was found to work universally, we use the different solutions 
         # find_solutions_bulk (more stable for rays when z1=z2) and find_solutions (more stable when crossing layer with jump in n(z)) are used dependent on the situation.
         
+        with_air = False
+        if x1[1]>0 or x2[1]>0:
+            with_air = True
 
-        if x1[1]>0 or x2[1]>0 or np.abs(x2[0]-x1[0]) < 5*units.m:
+        if with_air or np.abs(x2[0]-x1[0]) < 5*units.m:
             solutions = find_solutions(x1, x2, self._layers_arr)
             if len(solutions) == 0: # If no solutions have been found, try again with other 
                 solutions = find_solutions_bulk(x1, x2, self._layers_arr)
@@ -3289,17 +3298,21 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             )
         
 
-        if reduce is True: 
+        if reduce: 
             # reducing solutions to only two. 
             # highest two C0 are used to avoid wrong solutions that might have been found in the find_solutions_bulk
             try:
-                solutions_reduced = reduce_solutions(solutions)
+                solutions_reduced = reduce_solutions(solutions, with_air)
             except Exception:
                 return solutions
             
             return solutions_reduced
     
         return solutions
+    
+    def get_refractive_index(self, x1):
+        n_z = get_refractive_index(x1[1],self._layers_arr)
+        return n_z
 
     #@log_timing()
     def get_travel_time_analytic(self, x1, x2, C0, *_, **__):
@@ -3312,7 +3325,8 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         if solution_type == solution_types_revert['direct']:
 
             direct_len = np.sqrt((x2[0]-x1[0])**2 + (x2[1]-x1[1])**2) * units.m
-            direct_time_lightspeed = direct_len / constants.c
+            n_z1 = self.get_refractive_index(x1)
+            direct_time_lightspeed = direct_len * n_z1 / constants.c
 
             if travel_time > direct_time_lightspeed * 2: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier) 
                 return None
