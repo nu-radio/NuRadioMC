@@ -268,6 +268,7 @@ class FTNoisePool:
             if f.startswith(f"station{station_id}_run") and f.endswith(".root")
         ])
         self._rng.shuffle(self._ft_files)
+        print(f"\nFTNoisePool: found {len(self._ft_files)} ROOT files in {ft_dir} for station {station_id}\n   shuffeled)")
 
         if not self._ft_files:
             raise FileNotFoundError(
@@ -449,7 +450,7 @@ def forced_trigger_injection(event,station,detector,**kwargs):
     n_up = int(round(2048 * (5.0 / 3.2)))  # 3200 samples per FT event at 5 GHz
     stride = n_up - TILE_OVERLAP
     n_tiles = max(1, math.ceil(n_internal / stride))
-    print(f"Injecting FT noise: n_internal={n_internal}, n_up={n_up}, stride={stride}, n_tiles={n_tiles}")
+    # print(f"Injecting FT noise: n_internal={n_internal}, n_up={n_up}, stride={stride}, n_tiles={n_tiles}")
 
     # Pop n_tiles FT events (each has all 24 channels)
     global _last_ft_events
@@ -477,7 +478,7 @@ def forced_trigger_injection(event,station,detector,**kwargs):
                 trig_ch = channel.get_trigger_channel()
                 trig_trace = trig_ch.get_trace()
                 n_trig = len(trig_trace)
-                print("n_trig", n_trig, "n_internal", n_internal,"start time", trig_ch.get_trace_start_time()/units.ns,"ns")
+                # print("n_trig", n_trig, "n_internal", n_internal,"start time", trig_ch.get_trace_start_time()/units.ns,"ns")
 
                 # Transform FT noise from readout path to trigger
                 # path using hardware response ratio. FT noise has
@@ -507,9 +508,9 @@ def resampler_with_noise_and_clip(event, station, detector, **kwargs):
         # _noise_importer.run(event, station, detector)
         _noise = _ft_noise_pool.get_noise_event()
         for channel in station.iter_channels():
-            print("channel sampling rate", channel.get_sampling_rate()/units.GHz,"GHz ,lenght",channel.get_trace().shape)
-            print("trace start time (ns)", channel.get_trace_start_time()/units.ns,"ns")
-            print("trace length (ns)", len(channel.get_trace())/channel.get_sampling_rate()/units.ns,"ns")
+            # print("channel sampling rate", channel.get_sampling_rate()/units.GHz,"GHz ,lenght",channel.get_trace().shape)
+            # print("trace start time (ns)", channel.get_trace_start_time()/units.ns,"ns")
+            # print("trace length (ns)", len(channel.get_trace())/channel.get_sampling_rate()/units.ns,"ns")
             trace = channel.get_trace()
             if has_triggered:
                 channel.set_trace(
@@ -733,7 +734,7 @@ if __name__ == "__main__":
                 print("trigger_noise_vrms from Temperature:", trigger_noise_vrms)
                 rnog_flower_board_high_low_trigger_simulations(
                     event, station, det_rnog, trigger_channels=trigger_channels,
-                    trigger_channel_noise_vrms=list(TRIGGER_VRMS_FT.values())
+                    trigger_channel_noise_vrms=list(TRIGGER_VRMS_FT.values()),
                     high_low_trigger_thresholds=thresholds)
                 print('triggered?:',station.has_triggered())
                 channelReadoutWindowCutter.run(event, station, det_rnog)
