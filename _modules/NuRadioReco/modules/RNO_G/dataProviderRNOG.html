@@ -702,12 +702,17 @@
 <span class="sd">        files: list of str</span>
 <span class="sd">            List of files to read (are passed to the readRNOGDataMattak module).</span>
 <span class="sd">        det: Detector</span>
-<span class="sd">            Detector object.</span>
+<span class="sd">            The detector object is used to retrieve the cable delays for the channelAddCableDelay module. </span>
+<span class="sd">            If set to None, channelAddCableDelay module will be skipped and no cable delays will be added.</span>
+<span class="sd">            channelGlitchDetector and channelBlockOffsetFitter do not use the detector object, so they will run regardless of whether the detector object is set or not.</span>
 <span class="sd">        reader_kwargs: dict (default: {})</span>
 <span class="sd">            Keyword arguments passed to the reader module `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">files</span> <span class="o">=</span> <span class="n">files</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">detector</span> <span class="o">=</span> <span class="n">det</span>
+        
+        <span class="k">if</span> <span class="n">det</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The detector object is not set. Cable delays will not be added.&quot;</span><span class="p">)</span>
 
         <span class="n">apply_baseline_correction</span> <span class="o">=</span> <span class="n">reader_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;apply_baseline_correction&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -747,11 +752,16 @@
 
             <span class="c1"># This will throw an error if the event has more than one station</span>
             <span class="n">station</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_station_time</span><span class="p">())</span>
+            
+            <span class="c1"># Detector object is not used in the channelBlockOffsetFitter and channelGlitchDetector, so we set it to None to avoid confusion.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channelBlockOffsetFitter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channelGlitchDetector</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">channelBlockOffsetFitter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">channelGlitchDetector</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">channelCableDelayAdder</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;subtract&#39;</span><span class="p">)</span>
+            <span class="c1"># channelCableDelayAdder needs the detector object to retrieve the cable delays. </span>
+            <span class="c1"># If the detector object is not set, we skip this step and do not add/subtract cable delays.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_station_time</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channelCableDelayAdder</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;subtract&#39;</span><span class="p">)</span>
 
             <span class="k">yield</span> <span class="n">event</span></div>
 </div>

@@ -702,7 +702,9 @@ based on the mattak package (<a class="reference external" href="https://github.
 <dd class="field-odd"><dl class="simple">
 <dt><strong>files: list of str</strong></dt><dd><p>List of files to read (are passed to the readRNOGDataMattak module).</p>
 </dd>
-<dt><strong>det: Detector</strong></dt><dd><p>Detector object.</p>
+<dt><strong>det: Detector</strong></dt><dd><p>The detector object is used to retrieve the cable delays for the channelAddCableDelay module. 
+If set to None, channelAddCableDelay module will be skipped and no cable delays will be added.
+channelGlitchDetector and channelBlockOffsetFitter do not use the detector object, so they will run regardless of whether the detector object is set or not.</p>
 </dd>
 <dt><strong>reader_kwargs: dict (default: {})</strong></dt><dd><p>Keyword arguments passed to the reader module <a class="reference internal" href="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#module-NuRadioReco.modules.io.RNO_G.readRNOGDataMattak" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak</span></code></a>.</p>
 </dd>
