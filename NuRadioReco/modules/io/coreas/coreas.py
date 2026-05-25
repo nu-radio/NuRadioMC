@@ -497,9 +497,6 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None, detector=None)
                 except Exception:
                     station_abs_pos = np.zeros(3)
 
-            if station_abs_pos is None:
-                station_abs_pos = np.zeros(3)
-
             for observer in sim_station.get_electric_fields():
                 ef_rate = observer.get_sampling_rate()
                 if sampling_rate is None:
