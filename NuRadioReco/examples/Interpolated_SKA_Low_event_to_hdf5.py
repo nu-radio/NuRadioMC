@@ -1,3 +1,9 @@
+"""
+An example showing how to use the new write_CORSIKA7() function which stores an event as a hdf5 file.
+Bellow shows an example of a EAS simulation on the star-shape which gets turned into an interpolated event to the detector (the freq. limits are for SKA-Low).
+This returns both the new hdf5 file and an example plot showing both the original star-shape simulation and then the new event.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
