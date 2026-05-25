@@ -684,7 +684,8 @@
 <span class="sd">    base class to store different triggers</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
+                 <span class="n">sample_block_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gaussian_jitter</span><span class="o">=</span><span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initialize trigger class</span>
 
@@ -701,6 +702,15 @@
 <span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
 <span class="sd">            start of the trace and the trigger time.</span>
 <span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
+<span class="sd">        sample_block_size: int</span>
+<span class="sd">            range of the uniform integer jitter (in samples) caused by the</span>
+<span class="sd">            readout window being collected in sample blocks.</span>
+<span class="sd">            An integer is drawn from ``[-sample_block_size / 2, sample_block_size / 2)``.</span>
+<span class="sd">            Default: 0 samples(no block jitter)</span>
+<span class="sd">        gaussian_jitter: positive int or float</span>
+<span class="sd">            standard deviation of a Gaussian time smear applied to the</span>
+<span class="sd">            readout window position (in samples, note check the sampling rate of the detector).</span>
+<span class="sd">            Default: 0 samples (no Gaussian jitter)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
@@ -712,6 +722,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered_channels</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span> <span class="o">=</span> <span class="n">pre_trigger_times</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_primary_trigger</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sample_block_size</span> <span class="o">=</span> <span class="n">sample_block_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gaussian_jitter</span> <span class="o">=</span> <span class="n">gaussian_jitter</span>
 
 <div class="viewcode-block" id="Trigger.set_primary">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_primary">[docs]</a>
@@ -908,6 +920,41 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span></div>
+
+
+<div class="viewcode-block" id="Trigger.set_jitter_params">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_jitter_params">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_jitter_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_block_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gaussian_jitter</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the readout-window jitter parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sample_block_size : int</span>
+<span class="sd">            Range of the uniform integer jitter (in samples) caused by the</span>
+<span class="sd">            readout window being collected in sample blocks.</span>
+<span class="sd">            Default: 0 (no block jitter)</span>
+<span class="sd">        gaussian_jitter : float</span>
+<span class="sd">            Standard deviation of a Gaussian time smear applied to the</span>
+<span class="sd">            readout window position (in NuRadioReco time units).</span>
+<span class="sd">            Default: 0 (no Gaussian jitter)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sample_block_size</span> <span class="o">=</span> <span class="n">sample_block_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gaussian_jitter</span> <span class="o">=</span> <span class="n">gaussian_jitter</span></div>
+
+
+<div class="viewcode-block" id="Trigger.get_sample_block_size">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_sample_block_size">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sample_block_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the sample block size for readout-window jitter.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_block_size</span></div>
+
+
+<div class="viewcode-block" id="Trigger.get_gaussian_jitter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_gaussian_jitter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_gaussian_jitter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the Gaussian jitter spread for readout-window jitter.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gaussian_jitter</span></div>
 
 
 <div class="viewcode-block" id="Trigger.serialize">

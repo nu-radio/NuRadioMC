@@ -1857,6 +1857,8 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_rnd</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">Philox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;seed&#39;</span><span class="p">]))</span>
 
+        <span class="n">channelReadoutWindowCutter</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">random_seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;seed&#39;</span><span class="p">])</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_outputfilename</span> <span class="o">=</span> <span class="n">outputfilename</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outputfilename</span><span class="p">):</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;hdf5 output file </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_outputfilename</span><span class="si">}</span><span class="s2"> already exists&quot;</span>
@@ -2385,6 +2387,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_output_writer_hdf5</span><span class="o">.</span><span class="n">calculate_Veff</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_writer_hdf5</span><span class="o">.</span><span class="n">write_output_file</span><span class="p">():</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No events were triggered. Writing empty HDF5 output file.&quot;</span><span class="p">)</span>
+            
             <span class="bp">self</span><span class="o">.</span><span class="n">_output_writer_hdf5</span><span class="o">.</span><span class="n">write_empty_output_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">i_triggered_events</span></div>

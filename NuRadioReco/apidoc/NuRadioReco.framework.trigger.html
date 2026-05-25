@@ -649,20 +649,26 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.Trigger">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.trigger.</span></span><span class="sig-name descname"><span class="pre">Trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_trigger_times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">55</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#Trigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.Trigger" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.trigger.</span></span><span class="sig-name descname"><span class="pre">Trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_trigger_times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">55</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_jitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#Trigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.Trigger" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>base class to store different triggers</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_name" title="NuRadioReco.framework.trigger.Trigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_gaussian_jitter" title="NuRadioReco.framework.trigger.Trigger.get_gaussian_jitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaussian_jitter</span></code></a>()</p></td>
+<td><p>Return the Gaussian jitter spread for readout-window jitter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_name" title="NuRadioReco.framework.trigger.Trigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
 <td><p>get trigger name</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.Trigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.Trigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
 <td><p>get the trigger time for a specific channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_sample_block_size" title="NuRadioReco.framework.trigger.Trigger.get_sample_block_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sample_block_size</span></code></a>()</p></td>
+<td><p>Return the sample block size for readout-window jitter.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
 <td><p>Get the trigger time.</p></td>
@@ -682,22 +688,25 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.is_primary" title="NuRadioReco.framework.trigger.Trigger.is_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_primary</span></code></a>()</p></td>
 <td><p>return True if this trigger is the primary trigger</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_jitter_params" title="NuRadioReco.framework.trigger.Trigger.set_jitter_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_jitter_params</span></code></a>([sample_block_size, ...])</p></td>
+<td><p>Set the readout-window jitter parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
 <td><p>Set the pre-trigger times</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_primary" title="NuRadioReco.framework.trigger.Trigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_primary" title="NuRadioReco.framework.trigger.Trigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
 <td><p>set the trigger to be the primary trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_trigger_time" title="NuRadioReco.framework.trigger.Trigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_trigger_time" title="NuRadioReco.framework.trigger.Trigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
 <td><p>set the trigger time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_trigger_times" title="NuRadioReco.framework.trigger.Trigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_trigger_times" title="NuRadioReco.framework.trigger.Trigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
 <td><p>set the trigger times</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_triggered" title="NuRadioReco.framework.trigger.Trigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_triggered" title="NuRadioReco.framework.trigger.Trigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.show" title="NuRadioReco.framework.trigger.Trigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.show" title="NuRadioReco.framework.trigger.Trigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
 <td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
@@ -733,20 +742,35 @@ if a dict is given, the keys are the channel_ids, and the value is the pre_trigg
 start of the trace and the trigger time.
 if only a float is given, the same pre_trigger_time is used for all channels</p>
 </dd>
+<dt><strong>sample_block_size: int</strong></dt><dd><p>range of the uniform integer jitter (in samples) caused by the
+readout window being collected in sample blocks.
+An integer is drawn from <code class="docutils literal notranslate"><span class="pre">[-sample_block_size</span> <span class="pre">/</span> <span class="pre">2,</span> <span class="pre">sample_block_size</span> <span class="pre">/</span> <span class="pre">2)</span></code>.
+Default: 0 samples(no block jitter)</p>
+</dd>
+<dt><strong>gaussian_jitter: positive int or float</strong></dt><dd><p>standard deviation of a Gaussian time smear applied to the
+readout window position (in samples, note check the sampling rate of the detector).
+Default: 0 samples (no Gaussian jitter)</p>
+</dd>
 </dl>
 </dd>
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_name" title="NuRadioReco.framework.trigger.Trigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_gaussian_jitter" title="NuRadioReco.framework.trigger.Trigger.get_gaussian_jitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaussian_jitter</span></code></a>()</p></td>
+<td><p>Return the Gaussian jitter spread for readout-window jitter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_name" title="NuRadioReco.framework.trigger.Trigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
 <td><p>get trigger name</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.Trigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.Trigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
 <td><p>get the trigger time for a specific channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_sample_block_size" title="NuRadioReco.framework.trigger.Trigger.get_sample_block_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sample_block_size</span></code></a>()</p></td>
+<td><p>Return the sample block size for readout-window jitter.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
 <td><p>Get the trigger time.</p></td>
@@ -766,22 +790,25 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.is_primary" title="NuRadioReco.framework.trigger.Trigger.is_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_primary</span></code></a>()</p></td>
 <td><p>return True if this trigger is the primary trigger</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_jitter_params" title="NuRadioReco.framework.trigger.Trigger.set_jitter_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_jitter_params</span></code></a>([sample_block_size, ...])</p></td>
+<td><p>Set the readout-window jitter parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
 <td><p>Set the pre-trigger times</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_primary" title="NuRadioReco.framework.trigger.Trigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_primary" title="NuRadioReco.framework.trigger.Trigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
 <td><p>set the trigger to be the primary trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_trigger_time" title="NuRadioReco.framework.trigger.Trigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_trigger_time" title="NuRadioReco.framework.trigger.Trigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
 <td><p>set the trigger time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_trigger_times" title="NuRadioReco.framework.trigger.Trigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_trigger_times" title="NuRadioReco.framework.trigger.Trigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
 <td><p>set the trigger times</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_triggered" title="NuRadioReco.framework.trigger.Trigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_triggered" title="NuRadioReco.framework.trigger.Trigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.show" title="NuRadioReco.framework.trigger.Trigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.show" title="NuRadioReco.framework.trigger.Trigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
 <td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
@@ -985,6 +1012,38 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.Trigger.set_jitter_params">
+<span class="sig-name descname"><span class="pre">set_jitter_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_jitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#Trigger.set_jitter_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.Trigger.set_jitter_params" title="Link to this definition"></a></dt>
+<dd><p>Set the readout-window jitter parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sample_block_size</strong><span class="classifier">int</span></dt><dd><p>Range of the uniform integer jitter (in samples) caused by the
+readout window being collected in sample blocks.
+Default: 0 (no block jitter)</p>
+</dd>
+<dt><strong>gaussian_jitter</strong><span class="classifier">float</span></dt><dd><p>Standard deviation of a Gaussian time smear applied to the
+readout window position (in NuRadioReco time units).
+Default: 0 (no Gaussian jitter)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.Trigger.get_sample_block_size">
+<span class="sig-name descname"><span class="pre">get_sample_block_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#Trigger.get_sample_block_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.Trigger.get_sample_block_size" title="Link to this definition"></a></dt>
+<dd><p>Return the sample block size for readout-window jitter.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.Trigger.get_gaussian_jitter">
+<span class="sig-name descname"><span class="pre">get_gaussian_jitter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#Trigger.get_gaussian_jitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.Trigger.get_gaussian_jitter" title="Link to this definition"></a></dt>
+<dd><p>Return the Gaussian jitter spread for readout-window jitter.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.Trigger.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#Trigger.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.Trigger.serialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -1053,14 +1112,20 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_name" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_gaussian_jitter" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_gaussian_jitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaussian_jitter</span></code></a>()</p></td>
+<td><p>Return the Gaussian jitter spread for readout-window jitter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_name" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
 <td><p>get trigger name</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
 <td><p>get the trigger time for a specific channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_sample_block_size" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_sample_block_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sample_block_size</span></code></a>()</p></td>
+<td><p>Return the sample block size for readout-window jitter.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
 <td><p>Get the trigger time.</p></td>
@@ -1080,22 +1145,25 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.is_primary" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.is_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_primary</span></code></a>()</p></td>
 <td><p>return True if this trigger is the primary trigger</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_jitter_params" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_jitter_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_jitter_params</span></code></a>([sample_block_size, ...])</p></td>
+<td><p>Set the readout-window jitter parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
 <td><p>Set the pre-trigger times</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_primary" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_primary" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
 <td><p>set the trigger to be the primary trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
 <td><p>set the trigger time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
 <td><p>set the trigger times</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_triggered" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_triggered" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.show" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.show" title="NuRadioReco.framework.trigger.SimpleThresholdTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
 <td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
@@ -1120,6 +1188,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimpleThresholdTrigger.deserialize">
 <span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.deserialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_gaussian_jitter">
+<span class="sig-name descname"><span class="pre">get_gaussian_jitter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_gaussian_jitter" title="Link to this definition"></a></dt>
+<dd><p>Return the Gaussian jitter spread for readout-window jitter.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_name">
@@ -1163,6 +1237,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_sample_block_size">
+<span class="sig-name descname"><span class="pre">get_sample_block_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.get_sample_block_size" title="Link to this definition"></a></dt>
+<dd><p>Return the sample block size for readout-window jitter.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1249,6 +1329,26 @@ Note that the trigger times are defined relative to the
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimpleThresholdTrigger.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.serialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_jitter_params">
+<span class="sig-name descname"><span class="pre">set_jitter_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_jitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_jitter_params" title="Link to this definition"></a></dt>
+<dd><p>Set the readout-window jitter parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sample_block_size</strong><span class="classifier">int</span></dt><dd><p>Range of the uniform integer jitter (in samples) caused by the
+readout window being collected in sample blocks.
+Default: 0 (no block jitter)</p>
+</dd>
+<dt><strong>gaussian_jitter</strong><span class="classifier">float</span></dt><dd><p>Standard deviation of a Gaussian time smear applied to the
+readout window position (in NuRadioReco time units).
+Default: 0 (no Gaussian jitter)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimpleThresholdTrigger.set_pre_trigger_times">
@@ -1376,14 +1476,20 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_name" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_gaussian_jitter" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_gaussian_jitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaussian_jitter</span></code></a>()</p></td>
+<td><p>Return the Gaussian jitter spread for readout-window jitter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_name" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
 <td><p>get trigger name</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
 <td><p>get the trigger time for a specific channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_sample_block_size" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_sample_block_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sample_block_size</span></code></a>()</p></td>
+<td><p>Return the sample block size for readout-window jitter.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
 <td><p>Get the trigger time.</p></td>
@@ -1403,22 +1509,25 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.is_primary" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.is_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_primary</span></code></a>()</p></td>
 <td><p>return True if this trigger is the primary trigger</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_jitter_params" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_jitter_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_jitter_params</span></code></a>([sample_block_size, ...])</p></td>
+<td><p>Set the readout-window jitter parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
 <td><p>Set the pre-trigger times</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_primary" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_primary" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
 <td><p>set the trigger to be the primary trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
 <td><p>set the trigger time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
 <td><p>set the trigger times</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_triggered" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_triggered" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.show" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.show" title="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
 <td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
@@ -1443,6 +1552,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.deserialize">
 <span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.deserialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_gaussian_jitter">
+<span class="sig-name descname"><span class="pre">get_gaussian_jitter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_gaussian_jitter" title="Link to this definition"></a></dt>
+<dd><p>Return the Gaussian jitter spread for readout-window jitter.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_name">
@@ -1486,6 +1601,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_sample_block_size">
+<span class="sig-name descname"><span class="pre">get_sample_block_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.get_sample_block_size" title="Link to this definition"></a></dt>
+<dd><p>Return the sample block size for readout-window jitter.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1572,6 +1693,26 @@ Note that the trigger times are defined relative to the
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.serialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_jitter_params">
+<span class="sig-name descname"><span class="pre">set_jitter_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_jitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_jitter_params" title="Link to this definition"></a></dt>
+<dd><p>Set the readout-window jitter parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sample_block_size</strong><span class="classifier">int</span></dt><dd><p>Range of the uniform integer jitter (in samples) caused by the
+readout window being collected in sample blocks.
+Default: 0 (no block jitter)</p>
+</dd>
+<dt><strong>gaussian_jitter</strong><span class="classifier">float</span></dt><dd><p>Standard deviation of a Gaussian time smear applied to the
+readout window position (in NuRadioReco time units).
+Default: 0 (no Gaussian jitter)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopePhasedTrigger.set_pre_trigger_times">
@@ -1694,14 +1835,20 @@ the diode filtering.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_name" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_gaussian_jitter" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_gaussian_jitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaussian_jitter</span></code></a>()</p></td>
+<td><p>Return the Gaussian jitter spread for readout-window jitter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_name" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
 <td><p>get trigger name</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
 <td><p>get the trigger time for a specific channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_sample_block_size" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_sample_block_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sample_block_size</span></code></a>()</p></td>
+<td><p>Return the sample block size for readout-window jitter.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
 <td><p>Get the trigger time.</p></td>
@@ -1721,22 +1868,25 @@ the diode filtering.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.is_primary" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.is_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_primary</span></code></a>()</p></td>
 <td><p>return True if this trigger is the primary trigger</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_jitter_params" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_jitter_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_jitter_params</span></code></a>([sample_block_size, ...])</p></td>
+<td><p>Set the readout-window jitter parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
 <td><p>Set the pre-trigger times</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_primary" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_primary" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
 <td><p>set the trigger to be the primary trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
 <td><p>set the trigger time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
 <td><p>set the trigger times</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_triggered" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_triggered" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.show" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.show" title="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
 <td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
@@ -1761,6 +1911,12 @@ the diode filtering.</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.deserialize">
 <span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.deserialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_gaussian_jitter">
+<span class="sig-name descname"><span class="pre">get_gaussian_jitter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_gaussian_jitter" title="Link to this definition"></a></dt>
+<dd><p>Return the Gaussian jitter spread for readout-window jitter.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_name">
@@ -1804,6 +1960,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_sample_block_size">
+<span class="sig-name descname"><span class="pre">get_sample_block_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.get_sample_block_size" title="Link to this definition"></a></dt>
+<dd><p>Return the sample block size for readout-window jitter.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1890,6 +2052,26 @@ Note that the trigger times are defined relative to the
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.serialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_jitter_params">
+<span class="sig-name descname"><span class="pre">set_jitter_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_jitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_jitter_params" title="Link to this definition"></a></dt>
+<dd><p>Set the readout-window jitter parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sample_block_size</strong><span class="classifier">int</span></dt><dd><p>Range of the uniform integer jitter (in samples) caused by the
+readout window being collected in sample blocks.
+Default: 0 (no block jitter)</p>
+</dd>
+<dt><strong>gaussian_jitter</strong><span class="classifier">float</span></dt><dd><p>Standard deviation of a Gaussian time smear applied to the
+readout window position (in NuRadioReco time units).
+Default: 0 (no Gaussian jitter)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.DigitalEnvelopePhasedTrigger.set_pre_trigger_times">
@@ -2021,14 +2203,20 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_name" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_gaussian_jitter" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_gaussian_jitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaussian_jitter</span></code></a>()</p></td>
+<td><p>Return the Gaussian jitter spread for readout-window jitter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_name" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
 <td><p>get trigger name</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
 <td><p>get the trigger time for a specific channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_sample_block_size" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_sample_block_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sample_block_size</span></code></a>()</p></td>
+<td><p>Return the sample block size for readout-window jitter.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
 <td><p>Get the trigger time.</p></td>
@@ -2048,22 +2236,25 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.is_primary" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.is_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_primary</span></code></a>()</p></td>
 <td><p>return True if this trigger is the primary trigger</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_jitter_params" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_jitter_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_jitter_params</span></code></a>([sample_block_size, ...])</p></td>
+<td><p>Set the readout-window jitter parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
 <td><p>Set the pre-trigger times</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_primary" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_primary" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
 <td><p>set the trigger to be the primary trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
 <td><p>set the trigger time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
 <td><p>set the trigger times</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_triggered" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_triggered" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.show" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.show" title="NuRadioReco.framework.trigger.SimplePhasedTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
 <td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
@@ -2088,6 +2279,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger.deserialize">
 <span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.deserialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_gaussian_jitter">
+<span class="sig-name descname"><span class="pre">get_gaussian_jitter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_gaussian_jitter" title="Link to this definition"></a></dt>
+<dd><p>Return the Gaussian jitter spread for readout-window jitter.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_name">
@@ -2131,6 +2328,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger.get_sample_block_size">
+<span class="sig-name descname"><span class="pre">get_sample_block_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.get_sample_block_size" title="Link to this definition"></a></dt>
+<dd><p>Return the sample block size for readout-window jitter.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2217,6 +2420,26 @@ Note that the trigger times are defined relative to the
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.serialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_jitter_params">
+<span class="sig-name descname"><span class="pre">set_jitter_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_jitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger.set_jitter_params" title="Link to this definition"></a></dt>
+<dd><p>Set the readout-window jitter parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sample_block_size</strong><span class="classifier">int</span></dt><dd><p>Range of the uniform integer jitter (in samples) caused by the
+readout window being collected in sample blocks.
+Default: 0 (no block jitter)</p>
+</dd>
+<dt><strong>gaussian_jitter</strong><span class="classifier">float</span></dt><dd><p>Standard deviation of a Gaussian time smear applied to the
+readout window position (in NuRadioReco time units).
+Default: 0 (no Gaussian jitter)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger.set_pre_trigger_times">
@@ -2339,14 +2562,20 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_name" title="NuRadioReco.framework.trigger.HighLowTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_gaussian_jitter" title="NuRadioReco.framework.trigger.HighLowTrigger.get_gaussian_jitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaussian_jitter</span></code></a>()</p></td>
+<td><p>Return the Gaussian jitter spread for readout-window jitter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_name" title="NuRadioReco.framework.trigger.HighLowTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
 <td><p>get trigger name</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.HighLowTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.HighLowTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
 <td><p>get the trigger time for a specific channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.HighLowTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.HighLowTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_sample_block_size" title="NuRadioReco.framework.trigger.HighLowTrigger.get_sample_block_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sample_block_size</span></code></a>()</p></td>
+<td><p>Return the sample block size for readout-window jitter.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.HighLowTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
 <td><p>Get the trigger time.</p></td>
@@ -2366,22 +2595,25 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.is_primary" title="NuRadioReco.framework.trigger.HighLowTrigger.is_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_primary</span></code></a>()</p></td>
 <td><p>return True if this trigger is the primary trigger</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.HighLowTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_jitter_params" title="NuRadioReco.framework.trigger.HighLowTrigger.set_jitter_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_jitter_params</span></code></a>([sample_block_size, ...])</p></td>
+<td><p>Set the readout-window jitter parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.HighLowTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
 <td><p>Set the pre-trigger times</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_primary" title="NuRadioReco.framework.trigger.HighLowTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_primary" title="NuRadioReco.framework.trigger.HighLowTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
 <td><p>set the trigger to be the primary trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.HighLowTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.HighLowTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
 <td><p>set the trigger time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.HighLowTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.HighLowTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
 <td><p>set the trigger times</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_triggered" title="NuRadioReco.framework.trigger.HighLowTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_triggered" title="NuRadioReco.framework.trigger.HighLowTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.show" title="NuRadioReco.framework.trigger.HighLowTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.HighLowTrigger.show" title="NuRadioReco.framework.trigger.HighLowTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
 <td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
@@ -2406,6 +2638,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.HighLowTrigger.deserialize">
 <span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.HighLowTrigger.deserialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.HighLowTrigger.get_gaussian_jitter">
+<span class="sig-name descname"><span class="pre">get_gaussian_jitter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_gaussian_jitter" title="Link to this definition"></a></dt>
+<dd><p>Return the Gaussian jitter spread for readout-window jitter.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.HighLowTrigger.get_name">
@@ -2449,6 +2687,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.HighLowTrigger.get_sample_block_size">
+<span class="sig-name descname"><span class="pre">get_sample_block_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.HighLowTrigger.get_sample_block_size" title="Link to this definition"></a></dt>
+<dd><p>Return the sample block size for readout-window jitter.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2535,6 +2779,26 @@ Note that the trigger times are defined relative to the
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.HighLowTrigger.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.HighLowTrigger.serialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.HighLowTrigger.set_jitter_params">
+<span class="sig-name descname"><span class="pre">set_jitter_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_jitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.HighLowTrigger.set_jitter_params" title="Link to this definition"></a></dt>
+<dd><p>Set the readout-window jitter parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sample_block_size</strong><span class="classifier">int</span></dt><dd><p>Range of the uniform integer jitter (in samples) caused by the
+readout window being collected in sample blocks.
+Default: 0 (no block jitter)</p>
+</dd>
+<dt><strong>gaussian_jitter</strong><span class="classifier">float</span></dt><dd><p>Standard deviation of a Gaussian time smear applied to the
+readout window position (in NuRadioReco time units).
+Default: 0 (no Gaussian jitter)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.HighLowTrigger.set_pre_trigger_times">
@@ -2653,14 +2917,20 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_name" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_gaussian_jitter" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_gaussian_jitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaussian_jitter</span></code></a>()</p></td>
+<td><p>Return the Gaussian jitter spread for readout-window jitter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_name" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
 <td><p>get trigger name</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
 <td><p>get the trigger time for a specific channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_sample_block_size" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_sample_block_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sample_block_size</span></code></a>()</p></td>
+<td><p>Return the sample block size for readout-window jitter.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
 <td><p>Get the trigger time.</p></td>
@@ -2680,22 +2950,25 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.is_primary" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.is_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_primary</span></code></a>()</p></td>
 <td><p>return True if this trigger is the primary trigger</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_jitter_params" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_jitter_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_jitter_params</span></code></a>([sample_block_size, ...])</p></td>
+<td><p>Set the readout-window jitter parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
 <td><p>Set the pre-trigger times</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_primary" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_primary" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
 <td><p>set the trigger to be the primary trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
 <td><p>set the trigger time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
 <td><p>set the trigger times</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_triggered" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_triggered" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.show" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.show" title="NuRadioReco.framework.trigger.IntegratedPowerTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
 <td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
@@ -2720,6 +2993,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.IntegratedPowerTrigger.deserialize">
 <span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.deserialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_gaussian_jitter">
+<span class="sig-name descname"><span class="pre">get_gaussian_jitter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_gaussian_jitter" title="Link to this definition"></a></dt>
+<dd><p>Return the Gaussian jitter spread for readout-window jitter.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_name">
@@ -2763,6 +3042,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_sample_block_size">
+<span class="sig-name descname"><span class="pre">get_sample_block_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.get_sample_block_size" title="Link to this definition"></a></dt>
+<dd><p>Return the sample block size for readout-window jitter.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2849,6 +3134,26 @@ Note that the trigger times are defined relative to the
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.IntegratedPowerTrigger.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.serialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_jitter_params">
+<span class="sig-name descname"><span class="pre">set_jitter_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_jitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_jitter_params" title="Link to this definition"></a></dt>
+<dd><p>Set the readout-window jitter parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sample_block_size</strong><span class="classifier">int</span></dt><dd><p>Range of the uniform integer jitter (in samples) caused by the
+readout window being collected in sample blocks.
+Default: 0 (no block jitter)</p>
+</dd>
+<dt><strong>gaussian_jitter</strong><span class="classifier">float</span></dt><dd><p>Standard deviation of a Gaussian time smear applied to the
+readout window position (in NuRadioReco time units).
+Default: 0 (no Gaussian jitter)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.IntegratedPowerTrigger.set_pre_trigger_times">
@@ -2971,14 +3276,20 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_name" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_gaussian_jitter" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_gaussian_jitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaussian_jitter</span></code></a>()</p></td>
+<td><p>Return the Gaussian jitter spread for readout-window jitter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_name" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
 <td><p>get trigger name</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
 <td><p>get the trigger time for a specific channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_sample_block_size" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_sample_block_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sample_block_size</span></code></a>()</p></td>
+<td><p>Return the sample block size for readout-window jitter.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.EnvelopeTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
 <td><p>Get the trigger time.</p></td>
@@ -2998,22 +3309,25 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.is_primary" title="NuRadioReco.framework.trigger.EnvelopeTrigger.is_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_primary</span></code></a>()</p></td>
 <td><p>return True if this trigger is the primary trigger</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_jitter_params" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_jitter_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_jitter_params</span></code></a>([sample_block_size, ...])</p></td>
+<td><p>Set the readout-window jitter parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
 <td><p>Set the pre-trigger times</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_primary" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_primary" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
 <td><p>set the trigger to be the primary trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
 <td><p>set the trigger time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
 <td><p>set the trigger times</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_triggered" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_triggered" title="NuRadioReco.framework.trigger.EnvelopeTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.show" title="NuRadioReco.framework.trigger.EnvelopeTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.show" title="NuRadioReco.framework.trigger.EnvelopeTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
 <td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
@@ -3038,6 +3352,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopeTrigger.deserialize">
 <span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.deserialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopeTrigger.get_gaussian_jitter">
+<span class="sig-name descname"><span class="pre">get_gaussian_jitter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_gaussian_jitter" title="Link to this definition"></a></dt>
+<dd><p>Return the Gaussian jitter spread for readout-window jitter.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopeTrigger.get_name">
@@ -3081,6 +3401,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopeTrigger.get_sample_block_size">
+<span class="sig-name descname"><span class="pre">get_sample_block_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.get_sample_block_size" title="Link to this definition"></a></dt>
+<dd><p>Return the sample block size for readout-window jitter.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3167,6 +3493,26 @@ Note that the trigger times are defined relative to the
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopeTrigger.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.serialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopeTrigger.set_jitter_params">
+<span class="sig-name descname"><span class="pre">set_jitter_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_jitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopeTrigger.set_jitter_params" title="Link to this definition"></a></dt>
+<dd><p>Set the readout-window jitter parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sample_block_size</strong><span class="classifier">int</span></dt><dd><p>Range of the uniform integer jitter (in samples) caused by the
+readout window being collected in sample blocks.
+Default: 0 (no block jitter)</p>
+</dd>
+<dt><strong>gaussian_jitter</strong><span class="classifier">float</span></dt><dd><p>Standard deviation of a Gaussian time smear applied to the
+readout window position (in NuRadioReco time units).
+Default: 0 (no Gaussian jitter)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopeTrigger.set_pre_trigger_times">
@@ -3289,14 +3635,20 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_name" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_gaussian_jitter" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_gaussian_jitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gaussian_jitter</span></code></a>()</p></td>
+<td><p>Return the Gaussian jitter spread for readout-window jitter.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_name" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
 <td><p>get trigger name</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_pre_trigger_time_channel" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_pre_trigger_time_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_time_channel</span></code></a>(channel_id)</p></td>
 <td><p>get the trigger time for a specific channel</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_pre_trigger_times" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pre_trigger_times</span></code></a>()</p></td>
 <td><p>Return the pre_trigger_time between the start of the trace and the (global) trigger time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_sample_block_size" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_sample_block_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sample_block_size</span></code></a>()</p></td>
+<td><p>Return the sample block size for readout-window jitter.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_time" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
 <td><p>Get the trigger time.</p></td>
@@ -3316,22 +3668,25 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.is_primary" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.is_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_primary</span></code></a>()</p></td>
 <td><p>return True if this trigger is the primary trigger</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_jitter_params" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_jitter_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_jitter_params</span></code></a>([sample_block_size, ...])</p></td>
+<td><p>Set the readout-window jitter parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_pre_trigger_times" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_pre_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_pre_trigger_times</span></code></a>(pre_trigger_times)</p></td>
 <td><p>Set the pre-trigger times</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_primary" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_primary" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_primary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_primary</span></code></a>([primary_trigger])</p></td>
 <td><p>set the trigger to be the primary trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_trigger_time" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
 <td><p>set the trigger time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_trigger_times" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
 <td><p>set the trigger times</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_triggered" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_triggered" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>set the trigger to True or False</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.show" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.show" title="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([print_stdout])</p></td>
 <td><p>Print an overview of the structure of the Trigger.</p></td>
 </tr>
 </tbody>
@@ -3356,6 +3711,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.deserialize">
 <span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.deserialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_gaussian_jitter">
+<span class="sig-name descname"><span class="pre">get_gaussian_jitter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_gaussian_jitter" title="Link to this definition"></a></dt>
+<dd><p>Return the Gaussian jitter spread for readout-window jitter.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_name">
@@ -3399,6 +3760,12 @@ if only a float is given, the same pre_trigger_time is used for all channels</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_sample_block_size">
+<span class="sig-name descname"><span class="pre">get_sample_block_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.get_sample_block_size" title="Link to this definition"></a></dt>
+<dd><p>Return the sample block size for readout-window jitter.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3485,6 +3852,26 @@ Note that the trigger times are defined relative to the
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.serialize" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_jitter_params">
+<span class="sig-name descname"><span class="pre">set_jitter_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_jitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_jitter_params" title="Link to this definition"></a></dt>
+<dd><p>Set the readout-window jitter parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sample_block_size</strong><span class="classifier">int</span></dt><dd><p>Range of the uniform integer jitter (in samples) caused by the
+readout window being collected in sample blocks.
+Default: 0 (no block jitter)</p>
+</dd>
+<dt><strong>gaussian_jitter</strong><span class="classifier">float</span></dt><dd><p>Standard deviation of a Gaussian time smear applied to the
+readout window position (in NuRadioReco time units).
+Default: 0 (no Gaussian jitter)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.RNOGSurfaceTrigger.set_pre_trigger_times">

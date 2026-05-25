@@ -640,7 +640,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">signal_processing</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Philox</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.channelReadoutWindowCutter&#39;</span><span class="p">)</span>
 
@@ -649,10 +651,11 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelReadoutWindowCutter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Modifies channel traces to simulate the effects of the trigger</span>
+<span class="sd">    Modifies channel traces to simulate the effects of the trigger and associated readout window.</span>
 
-<span class="sd">    The trace is cut to the length defined in the detector description relative to the trigger time.</span>
-<span class="sd">    If no trigger exists, nothing is done.</span>
+<span class="sd">    The trace is cut to the length defined in the detector description relative to the trigger time</span>
+<span class="sd">    taking into account the trigger&#39;s pre_trigger_time. If no trigger exists, nothing is done. Allows</span>
+<span class="sd">    to simulate randomness in the definition of the readout window.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
@@ -661,9 +664,17 @@
 
 <div class="viewcode-block" id="channelReadoutWindowCutter.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.begin">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        random_seed : int or None, optional</span>
+<span class="sd">            Set a random seed, used if simulating a random jitter for the readout window. (Default: None)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_error_issued</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rng</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">Philox</span><span class="p">(</span><span class="n">random_seed</span><span class="p">))</span></div>
+
 
 
 <div class="viewcode-block" id="channelReadoutWindowCutter.run">
@@ -710,6 +721,19 @@
             <span class="k">return</span>
 
         <span class="n">trigger_time</span> <span class="o">=</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span>
+
+        <span class="c1"># Compute jitter time caused by multiple experimental sources</span>
+        <span class="n">first_channel</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">())</span>
+        <span class="n">first_detector_sampling_rate</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">first_channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
+
+        <span class="n">jitter_time</span> <span class="o">=</span> <span class="n">time_jitter</span><span class="p">(</span>
+            <span class="n">gaussian_spread</span><span class="o">=</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_gaussian_jitter</span><span class="p">(),</span>
+            <span class="n">sample_block_size</span><span class="o">=</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_sample_block_size</span><span class="p">(),</span>
+            <span class="n">sampling_rate</span><span class="o">=</span><span class="n">first_detector_sampling_rate</span><span class="p">,</span>
+            <span class="n">rng</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rng</span><span class="p">,</span>
+        <span class="p">)</span>
+
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
 
             <span class="n">detector_sampling_rate</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
@@ -733,7 +757,8 @@
                 <span class="k">raise</span> <span class="ne">AttributeError</span>
 
             <span class="n">channel_id</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
-            <span class="n">pre_trigger_time</span> <span class="o">=</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_pre_trigger_time_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
+            <span class="n">pre_trigger_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_pre_trigger_time_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span> <span class="o">+</span>
+                <span class="n">jitter_time</span><span class="p">)</span>
 
             <span class="n">pre_trigger_time_channel</span> <span class="o">=</span> <span class="n">trigger_time</span> <span class="o">-</span> <span class="n">pre_trigger_time</span> <span class="o">-</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
 
@@ -879,6 +904,51 @@
     <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">channel_trace_start_time</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">channel</span></div>
+
+
+
+<div class="viewcode-block" id="time_jitter">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.time_jitter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">time_jitter</span><span class="p">(</span><span class="n">gaussian_spread</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sample_block_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="mf">2.4</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a readout-window jitter composed of a discrete sample offset</span>
+<span class="sd">    (converted to time) and a continuous Gaussian time smear.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gaussian_spread : int or float</span>
+<span class="sd">        Standard deviation of a Gaussian time smear in samples (not time). Spread can be a float,</span>
+<span class="sd">        the randomly drawn jitter will be rounded to the nearest int. (Default: 0 - no jitter)</span>
+<span class="sd">    sample_block_size : int</span>
+<span class="sd">        Range of the uniform sample jitter caused by an unknown position within a sampling block.  </span>
+<span class="sd">        Random sample is drawn from  ``[-sample_block_size / 2, sample_block_size / 2)``. (Default: 0 - no jitter)</span>
+<span class="sd">    sampling_rate : float</span>
+<span class="sd">        Sampling rate used to convert the integer sample offset to a</span>
+<span class="sd">        time value (``jitter_time = jitter_sample / sampling_rate``).</span>
+<span class="sd">        the input should be in GHz</span>
+<span class="sd">    rng : numpy.random.Generator</span>
+<span class="sd">        Random number generator instance, e.g. ``Generator(Philox(None))``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sample_jitter_time : float</span>
+<span class="sd">        Time jitter from the discrete sample offset</span>
+<span class="sd">        (``jitter_sample / sampling_rate``).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">rng</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">Philox</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+
+    <span class="n">jitter_sample</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">sample_block_size</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">jitter_sample</span> <span class="o">+=</span> <span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="o">-</span><span class="n">sample_block_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">sample_block_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gaussian_spread</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">gaussian_samples</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">gaussian_spread</span><span class="p">)</span>
+        <span class="n">jitter_sample</span> <span class="o">+=</span> <span class="nb">round</span><span class="p">(</span><span class="n">gaussian_samples</span><span class="p">)</span>  <span class="c1"># snap to nearest sample</span>
+
+    <span class="n">jitter_time</span> <span class="o">=</span> <span class="n">jitter_sample</span> <span class="o">/</span> <span class="n">sampling_rate</span>
+
+    <span class="k">return</span> <span class="n">jitter_time</span></div>
 
 
 
