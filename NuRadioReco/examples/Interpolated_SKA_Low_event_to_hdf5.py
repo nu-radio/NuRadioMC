@@ -1,8 +1,8 @@
 """
 An example showing how to use the new write_CORSIKA7() function which stores an event as a hdf5 file.
-This function is intended to make the sharing of realistic simulations (interpolated to a detector, noise added, triggers added, ...) easier.
+This function is intended to make the sharing of interpolated simulations easier.
 Bellow shows an example of a EAS simulation on the star-shape which gets turned into an interpolated event to the detector (the freq. limits are for SKA-Low).
-This returns both the new hdf5 file and an example plot showing both the original star-shape simulation and the new interpolated realistic event.
+This returns both the new hdf5 file and an example plot showing both the original star-shape simulation and the new interpolated event.
 ---------------------
 
 Command line input:
