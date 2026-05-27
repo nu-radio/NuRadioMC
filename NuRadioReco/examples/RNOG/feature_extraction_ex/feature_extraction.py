@@ -254,7 +254,9 @@ def build_feature_row(per_ch, traces, sampling_rate, config):
 
     groups = _resolve_antenna_groups(config)
 
-    for key in ("snr", "kurtosis", "entropy", "max_amplitude", "impulsivity"):
+    SCALAR_KEYS = ("snr", "kurtosis", "entropy", "impulsivity",
+                   "max_amplitude_norm", "max_amplitude_envelope")
+    for key in SCALAR_KEYS:
         vals_per_ch = {c: per_ch[c][key] for c in per_ch if key in per_ch[c]}
         for group_name in groups:
             row[f"{key}_avg_{group_name}"] = _mean_over(
