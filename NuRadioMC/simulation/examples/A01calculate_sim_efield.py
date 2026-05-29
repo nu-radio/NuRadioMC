@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from NuRadioMC.simulation import simulation as sim
 from NuRadioReco.detector import detector
@@ -23,12 +24,12 @@ propagation module to use (e.g. the analytic ray tracer).
 
 
 # initialize the detector description (from the json file)
-kwargs = dict(json_filename="surface_station_1GHz.json", antenna_by_depth=False)
+kwargs = dict(json_filename=os.path.join(os.path.dirname(__file__), 'surface_station_1GHz.json'), antenna_by_depth=False)
 det = detector.Detector(**kwargs)
 det.update(datetime.now())
 
 # get the general config settings
-cfg = sim.get_config("config.yaml")
+cfg = sim.get_config(os.path.join(os.path.dirname(__file__), 'config.yaml'))
 
 # set the ice model
 ice = medium.get_ice_model(cfg['propagation']['ice_model'])
