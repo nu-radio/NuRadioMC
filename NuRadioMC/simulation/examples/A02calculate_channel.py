@@ -1,10 +1,7 @@
-import os
-import yaml
 import numpy as np
 from NuRadioMC.simulation import simulation as sim
 from NuRadioReco.detector import detector
 from NuRadioMC.SignalProp import propagation
-import NuRadioMC.simulation.time_logger
 from NuRadioMC.utilities import medium
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.modules.channelBandPassFilter
@@ -13,18 +10,17 @@ from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities import units
 from datetime import datetime
 import logging
-logger = logging.getLogger('test_raytracing')
+logger = logging.getLogger('calculate_channel')
 
 """
 This script is an example of how to calculate the efield at observer positions
 for a list of a showers using the `claculate_sim_efield` function.
 The observer positions are defined in the detector object.
 The showers are defined in the shower objects.
-General config settings are defined in the NuRadioMC yaml config file.
-The user also needs to specify the medium model (i.e. ice model) and the
+General config settings are defined in the NuRadioMC yaml config file,
+which includes the medium model (i.e. ice model) and the
 propagation module to use (e.g. the analytic ray tracer).
 """
-time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
 # initialize the detector description (from the json file)
 kwargs = dict(json_filename="surface_station_1GHz.json", antenna_by_depth=False)
 det = detector.Detector(**kwargs)
@@ -34,7 +30,7 @@ det.update(datetime.now())
 cfg = sim.get_config("config.yaml")
 
 # set the ice model
-ice = NuRadioMC.utilities.medium.get_ice_model(cfg['propagation']['ice_model'])
+ice = medium.get_ice_model(cfg['propagation']['ice_model'])
 # set the propagation module
 # it is important to pass the detector object to the propagator for an accurate calculation of the attenuation length
 # (if the detector is availble, the sampling rate is used to determine the maximum frequency for an efficient interpolation
