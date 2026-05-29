@@ -161,6 +161,48 @@ class channelReadoutWindowCutter:
             channel.set_trace(trace, channel.get_sampling_rate())
             channel.set_trace_start_time(trigger_time - pre_trigger_time)
 
+    def cut_using_trace_start_times(self, event, station, detector, trace_start_times):
+        """
+        Cuts the traces to the readout window using user provided trace start times.
+
+        Parameters
+        ----------
+        event: `NuRadioReco.framework.event.Event`
+        station: `NuRadioReco.framework.base_station.Station`
+        detector: `NuRadioReco.framework.detector.Detector`
+        trace_start_times: float or array-like of shape (n_channels,)
+            The trace start times for each channel. If a single float is provided, it will be used
+            for all channels. Otherwise, the order of the trace start times should be the same as
+            the order of the channels in `station.get_channel_ids()`.
+        """
+
+        logger.info('Using provided trace start times to set the readout windows.')
+
+        if np.isscalar(trace_start_times):
+            trace_start_times = np.full(len(station.get_channel_ids()), trace_start_times)
+
+        for i_ch, channel in enumerate(station.iter_channels()):
+            channel_id = channel.get_id()
+
+            # Get information about readout channels
+            detector_sampling_rate = detector.get_sampling_frequency(station.get_id(), channel.get_id())
+            sampling_rate = channel.get_sampling_rate()
+            detector_n_samples = detector.get_number_of_samples(station.get_id(), channel.get_id())
+            number_of_samples, valid_sampling_rate = _get_number_of_samples(
+                sampling_rate, detector_sampling_rate, detector_n_samples,
+                issue_error=not self.__sampling_rate_error_issued
+            )
+
+            # Create empty channel with the desired start time and add the trace to it:
+            readout_channel = NuRadioReco.framework.channel.Channel(channel_id)
+            readout_channel.set_trace(
+                trace = np.zeros(number_of_samples),
+                sampling_rate = sampling_rate,
+                trace_start_time = trace_start_times[i_ch]
+            )
+            readout_channel.add_to_trace(channel, raise_error=True, min_residual_time_offset=0 * units.ns)
+            channel.set_trace(readout_channel.get_trace(), sampling_rate, trace_start_times[i_ch])
+
 
 def _get_number_of_samples(sampling_rate, detector_sampling_rate, detector_n_samples, issue_error=True):
     """
