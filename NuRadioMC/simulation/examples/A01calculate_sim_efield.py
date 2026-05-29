@@ -118,4 +118,6 @@ for i, channel in enumerate(sim_station.iter_channels()):
 ax.legend()
 ax2.legend()
 fig.tight_layout()
-plt.show()
+# Only show plot if running interactively (not in CI/CD environment):
+if os.environ.get('DISPLAY') or os.environ.get('CI') is None:
+    plt.show()
