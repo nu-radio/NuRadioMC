@@ -1,0 +1,6 @@
+In-ice shower simulation
+========================
+
+NuRadioMC provides a standalone function to calcualte the observed electric fields at the antennas in a detector for a user-defined shower through `NuRadioMC.simulation.simulation.calculate_sim_efield`. An example demonstrating how to use this function can be found in `NuRadioMC/simulation/examples/A01calculate_sim_efield.py <https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/simulation/examples/A01calculate_sim_efield.py>`__.
+
+An example of how to run a full simulation chain for a user-defined shower is shown in `NuRadioMC/simulation/examples/A02calculate_channel.py <https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/simulation/examples/A02calculate_channel.py>`__. The example first uses `calculate_sim_efield` to simulate the electric field at the antenna positions defined in the detector description. The electric fields are then folded through the antenna responses using `NuRadioMC.simulation.simulation.apply_det_response`, cut to the user-defined readout window with `channelReadoutWindowCutter`, and resampled to the detector sampling rate. The output of the simulation is the observed voltage traces in the antennas of the detector for the given shower.

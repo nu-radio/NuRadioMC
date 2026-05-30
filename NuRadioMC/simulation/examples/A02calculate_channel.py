@@ -14,8 +14,8 @@ import logging
 logger = logging.getLogger('calculate_channel')
 
 """
-This script is an example of how to calculate the efield at observer positions
-for a list of a showers using the `claculate_sim_efield` function.
+This script is an example of how to calculate the observed voltage traces in a detector
+for a list of a showers using the `claculate_sim_efield` and `apply_det_response` functions.
 The observer positions are defined in the detector object.
 The showers are defined in the shower objects.
 General config settings are defined in the NuRadioMC yaml config file,
