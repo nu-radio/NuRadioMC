@@ -106,7 +106,7 @@ station.add_sim_station(sim_station)
 efieldToVoltageConverter.run(evt, station, det)
 
 # Add noise and filter:
-channelGenericNoiseAdder.run(evt, station, det, min_freq=0*units.GHz, max_freq=max(frequencies), amplitude=noise_amplitude)
+channelGenericNoiseAdder.run(evt, station, det, min_freq=0*units.GHz, max_freq=max(frequencies), amplitude=noise_amplitude, type="rayleigh")
 channelBandPassFilter.run(evt, station, det, **filter_settings_low)
 channelBandPassFilter.run(evt, station, det, **filter_settings_high)
 
