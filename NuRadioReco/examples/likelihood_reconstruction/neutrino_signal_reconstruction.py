@@ -63,9 +63,9 @@ E_shower = 200 * units.PeV
 zenith = 90 * units.deg
 azimuth = 45 * units.deg
 vertex_r = 1 * units.km
-vertex_zenith = 90 * units.deg + 56 * units.deg # the same as zenith plus Cherenkov angle
-vertex_azimuth = 45 * units.deg # the same as azimuth
-vertex_xyz = hp.spherical_to_cartesian(vertex_zenith, vertex_azimuth) * vertex_r
+vertex_zenith_temp = 90 * units.deg + 56 * units.deg # the same as zenith plus Cherenkov angle
+vertex_azimuth_temp = 45 * units.deg # the same as azimuth
+vertex_xyz = hp.spherical_to_cartesian(vertex_zenith_temp, vertex_azimuth_temp) * vertex_r
 vertex_xyz[2] -= 100 * units.m # assuming ~100 m antenna depth
 vertex_time = 0
 
@@ -81,12 +81,16 @@ station, traces, trace_start_times = signal_model.simulate_single_shower(
     trace_start_times=None # <- Automatically calculates start times based on pulse in reference antenna
 )
 
+# Save true signal:
+signal_true = np.copy(traces)
+
 # Add noise to the traces:
 for i_channel, channel in enumerate(station.iter_channels()):
     trace = channel.get_trace()
     trace += channelGenericNoiseAdder.bandlimited_noise_from_spectrum(
         len(trace), channel.get_sampling_rate(), filt, amplitude=noise_amplitude, type='rayleigh')
     channel.set_trace(trace, sampling_rate=channel.get_sampling_rate())
+    traces[i_channel] = trace
 
 # Plot the traces:
 fig, ax = plt.subplots(n_channels, 1, figsize=[10, 2*n_channels], sharex=True)
@@ -116,15 +120,18 @@ reco.begin(
     use_chi2=False,
     debug=True
 )
+minus_two_llh_true = reco._function_to_minimize_llh(traces, signal_true)
 vertex_zenith, vertex_azimuth = hp.cartesian_to_spherical(vertex_xyz[0], vertex_xyz[1], vertex_xyz[2])
 vertex_r = np.linalg.norm(vertex_xyz)
-parameters_initial = [E_shower, zenith, azimuth, vertex_r, vertex_zenith, vertex_azimuth, vertex_time] # initialize at true parameters
+pulse_time = np.argmax(traces[0]) / sampling_rate + 6.615 * units.ns # very good guess of time of pulse relative to trace start time
+parameters_initial = [E_shower, zenith, azimuth, vertex_r, vertex_zenith, vertex_azimuth, pulse_time] # initialize at (mostly) true parameters
 initial_likelihood, fitted_signal, fitted_parameters, minus_two_llh, uncertainties_fit = reco.run(evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=0, full_output=True)
 
 
 print()
+print("-2 LLH of true signal:", minus_two_llh_true)
 print("Initial parameters:", parameters_initial)
-print("Initial likelihood:", initial_likelihood)
+print("Initial -2 LLH:", initial_likelihood)
 print("Fitted parameters:", fitted_parameters)
 print("Uncertainties on fitted parameters:", uncertainties_fit)
-print("Minus two delta LLH:", minus_two_llh)
+print("Fitted -2 LLH:", minus_two_llh)

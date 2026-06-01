@@ -1,5 +1,5 @@
 import os
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "4"
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -74,6 +74,7 @@ vertex_time = 0
 
 
 n_events = 100
+llh_true_array = np.zeros(n_events)
 llh_initial_array = np.zeros(n_events)
 llh_fitted_array = np.zeros(n_events)
 fitted_parameters_array = np.zeros((n_events, 7))
@@ -101,11 +102,13 @@ for i_event in range(n_events):
     )
 
     # Add noise to the traces:
+    signal_true = np.copy(traces)
     for i_channel, channel in enumerate(station.iter_channels()):
         trace = channel.get_trace()
         trace += channelGenericNoiseAdder.bandlimited_noise_from_spectrum(
             len(trace), channel.get_sampling_rate(), filt, amplitude=noise_amplitude, type='rayleigh')
         channel.set_trace(trace, sampling_rate=channel.get_sampling_rate())
+        traces[i_channel] = trace
 
     # Plot the traces:
     fig, ax = plt.subplots(n_channels, 1, figsize=[10, 2*n_channels], sharex=True)
@@ -135,6 +138,7 @@ for i_event in range(n_events):
         use_chi2=False,
         debug=True
     )
+    minus_two_llh_true = reco._function_to_minimize_llh(traces, signal_true)
     vertex_zenith, vertex_azimuth = hp.cartesian_to_spherical(vertex_xyz[0], vertex_xyz[1], vertex_xyz[2])
     vertex_r = np.linalg.norm(vertex_xyz)
     pulse_time = np.argmax(traces[0]) / sampling_rate + 6.615 * units.ns
@@ -143,23 +147,26 @@ for i_event in range(n_events):
 
 
     print()
+    print("-2 LLH fir true signal:", minus_two_llh_true)
     print("Initial parameters:", parameters_initial)
-    print("Initial likelihood:", initial_likelihood)
+    print("Initial -2 LLH:", initial_likelihood)
     print("Fitted parameters:", fitted_parameters)
     print("Uncertainties on fitted parameters:", uncertainties_fit)
-    print("Minus two delta LLH:", minus_two_llh)
+    print("Fitted -2 LLH:", minus_two_llh)
 
+    llh_true_array[i_event] = minus_two_llh_true
     llh_initial_array[i_event] = initial_likelihood
     llh_fitted_array[i_event] = minus_two_llh
     fitted_parameters_array[i_event] = fitted_parameters
     uncertainties_fit_array[i_event] = uncertainties_fit
 
 if not plots_only:
-    np.savez("llh_reco_results.npz", llh_initial_array=llh_initial_array, llh_fitted_array=llh_fitted_array, fitted_parameters_array=fitted_parameters_array, uncertainties_fit_array=uncertainties_fit_array)
+    np.savez("llh_reco_results.npz", llh_initial_array=llh_initial_array, llh_fitted_array=llh_fitted_array, llh_true_array=llh_true_array, fitted_parameters_array=fitted_parameters_array, uncertainties_fit_array=uncertainties_fit_array)
 elif plots_only:
     data = np.load("llh_reco_results.npz")
     llh_initial_array = data["llh_initial_array"]
     llh_fitted_array = data["llh_fitted_array"]
+    llh_true_array = data["llh_true_array"]
     fitted_parameters_array = data["fitted_parameters_array"]
     uncertainties_fit_array = data["uncertainties_fit_array"]
 
@@ -167,7 +174,7 @@ elif plots_only:
 plt.figure(figsize=[10,6])
 plt.subplot(2,1,1)
 bins = np.linspace(0,50,50)
-hist = plt.hist(llh_initial_array - llh_fitted_array, bins=20, alpha=0.5, label="-2 delta LLH")
+hist = plt.hist(llh_true_array - llh_fitted_array, bins=20, alpha=0.5, label="-2 delta LLH")
 ndof = 7 # number of fitted parameters
 import scipy as scp
 dist = scp.stats.chi2(ndof)
@@ -180,7 +187,7 @@ plt.legend()
 
 # coverage:
 plt.subplot(2,1,2)
-llh = llh_initial_array - llh_fitted_array
+llh = llh_true_array - llh_fitted_array
 #llh = np.delete(llh, np.where(llh<0)[0])
 n_x = 200
 
