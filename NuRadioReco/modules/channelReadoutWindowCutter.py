@@ -3,26 +3,37 @@ import NuRadioReco.framework.channel
 from NuRadioReco.utilities import units, signal_processing
 
 import numpy as np
+from numpy.random import Generator, Philox
 import functools
+
 import logging
 logger = logging.getLogger('NuRadioReco.channelReadoutWindowCutter')
 
 
 class channelReadoutWindowCutter:
     """
-    Modifies channel traces to simulate the effects of the trigger
+    Modifies channel traces to simulate the effects of the trigger and associated readout window.
 
-    The trace is cut to the length defined in the detector description relative to the trigger time.
-    If no trigger exists, nothing is done.
+    The trace is cut to the length defined in the detector description relative to the trigger time
+    taking into account the trigger's pre_trigger_time. If no trigger exists, nothing is done. Allows
+    to simulate randomness in the definition of the readout window.
     """
 
     def __init__(self, log_level=logging.NOTSET):
         logger.setLevel(log_level)
         self.begin()
 
-    def begin(self):
+    def begin(self, random_seed=None):
+        """
+
+        Parameters
+        ----------
+        random_seed : int or None, optional
+            Set a random seed, used if simulating a random jitter for the readout window. (Default: None)
+        """
         self.__sampling_rate_error_issued = False
-        pass
+        self._rng = Generator(Philox(random_seed))
+
 
     @register_run()
     def run(self, event, station, detector):
@@ -66,6 +77,19 @@ class channelReadoutWindowCutter:
             return
 
         trigger_time = trigger.get_trigger_time()
+
+        # Compute jitter time caused by multiple experimental sources
+        first_channel = next(station.iter_channels())
+        first_detector_sampling_rate = detector.get_sampling_frequency(
+            station.get_id(), first_channel.get_id())
+
+        jitter_time = time_jitter(
+            gaussian_spread=trigger.get_gaussian_jitter(),
+            sample_block_size=trigger.get_sample_block_size(),
+            sampling_rate=first_detector_sampling_rate,
+            rng=self._rng,
+        )
+
         for channel in station.iter_channels():
 
             detector_sampling_rate = detector.get_sampling_frequency(station.get_id(), channel.get_id())
@@ -89,7 +113,8 @@ class channelReadoutWindowCutter:
                 raise AttributeError
 
             channel_id = channel.get_id()
-            pre_trigger_time = trigger.get_pre_trigger_time_channel(channel_id)
+            pre_trigger_time = (trigger.get_pre_trigger_time_channel(channel_id) +
+                jitter_time)
 
             pre_trigger_time_channel = trigger_time - pre_trigger_time - channel.get_trace_start_time()
 
@@ -231,6 +256,48 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     channel.set_trace_start_time(channel_trace_start_time)
 
     return channel
+
+
+def time_jitter(gaussian_spread=0, sample_block_size=0, sampling_rate=2.4*units.GHz, rng=None):
+    """
+    Generate a readout-window jitter composed of a discrete sample offset
+    (converted to time) and a continuous Gaussian time smear.
+
+    Parameters
+    ----------
+    gaussian_spread : int or float
+        Standard deviation of a Gaussian time smear in samples (not time). Spread can be a float,
+        the randomly drawn jitter will be rounded to the nearest int. (Default: 0 - no jitter)
+    sample_block_size : int
+        Range of the uniform sample jitter caused by an unknown position within a sampling block.  
+        Random sample is drawn from  ``[-sample_block_size / 2, sample_block_size / 2)``. (Default: 0 - no jitter)
+    sampling_rate : float
+        Sampling rate used to convert the integer sample offset to a
+        time value (``jitter_time = jitter_sample / sampling_rate``).
+        the input should be in GHz
+    rng : numpy.random.Generator
+        Random number generator instance, e.g. ``Generator(Philox(None))``.
+
+    Returns
+    -------
+    sample_jitter_time : float
+        Time jitter from the discrete sample offset
+        (``jitter_sample / sampling_rate``).
+    """
+    if rng is None:
+        rng = Generator(Philox(None))
+
+    jitter_sample = 0
+    if sample_block_size != 0:
+        jitter_sample += rng.integers(-sample_block_size / 2, sample_block_size / 2)
+
+    if gaussian_spread != 0:
+        gaussian_samples = rng.normal(0, gaussian_spread)
+        jitter_sample += round(gaussian_samples)  # snap to nearest sample
+
+    jitter_time = jitter_sample / sampling_rate
+
+    return jitter_time
 
 
 @functools.lru_cache(maxsize=1024)

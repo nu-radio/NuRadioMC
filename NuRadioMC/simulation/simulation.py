@@ -1176,6 +1176,8 @@ class simulation:
 
         self._rnd = Generator(Philox(self._config['seed']))
 
+        channelReadoutWindowCutter.begin(random_seed=self._config['seed'])
+
         self._outputfilename = outputfilename
         if os.path.exists(self._outputfilename):
             msg = f"hdf5 output file {self._outputfilename} already exists"
@@ -1560,7 +1562,7 @@ class simulation:
 
                 # group events into events based on signal arrival times
                 events = group_into_events(
-                    station, event_group, particle_mode, self._config['split_event_time_diff'])
+                    station, event_group, particle_mode, self._config['split_event_time_diff'], bool(self._config['signal']['zerosignal']))
 
                 evt_group_triggered = False
                 for evt in events:
@@ -1716,6 +1718,7 @@ class simulation:
         self._output_writer_hdf5.calculate_Veff()
         if not self._output_writer_hdf5.write_output_file():
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
+            
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
         return i_triggered_events
