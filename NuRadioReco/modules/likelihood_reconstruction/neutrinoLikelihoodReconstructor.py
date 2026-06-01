@@ -120,7 +120,7 @@ class neutrinoLikelihoodReconstructor:
         self.detector_simulation_filter_amp = detector_simulation_filter_amp
 
     @register_run()
-    def run(self, evt, station, det, parameters_initial, use_channels=None, reference_channel=0, full_output=True):
+    def run(self, evt, station, det, parameters_initial, charge_excess_profile_id=0, use_channels=None, reference_channel=0, full_output=True):
         """
         Run the likelihood reconstruction of electric field.
 
@@ -140,6 +140,9 @@ class neutrinoLikelihoodReconstructor:
             length 7 containing the following parameters in this order:
             [energy, zenith, azimuth, vertex_r, vertex_theta, vertex_phi, vertex_time]
             in standard NuRadioMC units.
+
+        charge_excess_profile_id: int, optional
+            ID of the charge excess profile to use in the shower simulation. Not used for Alvarez2009. Default: 0
 
         use_channels: list, optional
             List of channel IDs to be used for the reconstruction. If None, all channels are used.
@@ -192,24 +195,48 @@ class neutrinoLikelihoodReconstructor:
             evt_time = station.get_station_time(),
             use_channels = use_channels,
             detector_simulation_filter_amp = self.detector_simulation_filter_amp,
-            pre_pulse_time = 100 * units.ns
+            pre_pulse_time = 100 * units.ns # not used
         )
+        # convert vertex time to pulse time (time at which the pulse reaches the reference channel):
+        # start_point = hp.spherical_to_cartesian(parameters_initial[4], parameters_initial[5]) * parameters_initial[3]
+        # end_point = det.get_relative_position(station.get_id(), reference_channel)
+        # signal_model.propagator.set_start_and_end_point(start_point, end_point)
+        # signal_model.propagator.find_solutions()
+        # reference_travel_time = signal_model.propagator.get_travel_time(0)
+        # parameters_initial[6] = parameters_initial[6] + reference_travel_time + det.get_cable_delay(station.get_id(), reference_channel) - trace_start_times[reference_channel]
+
         def signal_model_wrapper(parameters):
-            signal = signal_model.simulate_single_shower_spherical_vertex_coordinates(
+            signal = signal_model.simulate_single_shower_forward_folding(
                 energy = parameters[0],
                 zenith = parameters[1],
                 azimuth = parameters[2],
                 vertex_r = parameters[3],
                 vertex_theta = parameters[4],
                 vertex_phi = parameters[5],
-                vertex_time = parameters[6],
+                pulse_time = parameters[6],
                 type = "HAD",
-                charge_excess_profile_id = 0, # not used for Alvarez2009
-                trace_start_times = trace_start_times
+                trace_start_times = trace_start_times,
+                charge_excess_profile_id = charge_excess_profile_id,
             )[1]
             return signal
 
         #self.matched_filter.set_data(traces)
+
+        if self.debug:
+            # plot initial signal for debugging:
+            signal_initial = signal_model_wrapper(parameters_initial)
+            t_array = trace_start_times[0] + np.arange(0, self.n_samples) * self.delta_t
+            fig, ax = plt.subplots(self.n_channels, 1, figsize=(10, self.n_channels*3))
+            for i_ch in range(self.n_channels):
+                ax[i_ch].plot(t_array, traces[i_ch], label="data")
+                ax[i_ch].plot(t_array, signal_initial[i_ch], ls="--", label="initial")
+                ax[i_ch].set_ylabel("Voltage [V]")
+            ax[0].legend()
+            ax[-1].set_xlabel("Time [s]")
+            plt.tight_layout()
+            plt.savefig("debug_StationElectricFieldReconstructor_initial.png")
+            plt.show()
+            plt.close()
 
         initial_likelihood, minus_two_llh, fitted_parameters, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, parameters_initial)
 
@@ -233,6 +260,11 @@ class neutrinoLikelihoodReconstructor:
         # electric_field.set_parameter(efp.azimuth, fitted_params_best[7])
 
         # station.add_electric_field(electric_field)
+
+
+        # Convert fitted parameters to vertex time instead of pulse time for output:
+        # fitted_parameters[6] = fitted_parameters[6] + trace_start_times[reference_channel] - det.get_cable_delay(station.get_id(), reference_channel) - reference_travel_time
+        # parameters_initial[6] = parameters_initial[6] + trace_start_times[reference_channel] - det.get_cable_delay(station.get_id(), reference_channel) - reference_travel_time
 
         if full_output:
             return initial_likelihood, fitted_signal, fitted_parameters, minus_two_llh, uncertainties_fit
@@ -355,10 +387,14 @@ class neutrinoLikelihoodReconstructor:
         fitted_params = minimizer_llh.parameters
         minus_two_llh_fit = minimizer_llh.result
 
-        dx = np.array([1e-6 * fitted_params[0], 1e-6 * units.deg, 1e-6 * units.deg, 1*units.cm, 1e-6 * units.deg, 1e-6 * units.deg, 1e-4 * units.ns])
-        fisher_information_matrix_fit = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, fitted_params, dx)
+        # Estimate 1st order uncertainties using the Fisher information matrix:
+        dx = np.array([1e-6, 1e-6, 1e-6, 1e-4, 1e-6, 1e-6, 1e-4])
+        def signal_function_scaled(params_scaled):
+            params = params_scaled * scaling
+            return signal_function(params)
+        fisher_information_matrix_fit = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function_scaled, fitted_params / scaling, dx)
         f_i_fit = np.linalg.pinv(fisher_information_matrix_fit)
-        uncertainties_fit = np.sqrt(np.diag(f_i_fit))
+        uncertainties_fit = np.sqrt(np.diag(f_i_fit)) * scaling
 
         # if self.debug:
         #     # plot results for debugging:

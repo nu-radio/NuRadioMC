@@ -304,3 +304,68 @@ class ShowerSimulator():
         station, traces, trace_start_times = self.simulate_showers([shower], trace_start_times)
 
         return station, traces, trace_start_times
+
+
+    def simulate_single_shower_forward_folding(self, energy, zenith, azimuth, vertex_r, vertex_theta, vertex_phi, pulse_time, type, trace_start_times, charge_excess_profile_id=1):
+        """
+        Reparameterization of simulate_single_shower where the vertex position is given in spherical
+        coordinates instead of Cartesian coordinates. This often gives less correlated parameters for
+        forward-folding reconstruction.
+
+        Parameters
+        ----------
+        energy: float
+            Energy of the shower to simulate in eV
+        zenith: float
+            Zenith angle of the shower to simulate in radians
+        azimuth: float
+            Azimuth angle of the shower to simulate in radians
+        vertex_r: float
+            Radial distance of the shower vertex from the origin in meters
+        vertex_theta: float
+            Polar angle of the shower vertex in radians
+        vertex_phi: float
+            Azimuthal angle of the shower vertex in radians
+        pulse_time: float
+            Time of the pulse in the trace of the reference channel relative to the trace_start_time (doesn't account for antenna phase delays).
+            This convention removes the correlation between the vertex time and the radial distance of the vertex.
+        type: string
+            Type of the shower, either "HAD" or "EM"
+        charge_excess_profile_id: int
+            Id of the charge excess profile to use for the simulation, default 1.
+        trace_start_times: array-like
+            Start times of the traces for each readout channel. If None, the start times will be set such
+            that the pulse appears self.pre_pulse_time + vertex_time into the trace of the reference channel.
+            If a single trace_start_time is provided, it will be used for all channels.
+
+        Returns
+        -------
+        station: NuRadioReco.framework.station.Station
+            Station object containing the simulated channels.
+        traces: numpy.ndarray
+            Numpy array of the simulated traces
+        trace_start_times:
+            Start times of the traces for each readout channel. If None, the start times will be set such
+            that the pulse appears self.pre_pulse_time + vertex_time into the trace of the reference channel.
+            If a single trace_start_time is provided, it will be used for all channels.
+        """
+
+        shower = NuRadioReco.framework.radio_shower.RadioShower(0)
+        shower[shp.zenith] = zenith
+        shower[shp.azimuth] = azimuth
+        shower[shp.energy] = energy
+        shower[shp.vertex] = hp.spherical_to_cartesian(vertex_theta, vertex_phi) * vertex_r
+        shower[shp.type] = type
+
+        self.propagator.set_start_and_end_point(self.det.get_relative_position(self.station_id, self.reference_channel), shower[shp.vertex])
+        self.propagator.find_solutions()
+        reference_travel_time = self.propagator.get_travel_time(0)
+        reference_index = np.argmax(self.channel_ids == self.reference_channel)
+        reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel) if self.add_cable_delay else 0
+
+        shower[shp.vertex_time] = trace_start_times[reference_index] + pulse_time - reference_cable_delay - reference_travel_time 
+        shower[shp.charge_excess_profile_id] = charge_excess_profile_id
+
+        station, traces, trace_start_times = self.simulate_showers([shower], trace_start_times)
+
+        return station, traces, trace_start_times
