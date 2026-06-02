@@ -53,7 +53,7 @@ class neutrinoLikelihoodReconstructor:
     def __init__(self):
         pass
 
-    def begin(self, n_channels, n_samples, sampling_rate, noise_spectra, Vrms, config_file=None, detector_simulation_filter_amp=None, use_chi2=False, debug=False):
+    def begin(self, n_channels, n_samples, sampling_rate, noise_spectra, Vrms, config_file=None, detector_simulation_filter_amp=None, use_chi2=False, debug=False, signal_search_width=30 * units.ns, n_grid_matched_filter=200):
         """
 
         Parameters
@@ -93,8 +93,9 @@ class neutrinoLikelihoodReconstructor:
         self.config_file = os.path.join(os.path.dirname(__file__), 'signal_model_config.yaml') if config_file is None else config_file
 
         self.delta_t = 1/self.sampling_rate
-        self.t_array_matched_filter = np.arange(0, self.n_samples) * self.delta_t - self.n_samples * self.delta_t/ 2
-        self.i_shift_cc = np.arange(0, self.n_samples)
+        #self.t_array_matched_filter = np.arange(0, self.n_samples) * self.delta_t - self.n_samples * self.delta_t/ 2
+        self.delta_t_array_matched_filter = np.linspace(-signal_search_width, signal_search_width, n_grid_matched_filter)
+        self.i_shift_cc = (np.arange(-int(signal_search_width / self.delta_t), int(signal_search_width / self.delta_t) + 1)).astype(int)
         self.frequencies = np.fft.rfftfreq(self.n_samples, 1. / self.sampling_rate)
 
         # initialize likelihood calculator:
@@ -120,7 +121,7 @@ class neutrinoLikelihoodReconstructor:
         self.detector_simulation_filter_amp = detector_simulation_filter_amp
 
     @register_run()
-    def run(self, evt, station, det, parameters_initial, charge_excess_profile_id=0, use_channels=None, reference_channel=0, full_output=True):
+    def run(self, evt, station, det, parameters_initial, charge_excess_profile_id=0, use_channels=None, reference_channel=0, full_output=True, two_step_optimization=True):
         """
         Run the likelihood reconstruction of electric field.
 
@@ -220,7 +221,7 @@ class neutrinoLikelihoodReconstructor:
             )[1]
             return signal
 
-        #self.matched_filter.set_data(traces)
+        self.matched_filter.set_data(traces)
 
         if self.debug:
             # plot initial signal for debugging:
@@ -235,12 +236,19 @@ class neutrinoLikelihoodReconstructor:
             ax[-1].set_xlabel("Time [s]")
             plt.tight_layout()
             plt.savefig("debug_StationElectricFieldReconstructor_initial.png")
-            plt.show()
-            plt.close()
 
-        initial_likelihood, minus_two_llh, fitted_parameters, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, parameters_initial)
+        initial_likelihood, minus_two_llh, fitted_parameters, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, parameters_initial, two_step_optimization=two_step_optimization)
 
         fitted_signal = signal_model_wrapper(fitted_parameters)
+
+        if self.debug:
+            for i_ch in range(self.n_channels):
+                ax[i_ch].plot(t_array, fitted_signal[i_ch], ls=":",label="fit")
+                if i_ch == 0:
+                    ax[i_ch].legend()
+            plt.savefig("debug_StationElectricFieldReconstructor_initial.png")
+            plt.show()
+            plt.close()
 
         # save results to station object:
         # if self.travel_time_shifts is None:
@@ -276,7 +284,7 @@ class neutrinoLikelihoodReconstructor:
 
         if not self.use_chi2:
             self.matched_filter.set_template(signal)
-            t_best, x_best = self.matched_filter.matched_filter_search(time_shift_array=self.t_array_matched_filter)
+            t_best, x_best = self.matched_filter.matched_filter_search(time_shift_array=self.delta_t_array_matched_filter)
             llh_mf = self.matched_filter.calculate_matched_filter_delta_log_likelihood()
             return -2 * llh_mf
 
@@ -338,7 +346,7 @@ class neutrinoLikelihoodReconstructor:
         return chi2
 
 
-    def _reconstruct_signal(self, data, signal_function, parameters_initial):
+    def _reconstruct_signal(self, data, signal_function, parameters_initial, two_step_optimization=True):
         """
         Reconstruct the signal from the given data.
 
@@ -362,7 +370,7 @@ class neutrinoLikelihoodReconstructor:
             The fitted parameters for the reconstructed signal
         """
 
-        initial_likelihood = self._function_to_minimize_llh(data, signal_function(parameters_initial))
+        scaling = np.array([units.EeV, units.rad, units.rad, units.km, units.deg, units.deg, units.ns])
 
         bounds = np.array([(1 * units.PeV, 100 * units.EeV),
                             (0 * units.deg, 180 * units.deg),
@@ -371,12 +379,54 @@ class neutrinoLikelihoodReconstructor:
                             (90 * units.deg, 180 * units.deg),
                             (-360 * units.deg, 360 * units.deg),
                             (parameters_initial[6] - 10 * units.ns, parameters_initial[6] + 10 * units.ns)])
-        scaling = np.array([units.EeV, units.rad, units.rad, units.km, units.deg, units.deg, units.ns])
+
+        initial_likelihood = self._function_to_minimize_llh(data, signal_function(parameters_initial))
+
+        # matched filter optimization to get close to the global minimum and good initial parameters for the likelihood fit:
+        if two_step_optimization:
+            minimizer_mf = minimization.Minimizer(
+                signal_function = signal_function,
+                objective_function = self._function_to_minimize_mf,
+                parameters_initial = parameters_initial,
+                parameters_bounds = bounds,
+                debug=self.debug
+            )
+            minimizer_mf.fix_parameters([True, False, False, False, False, False, True])
+            minimizer_mf.set_scaling(scaling)
+            m_mf = minimizer_mf.run_minimization(data=data, method="minuit")
+
+            fitted_params_mf = minimizer_mf.parameters
+            signal_fit_mf = signal_function(fitted_params_mf)
+
+            # Get best matching time shift:
+            self.matched_filter.set_template(signal_fit_mf)
+            t_shift, x = self.matched_filter.matched_filter_search(time_shift_array=self.delta_t_array_matched_filter)
+            t_guess = parameters_initial[6] + t_shift
+
+            # Fit energy:
+            paraneters_initial_amplitude = np.array([fitted_params_mf[0], fitted_params_mf[1], fitted_params_mf[2], fitted_params_mf[3], fitted_params_mf[4], fitted_params_mf[5], t_guess])
+            minimizer_amplitude = minimization.Minimizer(
+                signal_function = signal_function,
+                objective_function = self._function_to_minimize_llh,
+                parameters_initial = paraneters_initial_amplitude,
+                parameters_bounds = bounds,
+                debug=self.debug
+            )
+            minimizer_amplitude.fix_parameters([False, True, True, True, True, True, True])
+            minimizer_amplitude.set_scaling(scaling)
+            m_amplitude = minimizer_amplitude.run_minimization(data=data, method="minuit")
+            energy_guess = minimizer_amplitude.parameters[0]
+
+            parameters_initial_llh = np.array([energy_guess, fitted_params_mf[1], fitted_params_mf[2], fitted_params_mf[3], fitted_params_mf[4], fitted_params_mf[5], t_guess])
+
+        elif not two_step_optimization:
+            parameters_initial_llh = np.copy(parameters_initial)
+
 
         minimizer_llh = minimization.Minimizer(
             signal_function = signal_function,
             objective_function = self._function_to_minimize_llh,
-            parameters_initial = parameters_initial,
+            parameters_initial = parameters_initial_llh,
             parameters_bounds = bounds,
             debug=self.debug
         )

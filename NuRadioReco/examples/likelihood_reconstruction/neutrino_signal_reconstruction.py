@@ -1,3 +1,6 @@
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
@@ -123,15 +126,25 @@ reco.begin(
 minus_two_llh_true = reco._function_to_minimize_llh(traces, signal_true)
 vertex_zenith, vertex_azimuth = hp.cartesian_to_spherical(vertex_xyz[0], vertex_xyz[1], vertex_xyz[2])
 vertex_r = np.linalg.norm(vertex_xyz)
-pulse_time = np.argmax(traces[0]) / sampling_rate + 6.615 * units.ns # very good guess of time of pulse relative to trace start time
-parameters_initial = [E_shower, zenith, azimuth, vertex_r, vertex_zenith, vertex_azimuth, pulse_time] # initialize at (mostly) true parameters
+pulse_time = np.argmax(traces[0]) / sampling_rate #+ 6.615 * units.ns # very good guess of time of pulse relative to trace start time
+parameters_initial = [
+    E_shower * 1.5,
+    zenith + 5 * units.deg,
+    azimuth - 10 * units.deg,
+    vertex_r + 20 * units.m,
+    vertex_zenith + 0.5 * units.deg,
+    vertex_azimuth - 0.25 * units.deg,
+    pulse_time] # initialize at (mostly) true parameters
 initial_likelihood, fitted_signal, fitted_parameters, minus_two_llh, uncertainties_fit = reco.run(evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=0, full_output=True)
 
 
 print()
 print("-2 LLH of true signal:", minus_two_llh_true)
-print("Initial parameters:", parameters_initial)
 print("Initial -2 LLH:", initial_likelihood)
+print("Fitted -2 LLH:", minus_two_llh)
+
+print()
+print("True parameters:", [E_shower, zenith, azimuth, vertex_r, vertex_zenith, vertex_azimuth, pulse_time])
+print("Initial parameters:", parameters_initial)
 print("Fitted parameters:", fitted_parameters)
 print("Uncertainties on fitted parameters:", uncertainties_fit)
-print("Fitted -2 LLH:", minus_two_llh)

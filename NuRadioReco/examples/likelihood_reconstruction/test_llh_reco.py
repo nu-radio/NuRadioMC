@@ -1,5 +1,5 @@
 import os
-os.environ["OPENBLAS_NUM_THREADS"] = "4"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -142,7 +142,15 @@ for i_event in range(n_events):
     vertex_zenith, vertex_azimuth = hp.cartesian_to_spherical(vertex_xyz[0], vertex_xyz[1], vertex_xyz[2])
     vertex_r = np.linalg.norm(vertex_xyz)
     pulse_time = np.argmax(traces[0]) / sampling_rate + 6.615 * units.ns
-    parameters_initial = [E_shower, zenith, azimuth, vertex_r, vertex_zenith, vertex_azimuth, pulse_time] # initialize at true parameters
+    # parameters_initial = [E_shower, zenith, azimuth, vertex_r, vertex_zenith, vertex_azimuth, pulse_time] # initialize at true parameters
+    parameters_initial = [
+        E_shower * 1.5,
+        zenith + 5 * units.deg,
+        azimuth - 10 * units.deg,
+        vertex_r + 20 * units.m,
+        vertex_zenith + 0.5 * units.deg,
+        vertex_azimuth - 0.25 * units.deg,
+        pulse_time]
     initial_likelihood, fitted_signal, fitted_parameters, minus_two_llh, uncertainties_fit = reco.run(evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=0, full_output=True)
 
 
@@ -211,7 +219,7 @@ plt.savefig("llh_reco_results_coverage.png", dpi=300)
 
 # plot fitted parameters corner plot:
 fig, ax = plt.subplots(7, 7, figsize=[20,20])
-parameter_names = ["Energy [PeV]", "Zenith [deg]", "Azimuth [deg]", "Vertex r [km]", "Vertex zenith [deg]", "Vertex azimuth [deg]", "Vertex time [ns]"]
+parameter_names = ["Energy [PeV]", "Zenith [deg]", "Azimuth [deg]", "Vertex r [km]", "Vertex zenith [deg]", "Vertex azimuth [deg]", "Pulse time [ns]"]
 for i in range(7):
     for j in range(7):
         if i == j:

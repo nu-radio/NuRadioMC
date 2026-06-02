@@ -10,6 +10,9 @@ import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import showerParameters as shp
 import NuRadioReco.modules.channelAddCableDelay
 
+import logging
+logger = logging.getLogger('NuRadioReco.ShowerSimulator')
+
 channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
 class ShowerSimulator():
@@ -359,13 +362,29 @@ class ShowerSimulator():
 
         self.propagator.set_start_and_end_point(self.det.get_relative_position(self.station_id, self.reference_channel), shower[shp.vertex])
         self.propagator.find_solutions()
-        reference_travel_time = self.propagator.get_travel_time(0)
-        reference_index = np.argmax(self.channel_ids == self.reference_channel)
-        reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel) if self.add_cable_delay else 0
 
-        shower[shp.vertex_time] = trace_start_times[reference_index] + pulse_time - reference_cable_delay - reference_travel_time 
-        shower[shp.charge_excess_profile_id] = charge_excess_profile_id
+        if self.propagator.get_number_of_solutions() > 0:
+            reference_travel_time = self.propagator.get_travel_time(0)
+            reference_index = np.argmax(self.channel_ids == self.reference_channel)
+            reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel) if self.add_cable_delay else 0
 
-        station, traces, trace_start_times = self.simulate_showers([shower], trace_start_times)
+            shower[shp.vertex_time] = trace_start_times[reference_index] + pulse_time - reference_cable_delay - reference_travel_time
+            shower[shp.charge_excess_profile_id] = charge_excess_profile_id
+
+            station, traces, trace_start_times = self.simulate_showers([shower], trace_start_times)
+
+        elif self.propagator.get_number_of_solutions() == 0:
+            logger.warning("No solution found for the given vertex position. Returning empty traces.")
+            station = NuRadioReco.framework.station.Station(self.station_id)
+            if self.channels_are_similar:
+                traces = np.zeros([len(self.channel_ids), self.readout_n_samples[0]], dtype=float)
+            else:
+                traces = np.zeros(len(self.channel_ids), dtype=object)
+            if trace_start_times is None:
+                trace_start_times = np.repeat(0, len(self.channel_ids))
+            else:
+                trace_start_times = np.atleast_1d(trace_start_times)
+                if len(trace_start_times) == 1:
+                    trace_start_times = np.repeat(trace_start_times, len(self.channel_ids))
 
         return station, traces, trace_start_times
