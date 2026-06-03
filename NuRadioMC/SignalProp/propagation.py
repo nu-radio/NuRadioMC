@@ -45,8 +45,7 @@ def get_propagation_module(name=None):
         return ray_tracing_base
     elif name == available_modules[0]:
         from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
-        #return partial(ray_tracing, ray_tracing_module = 'analytic')
-        return partial(ray_tracing, ray_tracing_module = 'multilayer')
+        return partial(ray_tracing, ray_tracing_module = 'analytic')
     elif name == available_modules[3]:
         from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
         return partial(ray_tracing, ray_tracing_module = 'multilayer')

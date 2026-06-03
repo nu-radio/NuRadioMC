@@ -798,7 +798,7 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
         return y2 - y_fit
 
 #@njit(cache = True)
-def get_n(z, layers):
+def get_n_1D(z, layers):
     """
     Evaluate the refractive index at a given depth.
 
@@ -848,7 +848,7 @@ def get_C0_from_theta(z_start, theta, layers):
         Ray parameter C0.
     """
     # Convert launch angle to ray parameter
-    n_start = get_n(z_start, layers)
+    n_start = get_n_1D(z_start, layers)
     p = n_start * np.cos(theta)
 
     if p == 0.0:
@@ -888,8 +888,8 @@ def get_skim_angle(y1, z1, zskim, layers):
     The critical angle is determined from the refractive index
     contrast between the launch depth and the skim depth.
     """
-    nlaunch = get_n(z1, layers)
-    nsurf = get_n(zskim, layers)
+    nlaunch = get_n_1D(z1, layers)
+    nsurf = get_n_1D(zskim, layers)
     
     sinthcrit = min(nsurf / nlaunch, 0.99999999)
     if sinthcrit <= 1.0:
@@ -1242,7 +1242,7 @@ def find_solutions_old(x1, x2, layers,tol=1e-12):
             layers
         )
 
-        n_z = get_n(z1,layers)
+        n_z = get_n_1D(z1,layers)
         logC0straight = np.log(max(C0straight - 1./n_deep, 1e-12))
         logC0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
         logC0skim = np.log(max(C0skim- 1./n_deep, 1e-12))
@@ -1495,7 +1495,7 @@ def find_solutions(x1, x2, layers,tol=1e-6):
         layers
     )
 
-    n_z = get_n(z1,layers)
+    n_z = get_n_1D(z1,layers)
     logC0straight = np.log(max(C0straight - 1./n_deep, 1e-12))
     logC0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
     logC0skim = np.log(max(C0skim- 1./n_deep, 1e-12))
@@ -1734,6 +1734,9 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
     if theta_straight < np.pi/4: 
         theta_straight = np.pi/4
 
+    #if abs(z1-z2) < 2:
+    #    theta_straight = np.pi/2
+
     
     _, theta_skim = get_skim_angle(
         y1, z1,
@@ -1764,7 +1767,8 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
     )
 
 
-    n_z = get_n(z1,layers)
+    n_z = get_n_1D(z1,layers)
+
     logC0straight = np.log(abs(C0straight - 1./n_deep))
     logC0skim_nz = np.log(abs(1/n_z - 1./n_deep))
     logC0skim = np.log(abs(C0skim- 1./n_deep))
@@ -1956,6 +1960,7 @@ def reduce_solutions(results, with_air=False, tol = 1e-3):
     results = sorted(results, key=itemgetter('type', 'C0'))
 
     return results
+
 
 def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, get_segments = False):
     """
@@ -2269,7 +2274,7 @@ def get_path_length_analytic(C0, x1, x2, layers):
 
         
         beta = 1.0 / C0 
-        alpha = n_ice**2 - beta**2
+        alpha = max(n_ice**2 - beta**2, 1e-15)
 
         
         def gamma(z):
@@ -2341,7 +2346,7 @@ def get_launch_angle(C0, x1, x2, layers):
         downgoing = True
 
     solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
-    n = get_n(x1[1],layers)
+    n = get_n_1D(x1[1],layers)
 
     if solution_type == DIRECT and downgoing: 
         angle = np.pi - np.arcsin(1/(n*C0))
@@ -2395,7 +2400,7 @@ def get_receiving_angle(C0, x1, x2, layers):
         downgoing = True
 
     solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
-    n = get_n(x2[1],layers)
+    n = get_n_1D(x2[1],layers)
 
     if solution_type == DIRECT and not downgoing:
         angle = np.pi - np.arcsin(1/(n*C0))
@@ -2589,7 +2594,7 @@ def get_travel_time_analytic(C0, x1, x2, layers):
 
         
         beta = 1.0 / C0 
-        alpha = n_ice**2 - beta**2
+        alpha = max(n_ice**2 - beta**2, 1e-15)
 
         
         def gamma(z):
@@ -3052,17 +3057,17 @@ def get_focusing_factor(C0, x1, x2, layers):
 
     if x1[1] > 0:
         launch_angle = get_launch_angle(C0, x1, (0,-0.001), layers)
-        n1 = get_n(-0.001, layers)
+        n1 = get_n_1D(-0.001, layers)
     else:
         launch_angle = get_launch_angle(C0, x1, x2, layers)
-        n1 = get_n(x1[1], layers)
+        n1 = get_n_1D(x1[1], layers)
 
     if x2[1] > 0:
         receive_angle = get_receiving_angle(C0, (0,-0.001), x2, layers)
-        n2 = get_n(-0.001, layers)
+        n2 = get_n_1D(-0.001, layers)
     else:
         receive_angle = get_receiving_angle(C0, x1, x2, layers)
-        n2 = get_n(x2[1], layers)
+        n2 = get_n_1D(x2[1], layers)
 
     if x1[1] > 0:
         s = get_path_length_analytic(C0, (0, -0.001), x2, layers)
@@ -3198,7 +3203,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             if numba_available:
 
                 global get_layer_index, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn
-                global get_turning_point, get_delta_y, get_n, get_C0_from_theta, get_skim_angle
+                global get_turning_point, get_delta_y, get_n_1D, get_C0_from_theta, get_skim_angle
                 global determine_solution_type, get_path_segments, get_path_length_analytic, get_launch_angle
                 global get_receiving_angle, get_reflection_angle, get_travel_time_analytic, ds_dz_layer, get_focusing_factor
                 global get_inice_quantities, get_time_difference_plane_wave_analytic
@@ -3212,7 +3217,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
                     find_z_turn = ensure_jitted(find_z_turn)
                     get_turning_point = ensure_jitted(get_turning_point)
                     get_delta_y = ensure_jitted(get_delta_y)
-                    get_n = ensure_jitted(get_n)
+                    get_n_1D = ensure_jitted(get_n_1D)
                     get_C0_from_theta = ensure_jitted(get_C0_from_theta)
                     get_skim_angle = ensure_jitted(get_skim_angle)
                     determine_solution_type = ensure_jitted(determine_solution_type)
@@ -3266,52 +3271,42 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         
         return solution_type
     
-    #@log_timing()
-    def find_solutions(self, x1, x2, plot=False,reduce=True, *_, **__):
-        
-        # Finding ray solutions connecting x1 and x2.
+    def find_solutions(self, x1, x2, plot=False, reduce=True, *_, **__):
 
-        # Option reduce to set whether reduction to 2 solutions should be applied or not. 
-        # Currently more than 2 solutions can be found in the regions vertically below the receiver or in the caustic zone. 
-        
-        # Since no approach or set of starting parameters was found to work universally, we use the different solutions 
-        # find_solutions_bulk (more stable for rays when z1=z2) and find_solutions (more stable when crossing layer with jump in n(z)) are used dependent on the situation.
-        
-        with_air = False
-        if x1[1]>0 or x2[1]>0:
-            with_air = True
+        with_air = (x1[1] > 0 or x2[1] > 0)
 
-        if with_air or np.abs(x2[0]-x1[0]) < 5*units.m:
-            solutions = find_solutions(x1, x2, self._layers_arr)
-            if len(solutions) == 0: # If no solutions have been found, try again with other 
-                solutions = find_solutions_bulk(x1, x2, self._layers_arr)
+        dx = abs(x2[0] - x1[0])
+        dz = abs(x2[1] - x1[1])
+
+        horizontal = dx > 0 and (dz / dx < 1e-3)
+        small_dx = dx < 5 * units.m
+
+        if horizontal or small_dx:
+            solver_chain = [find_solutions_bulk, find_solutions]
         else:
-            solutions = find_solutions_bulk(x1, x2, self._layers_arr)
-            if len(solutions) == 0: # If no solutions have been found, try again with other. 
-                solutions = find_solutions(x1, x2, self._layers_arr)
+            solver_chain = [find_solutions, find_solutions_bulk]
+
+        solutions = []
+        for solver in solver_chain:
+            solutions = solver(x1, x2, self._layers_arr)
+            if solutions:
+                break
 
         self._logger.info(
             "find_solutions | x1=%s x2=%s solutions=%s",
-            x1,
-            x2,
-            solutions
-            )
-        
+            x1, x2, solutions
+        )
 
-        if reduce: 
-            # reducing solutions to only two. 
-            # highest two C0 are used to avoid wrong solutions that might have been found in the find_solutions_bulk
+        if reduce:
             try:
-                solutions_reduced = reduce_solutions(solutions, with_air)
+                return reduce_solutions(solutions, with_air)
             except Exception:
                 return solutions
-            
-            return solutions_reduced
-    
+
         return solutions
-    
-    def get_n(self, x1):
-        n_z = get_n(x1[1],self._layers_arr)
+
+    def get_n_2D(self, x1):
+        n_z = get_n_1D(x1[1],self._layers_arr)
         return n_z
 
     #@log_timing()
@@ -3325,7 +3320,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         if solution_type == solution_types_revert['direct']:
 
             direct_len = np.sqrt((x2[0]-x1[0])**2 + (x2[1]-x1[1])**2) * units.m
-            n_z1 = self.get_n(x1)
+            n_z1 = self.get_n_2D(x1)
             direct_time_lightspeed = direct_len * n_z1 / constants.c
 
             if travel_time > direct_time_lightspeed * 1.5: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier) 
@@ -3510,9 +3505,9 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
         return attenuation_factor
 
-    def get_time_difference_plane_wave_analytic(self, x1, x2, src_zenith, src_azimuth):
+    def get_time_difference_plane_wave_analytic(self, x1, x2, src_zenith, src_azimuth, azimuth_convention = 'nuradio'):
 
-        dt = get_time_difference_plane_wave_analytic(x1, x2, src_zenith, src_azimuth, self._layers_arr)
+        dt = get_time_difference_plane_wave_analytic(x1, x2, src_zenith, src_azimuth, self._layers_arr, azimuth_convention)
 
         return dt
     
@@ -3559,7 +3554,7 @@ def get_inice_quantities(pos, theta_air, layers):
     the corresponding trajectory and travel time.
     """
 
-    n_air = get_n(0.0001, layers)
+    n_air = get_n_1D(0.0001, layers)
 
     p = n_air * np.sin(theta_air)
     C0 = 1.0 / p
@@ -3575,7 +3570,7 @@ def get_inice_quantities(pos, theta_air, layers):
     return horizontal_offset, travel_time
 
 
-def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, layers):
+def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, layers, azimuth_convention = 'nuradio'):
     """
     Compute the relative arrival time of a plane wave between two receivers.
 
@@ -3608,6 +3603,9 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     layers : tuple of np.ndarray
         Layered refractive-index model as returned by
         layers_to_arrays().
+    azimuth_convention : string
+        Which azimuth convention to use ('nuradio' or 'astropy') 
+        'nuradio': 0deg east, 90deg north, 180 deg west, 270deg south, 'astropy': 0deg east, 90deg south, 180 deg west, 270deg north, 
 
     Returns
     -------
@@ -3631,17 +3629,26 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     """
 
     # horizontal propagation direction of incoming signal, projected onto surface
-    src_hvec = -np.array([
-        np.sin(phi_air),
-        np.cos(phi_air)
-    ])
+    if azimuth_convention == 'nuradio':
+        src_hvec = np.array([
+            np.cos(phi_air),
+            np.sin(phi_air)
+        ])
+    elif azimuth_convention == 'astropy':
+        src_hvec = np.array([
+            np.sin(phi_air),
+            np.cos(phi_air)
+        ])
+    else:
+        raise ValueError(f"Azimuth convention '{azimuth_convention}' is not defined. Use 'nuradio' or 'astropy'!")
 
-    n_air = get_n(0.0001, layers)
+
+    n_air = get_n_1D(0.0001, layers)
 
     # in-ice raytracing solution for given surface angle and antenna depth
     # r: radial distance the ray covers on the way from the surface to the antenna depth
     # t: travel time along this path in ice
-
+    
     r1, t1 = get_inice_quantities(pos1, theta_air, layers)
     r2, t2 = get_inice_quantities(pos2, theta_air, layers)
 

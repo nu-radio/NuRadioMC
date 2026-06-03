@@ -36,8 +36,8 @@ class ray_tracing(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
-                 detector=None, ray_tracing_module='multilayer', ray_tracing_2D_kwards={},
-                 use_cpp=None, compile_numba=True):
+                 detector=None, ray_tracing_module='analytic', ray_tracing_2D_kwards={},
+                 use_cpp=None, compile_numba=None):
         """
         class initilization
 
@@ -986,6 +986,11 @@ class ray_tracing(ray_tracing_base):
         else:
             self._config = config
 
-    def get_time_difference_plane_wave(self, src_zenith, src_azimuth):
-        dt = self._r2d.get_time_difference_plane_wave_analytic(self._X1, self._X2, src_zenith, src_azimuth)
+    def get_time_difference_plane_wave(self, src_zenith, src_azimuth, azimuth_convention = 'nuradio'):
+
+        if src_zenith > np.pi/2:
+            self.__logger.warning(f"Source zenith angle: {src_zenith:3f} ({src_zenith/units.deg:2f} deg) is above pi/2 (90 deg)! The plane wave time difference calculation only works for signals traversing from air to ice, aka coming from above, aka having theta between 0 and 90 degrees. Make sure to catch this!")
+            return np.nan
+        
+        dt = self._r2d.get_time_difference_plane_wave_analytic(self._X1, self._X2, src_zenith, src_azimuth, azimuth_convention)
         return dt
