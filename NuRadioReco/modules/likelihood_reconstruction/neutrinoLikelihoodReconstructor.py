@@ -4,6 +4,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
+import scipy as scp
 
 from NuRadioReco.utilities.analytic_pulse import get_analytic_pulse_freq
 from NuRadioReco.utilities import units, fft, minimization, matched_filter, trace_utilities
@@ -12,6 +13,7 @@ from NuRadioReco.framework.sim_station import SimStation
 from NuRadioReco.framework.event import Event
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
+from NuRadioReco.framework.parameters import showerParameters as shp
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.electricFieldBandPassFilter
@@ -135,12 +137,20 @@ class neutrinoLikelihoodReconstructor:
 
         det: NuRadioReco.framework.detector.Detector
             The detector description.
-        
+
         parameters_initial: np.ndarray
             Initial parameters for the reconstruction. Should be an array of
             length 7 containing the following parameters in this order:
-            [energy, zenith, azimuth, vertex_r, vertex_theta, vertex_phi, vertex_time]
-            in standard NuRadioMC units.
+            [energy, zenith, azimuth, vertex_r_rel, vertex_theta_rel, vertex_phi_rel, pulse_time]
+            in standard NuRadioMC units. The parameters are:
+            - energy: The shower energy
+            - zenith and azimuth: The direction of the neutrino
+            - vertex_r_rel, vertex_theta_rel, vertex_phi_rel: The spherical coordinates
+                of the shower vertex relative to the reference antenna (r, theta, phi)
+            - pulse_time: The approximate time of the pulse in the readout trace of the
+                reference antenna relative to the start of the trace (this doesn't account
+                for antenna group delay). It can be estimated from the time of the peak in
+                the reference antenna trace.
 
         charge_excess_profile_id: int, optional
             ID of the charge excess profile to use in the shower simulation. Not used for Alvarez2009. Default: 0
@@ -158,14 +168,14 @@ class neutrinoLikelihoodReconstructor:
             The reconstructed signal in the readout traces.
             Only returned if `full_output` enabled
 
-        fitted_params_best: np.ndarray
+        params_fit: np.ndarray
             The best fit parameters of the signal model.
             Only returned if `full_output` enabled
 
-        minus_two_llh_best: float
+        minus_two_llh_fit: float
             The minus two log-likelihood value of the reconstructed signal.
             Only returned if `full_output` enabled
-        
+
         uncertainties_fit: np.ndarray
             Estimated marginalized uncertainties on the 7 reconstructed parameters using the Fisher
             information matrix
@@ -198,22 +208,15 @@ class neutrinoLikelihoodReconstructor:
             detector_simulation_filter_amp = self.detector_simulation_filter_amp,
             pre_pulse_time = 100 * units.ns # not used
         )
-        # convert vertex time to pulse time (time at which the pulse reaches the reference channel):
-        # start_point = hp.spherical_to_cartesian(parameters_initial[4], parameters_initial[5]) * parameters_initial[3]
-        # end_point = det.get_relative_position(station.get_id(), reference_channel)
-        # signal_model.propagator.set_start_and_end_point(start_point, end_point)
-        # signal_model.propagator.find_solutions()
-        # reference_travel_time = signal_model.propagator.get_travel_time(0)
-        # parameters_initial[6] = parameters_initial[6] + reference_travel_time + det.get_cable_delay(station.get_id(), reference_channel) - trace_start_times[reference_channel]
 
         def signal_model_wrapper(parameters):
             signal = signal_model.simulate_single_shower_forward_folding(
                 energy = parameters[0],
                 zenith = parameters[1],
                 azimuth = parameters[2],
-                vertex_r = parameters[3],
-                vertex_theta = parameters[4],
-                vertex_phi = parameters[5],
+                vertex_r_rel = parameters[3],
+                vertex_theta_rel = parameters[4],
+                vertex_phi_rel = parameters[5],
                 pulse_time = parameters[6],
                 type = "HAD",
                 trace_start_times = trace_start_times,
@@ -237,45 +240,66 @@ class neutrinoLikelihoodReconstructor:
             plt.tight_layout()
             plt.savefig("debug_StationElectricFieldReconstructor_initial.png")
 
-        initial_likelihood, minus_two_llh, fitted_parameters, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, parameters_initial, two_step_optimization=two_step_optimization)
+        minus_two_llh_initial, minus_two_llh_fit, parameters_fit, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, parameters_initial, two_step_optimization=two_step_optimization)
 
-        fitted_signal = signal_model_wrapper(fitted_parameters)
+        signal_fit = signal_model_wrapper(parameters_fit)
 
         if self.debug:
             for i_ch in range(self.n_channels):
-                ax[i_ch].plot(t_array, fitted_signal[i_ch], ls=":",label="fit")
+                ax[i_ch].plot(t_array, signal_fit[i_ch], ls=":",label="fit")
                 if i_ch == 0:
                     ax[i_ch].legend()
             plt.savefig("debug_StationElectricFieldReconstructor_initial.png")
             plt.show()
             plt.close()
 
-        # save results to station object:
-        # if self.travel_time_shifts is None:
-        #     efield_time = fitted_params_best[4] - det.get_cable_delay(station.get_id(), use_channels[0])
-        # elif self.travel_time_shifts is not None:
-        #     efield_time = fitted_params_best[4] - det.get_cable_delay(station.get_id(), use_channels[0]) - self.travel_time_shifts[0]
-        # efield_parameters = np.array([fitted_params_best[0], fitted_params_best[1], fitted_params_best[2], fitted_params_best[3], efield_time, fitted_params_best[5]])
-        # electric_field = self._get_efield(efield_parameters, fitted_params_best[6], fitted_params_best[7], use_channels, apply_filter=save_filtered_efield)
-        # electric_field.set_parameter(efp.signal_energy_fluence, fluence_reco_best)
-        # electric_field.set_parameter_error(efp.signal_energy_fluence, fluence_uncertainty_best)
-        # electric_field.set_parameter(efp.polarization_angle, polarization_reco_best)
-        # electric_field.set_parameter_error(efp.polarization_angle, polarization_uncertainty_best)
-        # electric_field.set_parameter(efp.cr_spectrum_slope, fitted_params_best[2])
-        # electric_field.set_parameter(efp.signal_time, trace_start_times[0] + fitted_params_best[3])
-        # electric_field.set_parameter(efp.cr_spectrum_quadratic_term, fitted_params_best[5])
-        # electric_field.set_parameter(efp.zenith, fitted_params_best[6])
-        # electric_field.set_parameter(efp.azimuth, fitted_params_best[7])
+        # Convert fitted parameters to shower parameters:
+        rec_energy = parameters_fit[0]
+        rec_zenith = parameters_fit[1]
+        rec_azimuth = parameters_fit[2]
+        rec_vertex_r_rel = parameters_fit[3]
+        rec_vertex_theta_rel = parameters_fit[4]
+        rec_vertex_phi_rel = parameters_fit[5]
+        rec_vertex_xyz_rel = hp.spherical_to_cartesian(rec_vertex_theta_rel, rec_vertex_phi_rel) * rec_vertex_r_rel
+        rec_vertex_xyz = rec_vertex_xyz_rel + det.get_relative_position(station.get_id(), 0)
+        signal_model.propagator.set_start_and_end_point(rec_vertex_xyz, det.get_relative_position(station.get_id(), reference_channel))
+        signal_model.propagator.find_solutions()
+        travel_time = signal_model.propagator.get_travel_time(0)
+        rec_vertex_time = parameters_fit[6] + trace_start_times[reference_channel] - det.get_cable_delay(station.get_id(), reference_channel) - travel_time
 
-        # station.add_electric_field(electric_field)
+        # Convert fit uncertainties to shower parameter uncertainties:
+        unc_xyz = hp.spherical_to_cartesian(rec_vertex_theta_rel, rec_vertex_phi_rel) * uncertainties_fit[3] # this ignores the uncertainties on rec_vertex_theta_rel and rec_vertex_phi_rel, but rec_vertex_r_rel has the dominant uncertainty
+        time_unc_from_r_unc = uncertainties_fit[3] / (scp.constants.c * units.s * signal_model.ice.get_index_of_refraction(rec_vertex_xyz)) # 1-st order estimate
+        unc_vertex_time = np.sqrt(uncertainties_fit[6]**2 + time_unc_from_r_unc**2)
 
+        # Create reconstructed shower object and save it to the event:
+        shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=0, station_ids=[station.get_id()])
+        shower.set_parameter(shp.energy, rec_energy)
+        shower.set_parameter_error(shp.energy, uncertainties_fit[0])
+        shower.set_parameter(shp.zenith, rec_zenith)
+        shower.set_parameter_error(shp.zenith, uncertainties_fit[1])
+        shower.set_parameter(shp.azimuth, rec_azimuth)
+        shower.set_parameter_error(shp.azimuth, uncertainties_fit[2])
+        shower.set_parameter(shp.vertex, rec_vertex_xyz)
+        shower.set_parameter_error(shp.vertex, unc_xyz)
+        shower.set_parameter(shp.vertex_time, rec_vertex_time)
+        shower.set_parameter_error(shp.vertex_time, unc_vertex_time)
+        shower.set_parameter(shp.type, "HAD")
+        shower.set_parameter(shp.charge_excess_profile_id, charge_excess_profile_id)
+        evt.add_shower(shower)
 
-        # Convert fitted parameters to vertex time instead of pulse time for output:
-        # fitted_parameters[6] = fitted_parameters[6] + trace_start_times[reference_channel] - det.get_cable_delay(station.get_id(), reference_channel) - reference_travel_time
-        # parameters_initial[6] = parameters_initial[6] + trace_start_times[reference_channel] - det.get_cable_delay(station.get_id(), reference_channel) - reference_travel_time
+        # Save results to station object:
+        station.set_parameter(stnp.nu_zenith, rec_zenith)
+        station.set_parameter(stnp.nu_azimuth, rec_azimuth)
+        station.set_parameter(stnp.nu_energy, rec_energy)
+        station.set_parameter(stnp.ccnc, "nc")
+
+        # Calculate goodness of fit:
+        n_dof_fit = self.likelihood_calculator.get_dof() - 7
+        p_value_fit = 1 - scp.stats.chi2.cdf(minus_two_llh_fit, n_dof_fit)
 
         if full_output:
-            return initial_likelihood, fitted_signal, fitted_parameters, minus_two_llh, uncertainties_fit
+            return parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit
 
     def _function_to_minimize_mf(self, data, signal):
         """
@@ -366,7 +390,7 @@ class neutrinoLikelihoodReconstructor:
         minus_two_llh_fit: float
             The negative log-likelihood value for the reconstructed signal
 
-        fitted_params: np.ndarray
+        params_fit: np.ndarray
             The fitted parameters for the reconstructed signal
         """
 
@@ -378,9 +402,9 @@ class neutrinoLikelihoodReconstructor:
                             (20 *units.m, 5 * units.km),
                             (90 * units.deg, 180 * units.deg),
                             (-360 * units.deg, 360 * units.deg),
-                            (parameters_initial[6] - 10 * units.ns, parameters_initial[6] + 10 * units.ns)])
+                            (parameters_initial[6] - 30 * units.ns, parameters_initial[6] + 30 * units.ns)])
 
-        initial_likelihood = self._function_to_minimize_llh(data, signal_function(parameters_initial))
+        minus_two_llh_initial = self._function_to_minimize_llh(data, signal_function(parameters_initial))
 
         # matched filter optimization to get close to the global minimum and good initial parameters for the likelihood fit:
         if two_step_optimization:
@@ -395,8 +419,8 @@ class neutrinoLikelihoodReconstructor:
             minimizer_mf.set_scaling(scaling)
             m_mf = minimizer_mf.run_minimization(data=data, method="minuit")
 
-            fitted_params_mf = minimizer_mf.parameters
-            signal_fit_mf = signal_function(fitted_params_mf)
+            params_fit_mf = minimizer_mf.parameters
+            signal_fit_mf = signal_function(params_fit_mf)
 
             # Get best matching time shift:
             self.matched_filter.set_template(signal_fit_mf)
@@ -404,11 +428,11 @@ class neutrinoLikelihoodReconstructor:
             t_guess = parameters_initial[6] + t_shift
 
             # Fit energy:
-            paraneters_initial_amplitude = np.array([fitted_params_mf[0], fitted_params_mf[1], fitted_params_mf[2], fitted_params_mf[3], fitted_params_mf[4], fitted_params_mf[5], t_guess])
+            parameters_initial_amplitude = np.array([params_fit_mf[0], params_fit_mf[1], params_fit_mf[2], params_fit_mf[3], params_fit_mf[4], params_fit_mf[5], t_guess])
             minimizer_amplitude = minimization.Minimizer(
                 signal_function = signal_function,
                 objective_function = self._function_to_minimize_llh,
-                parameters_initial = paraneters_initial_amplitude,
+                parameters_initial = parameters_initial_amplitude,
                 parameters_bounds = bounds,
                 debug=self.debug
             )
@@ -417,7 +441,7 @@ class neutrinoLikelihoodReconstructor:
             m_amplitude = minimizer_amplitude.run_minimization(data=data, method="minuit")
             energy_guess = minimizer_amplitude.parameters[0]
 
-            parameters_initial_llh = np.array([energy_guess, fitted_params_mf[1], fitted_params_mf[2], fitted_params_mf[3], fitted_params_mf[4], fitted_params_mf[5], t_guess])
+            parameters_initial_llh = np.array([energy_guess, params_fit_mf[1], params_fit_mf[2], params_fit_mf[3], params_fit_mf[4], params_fit_mf[5], t_guess])
 
         elif not two_step_optimization:
             parameters_initial_llh = np.copy(parameters_initial)
@@ -434,7 +458,7 @@ class neutrinoLikelihoodReconstructor:
 
         m = minimizer_llh.run_minimization(data=data, method="minuit")
 
-        fitted_params = minimizer_llh.parameters
+        params_fit = minimizer_llh.parameters
         minus_two_llh_fit = minimizer_llh.result
 
         # Estimate 1st order uncertainties using the Fisher information matrix:
@@ -442,65 +466,8 @@ class neutrinoLikelihoodReconstructor:
         def signal_function_scaled(params_scaled):
             params = params_scaled * scaling
             return signal_function(params)
-        fisher_information_matrix_fit = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function_scaled, fitted_params / scaling, dx)
+        fisher_information_matrix_fit = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function_scaled, params_fit / scaling, dx)
         f_i_fit = np.linalg.pinv(fisher_information_matrix_fit)
         uncertainties_fit = np.sqrt(np.diag(f_i_fit)) * scaling
 
-        # if self.debug:
-        #     # plot results for debugging:
-        #     signal_initial = signal_function(parameters_initial)
-        #     signal_initial_2 = signal_function(parameters_initial_2)
-        #     signal_fit_2 = signal_function(fitted_params_2)
-
-        #     fig, ax = plt.subplots(self.n_channels, 1, figsize=(10, self.n_channels*3))
-        #     for i_ch in range(self.n_channels):
-        #         t_array = trace_start_times[i_ch] + np.arange(0, self.n_samples) * self.delta_t
-        #         ax[i_ch].plot(t_array, data[i_ch], label="data")
-        #         ax[i_ch].plot(t_array, signal_initial[i_ch], ls="--", label="initial")
-        #         ax[i_ch].plot(t_array, signal_fit[i_ch], label="fit")
-        #         ax[i_ch].plot(t_array, signal_fit_adjusted[i_ch], "--", label="fit adjusted")
-        #         ax[i_ch].plot(t_array, signal_initial_2[i_ch], "y:", label="initial 2")
-        #         ax[i_ch].plot(t_array, signal_fit_2[i_ch], "k:", label="fit 2")
-
-        #         # Plot bounds (matched filter):
-        #         t_max = t_array[np.argmax(signal_fit[i_ch])]
-        #         ax[i_ch].vlines([t_max+self.t_array_matched_filter[0], t_max+self.t_array_matched_filter[-1]], np.min(data[i_ch]*2), np.max(data[i_ch]*2), color="r", ls="--", label="Bounds (matched filter)")
-
-        #         # Plot bounds (LLH reconstruction):
-        #         s0 = signal_function(np.array([fitted_params_2[i_ch], fitted_params_2[1], fitted_params_2[2], fitted_params_2[3], bounds[4][0], fitted_params_2[5], fitted_params_2[6], fitted_params_2[7]]))
-        #         t_max_bound_0 = t_array[np.argmax(s0[i_ch])]
-        #         s1 = signal_function(np.array([fitted_params_2[i_ch], fitted_params_2[1], fitted_params_2[2], fitted_params_2[3], bounds[4][1], fitted_params_2[5], fitted_params_2[6], fitted_params_2[7]]))
-        #         t_max_bound_1 = t_array[np.argmax(s1[i_ch])]
-        #         ax[i_ch].vlines([t_max_bound_0, t_max_bound_1], np.min(data[i_ch]*2), np.max(data[i_ch]*2), color="b", ls="--", label="Bounds (LLH fit)")
-
-        #         ax[i_ch].set_ylabel("Voltage [V]")
-
-        #     ax[0].legend()
-        #     if not self.use_chi2:
-        #         ax[0].set_title(f"$-2\Delta$LLH: {minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
-        #     else:
-        #         ax[0].set_title(f"$\chi^2$: {minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
-        #     ax[-1].set_xlabel("Time [s]")
-        #     plt.tight_layout()
-        #     plt.savefig("debug_StationElectricFieldReconstructor.png")
-        #     plt.show()
-        #     plt.close()
-
-        #     # Plot spectra of (assumed) noise and data:
-        #     fig, ax = plt.subplots(self.n_channels, 1, figsize=(10, self.n_channels*3))
-        #     for i_ch in range(self.n_channels):
-        #         ax[i_ch].plot(self.frequencies, self.likelihood_calculator.spectra[i_ch], "k-", label="Likelihood noise spectrum")
-        #         ax[i_ch].plot(self.frequencies, np.abs(fft.time2freq(data[i_ch], sampling_rate=self.sampling_rate)), "b-", label="data")
-        #         ax[i_ch].plot(self.frequencies, np.abs(fft.time2freq(signal_initial[i_ch], sampling_rate=self.sampling_rate)), "r-", label="initial")
-        #         ax[i_ch].plot(self.frequencies, np.abs(fft.time2freq(signal_fit_2[i_ch], sampling_rate=self.sampling_rate)), "g-", label="fit")
-        #         ax[i_ch].hlines( np.max(self.likelihood_calculator.spectra[i_ch])/100, 0, max(self.frequencies), "m", "--", label="threshold")
-        #         ax[i_ch].set_ylabel("Amplitude [V/GHz]")
-        #         #ax[i].set_yscale("log")
-        #     ax[0].legend()
-        #     ax[-1].set_xlabel("Frequency [GHz]")
-        #     fig.tight_layout()
-        #     plt.savefig("debug_StationElectricFieldReconstructor_spectra.png")
-        #     plt.show()
-        #     plt.close()
-
-        return initial_likelihood, minus_two_llh_fit, fitted_params, uncertainties_fit
+        return minus_two_llh_initial, minus_two_llh_fit, params_fit, uncertainties_fit
