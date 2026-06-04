@@ -309,7 +309,7 @@ class ShowerSimulator():
         return station, traces, trace_start_times
 
 
-    def simulate_single_shower_forward_folding(self, energy, zenith, azimuth, vertex_r, vertex_theta, vertex_phi, pulse_time, type, trace_start_times, charge_excess_profile_id=1):
+    def simulate_single_shower_forward_folding(self, energy, zenith, azimuth, vertex_r_rel, vertex_theta_rel, vertex_phi_rel, pulse_time, type, trace_start_times, charge_excess_profile_id=1):
         """
         Reparameterization of simulate_single_shower where the vertex position is given in spherical
         coordinates instead of Cartesian coordinates. This often gives less correlated parameters for
@@ -357,7 +357,7 @@ class ShowerSimulator():
         shower[shp.zenith] = zenith
         shower[shp.azimuth] = azimuth
         shower[shp.energy] = energy
-        shower[shp.vertex] = hp.spherical_to_cartesian(vertex_theta, vertex_phi) * vertex_r
+        shower[shp.vertex] = hp.spherical_to_cartesian(vertex_theta_rel, vertex_phi_rel) * vertex_r_rel + self.det.get_relative_position(self.station_id, self.reference_channel)
         shower[shp.type] = type
 
         self.propagator.set_start_and_end_point(self.det.get_relative_position(self.station_id, self.reference_channel), shower[shp.vertex])
