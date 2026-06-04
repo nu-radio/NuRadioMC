@@ -1,3 +1,13 @@
+"""
+This is an advanced versio of neutrino_signal_reconstruction.py. Here, we generate 100 versions of 
+the same event with different realizations of noise. The resulting -2 delta LLH distributions should
+follow the expected chi-square distributions with 7 degrees of freedom (indicating correct coverage).
+Additionally, the fitted parameter distributions are plotted. There may be outliers because the fits
+are not initialized exactly at the true values and may fail. The 1-st order uncertainties estimated
+using the Fisher-information of the optimum are validated through pull plots. Finally, the p-values
+for the fitted signals are evaluated, which should be a uniform distribution between 0 and 1 (exept for
+a few outliers).
+"""
 import os
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
@@ -84,9 +94,21 @@ plots_only = False
 
 for i_event in range(n_events):
     if plots_only:
-        vertex_zenith, vertex_azimuth = hp.cartesian_to_spherical(vertex_xyz[0], vertex_xyz[1], vertex_xyz[2])
-        vertex_r = np.linalg.norm(vertex_xyz)
-        parameters_initial = [E_shower, zenith, azimuth, vertex_r, vertex_zenith, vertex_azimuth, vertex_time] # initialize at true parameters
+        # vertex_zenith, vertex_azimuth = hp.cartesian_to_spherical(vertex_xyz[0], vertex_xyz[1], vertex_xyz[2])
+        # vertex_r = np.linalg.norm(vertex_xyz)
+        # parameters_initial = [E_shower, zenith, azimuth, vertex_r, vertex_zenith, vertex_azimuth, vertex_time] # initialize at true parameters
+        reco = neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor()
+        reco.begin(
+            n_channels,
+            n_samples,
+            sampling_rate,
+            np.abs(filt),
+            noise_amplitude,
+            config_file="./neutrino_reco_sim_config.yaml",
+            detector_simulation_filter_amp=detector_simulation_filter_amp,
+            use_chi2=False,
+            debug=True
+        )
         break
 
     # Simulate the event:
@@ -139,23 +161,25 @@ for i_event in range(n_events):
         debug=True
     )
     minus_two_llh_true = reco._function_to_minimize_llh(traces, signal_true)
-    vertex_zenith, vertex_azimuth = hp.cartesian_to_spherical(vertex_xyz[0], vertex_xyz[1], vertex_xyz[2])
-    vertex_r = np.linalg.norm(vertex_xyz)
-    pulse_time = np.argmax(traces[0]) / sampling_rate + 6.615 * units.ns
+    vertex_xyz_rel = vertex_xyz - det.get_relative_position(station_id, 0)
+    vertex_zenith_rel, vertex_azimuth_rel = hp.cartesian_to_spherical(vertex_xyz_rel[0], vertex_xyz_rel[1], vertex_xyz_rel[2])
+    vertex_r_rel = np.linalg.norm(vertex_xyz_rel)
+    pulse_time = np.argmax(traces[0]) / sampling_rate #+ 6.615 * units.ns
     # parameters_initial = [E_shower, zenith, azimuth, vertex_r, vertex_zenith, vertex_azimuth, pulse_time] # initialize at true parameters
+    parameters_true = [E_shower, zenith, azimuth, vertex_r_rel, vertex_zenith_rel, vertex_azimuth_rel, 100 * units.ns] # pulse_time + 6.615 * units.ns or pre_pulse_time
     parameters_initial = [
         E_shower * 1.5,
         zenith + 5 * units.deg,
         azimuth - 10 * units.deg,
-        vertex_r + 20 * units.m,
-        vertex_zenith + 0.5 * units.deg,
-        vertex_azimuth - 0.25 * units.deg,
+        vertex_r_rel + 20 * units.m,
+        vertex_zenith_rel + 0.5 * units.deg,
+        vertex_azimuth_rel - 0.25 * units.deg,
         pulse_time]
     initial_likelihood, fitted_signal, fitted_parameters, minus_two_llh, uncertainties_fit = reco.run(evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=0, full_output=True)
 
 
     print()
-    print("-2 LLH fir true signal:", minus_two_llh_true)
+    print("-2 LLH for true signal:", minus_two_llh_true)
     print("Initial parameters:", parameters_initial)
     print("Initial -2 LLH:", initial_likelihood)
     print("Fitted parameters:", fitted_parameters)
@@ -168,15 +192,30 @@ for i_event in range(n_events):
     fitted_parameters_array[i_event] = fitted_parameters
     uncertainties_fit_array[i_event] = uncertainties_fit
 
-if not plots_only:
-    np.savez("llh_reco_results.npz", llh_initial_array=llh_initial_array, llh_fitted_array=llh_fitted_array, llh_true_array=llh_true_array, fitted_parameters_array=fitted_parameters_array, uncertainties_fit_array=uncertainties_fit_array)
-elif plots_only:
+    if i_event % 10 == 0 and i_event > 0:
+        np.savez(
+            "llh_reco_results.npz",
+            llh_initial_array=llh_initial_array,
+            llh_fitted_array=llh_fitted_array,
+            llh_true_array=llh_true_array,
+            fitted_parameters_array=fitted_parameters_array,
+            uncertainties_fit_array=uncertainties_fit_array,
+            parameters_initial=parameters_initial,
+            parameters_true=parameters_true
+        )
+
+if plots_only:
     data = np.load("llh_reco_results.npz")
-    llh_initial_array = data["llh_initial_array"]
-    llh_fitted_array = data["llh_fitted_array"]
-    llh_true_array = data["llh_true_array"]
-    fitted_parameters_array = data["fitted_parameters_array"]
-    uncertainties_fit_array = data["uncertainties_fit_array"]
+    valid_indices = np.where(data["llh_fitted_array"] > 0)[0]
+    llh_initial_array = data["llh_initial_array"][valid_indices]
+    llh_fitted_array = data["llh_fitted_array"][valid_indices]
+    llh_true_array = data["llh_true_array"][valid_indices]
+    fitted_parameters_array = data["fitted_parameters_array"][valid_indices]
+    uncertainties_fit_array = data["uncertainties_fit_array"][valid_indices]
+    parameters_initial = data["parameters_initial"]
+    parameters_true = data["parameters_true"]
+fitted_parameters_array[:,2] = fitted_parameters_array[:,2] % (360 * units.deg)
+parameters_true[6] = 100 * units.ns
 
 # plot results:
 plt.figure(figsize=[10,6])
@@ -204,14 +243,15 @@ dist = scp.stats.chi2(ndof)
 expected_coverage = dist.cdf(x)
 
 real_coverage = np.zeros(n_x)
-real_coverage_chi2 = np.zeros(n_x)
 for i in range(n_x):
     real_coverage[i] = np.sum(llh<x[i]) / len(llh)
 
 plt.plot([-1,2],[-1,2],"k--",label=f"1:1")
-plt.plot(expected_coverage,real_coverage,"b-",label=f"Likelihood")
-plt.plot(expected_coverage,real_coverage_chi2,"m:",label=f"$\chi^2$")
+plt.plot(expected_coverage, real_coverage,"b-", label=f"Likelihood")
 plt.axis([0,1,0,1])
+plt.xlabel("Confidence level")
+plt.ylabel("Coverage")
+plt.legend()
 
 plt.tight_layout()
 plt.savefig("llh_reco_results_coverage.png", dpi=300)
@@ -219,18 +259,21 @@ plt.savefig("llh_reco_results_coverage.png", dpi=300)
 
 # plot fitted parameters corner plot:
 fig, ax = plt.subplots(7, 7, figsize=[20,20])
-parameter_names = ["Energy [PeV]", "Zenith [deg]", "Azimuth [deg]", "Vertex r [km]", "Vertex zenith [deg]", "Vertex azimuth [deg]", "Pulse time [ns]"]
+parameter_names = ["Energy [eV]", "Zenith [deg]", "Azimuth [deg]", "Vertex r [m]", "Vertex zenith [deg]", "Vertex azimuth [deg]", "Pulse time [ns]"]
+scaling = [units.eV, units.deg, units.deg, units.m, units.deg, units.deg, units.ns]
 for i in range(7):
     for j in range(7):
         if i == j:
-            ax[i,j].hist(fitted_parameters_array[:,i], bins=20, alpha=0.5)
-            ax[i,j].axvline(parameters_initial[i], color="r", linestyle="--", label="True parameter")
+            ax[i,j].hist(fitted_parameters_array[:,i] / scaling[i], bins=20, alpha=0.5)
+            ax[i,j].axvline(parameters_initial[i] / scaling[i], color="g", linestyle="--", label="Initial parameter")
+            ax[i,j].axvline(parameters_true[i] / scaling[i], color="r", linestyle="-", label="True parameter")
             ax[i,j].set_xlabel(parameter_names[i])
             if i==0 and j==0:
                 ax[i,j].legend()
         elif i > j:
-            ax[i,j].scatter(fitted_parameters_array[:,j], fitted_parameters_array[:,i], alpha=0.5)
-            ax[i,j].plot(parameters_initial[j], parameters_initial[i], "rx", label="True parameters")
+            ax[i,j].scatter(fitted_parameters_array[:,j] / scaling[j], fitted_parameters_array[:,i] / scaling[i], alpha=0.5)
+            ax[i,j].plot(parameters_initial[j] / scaling[j], parameters_initial[i] / scaling[i], "gx", label="Initial parameters")
+            ax[i,j].plot(parameters_true[j] / scaling[j], parameters_true[i] / scaling[i], "r*", label="True parameters")
             ax[i,j].set_xlabel(parameter_names[j])
             ax[i,j].set_ylabel(parameter_names[i])
             if i==1 and j==0:
@@ -243,9 +286,14 @@ plt.savefig("llh_reco_results_fitted_parameters.png", dpi=300)
 # pull distributions:
 fig, ax = plt.subplots(7, 1, figsize=[10,20])
 for i in range(7):
-    pull = (fitted_parameters_array[:,i] - parameters_initial[i]) / uncertainties_fit_array[:,i]
-    ax[i].hist(pull, bins=np.linspace(-3,3,50), alpha=0.5, label=f"STD: {np.std(pull):.2f}")
-    ax[i].set_xlabel(f"Pull for {parameter_names[i]}")
+    pull = (fitted_parameters_array[:,i] - parameters_true[i]) / uncertainties_fit_array[:,i]
+    std = np.std(pull)
+    quantiles = (np.quantile(pull, 0.84) - np.quantile(pull, 0.16)) / 2
+    ax[i].hist(pull, bins=np.linspace(-5,5,50), alpha=0.5, label=f"STD: {std:.2f}, 68% quantile: {quantiles:.2f}") #np.linspace(-3,3,50)
+    # ax[i].set_xlabel(f"Pull for {parameter_names[i][:-5]}")
+    import re
+    pname = re.sub(r' \[.*\]', '', parameter_names[i])
+    ax[i].set_xlabel(f"""Pull for {pname}""")
     ax[i].set_ylabel("Number of events")
     ax[i].legend()
 plt.tight_layout()
@@ -265,6 +313,36 @@ plt.xlabel("Fitted vertex r [m]")
 plt.ylabel("Number of events")
 plt.tight_layout()
 plt.savefig("test_2.png", dpi=300)
+
+
+# goodness of fit:
+
+plt.figure(figsize=[10,6])
+plt.subplot(2,1,1)
+# chi2 distribution:
+hist = plt.hist(llh_fitted_array, bins=20, alpha=0.5, label="Fitted signal -2 LLH")
+n_dof_total = reco.likelihood_calculator.get_dof() - 7 # n_channels * n_samples - 7
+dist = scp.stats.chi2(n_dof_total)
+x = np.linspace(0, max(llh_fitted_array)*1.2, 1000)
+y = dist.pdf(x) * len(llh_fitted_array) * (hist[1][1] - hist[1][0]) * 1.0
+#plt.hist(llh_true_array, bins=20, alpha=0.5, label="True signal")
+plt.hist(llh_initial_array, bins=20, alpha=0.2, label="Initial parameters -2 LLH")
+plt.plot(x, y, "y-", label=f"$\chi^2($dof$={str(n_dof_total)})$")
+plt.xlabel("Chi2 of fit")
+plt.ylabel("Number of events")
+plt.legend()
+
+# p-value distribution:
+plt.subplot(2,1,2)
+p_values = 1 - scp.stats.chi2.cdf(llh_fitted_array, n_dof_total)
+p_values_initial = 1 - scp.stats.chi2.cdf(llh_initial_array, n_dof_total)
+plt.hist(p_values, bins=20, alpha=0.5, label="Fitted signal")
+#plt.hist(p_values_initial, bins=20, alpha=0.2, label="Initial parameters")
+plt.xlabel("Goodness-of-fit p-value")
+plt.ylabel("Number of events")
+#plt.legend()
+plt.tight_layout()
+plt.savefig("llh_reco_results_goodness_of_fit.png", dpi=300)
 
 
 

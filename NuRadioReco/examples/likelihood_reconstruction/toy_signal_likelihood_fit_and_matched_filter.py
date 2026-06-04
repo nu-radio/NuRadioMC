@@ -1,4 +1,11 @@
-
+"""
+This example demonstrates how to use the likelihood_calculator, minimization, and matched_filter
+classes. It does this using a simple toy-model signal (simple oscillation with gaussian envelope)
+with added band-limited noise. The example first plots the -2 delta LLH distribution which should
+follow the expected chi-square distribution. It then runs a minimization to fit simulated signal
+to the noisy "measured" signal. A matched filter search (one signal template to one trace) is then
+performed, which calculated the matched filter SNR and finds the best matching time offset.
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 
