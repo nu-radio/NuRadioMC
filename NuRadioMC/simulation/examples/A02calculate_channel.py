@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 from NuRadioMC.simulation import simulation as sim
 from NuRadioReco.detector import detector
 from NuRadioMC.SignalProp import propagation
@@ -7,6 +8,7 @@ from NuRadioMC.utilities import medium
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelReadoutWindowCutter
+import NuRadioReco.modules.trigger.simpleThreshold
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities import units
 from datetime import datetime
@@ -42,9 +44,6 @@ propagator = propagation.get_propagation_module(cfg['propagation']['module'])(ic
 # set the station id and channel id
 sid = 101
 cid = 1
-trace_start_times = 7000 * units.ns
-
-
 
 # define the showers that should be simulated
 showers = []
@@ -55,6 +54,7 @@ shower[shp.zenith] = 89 * units.deg # propagation downwards
 shower[shp.azimuth] = 180 * units.deg # propagation into the positive x direction
 shower[shp.energy] = 1e17 * units.eV
 shower[shp.vertex] = np.array([-700*units.m, 0, -1*units.km])
+shower[shp.vertex_time] = 0 * units.ns
 shower[shp.type] = 'had'
 showers.append(shower)
 
@@ -79,33 +79,85 @@ stn.set_sim_station(sim_station)
 evt.set_station(stn)
 sim.apply_det_response(evt, det, cfg, detector_simulation_filter_amp, add_noise=False, channel_ids=[cid])
 
-# Cut to user defined readout window:
-channelReadoutWindowCutter = NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter()
-channelReadoutWindowCutter.cut_using_trace_start_times(evt, stn, det, trace_start_times=trace_start_times)
+# the previous call of sim.apply_det_response folds the simulated efields through the antenna responses,
+# combines them into one trace per antenna, and saves them to the station object. In many simulation we
+# will later add noise to the station channels. If also we want to save the noiseless simulated traces,
+# we can call sim.apply_det_response_sim. This will apply the antenna response to each simulated efield
+# and save the traces individually to the sim_station object instead of the station object
+sim.apply_det_response_sim(sim_station, det, cfg, detector_simulation_filter_amp)
+
+# the simulated traces are longer than the readout windows defined in the detector description. We can either
+# run a trigger simulation, cut the traces to a user defined readout window, or or leave them as they are if
+# the full traces are desired for the analysis. Try setting cut_traces to "using_trigger" or
+# "using_trace_start_time" here instead
+cut_traces = False
+if cut_traces == "using_trigger":
+    simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
+    Vrms_dummy = 1e-5 * units.V
+    simpleThreshold.run(evt, stn, det,
+                        threshold=3 * Vrms_dummy,
+                        triggered_channels=[cid],
+                        number_concidences=1,
+    )
+    channelReadoutWindowCutter = NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter()
+    channelReadoutWindowCutter.run(evt, stn, det)
+
+elif cut_traces == "using_trace_start_time":
+    trace_start_time = 7000 * units.ns # rough guess of the vertex_time + travel time + cable delay - 100 ns
+    channelReadoutWindowCutter = NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter()
+    channelReadoutWindowCutter.cut_using_trace_start_times(evt, stn, det, trace_start_times=trace_start_time)
 
 # Resample to detector sampling rate:
-for i, channel in enumerate(stn.iter_channels()):
-    channel.resample(det.get_sampling_frequency(stn.get_id(), channel.get_id()))
+# for i, channel in enumerate(stn.iter_channels()):
+#     channel.resample(det.get_sampling_frequency(stn.get_id(), channel.get_id()))
 
 
-import matplotlib.pyplot as plt
 # let's plot the result for the channel we simulated:
 fig, (ax, ax2) = plt.subplots(1,2)
 for i, channel in enumerate(stn.iter_channels()):
-    print(channel.get_id())
+    print("Plotting channel", channel.get_id())
     trace = channel.get_trace()
     ax.plot(channel.get_times(), trace/units.V, f"-C{i}", label=f'channel id {channel.get_id()}')
 
-    ax.set_xlabel('Time (ns)')
-    ax.set_ylabel('Voltage (V)')
     ax2.plot(channel.get_frequencies()/units.MHz, np.abs(channel.get_frequency_spectrum()/units.V*units.MHz),
              f"-C{i}",label=f'channel id {channel.get_id()}')
 
-    ax2.set_xlabel('Frequency (MHz)')
-    ax2.set_ylabel('Voltage (V/MHz)')
+ax.set_xlabel('Time (ns)')
+ax.set_ylabel('Voltage (V)')
 ax.legend()
+ax2.set_xlabel('Frequency (MHz)')
+ax2.set_ylabel('Amplitude (V/MHz)')
 ax2.legend()
 fig.tight_layout()
-# Only show plot if running interactively (not in CI/CD environment):
+# only show plot if running interactively (not in CI environment)
+if os.environ.get('DISPLAY') or os.environ.get('CI') is None:
+    plt.show()
+
+
+# alternatively, we can sum the traces of the sim channels and we should get equivalent results
+for i, channel in enumerate(stn.iter_channels()):
+    sim_channel_sum = None
+    for sim_channel in sim_station.get_channels_by_channel_id(channel.get_id()):
+        if sim_channel_sum is None:
+            sim_channel_sum = sim_channel
+        else:
+            sim_channel_sum += sim_channel
+    if sim_channel_sum is not None:
+        fig, (ax, ax2) = plt.subplots(1,2)
+        ax.plot(channel.get_times(), trace/units.V, f"-C{i}", label=f'channel id {channel.get_id()}')
+        ax.plot(sim_channel_sum.get_times(), sim_channel_sum.get_trace()/units.V, f"--C{i+1}",
+                label=f'sim_channel_sum')
+        ax2.plot(channel.get_frequencies()/units.MHz, np.abs(channel.get_frequency_spectrum()/units.V*units.MHz),
+            f"-C{i}",label=f'channel id {channel.get_id()}')
+        ax2.plot(sim_channel_sum.get_frequencies()/units.MHz, np.abs(sim_channel_sum.get_frequency_spectrum()/units.V*units.MHz),
+                f"--C{i+1}", label=f'sim_channel_sum')
+ax.set_xlabel('Time (ns)')
+ax.set_ylabel('Voltage (V)')
+ax.legend()
+ax2.set_xlabel('Frequency (MHz)')
+ax2.set_ylabel('Amplitude (V/MHz)')
+ax2.legend()
+fig.suptitle("Comparison of station channel and sim_channel_sum", fontsize=14)
+fig.tight_layout()
 if os.environ.get('DISPLAY') or os.environ.get('CI') is None:
     plt.show()
