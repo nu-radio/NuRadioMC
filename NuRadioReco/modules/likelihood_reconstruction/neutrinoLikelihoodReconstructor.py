@@ -269,7 +269,7 @@ class neutrinoLikelihoodReconstructor:
 
         # Convert fit uncertainties to shower parameter uncertainties:
         unc_xyz = hp.spherical_to_cartesian(rec_vertex_theta_rel, rec_vertex_phi_rel) * uncertainties_fit[3] # this ignores the uncertainties on rec_vertex_theta_rel and rec_vertex_phi_rel, but rec_vertex_r_rel has the dominant uncertainty
-        time_unc_from_r_unc = uncertainties_fit[3] / (scp.constants.c * units.s * signal_model.ice.get_index_of_refraction(rec_vertex_xyz)) # 1-st order estimate
+        time_unc_from_r_unc = uncertainties_fit[3] / (scp.constants.c / units.s / signal_model.ice.get_index_of_refraction(rec_vertex_xyz)) # 1-st order estimate
         unc_vertex_time = np.sqrt(uncertainties_fit[6]**2 + time_unc_from_r_unc**2)
 
         # Create reconstructed shower object and save it to the event:
