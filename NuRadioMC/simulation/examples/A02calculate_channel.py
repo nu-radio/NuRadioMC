@@ -108,8 +108,8 @@ elif cut_traces == "using_trace_start_time":
     channelReadoutWindowCutter.cut_using_trace_start_times(evt, stn, det, trace_start_times=trace_start_time)
 
 # Resample to detector sampling rate:
-# for i, channel in enumerate(stn.iter_channels()):
-#     channel.resample(det.get_sampling_frequency(stn.get_id(), channel.get_id()))
+for i, channel in enumerate(stn.iter_channels()):
+    channel.resample(det.get_sampling_frequency(stn.get_id(), channel.get_id()))
 
 
 # let's plot the result for the channel we simulated:
