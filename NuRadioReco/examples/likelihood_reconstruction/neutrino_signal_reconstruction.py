@@ -130,10 +130,10 @@ reco.begin(
     sampling_rate,
     np.abs(filt),
     noise_amplitude,
-    config_file="./neutrino_reco_sim_config.yaml",
-    detector_simulation_filter_amp=detector_simulation_filter_amp,
-    use_chi2=False,
-    debug=True
+    config_file = "./neutrino_reco_sim_config.yaml",
+    detector_simulation_filter_amp = detector_simulation_filter_amp,
+    use_chi2 = False,
+    debug = True
 )
 minus_two_llh_true = reco._function_to_minimize_llh(traces, signal_true)
 
