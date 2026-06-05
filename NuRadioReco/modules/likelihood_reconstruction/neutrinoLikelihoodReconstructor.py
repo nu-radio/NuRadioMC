@@ -3,15 +3,9 @@ from NuRadioReco.modules.base.module import register_run
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import copy
 import scipy as scp
 
-from NuRadioReco.utilities.analytic_pulse import get_analytic_pulse_freq
-from NuRadioReco.utilities import units, fft, minimization, matched_filter, trace_utilities
-from NuRadioReco.framework.electric_field import ElectricField
-from NuRadioReco.framework.sim_station import SimStation
-from NuRadioReco.framework.event import Event
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioReco.utilities import units, fft, minimization, matched_filter
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
 import NuRadioReco.modules.efieldToVoltageConverter
@@ -21,7 +15,6 @@ import NuRadioReco.modules.channelLengthAdjuster
 from NuRadioReco.modules.likelihood_reconstruction import likelihood_calculator
 from NuRadioReco.modules.likelihood_reconstruction.shower_simulator import ShowerSimulator
 from radiotools import helper as hp
-from radiotools import coordinatesystems
 
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin(debug=False, pre_pulse_time=200*units.ns, post_pulse_time=200*units.ns, caching=False)
@@ -36,18 +29,19 @@ logger = logging.getLogger('NuRadioReco.neutrinoLikelihoodReconstructor')
 
 class neutrinoLikelihoodReconstructor:
     """
-    Class for reconstructing a neutrino shower in a station. This class forward folds a simulated hadronic
+    Class for reconstructing a neutrino shower in a station. This class forward-folds a simulated hadronic
     shower E-field calculated using the Alvares2009 parameterization through the detector response and compares
-    it to a measured set of data traces in a likelihood objective function. The -2DeltaLLH is minimized in two
-    stages, first using a matched filter to fit the shape of the signal and second a -2DeltaLLH minimization 
-    to fine-tune the reconstructed parameters. The likelihood is calculated using the spectrum of the noise, which
-    enables correct error estimates of reconstructed parameters.
+    it to a data traces in the provided station object using a likelihood objective function. The -2DeltaLLH is
+    minimized in two stages, first using a matched filter (profiling over amplitude and time) to fit the shape
+    of the signal and second a -2DeltaLLH minimization to fine-tune the reconstructed parameters. The likelihood
+    is calculated using the spectrum of the noise, which enables correct error estimates of reconstructed parameters.
 
-    This class is similar to voltageToAnalyticEfieldConverter, but uses a likelihood based on the
-    noise spectrum instead of a chi-square and has an improved minimization strategy.
-
-    The class assumes that the hardware response is subtracted from the data, e.g.,
-    hardwareResponseIncorporator.run(event, station, det, sim_to_data=False, mingainlin=0.001) has been run.
+    In the current implementation of this class, the initial guess of the signal parameters needs to be very close
+    to the true parameter values. A good guess for the vertex position can be found with interferometric vertex
+    reconstruction modules. The time can be estimated from the peak of the trace of the reference antenna, and it is
+    anyway profiled over in the first fitting stage. The energy probably doesn't need a good guess, since it is also
+    profiled over analytically in the first fitting stage. Finally, educated guesses of the neutrino arrival direction
+    can be obtained by assuming that we observe the signal close to the Cherenkov cone (i.e., signal launch angle + ~56 deg)
 
     For a full description of the method, see https://arxiv.org/abs/2510.21925.
     """
@@ -55,7 +49,19 @@ class neutrinoLikelihoodReconstructor:
     def __init__(self):
         pass
 
-    def begin(self, n_channels, n_samples, sampling_rate, noise_spectra, Vrms, config_file=None, detector_simulation_filter_amp=None, use_chi2=False, debug=False, signal_search_width=30 * units.ns, n_grid_matched_filter=200):
+    def begin(
+            self,
+            n_channels,
+            n_samples,
+            sampling_rate,
+            noise_spectra,
+            Vrms,
+            detector_simulation_filter_amp = None,
+            signal_search_width = 30 * units.ns,
+            n_grid_matched_filter = 200,
+            use_chi2 = False,
+            debug = False
+            ):
         """
 
         Parameters
@@ -74,10 +80,20 @@ class neutrinoLikelihoodReconstructor:
                 The overall normalizations of the spectra are ignored and set through the parameter Vrms.
 
             Vrms: float
-                RMS of the noise in each channel. Used for the likelihood calculation.
+                RMS of the noise in each channel. Used for the likelihood calculation
 
             detector_simulation_filter_amp: function, optional
-                Function to apply filter amplification in the detector simulation.
+                Function to use as the _detector_simulation_filter_amp in the simulation class, e.g,
+                hardware response and/or bandpass filter of the detector.
+
+            signal_search_width: float, optional
+                The width of the matched filter time grid, which will be profiled over in the first stage of the fit. If the
+                peak of the signal in the trace is within the initial guess of the pulse_time +/- signal_search_width, the
+                fit is likely to converge to a good minimum. Default: 30 * units.ns
+
+            n_grid_matched_filter: int, optional
+                Number of grid points to divide the matched filter time grid into. It is recommended that the matched filter time
+                steps are at least a factor of 2 smaller than the detector sampling rate. Default: 200
 
             use_chi2: bool, optional
                 Whether to use chi2 minimization instead of likelihood. Mostly used for debugging and method comparison.
@@ -94,13 +110,12 @@ class neutrinoLikelihoodReconstructor:
         self.debug = debug
         self.config_file = os.path.join(os.path.dirname(__file__), 'signal_model_config.yaml') if config_file is None else config_file
 
-        self.delta_t = 1/self.sampling_rate
-        #self.t_array_matched_filter = np.arange(0, self.n_samples) * self.delta_t - self.n_samples * self.delta_t/ 2
+        self.delta_t = 1 / self.sampling_rate
         self.delta_t_array_matched_filter = np.linspace(-signal_search_width, signal_search_width, n_grid_matched_filter)
         self.i_shift_cc = (np.arange(-int(signal_search_width / self.delta_t), int(signal_search_width / self.delta_t) + 1)).astype(int)
         self.frequencies = np.fft.rfftfreq(self.n_samples, 1. / self.sampling_rate)
 
-        # initialize likelihood calculator:
+        # Initialize likelihood calculator:
         self.likelihood_calculator = likelihood_calculator.LikelihoodCalculator(
             n_antennas = self.n_channels,
             n_samples = self.n_samples,
@@ -111,7 +126,7 @@ class neutrinoLikelihoodReconstructor:
         self.likelihood_calculator.initialize_with_spectra(noise_spectra, self.Vrms)
         self.noise_psd = self.likelihood_calculator.noise_psd
 
-        # initialize matched filter:
+        # Initialize matched filter:
         self.matched_filter = matched_filter.MatchedFilter(
             n_samples = self.n_samples,
             sampling_rate = self.sampling_rate,
@@ -123,30 +138,45 @@ class neutrinoLikelihoodReconstructor:
         self.detector_simulation_filter_amp = detector_simulation_filter_amp
 
     @register_run()
-    def run(self, evt, station, det, parameters_initial, charge_excess_profile_id=0, use_channels=None, reference_channel=0, full_output=True, two_step_optimization=True):
+    def run(
+        self,
+        evt,
+        station,
+        det,
+        parameters_initial,
+        charge_excess_profile_id = 0,
+        use_channels = None,
+        reference_channel = 0,
+        two_step_optimization = True,
+        full_output = True,
+        ):
         """
-        Run the likelihood reconstruction of electric field.
+        Run the likelihood reconstruction to fit a hadronic shower signal model to the traces in the station object.
+
+        The reconstructed values are saved to the station and a shower object which is added to the station.
+
+        Optionally, if full_output is True, the reconstructed parameters, likelihood values, and fit p-values are returned.
 
         Parameters
         ----------
         evt: NuRadioReco.framework.event.Event
-            The event to run the module on.
+            The event to run the module on
 
         station: NuRadioReco.framework.station.Station
-            The station object containing the channels with the data traces.
+            The station object containing the channels with the data traces
 
         det: NuRadioReco.framework.detector.Detector
             The detector description.
 
         parameters_initial: np.ndarray
-            Initial parameters for the reconstruction. Should be an array of
+            Initial guess of the parameters for the reconstruction. Should be an array of
             length 7 containing the following parameters in this order:
             [energy, zenith, azimuth, vertex_r_rel, vertex_theta_rel, vertex_phi_rel, pulse_time]
             in standard NuRadioMC units. The parameters are:
             - energy: The shower energy
             - zenith and azimuth: The direction of the neutrino
             - vertex_r_rel, vertex_theta_rel, vertex_phi_rel: The spherical coordinates
-                of the shower vertex relative to the reference antenna (r, theta, phi)
+                of the shower vertex relative to the reference antenna
             - pulse_time: The approximate time of the pulse in the readout trace of the
                 reference antenna relative to the start of the trace (this doesn't account
                 for antenna group delay). It can be estimated from the time of the peak in
@@ -162,23 +192,42 @@ class neutrinoLikelihoodReconstructor:
             If True, return the reconstructed signal, the signal parameters and the minus two
             log-likelihood of the reconstructed signal. Default: False
 
+        two_step_optimization: bool, optional
+            If True, the reconstruction performs two minimizations. The first uses a matched filter approach to profile
+            over amplitude and time for every step of the minimization, i.e., fitting only the shape of the signal. The
+            fit is then fine-tuned in a second -2LLH fit. If False, the first step is skipped.
+
+        full_output: bool, optional
+            Wether to return parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, and p_value_fit
+
+
         Returns
         -------
-        fitted_signal: np.ndarray
+        parameters_fit: np.ndarray
+            The best fit parameters of the signal model.
+            Only returned if `full_output` enabled
+
+        uncertainties_fit: np.ndarray
+            Estimated marginalized uncertainties on the 7 reconstructed parameters using the Fisher.
+            information matrix
+            Only returned if `full_output` enabled
+
+        signal_fit: np.ndarray
             The reconstructed signal in the readout traces.
             Only returned if `full_output` enabled
 
-        params_fit: np.ndarray
-            The best fit parameters of the signal model.
+        minus_two_llh_initial: float
+            The minus two log-likelihood value of the initial guess parameters.
             Only returned if `full_output` enabled
 
         minus_two_llh_fit: float
             The minus two log-likelihood value of the reconstructed signal.
             Only returned if `full_output` enabled
 
-        uncertainties_fit: np.ndarray
-            Estimated marginalized uncertainties on the 7 reconstructed parameters using the Fisher
-            information matrix
+        p_value_fit: float
+            The goodness-of-fit p-value of the reconstructed signal. This is calculated from minus_two_llh_fit
+            and the degrees of freedom in the likelihood_calculator.
+            Only returned if `full_output` enabled
         """
 
         if use_channels is None:
@@ -199,13 +248,13 @@ class neutrinoLikelihoodReconstructor:
 
         # Define signal function:
         signal_model = ShowerSimulator(
-            config_file = self.config_file,
-            det = det,
             station_id = station.get_id(),
+            config_file = self.config_file,
+            detector_simulation_filter_amp = self.detector_simulation_filter_amp,
+            det = det,
             reference_channel = reference_channel,
             evt_time = station.get_station_time(),
             use_channels = use_channels,
-            detector_simulation_filter_amp = self.detector_simulation_filter_amp,
             pre_pulse_time = 100 * units.ns # not used
         )
 
