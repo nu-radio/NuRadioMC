@@ -56,6 +56,7 @@ class neutrinoLikelihoodReconstructor:
             sampling_rate,
             noise_spectra,
             Vrms,
+            config_file,
             detector_simulation_filter_amp = None,
             signal_search_width = 30 * units.ns,
             n_grid_matched_filter = 200,
@@ -81,6 +82,9 @@ class neutrinoLikelihoodReconstructor:
 
             Vrms: float
                 RMS of the noise in each channel. Used for the likelihood calculation
+
+            config_file: string
+                path to the simulation config file to use for the reconstruction signal model
 
             detector_simulation_filter_amp: function, optional
                 Function to use as the _detector_simulation_filter_amp in the simulation class, e.g,
@@ -108,7 +112,7 @@ class neutrinoLikelihoodReconstructor:
         self.Vrms = Vrms
         self.use_chi2 = use_chi2
         self.debug = debug
-        self.config_file = os.path.join(os.path.dirname(__file__), 'signal_model_config.yaml') if config_file is None else config_file
+        self.config_file = config_file # os.path.join(os.path.dirname(__file__), 'signal_model_config.yaml')
 
         self.delta_t = 1 / self.sampling_rate
         self.delta_t_array_matched_filter = np.linspace(-signal_search_width, signal_search_width, n_grid_matched_filter)
