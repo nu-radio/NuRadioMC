@@ -26,14 +26,17 @@ class ShowerSimulator():
 
     Parameters
     ----------
+    station_id: int
+        Station in the detector description to run the simulation for
     config_file: string
         path to config file
+    detector_simulation_filter_amp: function
+        Function to use as the _detector_simulation_filter_amp in the simulation class, e.g,
+        hardware response and/or bandpass filter of the detector.
     detectorfile: string
         path to the json file containing the detector description
     det: detector object
         Pass a detector class object
-    station_id: int
-        Station in the detector description to run the simulation for
     use_channels: list(int)
         Channels in the station to run the simulation for. If None, all 
         channels in the station will be used.
@@ -42,9 +45,6 @@ class ShowerSimulator():
         appear pre_pulse_time into the trace for this channel.
     evt_time: datetime object
         The time of the simulated event, default 1/1/2018
-    detector_simulation_filter_amp: function
-        Function to use as the _detector_simulation_filter_amp in the simulation class, e.g,
-        hardware response and/or bandpass filter of the detector. Currently has to be provided.
     add_cable_delay: bool
         Whether to add the cable delay of the detector to the simulated traces, default True.
     pre_pulse_time: float
@@ -66,16 +66,16 @@ class ShowerSimulator():
 
     def __init__(
             self,
+            station_id,
             config_file,
-            detectorfile=None,
-            det=None,
-            station_id=11,
-            use_channels=None,
-            reference_channel=0,
-            evt_time=datetime.datetime(2018, 1, 1),
-            detector_simulation_filter_amp=None,
-            add_cable_delay=True,
-            pre_pulse_time=200*units.ns,
+            detector_simulation_filter_amp,
+            detectorfile = None,
+            det = None,
+            use_channels = None,
+            reference_channel = 0,
+            evt_time = datetime.datetime(2018, 1, 1),
+            add_cable_delay = True,
+            pre_pulse_time = 200 * units.ns,
         ):
 
         if detectorfile is None and det is None:
