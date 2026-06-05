@@ -106,6 +106,26 @@ class stationParametersRNOG(Enum):
     coherent_entropy = 3  #: Shannon entropy of the coherently summed waveform
     coherent_kurtosis = 4  #: kurtosis of the coherently summed waveform
 
+class eventParametersRNOG(Enum):
+    max_corr_coords = 4 #: azimuth, zenith corresponding to max correlation
+    max_corr = 5 #: maximum correlation value obtained through reconstruction
+    csw_snr = 6 #: signal to noise ratio of coherently summed waveform
+    csw_rpr = 7 #: root power ratio of coherently summed waveform
+    csw_hilbert_snr = 8 #: signal to noise ratio of hilberted coherently summed waveform
+    csw_impulsivity = 9 #: coherently summed waveform's impulsivity and other statistical measures (dict)
+    surf_corr_ratio = 10 #: ratio comparing max surface correlation to max overall correlation
+    max_surf_corr = 11 #: maximum surface correlation
+    avg_snr = 12 #: average signal to noise ratio across all channels ("peak to peak")
+    avg_rpr = 13 #: average root power ratio across all channels
+    max_surf_corr_pos = 14 #: position of max surface correlation
+    csw_peak = 15 #: magnitude of peak of coherently summed waveform
+    csw_power = 16 #: location of peak power in coherently summed waveform
+    trigger_type = 17
+    unixtime = 18
+    run_num = 19
+    trigger_times = 20
+    readout_times = 21
+
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
     polarization_angle = 2  #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi

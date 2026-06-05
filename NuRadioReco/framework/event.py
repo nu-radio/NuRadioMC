@@ -9,7 +9,7 @@ import NuRadioReco.framework.parameter_storage
 
 from NuRadioReco.framework.parameters import (
     eventParameters as evp, channelParameters as chp, showerParameters as shp,
-    particleParameters as pap, generatorAttributes as gta)
+    particleParameters as pap, generatorAttributes as gta, channelParametersRNOG as chpr)
 
 from NuRadioReco.utilities import io_utilities, version
 
@@ -537,6 +537,17 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         """
         return self.__hybrid_information
 
+    def has_glitch(self):
+        """
+        Returns true if any channel in any station has a glitch
+        """
+        for station in self.get_stations():
+            for channel in station.iter_channels():
+                channel.add_parameter_type(chpr)
+                if channel.has_parameter(chpr.glitch) and channel.get_parameter(chpr.glitch):
+                    return True
+
+        return False
 
     def _register_module_event(self, instance, name, kwargs):
         """
