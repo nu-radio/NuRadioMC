@@ -28,7 +28,6 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 
 det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json', antenna_by_depth=False)
 
-evt = Event(1, 1)
 station_id = 11 #det.get_station_ids()[0]
 n_channels_total = det.get_number_of_channels(station_id)
 n_samples = det.get_number_of_samples(station_id, 0)
@@ -85,18 +84,18 @@ vertex_time = 0
 
 n_events = 100
 llh_true_array = np.zeros(n_events)
-llh_initial_array = np.zeros(n_events)
-llh_fitted_array = np.zeros(n_events)
+minus_two_llh_initial_array = np.zeros(n_events)
+minus_two_llh_fit_array = np.zeros(n_events)
 fitted_parameters_array = np.zeros((n_events, 7))
 uncertainties_fit_array = np.zeros((n_events, 7))
 
-plots_only = False
+# Set this to true if the script has already run (partiall) and only the plotting in needed:
+plots_only = True
 
 for i_event in range(n_events):
+
     if plots_only:
-        # vertex_zenith, vertex_azimuth = hp.cartesian_to_spherical(vertex_xyz[0], vertex_xyz[1], vertex_xyz[2])
-        # vertex_r = np.linalg.norm(vertex_xyz)
-        # parameters_initial = [E_shower, zenith, azimuth, vertex_r, vertex_zenith, vertex_azimuth, vertex_time] # initialize at true parameters
+        # initialize reconstruction module (for plotting) and skip loop:
         reco = neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor()
         reco.begin(
             n_channels,
@@ -110,6 +109,8 @@ for i_event in range(n_events):
             debug=True
         )
         break
+
+    evt = Event(1, i_event)
 
     # Simulate the event:
     station, traces, trace_start_times = signal_model.simulate_single_shower(
@@ -161,12 +162,19 @@ for i_event in range(n_events):
         debug=True
     )
     minus_two_llh_true = reco._function_to_minimize_llh(traces, signal_true)
+
+    # The reconstructor class uses different parameters (that are better for minimization) than the
+    # ones we used to simulate the event. Here we convert the vertex position to the spherical coordinates
+    # relative to the reference antenna, and find the pulse time relative to the start of the trace:
     vertex_xyz_rel = vertex_xyz - det.get_relative_position(station_id, 0)
     vertex_zenith_rel, vertex_azimuth_rel = hp.cartesian_to_spherical(vertex_xyz_rel[0], vertex_xyz_rel[1], vertex_xyz_rel[2])
     vertex_r_rel = np.linalg.norm(vertex_xyz_rel)
-    pulse_time = np.argmax(traces[0]) / sampling_rate #+ 6.615 * units.ns
-    # parameters_initial = [E_shower, zenith, azimuth, vertex_r, vertex_zenith, vertex_azimuth, pulse_time] # initialize at true parameters
-    parameters_true = [E_shower, zenith, azimuth, vertex_r_rel, vertex_zenith_rel, vertex_azimuth_rel, 100 * units.ns] # pulse_time + 6.615 * units.ns or pre_pulse_time
+    pulse_time_guess = np.argmax(traces[0]) / sampling_rate
+
+    # Save true parameters:
+    parameters_true = [E_shower, zenith, azimuth, vertex_r_rel, vertex_zenith_rel, vertex_azimuth_rel, 100 * units.ns]
+
+    # Set initial parameters close to the MC true parameters:
     parameters_initial = [
         E_shower * 1.5,
         zenith + 5 * units.deg,
@@ -174,29 +182,30 @@ for i_event in range(n_events):
         vertex_r_rel + 20 * units.m,
         vertex_zenith_rel + 0.5 * units.deg,
         vertex_azimuth_rel - 0.25 * units.deg,
-        pulse_time]
-    initial_likelihood, fitted_signal, fitted_parameters, minus_two_llh, uncertainties_fit = reco.run(evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=0, full_output=True)
+        pulse_time_guess]
 
+    # Run reconstruction:
+    parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=0, full_output=True)
 
     print()
     print("-2 LLH for true signal:", minus_two_llh_true)
     print("Initial parameters:", parameters_initial)
-    print("Initial -2 LLH:", initial_likelihood)
-    print("Fitted parameters:", fitted_parameters)
+    print("Initial -2 LLH:", minus_two_llh_initial)
+    print("Fitted parameters:", parameters_fit)
     print("Uncertainties on fitted parameters:", uncertainties_fit)
-    print("Fitted -2 LLH:", minus_two_llh)
+    print("Fitted -2 LLH:", minus_two_llh_fit)
 
     llh_true_array[i_event] = minus_two_llh_true
-    llh_initial_array[i_event] = initial_likelihood
-    llh_fitted_array[i_event] = minus_two_llh
-    fitted_parameters_array[i_event] = fitted_parameters
+    minus_two_llh_initial_array[i_event] = minus_two_llh_initial
+    minus_two_llh_fit_array[i_event] = minus_two_llh_fit
+    fitted_parameters_array[i_event] = parameters_fit
     uncertainties_fit_array[i_event] = uncertainties_fit
 
     if i_event % 10 == 0 and i_event > 0:
         np.savez(
             "llh_reco_results.npz",
-            llh_initial_array=llh_initial_array,
-            llh_fitted_array=llh_fitted_array,
+            minus_two_llh_initial_array=minus_two_llh_initial_array,
+            minus_two_llh_fit_array=minus_two_llh_fit_array,
             llh_true_array=llh_true_array,
             fitted_parameters_array=fitted_parameters_array,
             uncertainties_fit_array=uncertainties_fit_array,
@@ -206,9 +215,9 @@ for i_event in range(n_events):
 
 if plots_only:
     data = np.load("llh_reco_results.npz")
-    valid_indices = np.where(data["llh_fitted_array"] > 0)[0]
-    llh_initial_array = data["llh_initial_array"][valid_indices]
-    llh_fitted_array = data["llh_fitted_array"][valid_indices]
+    valid_indices = np.where(data["minus_two_llh_fit_array"] > 0)[0]
+    minus_two_llh_initial_array = data["minus_two_llh_initial_array"][valid_indices]
+    minus_two_llh_fit_array = data["minus_two_llh_fit_array"][valid_indices]
     llh_true_array = data["llh_true_array"][valid_indices]
     fitted_parameters_array = data["fitted_parameters_array"][valid_indices]
     uncertainties_fit_array = data["uncertainties_fit_array"][valid_indices]
@@ -217,24 +226,24 @@ if plots_only:
 fitted_parameters_array[:,2] = fitted_parameters_array[:,2] % (360 * units.deg)
 parameters_true[6] = 100 * units.ns
 
-# plot results:
+# Plot -2 delta LLH dristribution:
 plt.figure(figsize=[10,6])
 plt.subplot(2,1,1)
 bins = np.linspace(0,50,50)
-hist = plt.hist(llh_true_array - llh_fitted_array, bins=20, alpha=0.5, label="-2 delta LLH")
+hist = plt.hist(llh_true_array - minus_two_llh_fit_array, bins=20, alpha=0.5, label="-2 delta LLH")
 ndof = 7 # number of fitted parameters
 import scipy as scp
 dist = scp.stats.chi2(ndof)
 x = np.linspace(0,max(bins),1000)
-y = dist.pdf(x) * len(llh_fitted_array) * (hist[1][1] - hist[1][0]) * 1.0
+y = dist.pdf(x) * len(minus_two_llh_fit_array) * (hist[1][1] - hist[1][0]) * 1.0
 plt.plot(x,y,"y-",label=f"$\chi^2($dof$={str(ndof)})$")
 plt.xlabel("-2 delta LLH")
 plt.ylabel("Number of events")
 plt.legend()
 
-# coverage:
+# Coverage:
 plt.subplot(2,1,2)
-llh = llh_true_array - llh_fitted_array
+llh = llh_true_array - minus_two_llh_fit_array
 #llh = np.delete(llh, np.where(llh<0)[0])
 n_x = 200
 
@@ -257,7 +266,7 @@ plt.tight_layout()
 plt.savefig("llh_reco_results_coverage.png", dpi=300)
 
 
-# plot fitted parameters corner plot:
+# Plot fitted parameters corner plot:
 fig, ax = plt.subplots(7, 7, figsize=[20,20])
 parameter_names = ["Energy [eV]", "Zenith [deg]", "Azimuth [deg]", "Vertex r [m]", "Vertex zenith [deg]", "Vertex azimuth [deg]", "Pulse time [ns]"]
 scaling = [units.eV, units.deg, units.deg, units.m, units.deg, units.deg, units.ns]
@@ -283,7 +292,7 @@ for i in range(7):
 plt.tight_layout()
 plt.savefig("llh_reco_results_fitted_parameters.png", dpi=300)
 
-# pull distributions:
+# Pull distributions:
 fig, ax = plt.subplots(7, 1, figsize=[10,20])
 for i in range(7):
     pull = (fitted_parameters_array[:,i] - parameters_true[i]) / uncertainties_fit_array[:,i]
@@ -315,18 +324,17 @@ plt.tight_layout()
 plt.savefig("test_2.png", dpi=300)
 
 
-# goodness of fit:
-
+# Goodness of fit:
 plt.figure(figsize=[10,6])
 plt.subplot(2,1,1)
 # chi2 distribution:
-hist = plt.hist(llh_fitted_array, bins=20, alpha=0.5, label="Fitted signal -2 LLH")
+hist = plt.hist(minus_two_llh_fit_array, bins=20, alpha=0.5, label="Fitted signal -2 LLH")
 n_dof_total = reco.likelihood_calculator.get_dof() - 7 # n_channels * n_samples - 7
 dist = scp.stats.chi2(n_dof_total)
-x = np.linspace(0, max(llh_fitted_array)*1.2, 1000)
-y = dist.pdf(x) * len(llh_fitted_array) * (hist[1][1] - hist[1][0]) * 1.0
+x = np.linspace(0, max(minus_two_llh_fit_array)*1.2, 1000)
+y = dist.pdf(x) * len(minus_two_llh_fit_array) * (hist[1][1] - hist[1][0]) * 1.0
 #plt.hist(llh_true_array, bins=20, alpha=0.5, label="True signal")
-plt.hist(llh_initial_array, bins=20, alpha=0.2, label="Initial parameters -2 LLH")
+plt.hist(minus_two_llh_initial_array, bins=20, alpha=0.2, label="Initial parameters -2 LLH")
 plt.plot(x, y, "y-", label=f"$\chi^2($dof$={str(n_dof_total)})$")
 plt.xlabel("Chi2 of fit")
 plt.ylabel("Number of events")
@@ -334,16 +342,12 @@ plt.legend()
 
 # p-value distribution:
 plt.subplot(2,1,2)
-p_values = 1 - scp.stats.chi2.cdf(llh_fitted_array, n_dof_total)
-p_values_initial = 1 - scp.stats.chi2.cdf(llh_initial_array, n_dof_total)
-plt.hist(p_values, bins=20, alpha=0.5, label="Fitted signal")
+p_values = 1 - scp.stats.chi2.cdf(minus_two_llh_fit_array, n_dof_total)
+p_values_initial = 1 - scp.stats.chi2.cdf(minus_two_llh_initial_array, n_dof_total)
+plt.hist(p_values, bins=np.linspace(0,1,20), alpha=0.5, label="Fitted signal")
 #plt.hist(p_values_initial, bins=20, alpha=0.2, label="Initial parameters")
 plt.xlabel("Goodness-of-fit p-value")
 plt.ylabel("Number of events")
 #plt.legend()
 plt.tight_layout()
 plt.savefig("llh_reco_results_goodness_of_fit.png", dpi=300)
-
-
-
-print(fitted_parameters_array[:,3])
