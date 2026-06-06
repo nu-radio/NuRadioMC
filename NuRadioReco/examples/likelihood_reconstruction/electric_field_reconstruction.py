@@ -96,7 +96,7 @@ f_R, f_theta_true, f_phi_true = trace_utilities.get_electric_field_energy_fluenc
 polarization_true = np.arctan2(np.sqrt(f_phi_true), np.sqrt(f_theta_true))
 
 print("True fluence (filtered):", round(f_theta_true + f_phi_true, 3), "eV/m^2")
-print("True polarization angle (filtered):", round(polarization_true / units.degree, 3), "degree")
+print("True polarization angle:", round(polarization_true / units.degree, 3), "degree")
 
 
 # Fold (unfiltered) electric field through detector to get data traces:

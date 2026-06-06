@@ -60,6 +60,7 @@ class neutrinoLikelihoodReconstructor:
             detector_simulation_filter_amp = None,
             signal_search_width = 30 * units.ns,
             n_grid_matched_filter = 200,
+            overwrite_speedup_options = True,
             use_chi2 = False,
             debug = False
             ):
@@ -99,6 +100,13 @@ class neutrinoLikelihoodReconstructor:
                 Number of grid points to divide the matched filter time grid into. It is recommended that the matched filter time
                 steps are at least a factor of 2 smaller than the detector sampling rate. Default: 200
 
+            overwrite_speedup_options: bool, optional
+                Some speedup options cause discrete jumps in the signal traces and hence the likelihood. This can cause the
+                minimizer to get stuck in local minima and fail. The speedup options overwritten in the config file are:
+                - delta_C_cut: set to 180 deg to not cut out the signal for any veiweing angle
+                - min_efield_amplitude: set to 0 to run the simulation for any efield amplitude
+                - distance_cut: set to False to run simulation for any distance
+
             use_chi2: bool, optional
                 Whether to use chi2 minimization instead of likelihood. Mostly used for debugging and method comparison.
 
@@ -112,7 +120,8 @@ class neutrinoLikelihoodReconstructor:
         self.Vrms = Vrms
         self.use_chi2 = use_chi2
         self.debug = debug
-        self.config_file = config_file # os.path.join(os.path.dirname(__file__), 'signal_model_config.yaml')
+        self.config_file = config_file
+        self.overwrite_speedup_options = overwrite_speedup_options
 
         self.delta_t = 1 / self.sampling_rate
         self.delta_t_array_matched_filter = np.linspace(-signal_search_width, signal_search_width, n_grid_matched_filter)
@@ -261,6 +270,11 @@ class neutrinoLikelihoodReconstructor:
             use_channels = use_channels,
             pre_pulse_time = 100 * units.ns # not used
         )
+
+        if self.overwrite_speedup_options:
+            signal_model.config['speedup']['delta_C_cut'] = 180 * units.deg
+            signal_model.config['speedup']['min_efield_amplitude'] = 0
+            signal_model.config['speedup']['distance_cut'] = False
 
         def signal_model_wrapper(parameters):
             signal = signal_model.simulate_single_shower_forward_folding(

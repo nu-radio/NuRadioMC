@@ -92,10 +92,10 @@ class ShowerSimulator():
         sim_class = mySimulation(
             inputfilename = dummy_input_file,
             outputfilename = "dummy_output_file.hdf5",
-            detectorfile=detectorfile,
-            det=det,
-            config_file=config_file,
-            evt_time=evt_time
+            detectorfile = detectorfile,
+            det = det,
+            config_file = config_file,
+            evt_time = evt_time
         )
         self.config = sim_class._config
         self.det = sim_class._det

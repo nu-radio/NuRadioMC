@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 
 from NuRadioReco.utilities import fft
 import NuRadioReco.framework.channel
-import NuRadioReco.framework.sim_station
 
 import logging
 logger = logging.getLogger('NuRadioReco.likelihood_calculator')
@@ -51,7 +50,15 @@ class LikelihoodCalculator:
             the distribution cancels out and can just be set to 1. This speeds up initializing the class/covariance matrices.
     """
 
-    def __init__(self, n_antennas, n_samples, sampling_rate, matrix_inversion_method="pseudo_inv", threshold_amplitude=1e-2, increase_cov_diagonal=0, ignore_llh_normalization=True):
+    def __init__(
+            self,
+            n_antennas,
+            n_samples,
+            sampling_rate,
+            matrix_inversion_method="pseudo_inv",
+            threshold_amplitude=1e-2, increase_cov_diagonal=0,
+            ignore_llh_normalization=True
+            ):
         self.n_antennas = n_antennas
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
@@ -609,55 +616,6 @@ class LikelihoodCalculator:
 
         return minus_two_delta_llh_func
 
-    def save_covariance_matrix(self, antenna, filename):
-        """
-        Save compressed version (one row) of covariance matrix for one antenna along with the sample rate in GHz,
-        number of samples, and the spectra.
-
-        Parameters
-        ----------
-            antenna : int
-                Which antenna to save the covariance matrix for
-            filename : str
-                Name of file. Should follow the naming scheme:
-                noise_covariance_matrix_<experiment>_<station_id>_<antenna_id>_<date_from>_to_<date_to>
-                e.g.: noise_covariance_matrix_RNOG_station21_antenna6_2023-03-01_to_2023-10-31
-        """
-        cov_one_row = self.cov[antenna,:,0]
-        object_to_save = np.array([self.sampling_rate, self.n_samples, cov_one_row, self.spectra[antenna,:]],dtype=object)
-        np.save(filename, object_to_save)
-
-    def load_covariance_matrices(self, filenames):
-        """
-        Load (one row of) covariance matrices for a all antennas (self.n_antennas) along with the sample rate in GHz. The full covariance matrices are then constructed and assigned to self.cov[:,:,:].
-
-        Parameters
-        ----------
-            filenames : list[str]
-                List of filenames which contain the covariance matrices. Should be of length self.n_antennas.
-        """
-        assert len(filenames) == self.n_antennas, f"Number of filenames ({len(filenames)}) does not match the number of antennas ({self.n_antennas})"
-
-        covariance_matrices = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
-        spectra = np.zeros([self.n_antennas, self.n_samples])
-
-        for i_ant, file in enumerate(filenames):
-            cov_sample_rate, cov_n_samples, cov_one_row, spectrum = np.load(file, allow_pickle=True)
-
-            # Until resampling is implementet, only matching sampling rates and number of samples are allowed:
-            assert cov_sample_rate == self.sampling_rate, f"Sampling rate ({self.sampling_rate}) does not match covariance matrix sampling rate ({cov_sample_rate})"
-            assert cov_n_samples == self.n_samples, f"Number of samples ({self.n_samples}) does not match covariance matrix number of samples ({cov_n_samples})"
-
-            # Construct covariances matrix assuming it is circulant:
-            constructed_covariance_matrix = np.zeros([self.n_samples, self.n_samples])
-            for i_bin in range(self.n_samples):
-                constructed_covariance_matrix[:, i_bin] = np.roll(cov_one_row, i_bin)
-
-            covariance_matrices[i_ant,:,:] = constructed_covariance_matrix
-            spectra[i_ant] = spectrum
-
-        self._set_covariance_matrices(covariance_matrices, spectra=spectra)
-
     def resample_covariance_matrices(self, new_sampling_rate):
         """
         Resample the covariance matrices to new sampling rate and the same trace duration.
@@ -789,39 +747,6 @@ class LikelihoodCalculator:
 
     ### Plotting: ###
 
-    def plot_data(self, data, plot_range=None, linestyle_and_color = "auto", make_new_figure=True):
-        """
-        Plots a dataset containing noise
-
-        Parameters
-        ----------
-            data : numpy.ndarray
-                Array containing data with dimensions [n_samples]
-            plot_range : float
-                Range along x-axis (self.t_array) to plot in units of nanoseconds
-            linestyle_and_color : str, optional
-                String specifying linestyle and color, e.f. "k-" for black solid line, or "b--" for blue
-                dashed line. If set to "auto", matplotlib will set the color and style.
-            make_new_figure : bool
-                If True create a new figure
-        """
-        if make_new_figure:
-            plt.figure(figsize=[4.2,3])
-
-        if linestyle_and_color == "auto":
-            plt.plot(self.t_array, data)
-        else:
-            plt.plot(self.t_array, data, linestyle_and_color)
-
-        axis = plt.axis()
-        if plot_range is None:
-            plt.axis([0, max(self.t_array), axis[2], axis[3]])
-        else:
-            plt.axis([plot_range[0], plot_range[1], axis[2], axis[3]])
-        plt.xlabel("Time [ns]")
-        plt.ylabel("Voltage [V]")
-        plt.tight_layout()
-
     def plot_covariance_matrix(self, cov, plot_range=None, make_new_figure=True):
         """
         Plots a covariance matrix
@@ -900,7 +825,7 @@ class LikelihoodCalculator:
     def plot_llh_distribution(self, data, n_dof=None, signal=None, frequency_domain=False, make_new_figure=True):
         """
         Calculate the llh values for many datasets and plot the distribution alongside a chi2
-        distribution with dof equal to the number of samples
+        distribution with dof equal to the degrees of freedom of the covariance matrices
 
         Parameters
         ----------
