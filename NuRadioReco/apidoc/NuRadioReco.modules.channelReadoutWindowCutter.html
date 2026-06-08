@@ -548,6 +548,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_shower.html#fft-normalisation">FFT normalisation</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/shower_simulation.html">In-ice shower simulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_emitter.html">Signal Generation (emitter)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/signal_generation_emitter.html#spice-pulser">SPice Pulser</a></li>
 </ul>
@@ -656,7 +657,10 @@ to simulate randomness in the definition of the readout window.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.begin" title="NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([random_seed])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.run" title="NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.cut_using_trace_start_times" title="NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.cut_using_trace_start_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cut_using_trace_start_times</span></code></a>(event, station, ...)</p></td>
+<td><p>Cuts the traces to the readout window using user provided trace start times.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.run" title="NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector)</p></td>
 <td><p>Cuts the traces to the readout window defined in the trigger.</p></td>
 </tr>
 </tbody>
@@ -688,6 +692,25 @@ is defined as the primary trigger and used to set the readout windows.</p>
 <dt><strong>event: `NuRadioReco.framework.event.Event`</strong></dt><dd></dd>
 <dt><strong>station: `NuRadioReco.framework.base_station.Station`</strong></dt><dd></dd>
 <dt><strong>detector: `NuRadioReco.detector.detector.Detector`</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.cut_using_trace_start_times">
+<span class="sig-name descname"><span class="pre">cut_using_trace_start_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_start_times</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelReadoutWindowCutter.html#channelReadoutWindowCutter.cut_using_trace_start_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.cut_using_trace_start_times" title="Link to this definition"></a></dt>
+<dd><p>Cuts the traces to the readout window using user provided trace start times.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>event: `NuRadioReco.framework.event.Event`</strong></dt><dd></dd>
+<dt><strong>station: `NuRadioReco.framework.base_station.Station`</strong></dt><dd></dd>
+<dt><strong>detector: `NuRadioReco.framework.detector.Detector`</strong></dt><dd></dd>
+<dt><strong>trace_start_times: float or array-like of shape (n_channels,)</strong></dt><dd><p>The trace start times for each channel. If a single float is provided, it will be used
+for all channels. Otherwise, the order of the trace start times should be the same as
+the order of the channels in <em class="xref py py-obj">station.get_channel_ids()</em>.</p>
+</dd>
 </dl>
 </dd>
 </dl>
