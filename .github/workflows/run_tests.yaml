@@ -42,12 +42,7 @@ jobs:
       data-cache-key: ${{ steps.cache-keys.outputs.data-key }}
 
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python [${{ env.PYTHON_VERSION }}]
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+    - uses: actions/checkout@v6
 
     - name: Generate cache keys
       id: cache-keys
@@ -55,26 +50,12 @@ jobs:
         echo "env-key=${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3" >> $GITHUB_OUTPUT
         echo "data-key=ci-data" >> $GITHUB_OUTPUT
 
-    - name: Cache Python environment
-      id: cache-env
-      uses: actions/cache@v4
+    - name: Set up Python and install dependencies
+      uses: ./.github/actions/setup-python-env
       with:
-        path: |
-          ~/.cache/pip
-          ${{ env.pythonLocation }}
-        key: ${{ steps.cache-keys.outputs.env-key }}
-        restore-keys: |
-          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
-          ${{ runner.os }}-env-
-
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        pip install -e .[proposal,galacticnoise,cr_interpolator]
-
-    - name: Display Python version
-      run: python -c "import sys; print(sys.version)"
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache-key: ${{ steps.cache-keys.outputs.env-key }}
+        restore-only: false
 
     - name: Lint with flake8 (important)
       if: always()
@@ -94,9 +75,10 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -136,9 +118,10 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -173,9 +156,10 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -205,9 +189,10 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -242,9 +227,10 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -288,9 +274,10 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -328,3 +315,9 @@ jobs:
         jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_RNOG_data.ipynb
+
+    - name: "Simulation examples"
+      if: always()
+      run: |
+        python NuRadioMC/simulation/examples/A01calculate_sim_efield.py
+        python NuRadioMC/simulation/examples/A02calculate_channel.py

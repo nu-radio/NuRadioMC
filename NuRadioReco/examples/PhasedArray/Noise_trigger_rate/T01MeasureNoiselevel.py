@@ -1,6 +1,7 @@
 import argparse
 import time
 import numpy as np
+from scipy import integrate
 from astropy.time import Time
 from multiprocessing import Pool as ThreadPool
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -83,7 +84,7 @@ fff = np.linspace(min_freq, max_freq, 10000)
 filt1_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[0, 220 * units.MHz], filter_type="cheby1", order=7, rp=.1)
 filt2_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[96 * units.MHz, 100 * units.GHz], filter_type="cheby1", order=4, rp=.1)
 filt_highres = filt1_highres * filt2_highres
-bandwidth = np.trapz(np.abs(filt_highres) ** 2, fff)
+bandwidth = integrate.trapezoid(np.abs(filt_highres) ** 2, fff)
 
 Vrms_ratio = np.sqrt(bandwidth / (max_freq - min_freq))
 amplitude = Vrms / Vrms_ratio
