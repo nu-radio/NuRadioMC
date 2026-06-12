@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np 
+from itertools import permutations
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--input_val")
@@ -62,6 +64,7 @@ cut_columns = [
     "wind_passed",
     "airplane_passed",
     "intrarun_rate_passed",
+    "spatiotemporal_passed"
 ]
 
 bins = np.linspace(
@@ -127,25 +130,19 @@ plt.savefig(
 
 plt.close()
 
+cuts = [
+    "wind_passed",
+    "airplane_passed",
+    "intrarun_rate_passed",
+    "spatiotemporal_passed",
+]
+
 orders = {
-    "Wind→Airplane→Rate": [
-        "wind_passed",
-        "airplane_passed",
-        "intrarun_rate_passed",
-    ],
-
-    "Airplane→Wind→Rate": [
-        "airplane_passed",
-        "wind_passed",
-        "intrarun_rate_passed",
-    ],
-
-    "Rate→Wind→Airplane": [
-        "intrarun_rate_passed",
-        "wind_passed",
-        "airplane_passed",
-    ],
+    "→".join(name.replace("_passed", "").replace("_", " ").title()
+             for name in perm): list(perm)
+    for perm in permutations(cuts)
 }
+
 
 results = {}
 
@@ -158,20 +155,21 @@ for name, order in orders.items():
 
     results[name] = mask.mean()
 
-plt.bar(
-    results.keys(),
-    results.values()
+fig, ax = plt.subplots(figsize=(12, 8))
+
+ax.barh(
+    list(results.keys()),
+    list(results.values())
 )
 
-plt.ylabel("Final surviving fraction")
-plt.xticks(rotation=20)
+ax.set_xlabel("Final surviving fraction")
+ax.set_ylabel("Cut order")
+
 plt.tight_layout()
 plt.savefig(
-            os.path.join(
-                args.outdir,
-                "cut_order_analysis_cuts.png"))
-
+    os.path.join(args.outdir, "cut_order_analysis_cuts.png"),
+    dpi=300,
+)
 plt.close()
-
 
 
