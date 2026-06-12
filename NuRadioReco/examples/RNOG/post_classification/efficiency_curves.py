@@ -137,12 +137,19 @@ cuts = [
     "spatiotemporal_passed",
 ]
 
-orders = {
-    "→".join(name.replace("_passed", "").replace("_", " ").title()
-             for name in perm): list(perm)
-    for perm in permutations(cuts)
-}
+orders = {}
 
+for cut in cuts:
+    others = [c for c in cuts if c != cut]
+
+    # Cut first
+    orders[f"{cut}_first"] = [cut] + others
+
+    # Cut middle
+    orders[f"{cut}_middle"] = [others[0], cut] + others[1:]
+
+    # Cut last
+    orders[f"{cut}_last"] = others + [cut]
 
 results = {}
 
@@ -155,15 +162,56 @@ for name, order in orders.items():
 
     results[name] = mask.mean()
 
-fig, ax = plt.subplots(figsize=(12, 8))
+
+from matplotlib.patches import Patch
+
+group_spacing = 4      # space allocated per cut
+bar_positions = []
+bar_labels = []
+bar_values = []
+bar_colors = []
+
+color_map = {
+    "first": "tab:blue",
+    "middle": "tab:green",
+    "last": "tab:orange",
+}
+
+for i, cut in enumerate(cuts):
+    base = i * group_spacing
+
+    for j, pos in enumerate(["first", "middle", "last"]):
+        key = f"{cut}_{pos}"
+
+        bar_positions.append(base + j)
+        bar_values.append(results[key])
+        bar_colors.append(color_map[pos])
+
+    bar_labels.append(base + 1)
+
+fig, ax = plt.subplots(figsize=(10, 6))
 
 ax.barh(
-    list(results.keys()),
-    list(results.values())
+    bar_positions,
+    bar_values,
+    color=bar_colors,
 )
 
+ax.set_yticks(bar_labels)
+ax.set_yticklabels([
+    "Wind",
+    "Airplane",
+    "Intrarun Rate",
+    "Spatiotemporal",
+])
+
+ax.legend(handles=[
+    Patch(color="tab:blue", label="Passed first"),
+    Patch(color="tab:green", label="In sequence"),
+    Patch(color="tab:orange", label="Passed last"),
+])
+
 ax.set_xlabel("Final surviving fraction")
-ax.set_ylabel("Cut order")
 
 plt.tight_layout()
 plt.savefig(
@@ -171,5 +219,4 @@ plt.savefig(
     dpi=300,
 )
 plt.close()
-
 
