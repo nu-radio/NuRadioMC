@@ -12,7 +12,7 @@ from NuRadioReco.examples.RNOG.processing import process_event
 from NuRadioReco.utilities.framework_utilities import get_averaged_channel_parameter
 from NuRadioReco.framework.parameters import (
     eventParametersRNOG as ep, channelParameters as chp, showerParameters as shp,
-    particleParameters as pap, generatorAttributes as gta)
+    particleParameters as pap, generatorAttributes as gta, stationParameters as stp)
 import datetime
 from NuRadioReco.detector import detector
 import pickle
@@ -266,6 +266,7 @@ if (is_sim == False):
             event[ep.max_surf_corr_pos] = [(max_r, max_z)]
             event[ep.trigger_type] = trigger_names 
             event[ep.unixtime] = time
+            event[ep.energy] = None
             event[ep.trigger_times] = trig_times
             event[ep.readout_times] = readout_times 
             eventWriter.run(event, det=None, mode={'Channels':False, "ElectricFields":False})
@@ -285,6 +286,9 @@ if (is_sim == True):
         print("got event source")
         for event in event_source:
             station = event.get_station(station_id)
+            showers = event.get_sim_showers()
+            for shower in showers:
+                energy = shower[shp.energy]
             time = station.get_station_time()
             triggers = station.get_triggers()
             trigger_names = [key for key in triggers]
@@ -341,6 +345,7 @@ if (is_sim == True):
                 surf_corr_ratio, max_surf_corr, max_r, max_z = scr.run(results_dir["reco"], max_corr)
             elif (max_soln == "late"):
                 surf_corr_ratio, max_surf_corr, max_r, max_z = scr.run(results_refl["reco"], max_corr)
+            
 
             event.add_parameter_type(ep)
             event[ep.run_num] = run_id
@@ -359,6 +364,7 @@ if (is_sim == True):
             event[ep.max_surf_corr_pos] = [(max_r, max_z)]
             event[ep.trigger_type] = trigger_names
             event[ep.unixtime] = time
+            event[ep.energy] = energy
             event[ep.trigger_times] = None
             event[ep.readout_times] = None
 

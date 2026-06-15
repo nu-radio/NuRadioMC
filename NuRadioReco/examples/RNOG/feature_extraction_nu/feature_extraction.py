@@ -13,7 +13,7 @@ from NuRadioReco.modules.io import eventReader
 from NuRadioReco.framework.parameters import eventParametersRNOG as ep
 import csv
 
-features = ["csw_snr_PA", "csw_snr_PS", "csw_snr_ALL", "csw_rpr_PA", "csw_rpr_PS", "csw_rpr_ALL", "csw_hilbert_snr_PA", "csw_hilbert_snr_PS", "csw_hilbert_snr_ALL", "csw_peak_PA", "csw_peak_PS", "csw_peak_ALL", "csw_power_PA", "csw_power_PS", "csw_power_ALL", "impulsivity_PA", "R2_PA", "slope_PA", "intercept_PA", "impulsivity_PS", "R2_PS", "slope_PS", "intercept_PS", "impulsivity_ALL", "R2_ALL", "slope_ALL", "intercept_ALL", "ks_PA", "ks_PS", "ks_ALL", "avg_snr", "avg_rpr", "theta", "phi", "r", "z", "max_corr", "surf_corr_ratio", "max_surf_corr", "surf_r", "surf_z", "readout_times", "trigger_times", "event_id", "has_glitch", "run_num"]
+features = ["csw_snr_PA", "csw_snr_PS", "csw_snr_ALL", "csw_rpr_PA", "csw_rpr_PS", "csw_rpr_ALL", "csw_hilbert_snr_PA", "csw_hilbert_snr_PS", "csw_hilbert_snr_ALL", "csw_peak_PA", "csw_peak_PS", "csw_peak_ALL", "csw_power_PA", "csw_power_PS", "csw_power_ALL", "impulsivity_PA", "R2_PA", "slope_PA", "intercept_PA", "impulsivity_PS", "R2_PS", "slope_PS", "intercept_PS", "impulsivity_ALL", "R2_ALL", "slope_ALL", "intercept_ALL", "ks_PA", "ks_PS", "ks_ALL", "avg_snr", "avg_rpr", "theta", "phi", "r", "z", "max_corr", "surf_corr_ratio", "max_surf_corr", "surf_r", "surf_z", "readout_times", "trigger_times", "event_id", "has_glitch", "run_num", "energy"]
 
 sim  = {f: [] for f in features}
 data = {f: [] for f in features}
@@ -28,6 +28,7 @@ def extract_features(evt, store):
         csw_peak = evt.get_parameter(ep.csw_peak)
         csw_power = evt.get_parameter(ep.csw_power)
         impulsivity = evt.get_parameter(ep.csw_impulsivity)
+        energy = evt.get_parameter(ep.energy)
 
         avg_snr = evt.get_parameter(ep.avg_snr)
         avg_rpr = evt.get_parameter(ep.avg_rpr)
@@ -82,6 +83,7 @@ def extract_features(evt, store):
         store["event_id"].append(evt.get_id())
         store["has_glitch"].append(evt.has_glitch())
         store["run_num"].append(run_num)
+        store["energy"].append(energy)
 
     except Exception:
         return

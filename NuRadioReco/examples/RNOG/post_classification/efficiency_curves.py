@@ -130,6 +130,60 @@ plt.savefig(
 
 plt.close()
 
+
+
+df_sim = cuts[cuts["source"] == "sim"].copy()
+energy = df_sim["energy"].astype(float)
+
+bins = np.logspace(
+    np.log10(energy.min()),
+    np.log10(energy.max()),
+    25,
+)
+
+total, edges = np.histogram(energy, bins=bins)
+centers = np.sqrt(edges[:-1] * edges[1:])
+
+plt.figure(figsize=(7, 5))
+
+for cut in cut_columns:
+
+    passed_hist, _ = np.histogram(
+        energy[df_sim[cut]],
+        bins=bins,
+    )
+
+    frac = np.divide(
+        passed_hist,
+        total,
+        out=np.zeros_like(passed_hist, dtype=float),
+        where=total > 0,
+    )
+
+    plt.plot(
+        centers,
+        frac,
+        marker="o",
+        label=cut,
+    )
+
+plt.xscale("log")
+plt.xlabel("Energy")
+plt.ylabel("Fraction passing")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+
+plt.savefig(
+    os.path.join(
+        args.outdir,
+        "efficiency_vs_energy_analysis_cuts.png",
+    )
+)
+
+plt.close()
+
+
 cuts = [
     "wind_passed",
     "airplane_passed",

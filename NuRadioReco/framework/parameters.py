@@ -125,6 +125,7 @@ class eventParametersRNOG(Enum):
     run_num = 19
     trigger_times = 20
     readout_times = 21
+    energy = 22
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
