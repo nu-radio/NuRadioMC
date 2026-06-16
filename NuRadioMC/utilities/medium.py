@@ -158,6 +158,17 @@ class greenland_simple(medium_base.IceModelSimple):
             z_0 = 37.25*units.meter,
             delta_n = 0.51,
             )
+
+class greenland_simple_nils(medium_base.IceModelSimple):
+    def __init__(self):
+        # from C. Deaconu, fit to data from Hawley '08, Alley '88
+        # rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0
+        super().__init__(
+            z_bottom = -3000*units.meter,
+            n_ice = 1.781,
+            z_0 = 45.20*units.meter,
+            delta_n = 0.485,
+            )
                 
 
 class greenland_firn(medium_base.IceModel):
@@ -416,6 +427,45 @@ class greenland_simple_layered(medium_base.IceModelExpLayers):
             #z_bottom=-3000.0,
         )
 
+
+class greenland_simple_nils_layered(medium_base.IceModelExpLayers):
+    """
+    Single layer refractive index model.
+    
+    greenland_simple model adapted to match the expected medium definition needed for the multi layer analytic raytracer. Used as a comparison to the single layer analytic raytracer.
+    """
+    def __init__(self):
+
+        z_bottom = -3000*units.meter
+        n_ice = 1.78
+        z_0 = 37.25*units.meter
+        delta_n = 0.51
+
+        layers = [
+            {
+            "z_min": 0.0,
+            "z_max": np.inf,
+            "n_ice": 1.00001,
+            "delta_n": 1e-6,
+            "z_0": -8000,
+            "region": "air",
+            "region_name": "Air"
+        },
+            {
+            "z_min": -3000.0,
+            "z_max": 0.0,
+            "n_ice": 1.781,
+            "delta_n": 0.485,
+            "z_0": 45.20,
+            "region": "single",
+            "region_name": "SingleModel"
+        }]
+
+        super().__init__(
+            layers=layers
+            #z_bottom=-3000.0,
+        )
+
 class greenland_firn_layered(medium_base.IceModelExpLayers):
     """
     Two layer refractive index model.
@@ -492,6 +542,59 @@ class greenland_3exp_layered(medium_base.IceModelExpLayers):
                 "n_ice": 1.77468,
                 "delta_n": 1.41573,
                 "z_0": 1/0.0387882,
+                "region": "bubbly_ice",
+                "region_name": "Ice"
+            }
+        ]
+
+        super().__init__(
+            layers=layers
+            #z_bottom=-3000.0,
+        )
+
+
+class greenland_3exp_nils_layered(medium_base.IceModelExpLayers):
+    """
+    Four layer refractive index model.
+     
+    Values for below the ice taken from https://github.com/philippwindischhofer/Reconal/blob/7204049c755a0678178821073fa73a476c49c491/defs.py#L72-L82. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
+    """
+    def __init__(self):
+
+        layers = [
+            {
+                "z_min": 0.0,
+                "z_max": np.inf,
+                "n_ice": 1.00027,
+                "delta_n": 2.7e-4,
+                "z_0": -8000.0,
+                "region": "air",
+                "region_name": "Air"
+            },
+            {
+                "z_min": -14.9,
+                "z_max": 0.0,
+                "n_ice": 1.544,
+                "delta_n": 0.272,
+                "z_0": 15.88,
+                "region": "snow",
+                "region_name": "Snow"
+            },
+            {
+                "z_min": -80.5,
+                "z_max": -14.9,
+                "n_ice": 1.855,
+                "delta_n": 0.530255538,
+                "z_0": 62.281809455,
+                "region": "firn",
+                "region_name": "Firn"
+            },
+            {
+                "z_min": -3000.0,
+                "z_max": -80.5,
+                "n_ice": 1.778,
+                "delta_n": 1.06592622966,
+                "z_0": 29.343776516,
                 "region": "bubbly_ice",
                 "region_name": "Ice"
             }
