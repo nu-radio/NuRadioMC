@@ -1,7 +1,9 @@
 """
-Wrapper for different implementations of a 2D analytic ray tracer to get ray tracing solutions
-in 3D for two arbitrary points x1 and x2. Implementations for the 2D ray tracer include a
-CPP version, a python version with numba and a python version without numba.
+Wrapper for different implementations of a 2D analytic ray tracer to get ray tracing solutions in 3D for two arbitrary points x1 and x2. 
+The 2D ray tracer is chosen depending on the provided ice model and can either be the single layer analytic raytracer (when IceModelSimple is given)
+or the new mutlilayer version of it (when a medium of type IceModelExpLayers is used).
+Implementations for the single layer 2D ray tracer include a
+CPP version, a python version with numba and a python version without numba, the multilayer version is currently limited to either python with numba and python without numba. 
 The CPP version is the default if available, otherwise the python version with numba is used if available,
 otherwise the python version without numba is used.
 
@@ -12,6 +14,7 @@ Implementations are in NuRadioMC/SignalProp/AnalyticRayTracing/
 
 from NuRadioReco.utilities import units, geometryUtilities, constants
 from NuRadioMC.utilities import medium as medium_util, birefringence
+from NuRadioMC.utilities.medium_base import IceModelSimple, IceModelExpLayers
 
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
@@ -36,7 +39,7 @@ class ray_tracing(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
-                 detector=None, ray_tracing_module='analytic', ray_tracing_2D_kwards={},
+                 detector=None, ray_tracing_2D_kwards={},
                  use_cpp=None, compile_numba=None):
         """
         class initilization
@@ -101,11 +104,6 @@ class ray_tracing(ray_tracing_base):
         self.__logger = logging.getLogger('NuRadioMC.ray_tracing')
         self.__logger.setLevel(log_level)
 
-        from NuRadioMC.utilities.medium_base import IceModelSimple
-        if ray_tracing_module == 'analytic' and not isinstance(medium, IceModelSimple):
-            self.__logger.warning("The analytic raytracer can only handle ice model of the type 'IceModelSimple' or some of the 'IceModelExpLayers' (see NuRadioMC.utilities.medium), might break...")
-            #raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
-
         super().__init__(medium=medium,
                          attenuation_model=attenuation_model,
                          log_level=log_level,
@@ -132,17 +130,24 @@ class ray_tracing(ray_tracing_base):
             else:
                 self.__logger.status("Using python without numba version of ray tracer")
 
-        if ray_tracing_module == 'multilayer':
-            self._r2d = multi_layer_ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
-                                        n_frequencies_integration=self._n_frequencies_integration,
-                                        **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
-        else:
+        
+        if isinstance(medium, IceModelSimple):
+
+            self.__logger.status("IceModelSimple was provided: Using 'old' single layer analytic version as the 2D raytracing module.")
             self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
                                         n_frequencies_integration=self._n_frequencies_integration,
                                         **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
             
-            if ray_tracing_module != 'analytic':
-                self.__logger.error(f"{ray_tracing_module} is not implemented. Use 'analytic' or 'multilayer'. Using default:  'analytic'")
+        elif isinstance(medium, IceModelExpLayers):
+
+            self.__logger.status("IceModelExpLayers was provided: Using 'new' multilayer analytic version as the 2D raytracing module.")
+            self._r2d = multi_layer_ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
+                            n_frequencies_integration=self._n_frequencies_integration,
+                            **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+            
+        else:
+            self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple' (single layer) or 'IceModelExpLayers' (multilayer) (see NuRadioMC.utilities.medium), might break...")
+            #raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
 
         self._swap = None
         self._dPhi = None

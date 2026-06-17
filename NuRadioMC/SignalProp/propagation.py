@@ -1,5 +1,4 @@
 from __future__ import absolute_import, division, print_function
-from functools import partial
 
 solution_types = {
     1: 'direct',
@@ -11,8 +10,7 @@ solution_types_revert = {v: k for k, v in solution_types.items()}
 available_modules = [
     'analytic',
     'radiopropa',
-    'direct_ray',
-    'multilayer'
+    'direct_ray'
 ]
 
 reflection_case = {
@@ -45,10 +43,7 @@ def get_propagation_module(name=None):
         return ray_tracing_base
     elif name == available_modules[0]:
         from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
-        return partial(ray_tracing, ray_tracing_module = 'analytic')
-    elif name == available_modules[3]:
-        from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
-        return partial(ray_tracing, ray_tracing_module = 'multilayer')
+        return ray_tracing
     elif name == available_modules[2]:
         from NuRadioMC.SignalProp.directRayTracing import direct_ray_tracing
         return direct_ray_tracing
