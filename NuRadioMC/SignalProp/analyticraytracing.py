@@ -24,7 +24,7 @@ from NuRadioMC.SignalProp.AnalyticRayTracing.single_layer_analytic_raytracer imp
     cpp_available, numba_available, ray_tracing_2D
 )
 
-from NuRadioMC.SignalProp.multilayeranalyticraytracing import multi_layer_ray_tracing_2D
+from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.multilayeranalyticraytracing import multi_layer_ray_tracing_2D
 
 import numpy as np
 
