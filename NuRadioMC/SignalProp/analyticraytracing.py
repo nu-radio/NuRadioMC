@@ -15,6 +15,7 @@ from NuRadioMC.utilities import medium as medium_util, birefringence
 
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
+<<<<<<< multilayeranalyticraytracing
 
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.AnalyticRayTracing.single_layer_analytic_raytracer import (
@@ -22,6 +23,13 @@ from NuRadioMC.SignalProp.AnalyticRayTracing.single_layer_analytic_raytracer imp
 )
 
 from NuRadioMC.SignalProp.multilayeranalyticraytracing import multi_layer_ray_tracing_2D
+=======
+
+from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+from NuRadioMC.SignalProp.AnalyticRayTracing.single_layer_analytic_raytracer import (
+    cpp_available, numba_available, ray_tracing_2D
+)
+>>>>>>> refactor/ray-tracer
 
 import numpy as np
 
