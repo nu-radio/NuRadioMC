@@ -78,6 +78,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -120,6 +121,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -157,6 +159,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -189,6 +192,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -226,6 +230,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -272,6 +277,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Setup GSL
+      timeout-minutes: 5
       uses: ./.github/actions/setup-gsl
 
     - name: Setup Python Environment
@@ -309,3 +315,9 @@ jobs:
         jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_RNOG_data.ipynb
+
+    - name: "Simulation examples"
+      if: always()
+      run: |
+        python NuRadioMC/simulation/examples/A01calculate_sim_efield.py
+        python NuRadioMC/simulation/examples/A02calculate_channel.py
