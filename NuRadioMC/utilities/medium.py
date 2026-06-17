@@ -162,10 +162,10 @@ class IceModel_Exp3(medium_base.IceModel):
 
     Notes
     -----
-    The 3 part exponential ice model currently has the following default values as found here under ior_exp3 
+    The 3 part exponential ice model currently has the following default values as found here under ior_exp3
     https://github.com/philippwindischhofer/Reconal/blob/main/defs.py
 
-    n_snow = 1.51188 
+    n_snow = 1.51188
     delta_n_snow = 0.271579
     z_shift_snow = 0.114553
     n_firn = 1.89957
@@ -176,7 +176,7 @@ class IceModel_Exp3(medium_base.IceModel):
     z_shift_bubbly = 0.0387882
     z_firn = -14.9
     z_bubbly = -80.5
-    
+
     """
     def __init__(self):
         """
@@ -187,7 +187,7 @@ class IceModel_Exp3(medium_base.IceModel):
 
         The z_shift is a variable introduced to be able to shift the exponential
         up or down along the z direction.
-        
+
         """
         if not medium_base.radiopropa_is_imported:
             logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used.'+
@@ -195,7 +195,7 @@ class IceModel_Exp3(medium_base.IceModel):
             raise ImportError('This ice model depends fully on RadioPropa, which could not be imported')
 
         super().__init__(z_bottom = -3000 * units.meter)
-        self._scalarfield = RP.IceModel_Exp3(n_snow = 1.51188, 
+        self._scalarfield = RP.IceModel_Exp3(n_snow = 1.51188,
                 delta_n_snow = 0.271579,
                 z_shift_snow = 0.114553,
                 n_firn = 1.89957,
@@ -204,19 +204,25 @@ class IceModel_Exp3(medium_base.IceModel):
                 n_bubbly = 1.77468,
                 delta_n_bubbly = 1.41573,
                 z_shift_bubbly = 0.0387882,
-                z_firn = -14.9, 
+                z_firn = -14.9,
                 z_bubbly = -80.5)
 
     def get_index_of_refraction(self, position):
+        """ Returns index of refraction for 3d position """
         position = RP.Vector3d(*(position / units.meter))
         return self._scalarfield.getValue(position)
+
     def get_average_index_of_refraction(self, position1, position2):
+        """ Returns average index of refraction between two points/positions """
         position1 = RP.Vector3d(*(position1 / units.meter))
         position2 = RP.Vector3d(*(position2 / units.meter))
         return self._scalarfield.getAverageValue(position1, position2)
+
     def get_gradient_of_index_of_refraction(self, position):
+        """ Returns radient of index of refraction for 3d position """
         pos = RP.Vector3d(*(position / units.meter))
         return self._scalarfield.getGradient(pos) / units.meter
+
     def _compute_default_ice_model_radiopropa(self):
         return medium_base.RadioPropaIceWrapper(self, self._scalarfield)
 
