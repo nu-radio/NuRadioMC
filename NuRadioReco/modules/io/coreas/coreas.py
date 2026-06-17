@@ -390,7 +390,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     return evt
 
 
-def write_CORSIKA7(evt, output_file, declination=None, site=None, detector=None):
+def write_CORSIKA7(evt, output_file, detector=None):
     """
     Writes a NuRadioReco Event object to an HDF5 file in CORSIKA/CoREAS format.
 
@@ -400,27 +400,11 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None, detector=None)
         The Event to store.
     output_file : str
         Path to the output HDF5 file.
-    declination : float, optional
-        Declination of the magnetic field in degrees. If None, determined from site.
-    site : str, optional
-        Name of the site, used to set default magnetic field and declination.
     detector : NuRadioReco.detector.detector.Detector, optional
         Detector object used to accurately retrieve absolute station positions.
     """
     if os.path.exists(output_file):
         raise FileExistsError(f"File '{output_file}' already exists. Aborting.")
-
-    if declination is None and site is not None:
-        try:
-            magnet = hp.get_magnetic_field_vector(site)
-            declination = hp.get_declination(magnet)
-            logger.info(f"Declination obtained from site information, is set to {declination / units.degree:.2f} deg")
-        except KeyError:
-            logger.warning("Site is not recognised by radiotools. Defaulting to 0 degrees declination.")
-
-    if declination is None:
-        declination = 0.0
-        logger.warning("No declination or valid site given, assuming 0 degrees.")
 
     with h5py.File(output_file, "x") as f:
 
@@ -437,7 +421,8 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None, detector=None)
         zenith_NNR = sim_shower.get_parameter(shp.zenith)
         azimuth_NNR = sim_shower.get_parameter(shp.azimuth)
         B_vec_NNR = sim_shower.get_parameter(shp.magnetic_field_vector)
-
+        declination = hp.get_declination(B_vec_NNR)
+        
         def get_angles_corsika(z_nnr, a_nnr, b_vec_nnr, dec):
             zenith = z_nnr / units.deg
             azimuth = (a_nnr - 3 * np.pi / 2. - dec / units.rad) / units.deg
@@ -455,6 +440,7 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None, detector=None)
 
             return zenith, azimuth, np.array([By_corsika, minBz_corsika])
 
+        
         zenith, azimuth, B_vec = get_angles_corsika(zenith_NNR, azimuth_NNR, B_vec_NNR, declination)
         inputs_grp.attrs["THETAP"] = np.array([zenith, zenith])
         inputs_grp.attrs["PHIP"] = np.array([azimuth, azimuth])
@@ -492,6 +478,12 @@ def write_CORSIKA7(evt, output_file, declination=None, site=None, detector=None)
             if detector is not None:
                 station_abs_pos = detector.get_absolute_position(station_id)
             else:
+                try:
+                    station_abs_pos = station.get_position() if hasattr(station, 'get_position') else np.zeros(3)
+                except Exception:
+                    station_abs_pos = np.zeros(3)
+
+            if station_abs_pos is None:
                 station_abs_pos = np.zeros(3)
 
             for observer in sim_station.get_electric_fields():
