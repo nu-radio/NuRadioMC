@@ -31,15 +31,11 @@ from NuRadioReco.detector.SKA.detector import Detector
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import trace_utilities, units
 
-def get_fluence_data(evt, is_reconstructed=False, det=None):
+def get_fluence_data(evt, det):
     x, y, fluences = [], [], []
     for station in evt.get_stations():
-        # Both Reconstructed HDF5 and Original Star-Shape HDF5 
-        # already contain absolute ground coordinates in the e-field.
-        if is_reconstructed:
-            abs_pos = np.zeros(3)
-        else:
-            abs_pos = det.get_absolute_position(station.get_id())
+
+        abs_pos = det.get_absolute_position(station.get_id())
             
         sim_station = station.get_sim_station()
         for efield in sim_station.get_electric_fields():
@@ -58,12 +54,13 @@ if __name__ == "__main__":
     parser.add_argument('--hdf5_name', type=str, required=True, help='Reconstructed HDF5 file.')
     parser.add_argument('--det_file', type=str, required=True, help='Detector .tm file.')
     args = parser.parse_args()
+    #python Interpolated_SKA_Low_event_to_hdf5.py --input_file "example_data/greenland_starshape_32obs.hdf5" --hdf5_name "test" --det_file "/user/vitaldehenau/MA_simulations/Fluence/ska_layout/Vogel/telescope.tm/"
 
     det = Detector(args.det_file)
 
     # Extract original Star-Shape fluence data
     star_evt = coreas.read_CORSIKA7(args.input_file)
-    x_star, y_star, f_star, id_star = get_fluence_data(star_evt, is_reconstructed=True)
+    x_star, y_star, f_star, id_star = get_fluence_data(star_evt, det=det)
 
     # Interpolate to SKA-Low layout
     readCoREASDetector = NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector()
@@ -75,15 +72,15 @@ if __name__ == "__main__":
     evt = next(readCoREASDetector.run(det, core_positions, selected_station_channel_ids={station_id: None for station_id in det.get_station_ids()[::50]}))
     
     # Extract interpolated fluence data BEFORE mutating the event
-    x_orig, y_orig, f_orig, id_orig = get_fluence_data(evt, is_reconstructed=False, det=det)
+    x_orig, y_orig, f_orig, id_orig = get_fluence_data(evt, det=det)
 
     # Write to HDF5
-    reconstructed_HDF5 = f"{args.hdf5_name}.hdf5"
-    coreas.write_CORSIKA7(evt, reconstructed_HDF5, detector=det)
+    HDF5 = f"{args.hdf5_name}.hdf5"
+    coreas.write_CORSIKA7(evt, HDF5, detector=det)
 
-    # Read back and extract reconstructed fluence data
-    reco_evt = coreas.read_CORSIKA7(reconstructed_HDF5)
-    x_reco, y_reco, f_reco, id_reco = get_fluence_data(reco_evt, is_reconstructed=True)
+    # Read back and extract interpolated fluence data
+    evt2 = coreas.read_CORSIKA7(HDF5)
+    x_reco, y_reco, f_reco, id_reco = get_fluence_data(evt2, det=det)
 
     fig, axs = plt.subplot_mosaic([["StarShape", "Interpolated", "Reconstructed", "Cbar"]], 
                                   figsize=(15, 5), width_ratios=[1, 1, 1, 0.05])
