@@ -38,6 +38,9 @@ class channelFeatureExtractor:
     - ``kurtosis_entropy``: kurtosis and Shannon entropy
     - ``spectral``: centroid, bandwidth, skewness, kurtosis, entropy,
       slope, 90% rolloff, flatness, low-band fraction
+    - ``band``: band-limited power, gain-referenced in-band SNR
+      (in-band power / split-trace in-band noise power), in-band power
+      ratio, in-band spectral tilt, peak frequency
     - ``impulse_correlations``: max correlation with delta, bipolar,
       gaussian, bipolar_wide, sinc templates
 
@@ -56,6 +59,8 @@ class channelFeatureExtractor:
         "spectral_fmin": 0.08 * units.GHz,
         "spectral_fmax": 0.6 * units.GHz,
         "spectral_low_band_boundary": 0.1 * units.GHz,
+        "band_lo": 0.1 * units.GHz,
+        "band_hi": 0.3 * units.GHz,
         "set_channel_parameters": True,
     }
 
@@ -66,6 +71,7 @@ class channelFeatureExtractor:
         "impulsivity",
         "kurtosis_entropy",
         "spectral",
+        "band",
         "impulse_correlations",
     )
 
@@ -189,6 +195,17 @@ class channelFeatureExtractor:
                 low_band_boundary=cfg["spectral_low_band_boundary"],
             )
             for key, val in spec.items():
+                row[key] = float(val)
+
+        if compute_all or "band" in groups:
+            band = trace_utils.get_band_features(
+                trace, sampling_rate,
+                band_lo=cfg["band_lo"],
+                band_hi=cfg["band_hi"],
+                fmin=cfg["spectral_fmin"],
+                fmax=cfg["spectral_fmax"],
+            )
+            for key, val in band.items():
                 row[key] = float(val)
 
         if compute_all or "impulse_correlations" in groups:

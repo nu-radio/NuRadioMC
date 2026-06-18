@@ -1149,3 +1149,119 @@ def get_impulse_template_correlations(trace, sampling_rate):
     }
 
 
+def _band_power(power, freqs, flo, fhi):
+    """Integrated spectral power in the half-open band [flo, fhi)."""
+    m = (freqs >= flo) & (freqs < fhi)
+    return float(power[m].sum())
+
+
+def get_band_features(trace, sampling_rate, band_lo, band_hi,
+                      fmin=None, fmax=None, noise_segments=4, noise_lowest=2):
+    """Band-limited spectral-power features for one channel trace.
+
+    The in-band signal-to-noise (``band_snr``) is gain-referenced: the
+    in-band power is divided by the in-band noise power estimated from the
+    quietest split-trace segments, so the per-channel electronics gain
+    cancels (it rides both signal and noise). This makes ``band_snr``, and
+    any cross-channel ratio built from it, robust to per-channel gain
+    miscalibration.
+
+    Args:
+        trace: Voltage trace (1-D).
+        sampling_rate: Sampling rate (use GHz inside NuRadioReco).
+        band_lo, band_hi: Signal band edges, same units as sampling_rate.
+        fmin, fmax: Full spectral range for ``peak_frequency`` and the
+            band-power-ratio denominator. Default: full positive spectrum.
+        noise_segments, noise_lowest: Split-trace noise estimate controls
+            (mirror ``get_split_trace_noise_RMS``): the band noise power is
+            the mean in-band power of the ``noise_lowest`` quietest of
+            ``noise_segments`` equal segments, scaled to the full length.
+
+    Returns:
+        dict with keys ``band_power`` (raw in-band power), ``band_snr``
+        (gain-referenced in-band power-SNR), ``band_power_ratio`` (in-band
+        / full-range power), ``band_slope`` (log10 of upper-half / lower-half
+        in-band power; spectral tilt), and ``peak_frequency``.
+    """
+    n = len(trace)
+    fft_vals = np.fft.rfft(trace)
+    freqs = np.fft.rfftfreq(n, d=1.0 / sampling_rate)
+    power = np.abs(fft_vals) ** 2
+
+    if fmin is None:
+        fmin = freqs[1] if len(freqs) > 1 else 0.0
+    if fmax is None:
+        fmax = freqs[-1]
+
+    band_power = _band_power(power, freqs, band_lo, band_hi)
+    range_power = _band_power(power, freqs, fmin, fmax)
+    band_mid = 0.5 * (band_lo + band_hi)
+    p_lo = _band_power(power, freqs, band_lo, band_mid)
+    p_hi = _band_power(power, freqs, band_mid, band_hi)
+
+    # In-band noise power from the quietest split-trace segments (band-matched).
+    if n >= noise_segments * 2:
+        seg_len = n // noise_segments
+        segs = trace[:noise_segments * seg_len].reshape(noise_segments, seg_len)
+        seg_rms = np.std(segs, axis=1)
+        quiet = segs[np.argsort(seg_rms)[:noise_lowest]]
+        seg_freqs = np.fft.rfftfreq(seg_len, d=1.0 / sampling_rate)
+        noise_band = np.mean([
+            _band_power(np.abs(np.fft.rfft(s)) ** 2, seg_freqs, band_lo, band_hi)
+            for s in quiet
+        ])
+        # Scale segment-length power up to the full-trace length for comparison.
+        noise_band *= (n / seg_len)
+    else:
+        noise_band = 0.0
+
+    band_snr = float(band_power / noise_band) if noise_band > 0 else float("nan")
+    band_power_ratio = float(band_power / range_power) if range_power > 0 else float("nan")
+    band_slope = float(np.log10((p_hi + 1e-30) / (p_lo + 1e-30)))
+
+    rng = (freqs >= fmin) & (freqs <= fmax)
+    peak_frequency = float(freqs[rng][np.argmax(power[rng])]) if rng.any() else float("nan")
+
+    return {
+        "band_power": band_power,
+        "band_snr": band_snr,
+        "band_power_ratio": band_power_ratio,
+        "band_slope": band_slope,
+        "peak_frequency": peak_frequency,
+    }
+
+
+def get_normalized_cross_correlation(trace_a, trace_b, max_lag=None):
+    """Peak normalized cross-correlation between two traces and its lag.
+
+    Gain-independent (each trace is normalized by its own L2 norm), so it
+    measures waveform-shape coherence rather than amplitude. Used for
+    co-located HPOL/VPOL pairs: a coherent plane wave hits both with
+    correlated structure at near-zero lag; thermal noise does not.
+
+    Args:
+        trace_a, trace_b: Equal-length voltage traces.
+        max_lag: If given, restrict the search to lags in [-max_lag, max_lag]
+            samples.
+
+    Returns:
+        (max_abs_corr, lag) where max_abs_corr is in [0, 1] and lag is the
+        sample offset (b relative to a) at the peak. (nan, 0) if either
+        trace has zero norm.
+    """
+    a = np.asarray(trace_a, float)
+    b = np.asarray(trace_b, float)
+    na = np.linalg.norm(a)
+    nb = np.linalg.norm(b)
+    if na == 0 or nb == 0:
+        return float("nan"), 0
+    corr = np.correlate(a / na, b / nb, mode="full")
+    lags = np.arange(-(len(b) - 1), len(a))
+    if max_lag is not None:
+        keep = np.abs(lags) <= max_lag
+        corr = corr[keep]
+        lags = lags[keep]
+    i = int(np.argmax(np.abs(corr)))
+    return float(np.abs(corr[i])), int(lags[i])
+
+

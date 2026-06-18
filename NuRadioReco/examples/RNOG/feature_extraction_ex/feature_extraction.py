@@ -86,6 +86,16 @@ SPECTRAL_KEYS = (
 )
 IMPULSE_TEMPLATE_NAMES = (
     "delta", "bipolar", "gaussian", "bipolar_wide", "sinc")
+BAND_KEYS = (
+    "band_power", "band_snr", "band_power_ratio", "band_slope", "peak_frequency")
+
+# Co-located HPOL/VPOL pairs on the two helper strings, used for the
+# per-string polarization features. Each H antenna sits next to the listed
+# deep VPOLs; the first VPOL is the closest in depth (used as the xcorr ref).
+HV_PAIRS = {
+    "b": {"hpol": 11, "vpol": (9, 10)},
+    "c": {"hpol": 21, "vpol": (22, 23)},
+}
 
 
 def init_detector(config):
@@ -237,6 +247,45 @@ def _coherent_sum_features(trace, sampling_rate, n_entropy_bins,
     return row
 
 
+def _add_polarization_features(row, per_ch, traces):
+    """Add gain-referenced polarization features to the event row.
+
+    Inputs are the per-channel gain-referenced ``band_snr`` (in-band power
+    over split-trace in-band noise power), so the electronics gain cancels
+    per channel and the features are robust to per-channel gain
+    miscalibration. Adds the HPOL/VPOL band-SNR ratio and, per helper string,
+    the polarization fraction (V / (V + H)) plus the co-located H/V waveform
+    cross-correlation peak and lag (amplitude-normalized, so gain-independent).
+    Polarization is an Askaryan signature absent from unpolarized noise.
+    """
+    h = row.get("band_snr_avg_hpol")
+    v = row.get("band_snr_avg_vpol")
+    row["hpol_vpol_band_snr_ratio"] = (
+        float(h / v) if h is not None and v not in (None, 0)
+        and np.isfinite(h) and np.isfinite(v) and v != 0 else float("nan"))
+
+    def _snr(ch):
+        return per_ch.get(ch, {}).get("band_snr", float("nan"))
+
+    for tag, pair in HV_PAIRS.items():
+        h_snr = _snr(pair["hpol"])
+        v_snrs = [s for s in (_snr(c) for c in pair["vpol"]) if np.isfinite(s)]
+        v_snr = float(np.mean(v_snrs)) if v_snrs else float("nan")
+        denom = v_snr + h_snr
+        row[f"pol_fraction_{tag}"] = (
+            float(v_snr / denom) if np.isfinite(denom) and denom > 0 else float("nan"))
+
+        v_ref = next((c for c in pair["vpol"] if c in traces), None)
+        if pair["hpol"] in traces and v_ref is not None:
+            xc, lag = trace_utils.get_normalized_cross_correlation(
+                traces[pair["hpol"]], traces[v_ref])
+            row[f"hv_xcorr_{tag}"] = xc
+            row[f"hv_dt_{tag}"] = float(lag)
+        else:
+            row[f"hv_xcorr_{tag}"] = float("nan")
+            row[f"hv_dt_{tag}"] = float("nan")
+
+
 def build_feature_row(per_ch, traces, sampling_rate, config):
     """Flatten per-channel features + RNO-G aggregates into one row.
 
@@ -274,6 +323,14 @@ def build_feature_row(per_ch, traces, sampling_rate, config):
         for group_name in groups:
             row[f"{col}_avg_{group_name}"] = _mean_over(
                 vals_per_ch, ANTENNA_GROUPS[group_name])
+
+    for key in BAND_KEYS:
+        vals_per_ch = {c: per_ch[c][key] for c in per_ch if key in per_ch[c]}
+        for group_name in groups:
+            row[f"{key}_avg_{group_name}"] = _mean_over(
+                vals_per_ch, ANTENNA_GROUPS[group_name])
+
+    _add_polarization_features(row, per_ch, traces)
 
     if config.get("build_coherent_sums", True):
         cfg = config.get("features", {})
