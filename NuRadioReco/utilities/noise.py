@@ -3,7 +3,7 @@ from NuRadioReco.modules import channelGenericNoiseAdder
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.modules.trigger.highLowThreshold import get_high_low_triggers
 from NuRadioReco.detector import generic_detector as detector
-from scipy import constants
+from scipy import constants, integrate
 import datetime
 import scipy
 import scipy.signal
@@ -213,7 +213,7 @@ class thermalNoiseGenerator():
         self.norm = {}
         self.amplitude = {}
         for i in range(n_channels):
-            self.norm[i] = np.trapz(np.abs(self.filt[i]) ** 2, self.ff)
+            self.norm[i] = integrate.trapezoid(np.abs(self.filt[i]) ** 2, self.ff)
             self.amplitude[i] = (self.max_freq - self.min_freq) ** 0.5 / self.norm[i] ** 0.5 * self.Vrms[i]
 
         self.noise = channelGenericNoiseAdder.channelGenericNoiseAdder()
@@ -405,7 +405,7 @@ class thermalNoiseGeneratorPhasedArray():
                                  f" frequency binning of {len(self.ff)} bins from {self.ff[0] / units.MHz:.0f} to {self.ff[-1] / units.MHz:.0f} MHz")
             self.filt = np.array(filt)
 
-        self.norm = np.trapz(np.abs(self.filt) ** 2, self.ff)
+        self.norm = integrate.trapezoid(np.abs(self.filt) ** 2, self.ff)
         self.amplitude = (self.max_freq - self.min_freq) ** 0.5 / self.norm ** 0.5 * self.Vrms
         logger.info(f"Vrms = {self.Vrms:.3g}V, noise amplitude = {self.amplitude:.3g}V, bandwidth = {self.norm / units.MHz:.0f}MHz")
         logger.info(f"frequency range {self.min_freq / units.MHz}MHz - {self.max_freq / units.MHz}MHz")

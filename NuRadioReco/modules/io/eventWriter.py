@@ -12,14 +12,23 @@ logger = logging.getLogger("NuRadioReco.eventWriter")
 
 
 def get_header(evt):
-    header = {'stations': {}}
-    for iS, station in enumerate(evt.get_stations()):
-        header['stations'][station.get_id()] = station.get_parameters().copy()
-        header['stations'][station.get_id()][stnp.station_time] = io_utilities._astropy_to_dict(station.get_station_time())
+    header = {'stations': {}, 'showers': {}, 'sim_showers': {}}
+    for station in evt.get_stations():
+        station_id = station.get_id()
+        header['stations'][station_id] = station.get_parameters().copy()
+        header['stations'][station_id][stnp.station_time] = io_utilities._astropy_to_dict(station.get_station_time())
 
         if station.has_sim_station():
-            header['stations'][station.get_id()]['sim_station'] = {}
-            header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters().copy()
+            header['stations'][station_id]['sim_station'] = station.get_sim_station().get_parameters().copy()
+            
+    for shower in evt.get_showers():
+        sh_id = shower.get_id()
+        header['showers'][sh_id] = shower.get_parameters().copy()
+
+    for sim_shower in evt.get_sim_showers():
+        sim_id = sim_shower.get_id()
+        header['sim_showers'][sim_id] = sim_shower.get_parameters().copy()
+
     header['event_id'] = (evt.get_run_number(), evt.get_id())
     return header
 

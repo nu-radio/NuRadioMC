@@ -284,20 +284,26 @@ class voltageToAnalyticEfieldConverter:
         debug_plotpath: string or None
             if not None plots will be saved to a file rather then shown. Plots will
             be save into the `debug_plotpath` directory
-        use_channels: array of ints (default: [0, 1, 2, 3])
-            the channel ids to use for the electric field reconstruction
-            default: 0 - 3
-        bandpass: [float, float] (default: [100 * units.MHz, 500 * units.MHz])
-            the lower and upper frequecy for which the analytic pulse is calculated.
+        use_channels: array of ints
+            The channel ids to use for the electric field reconstruction
+        bandpass: [float, float]
+            The lower and upper frequecy for which the analytic pulse is calculated.
             A butterworth filter of 10th order and a rectangular filter is applied.
-            default 100 - 500 MHz
         use_MC_direction: bool
             use simulated direction instead of reconstructed direction
         """
         if use_channels is None:
-            use_channels = [0, 1, 2, 3]
+            msg = ("No channels specified for electric field reconstruction. "
+                "Please provide `use_channels` argument to the voltageToAnalyticEfieldConverter.")
+            logger.error(msg)
+            raise ValueError(msg)
+
         if bandpass is None:
-            bandpass = [100 * units.MHz, 500 * units.MHz]
+            msg = ("No bandpass specified for electric field reconstruction. "
+                "Please provide `bandpass` argument to the voltageToAnalyticEfieldConverter.")
+            logger.error(msg)
+            raise ValueError(msg)
+
         self.__counter += 1
         station_id = station.get_id()
         logger.info("event {}, station {}".format(evt.get_id(), station_id))
