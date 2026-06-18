@@ -277,13 +277,12 @@ def get_layer_index(z, z_min, z_max):
     -----
     Returns ``-1`` if the depth lies outside the defined layer ranges.
     """
-    z = float(z)
-    for i in range(len(z_min)):
 
-        if z >= z_min[i] and z <= z_max[i]:
+    for i in range(len(z_min)):
+        if z_min[i] <= z <= z_max[i]:
             return i
-        
     return -1
+
 
 #@njit(cache = True)
 def analytic_F(z, C0, n_ice, delta_n, z0):

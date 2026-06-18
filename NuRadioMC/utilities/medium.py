@@ -424,13 +424,12 @@ class greenland_simple_layered(medium_base.IceModelExpLayers):
 
         super().__init__(
             layers=layers
-            #z_bottom=-3000.0,
         )
 
 
 class greenland_simple_nils_layered(medium_base.IceModelExpLayers):
     """
-    Single layer refractive index model.
+    New fit parameters for the single layer refractive index model. 
     
     greenland_simple model adapted to match the expected medium definition needed for the multi layer analytic raytracer. Used as a comparison to the single layer analytic raytracer.
     """
@@ -463,7 +462,6 @@ class greenland_simple_nils_layered(medium_base.IceModelExpLayers):
 
         super().__init__(
             layers=layers
-            #z_bottom=-3000.0,
         )
 
 class greenland_firn_layered(medium_base.IceModelExpLayers):
@@ -497,12 +495,11 @@ class greenland_firn_layered(medium_base.IceModelExpLayers):
 
         super().__init__(
             layers=layers
-            #z_bottom=-3000.0,
         )
 
 class greenland_3exp_layered(medium_base.IceModelExpLayers):
     """
-    Four layer refractive index model.
+    (3+1) layer refractive index model. Three layer model in ice plus one air layer.
      
     Values for below the ice taken from https://github.com/philippwindischhofer/Reconal/blob/7204049c755a0678178821073fa73a476c49c491/defs.py#L72-L82. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
     """
@@ -549,13 +546,12 @@ class greenland_3exp_layered(medium_base.IceModelExpLayers):
 
         super().__init__(
             layers=layers
-            #z_bottom=-3000.0,
         )
 
 
 class greenland_3exp_nils_layered(medium_base.IceModelExpLayers):
     """
-    Four layer refractive index model.
+    New fit parameters for the (3+1) layer refractive index model. Three layer model in ice plus one air layer.
      
     Values for below the ice taken from https://github.com/philippwindischhofer/Reconal/blob/7204049c755a0678178821073fa73a476c49c491/defs.py#L72-L82. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
     """
@@ -602,7 +598,6 @@ class greenland_3exp_nils_layered(medium_base.IceModelExpLayers):
 
         super().__init__(
             layers=layers
-            #z_bottom=-3000.0,
         )
 
         

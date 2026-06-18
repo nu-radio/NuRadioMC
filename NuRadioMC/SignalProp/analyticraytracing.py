@@ -88,9 +88,6 @@ class ray_tracing(ray_tracing_base):
 
         detector: detector object
 
-        ray_tracing_module: string
-            'analytic' or 'multilayer'. Specifies which 2D raytracer to use. Default: 'analytic'
-
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
 
@@ -146,7 +143,7 @@ class ray_tracing(ray_tracing_base):
                             **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
             
         else:
-            self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple' (single layer) or 'IceModelExpLayers' (multilayer) (see NuRadioMC.utilities.medium), might break...")
+            self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple' (single layer) or 'IceModelExpLayers' (multilayer) (see NuRadioMC.utilities.medium)!")
             #raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
 
         self._swap = None

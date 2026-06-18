@@ -1,4 +1,5 @@
 from NuRadioReco.utilities import units
+from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays
 
 from scipy import interpolate, integrate, linalg
 import numpy as np
@@ -889,7 +890,7 @@ class IceModelExpLayers(IceModel):
         self.layers = sorted(layers, key=lambda L: L["z_min"],reverse = True)
         self._validate_layers()
 
-        self._layers_arr = self._layers_to_arrays()
+        self._layers_arr = layers_to_arrays(self.layers)
 
     def _validate_layers(self):
         """
@@ -919,51 +920,7 @@ class IceModelExpLayers(IceModel):
         # --- Length consistency check ---
         if not (len(z_max) == len(n_ice) == len(delta_n) == len(z0) == n):
             raise ValueError("All layer parameter arrays must have the same length. Did you forget to specify something?")
-
-    def _layers_to_arrays(self):
-        """
-        Convert layer definitions to NumPy arrays.
-
-        The Numba-based ray tracing implementation requires all layer
-        parameters to be stored in contiguous NumPy arrays instead of
-        Python dictionaries. This method performs that conversion.
-
-        Returns
-        -------
-        tuple of ndarray
-            Tuple containing:
-
-            z_min : ndarray
-                Lower boundary of each layer (depth).
-
-            z_max : ndarray
-                Upper boundary of each layer (depth).
-
-            n_ice : ndarray
-                Asymptotic refractive index of each layer.
-
-            delta_n : ndarray
-                Steepness of the refractive index change of each layer.
-
-            z0 : ndarray
-                Exponential scale depth of each layer.
-        """
-        n = len(self.layers)
-        z_min = np.zeros(n)
-        z_max = np.zeros(n)
-        n_ice = np.zeros(n)
-        delta_n = np.zeros(n)
-        z0 = np.zeros(n)
-
-        for i, L in enumerate(self.layers):
-            z_min[i] = L["z_min"]
-            z_max[i] = L["z_max"]
-            n_ice[i] = L["n_ice"]
-            delta_n[i] = L["delta_n"]
-            z0[i] = L["z_0"]
-
-        return z_min, z_max, n_ice, delta_n, z0
-
+        
     def get_index_of_refraction(self, position):
         """
         Compute the refractive index at a given position.
@@ -992,17 +949,28 @@ class IceModelExpLayers(IceModel):
         ValueError
             If a position lies outside all defined layers.
         """
+        
+        z_min, z_max, n_ice, delta_n, z0 = self._layers_arr
+        
         def n_of_z(z):
-            for L in self.layers:
-                if L["z_min"] <= z < L["z_max"]:
-                    return L["n_ice"] - L["delta_n"] * np.exp(z / L["z_0"])
+            for i in range(len(z_min)):
+                if z_min[i] <= z < z_max[i]:
+                    return n_ice[i] - delta_n[i] * np.exp(z / z0[i])
+
             raise ValueError(f"Position z={z} is not covered by any layer!")
 
         if isinstance(position, list) or position.ndim == 1:
             n = n_of_z(position[2])
             return float(n)
         else:
-            return np.array([n_of_z(z) for z in position[:,2]])
+            #return np.array([n_of_z(z) for z in position[:,2]])
+            zvals = position[:, 2]
+            out = np.empty(len(zvals))
+
+            for i in range(len(zvals)):
+                out[i] = n_of_z(zvals[i])
+
+            return out
         
     def get_layer_name(self, z):
         """
