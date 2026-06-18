@@ -278,7 +278,7 @@ if __name__ == "__main__":
     import datetime
     det.update(datetime.datetime(2023, 1, 1, 0, 0, 0))
     resp = det.get_signal_chain_response(11, 0)
-    print(resp.get_time_delay(), resp._calculate_time_delay())
+    print(resp.get_time_delay(), resp.calculate_time_delay())
     det.add_manual_time_delay(11, 0, 250)
     resp = det.get_signal_chain_response(11, 0)
-    print(resp.get_time_delay(), resp._calculate_time_delay())
+    print(resp.get_time_delay(), resp.calculate_time_delay())
