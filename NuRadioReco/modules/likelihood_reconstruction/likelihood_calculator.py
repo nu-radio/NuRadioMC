@@ -55,9 +55,10 @@ class LikelihoodCalculator:
             n_antennas,
             n_samples,
             sampling_rate,
-            matrix_inversion_method="pseudo_inv",
-            threshold_amplitude=1e-2, increase_cov_diagonal=0,
-            ignore_llh_normalization=True
+            matrix_inversion_method = "pseudo_inv",
+            threshold_amplitude = 1e-2,
+            increase_cov_diagonal = 0,
+            ignore_llh_normalization = True
             ):
         self.n_antennas = n_antennas
         self.n_samples = n_samples

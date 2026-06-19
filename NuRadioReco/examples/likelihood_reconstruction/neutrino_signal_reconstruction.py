@@ -5,7 +5,7 @@ add band-limited noise to it. The event is then reconstructed using the Neutrino
 In the current implementation, the reconstruction needs to be initialized close to the true
 values of the parameters (or close to the global minimum of the likelihood), and we hence 
 derive a good initial guess from the true parameters. In a realistic implementation, a good
-guess of the vertex zenith, vertex azimuth, and (maybe) vertex r can be found usinginterferometry.
+guess of the vertex zenith, vertex azimuth, and (maybe) vertex r can be found using interferometry.
 The amplitude (energy) and times are profiled over internally in the reconstruction algorithm.
 The rest of the parameters (nu_zenith, nu_azimuth, and maybe r vertex) can then be scanned over
 to find the global minimum.
@@ -65,12 +65,12 @@ def detector_simulation_filter_amp(evt, station, det):
 signal_model = shower_simulator.ShowerSimulator(
             config_file="./neutrino_reco_sim_config.yaml",
             det = det,
-            station_id=station_id,
-            reference_channel=0,
-            evt_time=datetime.datetime(2022, 7, 1),
-            use_channels=use_channels,
-            detector_simulation_filter_amp=detector_simulation_filter_amp,
-            pre_pulse_time=100 * units.ns
+            station_id = station_id,
+            reference_channel = 0,
+            evt_time = datetime.datetime(2022, 7, 1),
+            use_channels = use_channels,
+            detector_simulation_filter_amp = detector_simulation_filter_amp,
+            pre_pulse_time = 100 * units.ns
         )
 
 # Simple neutrino event that is likely to give a strong signal in the detector:
@@ -86,14 +86,14 @@ vertex_time = 0
 
 # Simulate the event:
 station, traces, trace_start_times = signal_model.simulate_single_shower(
-    energy=E_shower,
-    zenith=zenith,
-    azimuth=azimuth,
-    vertex=vertex_xyz,
-    vertex_time=vertex_time,
-    type="HAD",
-    charge_excess_profile_id=5,
-    trace_start_times=None # <- Automatically calculates start times based on pulse in reference antenna
+    energy = E_shower,
+    zenith = zenith,
+    azimuth = azimuth,
+    vertex = vertex_xyz,
+    vertex_time = vertex_time,
+    type = "HAD",
+    charge_excess_profile_id = 5,
+    trace_start_times = None # <- Automatically calculates start times based on pulse in reference antenna
 )
 
 # Save true signal:

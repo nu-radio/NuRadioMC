@@ -92,9 +92,11 @@ class neutrinoLikelihoodReconstructor:
                 hardware response and/or bandpass filter of the detector.
 
             signal_search_width: float, optional
-                The width of the matched filter time grid, which will be profiled over in the first stage of the fit. If the
-                peak of the signal in the trace is within the initial guess of the pulse_time +/- signal_search_width, the
-                fit is likely to converge to a good minimum. Default: 30 * units.ns
+                The width of the window to search for the signal in relative to the initial guess pulse_time. This is used as
+                the width of the matched filter time grid, which will be profiled over in the first stage of the fit. And it
+                is used as the bound in the final -2LLH minimization. If the peak of the signal in the trace is within the
+                initial guess of the pulse_time +/- signal_search_width, the  fit is likely to converge to a good minimum.
+                Default: 30 * units.ns
 
             n_grid_matched_filter: int, optional
                 Number of grid points to divide the matched filter time grid into. It is recommended that the matched filter time
@@ -123,6 +125,7 @@ class neutrinoLikelihoodReconstructor:
         self.config_file = config_file
         self.overwrite_speedup_options = overwrite_speedup_options
 
+        self.signal_search_width = signal_search_width
         self.delta_t = 1 / self.sampling_rate
         self.delta_t_array_matched_filter = np.linspace(-signal_search_width, signal_search_width, n_grid_matched_filter)
         self.i_shift_cc = (np.arange(-int(signal_search_width / self.delta_t), int(signal_search_width / self.delta_t) + 1)).astype(int)
@@ -162,6 +165,7 @@ class neutrinoLikelihoodReconstructor:
         reference_channel = 0,
         two_step_optimization = True,
         full_output = True,
+        bounds = None
         ):
         """
         Run the likelihood reconstruction to fit a hadronic shower signal model to the traces in the station object.
@@ -187,7 +191,7 @@ class neutrinoLikelihoodReconstructor:
             [energy, zenith, azimuth, vertex_r_rel, vertex_theta_rel, vertex_phi_rel, pulse_time]
             in standard NuRadioMC units. The parameters are:
             - energy: The shower energy
-            - zenith and azimuth: The direction of the neutrino
+            - zenith and azimuth: The arrival direction of the neutrino / shower
             - vertex_r_rel, vertex_theta_rel, vertex_phi_rel: The spherical coordinates
                 of the shower vertex relative to the reference antenna
             - pulse_time: The approximate time of the pulse in the readout trace of the
@@ -213,6 +217,15 @@ class neutrinoLikelihoodReconstructor:
         full_output: bool, optional
             Wether to return parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, and p_value_fit
 
+        bounds: np.ndarray, optional
+            Bounds for the parameters to reconstruct. If set to None, the default values are used:
+            - energy: 1 PeV to 100 EeV
+            - zenith: 0 to 180 deg
+            - azimuth: -360 to 360 deg
+            - vertex_r_rel: 20 m to 5 km
+            - vertex_theta_rel: 90 to 180 deg
+            - vertex_phi_rel: -360 to 360 deg
+            - pulse_time: initial guess +/- self.signal_search_width
 
         Returns
         -------
@@ -277,7 +290,7 @@ class neutrinoLikelihoodReconstructor:
             signal_model.config['speedup']['distance_cut'] = False
 
         def signal_model_wrapper(parameters):
-            signal = signal_model.simulate_single_shower_forward_folding(
+            signal_station, signal_traces = signal_model.simulate_single_shower_forward_folding(
                 energy = parameters[0],
                 zenith = parameters[1],
                 azimuth = parameters[2],
@@ -288,8 +301,8 @@ class neutrinoLikelihoodReconstructor:
                 type = "HAD",
                 trace_start_times = trace_start_times,
                 charge_excess_profile_id = charge_excess_profile_id,
-            )[1]
-            return signal
+            )
+            return signal_traces
 
         self.matched_filter.set_data(traces)
 
@@ -305,9 +318,9 @@ class neutrinoLikelihoodReconstructor:
             ax[0].legend()
             ax[-1].set_xlabel("Time [s]")
             plt.tight_layout()
-            plt.savefig("debug_StationElectricFieldReconstructor_initial.png")
+            plt.savefig("debug_neutrinoLikelihoodReconstructor.png")
 
-        minus_two_llh_initial, minus_two_llh_fit, parameters_fit, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, parameters_initial, two_step_optimization=two_step_optimization)
+        minus_two_llh_initial, minus_two_llh_fit, parameters_fit, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, parameters_initial, two_step_optimization=two_step_optimization, bounds=bounds)
 
         signal_fit = signal_model_wrapper(parameters_fit)
 
@@ -316,7 +329,7 @@ class neutrinoLikelihoodReconstructor:
                 ax[i_ch].plot(t_array, signal_fit[i_ch], ls=":",label="fit")
                 if i_ch == 0:
                     ax[i_ch].legend()
-            plt.savefig("debug_StationElectricFieldReconstructor_initial.png")
+            plt.savefig("debug_neutrinoLikelihoodReconstructor.png")
             plt.show()
             plt.close()
 
@@ -397,23 +410,8 @@ class neutrinoLikelihoodReconstructor:
 
     def _cross_correlation(self, data, signal, shift_array):
         """
-        Calculate the cross-correlation between the data and the signal.
-
-        Parameters
-        ----------
-        data: np.ndarray
-            Data from the two antennas
-
-        signal: np.ndarray
-            Signal from the two antennas
-
-        shift_array: np.ndarray
-            Array of shift indicies to calculate the cross-correlation for
-
-        Returns
-        -------
-        float
-            Normalized cross-correlation between the data and the signal
+        Calculate the cross-correlation between the data and the signal. The shift_array
+        is the shift indicies to calculate the cross-correlation for.
         """
 
         cross_correlation_array = np.zeros(len(shift_array))
@@ -437,43 +435,25 @@ class neutrinoLikelihoodReconstructor:
         return chi2
 
 
-    def _reconstruct_signal(self, data, signal_function, parameters_initial, two_step_optimization=True):
+    def _reconstruct_signal(self, data, signal_function, parameters_initial, two_step_optimization=True, bounds=None):
         """
-        Reconstruct the signal from the given data.
-
-        Parameters
-        ----------
-        data: np.ndarray
-            Data traces for the channels to be used in the reconstruction
-
-        signal_function: callable
-            Function to model the signal
-
-        parameters_initial: np.ndarray
-            Initial parameters for the reconstruction
-
-        Returns
-        -------
-        minus_two_llh_fit: float
-            The negative log-likelihood value for the reconstructed signal
-
-        params_fit: np.ndarray
-            The fitted parameters for the reconstructed signal
+        Reconstruct the signal from the given data and the provided signal model using the initial guess of the signal parameters.
         """
 
         scaling = np.array([units.EeV, units.rad, units.rad, units.km, units.deg, units.deg, units.ns])
 
-        bounds = np.array([(1 * units.PeV, 100 * units.EeV),
-                            (0 * units.deg, 180 * units.deg),
-                            (-360 * units.deg, 360 * units.deg),
-                            (20 *units.m, 5 * units.km),
-                            (90 * units.deg, 180 * units.deg),
-                            (-360 * units.deg, 360 * units.deg),
-                            (parameters_initial[6] - 30 * units.ns, parameters_initial[6] + 30 * units.ns)])
+        if bounds is None:
+            bounds = np.array([(1 * units.PeV, 100 * units.EeV),
+                                (0 * units.deg, 180 * units.deg),
+                                (-360 * units.deg, 360 * units.deg),
+                                (20 * units.m, 5 * units.km),
+                                (0 * units.deg, 180 * units.deg),
+                                (-360 * units.deg, 360 * units.deg),
+                                (parameters_initial[6] - self.signal_search_width * units.ns, parameters_initial[6] + self.signal_search_width)])
 
         minus_two_llh_initial = self._function_to_minimize_llh(data, signal_function(parameters_initial))
 
-        # matched filter optimization to get close to the global minimum and good initial parameters for the likelihood fit:
+        # Matched filter optimization to get close to the global minimum and good initial parameters for the likelihood fit:
         if two_step_optimization:
             minimizer_mf = minimization.Minimizer(
                 signal_function = signal_function,
@@ -519,7 +499,7 @@ class neutrinoLikelihoodReconstructor:
             objective_function = self._function_to_minimize_llh,
             parameters_initial = parameters_initial_llh,
             parameters_bounds = bounds,
-            debug=self.debug
+            debug = self.debug
         )
         minimizer_llh.set_scaling(scaling)
 
@@ -528,7 +508,7 @@ class neutrinoLikelihoodReconstructor:
         params_fit = minimizer_llh.parameters
         minus_two_llh_fit = minimizer_llh.result
 
-        # Estimate 1st order uncertainties using the Fisher information matrix:
+        # Estimate 1st-order uncertainties using the Fisher information matrix:
         dx = np.array([1e-6, 1e-6, 1e-6, 1e-4, 1e-6, 1e-6, 1e-4])
         def signal_function_scaled(params_scaled):
             params = params_scaled * scaling

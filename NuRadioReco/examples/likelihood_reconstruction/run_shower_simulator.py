@@ -9,18 +9,12 @@ import NuRadioReco.detector.detector
 import NuRadioReco.modules.channelBandPassFilter
 from NuRadioReco.utilities import units
 from NuRadioReco.modules.likelihood_reconstruction.shower_simulator import ShowerSimulator
-#import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 
-#hardware_response = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
-
-#det = NuRadioReco.detector.RNO_G.rnog_detector.Detector()
 det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json', antenna_by_depth=False)
 
 def detector_simulation_filter_amp(evt, station, det):
-
-    # hardware_response.run(evt, station, det, sim_to_data=True)
 
     channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
                                 filter_type='butter', order=2)
@@ -52,17 +46,15 @@ vertex_xyz[2] -= 100 * units.m # assuming ~100 m antenna depth
 vertex_time = 0
 
 station, traces, trace_start_times = signal_model.simulate_single_shower(
-    energy=E_shower,
-    zenith=zenith,
-    azimuth=azimuth,
-    vertex=vertex_xyz,
-    vertex_time=vertex_time,
-    type="EM",
-    charge_excess_profile_id=5,
-    trace_start_times=None # <- Automatically calculates start times based on pulse in reference antenna
+    energy = E_shower,
+    zenith = zenith,
+    azimuth = azimuth,
+    vertex = vertex_xyz,
+    vertex_time = vertex_time,
+    type = "EM",
+    charge_excess_profile_id = 5,
+    trace_start_times = 6000 # <- Automatically calculates start times based on pulse in reference antenna
 )
-
-
 
 # Plot results:
 n_channels = len(traces)

@@ -1,5 +1,5 @@
 """
-This example simulates a simple electric field with analytic_pulse in a  dual-polarized
+This example simulates a simple electric field with analytic_pulse in a dual-polarized
 antenna and adds band-limited noise to it. The electric field is then reconstructed using
 the electricFieldLikelihoodReconstructor. In this reconstruction, no knowledge about the
 MC true signal parameter values is used.

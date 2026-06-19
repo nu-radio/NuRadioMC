@@ -5,8 +5,9 @@ follow the expected chi-square distributions with 7 degrees of freedom (indicati
 Additionally, the fitted parameter distributions are plotted. There may be outliers because the fits
 are not initialized exactly at the true values and may fail. The 1-st order uncertainties estimated
 using the Fisher-information of the optimum are validated through pull plots. Finally, the p-values
-for the fitted signals are evaluated, which should be a uniform distribution between 0 and 1 (exept for
-a few outliers).
+for the fitted signals are evaluated, which should be a uniform distribution between 0 and 1 (exept
+for a few outliers).
+This script takes a few hours to run.
 """
 import os
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -90,7 +91,7 @@ fitted_parameters_array = np.zeros((n_events, 7))
 uncertainties_fit_array = np.zeros((n_events, 7))
 
 # Set this to true if the script has already run (partiall) and only the plotting in needed:
-plots_only = True
+plots_only = False
 
 for i_event in range(n_events):
 
