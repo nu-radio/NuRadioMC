@@ -1,17 +1,7 @@
 """
-This example script demonstrates how to simulate a user-defined a neutrino event with ShowerSimulater and
-add band-limited noise to it. The event is then reconstructed using the NeutrinoLikelihoodReconstructor.
-
-In the current implementation, the reconstruction needs to be initialized close to the true
-values of the parameters (or close to the global minimum of the likelihood), and we hence 
-derive a good initial guess from the true parameters. In a realistic implementation, a good
-guess of the vertex zenith, vertex azimuth, and (maybe) vertex r can be found using interferometry.
-The amplitude (energy) and times are profiled over internally in the reconstruction algorithm.
-The rest of the parameters (nu_zenith, nu_azimuth, and maybe r vertex) can then be scanned over
-to find the global minimum.
+This example runs a likelihood-based forward folding reconstruction for a neutrino event without noise.
+We assert that the reconstructed values are close to the true values.
 """
-import os
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,12 +13,13 @@ from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdde
 from NuRadioReco.modules.likelihood_reconstruction import shower_simulator, neutrinoLikelihoodReconstructor
 from NuRadioReco.framework.event import Event
 import NuRadioReco.modules.channelBandPassFilter
+from NuRadioReco.framework.parameters import showerParameters as shp
 
 channelGenericNoiseAdder = channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
-det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json', antenna_by_depth=False)
+det = NuRadioReco.detector.detector.Detector(json_filename='./NuRadioReco/detector/RNO_G/RNO_single_station.json', antenna_by_depth=False)
 
 evt = Event(1, 1)
 station_id = 11 #det.get_station_ids()[0]
@@ -63,7 +54,7 @@ def detector_simulation_filter_amp(evt, station, det):
                                 filter_type=filter_type, order=order_low_pass)
 
 signal_model = shower_simulator.ShowerSimulator(
-            config_file = "./neutrino_reco_sim_config.yaml",
+            config_file = "./NuRadioReco/examples/likelihood_reconstruction/neutrino_reco_sim_config.yaml",
             det = det,
             station_id = station_id,
             reference_channel = 0,
@@ -99,29 +90,6 @@ station, traces, trace_start_times = signal_model.simulate_single_shower(
 # Save true signal:
 signal_true = np.copy(traces)
 
-# Add noise to the traces:
-for i_channel, channel in enumerate(station.iter_channels()):
-    trace = channel.get_trace()
-    trace += channelGenericNoiseAdder.bandlimited_noise_from_spectrum(
-        len(trace), channel.get_sampling_rate(), filt, amplitude=noise_amplitude, type='rayleigh')
-    channel.set_trace(trace, sampling_rate=channel.get_sampling_rate())
-    traces[i_channel] = trace
-
-# Plot the traces:
-fig, ax = plt.subplots(n_channels, 1, figsize=[10, 2*n_channels], sharex=True)
-for i_channel, channel in enumerate(station.iter_channels()):
-    trace = channel.get_trace()
-    time_axis = np.arange(len(trace)) * 1/channel.get_sampling_rate() + channel.get_trace_start_time()
-    ax[i_channel].plot(time_axis, trace, label=f"Channel {channel.get_id()}")
-    ax[i_channel].legend()
-    #ax[i_channel].set_xlim(0, max(time_axis))
-    if i_channel == n_channels - 1: ax[i_channel].set_xlabel("Time [ns]")
-    ax[i_channel].set_ylabel("Voltage [V]")
-plt.tight_layout()
-plt.savefig("simulated_traces.png", dpi=300)
-plt.close()
-
-
 # Initialize likelihood reconstructor:
 reco = neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor()
 reco.begin(
@@ -130,9 +98,9 @@ reco.begin(
     sampling_rate,
     np.abs(filt),
     noise_amplitude,
-    config_file = "./neutrino_reco_sim_config.yaml",
+    config_file = "./NuRadioReco/examples/likelihood_reconstruction/neutrino_reco_sim_config.yaml",
     detector_simulation_filter_amp = detector_simulation_filter_amp,
-    debug = True
+    debug = False
 )
 minus_two_llh_true = reco._function_to_minimize_llh(traces, signal_true)
 
@@ -160,25 +128,8 @@ parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_
 
 shower_reconstructed = list(evt.get_showers())[0]
 
-# If the fitted -2 LLH is smaller that the -2 LLH of the true signal, the reconstruction
-# is likely to have found the global minimum of the likelihood landscape. If the fit failed,
-# the p-value will be very close to 0:
-print()
-print("-2 LLH of true signal:", minus_two_llh_true)
-print("Initial -2 LLH:", minus_two_llh_initial)
-print("Fitted -2 LLH:", minus_two_llh_fit)
-print("p-value for fitted signal:", p_value_fit)
-
-print()
-print("True parameters:", [E_shower, zenith, azimuth, vertex_r_rel, vertex_zenith_rel, vertex_azimuth_rel, 100*units.ns])
-print("Initial parameters:", parameters_initial)
-print("Fitted parameters:", parameters_fit)
-print("Uncertainties on fitted parameters:", uncertainties_fit)
-
-print()
-print("Reconstructed shower parmaeters (standard NuRadioMC units):")
-for i_param, key in enumerate(shower_reconstructed.get_parameters().keys()):
-    if shower_reconstructed.has_parameter_error(key):
-        print(key, ":", shower_reconstructed.get_parameter(key), "+/-", shower_reconstructed.get_parameter_error(key))
-    else:
-        print(key, ":", shower_reconstructed.get_parameter(key))
+np.testing.assert_almost_equal(shower_reconstructed[shp.energy]/E_shower, 1, decimal=3)
+np.testing.assert_almost_equal(shower_reconstructed[shp.zenith], zenith, decimal=2)
+np.testing.assert_almost_equal(shower_reconstructed[shp.azimuth], azimuth, decimal=2)
+np.testing.assert_array_almost_equal(shower_reconstructed[shp.vertex], vertex_xyz, decimal=1)
+np.testing.assert_almost_equal(minus_two_llh_fit, 0, decimal=1)

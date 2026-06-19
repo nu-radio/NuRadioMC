@@ -269,10 +269,12 @@ jobs:
       run: |
         NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
 
-    - name: "Test likelihood reconstruction example"
+    - name: "Test likelihood reconstruction examples"
       if: always()
       run: |
+        python NuRadioReco/examples/likelihood_reconstruction/toy_signal_likelihood_fit_and_matched_filter.py
         python NuRadioReco/test/likelihood_reconstruction/test_efield_reconstruction.py
+        python NuRadioReco/test/likelihood_reconstruction/test_neutrino_reconstruction.py
 
   examples:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
