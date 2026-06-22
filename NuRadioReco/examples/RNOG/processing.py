@@ -3,10 +3,12 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelCWNotchFilter
 import NuRadioReco.modules.channelSignalReconstructor
+import NuRadioReco.modules.channelSinewaveSubtraction
 
 import NuRadioReco.modules.RNO_G.dataProviderRNOG
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.io.eventWriter
+import numpy as np 
 
 import NuRadioReco.detector.RNO_G.rnog_detector
 from NuRadioReco.utilities import units
@@ -29,6 +31,10 @@ hardwareResponseIncorporator.begin()
 
 channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor(log_level=logging.WARNING)
 channelSignalReconstructor.begin()
+
+channelSinewaveSubtraction = NuRadioReco.modules.channelSinewaveSubtraction.channelSinewaveSubtraction()
+channelSinewaveSubtraction.begin(save_filtered_freqs=False, freq_band= (0.1, 0.6))
+
 
 
 def process_event(evt, det):
@@ -58,6 +64,27 @@ def process_event(evt, det):
         # Also remember to always downsample the data again before saving it to disk to avoid unnecessary
         # large files.
         channelResampler.run(evt, station, det, sampling_rate=5 * units.GHz)
+        
+        pad_info = {}
+        for ch in station.iter_channels():
+            trace = ch.get_trace()
+            times = ch.get_times()
+            #print(trace, times)
+            start_time = ch.get_trace_start_time()
+            dt = times[1] - times[0]
+            sampling_rate = ch.get_sampling_rate()
+            delta_t = 1 / sampling_rate
+            pad = int(50 / delta_t)
+            padded_trace = np.pad(trace, (pad, pad), mode='constant')
+            start_time = ch.get_trace_start_time()
+            pad_info[ch.get_id()] = {
+                    "pad": pad,
+                    "orig_len": len(trace),
+                    "start_time": ch.get_trace_start_time()}
+            ch.set_trace(padded_trace, sampling_rate)
+            ch.add_trace_start_time(-pad * delta_t)
+
+        channelSinewaveSubtraction.run(evt, station, det, algorithm="sliding", peak_prominence=4.0)
 
 
         # Our antennas are only sensitive in a certain frequency range. Hence, we should apply a bandpass filter
@@ -70,6 +97,22 @@ def process_event(evt, det):
             passband=[0.1 * units.GHz, 0.6 * units.GHz],
             filter_type='butter', order=10)
 
+        for ch in station.iter_channels():
+            trace = ch.get_trace()
+            times = ch.get_times()
+            dt = times[1] - times[0]
+            sampling_rate = ch.get_sampling_rate()
+            delta_t = 1 / sampling_rate
+            pad = int(50 / delta_t)
+            info = pad_info[ch.get_id()]
+            pad = info["pad"]
+            orig_len = info["orig_len"]
+            start_time = info["start_time"]
+            trimmed_trace = trace[pad : pad + orig_len]
+            ch.set_trace(trimmed_trace, sampling_rate)
+            ch.set_trace_start_time(start_time)
+
+
         # The signal chain amplifies and disperses the signal. This module will correct for the effects of the
         # analog signal chain, i.e., everything between the antenna and the ADC. This will typically increase the 
         # signal-to-noise ratio and make the signal more visible.
@@ -80,7 +123,7 @@ def process_event(evt, det):
         # the data by dynamically identifying and removing the contaminated frequency bins.
         # An alternative module is the channelSineWaveFilter, which only removes the noise contribution from the CW
         # but not the thermal noise of that frequency. However, this is more computationally expensive.
-        channelCWNotchFilter.run(evt, station, det)
+        # channelCWNotchFilter.run(evt, station, det)
 
         # The data is now preprocessed and ready for further analysis. The next steps depend on the analysis
         # you want to perform. For example, you can now search for signals in the data, determine the arrival

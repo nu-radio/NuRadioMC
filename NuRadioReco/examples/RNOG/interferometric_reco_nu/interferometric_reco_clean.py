@@ -281,14 +281,18 @@ if (is_sim == True):
     for filename in items:
         count = 0
         #filename = f"{args.sim_data_source}/{filename}"
-        run_id = filename.split("/")[-2]
+        run_id = filename.split("/")[-1]
         event_source = get_event_source(filename, det)
         print("got event source")
         for event in event_source:
             station = event.get_station(station_id)
+            primary = event.get_primary()
+            energy = primary[pap.energy]
+            """
             showers = event.get_sim_showers()
             for shower in showers:
                 energy = shower[shp.energy]
+            """
             time = station.get_station_time()
             triggers = station.get_triggers()
             trigger_names = [key for key in triggers]
@@ -371,7 +375,7 @@ if (is_sim == True):
             eventWriter.run(event, det=None, mode={'Channels':False, "ElectricFields":False})
 
 
-            print(event.get_id(), run_id, avg_snr, avg_rpr, csw_snr, csw_rpr, csw_hilbert_snr, csw_impulsivity, csw_peak, csw_power, max_results, max_corr, surf_corr_ratio, max_surf_corr, trigger_names, time)
+            print(event.get_id(), run_id, avg_snr, avg_rpr, csw_snr, csw_rpr, csw_hilbert_snr, csw_impulsivity, csw_peak, csw_power, max_results, max_corr, surf_corr_ratio, max_surf_corr, trigger_names, time, energy)
 
             count += 1
 

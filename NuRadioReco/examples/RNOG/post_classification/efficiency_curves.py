@@ -93,8 +93,9 @@ for ax, source in zip(axes, ["burn", "sim"]):
     centers = 0.5 * (edges[:-1] + edges[1:])
 
     for cut in cut_columns:
-
-        passed_snr = snr[df_src[cut]]
+        
+        mask = df_src[cut].astype(bool)
+        passed_snr = snr[mask]
 
         passed_hist, _ = np.histogram(
             passed_snr,
@@ -147,9 +148,12 @@ centers = np.sqrt(edges[:-1] * edges[1:])
 plt.figure(figsize=(7, 5))
 
 for cut in cut_columns:
-
+    
+    mask = df_sim[cut].astype(bool)
+    passed_energy = energy[mask]
+    
     passed_hist, _ = np.histogram(
-        energy[df_sim[cut]],
+        passed_energy,
         bins=bins,
     )
 
@@ -184,7 +188,7 @@ plt.savefig(
 plt.close()
 
 
-cuts = [
+cut_names = [
     "wind_passed",
     "airplane_passed",
     "intrarun_rate_passed",
@@ -193,8 +197,8 @@ cuts = [
 
 orders = {}
 
-for cut in cuts:
-    others = [c for c in cuts if c != cut]
+for cut in cut_names:
+    others = [c for c in cut_names if c != cut]
 
     # Cut first
     orders[f"{cut}_first"] = [cut] + others
@@ -209,12 +213,22 @@ results = {}
 
 for name, order in orders.items():
 
-    mask = np.ones(len(df_src), dtype=bool)
+    mask = np.ones(len(cuts), dtype=bool)
+
+    removed_fracs = {}
 
     for cut in order:
-        mask &= df_src[cut]
 
-    results[name] = mask.mean()
+        before = mask.sum()
+
+        mask &= cuts[cut].astype(bool).to_numpy()
+
+        after = mask.sum()
+
+        removed_fracs[cut] = (before - after) / len(cuts)
+
+    results[name] = removed_fracs
+
 
 
 from matplotlib.patches import Patch
@@ -231,14 +245,14 @@ color_map = {
     "last": "tab:orange",
 }
 
-for i, cut in enumerate(cuts):
+for i, cut in enumerate(cut_names):
     base = i * group_spacing
 
     for j, pos in enumerate(["first", "middle", "last"]):
         key = f"{cut}_{pos}"
 
         bar_positions.append(base + j)
-        bar_values.append(results[key])
+        bar_values.append(results[key][cut])
         bar_colors.append(color_map[pos])
 
     bar_labels.append(base + 1)
@@ -265,7 +279,7 @@ ax.legend(handles=[
     Patch(color="tab:orange", label="Passed last"),
 ])
 
-ax.set_xlabel("Final surviving fraction")
+ax.set_xlabel("Fraction of total events removed")
 
 plt.tight_layout()
 plt.savefig(
@@ -273,4 +287,139 @@ plt.savefig(
     dpi=300,
 )
 plt.close()
+
+cut_names = [
+    "wind_passed",
+    "airplane_passed",
+    "intrarun_rate_passed",
+    "spatiotemporal_passed",
+]
+
+frac_removed = [
+    1 - cuts[c].astype(bool).mean()
+    for c in cut_names
+]
+
+plt.figure(figsize=(7, 4))
+
+plt.bar(
+    ["Wind", "Airplane", "Intrarun Rate", "Spatiotemporal"],
+    frac_removed,
+)
+
+plt.ylabel("Fraction of events removed")
+plt.grid(axis="y", alpha=0.3)
+
+plt.tight_layout()
+
+plt.savefig(
+    os.path.join(args.outdir, "cut_evt_frac.png"),
+    dpi=300,
+)
+
+plt.close()
+
+xvar = "csw_snr_PA"
+yvar = "max_corr"
+
+x_bins = np.linspace(0, 10, 50)
+y_bins = np.linspace(0, 1, 50)
+
+fig, axes = plt.subplots(
+    1,
+    len(cut_names),
+    figsize=(4 * len(cut_names), 4),
+    sharex=True,
+    sharey=True,
+)
+
+if len(cut_names) == 1:
+    axes = [axes]
+
+pretty_names = {
+    "wind_passed": "Wind",
+    "airplane_passed": "Airplane",
+    "intrarun_rate_passed": "Intrarun Rate",
+    "spatiotemporal_passed": "Spatiotemporal",
+}
+
+for ax, cut in zip(axes, cut_names):
+
+    mask = cuts[cut].astype(bool)
+
+    ax.hist2d(
+        cuts.loc[mask, xvar],
+        cuts.loc[mask, yvar],
+        bins=[x_bins, y_bins],
+    )
+
+    n_surviving = mask.sum()
+
+    ax.set_title(
+        f"{pretty_names.get(cut, cut)}\nN={n_surviving:,}"
+    )
+    ax.set_xlabel("csw_snr_PA")
+
+axes[0].set_ylabel("max_corr")
+
+plt.tight_layout()
+
+plt.savefig(
+    os.path.join(args.outdir, "maxcorr_vs_snr_after_cuts.png"),
+    dpi=300,
+)
+
+plt.close()
+
+xvar = "theta"
+yvar = "surf_corr_ratio"
+
+x_bins = np.linspace(-1.5708, 1.5708, 50)
+y_bins = np.linspace(0, 1, 50)
+
+fig, axes = plt.subplots(
+    1,
+    len(cut_names),
+    figsize=(4 * len(cut_names), 4),
+    sharex=True,
+    sharey=True,
+)
+
+if len(cut_names) == 1:
+    axes = [axes]
+
+pretty_names = {
+    "wind_passed": "Wind",
+    "airplane_passed": "Airplane",
+    "intrarun_rate_passed": "Intrarun Rate",
+    "spatiotemporal_passed": "Spatiotemporal",
+}
+
+for ax, cut in zip(axes, cut_names):
+
+    mask = cuts[cut].astype(bool)
+
+    ax.hist2d(
+        cuts.loc[mask, xvar],
+        cuts.loc[mask, yvar],
+        bins=[x_bins, y_bins],
+    )
+
+    n_surviving = mask.sum()
+
+    ax.set_title(
+        f"{pretty_names.get(cut, cut)}\nN={n_surviving:,}"
+    )
+    ax.set_xlabel("theta")
+
+axes[0].set_ylabel("surf_corr_ratio")
+
+plt.tight_layout()
+
+plt.savefig(
+    os.path.join(args.outdir, "surf_ratio_vs_theta_after_cuts.png"),
+    dpi=300,
+)
+plt.close()
+
 

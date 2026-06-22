@@ -22,9 +22,21 @@ def run_num(run):
     return int(num)
 
 if (args.spatiotemporal_out is not None):
-    infile = pd.read_csv(args.spatiotemporal_out)
+    infile = pd.read_csv(args.spatiotemporal_out, low_memory=False)
 else:
     infile = pd.read_csv(args.infile)
+
+if "spatiotemporal_passed" in infile.columns:
+    infile["spatiotemporal_passed"] = (
+        infile["spatiotemporal_passed"]
+        .fillna(False)
+        .astype(str)
+        .str.lower()
+        .map({"true": 1, "false": 0})
+        .fillna(0)
+        .astype(int)
+    )
+
 
 infile["run_num_clean"] = (
     infile["run_num"].apply(run_num)
