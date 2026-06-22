@@ -25,7 +25,7 @@ class channelGenericNoiseAdder:
         n_samples_time_domain: int
             number of samples in the time domain to differentiate between odd and even number of samples
         """
-        amps = np.asarray(amps, dtype='complex')
+        amps = np.array(amps, dtype='complex')
         Np = (n_samples_time_domain - 1) // 2
         phases = self.__random_generator.random(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
@@ -167,7 +167,8 @@ class channelGenericNoiseAdder:
         """
         Precalculate parameters for bandlimited noise.
 
-        Precalculate some parameters to use 
+        Precalculate some parameters to use to generate noise using the 
+        `bandlimited_noise_from_precalculated_parameters`.
 
         Parameters
         ----------
@@ -255,7 +256,6 @@ class channelGenericNoiseAdder:
         Generate noise using previously set parameters
         
         Generates noise using parameters pre-set using `precalculate_bandlimited_noise_parameters`.
-        Only the noise type can 
 
         Parameters
         ----------
