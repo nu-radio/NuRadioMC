@@ -10,6 +10,7 @@ Manuals
    Manuals/example-multi_station_coincidences
    Manuals/event_generation
    Manuals/signal_generation_shower
+   Manuals/shower_simulation
    Manuals/signal_generation_emitter
    Manuals/signal_propagation
    Manuals/icemodels
