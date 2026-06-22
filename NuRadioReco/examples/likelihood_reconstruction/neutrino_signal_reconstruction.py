@@ -36,6 +36,7 @@ n_channels_total = det.get_number_of_channels(station_id)
 n_samples = det.get_number_of_samples(station_id, 0)
 sampling_rate = det.get_sampling_frequency(station_id, 0)
 use_channels = [0,1,2,3,4,5,6,7,8,9,10,11,21,22,23]
+ref_ch = 0
 n_channels = len(use_channels)
 
 filter_type = "butter"
@@ -66,7 +67,7 @@ signal_model = shower_simulator.ShowerSimulator(
             config_file = "./neutrino_reco_sim_config.yaml",
             det = det,
             station_id = station_id,
-            reference_channel = 0,
+            reference_channel = ref_ch,
             evt_time = datetime.datetime(2022, 7, 1),
             use_channels = use_channels,
             detector_simulation_filter_amp = detector_simulation_filter_amp,
@@ -139,7 +140,7 @@ minus_two_llh_true = reco._function_to_minimize_llh(traces, signal_true)
 # The reconstructor class uses different parameters (that are better for minimization) than the
 # ones we used to simulate the event. Here we convert the vertex position to the spherical coordinates
 # relative to the reference antenna, and find the pulse time relative to the start of the trace:
-vertex_xyz_rel = vertex_xyz - det.get_relative_position(station_id, 0)
+vertex_xyz_rel = vertex_xyz - det.get_relative_position(station_id, ref_ch)
 vertex_zenith_rel, vertex_azimuth_rel = hp.cartesian_to_spherical(vertex_xyz_rel[0], vertex_xyz_rel[1], vertex_xyz_rel[2])
 vertex_r_rel = np.linalg.norm(vertex_xyz_rel)
 pulse_time_guess = np.argmax(traces[0]) / sampling_rate
@@ -156,7 +157,7 @@ parameters_initial = [
 
 # Run reconstruction:
 parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
-    evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=0, full_output=True)
+    evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True)
 
 shower_reconstructed = list(evt.get_showers())[0]
 

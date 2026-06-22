@@ -115,6 +115,8 @@ class ShowerSimulator():
         else:
             self.channel_ids = self.det.get_channel_ids(station_id)
 
+        assert reference_channel in self.channel_ids, "Reference channel is not in use_channels or det.get_channel_ids(station_id)"
+
         self.detector_simulation_filter_amp = detector_simulation_filter_amp
 
         self.add_cable_delay = add_cable_delay

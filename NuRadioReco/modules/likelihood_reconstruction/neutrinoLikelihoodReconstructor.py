@@ -259,6 +259,8 @@ class neutrinoLikelihoodReconstructor:
         if use_channels is None:
             use_channels = station.get_channel_ids()
 
+        reference_index = np.argmax(use_channels == reference_channel)
+
         traces = []
         trace_start_times = []
         for channel in station.iter_channels():
@@ -345,7 +347,7 @@ class neutrinoLikelihoodReconstructor:
         signal_model.propagator.set_start_and_end_point(rec_vertex_xyz, det.get_relative_position(station.get_id(), reference_channel))
         signal_model.propagator.find_solutions()
         travel_time = signal_model.propagator.get_travel_time(0)
-        rec_vertex_time = parameters_fit[6] + trace_start_times[reference_channel] - det.get_cable_delay(station.get_id(), reference_channel) - travel_time
+        rec_vertex_time = parameters_fit[6] + trace_start_times[reference_index] - det.get_cable_delay(station.get_id(), reference_index) - travel_time
 
         # Convert fit uncertainties to shower parameter uncertainties:
         unc_xyz = hp.spherical_to_cartesian(rec_vertex_theta_rel, rec_vertex_phi_rel) * uncertainties_fit[3] # this ignores the uncertainties on rec_vertex_theta_rel and rec_vertex_phi_rel, but rec_vertex_r_rel has the dominant uncertainty

@@ -21,7 +21,7 @@ class Minimizer:
     to the parameters of the signal_function.
 
     This class implements additional functionality, such as user-defined scaling
-    of the parameters, which can improve the stabilityof the minimization process.
+    of the parameters, which can improve the stability of the minimization process.
 
     Parameters
     ----------
