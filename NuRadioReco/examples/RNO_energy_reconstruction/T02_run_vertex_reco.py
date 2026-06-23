@@ -31,6 +31,17 @@ for chennel_id in Detector.get_channel_ids(11):
     Detector.add_manual_time_delay(11, chennel_id, delay, weight=-1)
 
 
+station_id = 11
+print("Original station position:", Detector.get_absolute_position(station_id))
+Detector.modify_station_description(
+    station_id=station_id,
+    keys=["station_position", "position"],   # ✅ correct nested path
+    value=[0.0, 0.0, 0.0]
+)
+print("Modified station position:", Detector.get_absolute_position(station_id))
+
+
+
 parser = argparse.ArgumentParser(
     description='Run the vertex reconstruction used for the RNO-G energy reconstruction'
 )
