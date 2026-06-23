@@ -16,4 +16,5 @@ runs:
           NuRadioReco/examples/Interactive/data
           NuRadioReco/test/data
           NuRadioReco/detector/AntennaModels
+          NuRadioMC/utilities/data/*.npz
         key: ${{ inputs.cache-key }}
