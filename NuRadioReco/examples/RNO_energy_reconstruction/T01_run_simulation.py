@@ -31,23 +31,15 @@ for chennel_id in Detector.get_channel_ids(11):
     Detector.add_manual_time_delay(11, chennel_id, delay, weight=-1)
 
 
+station_id = 11
+print("Original station position:", Detector.get_absolute_position(station_id))
+Detector.modify_station_description(
+    station_id=station_id,
+    keys=["station_position", "position"],   # ✅ correct nested path
+    value=[0.0, 0.0, 0.0]
+)
+print("Modified station position:", Detector.get_absolute_position(station_id))
 
-# # ✅ Override number_of_samples directly on your Detector
-# new_samples = 4096  # 4096 / 3.2 GHz = 1280 ns
-
-# for channel_id in Detector.get_channel_ids(11):
-#     Detector.set_number_of_samples(11, channel_id, new_samples)
-
-# # Verify
-# n = Detector.get_number_of_samples(11, 0)
-# sr = Detector.get_sampling_frequency(11, 0)
-# print(f"Number of samples: {n}")
-# print(f"Sampling frequency: {sr}")
-# print(f"New window: {n / sr * 1e9:.3f} ns")
-
-# print("Number of samples:", Detector.get_number_of_samples(11, 0))
-# print("Sampling frequency:", Detector.get_sampling_frequency(11, 0))
-# print("Trigger time:", Detector.get_trigger_time(11, 0))
 
 
 parser = argparse.ArgumentParser(
@@ -105,7 +97,7 @@ class mySimulation(simulation.simulation):
                                     triggered_channels=[0, 1, 2, 3],
                                     number_concidences=2,  # 2/4 majority logic
                                     trigger_name='main_trigger',
-                                    pre_trigger_time=300 * units.ns
+                                    pre_trigger_time=100 * units.ns
                              )
         trigger = station.get_primary_trigger()
         if trigger is not None and trigger.has_triggered():
@@ -116,7 +108,7 @@ class mySimulation(simulation.simulation):
 
 sim = mySimulation(
     inputfilename=args.input_file,
-    outputfilename='output_final_with_normal_trace_without_noise.hdf5',
+    outputfilename='T01_output.hdf5',
      # detectorfile=args.detector_file,
     det=Detector,
     outputfilenameNuRadioReco=args.output_file,
