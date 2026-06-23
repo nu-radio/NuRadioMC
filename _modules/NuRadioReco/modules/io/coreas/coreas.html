@@ -636,18 +636,18 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.io.coreas.coreas</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">coordinatesystems</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">constants</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.station</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.sim_station</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.event</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_trace</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.electric_field</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.radio_shower</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
@@ -659,7 +659,8 @@
 
 <span class="n">warning_printed_coreas_py</span> <span class="o">=</span> <span class="kc">False</span>
 
-<span class="n">conversion_fieldstrength_cgs_to_SI</span> <span class="o">=</span> <span class="mf">2.99792458e10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">micro</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">volt</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+<span class="c1"># convert CoREAS traces [cgs units] to SI units [V/m]</span>
+<span class="n">conversion_fieldstrength_cgs_to_SI</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">c</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">micro</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">volt</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
 
 
 <span class="c1"># DEPRECATED FUNCTIONS</span>
@@ -667,12 +668,12 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.make_sim_shower">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_sim_shower</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    DEPRECATED: This function has been moved to `create_sim_shower_from_hdf5()`, however its functionality has been</span>
-<span class="sd">    modified heavily. You will probably want to move to `create_sim_shower()` instead, which has an easier</span>
-<span class="sd">    interface. Please refer to the documentation of `create_sim_shower()` for more information.</span>
+<span class="sd">    DEPRECATED: This function has been moved to `create_sim_shower_from_hdf5`, however its functionality has been</span>
+<span class="sd">    modified heavily. You will probably want to move to `create_sim_shower` instead, which has an easier</span>
+<span class="sd">    interface. Please refer to the documentation of `create_sim_shower` for more information.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">raise</span> <span class="ne">DeprecationWarning</span><span class="p">(</span><span class="s2">&quot;This function has been deprecated since version 3.0. &quot;</span>
-                             <span class="s2">&quot;You will probably want to move to create_sim_shower() instead.&quot;</span><span class="p">)</span></div>
+                             <span class="s2">&quot;You will probably want to move to coreas.create_sim_shower instead.&quot;</span><span class="p">)</span></div>
 
 
 
@@ -684,7 +685,7 @@
 <span class="sd">    refer to the documentation of `create_sim_station()` for more information.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">raise</span> <span class="ne">DeprecationWarning</span><span class="p">(</span><span class="s2">&quot;This function has been deprecated since version 3.0. &quot;</span>
-                             <span class="s2">&quot;You will probably want to move to create_sim_station() instead.&quot;</span><span class="p">)</span></div>
+                             <span class="s2">&quot;You will probably want to move to coreas.create_sim_station instead.&quot;</span><span class="p">)</span></div>
 
 
 
@@ -793,8 +794,8 @@
 
 <span class="sd">    The on-sky CS in NRR has basis vectors eR, eTheta, ePhi.</span>
 <span class="sd">    Before going to the on-sky CS, we account for the magnetic field which does not point strictly North.</span>
-<span class="sd">    To get the zenith, azimuth and magnetic field vector, one can use `get_angles()`.</span>
-<span class="sd">    The `observer` array should have the shape (n_samples, 4) with the columns (time, Ey, -Ex, Ez),</span>
+<span class="sd">    To get the zenith, azimuth and magnetic field vector, one can use `get_angles`.</span>
+<span class="sd">    The ``observer`` array should have the shape (n_samples, 4) with the columns (time, Ey, -Ex, Ez),</span>
 <span class="sd">    where (x, y, z) is the NuRadio CS.</span>
 
 <span class="sd">    Parameters</span>
@@ -836,6 +837,50 @@
 
 
 
+<div class="viewcode-block" id="convert_nuradio_efield_to_obs">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.convert_nuradio_efield_to_obs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_nuradio_efield_to_obs</span><span class="p">(</span><span class="n">efield_on_sky</span><span class="p">,</span> <span class="n">efield_times</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts electric field from NuRadioReco on-sky CS back to the CORSIKA observer format.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    efield_on_sky : np.ndarray</span>
+<span class="sd">        Electric field in NRR on-sky CS (r, theta, phi), shape (3, n_samples).</span>
+<span class="sd">    efield_times : np.ndarray</span>
+<span class="sd">        Times in seconds, shape (n_samples,).</span>
+<span class="sd">    zenith : float</span>
+<span class="sd">        Shower zenith (internal units).</span>
+<span class="sd">    azimuth : float</span>
+<span class="sd">        Shower azimuth (internal units).</span>
+<span class="sd">    magnetic_field_vector : np.ndarray</span>
+<span class="sd">        Magnetic field vector.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    observer_array : np.ndarray</span>
+<span class="sd">        Shape (n_samples, 4): (time, Ey, -Ex, Ez) in CORSIKA coordinates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cs</span> <span class="o">=</span> <span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span>
+        <span class="n">zenith</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">azimuth</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
+        <span class="n">magnetic_field_vector</span>
+    <span class="p">)</span>
+
+    <span class="c1"># geographic ground coordinates</span>
+    <span class="n">efield_ground_geo</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_from_onsky_to_ground</span><span class="p">(</span><span class="n">efield_on_sky</span><span class="p">)</span>
+    <span class="n">efield_mag</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_from_geographic_to_magnetic</span><span class="p">(</span><span class="n">efield_ground_geo</span><span class="p">)</span>
+
+    <span class="c1"># convert to CORSIKA axis convention and CGS units</span>
+    <span class="n">times_corsika</span> <span class="o">=</span> <span class="n">efield_times</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span>
+
+    <span class="n">Ex</span> <span class="o">=</span> <span class="n">efield_mag</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">conversion_fieldstrength_cgs_to_SI</span>
+    <span class="n">Ey</span> <span class="o">=</span> <span class="o">-</span><span class="n">efield_mag</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">conversion_fieldstrength_cgs_to_SI</span>
+    <span class="n">Ez</span> <span class="o">=</span> <span class="n">efield_mag</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">conversion_fieldstrength_cgs_to_SI</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">times_corsika</span><span class="p">,</span> <span class="n">Ex</span><span class="p">,</span> <span class="n">Ey</span><span class="p">,</span> <span class="n">Ez</span><span class="p">))</span></div>
+
+
+
 <div class="viewcode-block" id="convert_obs_positions_to_nuradio_on_ground">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.convert_obs_positions_to_nuradio_on_ground">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">convert_obs_positions_to_nuradio_on_ground</span><span class="p">(</span><span class="n">observer_pos</span><span class="p">,</span> <span class="n">declination</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -845,8 +890,8 @@
 <span class="sd">    First, the observer position is converted to the NRR coordinate conventions (i.e. x pointing East,</span>
 <span class="sd">    y pointing North, z pointing up). Then, the observer position is corrected for magnetic north</span>
 <span class="sd">    (as CORSIKA only has two components to its magnetic field vector) and put in the geographic CS.</span>
-<span class="sd">    To get the zenith, azimuth and magnetic field vector, one can use the `get_angles()` function.</span>
-<span class="sd">    If multiple observers are to be converted, the `observer` array should have the shape (n_observers, 3).</span>
+<span class="sd">    To get the zenith, azimuth and magnetic field vector, one can use the `get_angles` function.</span>
+<span class="sd">    If multiple observers are to be converted, the ``observer`` array should have the shape (n_observers, 3).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -875,6 +920,43 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">obs_positions</span><span class="p">)</span></div>
 
 
+
+<div class="viewcode-block" id="convert_nuradio_positions_to_ground">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.convert_nuradio_positions_to_ground">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_nuradio_positions_to_ground</span><span class="p">(</span><span class="n">geo_pos</span><span class="p">,</span> <span class="n">declination</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts observer positions from NuRadioReco ground coordinates back to the CORSIKA CS.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    geo_pos : np.ndarray</span>
+<span class="sd">        Observer position(s) in NuRadioReco ground coordinates, shape (3,) or (n_observers, 3).</span>
+<span class="sd">    declination : float</span>
+<span class="sd">        Declination of the magnetic field (degrees).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    obs_positions_corsika : np.ndarray</span>
+<span class="sd">        Positions in CORSIKA coordinates (x=North, y=West, z=up), in cm.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># If single position is given, make sure it has the right shape (3,) -&gt; (1, 3)</span>
+    <span class="k">if</span> <span class="n">geo_pos</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">geo_pos</span> <span class="o">=</span> <span class="n">geo_pos</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="c1"># undo geographic rotation</span>
+    <span class="n">rotated</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">rotate_vector_in_2d</span><span class="p">(</span><span class="n">geo_pos</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">declination</span><span class="p">)</span>
+
+    <span class="c1"># convert from NuRadioReco to CORSIKA axes</span>
+    <span class="n">corsika_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="n">rotated</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>         <span class="c1"># CORSIKA x (north) from NRR y</span>
+        <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">rotated</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>    <span class="c1"># CORSIKA y (west) from -NRR x</span>
+        <span class="n">rotated</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>         <span class="c1"># CORSIKA z (up) same</span>
+    <span class="p">])</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">corsika_positions</span><span class="p">)</span></div>
+
+
+
 <span class="c1"># READER FUNCTIONS</span>
 <div class="viewcode-block" id="read_CORSIKA7">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.read_CORSIKA7">[docs]</a>
@@ -890,7 +972,7 @@
 <span class="sd">    channel as it was read from the HDF5 file.</span>
 
 <span class="sd">    Next to the (Sim)Station, the Event also contains a SimShower object, which stores the CORSIKA input parameters.</span>
-<span class="sd">    For a list of stored parameters, see the `create_sim_shower_from_hdf5()` function.</span>
+<span class="sd">    For a list of stored parameters, see the `create_sim_shower_from_hdf5` function.</span>
 
 <span class="sd">    Note that the function assumes the energy has been fixed to a single value, as is typical with a CoREAS simulation.</span>
 
@@ -973,11 +1055,130 @@
 
 
 
+<div class="viewcode-block" id="write_CORSIKA7">
+<a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.write_CORSIKA7">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_CORSIKA7</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes a NuRadioReco Event object to an HDF5 file in CORSIKA/CoREAS format.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    evt : NuRadioReco.framework.event.Event</span>
+<span class="sd">        The Event to store.</span>
+<span class="sd">    output_file : str</span>
+<span class="sd">        Path to the output HDF5 file.</span>
+<span class="sd">    detector : NuRadioReco.detector.detector.Detector, optional</span>
+<span class="sd">        Detector object used to accurately retrieve absolute station positions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_file</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File &#39;</span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&#39; already exists. Aborting.&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+
+        <span class="n">inputs_grp</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s2">&quot;inputs&quot;</span><span class="p">)</span>
+        <span class="n">inputs_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;RUNNR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">()</span>
+        <span class="n">inputs_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;EVTNR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+
+        <span class="n">sim_shower</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_first_sim_shower</span><span class="p">()</span>
+        <span class="n">inputs_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;PRMPAR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">primary_particle</span><span class="p">)</span>
+        <span class="n">inputs_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;OBSLEV&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">observation_level</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span>
+        <span class="n">energy_GeV</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span>
+        <span class="n">inputs_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;ERANGE&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">energy_GeV</span><span class="p">,</span> <span class="n">energy_GeV</span><span class="p">])</span>
+
+        <span class="n">zenith_NNR</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span>
+        <span class="n">azimuth_NNR</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span>
+        <span class="n">B_vec_NNR</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">)</span>
+        <span class="n">declination</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">get_declination</span><span class="p">(</span><span class="n">B_vec_NNR</span><span class="p">)</span>
+        
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_angles_corsika</span><span class="p">(</span><span class="n">z_nnr</span><span class="p">,</span> <span class="n">a_nnr</span><span class="p">,</span> <span class="n">b_vec_nnr</span><span class="p">,</span> <span class="n">dec</span><span class="p">):</span>
+            <span class="n">zenith</span> <span class="o">=</span> <span class="n">z_nnr</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="n">azimuth</span> <span class="o">=</span> <span class="p">(</span><span class="n">a_nnr</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.</span> <span class="o">-</span> <span class="n">dec</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+
+            <span class="n">y_mag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dec</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dec</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">])</span>
+            <span class="n">z_hat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+            <span class="n">By_corsika</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">b_vec_nnr</span><span class="p">,</span> <span class="n">y_mag</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">micro</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">tesla</span><span class="p">)</span>
+            <span class="n">minBz_corsika</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">b_vec_nnr</span><span class="p">,</span> <span class="n">z_hat</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">micro</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">tesla</span><span class="p">)</span>
+
+            <span class="n">x_mag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dec</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dec</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">])</span>
+            <span class="n">Bx_corsika</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">B_vec_NNR</span><span class="p">,</span> <span class="n">x_mag</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">micro</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">tesla</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Bx_corsika</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Non-zero east-of-magnetic component (Bx_mag ~ </span><span class="si">{</span><span class="n">Bx_corsika</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2"> μT). &quot;</span>
+                               <span class="s2">&quot;Implicitly assumed zero by CORSIKA MAGNET.&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">By_corsika</span><span class="p">,</span> <span class="n">minBz_corsika</span><span class="p">])</span>
+
+        
+        <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">B_vec</span> <span class="o">=</span> <span class="n">get_angles_corsika</span><span class="p">(</span><span class="n">zenith_NNR</span><span class="p">,</span> <span class="n">azimuth_NNR</span><span class="p">,</span> <span class="n">B_vec_NNR</span><span class="p">,</span> <span class="n">declination</span><span class="p">)</span>
+        <span class="n">inputs_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;THETAP&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">zenith</span><span class="p">,</span> <span class="n">zenith</span><span class="p">])</span>
+        <span class="n">inputs_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;PHIP&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">azimuth</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">])</span>
+        <span class="n">inputs_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;MAGNET&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">B_vec</span>
+
+        <span class="k">if</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">atmospheric_model</span><span class="p">):</span>
+            <span class="n">inputs_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;ATMOD&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">atmospheric_model</span><span class="p">)</span>
+
+        <span class="n">coreas_grp</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s2">&quot;CoREAS&quot;</span><span class="p">)</span>
+        <span class="n">core_x</span><span class="p">,</span> <span class="n">core_y</span><span class="p">,</span> <span class="n">core_z</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">core</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span>
+        <span class="n">coreas_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;CoreCoordinateWest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">core_x</span>
+        <span class="n">coreas_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;CoreCoordinateNorth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">core_y</span>
+        <span class="n">coreas_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;CoreCoordinateVertical&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">core_z</span>
+
+        <span class="n">coreas_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;DepthOfShowerMaximum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">shower_maximum</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">g</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm2</span><span class="p">)</span>
+        <span class="n">coreas_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;DistanceOfShowerMaximum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">distance_shower_maximum_geometric</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span>
+        <span class="n">coreas_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;GroundLevelRefractiveIndex&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">refractive_index_at_ground</span><span class="p">)</span>
+        <span class="n">coreas_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;RotationAngleForMagfieldDeclination&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">magnetic_field_rotation</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">event_time</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_event_time</span><span class="p">()</span>
+            <span class="n">coreas_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;GPSSecs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">event_time</span><span class="p">,</span> <span class="s1">&#39;gps&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">event_time</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Event time is not set. Defaulting GPSSecs to 0.0 in HDF5.&quot;</span><span class="p">)</span>
+            <span class="n">coreas_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;GPSSecs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="n">observers_grp</span> <span class="o">=</span> <span class="n">coreas_grp</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s2">&quot;observers&quot;</span><span class="p">)</span>
+        <span class="n">sampling_rate</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_stations</span><span class="p">():</span>
+            <span class="n">station_id</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+            <span class="n">sim_station</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span>
+
+            <span class="c1"># Absolute positions using the detector if provided</span>
+            <span class="k">if</span> <span class="n">detector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">station_abs_pos</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_absolute_position</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">station_abs_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">observer</span> <span class="ow">in</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
+                <span class="n">ef_rate</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">sampling_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">ef_rate</span>
+                    <span class="n">coreas_grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;TimeResolution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span>
+                <span class="k">elif</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">ef_rate</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All electric field traces must have the same sampling rate to be saved in a single CoREAS HDF5 file.&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Add absolute station position to relative e-field position</span>
+                <span class="n">global_pos</span> <span class="o">=</span> <span class="n">station_abs_pos</span> <span class="o">+</span> <span class="n">observer</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>
+                <span class="n">pos_corsika</span> <span class="o">=</span> <span class="n">convert_nuradio_positions_to_ground</span><span class="p">(</span><span class="n">global_pos</span><span class="p">,</span> <span class="n">declination</span><span class="o">=</span><span class="n">declination</span><span class="p">)</span>
+
+                <span class="n">efield_corsika</span> <span class="o">=</span> <span class="n">convert_nuradio_efield_to_obs</span><span class="p">(</span>
+                    <span class="n">observer</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span>
+                    <span class="n">observer</span><span class="o">.</span><span class="n">get_times</span><span class="p">(),</span>
+                    <span class="n">zenith_NNR</span><span class="p">,</span>
+                    <span class="n">azimuth_NNR</span><span class="p">,</span>
+                    <span class="n">B_vec_NNR</span>
+                <span class="p">)</span>
+
+                <span class="n">dataset_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;station_</span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">_ch_</span><span class="si">{</span><span class="n">observer</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">data_set</span> <span class="o">=</span> <span class="n">observers_grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">efield_corsika</span><span class="p">)</span>
+                <span class="n">data_set</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;position&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos_corsika</span>
+                <span class="n">data_set</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset_name</span></div>
+
+                
 <div class="viewcode-block" id="create_sim_shower_from_hdf5">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.create_sim_shower_from_hdf5">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_sim_shower_from_hdf5</span><span class="p">(</span><span class="n">corsika</span><span class="p">,</span> <span class="n">declination</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates an NuRadioReco `RadioShower` from a CoREAS HDF5 file, which contains the simulation inputs shower parameters.</span>
+
 <span class="sd">    These include</span>
 
 <span class="sd">    - the primary particle type</span>
@@ -999,8 +1200,8 @@
 <span class="sd">    - the atmospheric model used for the simulation</span>
 <span class="sd">    - the electromagnetic energy of the shower (only present in high-level quantities are present)</span>
 
-<span class="sd">    This function is used in the `read_CORSIKA7()` function to create the SimShower object. In order to copy a</span>
-<span class="sd">    `SimShower` object from an Event object, use the `create_sim_shower()` method.</span>
+<span class="sd">    This function is used in the `read_CORSIKA7` function to create the SimShower object. In order to copy a</span>
+<span class="sd">    `SimShower` object from an Event object, use the `create_sim_shower` method.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1067,14 +1268,14 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.create_sim_shower">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_sim_shower</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">core_shift</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create an NuRadioReco `SimShower` from an Event object created with e.g. read_CORSIKA7(),</span>
+<span class="sd">    Create an NuRadioReco `SimShower` from an Event object created with e.g. `read_CORSIKA7`,</span>
 <span class="sd">    and apply a core shift if desired. If no core shift is given, the returned SimShower will</span>
 <span class="sd">    have the same core as used in the CoREAS simulation.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    evt: Event</span>
-<span class="sd">        event object containing the CoREAS output, e.g. created with read_CORSIKA7()</span>
+<span class="sd">        event object containing the CoREAS output, e.g. created with `read_CORSIKA7`</span>
 <span class="sd">    core_shift: np.ndarray, default=None</span>
 <span class="sd">        The core shift to apply to the core position, in internal units. Must be 3D array.</span>
 
@@ -1097,7 +1298,7 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.create_sim_station">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_sim_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Creates an NuRadioReco `SimStation` with the information from an `Event` object created with e.g. read_CORSIKA7().</span>
+<span class="sd">    Creates an NuRadioReco `SimStation` with the information from an `Event` object created with e.g. `read_CORSIKA7`.</span>
 
 <span class="sd">    Optionally, station can be assigned a weight. Note that the station is empty. To add an</span>
 <span class="sd">    electric field the function add_electric_field_to_sim_station() has to be used.</span>
@@ -1204,6 +1405,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">calculate_simulation_weights</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s1">&#39;summit&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate weights according to the area that one observer position in a starshape pattern represents.</span>
+
 <span class="sd">    Weights are therefore given in units of area.</span>
 <span class="sd">    Note: The volume of a 2d convex hull is the area.</span>
 
@@ -1308,9 +1510,10 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">set_fluence_of_efields</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">quantity</span><span class="o">=</span><span class="n">efp</span><span class="o">.</span><span class="n">signal_energy_fluence</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This helper function is used to set the fluence quantity of all electric fields in a SimStation.</span>
+
 <span class="sd">    Use this to calculate the fluences to use for interpolation.</span>
 
-<span class="sd">    One option to use as `function` is `trace_utilities.get_electric_field_energy_fluence()`.</span>
+<span class="sd">    One option to use as ``function`` is :func:`NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence`.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
