@@ -834,7 +834,10 @@
 
         <span class="c1"># generate a response object from the component dict</span>
         <span class="n">component_response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span>
-            <span class="o">**</span><span class="n">component</span><span class="p">,</span>
+            <span class="n">component</span><span class="p">[</span><span class="s2">&quot;frequencies&quot;</span><span class="p">],</span> 
+            <span class="p">[</span><span class="n">component</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">],</span> <span class="n">component</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">]],</span>
+            <span class="n">component</span><span class="p">[</span><span class="s2">&quot;y-axis_units&quot;</span><span class="p">],</span> <span class="n">name</span> <span class="o">=</span> <span class="n">component</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="n">component</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">],</span> <span class="n">time_delay</span> <span class="o">=</span> <span class="n">component</span><span class="p">[</span><span class="s2">&quot;time_delay&quot;</span><span class="p">],</span>
             <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span>
             <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span>
         <span class="p">)</span>
@@ -888,9 +891,10 @@
 
         <span class="n">component</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">weight</span><span class="p">,</span>
-            <span class="s1">&#39;y_unit&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;mag&#39;</span><span class="p">,</span> <span class="s1">&#39;rad&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">mag</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">phase</span><span class="p">)],</span>
-            <span class="s1">&#39;frequency&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">freqs</span><span class="p">),</span>
+            <span class="s1">&#39;y-axis_units&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;mag&#39;</span><span class="p">,</span> <span class="s1">&#39;rad&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;mag&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">mag</span><span class="p">),</span>
+            <span class="s1">&#39;phase&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">phase</span><span class="p">),</span>
+            <span class="s1">&#39;frequencies&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">freqs</span><span class="p">),</span>
             <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
             <span class="s1">&#39;time_delay&#39;</span><span class="p">:</span> <span class="n">time_delay</span>
         <span class="p">}</span>

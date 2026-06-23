@@ -1653,6 +1653,9 @@
                 <span class="c1"># if is_equal and component_entry[&quot;collection&quot;] == &quot;drab_board&quot;:</span>
                 <span class="c1">#     continue</span>
 
+                <span class="k">if</span> <span class="s2">&quot;collection&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">component_entry</span><span class="p">:</span>
+                    <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;collection&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span>
+
                 <span class="k">if</span> <span class="n">component_entry</span><span class="p">[</span><span class="s1">&#39;collection&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;gain_calibration&quot;</span><span class="p">:</span>
                     <span class="n">ydata</span> <span class="o">=</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;gain_factor&quot;</span><span class="p">]</span>
                     <span class="n">y_units</span> <span class="o">=</span> <span class="n">component_entry</span><span class="p">[</span><span class="s2">&quot;gain_factor_unit&quot;</span><span class="p">]</span>
