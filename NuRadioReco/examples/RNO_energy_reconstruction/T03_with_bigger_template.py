@@ -109,7 +109,7 @@ ift_efield_reconstructor.begin(
     passband=efield_reco_passband,
     n_samples=10,
     n_iterations=5,
-    phase_slope='positive',
+    phase_slope='both',
     energy_fluence_passbands=[
         [.13, .2],
         [.13, .25],
@@ -128,7 +128,7 @@ time_offset_calculator = NuRadioReco.modules.channelTimeOffsetCalculator.channel
 time_offset_calculator.begin(
     electric_field_template=efield_template,
     medium=ice,
-    use_sim=False
+    use_sim=True
 )
 channel_props_from_neighbor = NuRadioReco.modules.channelSignalPropertiesFromNeighbors.channelSignalPropertiesFromNeighbors() # this module uses the timing information from the channels for which we calculated the time offset to calculate the timing of the other channels, which do not have a direct time offset calculation because they do not have a clear pulse. Again, this is not something you would do in a real analysis, but it allows us to check that the reconstruction works when the timing between channels is perfect.
 for i_event, event in enumerate(event_reader.get_events()):
@@ -144,7 +144,7 @@ for i_event, event in enumerate(event_reader.get_events()):
     channel_props_from_neighbor.run(event, station, det, channel_groups=[[0, 1, 2, 3]])
     # channel_props_from_neighbor.run(event, station, det, channel_groups=[[9, 10, 11]])
     # channel_props_from_neighbor.run(event, station, det, channel_groups=[[21, 22, 23]])
-    for ray_type in range(3):
+    for ray_type in range(1):
         # ift_efield_reconstructor.make_priors_plot()
         ift_efield_reconstructor.run(
             event,
@@ -154,7 +154,7 @@ for i_event, event in enumerate(event_reader.get_events()):
             efield_scaling=True,
             ray_type=ray_type+1,
             plot_title='',
-            polarization='theta'
+            polarization='pol'
         )
         
     channel_resampler.run(event, station, det, sampling_rate=2.)
