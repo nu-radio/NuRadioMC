@@ -31,24 +31,15 @@ for chennel_id in Detector.get_channel_ids(11):
     print(f"Channel {chennel_id} has a cable delay of {delay*1e9:.2f} ns")
     Detector.add_manual_time_delay(11, chennel_id, delay, weight=-1)
 
-# Detector.modify_station_description(
-#     11,
-#     ["id_position"],
-#     [0, 0, 0]
-# )
+station_id = 11
+print("Original station position:", Detector.get_absolute_position(station_id))
+Detector.modify_station_description(
+    station_id=station_id,
+    keys=["station_position", "position"],   # ✅ correct nested path
+    value=[0.0, 0.0, 0.0]
+)
+print("Modified station position:", Detector.get_absolute_position(station_id))
 
-# station = Detector.get_station(11)
-
-# print("Station position:", station["id_position"])
-
-# for channel in station.get_channels():
-#     ch_id = channel["id"]
-
-#     # relative position (inside station frame)
-#     rel_pos = channel["channel_position"]["position"]
-
-#     print(f"Channel {ch_id}")
-#     print("  relative position:", rel_pos)
 
 
 
