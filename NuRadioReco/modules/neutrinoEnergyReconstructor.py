@@ -60,12 +60,15 @@ class neutrinoEnergyReconstructor():
         station
         detector
         """
-        if not station.has_parameter(stnp.nu_vertex):
-            raise ValueError('Cannot run energy reconstruction without a reconstructed vertex!')
-        rec_vertex = station.get_parameter(stnp.nu_vertex)
+        if station.has_parameter(stnp.nu_vertex):
+            # raise ValueError('Cannot run energy reconstruction without a reconstructed vertex!')
+            vertex = station.get_parameter(stnp.nu_vertex)
+        else:
+            sim_shower = event.get_first_sim_shower()
+            vertex = sim_shower.get_parameter(shp.vertex)#sim_vertex
         for i_group, channel_group in enumerate(self.__channel_groups):
             max_snr_in_group = 0
-            self.__raytracer.set_start_and_end_point(rec_vertex, detector.get_relative_position(station.get_id(), channel_group[0]))
+            self.__raytracer.set_start_and_end_point(vertex, detector.get_relative_position(station.get_id(), channel_group[0])) #assuming detector to at the centre else include the detector geometry
             self.__raytracer.find_solutions()
             for i_efield, efield in enumerate(station.get_electric_fields()):
                 ray_type = efield.get_parameter(efp.ray_path_type)
