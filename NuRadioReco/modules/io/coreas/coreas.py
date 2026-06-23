@@ -478,12 +478,6 @@ def write_CORSIKA7(evt, output_file, detector=None):
             if detector is not None:
                 station_abs_pos = detector.get_absolute_position(station_id)
             else:
-                try:
-                    station_abs_pos = station.get_position() if hasattr(station, 'get_position') else np.zeros(3)
-                except Exception:
-                    station_abs_pos = np.zeros(3)
-
-            if station_abs_pos is None:
                 station_abs_pos = np.zeros(3)
 
             for observer in sim_station.get_electric_fields():
