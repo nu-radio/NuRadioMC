@@ -177,7 +177,10 @@ class ModDetector(Detector):
 
         # generate a response object from the component dict
         component_response = Response(
-            **component,
+            component["frequencies"], 
+            [component["mag"], component["phase"]],
+            component["y-axis_units"], name = component["name"],
+            weight = component["weight"], time_delay = component["time_delay"],
             station_id=station_id,
             channel_id=channel_id
         )
@@ -228,9 +231,10 @@ class ModDetector(Detector):
 
         component = {
             'weight': weight,
-            'y_unit': ['mag', 'rad'],
-            'y': [list(mag), list(phase)],
-            'frequency': list(freqs),
+            'y-axis_units': ['mag', 'rad'],
+            'mag': list(mag),
+            'phase': list(phase),
+            'frequencies': list(freqs),
             'name': name,
             'time_delay': time_delay
         }
