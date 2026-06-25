@@ -76,7 +76,7 @@ documentation of the class. The reconstruction is then run with:
         full_output = False
     )
 
-which saves the reconstructed shower as a `shower` in the `station` object. Alternatively, `full_output = True`, the reconstructed parameters, signal, likelihood values, and fit p-value are returned.
+which saves the reconstructed shower as a `shower` in the `station` object. Alternatively, with `full_output = True`, the reconstructed parameters, signal, likelihood values, and fit p-value are returned.
 
 A full example of how to run the `neutrinoLikelihoodReconstructor` is shown in `NuRadioReco/examples/likelihood_reconstruction/neutrino_signal_reconstruction.py` 
 

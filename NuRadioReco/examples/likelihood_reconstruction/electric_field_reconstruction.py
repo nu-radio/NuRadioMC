@@ -27,7 +27,7 @@ import NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReco
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin()
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-efieldToVoltageConverter.begin(debug=False, pre_pulse_time=0, post_pulse_time=0, caching=False)
+efieldToVoltageConverter.begin(pre_pulse_time=0, post_pulse_time=0, caching=False)
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelBandPassFilter.begin()
 electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()

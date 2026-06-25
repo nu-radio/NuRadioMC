@@ -46,7 +46,7 @@ class LikelihoodCalculator:
             what fraction of the variance should be added to the diagonal of the covariance matrix only when calculating
             the inverse.
         ignore_llh_normalization : bool, optional
-            We are generally only interrested in likelihood ratios or delta log likelihood. In this case the normalization of
+            We are generally only interested in likelihood ratios or delta log likelihood. In this case the normalization of
             the distribution cancels out and can just be set to 1. This speeds up initializing the class/covariance matrices.
     """
 
@@ -166,7 +166,7 @@ class LikelihoodCalculator:
                 elif self.matrix_inversion_method == "regular_inv":
                     self.cov_inv[i_ant, :, :] = np.linalg.inv(cov[i_ant, :, :] + np.diag(np.ones(self.n_samples) * cov[i_ant, 0, 0] * self.increase_cov_diagonal))
                 else:
-                    raise Exception("""matrix_inversion_method not recognized. Choose "pseudo_inv" or "regular_inv" """)
+                    raise Exception('matrix_inversion_method not recognized. Choose "pseudo_inv" or "regular_inv"')
 
         # Calculate log-determinant of covariance matrix:
         if not self.ignore_llh_normalization:
@@ -224,9 +224,9 @@ class LikelihoodCalculator:
         Returns
         -------
             covariance_matrices : numpy.ndarray
-                Covariance matrices for each antenna with dimensions [n_frequenciess,n_frequenciess]
+                Covariance matrices for each antenna with dimensions [n_frequencies,n_frequencies]
             covariance_matrices_inverse : numpy.ndarray
-                Inverse of covariance matrices for each antenna with dimensions [n_frequenciess,n_frequenciess]
+                Inverse of covariance matrices for each antenna with dimensions [n_frequencies,n_frequencies]
         """
         # The normalization convention of the Fourier transform in NuRadioReco has to be taken into account:
         amplitudes = spectra * self.sampling_rate / np.sqrt(2) / np.sqrt(self.n_samples)
@@ -362,7 +362,7 @@ class LikelihoodCalculator:
                 Array containing data with dimensions [n_datasets,n_antennas,n_samples] or [n_antennas,n_samples]. For one antenna,
                 the shapes [n_datasets,n_samples] or [n_samples] are also allowed.
             signal : numpy.ndarray, optional
-                Array containing neutrino signal signal of dimensions [n_antennas,n_samples].
+                Array containing neutrino signal of dimensions [n_antennas,n_samples].
                 If no signal is provided, it will be set to zeros.
             frequency_domain : bool, optional
                 If True, calculate the delta log likelihood in the frequency domain, which is faster.
@@ -404,7 +404,7 @@ class LikelihoodCalculator:
             for i_antenna in range(self.n_antennas):
                 if not frequency_domain:
                     LLH += self._log_multivariate_normal(x=data[i_data, i_antenna, :], mu=means[i_antenna, :], cov_inv=self.cov_inv[i_antenna, :, :], cov_log_det=self.cov_log_det[i_antenna])
-                if frequency_domain:
+                else:
                     x_minus_mu_fft = fft.time2freq(data[i_data, i_antenna, :] - means[i_antenna, :], self.sampling_rate)
                     LLH += self._log_multivariate_normal_freq(x_minus_mu_fft=x_minus_mu_fft, noise_psd=self.noise_psd[i_antenna])
             LLH_array[i_data] = LLH
@@ -503,7 +503,7 @@ class LikelihoodCalculator:
         t_0_data = station.get_channel(use_channels[0]).get_trace_start_time()
         t_0_sim = list(sim_station.iter_channels())[0].get_trace_start_time() # There is probably a better way to do this
 
-        referece_time_offset = t_0_sim - t_0_data
+        reference_time_offset = t_0_sim - t_0_data
 
         trace_start_times = np.zeros(self.n_antennas)
         n_skipped = 0
@@ -528,7 +528,7 @@ class LikelihoodCalculator:
 
                 # Set trace start time of the readout window so it keeps track of the relative readout times
                 # of the data windows, but moved to where the signal is located:
-                signal_readout_channel.set_trace_start_time(trace_start_times[i_ant] + referece_time_offset - time_offset) # a positive time_offset moves the signal to the right relative to the data
+                signal_readout_channel.set_trace_start_time(trace_start_times[i_ant] + reference_time_offset - time_offset) # a positive time_offset moves the signal to the right relative to the data
 
                 # Now add the simulation to the readout window:
                 for i_channel, sim_channel in enumerate(sim_station.get_channels_by_channel_id(channel_id)):
@@ -645,7 +645,7 @@ class LikelihoodCalculator:
             cov_one_row, t_array = scp.signal.resample(cov_one_row, n_samples_new, t=self.t_array)
             spectra[i_ant] = scp.signal.resample(self.spectra[i_ant], n_frequencies_new)
 
-            # Construct covariances matrix:
+            # Construct covariance matrix:
             covariance_matrix = np.zeros([n_samples_new, n_samples_new])
             for i_bin in range(n_samples_new):
                 covariance_matrix[:, i_bin] = np.roll(cov_one_row, i_bin)
@@ -791,7 +791,7 @@ class LikelihoodCalculator:
 
     def plot_covariance_matrix_first_row(self, cov, plot_range=None, linestyle_and_color = "auto", make_new_figure=True):
         """
-        Plots one row of a covariance matrix
+        Plots the first row of a covariance matrix
 
         Parameters
         ----------

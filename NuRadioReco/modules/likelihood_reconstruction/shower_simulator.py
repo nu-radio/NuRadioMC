@@ -15,13 +15,13 @@ logger = logging.getLogger('NuRadioReco.ShowerSimulator')
 
 channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
-class ShowerSimulator():
+class ShowerSimulator:
     """
     Class to simulate voltage traces for a specific shower(s) with user-defined vertex,
     energy, direction, etc. The Askaryan emission, propagation effects and detector response
     are simulated consistently with simulation.py, but no noise is added and triggers aren't
     run. This is, e.g., useful for studies where only the MC true neutrino signal is of
-    interrrest, and it can act as a pure neutrino signal model, which is needed in forward-folding
+    interest, and it can act as a pure neutrino signal model, which is needed in forward-folding
     reconstruction.
 
     Parameters
@@ -41,7 +41,7 @@ class ShowerSimulator():
         Channels in the station to run the simulation for. If None, all 
         channels in the station will be used.
     reference_channel: int
-        Channel to clalculate reference time for if no trace_start_times are provided. The pulse should
+        Channel to calculate reference time for if no trace_start_times are provided. The pulse should
         appear pre_pulse_time into the trace for this channel.
     evt_time: datetime object
         The time of the simulated event, default 1/1/2018
@@ -227,7 +227,7 @@ class ShowerSimulator():
 
     def simulate_single_shower(self, energy, zenith, azimuth, vertex, vertex_time, type, charge_excess_profile_id=1, trace_start_times=None):
         """
-        Simulate a the traces for a single shower with the given parameters, which can be used to simulate the
+        Simulate the traces for a single shower with the given parameters, which can be used to simulate the
         neutrino signal with a given energy, direction, vertex position, and vertex time.
 
         Parameters
@@ -356,7 +356,7 @@ class ShowerSimulator():
         vertex_phi_rel: float
             Azimuthal angle of the shower vertex relative to the reference antenna
         pulse_time: float
-            Time of the pulse in the trace of the reference channel relativeto the
+            Time of the pulse in the trace of the reference channel relative to the
             trace_start_time (doesn't account for antenna group delays). This convention
             removes the correlation between the vertex time and the radial distance of
             the vertex, which are otherwise highly correlated.

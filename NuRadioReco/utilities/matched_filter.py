@@ -267,7 +267,7 @@ class MatchedFilter:
             SNR: float
                 The matched filter SNR, i.e. the matched filter score
         """
-        assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template and data were re-defined after the matched_filter_search method was called."
+        assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template or the data were re-defined after the matched_filter_search method was called."
 
         SNR = self.matched_filter_output / np.sqrt(self.template_factor)
 
@@ -275,11 +275,11 @@ class MatchedFilter:
 
     def calculate_matched_filter_delta_log_likelihood(self, relative_to = None):
         """
-        Calculate the matched filter delta log likelihood  of the tempalte given the data using the matched
+        Calculate the matched filter delta log likelihood of the template given the data using the matched
         filter output, the template normalization factor, and the data normalization factor. This is the 
         likelihood marginalized over the signal amplitude and time. 
 
-        If relative_to is None, the the "delta" refers to that the constants in the log likelihood are
+        If relative_to is None, the the "delta" refers to the constants in the log likelihood being
         omitted, and it can be seen as the log likelihood relative to the most probable template (the data
         itself). In this case, if the template describes the signal in the data and the noise PSD describes
         the noise, the delta log likelihood should follow a chi2 distribution with degrees of freedom equal

@@ -20,7 +20,7 @@ from radiotools import helper as hp
 from radiotools import coordinatesystems
 
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-efieldToVoltageConverter.begin(debug=False, pre_pulse_time=200*units.ns, post_pulse_time=200*units.ns, caching=False)
+efieldToVoltageConverter.begin(pre_pulse_time=200*units.ns, post_pulse_time=200*units.ns, caching=False)
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelBandPassFilter.begin()
 electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
@@ -33,7 +33,7 @@ logger = logging.getLogger('NuRadioReco.electricFieldLikelihoodReconstructor')
 class electricFieldLikelihoodReconstructor:
     """
     Class for reconstructing electric fields in a station, e.g., a dual polarized antenna or the
-    upwardfacing LPDAs in an RNO-G shallow station. This class forward fold an analytical electric
+    upwardfacing LPDAs in an RNO-G shallow station. This class forward-folds an analytical electric
     field, assumed to be the same in all channels, and compares it to a measured set of data traces
     in a likelihood objective function. The -2DeltaLLH is minimized in two stages, first using a
     matched filter to fit the shape of the signal and second a -2DeltaLLH minimization to fine-tune
@@ -73,7 +73,7 @@ class electricFieldLikelihoodReconstructor:
             Vrms: float
                 RMS of the noise in each channel. Used for the likelihood calculation.
 
-            filter_settings_list: lis of dicts, optional
+            filter_settings_list: list of dicts, optional
                 List of filter settings to be applied to the electric field signal. The same filters must have been applied to
                 the data and noise before this module is run.
 
@@ -153,7 +153,7 @@ class electricFieldLikelihoodReconstructor:
 
         use_MC_direction: bool, optional
             Whether to use the Monte Carlo true arrival direction for the reconstruction if it is
-            present in the sim_station object.
+            present in the sim_station object. Default: False
 
         second_order: bool, optional
             If True, fit include the second order term in the frequency domain of the electric field
@@ -282,7 +282,7 @@ class electricFieldLikelihoodReconstructor:
 
     def _function_to_minimize_llh(self, data, signal):
         """
-        Calculate the log-likelihood objective function of the 2nd minimization
+        Calculate the log-likelihood objective function of the 2nd minimization.
         """
         if not self.use_chi2:
             minus_two_llh = self.likelihood_calculator.calculate_minus_two_delta_llh(data, signal)
@@ -348,10 +348,10 @@ class electricFieldLikelihoodReconstructor:
             5: quadratic term
 
         zenith_arrival: float
-            Zenith angle of the incoming efield
+            Zenith angle of the incoming electric field
 
         azimuth_arrival: float
-            Azimuth angle of the incoming efield
+            Azimuth angle of the incoming electric field
 
         use_channels: list
             List of channels that the electric field applies to
@@ -441,7 +441,7 @@ class electricFieldLikelihoodReconstructor:
             List of start times for data traces. The 4th parameter is relative to the first time in this list.
 
         filter_before_det_resp: bool
-            Whether to apply the filter to the efield (before detector response) or to the channel traces (after detector response)
+            Whether to apply the filter to the efield (before detector response; default) or to the channel traces (after detector response).
 
         Returns
         -------
@@ -706,9 +706,9 @@ class electricFieldLikelihoodReconstructor:
 
             ax[0].legend()
             if not self.use_chi2:
-                ax[0].set_title(f"$-2\Delta$LLH: {minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
+                ax[0].set_title(r"$-2\Delta$LLH: " f"{minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
             else:
-                ax[0].set_title(f"$\chi^2$: {minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
+                ax[0].set_title(r"$\chi^2$: " f"{minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
             ax[-1].set_xlabel("Time [s]")
             plt.tight_layout()
             plt.savefig("debug_StationElectricFieldReconstructor.png")

@@ -91,7 +91,7 @@ def get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_r
             w, h = scipy.signal.freqs(b, a, frequencies)
             xx *= h
         else:
-            raise ValueError("order must be either a number or a list of two numbers")
+            raise ValueError("order must be either a number or a tuple of (order_highpass, order_lowpass)")
         
     return xx
 

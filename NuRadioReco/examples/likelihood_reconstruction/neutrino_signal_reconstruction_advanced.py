@@ -17,9 +17,9 @@ import matplotlib.pyplot as plt
 import datetime
 from radiotools import helper as hp
 
-from NuRadioReco.utilities import units, fft, signal_processing, minimization, matched_filter
+from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
-from NuRadioReco.modules.likelihood_reconstruction import likelihood_calculator, shower_simulator, neutrinoLikelihoodReconstructor
+from NuRadioReco.modules.likelihood_reconstruction import shower_simulator, neutrinoLikelihoodReconstructor
 from NuRadioReco.framework.event import Event
 import NuRadioReco.modules.channelBandPassFilter
 
@@ -90,7 +90,7 @@ minus_two_llh_fit_array = np.zeros(n_events)
 fitted_parameters_array = np.zeros((n_events, 7))
 uncertainties_fit_array = np.zeros((n_events, 7))
 
-# Set this to true if the script has already run (partiall) and only the plotting in needed:
+# Set this to true if the script has already run (partially) and only the plotting is needed:
 plots_only = False
 
 for i_event in range(n_events):
@@ -237,7 +237,7 @@ import scipy as scp
 dist = scp.stats.chi2(ndof)
 x = np.linspace(0,max(bins),1000)
 y = dist.pdf(x) * len(minus_two_llh_fit_array) * (hist[1][1] - hist[1][0]) * 1.0
-plt.plot(x,y,"y-",label=f"$\chi^2($dof$={str(ndof)})$")
+plt.plot(x,y,"y-",label=fr"$\chi^2($dof$={str(ndof)})$")
 plt.xlabel("-2 delta LLH")
 plt.ylabel("Number of events")
 plt.legend()

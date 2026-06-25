@@ -30,7 +30,7 @@ logger = logging.getLogger('NuRadioReco.neutrinoLikelihoodReconstructor')
 class neutrinoLikelihoodReconstructor:
     """
     Class for reconstructing a neutrino shower in a station. This class forward-folds a simulated hadronic
-    shower E-field calculated using the Alvares2009 parameterization through the detector response and compares
+    shower E-field calculated using the Alvarez2009 parameterization through the detector response and compares
     it to a data traces in the provided station object using a likelihood objective function. The -2DeltaLLH is
     minimized in two stages, first using a matched filter (profiling over amplitude and time) to fit the shape
     of the signal and second a -2DeltaLLH minimization to fine-tune the reconstructed parameters. The likelihood
@@ -95,7 +95,7 @@ class neutrinoLikelihoodReconstructor:
                 The width of the window to search for the signal in relative to the initial guess pulse_time. This is used as
                 the width of the matched filter time grid, which will be profiled over in the first stage of the fit. And it
                 is used as the bound in the final -2LLH minimization. If the peak of the signal in the trace is within the
-                initial guess of the pulse_time +/- signal_search_width, the  fit is likely to converge to a good minimum.
+                initial guess of the pulse_time +/- signal_search_width, the fit is likely to converge to a good minimum.
                 Default: 30 * units.ns
 
             n_grid_matched_filter: int, optional
@@ -105,7 +105,7 @@ class neutrinoLikelihoodReconstructor:
             overwrite_speedup_options: bool, optional
                 Some speedup options cause discrete jumps in the signal traces and hence the likelihood. This can cause the
                 minimizer to get stuck in local minima and fail. The speedup options overwritten in the config file are:
-                - delta_C_cut: set to 180 deg to not cut out the signal for any veiweing angle
+                - delta_C_cut: set to 180 deg to not cut out the signal for any viewing angle
                 - min_efield_amplitude: set to 0 to run the simulation for any efield amplitude
                 - distance_cut: set to False to run simulation for any distance
 

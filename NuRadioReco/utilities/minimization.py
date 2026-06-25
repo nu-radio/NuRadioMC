@@ -41,7 +41,7 @@ class Minimizer:
             but it could be a numpy array with shape [n_antennas, n_samples] containing a radio signal in a number channels,
             or a list of channels.
         save_history : bool (optional)
-            Whether to save the history the parameters in the minimization process. This should only be used for debugging as it can create very large arrays
+            Whether to save the history of the parameters in the minimization process. This should only be used for debugging as it can create very large arrays
             and make the minimization slow.
         debug : bool (optional)
             Whether to print debug information during the minimization process.
@@ -121,14 +121,16 @@ class Minimizer:
 
         if method == "scipy":
             result_object = self._scipy_minimization(**method_kwargs)
-        if method == "minuit":
+        elif method == "minuit":
             result_object = self._minuit_minimization(**method_kwargs)
-        if method == "noisyopt":
+        elif method == "noisyopt":
             result_object = self._noisyopt_minimization(**method_kwargs)
-        if method == "skopt":
+        elif method == "skopt":
             result_object = self._skopt_minimization(**method_kwargs)
-        if method == "simple_minimizer":
+        elif method == "simple_minimizer":
             result_object = self._simple_minimizer(**method_kwargs)
+        else:
+            raise ValueError(f"Unknown minimizer: {method}")
 
         return result_object
 
