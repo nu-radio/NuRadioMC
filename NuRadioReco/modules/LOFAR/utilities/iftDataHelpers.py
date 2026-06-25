@@ -668,6 +668,10 @@ def _station_roi_from_beamforming(station, detector, station_id, station_abs_pos
     return beamformed_time_ns - half_window, beamformed_time_ns + half_window
 
 
+_BANDPASS_EDGE_SAMPLES_START = 10000
+_BANDPASS_EDGE_SAMPLES_END = 55000
+
+
 def _noise_fluence_windows(efield_trace, efield_times, max_time_ns, fluence_window_ns):
     if len(efield_times) < 2:
         return []
@@ -678,8 +682,17 @@ def _noise_fluence_windows(efield_trace, efield_times, max_time_ns, fluence_wind
     if window_length_samples <= 0:
         return []
 
+    n_total = len(efield_times)
+    edge_end = min(_BANDPASS_EDGE_SAMPLES_END, n_total)
+
     noise_fluences = []
-    for start_index in range(0, len(efield_times), window_length_samples):
+    for start_index in range(0, n_total, window_length_samples):
+        # Skip bandpass roll-off edges where filter suppresses power
+        if start_index < _BANDPASS_EDGE_SAMPLES_START:
+            continue
+        end_index = start_index + window_length_samples
+        if end_index > edge_end:
+            continue
         window_start_time = efield_times[start_index]
         in_signal = not (
             window_start_time + fluence_window_ns < max_time_ns - fluence_window_ns / 2.0
@@ -687,8 +700,8 @@ def _noise_fluence_windows(efield_trace, efield_times, max_time_ns, fluence_wind
         )
         if in_signal:
             continue
-        slice_trace = efield_trace[:, start_index:start_index + window_length_samples]
-        slice_times = efield_times[start_index:start_index + window_length_samples]
+        slice_trace = efield_trace[:, start_index:end_index]
+        slice_times = efield_times[start_index:end_index]
         if len(slice_times) == window_length_samples:
             noise_fluences.append(np.sum(get_electric_field_energy_fluence(slice_trace, slice_times)))
     return noise_fluences
