@@ -969,6 +969,9 @@ class Detector():
                 # if is_equal and component_entry["collection"] == "drab_board":
                 #     continue
 
+                if "collection" not in component_entry:
+                    component_entry["collection"] = "default"
+
                 if component_entry['collection'] == "gain_calibration":
                     ydata = component_entry["gain_factor"]
                     y_units = component_entry["gain_factor_unit"]
