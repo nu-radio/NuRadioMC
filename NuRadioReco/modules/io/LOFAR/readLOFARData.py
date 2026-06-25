@@ -10,6 +10,7 @@ import glob
 import json
 import math
 import logging
+import pathlib
 from collections import defaultdict
 
 import numpy as np
@@ -140,6 +141,86 @@ def LOFAR_event_id_to_unix(event_id):
     return event_id + 1262304000
 
 
+def parse_block_number_file(block_number_file):
+    """
+    Parse a LORA block-number file (typically named ``LORA4time``) into a dict
+    keyed by LOFAR event ID.
+
+    Each whitespace-delimited row is expected to contain at least two columns:
+
+    1. event timestamp (UTC unix seconds)
+    2. event timestamp nanoseconds
+
+    Optionally followed by:
+
+    3. TBB timestamp seconds
+    4. TBB sample reference
+
+    Any additional columns are stored under ``raw_columns``. Rows with fewer
+    than two columns or prefixed with ``#`` are silently skipped.
+    """
+    rows = {}
+    path = pathlib.Path(block_number_file)
+    with path.open() as fin:
+        for line_number, line in enumerate(fin, start=1):
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            parts = stripped.split()
+            if len(parts) < 2:
+                logger.warning("Skipping malformed block-number row %s:%d", path, line_number)
+                continue
+
+            values = [float(part) for part in parts]
+            event_timestamp = int(values[0])
+            event_id = event_timestamp - 1262304000
+            rows[event_id] = {
+                "event_timestamp": event_timestamp,
+                "event_nanoseconds": int(round(values[1])),
+                "tbb_timestamp": int(values[2]) if len(values) > 2 else 0,
+                "tbb_reference": values[3] if len(values) > 3 else 0.0,
+                "raw_columns": values,
+                "source_file": str(path),
+                "line_number": line_number,
+            }
+    return rows
+
+
+_BLOCK_ROW_TOLERANCE_S = 2
+
+
+def _find_block_row_nearest(rows, event_id, tolerance=_BLOCK_ROW_TOLERANCE_S):
+    """
+    Look up a block-number row by event_id, with a nearest-timestamp fallback.
+
+    First tries an exact dict key match.  If that fails, finds the row whose
+    ``event_timestamp`` is closest to ``event_id + 1262304000`` and returns it
+    if the difference is within *tolerance* seconds.  Returns ``None`` if no
+    row is close enough.
+    """
+    if event_id in rows:
+        return rows[event_id]
+
+    target_ts = event_id + 1262304000
+    best_row = None
+    best_diff = float("inf")
+    for row in rows.values():
+        diff = abs(row["event_timestamp"] - target_ts)
+        if diff < best_diff:
+            best_diff = diff
+            best_row = row
+
+    if best_row is not None and best_diff <= tolerance:
+        logger.warning(
+            "Block-number file: event %d not found by exact match; "
+            "using nearest row (Δ=%d s, timestamp=%d).",
+            event_id, best_diff, best_row["event_timestamp"],
+        )
+        return best_row
+
+    return None
+
+
 def tbb_filetag_from_unix(timestamp):
     """
     Returns TBB filename based on UNIX timestamp of an event.
@@ -268,7 +349,8 @@ def nrrID_to_tbbID(channel_id):
 
 class getLOFARtraces:
     def __init__(
-            self, tbb_h5_filename, metadata_dir, time_unix, time_ns, trace_length_nbins
+            self, tbb_h5_filename, metadata_dir, time_unix, time_ns, trace_length_nbins,
+            block_number_override=None
     ):
         """
         A class to facilitate getting traces from LOFAR TBB HDF5 Files.
@@ -289,7 +371,9 @@ class getLOFARtraces:
         trace_length_nbins : int
             Desired length of trace to be loaded from TBB HDF5 files.
             This does not affect trace size read-in for RFI cleaning
-
+        block_number_override : int, optional
+            Explicit block number to read.  This is intended for non-JSON events
+            once a validated timestamp/block table is available.
         """
         self.metadata_dir = metadata_dir
         self.data_filename = tbb_h5_filename
@@ -300,6 +384,7 @@ class getLOFARtraces:
         self.time_unix = time_unix
         self.time_ns = time_ns
         self.alignment_shift = None
+        self.block_number_override = block_number_override
 
         self.setup_trace_loading()
 
@@ -312,19 +397,39 @@ class getLOFARtraces:
         self.tbb_file = rawTBBio.MultiFile_Dal1(self.data_filename, metadata_dir=self.metadata_dir)
         sample_number = self.tbb_file.get_nominal_sample_number()
         timestamp = self.tbb_file.get_timestamp()
-        station_clock_offsets = rawTBBio_metadata.getClockCorrections(
-            metadata_dir=self.metadata_dir, time=timestamp
-        )
         this_station_name = self.tbb_file.get_station_name()
 
-        logger.info("Getting clock offset for station %s" % this_station_name)
-        this_clock_offset = station_clock_offsets[this_station_name] * units.s  # kept constant at 1e4 in PyCRTools
-        logger.info("Clock offset is %1.4e ns" % (this_clock_offset / units.ns))
+        if self.block_number_override is not None:
+            self.block_number = int(self.block_number_override)
+            self.sample_number_in_block = self.trace_length_nbins // 2
+            logger.info(
+                "Using explicit block number %d for station %s",
+                self.block_number, this_station_name
+            )
+        else:
+            station_clock_offsets = rawTBBio_metadata.getClockCorrections(
+                metadata_dir=self.metadata_dir, time=timestamp
+            )
 
-        packet = lora_timestamp_to_blocknumber(self.time_unix, self.time_ns, timestamp, sample_number,
-                                               clock_offset=this_clock_offset, block_size=self.trace_length_nbins)
+            logger.info("Getting clock offset for station %s" % this_station_name)
+            this_clock_offset = station_clock_offsets[this_station_name] * units.s  # kept constant at 1e4 in PyCRTools
+            logger.info("Clock offset is %1.4e ns" % (this_clock_offset / units.ns))
 
-        self.block_number, self.sample_number_in_block = packet
+            try:
+                packet = lora_timestamp_to_blocknumber(self.time_unix, self.time_ns, timestamp, sample_number,
+                                                       clock_offset=this_clock_offset, block_size=self.trace_length_nbins)
+                self.block_number, self.sample_number_in_block = packet
+            except ValueError:
+                self.block_number = 0
+                self.sample_number_in_block = self.trace_length_nbins // 2
+                logger.warning(
+                    "Could not derive event block for station %s from LORA timestamp; "
+                    "falling back to the start of the TBB buffer. "
+                    "[DEBUG] lora_seconds=%d lora_ns=%d tbb_timestamp=%d tbb_sample_number=%d clock_offset=%.1f ns",
+                    this_station_name,
+                    self.time_unix, self.time_ns, timestamp, sample_number,
+                    this_clock_offset / units.ns,
+                )
 
         self.alignment_shift = -(
                 self.trace_length_nbins // 2 - self.sample_number_in_block
@@ -464,6 +569,9 @@ class readLOFARData:
         self.__lora_timestamp = None
         self.__lora_timestamp_ns = None
         self.__hybrid_shower = None
+        self.__has_lora_reco = False
+        self.__block_number_rows = {}
+        self.__block_number_row = None
 
         self.__restricted_station_set = restricted_station_set
 
@@ -564,7 +672,27 @@ class readLOFARData:
 
         return station_calibration_delays
 
-    def begin(self, event_id, logger_level=logging.NOTSET):
+    def _resolve_tbb_files_from_json(self, json_tbb_files):
+        """
+        Resolve TBB paths from a JSON file.
+
+        JSON files often contain absolute paths from a storage
+        system that differs from the current test or production location.  If
+        the original path is missing, try the same basename under ``tbb_dir``.
+        """
+        resolved = []
+        for filename in json_tbb_files:
+            if os.path.exists(filename):
+                resolved.append(filename)
+                continue
+
+            local_filename = os.path.join(self.tbb_dir, os.path.basename(filename))
+            if os.path.exists(local_filename):
+                resolved.append(local_filename)
+
+        return resolved
+
+    def begin(self, event_id, logger_level=logging.NOTSET, block_number_file=None):
         """
         Prepare the reader to ingest the event with ID ``event_id``.
 
@@ -579,56 +707,154 @@ class readLOFARData:
             The ID of the event to load.
         logger_level : int, default=logging.NOTSET
             Use this parameter to override the logging level for this module.
+        block_number_file : str, optional
+            Timestamp/block table to use when no LORA JSON is available.
         """
         self.logger.setLevel(logger_level)
 
         # Set the internal variables
         self.__event_id = int(event_id)  # ID might be provided as str
         self.__stations = self.__new_stations()
+        self.__hybrid_shower = None
+        self.__has_lora_reco = False
+        self.__block_number_row = None
 
-        # Check LORA file for parameters
-        with open(os.path.join(self.json_dir, f'{self.__event_id}.json')) as file:
-            lora_dict = json.load(file)
+        lora_dict = None
+        json_path = os.path.join(self.json_dir, f'{self.__event_id}.json')
+        if os.path.exists(json_path):
+            with open(json_path) as file:
+                lora_dict = json.load(file)
 
-        self.__lora_timestamp = lora_dict["LORA"]["utc_time_stamp"]
-        self.__lora_timestamp_ns = lora_dict["LORA"]["time_stamp_ns"]
+            self.__lora_timestamp = lora_dict["LORA"]["utc_time_stamp"]
+            self.__lora_timestamp_ns = lora_dict["LORA"]["time_stamp_ns"]
 
-        if self.__lora_timestamp != LOFAR_event_id_to_unix(self.__event_id):
-            self.logger.error(f"LORA timestamp {self.__lora_timestamp} does not match event ID {self.__event_id}")
+            # Always prefer the block-number file ns value when available: the
+            # JSON time_stamp_ns is sometimes inaccurate while the block-number
+            # file contains the calibrated TBB-aligned timestamp.
+            if block_number_file is not None:
+                if not self.__block_number_rows:
+                    try:
+                        self.__block_number_rows = parse_block_number_file(block_number_file)
+                    except FileNotFoundError:
+                        self.logger.warning(
+                            "Block-number file %s not found; timestamps will be taken from JSON file.",
+                            block_number_file,
+                        )
+                _row = _find_block_row_nearest(self.__block_number_rows, self.__event_id)
+                if _row is not None:
+                    if self.__lora_timestamp == 0:
+                        self.__lora_timestamp = _row["event_timestamp"]
+                    self.__lora_timestamp_ns = _row["event_nanoseconds"]
+                    self.__block_number_row  = _row
+                    self.logger.info(
+                        "Using block-number file ns timestamp %d ns for event %s "
+                        "(JSON had %d ns).",
+                        _row["event_nanoseconds"], self.__event_id,
+                        lora_dict["LORA"]["time_stamp_ns"],
+                    )
+                else:
+                    self.logger.warning(
+                        "Event %s not found in block-number file %s (within ±%d s); "
+                        "will fall back to TBB buffer start — block number will be wrong.",
+                        self.__event_id, block_number_file, _BLOCK_ROW_TOLERANCE_S,
+                    )
 
-        # Read in data from LORA file and save it in a HybridShower
-        self.__hybrid_shower = NuRadioReco.framework.hybrid_shower.HybridShower("LORA")
+            expected_timestamp = LOFAR_event_id_to_unix(self.__event_id)
+            if self.__lora_timestamp not in (0, expected_timestamp):
+                self.logger.error(
+                    f"LORA timestamp {self.__lora_timestamp} does not match event ID {self.__event_id}"
+                )
 
-        # Read in zenith and azimuth -> make sure they are in range [-pi, pi]
-        zenith = math.remainder(lora_dict["LORA"]["zenith_rad"], 2 * np.pi)
-        azimuth = math.remainder(lora_dict["LORA"]["azimuth_rad"], 2 * np.pi)
+            lora_energy = lora_dict["LORA"].get("energy_GeV", 0.0) or 0.0
+            self.__has_lora_reco = lora_energy != 0.0
 
-        # Read in core position reconstruction from LORA
-        core_pos_x = lora_dict["LORA"]["core_x_m"]
-        core_pos_y = lora_dict["LORA"]["core_y_m"]
+            if self.__has_lora_reco:
+                self.__hybrid_shower = NuRadioReco.framework.hybrid_shower.HybridShower("LORA")
 
-        # Read in energy estimate from LORA
-        energy = lora_dict["LORA"]["energy_GeV"]
+                # Read in zenith and azimuth -> make sure they are in range [-pi, pi]
+                zenith = math.remainder(lora_dict["LORA"]["zenith_rad"], 2 * np.pi)
+                azimuth = math.remainder(lora_dict["LORA"]["azimuth_rad"], 2 * np.pi)
 
-        # The LORA coordinate system has x pointing East -> set this through magnetic field vector (values from 2015)
-        self.__hybrid_shower.set_parameter(showerParameters.magnetic_field_vector,
-                                           np.array([0.004675, 0.186270, -0.456412]))
-        self.__hybrid_shower.set_parameter(showerParameters.zenith, zenith * units.radian)
-        self.__hybrid_shower.set_parameter(showerParameters.azimuth, azimuth * units.radian)
+                # Read in core position reconstruction from LORA
+                core_pos_x = lora_dict["LORA"]["core_x_m"]
+                core_pos_y = lora_dict["LORA"]["core_y_m"]
 
-        # Add LORA core and energy to parameters. The z-Position of the core is always at 7.6m for LOFAR
-        self.__hybrid_shower.set_parameter(showerParameters.core, np.array([core_pos_x * units.m, core_pos_y * units.m, 7.6 * units.m]))
-        self.__hybrid_shower.set_parameter(showerParameters.energy, energy * units.GeV)
+                # Read in energy estimate from LORA
+                energy = lora_dict["LORA"]["energy_GeV"]
+
+                # The LORA coordinate system has x pointing East -> set this through magnetic field vector (values from 2015)
+                self.__hybrid_shower.set_parameter(showerParameters.magnetic_field_vector,
+                                                   np.array([0.004675, 0.186270, -0.456412]))
+                self.__hybrid_shower.set_parameter(showerParameters.zenith, zenith * units.radian)
+                self.__hybrid_shower.set_parameter(showerParameters.azimuth, azimuth * units.radian)
+
+                # Add LORA core and energy to parameters. The z-Position of the core is always at 7.6m for LOFAR
+                self.__hybrid_shower.set_parameter(
+                    showerParameters.core,
+                    np.array([core_pos_x * units.m, core_pos_y * units.m, 7.6 * units.m])
+                )
+                self.__hybrid_shower.set_parameter(showerParameters.energy, energy * units.GeV)
+            else:
+                self.logger.warning(
+                    "Event %s has a JSON file but no LORA reconstruction; "
+                    "no LORA HybridShower will be created.",
+                    self.__event_id
+                )
+        else:
+            if block_number_file is None:
+                self.logger.warning(
+                    "No JSON file found for event %s in %s and no block_number_file provided; "
+                    "the read-in will fail when timestamps are needed.",
+                    self.__event_id, self.json_dir,
+                )
+            else:
+                if not self.__block_number_rows:
+                    try:
+                        self.__block_number_rows = parse_block_number_file(block_number_file)
+                    except FileNotFoundError:
+                        self.logger.warning(
+                            "Block-number file %s not found; "
+                            "no JSON file exists for event %s either — the read-in will fail.",
+                            block_number_file, self.__event_id,
+                        )
+                self.__block_number_row = _find_block_row_nearest(
+                    self.__block_number_rows, self.__event_id
+                )
+                if self.__block_number_row is None:
+                    self.logger.warning(
+                        "Event %s not found in block-number file %s "
+                        "(searched within ±%d s of unix timestamp %d); "
+                        "no JSON file exists for this event — the read-in will fail.",
+                        self.__event_id, block_number_file, _BLOCK_ROW_TOLERANCE_S,
+                        LOFAR_event_id_to_unix(self.__event_id),
+                    )
+                else:
+                    self.__lora_timestamp    = self.__block_number_row["event_timestamp"]
+                    self.__lora_timestamp_ns = self.__block_number_row["event_nanoseconds"]
+                    self.logger.info(
+                        "Using non-JSON timestamp row for event %s: %s",
+                        self.__event_id, self.__block_number_row
+                    )
 
         # Go through TBB directory and identify all files for this event
-        tbb_filename_pattern = tbb_filetag_from_unix(self.__lora_timestamp)
+        all_tbb_files = []
+        if lora_dict is not None:
+            all_tbb_files = self._resolve_tbb_files_from_json(
+                lora_dict.get("LOFAR", {}).get("TBB_file_names", []) or []
+            )
 
-        tbb_filename_pattern = self.tbb_dir + "/*" + tbb_filename_pattern + "*.h5"
-        self.logger.debug(f'Looking for files with {tbb_filename_pattern}...')
-        all_tbb_files = glob.glob(
-            tbb_filename_pattern
-        )  # this is expensive in a big NFS-mounted directory...
-        # TODO: save paths of files per event in some kind of database
+        if not all_tbb_files:
+            discovery_timestamp = self.__lora_timestamp
+            if self.__block_number_row is not None and self.__block_number_row["tbb_timestamp"] != 0:
+                discovery_timestamp = self.__block_number_row["tbb_timestamp"]
+            if discovery_timestamp == 0:
+                discovery_timestamp = LOFAR_event_id_to_unix(self.__event_id)
+
+            tbb_filename_pattern = self.tbb_dir + "/*" + tbb_filetag_from_unix(discovery_timestamp) + "*.h5"
+            self.logger.debug(f'Looking for files with {tbb_filename_pattern}...')
+            all_tbb_files = glob.glob(
+                tbb_filename_pattern
+            )  # this is expensive in a big NFS-mounted directory...
 
         for tbb_filename in all_tbb_files:
             station_name = re.findall(r"CS\d\d\d", tbb_filename)
@@ -641,13 +867,22 @@ class readLOFARData:
 
             self.__stations[station_name]['files'].append(tbb_filename)
 
-        # Save the metadata after all files for a station have been found
-        # TODO: make metadata a dictionary
         for station_name in self.__stations:
             station_files = self.__stations[station_name]['files']
             if len(station_files) > 0:
                 self.logger.info(f'Found files {station_files} for station {station_name}...')
                 self.__stations[station_name]['metadata'] = get_metadata(station_files, self.meta_dir)
+
+        if self.__lora_timestamp == 0:
+            for station_dict in self.__stations.values():
+                if 'metadata' in station_dict:
+                    self.__lora_timestamp = station_dict['metadata'][2]
+                    self.__lora_timestamp_ns = station_dict['metadata'][3]
+                    self.logger.info(
+                        "Event %s has no LORA timestamp; using TBB timestamp %s + %s ns for detector time.",
+                        self.__event_id, self.__lora_timestamp, self.__lora_timestamp_ns
+                    )
+                    break
 
     @register_run()
     def run(self, detector, trace_length=65536):
@@ -688,8 +923,9 @@ class readLOFARData:
         # Create an empty with 1 run, as only 1 shower per event
         evt = NuRadioReco.framework.event.Event(1, self.__event_id)
 
-        # Add HybridShower to HybridInformation
-        evt.get_hybrid_information().add_hybrid_shower(self.__hybrid_shower)
+        # Add HybridShower to HybridInformation if LORA reconstruction exists.
+        if self.__hybrid_shower is not None:
+            evt.get_hybrid_information().add_hybrid_shower(self.__hybrid_shower)
 
         # update the detector to the event time
         time = Time(self.__lora_timestamp, format='unix')
@@ -793,7 +1029,10 @@ class readLOFARData:
             station.set_parameter(stationParameters.flagged_channels, flagged_nrr_channel_ids)
 
             # Add station to Event
-            evt.set_station(station)
+            if station.get_number_of_channels() > 0:
+                evt.set_station(station)
+            else:
+                self.logger.warning("Station %s has no usable channels and is skipped", station_name)
 
             lofar_trace_access.close_file()
 

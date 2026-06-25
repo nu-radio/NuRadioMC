@@ -5,6 +5,7 @@ import radiotools.helper as hp
 from scipy.signal import hilbert, resample
 
 from NuRadioReco.utilities import fft
+from NuRadioReco.utilities import units
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
@@ -215,8 +216,8 @@ class stationPulseFinder:
             signal_window = channel.get_parameter(channelParameters.signal_regions)
             noise_window = channel.get_parameter(channelParameters.noise_regions)
 
-            self.logger.debug(f'Channel {channel.get_id()}: looking for signal in indices {signal_window}')
-            self.logger.debug(f'Channel {channel.get_id()}: using {noise_window} as noise trace')
+            self.logger.debug('Channel %s: looking for signal in indices %s', channel.get_id(), signal_window)
+            self.logger.debug('Channel %s: using %s as noise trace', channel.get_id(), noise_window)
 
             snr, peak, rms, signal_time = find_snr_of_timeseries(channel.get_trace(),
                                                     sampling_rate=channel.get_sampling_rate(),
@@ -251,11 +252,13 @@ class stationPulseFinder:
                 station
             )
 
-            self.logger.debug(f'Station {station.get_id()} has {len(good_channels_station)} good antennas')
+            self.logger.debug('Station %s has %d good antennas', station.get_id(), len(good_channels_station))
             if len(good_channels_station) < self.__min_good_channels:
-                self.logger.warning(f'Station {station.get_id()} has only {len(good_channels_station)} antennas '
-                                    f'with an SNR higher than {self.__snr_cr}, while there '
-                                    f'are at least {self.__min_good_channels} required')
+                self.logger.warning(
+                    'Station %s has only %d antennas with SNR > %.1f, need at least %d',
+                    station.get_id(), len(good_channels_station),
+                    self.__snr_cr, self.__min_good_channels,
+                )
                 station.set_parameter(stationParameters.triggered, False)  # stop from further processing
 
     @register_run()
@@ -270,8 +273,26 @@ class stationPulseFinder:
         detector : Detector object
             The detector related to the event.
         """
-        zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
-        azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth)
+        try:
+            lora_shower = event.get_hybrid_information().get_hybrid_shower("LORA")
+            zenith = lora_shower.get_parameter(showerParameters.zenith)
+            azimuth = lora_shower.get_parameter(showerParameters.azimuth)
+        except ValueError:
+            zenith = None
+            azimuth = None
+
+        if zenith is None or azimuth is None:
+            showers = list(event.get_showers())
+            if showers and showers[0].has_parameter(showerParameters.zenith) and \
+                    showers[0].has_parameter(showerParameters.azimuth):
+                zenith = showers[0].get_parameter(showerParameters.zenith)
+                azimuth = showers[0].get_parameter(showerParameters.azimuth)
+            else:
+                zenith = 0.0 * units.radian
+                azimuth = 0.0 * units.radian
+                self.logger.warning(
+                    "No LORA or radio shower direction found."
+                )
 
         self.direction_cartesian = hp.spherical_to_cartesian(
             zenith, azimuth
@@ -289,6 +310,13 @@ class stationPulseFinder:
                     station_even_list.append(channel.get_id())
                 else:
                     station_odd_list.append(channel.get_id())
+
+            if not station_even_list or not station_odd_list:
+                self.logger.warning(
+                    "Station %s does not have channels in both polarisations. Skipping.", station_id
+                )
+                station.set_parameter(stationParameters.triggered, False)
+                continue
 
             # Find the antenna positions by only looking at the channels from a given polarisation
             position_array = [

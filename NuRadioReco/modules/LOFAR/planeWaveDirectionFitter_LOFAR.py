@@ -6,6 +6,7 @@ NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR
 """
 
 import logging
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import radiotools.helper as hp
@@ -54,13 +55,21 @@ def average_direction(event, detector, mode='normal'):
     azimuths = np.array(azimuths)
     num_good_antennas = np.array(num_good_antennas)
 
-    # Calculate the average direction: 
+    if len(zeniths) == 0:
+        return np.nan, np.nan
+
+    # Calculate the average direction.
+    # Azimuth uses circular mean (arctan2 of mean sin/cos) to avoid wrap-around artefacts
+    # near 0°/360°; result is mapped to [0, 2π].
     if mode == 'normal':
-        avg_zenith = np.mean(zeniths)
-        avg_azimuth = np.mean(azimuths)
+        avg_zenith  = np.mean(zeniths)
+        avg_azimuth = np.arctan2(np.mean(np.sin(azimuths)),
+                                 np.mean(np.cos(azimuths))) % (2 * np.pi)
     elif mode == 'weighted':
-        avg_zenith = np.sum(zeniths * num_good_antennas) / np.sum(num_good_antennas)
-        avg_azimuth = np.sum(azimuths * num_good_antennas) / np.sum(num_good_antennas)
+        w = num_good_antennas / np.sum(num_good_antennas)
+        avg_zenith  = np.sum(zeniths * num_good_antennas) / np.sum(num_good_antennas)
+        avg_azimuth = np.arctan2(np.sum(w * np.sin(azimuths)),
+                                 np.sum(w * np.cos(azimuths))) % (2 * np.pi)
     else:
         raise ValueError(f"Unknown mode: {mode}")
 
@@ -84,9 +93,31 @@ class planeWaveDirectionFitter:
         self.__min_amp = None
         self.__max_iter = None
         self.__min_number_good_antennas = None
+        self.__debug_plot_dir = None
+
+    @staticmethod
+    def _get_event_direction(event):
+        try:
+            lora_shower = event.get_hybrid_information().get_hybrid_shower("LORA")
+            return (
+                lora_shower.get_parameter(showerParameters.zenith),
+                lora_shower.get_parameter(showerParameters.azimuth),
+            )
+        except ValueError:
+            pass
+
+        showers = list(event.get_showers())
+        if showers and showers[0].has_parameter(showerParameters.zenith) and \
+                showers[0].has_parameter(showerParameters.azimuth):
+            return (
+                showers[0].get_parameter(showerParameters.zenith),
+                showers[0].get_parameter(showerParameters.azimuth),
+            )
+
+        return 0.0 * units.radian, 0.0 * units.radian
 
     def begin(self, max_iter=10, cr_snr=6.5, min_amp=None, rmsfactor=2.0, force_horizontal_array=True,
-              debug=False, logger_level=logging.NOTSET, min_number_good_antennas=4):
+              debug=False, debug_plot_dir=None, logger_level=logging.NOTSET, min_number_good_antennas=4):
         """
         Set the parameters for the plane wave fit.
 
@@ -108,6 +139,9 @@ class planeWaveDirectionFitter:
             horizontal approximation anyway. Recommended to set to True.
         debug : bool, default=False
             Set to True to enable debug plots.
+        debug_plot_dir : str, default=None
+            Directory for debug plots. If omitted, plots are written to the
+            current working directory.
         logger_level : int, default=logging.WARNING
             The logging level to use for the module.
         min_number_good_antennas : int, default=4
@@ -119,6 +153,7 @@ class planeWaveDirectionFitter:
         self.__rmsfactor = rmsfactor
         self.__ignore_non_horizontal_array = force_horizontal_array
         self.__debug = debug
+        self.__debug_plot_dir = debug_plot_dir
         self.__logger_level = logger_level
         self.logger.setLevel(logger_level)
         self.__min_number_good_antennas = min_number_good_antennas
@@ -233,9 +268,8 @@ class planeWaveDirectionFitter:
                 continue
             self.logger.debug(f"Running over station CS{station.get_id():03d}")
 
-            # get LORA initial guess for the direction
-            lora_zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
-            lora_azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth)
+            # get initial guess for the direction from LORA if available, then radio shower, then vertical.
+            lora_zenith, lora_azimuth = self._get_event_direction(event)
 
             # Get all group IDs which are still present in the station
             station_channel_group_ids = set([channel.get_group_id() for channel in station.iter_channels()])
@@ -307,7 +341,8 @@ class planeWaveDirectionFitter:
                 # Debug plots if required
                 if self.__debug:
                     self.debug_plots(
-                        event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times
+                        event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times,
+                        output_dir=self.__debug_plot_dir,
                     )
 
                 if np.isnan(zenith) or np.isnan(azimuth):
@@ -397,20 +432,24 @@ class planeWaveDirectionFitter:
 
     @staticmethod
     def debug_plots(
-            event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times
+            event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times,
+            output_dir=None,
     ):
         """
         Create debug plots for the plane wave fit.
         """
+        if output_dir is not None:
+            os.makedirs(output_dir, exist_ok=True)
         planeWaveDirectionFitter.__debug_mosaic(
-            event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times
+            event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times,
+            output_dir=output_dir,
         )
         planeWaveDirectionFitter.__debug_residuals(
-            event, good_antennas, residual_delays, station, niter
+            event, good_antennas, residual_delays, station, niter, output_dir=output_dir,
         )
 
     @staticmethod
-    def __debug_residuals(event, good_antennas, residual_delays, station, niter):
+    def __debug_residuals(event, good_antennas, residual_delays, station, niter, output_dir=None):
         """
         Show the residuals per antenna and mark SNR
         """
@@ -430,10 +469,8 @@ class planeWaveDirectionFitter:
         ax.set_ylabel('Residual time [ns]')
         ax.set_title(f'Residuals for station {station.get_id()}')
 
-        fig.savefig(
-            f"pipeline_planewavefit_residuals_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.png",
-            dpi=250, bbox_inches='tight'
-        )
+        filename = f"pipeline_planewavefit_residuals_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.png"
+        fig.savefig(os.path.join(output_dir or ".", filename), dpi=250, bbox_inches='tight')
         # fig.savefig(
         #     f"pipeline_planewavefit_residuals_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.svg",
         #     dpi=250, bbox_inches='tight'
@@ -441,7 +478,9 @@ class planeWaveDirectionFitter:
         plt.close(fig)
 
     @staticmethod
-    def __debug_mosaic(event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times):
+    def __debug_mosaic(
+            event, expected_delays, good_antennas, niter, position_array, residual_delays, station, times,
+            output_dir=None):
         """
         Plot the timings, as well as the residuals and the traces used for the fit.
         """
@@ -506,15 +545,8 @@ class planeWaveDirectionFitter:
         axd['residuals'].set_ylabel("Northing [m]")
         axd['residuals'].set_aspect('equal')
 
-        fig.savefig(
-            f"pipeline_planewavefit_debug_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.png",
-            dpi=250, bbox_inches='tight'
-        )
-        # fig.savefig(
-        #     f"pipeline_planewavefit_debug_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.svg",
-        #     dpi=250, bbox_inches='tight'
-        # )
-
+        filename = f"pipeline_planewavefit_debug_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.png"
+        fig.savefig(os.path.join(output_dir or ".", filename), dpi=250, bbox_inches='tight')
         plt.close(fig)
 
     def end(self):

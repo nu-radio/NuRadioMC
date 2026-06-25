@@ -218,7 +218,7 @@ def FindRFI_LOFAR(
     max_allowed_antennas = np.max(allowed_num_antennas)
 
     if max_allowed_antennas < 2:
-        logger.error("ERROR: station", tbb_file.get_station_name(), "cannot find RFI")
+        logger.error("ERROR: station %s cannot find RFI", tbb_file.get_station_name())
         return
 
     # Pick a reference antenna that allows max number of antennas, and has most median amount of power
@@ -227,12 +227,17 @@ def FindRFI_LOFAR(
     sorted_by_power = np.argsort(average_power)
     mps = median_sorted_by_power(sorted_by_power)
 
+    ref_antenna = None
     for ant_i in mps:
         if can_be_ref_antenna[ant_i]:
             ref_antenna = ant_i
             break
 
-    logger.info("Taking channel %d as reference antenna" % ref_antenna)  # this will fail if ref_antenna not found
+    if ref_antenna is None:
+        logger.error("ERROR: station %s cannot find a suitable reference antenna for RFI", tbb_file.get_station_name())
+        return
+
+    logger.info("Taking channel %d as reference antenna" % ref_antenna)
 
     # Define some helping variables
     good_blocks = np.where(blocks_good[ref_antenna])[0]
@@ -325,8 +330,13 @@ def FindRFI_LOFAR(
     phase_stability += 1.0
 
     # Get median of stability by channel, across each antenna
+    if np.sum(antenna_is_good) == 0:
+        logger.error("ERROR: station %s no good antennas for phase stability", tbb_file.get_station_name())
+        return
     median_phase_spread_byChannel = np.median(phase_stability[antenna_is_good], axis=0)
     # Get median across all channels
+    if median_phase_spread_byChannel.size == 0:
+        return
     median_spread = np.median(median_phase_spread_byChannel)
     # Create a noise cutoff
     sorted_phase_spreads = np.sort(median_phase_spread_byChannel)
@@ -417,6 +427,7 @@ class stationRFIFilter:
         self.__metadata_dir = None
         self.__median_spectrum = None
         self.__do_polarizations_apart = None
+        self.__debug_plot_dir = None
 
     @property
     def station_list(self):
@@ -435,7 +446,7 @@ class stationRFIFilter:
         self.__metadata_dir = new_dir
 
     def begin(self, rfi_cleaning_trace_length=65536, reader=None, do_polarizations_apart=False,
-              logger_level=logging.NOTSET):
+              debug_plot_dir=None, logger_level=logging.NOTSET):
         """
         Set the variables used for RFI detection. The `reader` object can be used to retrieve the filenames associated
         with the loaded stations, as well as the metadata directory.
@@ -458,6 +469,7 @@ class stationRFIFilter:
         """
         self.__rfi_trace_length = rfi_cleaning_trace_length
         self.__do_polarizations_apart = do_polarizations_apart
+        self.__debug_plot_dir = debug_plot_dir
         if reader is not None:
             self.station_list = reader.get_stations()
             self.metadata_dir = reader.meta_dir
@@ -485,7 +497,11 @@ class stationRFIFilter:
             flagged_channel_ids: dict[int, list[str]] = station.get_parameter(stationParameters.flagged_channels)  # this is a defaultdict
 
             # Find the length of a trace in the station (assume all channels have been loaded with same length)
-            station_trace_length = station.get_channel(station.get_channel_ids()[0]).get_number_of_samples()
+            channel_ids = station.get_channel_ids()
+            if not channel_ids:
+                self.logger.warning(f"Station {station_name} has no channels. Skipping RFI filtering.")
+                continue
+            station_trace_length = station.get_channel(channel_ids[0]).get_number_of_samples()
 
             # Do some checks
             if len(station_files) < 1:
@@ -508,6 +524,11 @@ class stationRFIFilter:
                                     self.__rfi_trace_length,
                                     flagged_antenna_ids=flagged_tbb_channel_ids
                                     )
+                if packet is None:
+                    self.logger.warning(
+                        f"Station {station_name} RFI packet is None. Skipping remaining RFI processing for this station."
+                    )
+                    continue
                 dirty_channels = packet['dirty_channels']
 
             else:
@@ -525,6 +546,11 @@ class stationRFIFilter:
                                     flagged_antenna_ids=flagged_tbb_channel_ids, pol=1
                                     )
 
+                if packet0 is None or packet1 is None:
+                    self.logger.warning(
+                        f"Station {station_name} has missing polarization RFI packets. Skipping remaining RFI processing."
+                    )
+                    continue
 
                 # Extract the necessary information from FindRFI
                 dirty_channels_0 = packet0['dirty_channels']
@@ -614,15 +640,15 @@ class stationRFIFilter:
                 spectrum = channel.get_frequency_spectrum()
                 spectra.append(np.abs(spectrum))
             median_spectrum = np.median(np.array(spectra), axis=0)
-            plot_filename = f"{event.get_id()}-{station_name}-rfi_cleaning_flags.pdf"
+            plot_filename = f"{event.get_id()}-{station_name}-median_spectrum_after_rfi_cleaning.png"
         else:
             # pre rfi cleaned spectrum stored
             median_spectrum = self.__median_spectrum[station.get_id()]
-            plot_filename = f"{event.get_id()}-{station_name}-median_spectrum_after_rfi_cleaning.pdf"
+            plot_filename = f"{event.get_id()}-{station_name}-rfi_cleaning_flags.png"
 
         fig = plt.figure()
         ax = fig.add_subplot()
-        log_median_spectrum = np.log10(median_spectrum)
+        log_median_spectrum = np.log10(np.maximum(median_spectrum, np.finfo(float).tiny))
         channel = station.get_channel(station.get_channel_ids()[0])
         freq_MHz = channel.get_frequencies() / units.MHz
         ax.plot(freq_MHz, log_median_spectrum,zorder=1)
@@ -632,6 +658,8 @@ class stationRFIFilter:
         ax.set_xlabel("Frequency [MHz]")
         ax.set_ylabel("Log-Spectral Power [ADU]")
         ax.set_title(f"{station_name} Median frequency spectrum")
-        import os 
-        os.makedirs(str(event.get_id()), exist_ok=True)
-        plt.savefig(f"{event.get_id()}/" + plot_filename)
+        import os
+        output_dir = self.__debug_plot_dir or str(event.get_id())
+        os.makedirs(output_dir, exist_ok=True)
+        plt.savefig(os.path.join(output_dir, plot_filename), dpi=150)
+        plt.close(fig)
