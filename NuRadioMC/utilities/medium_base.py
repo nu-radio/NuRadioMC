@@ -1147,3 +1147,105 @@ class IceModelExpLayers(IceModel):
     @property
     def z_shift(self):
         return 0.0
+
+class IceModelContinuousExpLayers(IceModelExpLayers):
+
+    """
+    Implements a continuous and continuously-differentiable piecewise-exponential ice model.
+    """
+    def _parametrized_layers(self, nN, delta_nN, ls, zs, 
+                             z_bot = -3000.0, z_surface = 0.0):
+        """
+        Parametrizes a three-layer ice model with continuous n(z) and n'(z) in terms of
+            nN        ... Asymptotic refractive index of the bottommost layer
+            delta_nN  ... Refractive index step in the bottommost layer
+            ls        ... Length scale of the layers, starting at the bottommost layer
+            zs        ... Depth of transition between layers, starting at the bottom
+        """
+
+        # Need to have one more layer than layer transition
+        assert len(ls) == len(zs) + 1
+
+        def _get_ni_delta_ni(zz, li, nii, delta_nii, lii):
+            """
+            Calculate parameters (ni, delta_ni) for layer `i` from parameters for 
+            layer `ii`, such that the two layers are connected at `zz` in a continuous and
+            continuously-differentiable way.
+            """
+            delta_ni = delta_nii * li / lii * np.exp(zz * (1.0 / lii - 1.0 / li))
+            ni = nii - delta_nii * np.exp(zz / lii) + delta_ni * np.exp(zz / li)
+
+            return ni, delta_ni
+
+        z_trans = [z_bot] + zs + [z_surface]
+
+        # Generate the layers starting from the bottom
+        layers_gen = []
+
+        cur_n = nN
+        cur_delta_n = delta_nN
+        for cur_l, next_l, cur_zmin, cur_zmax in zip(ls, ls[1:] + [1], 
+                                                     z_trans[:-1], z_trans[1:]):
+            layers_gen.append(
+                    {
+                        "z_min": cur_zmin,
+                        "z_max": cur_zmax,
+                        "n_ice": cur_n,
+                        "delta_n": cur_delta_n,
+                        "z_0": cur_l,
+                        "region": "ice",
+                        "region_name": "ice"
+                    }
+                )
+            cur_n, cur_delta_n = _get_ni_delta_ni(cur_zmax, next_l, cur_n, cur_delta_n, cur_l)
+
+        # Add the air layer, which is constant and not parametrized
+        layers_gen.append(
+                # The air is constant and not parametrized
+                {
+                    "z_min": z_surface,
+                    "z_max": np.inf,
+                    "n_ice": 1.00027,
+                    "delta_n": 2.7e-4,
+                    "z_0": -8000.0,
+                    "region": "air",
+                    "region_name": "Air"
+                }
+            )
+
+        return layers_gen
+
+    def __init__(self, nN, delta_nN, ls, zs):
+        layers = self._parametrized_layers(nN, delta_nN, ls, zs)
+        super().__init__(layers)
+        self._set_params(nN, delta_nN, ls, zs)
+
+    def get_average_index_of_refraction(self, position1, position2):
+        z1, z2 = position1[2], position2[2]
+        def get_ior(z):
+            return self.get_index_of_refraction([0, 0, z])
+        int_ior = integrate.quad(get_ior, z1, z2)[0]
+        return np.abs(int_ior / (z2 - z1))
+
+    def _set_params(self, nN, delta_nN, ls, zs):
+        # keep values of continuous-ice parameterization around
+        self.nN = nN
+        self.delta_nN = delta_nN
+        self.ls = ls
+        self.zs = zs
+
+        layers = self._parametrized_layers(self.nN, self.delta_nN, self.ls, self.zs)
+        self._set_layers(layers)
+
+    def get_description(self):
+        desc = {
+                    "type": type(self).__name__,
+                    "args": {
+                        "nN": self.nN,
+                        "delta_nN": self.delta_nN,
+                        "ls": self.ls,
+                        "zs": self.zs
+                        }
+                    }
+        return desc
+
