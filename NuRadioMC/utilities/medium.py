@@ -497,55 +497,18 @@ class greenland_firn_layered(medium_base.IceModelExpLayers):
             layers=layers
         )
 
-class greenland_3exp_layered(medium_base.IceModelExpLayers):
+class greenland_3exp_layered(medium_base.IceModelContinuousExpLayers):
     """
     (3+1) layer refractive index model. Three layer model in ice plus one air layer.
      
-    Values for below the ice taken from https://github.com/philippwindischhofer/Reconal/blob/7204049c755a0678178821073fa73a476c49c491/defs.py#L72-L82. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
+    Values for below the ice obtained from a fit to ice core density data. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
     """
     def __init__(self):
-
-        layers = [
-            {
-                "z_min": 0.0,
-                "z_max": np.inf,
-                "n_ice": 1.00027,
-                "delta_n": 2.7e-4,
-                "z_0": -8000.0,
-                "region": "air",
-                "region_name": "Air"
-            },
-            {
-                "z_min": -14.9,
-                "z_max": 0.0,
-                "n_ice": 1.51188,
-                "delta_n": 0.271579,
-                "z_0": 1/0.114553,
-                "region": "snow",
-                "region_name": "Snow"
-            },
-            {
-                "z_min": -80.5,
-                "z_max": -14.9,
-                "n_ice": 1.89957,
-                "delta_n": 0.529715,
-                "z_0": 1/0.0129175,
-                "region": "firn",
-                "region_name": "Firn"
-            },
-            {
-                "z_min": -3000.0,
-                "z_max": -80.5,
-                "n_ice": 1.77468,
-                "delta_n": 1.41573,
-                "z_0": 1/0.0387882,
-                "region": "bubbly_ice",
-                "region_name": "Ice"
-            }
-        ]
-
         super().__init__(
-            layers=layers
+            nN = 1.77468,
+            delta_nN = 1.41573,
+            ls = [1 / 0.0387882, 1 / 0.0129175, 1 / 0.114553],
+            zs = [-80.5, -14.9]
         )
 
 
