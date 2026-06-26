@@ -40,16 +40,36 @@ class LikelihoodCalculator:
             Fraction of the maximum amplitude in the spectra below which the frequency amplitudes are considered zero.
             Also used as the threshold for the eigenvalues when calculating the pseudo-inverse and pseudo-determinant.
         increase_cov_diagonal : float, optional
-            Only used if matrix_inversion_method is "regular_inv". Calculating the inverse of a (covariance) matrix is
+            Only used if matrix_inversion_method is "regular_inv". Calculating the inverse of a (covariance) matrix can be
             numerically unstable, and it does not exist if the matrix is not full rank. By adding a small component to the
-            diagonal when the inverse increases the rank and can improve stability for lower rank matrices. The parameter is
-            what fraction of the variance should be added to the diagonal of the covariance matrix only when calculating
-            the inverse.
+            diagonal of the covariance matrix it will be of full rank which can improve stability of the calculation. The
+            parameter increase_cov_diagonal sets what fraction of the variance should be added to the diagonal of the
+            covariance matrix only when calculating the inverse.
         ignore_llh_normalization : bool, optional
             We are generally only interested in likelihood ratios or delta log likelihood. In this case the normalization of
             the distribution cancels out and can just be set to 1. This speeds up initializing the class/covariance matrices.
-    """
 
+    Methods
+    -------
+    initialize_with_spectra(spectra, Vrms=None)
+        Initialize the covariance matrices using the spectra of the noise and (optionally) the Vrms per channel.
+
+    initialize_with_data(data, method="using_spectra")
+        Initialize the covariance using traces containing noise.
+
+    calculate_minus_two_delta_llh(data, signal=None, frequency_domain=True)
+        Calculates the minus two delta log likelihood for signal (or no signal) given a set of measured traces, e.g, for
+        forward-folding reconstruction.
+
+    calculate_minus_two_delta_llh_station(station, sim_station, time_grid=None, use_channels=None, frequency_domain=False, plot=True, return_traces=False)
+        Calculates the minus two delta log likelihood for signal in a sim_station for a set of measured traces station
+        objects. Finds the best matching time offset of the signal.
+
+    calculate_fisher_information_matrix(signal_function, parameters_x0, dx, frequency_domain=False, ignore_parameters=[], plot=False)
+        Calculates the Fisher information matrix for a parametrized signal model and a given set of parameter values
+        using the intialized probalistic noise model.
+
+    """
     def __init__(
             self,
             n_antennas,
@@ -88,7 +108,10 @@ class LikelihoodCalculator:
         ----------
             spectra : numpy.ndarray
                 Array containing spectra with dimensions [n_antennas,n_frequencies] or [n_frequencies]. For the latter case, all antennas
-                are assumed to have the same spectrum. The spectra are defined as the mean of the Fourier transforms of the noise traces.
+                are assumed to have the same spectrum. The spectra are defined as the square root of the mean of the Fourier transforms of
+                the noise traces absolute squared, np.sqrt(np.mean(abs(fft(traces))**2)), using the NuRadioReco fft module. Ignoring the
+                normalization, this is equavalent to the filter that a trace with white noise has been filtered with, i.e, this method
+                can be called with spectra=noise_filter and Vrms=noise_amplitude.
             Vrms : numpy.ndarray, optional
                 List of Vrms values for each antenna. If provided, the spectra will be normalized to these values. Otherwise
                 the normalization of the spectra is used. Default value is None. If only one value is given, all antennas
@@ -423,7 +446,7 @@ class LikelihoodCalculator:
 
         return np.squeeze(LLH_array - LLH_best)
 
-    def calculate_minus_two_delta_llh(self, data, signal=None, frequency_domain=False):
+    def calculate_minus_two_delta_llh(self, data, signal=None, frequency_domain=True):
         """
         Calculates the minus two delta log likelihood for the datasets relative to the most probable noise
 
@@ -654,15 +677,15 @@ class LikelihoodCalculator:
 
         self._set_covariance_matrices(covariance_matrices, spectra)
 
-    def calculate_fisher_information_matrix(self, signal_function, paramters_x0, dx, frequency_domain=False, ignore_parameters=[], plot=False):
+    def calculate_fisher_information_matrix(self, signal_function, parameters_x0, dx, frequency_domain=False, ignore_parameters=[], plot=False):
         """
-        Calculate Fisher information matrix for a set of parameter values (paramters_x0) which generates a signal using the covariance matrices of the noise.
+        Calculate Fisher information matrix for a set of parameter values (parameters_x0) which generates a signal using the covariance matrices of the noise.
 
         Parameters
         ----------
             signal_function : function
                 Function that takes a list of parameter values as input and returns a neutrino signal with dimensions [n_antennas,n_samples]
-            paramters_x0 : list
+            parameters_x0 : list
                 Parameter values for which to calculate the Fisher information matrix
             dx : list
                 Finite differences to use when calculating derivatives of signal_function with respect to the parameters
@@ -670,7 +693,7 @@ class LikelihoodCalculator:
                 If True, calculate the Fisher information matrix in the frequency domain.
             ignore_parameters : list, optional
                 List of parameters indicies of signal_function to ignore when calculating the Fisher information matrix, e.g. [2, 5]. The method then
-                returns a lower dimensional (len(paramters_x0) - len(ignore_parameters)) Fisher information matrix.
+                returns a lower dimensional (len(parameters_x0) - len(ignore_parameters)) Fisher information matrix.
 
         Returns
         -------
@@ -678,18 +701,18 @@ class LikelihoodCalculator:
                 Fisher information matrix for the parameters given the noise spectra
 
         """
-        n_parameters = len(paramters_x0) - len(ignore_parameters)
+        n_parameters = len(parameters_x0) - len(ignore_parameters)
 
         # Calculate derivatives:
         derivatives = np.zeros([n_parameters, self.n_antennas, self.n_samples])
         derivatives_fft = np.zeros([n_parameters, self.n_antennas, self.n_frequencies], dtype=complex)
-        signal_0 = signal_function(paramters_x0)
+        signal_0 = signal_function(parameters_x0)
         i_skipped = 0
         for i_param in range(n_parameters):
             if i_param in ignore_parameters:
                 i_skipped += 1
-            paramters_x1 = np.copy(paramters_x0)
-            paramters_x1[i_param + i_skipped] = paramters_x0[i_param + i_skipped] + dx[i_param + i_skipped]
+            paramters_x1 = np.copy(parameters_x0)
+            paramters_x1[i_param + i_skipped] = parameters_x0[i_param + i_skipped] + dx[i_param + i_skipped]
             derivatives[i_param, :, :] = (signal_function(paramters_x1) - signal_0) / dx[i_param + i_skipped]
             if frequency_domain:
                 derivatives_fft[i_param, :, :] = fft.time2freq(derivatives[i_param, :, :], self.sampling_rate)
@@ -711,8 +734,8 @@ class LikelihoodCalculator:
             fig, ax = plt.subplots(n_parameters, self.n_antennas, figsize=(30, 30))
             for i_par in range(n_parameters):
                 for i_ant in range(self.n_antennas):
-                    ax[i_par, i_ant].plot(np.arange(self.n_samples), np.real(derivatives[i_par, i_ant, :]), label="Re")
-                    ax[i_par, i_ant].plot(np.arange(self.n_samples), np.imag(derivatives[i_par, i_ant, :]), label="Im")
+                    ax[i_par, i_ant].plot(np.arange(self.n_samples) / self.sampling_rate, np.real(derivatives[i_par, i_ant, :]), label="Re")
+                    ax[i_par, i_ant].plot(np.arange(self.n_samples) / self.sampling_rate, np.imag(derivatives[i_par, i_ant, :]), label="Im")
                     ax[i_par, i_ant].set_title("Parameter %d, Antenna %d" % (i_par, i_ant))
                     ax[i_par, i_ant].legend()
                     ax[i_par, i_ant].set_xlabel("Time [ns]")

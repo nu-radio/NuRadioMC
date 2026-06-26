@@ -293,7 +293,7 @@ class MatchedFilter:
             delta_log_likelihood: float
                 The matched filter delta log likelihood (profiled over amplitude and time)
         """
-        assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template and data were re-defined after the matched_filter_search method was called."
+        assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template or the data were re-defined after the matched_filter_search method was called."
 
         if relative_to is None:
             return  -1/2 * self.data_factor + 1/2 * self.matched_filter_output**2 / self.template_factor
@@ -310,7 +310,7 @@ class MatchedFilter:
             amplitude_estimate: float
                 The matched filter amplitude estimate
         """
-        assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template and data were re-defined after the matched_filter_search method was called."
+        assert self._results_valid, "Calculated matched_filter_output is not valid, since either the template or the data were re-defined after the matched_filter_search method was called."
 
         return self.matched_filter_output / self.template_factor
 

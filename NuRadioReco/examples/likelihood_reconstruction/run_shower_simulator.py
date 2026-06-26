@@ -1,4 +1,8 @@
-
+"""
+This example demonstrates how to simulate an in-ice shower from a neutrino interaction
+using the ShowerSimulator class. The module runs a full NuRadioMC simulation pipeline
+for a user-defined shower and plots the resulting traces for the specified detector.
+"""
 import numpy as np
 from matplotlib import pyplot as plt
 from datetime import datetime
@@ -53,7 +57,7 @@ station, traces, trace_start_times = signal_model.simulate_single_shower(
     vertex_time = vertex_time,
     type = "EM",
     charge_excess_profile_id = 5,
-    trace_start_times = 6000 # <- Automatically calculates start times based on pulse in reference antenna
+    trace_start_times = None # <- Automatically calculates start times based on pulse in reference antenna
 )
 
 # Plot results:

@@ -290,9 +290,9 @@ class voltageToAnalyticEfieldConverter:
         bandpass: [float, float]
             The lower and upper frequecy for which the analytic pulse is calculated.
             A butterworth filter of 10th order and a rectangular filter is applied.
-        order: int, list (default: 10)
-            the order of the butterworth filter on the analytic efield. If a list of
-            two numbers is given, the first number is the order of the highpass filter
+        order: int, tuple (int, int) (default: 10)
+            the order of the butterworth filter on the analytic efield. If a tuple of
+            two integers is given, the first number is the order of the highpass filter
             and the second number is the order of the lowpass filter.
         use_MC_direction: bool
             use simulated direction instead of reconstructed direction

@@ -52,7 +52,8 @@ def get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_r
 
     order:
         default 10
-        The order of the butterworth filter. If a list of two numbers is given, the first number is the order of the highpass filter and the second number is the order of the lowpass filter.
+        The order of the butterworth filter. If a tuple of two integers is given, the first number is the order of
+        the highpass filter and the second number is the order of the lowpass filter.
 
     quadratic_term:
         default 0
@@ -83,7 +84,7 @@ def get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_r
             b, a = scipy.signal.butter(order, bandpass, 'bandpass', analog=True)
             w, h = scipy.signal.freqs(b, a, frequencies)
             xx *= h
-        elif isinstance(order, list) and len(order) == 2:
+        elif isinstance(order, tuple) and len(order) == 2:
             b, a = scipy.signal.butter(order[0], bandpass[0], 'highpass', analog=True)
             w, h = scipy.signal.freqs(b, a, frequencies)
             xx *= h
@@ -120,9 +121,11 @@ def get_analytic_pulse(amp_p0, amp_p1, phase_p0, n_samples_time,
 
     bandpass:
         default None
+
     order:
         default 10
-        The order of the butterworth filter. If a list of two numbers is given, the first number is the order of the highpass filter and the second number is the order of the lowpass filter.
+        The order of the butterworth filter. If a tuple of two integers is given, the first number is the order of
+        the highpass filter and the second number is the order of the lowpass filter.
 
     quadratic_term:
         default 0

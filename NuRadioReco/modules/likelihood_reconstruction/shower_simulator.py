@@ -9,6 +9,9 @@ import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import showerParameters as shp
 import NuRadioReco.modules.channelAddCableDelay
+from NuRadioReco.detector import detector
+from NuRadioMC.utilities import medium
+from NuRadioMC.SignalProp import propagation
 
 import logging
 logger = logging.getLogger('NuRadioReco.ShowerSimulator')
@@ -92,23 +95,12 @@ class ShowerSimulator:
         self.station_id = station_id
         self.reference_channel = reference_channel
 
-        # Initialize the relavant modules using the simulation class:
-        dummy_input_file = [{"xx": [None, None]}, [None, None]]
-        class mySimulation(sim.simulation):
-            def _detector_simulation_filter_amp(self, evt, station, det):
-                detector_simulation_filter_amp(evt, station, det)
-        sim_class = mySimulation(
-            inputfilename = dummy_input_file,
-            outputfilename = "dummy_output_file.hdf5",
-            detectorfile = detectorfile,
-            det = det,
-            config_file = config_file,
-            evt_time = evt_time
-        )
-        self.config = sim_class._config
-        self.det = sim_class._det
-        self.propagator = sim_class._propagator
-        self.ice = sim_class._ice
+        # Initialize the relavant detector, simulation config, ice model, and propagator:
+        self.det = detector.Detector(json_filename=detectorfile) if det is None else det
+        self.config = sim.get_config(config_file)
+        self.ice = medium.get_ice_model(self.config['propagation']['ice_model'])
+        prop_module = propagation.get_propagation_module(self.config['propagation']['module'])
+        self.propagator = prop_module(self.ice, detector=self.det, config=self.config)
 
         if use_channels is not None:
             self.channel_ids = use_channels
@@ -233,15 +225,15 @@ class ShowerSimulator:
         Parameters
         ----------
         energy: float
-            Energy of the shower to simulate in eV
+            Energy of the shower to simulate
         zenith: float
-            Zenith angle of the shower to simulate in radians
+            Zenith angle of the shower to simulate
         azimuth: float
-            Azimuth angle of the shower to simulate in radians
+            Azimuth angle of the shower to simulate
         vertex: array-like
-            Vertex position of the shower in Cartesian coordinates (x,y,z) in meters
+            Vertex position of the shower in Cartesian coordinates (x,y,z)
         vertex_time: float
-            Time of the shower in ns
+            Time of the shower
         type: string
             Type of the shower, either "HAD" or "EM"
         charge_excess_profile_id: int
@@ -285,19 +277,19 @@ class ShowerSimulator:
         Parameters
         ----------
         energy: float
-            Energy of the shower to simulate in eV
+            Energy of the shower to simulate
         zenith: float
-            Zenith angle of the shower to simulate in radians
+            Zenith angle of the shower to simulate
         azimuth: float
-            Azimuth angle of the shower to simulate in radians
+            Azimuth angle of the shower to simulate
         vertex_r: float
-            Radial distance of the shower vertex from the origin in meters
+            Radial distance of the shower vertex from the origin
         vertex_theta: float
-            Polar angle of the shower vertex in radians
+            Polar angle of the shower vertex
         vertex_phi: float
-            Azimuthal angle of the shower vertex in radians
+            Azimuthal angle of the shower vertex
         vertex_time: float
-            Time of the shower in ns
+            Time of the shower
         type: string
             Type of the shower, either "HAD" or "EM"
         charge_excess_profile_id: int
@@ -344,11 +336,11 @@ class ShowerSimulator:
         Parameters
         ----------
         energy: float
-            Energy of the shower to simulate in eV
+            Energy of the shower to simulate
         zenith: float
-            Zenith angle of the shower to simulate in radians
+            Zenith angle of the shower to simulate
         azimuth: float
-            Azimuth angle of the shower to simulate in radians
+            Azimuth angle of the shower to simulate
         vertex_r_rel: float
             Radial distance of the shower vertex from the reference antenna
         vertex_theta_rel: float

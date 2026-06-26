@@ -126,8 +126,8 @@ reco.begin(n_channels, n_samples, sampling_rate, filter, noise_amplitude, [filte
 signal_fit, parameters_fit, minus_two_llh = reco.run(evt, station, det, use_MC_direction=True, full_output=True)
 
 efield_reco = station.get_electric_fields()[0]
-print("Reconstructed fluence: (", np.round(efield_reco[efp.signal_energy_fluence], 3), "+/-", np.round(efield_reco.get_parameter_error(efp.signal_energy_fluence), 3), ") eV/m^2")
-print("Reconstructed polarization angle: (", np.round(efield_reco[efp.polarization_angle] / units.degree % 180, 3), "+/-", np.round(efield_reco.get_parameter_error(efp.polarization_angle) / units.degree, 3), ") degree")
+print(f"Reconstructed fluence: ({np.round(efield_reco[efp.signal_energy_fluence], 3):.3f} +/- {np.round(efield_reco.get_parameter_error(efp.signal_energy_fluence), 3):.3f}) eV/m^2")
+print(f"Reconstructed polarization angle: ({np.round(efield_reco[efp.polarization_angle] / units.degree % 180, 3):.3f} +/- {np.round(efield_reco.get_parameter_error(efp.polarization_angle) / units.degree, 3):.3f}) degree")
 
 
 # Plot data traces and reconstructed signal:
