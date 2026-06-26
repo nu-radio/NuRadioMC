@@ -88,9 +88,9 @@ minimizer = minimization.Minimizer(
     signal_function = signal_model,
     objective_function = likelihood_calculator.calculate_minus_two_delta_llh,
     parameters_initial = [8*units.mV, 105*units.MHz, 5.5*units.ns, t0_true+0.05], # assuming that we have good guesses for the paramters
-    parameters_bounds = [[0, 10*units.mV], [10*units.MHz, 10000*units.MHz], [1*units.ns, 100*units.ns], [0, max(t_array)]]
+    parameters_bounds = [[0, 10*units.mV], [10*units.MHz, 10000*units.MHz], [1*units.ns, 100*units.ns], [0, max(t_array)]],
+    normalization = np.array([units.mV, units.MHz, units.ns, units.ns] # fit performed in units of mV, MHz, and ns
 )
-minimizer.set_scaling(np.array([1/units.mV, 1/units.MHz, 1/units.ns, 1/units.ns])) # fit performed in units of mV, MHz, and ns
 m = minimizer.run_minimization(data=data_traces[i_noise], method="minuit")
 
 print("Minus two delta LLH (true):", likelihood_calculator.calculate_minus_two_delta_llh(data_traces[i_noise], signal_true))

@@ -40,6 +40,15 @@ class Minimizer:
             returns a signal. The type and shape of the output depends on what happens in the user-defined objective_function,
             but it could be a numpy array with shape [n_antennas, n_samples] containing a radio signal in a number channels,
             or a list of channels.
+        normalization : numpy.ndarray (optional)
+            Set normalization factors for the parameters before fitting. Each parameter is divided bythis value internally,
+            which can help with minimizer stability when parameters have different scales. This can, e.g., be set to the
+            natural units of a problem (PeV, km, deg, ...) or to the expected/estimated uncertainties on the parameters.
+            Should be a numpy array with length n_parameters. If set to None, a normalization of 1 (i.e., no noramlization
+            will be used).
+        fixed : list(bool)
+            Wheter to fix some of the parameters in the optimization. Should be a list of bools with length n_parameters.
+            If left as None, all parameters will be free in the optimization.
         save_history : bool (optional)
             Whether to save the history of the parameters in the minimization process. This should only be used for debugging as it can create very large arrays
             and make the minimization slow.
@@ -47,7 +56,7 @@ class Minimizer:
             Whether to print debug information during the minimization process.
     """
 
-    def __init__(self, objective_function, parameters_initial, parameters_bounds, signal_function=None, save_history=False, debug=False):
+    def __init__(self, objective_function, parameters_initial, parameters_bounds, normalization=None, fixed=None, signal_function=None, save_history=False, debug=False):
         self.data = None
         self.signal_function = signal_function
         self.objective_function = objective_function
@@ -55,7 +64,7 @@ class Minimizer:
         self.n_parameters = len(parameters_initial)
         self.parameters_bounds = parameters_bounds
         self.fixed = np.zeros(self.n_parameters,dtype=bool)
-        self.scaling = np.ones(self.n_parameters)
+        self.normalization = normalization if normalization is not None else np.ones(self.n_parameters)
         self.n_function_calls = 0
         self.save_history = save_history
         if self.save_history: self.history = []
@@ -68,38 +77,32 @@ class Minimizer:
         self.history = np.array([parameters_initial])
         self.success = None
 
-    def _function_to_minimize(self, parameters_scaled):
+        if fixed is not None:
+            self.fix_parameters(fixed)
+
+    def _function_to_minimize(self, parameters_normalized):
+
+        parameters_physical = parameters_normalized * self.normalization
 
         if self.signal_function is not None:
-            signal = self.signal_function(parameters_scaled * self.scaling**-1)
+            signal = self.signal_function(parameters_physical)
             self.n_function_calls += 1
             result = self.objective_function(self.data, signal)
         else:
             self.n_function_calls += 1
-            result = self.objective_function(parameters_scaled * self.scaling**-1)
+            result = self.objective_function(parameters_physical)
 
         if self.save_history:
-            self.history = np.append(self.history, [parameters_scaled * self.scaling**-1], axis = 0)
+            self.history = np.append(self.history, [parameters_physical], axis = 0)
 
         if self.debug:
-            print(f"Function call {self.n_function_calls}: parameters={parameters_scaled * self.scaling**-1}, result={result}")
+            print(f"Function call {self.n_function_calls}: parameters={parameters_physical}, result={result}")
 
         return result
 
     def fix_parameters(self, fixed):
         assert len(fixed) == self.n_parameters, "Fixed parameters should match number of parameters"
         self.fixed = fixed
-
-    def set_scaling(self, scaling):
-        """
-        Set scaling of parameters to use when fitting. This can help with minimizer stability.
-
-        Parameters
-        ----------
-            scaling : numpy.ndarray
-                Factors to scale each parameter with. Should be a numpy array with length n_parameters.
-        """
-        self.scaling = scaling
         
     def run_minimization(self, method, data=None, **method_kwargs):
         """
@@ -133,51 +136,6 @@ class Minimizer:
             raise ValueError(f"Unknown minimizer: {method}")
 
         return result_object
-
-    def run_many_minimizations(self, datasets, method, signal_true=None, **method_kwargs):
-        """
-        Run minimization algorithm for many datasets containing a signal. Can be used for bootstrapping of one true signal with many different realizations of noise.
-        Only works if a signal_function is provided.
-
-        Parameters
-        ----------
-            datasets : numpy.ndarray
-                Array containing many datasets with signals to reconstruct. Has dimensions [n_events,n_Antennas,n_samples]
-            method : str
-                Name of the method used to run the minimization
-            signal_true : numpy.ndarray (optional)
-                For simulated data, the likelihood for the true signal (without noise) can be calculated. This can later be
-                used to plot the likelihood or chi-square distribution.
-
-        Returns
-        -------
-            parameters_array : numpy.ndarray
-                Array containing the best fit parameters for each event. Has dimensions [n_events,n_parameters]
-            results_array : numpy.ndarray
-                Array containing the best fit objective function value for each event. Has dimensions [n_events]
-            results_true_array : numpy.ndarray
-                If signal_true is provided, this array contains the objective function value for the true signal
-                (without noise) for each event. Has dimensions [n_events]
-        """
-        n_events = len(datasets)
-
-        # Initialize arrays:
-        parameters_array = np.zeros([n_events, self.n_parameters])
-        results_array = np.zeros([n_events])
-        results_true_array = np.zeros([n_events])
-
-        # Loop over events:
-        for i_event in range(n_events):
-            try:
-                self.run_minimization(method=method, data=datasets[i_event, :, :], **method_kwargs)
-            except:
-                pass
-            parameters_array[i_event, :] = self.parameters
-            results_array[i_event] = self.result
-            if signal_true is not None:
-                results_true_array[i_event] = self.objective_function(datasets[i_event, :, :], signal_true)
-
-        return parameters_array, results_array, results_true_array
 
     def profile_scan_1D(self, method, i_parameter_scan, parameter_grid_x, data=None, profile=True,true_value=None, plot=True, **method_kwargs):
         """
@@ -214,7 +172,7 @@ class Minimizer:
             plt.plot([min(parameter_grid_x), max(parameter_grid_x)], [4,4], ":", label=r"$2\sigma$")
             plt.plot([min(parameter_grid_x), max(parameter_grid_x)], [6,6], ":", label=r"$3\sigma$")
             plt.plot([best_fit_x,best_fit_x], [0,100], "y--", label="Fit")
-            if true_value is not None: plt.plot([true_value, true_value],[0, 100],"r--", label="True")
+            if true_value is not None: plt.axvline(true_value, color='r', linestyle='--', label="True")
             plt.axis([parameter_grid_x[0], parameter_grid_x[-1], 0, axis[3]*1.2])
             plt.xlabel(r"Parameter [au]")
             plt.ylabel(r"Objective value")
@@ -292,14 +250,14 @@ class Minimizer:
         import scipy.optimize as opt
         
         # Fix parameters:
-        bounds_scipy = np.copy(self.parameters_bounds) * np.array([self.scaling, self.scaling]).T
-        bounds_scipy[self.fixed,0] = self.parameters_initial[self.fixed]
-        bounds_scipy[self.fixed,1] = self.parameters_initial[self.fixed]
+        bounds_scipy = np.copy(self.parameters_bounds) / np.array([self.normalization, self.normalization]).T
+        bounds_scipy[self.fixed,0] = self.parameters_initial[self.fixed] / self.normalization[self.fixed]
+        bounds_scipy[self.fixed,1] = self.parameters_initial[self.fixed] / self.normalization[self.fixed]
 
         # Perform minimization:
         result = opt.minimize(
             self._function_to_minimize,
-            x0 = self.parameters_initial * self.scaling,
+            x0 = self.parameters_initial / self.normalization,
             tol = tol,
             bounds = bounds_scipy,
             method = scipy_method,
@@ -309,7 +267,7 @@ class Minimizer:
         # Save results:
         self.success = result.success
         self.result = result.fun
-        self.parameters = result.x * self.scaling**-1
+        self.parameters = result.x * self.normalization
 
         return result
 
@@ -319,11 +277,11 @@ class Minimizer:
         # Initialze minimizer:
         m = Minuit(
             self._function_to_minimize,
-            self.parameters_initial * self.scaling
+            self.parameters_initial / self.normalization
         )
         
         # Set bounds:
-        m.limits = self.parameters_bounds * np.array([self.scaling, self.scaling]).T
+        m.limits = self.parameters_bounds / np.array([self.normalization, self.normalization]).T
         
         # Fix parameters:
         for i_param in range(self.n_parameters):
@@ -341,7 +299,7 @@ class Minimizer:
         # Save results:
         self.success = m.valid
         self.result = m.fval
-        self.parameters = np.array(m.values) * self.scaling**-1
+        self.parameters = np.array(m.values) * self.normalization
 
         return m
     
@@ -350,14 +308,14 @@ class Minimizer:
 
         res = minimizeCompass(
             self._function_to_minimize,
-            bounds = self.parameters_bounds * np.array([self.scaling, self.scaling]).T,
-            x0 = self.parameters_initial * self.scaling,
+            bounds = self.parameters_bounds / np.array([self.normalization, self.normalization]).T,
+            x0 = self.parameters_initial / self.normalization,
             deltatol = deltatol,
             paired = paired)
 
         self.success = res.success
         self.result = res.fun
-        self.parameters = np.array(res.x) * self.scaling**-1
+        self.parameters = np.array(res.x) * self.normalization
 
         return res
 
@@ -365,11 +323,11 @@ class Minimizer:
         from skopt import gp_minimize
 
         # Convert bounds to list of tuples
-        bounds_scaled = self.parameters_bounds * np.array([self.scaling, self.scaling]).T
+        bounds_scaled = self.parameters_bounds / np.array([self.normalization, self.normalization]).T
         dimensions = [(bounds_scaled[i_param, 0], bounds_scaled[i_param, 1]) for i_param in range(len(bounds_scaled))]
 
         # Ensure x0 is a list of scalars
-        x0_scaled = (self.parameters_initial * self.scaling).tolist()
+        x0_scaled = (self.parameters_initial / self.normalization).tolist()
 
         res = gp_minimize(
             self._function_to_minimize,
@@ -382,7 +340,7 @@ class Minimizer:
 
         self.success = None
         self.result = res.fun
-        self.parameters = np.array(res.x) * self.scaling**-1
+        self.parameters = np.array(res.x) * self.normalization
 
         return res
 
@@ -394,7 +352,7 @@ class Minimizer:
 
         # Initialize variables
         current_step_size = np.copy(initial_step_size)
-        current_parameters = self.parameters_initial * self.scaling
+        current_parameters = self.parameters_initial / self.normalization
         self.success = None
         old_result = 0
         best_result = None
@@ -410,17 +368,17 @@ class Minimizer:
                 break
 
             # Get gradient
-            gradient = opt.approx_fprime(current_parameters, self._function_to_minimize, epsilon=epsilon * self.scaling)
+            gradient = opt.approx_fprime(current_parameters, self._function_to_minimize, epsilon=epsilon / self.normalization)
             step_direction = -gradient / np.linalg.norm(gradient)
 
             # Update parameters
             current_parameters += current_step_size * step_direction
 
             # Clip parameters to bounds
-            if any(current_parameters < self.parameters_bounds[:, 0] * self.scaling) or any(current_parameters > self.parameters_bounds[:, 1] * self.scaling):
+            if any(current_parameters < self.parameters_bounds[:, 0] / self.normalization) or any(current_parameters > self.parameters_bounds[:, 1] / self.normalization):
                 current_parameters = np.clip(current_parameters,
-                                             self.parameters_bounds[:, 0] * self.scaling,
-                                             self.parameters_bounds[:, 1] * self.scaling)
+                                             self.parameters_bounds[:, 0] / self.normalization,
+                                             self.parameters_bounds[:, 1] / self.normalization)
 
             # Calculate objective function
             result = self._function_to_minimize(current_parameters)
@@ -434,14 +392,11 @@ class Minimizer:
             # save result
             #old_result = np.copy(result)
             if best_result is None or result < best_result:
-                del best_result
-                del best_parameters
-                del best_call
                 best_result = np.copy(result)
                 best_parameters = np.copy(current_parameters)
                 best_call = np.copy(call)
 
         self.result = best_result
-        self.parameters = best_parameters * self.scaling**-1
+        self.parameters = best_parameters * self.normalization
 
         return best_result

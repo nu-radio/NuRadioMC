@@ -17,7 +17,7 @@ from NuRadioReco.modules.likelihood_reconstruction.shower_simulator import Showe
 from radiotools import helper as hp
 
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-efieldToVoltageConverter.begin(debug=False, pre_pulse_time=200*units.ns, post_pulse_time=200*units.ns, caching=False)
+efieldToVoltageConverter.begin(pre_pulse_time=200*units.ns, post_pulse_time=200*units.ns, caching=False)
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelBandPassFilter.begin()
 electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
@@ -442,7 +442,7 @@ class neutrinoLikelihoodReconstructor:
         Reconstruct the signal from the given data and the provided signal model using the initial guess of the signal parameters.
         """
 
-        scaling = np.array([units.EeV, units.rad, units.rad, units.km, units.deg, units.deg, units.ns])
+        normalization = np.array([units.EeV, units.rad, units.rad, units.km, units.deg, units.deg, units.ns])
 
         if bounds is None:
             bounds = np.array([(1 * units.PeV, 100 * units.EeV),
@@ -462,10 +462,10 @@ class neutrinoLikelihoodReconstructor:
                 objective_function = self._function_to_minimize_mf,
                 parameters_initial = parameters_initial,
                 parameters_bounds = bounds,
-                debug=self.debug
+                normalization = normalization,
+                fixed = [True, False, False, False, False, False, True],
+                debug = self.debug
             )
-            minimizer_mf.fix_parameters([True, False, False, False, False, False, True])
-            minimizer_mf.set_scaling(scaling)
             m_mf = minimizer_mf.run_minimization(data=data, method="minuit")
 
             params_fit_mf = minimizer_mf.parameters
@@ -483,10 +483,10 @@ class neutrinoLikelihoodReconstructor:
                 objective_function = self._function_to_minimize_llh,
                 parameters_initial = parameters_initial_amplitude,
                 parameters_bounds = bounds,
+                normalization = normalization,
+                fixed = [False, True, True, True, True, True, True],
                 debug=self.debug
             )
-            minimizer_amplitude.fix_parameters([False, True, True, True, True, True, True])
-            minimizer_amplitude.set_scaling(scaling)
             m_amplitude = minimizer_amplitude.run_minimization(data=data, method="minuit")
             energy_guess = minimizer_amplitude.parameters[0]
 
@@ -501,10 +501,10 @@ class neutrinoLikelihoodReconstructor:
             objective_function = self._function_to_minimize_llh,
             parameters_initial = parameters_initial_llh,
             parameters_bounds = bounds,
+            normalization = normalization,
+            fixed = [False, False, False, False, False, False, False],
             debug = self.debug
         )
-        minimizer_llh.set_scaling(scaling)
-
         m = minimizer_llh.run_minimization(data=data, method="minuit")
 
         params_fit = minimizer_llh.parameters
@@ -513,10 +513,10 @@ class neutrinoLikelihoodReconstructor:
         # Estimate 1st-order uncertainties using the Fisher information matrix:
         dx = np.array([1e-6, 1e-6, 1e-6, 1e-4, 1e-6, 1e-6, 1e-4])
         def signal_function_scaled(params_scaled):
-            params = params_scaled * scaling
+            params = params_scaled * normalization
             return signal_function(params)
-        fisher_information_matrix_fit = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function_scaled, params_fit / scaling, dx)
+        fisher_information_matrix_fit = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function_scaled, params_fit / normalization, dx)
         f_i_fit = np.linalg.pinv(fisher_information_matrix_fit)
-        uncertainties_fit = np.sqrt(np.diag(f_i_fit)) * scaling
+        uncertainties_fit = np.sqrt(np.diag(f_i_fit)) * normalization
 
         return minus_two_llh_initial, minus_two_llh_fit, params_fit, uncertainties_fit

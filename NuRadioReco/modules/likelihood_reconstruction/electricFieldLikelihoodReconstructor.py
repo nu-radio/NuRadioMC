@@ -326,7 +326,7 @@ class electricFieldLikelihoodReconstructor:
         Calculate the chi2 value between the data and the signal.
         """
         if isinstance(self.Vrms, np.ndarray) or isinstance(self.Vrms, list):
-            sigma = self.Vrms[:,None]
+            sigma = np.array(self.Vrms)[:,None]
         else:
             sigma = self.Vrms
         chi2 = np.sum((data - signal)**2 / sigma**2)
@@ -566,7 +566,7 @@ class electricFieldLikelihoodReconstructor:
         fisher_information_matrix = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, parameters_initial, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
         f_i = np.linalg.pinv(fisher_information_matrix)
         uncertainties_1 = np.sqrt(np.diag(f_i))
-        scaling = np.append(1 / uncertainties_1, [1, 1]) if not self.zenith_azimuth_free else 1 / uncertainties_1
+        normalization = np.append(uncertainties_1, [1, 1]) if not self.zenith_azimuth_free else uncertainties_1
 
 
         bounds = np.array([
@@ -594,12 +594,12 @@ class electricFieldLikelihoodReconstructor:
             objective_function = self._function_to_minimize_mf,
             parameters_initial = parameters_initial,
             parameters_bounds = bounds,
+            normalization = normalization,
         )
         if self.zenith_azimuth_free:
             minimizer_mf.fix_parameters([True, False, False, False, True, not(second_order), False, False])
         else:
             minimizer_mf.fix_parameters([True, False, False, False, True, not(second_order), True, True])
-        minimizer_mf.set_scaling(scaling)
 
         m = minimizer_mf.run_minimization(data=data, method="minuit")
 
@@ -630,11 +630,17 @@ class electricFieldLikelihoodReconstructor:
             bounds[4][0] = bounds[4][0] - (bounds[4][1] - bounds[4][0]) / 2
             bounds[4][1] = bounds[4][1] + (bounds[4][1] - bounds[4][0]) / 2
 
+        fisher_information_matrix2 = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, fitted_params_1, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
+        f_i_2 = np.linalg.pinv(fisher_information_matrix2)
+        uncertainties_2 = np.sqrt(np.diag(f_i_2))
+        normalization_2 = np.append(uncertainties_2, [1, 1]) if not self.zenith_azimuth_free else uncertainties_2
+
         minimizer_llh = minimization.Minimizer(
             signal_function = signal_function,
             objective_function = self._function_to_minimize_llh,
             parameters_initial = parameters_initial_2,
             parameters_bounds = bounds,
+            normalization = normalization_2
         )
 
         if self.zenith_azimuth_free:
@@ -642,11 +648,6 @@ class electricFieldLikelihoodReconstructor:
         else:
             minimizer_llh.fix_parameters([False, False, False, False, False, not(second_order), True, True])
 
-        fisher_information_matrix2 = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, fitted_params_1, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
-        f_i_2 = np.linalg.pinv(fisher_information_matrix2)
-        uncertainties_2 = np.sqrt(np.diag(f_i_2))
-        scaling_2 = np.append(1 / uncertainties_2, [1, 1]) if not self.zenith_azimuth_free else 1 / uncertainties_2
-        minimizer_llh.set_scaling(scaling_2)
 
         m = minimizer_llh.run_minimization(data=data, method="minuit")
 
