@@ -171,53 +171,36 @@ class neutrinoLikelihoodReconstructor:
         Run the likelihood reconstruction to fit a hadronic shower signal model to the traces in the station object.
 
         The reconstructed values are saved to the station and a shower object which is added to the station.
-
-        Optionally, if full_output is True, the reconstructed parameters, likelihood values, and fit p-values are returned.
+        If ``full_output`` is ``True``, the reconstructed parameters, likelihood values, and fit p-values are returned.
 
         Parameters
         ----------
-        evt: NuRadioReco.framework.event.Event
-            The event to run the module on
-
-        station: NuRadioReco.framework.station.Station
-            The station object containing the channels with the data traces
-
-        det: NuRadioReco.framework.detector.Detector
+        evt : NuRadioReco.framework.event.Event
+            The event to run the module on.
+        station : NuRadioReco.framework.station.Station
+            The station object containing the channels with the data traces.
+        det : NuRadioReco.framework.detector.Detector
             The detector description.
-
-        parameters_initial: np.ndarray
-            Initial guess of the parameters for the reconstruction. Should be an array of
-            length 7 containing the following parameters in this order:
-            [energy, zenith, azimuth, vertex_r_rel, vertex_theta_rel, vertex_phi_rel, pulse_time]
-            in standard NuRadioMC units. The parameters are:
-            - energy: The shower energy
-            - zenith and azimuth: The arrival direction of the neutrino / shower
-            - vertex_r_rel, vertex_theta_rel, vertex_phi_rel: The spherical coordinates
-                of the shower vertex relative to the reference antenna
-            - pulse_time: The approximate time of the pulse in the readout trace of the
-                reference antenna relative to the start of the trace (this doesn't account
-                for antenna group delay). It can be estimated from the time of the peak in
-                the reference antenna trace.
-
-        charge_excess_profile_id: int, optional
-            ID of the charge excess profile to use in the shower simulation. Not used for Alvarez2009. Default: 0
-
-        use_channels: list, optional
-            List of channel IDs to be used for the reconstruction. If None, all channels are used.
-
-        full_output: bool, optional
-            If True, return the reconstructed signal, the signal parameters and the minus two
-            log-likelihood of the reconstructed signal. Default: False
-
-        two_step_optimization: bool, optional
-            If True, the reconstruction performs two minimizations. The first uses a matched filter approach to profile
-            over amplitude and time for every step of the minimization, i.e., fitting only the shape of the signal. The
-            fit is then fine-tuned in a second -2LLH fit. If False, the first step is skipped.
-
-        full_output: bool, optional
-            Wether to return parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, and p_value_fit
-
-        bounds: np.ndarray, optional
+        parameters_initial : np.ndarray
+            Initial guess of the parameters for the reconstruction. The array should contain seven values in the
+            order ``[energy, zenith, azimuth, vertex_r_rel, vertex_theta_rel, vertex_phi_rel, pulse_time]``.
+            The first three describe the shower energy and direction, the next three describe the shower vertex
+            relative to the reference antenna, and the last value is the approximate pulse time relative to the
+            trace start.
+        charge_excess_profile_id : int, optional
+            ID of the charge excess profile to use in the shower simulation. Not used for Alvarez2009.
+        use_channels : list, optional
+            List of channel IDs to be used for the reconstruction. If ``None``, all channels are used.
+        reference_channel : int, optional
+            Index of the reference channel for the reconstruction.
+        two_step_optimization : bool, optional
+            If ``True``, the reconstruction performs two minimizations. The first uses a matched filter approach to
+            profile over amplitude and time for every step of the minimization, and the fit is then fine-tuned in a
+            second ``-2LLH`` fit. If ``False``, the first step is skipped.
+        full_output : bool, optional
+            If ``True``, return the reconstructed signal, the signal parameters and the minus two log-likelihood of
+            the reconstructed signal.
+        bounds : np.ndarray, optional
             Bounds for the parameters to reconstruct. If set to None, the default values are used:
             - energy: 1 PeV to 100 EeV
             - zenith: 0 to 180 deg
