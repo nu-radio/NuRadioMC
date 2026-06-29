@@ -164,11 +164,15 @@ class ShowerSimulator:
             end_point = self.det.get_relative_position(self.station_id, self.reference_channel)
             self.propagator.set_start_and_end_point(start_point, end_point)
             self.propagator.find_solutions()
-            reference_travel_time = self.propagator.get_travel_time(0)
+            if self.propagator.get_number_of_solutions() > 0:
+                reference_travel_time = self.propagator.get_travel_time(0)
 
-            reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel)
+                reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel)
 
-            trace_start_times = np.repeat(reference_travel_time + reference_cable_delay - self.pre_pulse_time, len(self.channel_ids))
+                trace_start_times = np.repeat(reference_travel_time + reference_cable_delay - self.pre_pulse_time, len(self.channel_ids))
+            else:
+                logger.error("No ray-tracing solutions found for reference channel. It may be in the shadow zone.")
+                raise RuntimeError("No ray-tracing solutions found for reference channel. It may be in the shadow zone.")
 
         elif len(np.atleast_1d(trace_start_times)) == 1:
             trace_start_times = np.repeat(trace_start_times, len(self.channel_ids))
