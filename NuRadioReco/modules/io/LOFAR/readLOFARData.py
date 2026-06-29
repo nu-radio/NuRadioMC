@@ -871,7 +871,13 @@ class readLOFARData:
             station_files = self.__stations[station_name]['files']
             if len(station_files) > 0:
                 self.logger.info(f'Found files {station_files} for station {station_name}...')
-                self.__stations[station_name]['metadata'] = get_metadata(station_files, self.meta_dir)
+                try:
+                    self.__stations[station_name]['metadata'] = get_metadata(station_files, self.meta_dir)
+                except OSError as e:
+                    self.logger.warning(
+                        "Skipping station %s: %s", station_name, e
+                    )
+                    self.__stations[station_name]['files'] = []
 
         if self.__lora_timestamp == 0:
             for station_dict in self.__stations.values():

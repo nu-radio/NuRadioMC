@@ -2,7 +2,7 @@
 """
 iftOutput.py — reconstruction diagnostic plot for the NuRadioReco LOFAR IFT pipeline.
 
-Produces a multi-panel summary figure showing the lateral distribution function,
+Produces a multi-panel fancy summary figure showing the lateral distribution function,
 timing residuals, and posterior parameter distributions from the IFT reconstruction.
 
 .. moduleauthor:: Karen Terveer <karen.terveer@fau.de>
@@ -401,7 +401,7 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
                            title='Arrival Direction')
 
     os.makedirs(output_dir, exist_ok=True)
-    out_path = os.path.join(output_dir, f"reco_fancy_{event_id}.png")
+    out_path = os.path.join(output_dir, f"reco_plot_{event_id}.png")
     plt.savefig(out_path, dpi=150)
     plt.close()
     logger.info("Saved reconstruction plot to %s", out_path)

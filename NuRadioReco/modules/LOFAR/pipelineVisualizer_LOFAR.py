@@ -104,23 +104,32 @@ class pipelineVisualizer:
         cmap = get_cmap('jet')  
         norm = Normalize(vmin=0, vmax=num_stations-1) 
 
-        lora_core = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.core)
+        lora_shower = event.get_hybrid_information().get_hybrid_shower("LORA")
+        lora_core = lora_shower.get_parameter(showerParameters.core)
 
-        try:
-            core = event.get_first_shower().get_parameter(showerParameters.core)
-        except KeyError:
-            self.logger.warning("No radio core found, using LORA core instead")
+        radio_shower = event.get_first_shower()
+        if radio_shower is not None:
+            try:
+                core = radio_shower.get_parameter(showerParameters.core)
+                zenith = radio_shower.get_parameter(showerParameters.zenith) / units.rad
+                azimuth = radio_shower.get_parameter(showerParameters.azimuth) / units.rad
+            except KeyError:
+                self.logger.warning("Radio shower missing core/direction, using LORA instead")
+                core = lora_core
+                zenith = lora_shower.get_parameter(showerParameters.zenith) / units.rad
+                azimuth = lora_shower.get_parameter(showerParameters.azimuth) / units.rad
+        else:
+            self.logger.warning("No radio shower found, using LORA direction")
             core = lora_core
+            zenith = lora_shower.get_parameter(showerParameters.zenith) / units.rad
+            azimuth = lora_shower.get_parameter(showerParameters.azimuth) / units.rad
+
+        cs = radiotools.coordinatesystems.cstrafo(
+            zenith, azimuth, magnetic_field_vector=None, site="lofar"
+        )
 
         for i, station in enumerate(event.get_stations()):
             if station.get_parameter(stationParameters.triggered):
-
-                zenith = station.get_parameter(stationParameters.cr_zenith) / units.rad
-                azimuth = station.get_parameter(stationParameters.cr_azimuth) / units.rad
-
-                cs = radiotools.coordinatesystems.cstrafo(
-                    zenith, azimuth, magnetic_field_vector=None, site="lofar"
-                )
 
                 efields = station.get_electric_fields()
 

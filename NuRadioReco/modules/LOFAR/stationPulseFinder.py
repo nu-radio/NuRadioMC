@@ -300,53 +300,58 @@ class stationPulseFinder:
 
         for station in event.get_stations():
             station_id = station.get_id()
+            try:
+                # Get the channel IDs grouped per polarisation (i.e. dipole orientation)
+                # -> take these from Event, cause some might already be thrown out!
+                station_even_list = []
+                station_odd_list = []
+                for channel in station.iter_channels():
+                    if channel.get_id() == channel.get_group_id():
+                        station_even_list.append(channel.get_id())
+                    else:
+                        station_odd_list.append(channel.get_id())
 
-            # Get the channel IDs grouped per polarisation (i.e. dipole orientation)
-            # -> take these from Event, cause some might already be thrown out!
-            station_even_list = []
-            station_odd_list = []
-            for channel in station.iter_channels():
-                if channel.get_id() == channel.get_group_id():
-                    station_even_list.append(channel.get_id())
+                if not station_even_list or not station_odd_list:
+                    self.logger.warning(
+                        "Station %s does not have channels in both polarisations. Skipping.", station_id
+                    )
+                    station.set_parameter(stationParameters.triggered, False)
+                    continue
+
+                # Find the antenna positions by only looking at the channels from a given polarisation
+                position_array = [
+                    # detector.get_absolute_position(station_id) +
+                    # only use the relative position since the absolute position would introduce a time shift
+                    # in the beamformed timeseries which would lead to a time shift in the signal window.
+                    detector.get_relative_position(station_id, channel_id)
+                    for channel_id in station_even_list
+                ]
+                position_array = np.asarray(position_array)
+
+                # Find polarisation with max envelope amplitude and calculate pulse search window from it
+                dominant_pol = self._signal_windows_polarisation(
+                    station, position_array, [station_even_list, station_odd_list]
+                )
+
+                # Save the antenna orientation which contains the strongest pulse
+                if dominant_pol == 0:
+                    dominant_orientation = detector.get_antenna_orientation(station_id, station_even_list[0])
+                elif dominant_pol == 1:
+                    dominant_orientation = detector.get_antenna_orientation(station_id, station_odd_list[0])
                 else:
-                    station_odd_list.append(channel.get_id())
+                    raise ValueError(f"Dominant polarisation {dominant_pol} not recognised")
 
-            if not station_even_list or not station_odd_list:
+                station.set_parameter(stationParameters.cr_dominant_polarisation, dominant_orientation)
+
+                # Go over all the channels to check if individual SNR is strong enough
+                self._check_station_triggered(station)
+
+            except Exception as e:
                 self.logger.warning(
-                    "Station %s does not have channels in both polarisations. Skipping.", station_id
+                    "Station %s failed in pulse finder (%s: %s) — flagging as not triggered.",
+                    station_id, type(e).__name__, e,
                 )
                 station.set_parameter(stationParameters.triggered, False)
-                continue
-
-            # Find the antenna positions by only looking at the channels from a given polarisation
-            position_array = [
-                # detector.get_absolute_position(station_id) +    
-                # only use the relative position since the absolute position would introduce a time shift 
-                # in the beamformed timeseries which would lead to a time shift in the signal window.
-                detector.get_relative_position(station_id, channel_id)
-                for channel_id in station_even_list
-            ]
-            position_array = np.asarray(position_array)
-
-            # Find polarisation with max envelope amplitude and calculate pulse search window from it
-            dominant_pol = self._signal_windows_polarisation(
-                station, position_array, [station_even_list, station_odd_list]
-            )
-
-            # Save the antenna orientation which contains the strongest pulse
-            if dominant_pol == 0:
-                dominant_orientation = detector.get_antenna_orientation(station_id, station_even_list[0])
-            elif dominant_pol == 1:
-                dominant_orientation = detector.get_antenna_orientation(station_id, station_odd_list[0])
-            else:
-                raise ValueError(f"Dominant polarisation {dominant_pol} not recognised")
-
-            station.set_parameter(stationParameters.cr_dominant_polarisation, dominant_orientation)
-
-            # Go over all the channels to check if individual SNR is strong enough
-            self._check_station_triggered(
-                station
-            )
 
     def end(self):
         pass

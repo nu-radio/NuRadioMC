@@ -108,6 +108,20 @@ def _save_trace_snapshot(event, output_dir, stage):
         plt.close(fig)
 
 
+def _write_params_nur(event, output_dir):
+    """Write a .nur file containing only shower/station parameters (no channel traces or e-fields)."""
+    for station in event.get_stations():
+        for ch_id in list(station.get_channel_ids()):
+            station.remove_channel(ch_id)
+        station.set_electric_fields([])
+    path = os.path.join(output_dir, f"{event.get_id()}.nur")
+    writer = NuRadioReco.modules.io.eventWriter.eventWriter()
+    writer.begin(path)
+    writer.run(event)
+    writer.end()
+    LOGGER.info("Wrote parameters-only .nur to %s", path)
+
+
 def _save_pipeline_visualizer_plots(event, detector, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     visualizer = pipelineVisualizer_LOFAR.pipelineVisualizer()
@@ -215,7 +229,7 @@ def run_pipeline(args):
             output_directory=args.output_dir,
             debug_plots=args.debug_plots,
             debug_plot_dir=debug_dir,
-            run_nifty=True,
+            run_nifty=not args.no_nifty,
             step_deg=1.0,
             atmosphere_dir=args.atmosphere_dir,
             gdas_cache_dir=args.gdas_cache_dir,
@@ -233,6 +247,9 @@ def run_pipeline(args):
             writer.begin(args.output_nur)
             writer.run(event)
             writer.end()
+
+        os.makedirs(args.output_dir, exist_ok=True)
+        _write_params_nur(event, args.output_dir)
 
         processed_event = event
         break
@@ -282,6 +299,8 @@ def build_arg_parser():
                         help="Writable directory for downloaded GDAS binaries and newly generated "
                              "ATMOSPHERE_*.DAT files. Defaults to ~/.cache/lofar_gdas.")
 
+    parser.add_argument("--no-nifty", action="store_true",
+                        help="Skip the NIFTy/VI reconstruction (preprocessing and debug plots only)")
     parser.add_argument("--debug-plots", action="store_true")
     parser.add_argument("--log-level", default="INFO")
 

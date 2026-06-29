@@ -31,9 +31,9 @@ MIN_GRID_DIM = 64
 # Systematic CF parameters
 SYST_CF_ZM = dict(offset_mean=0.00, offset_std=(1e-3, 1e-4))
 SYST_TARGET_SIGMA = 0.05
-SYST_CF_FL = dict(fluctuations=(SYST_TARGET_SIGMA, SYST_TARGET_SIGMA*0.5), loglogavgslope=(-5.0, 2.5), flexibility=(0.1, 0.5))
-SYST_MULT_MIN = 0.85
-SYST_MULT_MAX = 1.15
+SYST_CF_FL = dict(fluctuations=(SYST_TARGET_SIGMA, SYST_TARGET_SIGMA), loglogavgslope=(-5.0, 2.5), flexibility=(0.1, 0.5))
+SYST_MULT_MIN = 0.8
+SYST_MULT_MAX = 1.2
 
 # Timing Correlated Fields
 TIMING_CF_ZM_2 = dict(offset_mean=0.0, offset_std=(1e-10, 1e-11))
@@ -127,8 +127,6 @@ class footprintModel(jft.Model):
         self.theta = jft.prior.UniformPrior(**params_theta, shape=(1,), name=prefix + "theta")
 
         self.X_max_prior = jft.prior.UniformPrior(**params_X_max, shape=(1,), name=prefix + "X_max")
-        # Separate latent so the wavefront Xmax is not coupled to the fluence Xmax.
-        self.X_max_timing_prior = jft.prior.UniformPrior(**params_X_max, shape=(1,), name=prefix + "X_max_timing")
 
         self.X_core = jft.prior.NormalPrior(**params_X, shape=(1,), name=prefix + "X")
         self.Y_core = jft.prior.NormalPrior(**params_Y, shape=(1,), name=prefix + "Y")
@@ -228,7 +226,6 @@ class footprintModel(jft.Model):
 
         # Initialize priors
         init = (self.log_Erad_prior.init | self.phi.init | self.theta.init | self.X_max_prior.init |
-                self.X_max_timing_prior.init |
                 self.X_core.init | self.Y_core.init | self.t0.init | self.noise_mean.init |
                 self.gamma_prior.init)
         if self.ldf_energy_scale_prior is not None:
@@ -272,8 +269,7 @@ class footprintModel(jft.Model):
         return jnp.reshape(xmax_val, (1,)) if xmax_val.ndim > 0 else xmax_val
 
     def X_max_timing(self, x):
-        xmax_val = self.X_max_timing_prior(x)
-        return jnp.reshape(xmax_val, (1,)) if xmax_val.ndim > 0 else xmax_val
+        return self.X_max(x)
 
     def fluence_dxmax_offset(self, x):
         if self.fluence_dxmax_offset_prior is None:

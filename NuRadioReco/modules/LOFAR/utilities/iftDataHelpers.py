@@ -668,8 +668,8 @@ def _station_roi_from_beamforming(station, detector, station_id, station_abs_pos
     return beamformed_time_ns - half_window, beamformed_time_ns + half_window
 
 
-_BANDPASS_EDGE_SAMPLES_START = 10000
-_BANDPASS_EDGE_SAMPLES_END = 55000
+_BANDPASS_EDGE_SAMPLES_START = 20000
+_BANDPASS_EDGE_SAMPLES_END = 45536
 
 
 def _noise_fluence_windows(efield_trace, efield_times, max_time_ns, fluence_window_ns):

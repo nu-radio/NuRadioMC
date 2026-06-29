@@ -18,7 +18,7 @@ from NuRadioReco.utilities import units
 _C_LIGHT = 299792458.0
 _FLUENCE_RELATIVE_SYSTEMATIC_ERROR = 0.10
 _LDF_ENERGY_SCALE_STD = 0.04
-_FAR_STATION_FLUENCE_ONLY_SNR = 15.0
+_FAR_STATION_FLUENCE_ONLY_SNR = 12.0
 _FAR_STATION_HIGH_SNR_THRESHOLD = 10.0
 _FAR_STATION_MIN_HIGH_SNR_ANTENNAS = 12
 _FLUENCE_MIN_NOISE_FACTOR = 0.05
@@ -29,16 +29,16 @@ _FALLBACK_ANTENNA_THRESHOLD = 48
 _FALLBACK_SNR_THRESHOLD = 6.0
 _CAUSALITY_CUT_DISTANCE_M = 600.0
 _TIMING_UNCERTAINTY_S = 1.5e-9
-_TIMING_SYST_INFLATION = 1.4
-_TIMING_UNCERT_THRESHOLD = 15e-9
-_MIN_TIMING_POINTS = 24
+_TIMING_SYST_INFLATION = 1.5
+_TIMING_UNCERT_THRESHOLD = 25e-9
+_MIN_TIMING_POINTS = 12
 _MIN_GOOD_TIMING_POINTS_RECO = 0
 _MIN_ABSOLUTE_NEIGHBORS = 8
-_DEFAULT_CORE_PRIOR_STD_M = 200.0
+_DEFAULT_CORE_PRIOR_STD_M = 120.0
 _FLUENCE_DXMAX_PRECISION_GPCM2 = 16.3
-_TIMING_DXMAX_PRECISION_GPCM2 = 50.0
-_DEFAULT_N_VI_ITERATIONS = 1
-_DEFAULT_N_SAMPLES = 20
+_TIMING_DXMAX_PRECISION_GPCM2 = 30.0
+_DEFAULT_N_VI_ITERATIONS = 8
+_DEFAULT_N_SAMPLES = 60
 _DEFAULT_SEED = 27
 _SAMPLING_MODE = "linear_sample"
 _RESAMPLING_MODE = "nonlinear_resample"
@@ -49,7 +49,7 @@ _TRIGGER_SNR_BUFFER_FRAC = 0.05
 _BROAD_SCAN_RANGE_DEG = 10.0
 _BROAD_STEP_DEG = 1.0
 _BROAD_SMOOTHING_NS = 5.0
-_RECO_STAGES = [{"window": 500.0}, {"window": 300.0}, {"window": 100.0}]
+_RECO_STAGES = [{"window": 300.0}, {"window": 200.0}, {"window": 100.0}]
 
 # E_rad → E_CR calibration coefficients (zenith-corrected formula, N=3991 events).
 # Formula: E_rad [MeV] = A * (sin²α + a²) * (B/B_ref)² * (E_CR/E_scale)^B * (1 + c·cos²θ)
@@ -353,7 +353,7 @@ class iftReconstructor:
             """E_rad → E_CR using the zenith-corrected calibration (module-level constants)."""
             zenith  = model.zen_and_az(x)[0]
             azimuth = model.zen_and_az(x)[1]
-            Erad_eV = model.Erad(x)
+            Erad_eV = model.Erad(x) / model.get_energy_correction_factor(x)
             B_vect  = jnp.array(model.magnetic_field_vector).squeeze()
             B_mag   = jnp.linalg.norm(B_vect)
             s_vec   = jnp.stack([
@@ -728,7 +728,8 @@ class iftReconstructor:
                             skip_lba_inner=skip_lba,
                         )
                         _snr_arr  = np.asarray(_snr_v, dtype=float)
-                        _high_msk = _snr_arr >= _FAR_STATION_HIGH_SNR_THRESHOLD
+                        _sig_arr  = np.asarray(_sig_v, dtype=bool)
+                        _high_msk = _sig_arr & (_snr_arr >= _FAR_STATION_FLUENCE_ONLY_SNR)
                         _n_high   = int(np.sum(_high_msk))
                         for i in range(len(_fl_v)):
                             if _sig_v[i] and _snr_v[i] >= _FAR_STATION_FLUENCE_ONLY_SNR:
@@ -971,6 +972,7 @@ class iftReconstructor:
 
         prev_redchisq = None
         n_stable      = 0
+        is_converged  = False
         for i_iter in range(n_vi):
             samples_liquid, opt_state = opt_vi.update(samples_liquid, opt_state)
             try:
@@ -991,10 +993,13 @@ class iftReconstructor:
                     i_iter + 1, n_vi, red_chisq, d_chisq, n_stable, _CONV_PATIENCE)
                 if n_stable >= _CONV_PATIENCE and (i_iter + 1) >= _CONV_MIN_ITERS:
                     self.logger.info("VI converged after %d iterations.", i_iter + 1)
+                    is_converged = True
                     break
             else:
                 self.logger.info("VI iter %d/%d: chi2/dof=%.3f", i_iter + 1, n_vi, red_chisq)
             prev_redchisq = red_chisq
+
+        n_vi_iters_run = i_iter + 1
 
         # TRIGGER FILTER
         samples_list = list(samples_liquid)
@@ -1006,6 +1011,7 @@ class iftReconstructor:
             snr_buffer_frac=_TRIGGER_SNR_BUFFER_FRAC,
         )
         n_kept = len(kept_idx)
+        n_discarded = len(samples_list) - n_kept
         self.logger.info("Trigger filter: %d/%d samples passed (min_stations=%d)",
                          n_kept, len(samples_list), min_trigger_stns)
         filtered_samples = [samples_list[i] for i in kept_idx] if n_kept > 1 else samples_list
@@ -1020,8 +1026,8 @@ class iftReconstructor:
         cx_s   = [_s(model.core(s_)[0])           for s_ in filtered_samples]
         cy_s   = [_s(model.core(s_)[1])           for s_ in filtered_samples]
         xmax_s = [_s(model.X_max_combined(s_))    for s_ in filtered_samples]
-        ecr_s  = [_s(_calculate_ecr(model, s_))    for s_ in filtered_samples]
-        erad_s = [_s(model.Erad(s_))              for s_ in filtered_samples]
+        ecr_s  = [_s(_calculate_ecr(model, s_))                                   for s_ in filtered_samples]
+        erad_s = [_s(model.Erad(s_) / model.get_energy_correction_factor(s_))  for s_ in filtered_samples]
 
         zen_mean,  zen_std  = (float(v) for v in jft.mean_and_std(zen_s,  correct_bias=True))
         cx_mean,   cx_std   = (float(v) for v in jft.mean_and_std(cx_s,   correct_bias=True))
@@ -1138,7 +1144,7 @@ class iftReconstructor:
             out_dir = s.get("output_directory") or os.getcwd()
             os.makedirs(out_dir, exist_ok=True)
             np.savez(
-                os.path.join(out_dir, f"reco_ift_{event.get_id()}.npz"),
+                os.path.join(out_dir, f"{event.get_id()}.npz"),
                 event_id=event.get_id(),
                 zenith=reco_zen, azimuth=reco_az, core=reco_core,
                 energy=reco_energy, xmax=reco_xmax, radiation_energy=reco_erad,
@@ -1149,10 +1155,15 @@ class iftReconstructor:
                 xmax_mean=xmax_mean, xmax_std=xmax_std,
                 ecr_mean=ecr_mean,   ecr_std=ecr_std,
                 erad_mean=erad_mean, erad_std=erad_std,
+                red_chisq=red_chisq, n_dof=n_dof_chisq,
+                is_converged=is_converged,
+                n_vi_iters=n_vi_iters_run, n_vi_max=n_vi,
+                n_samples_total=len(samples_list), n_samples_kept=n_kept,
+                n_samples_discarded=n_discarded,
+                n_efield_triggered=num_efield_triggered,
+                min_trigger_stations=min_trigger_stns,
                 n_antennas=len(fl), n_timing=int(np.sum(use_timing)),
                 noise_mean=noise_mean, sel_win=sel_win,
-                n_samples_total=len(samples_list), n_samples_kept=n_kept,
-                n_efield_triggered=num_efield_triggered,
                 fluences=fl, pos_x=posx, pos_y=posy, times=tm,
                 is_signal=is_sig, use_timing=use_timing, sids=sids,
             )
@@ -1213,7 +1224,7 @@ class iftReconstructor:
             output_directory = self.__settings.get("output_directory") or os.getcwd()
             os.makedirs(output_directory, exist_ok=True)
             np.savez(
-                os.path.join(output_directory, f"reco_simple_{event.get_id()}.npz"),
+                os.path.join(output_directory, f"{event.get_id()}.npz"),
                 event_id=event.get_id(),
                 zenith=zenith, azimuth=azimuth, core=core,
                 energy=energy,
