@@ -124,7 +124,7 @@ yy = np.array(fin['yy'])[triggered]
 zz = np.array(fin['zz'])[triggered]
 fig, ax = plotting.plot_vertex_distribution(xx, yy, zz, weights=weights, rmax=rmax, zmin=fin.attrs['zmin'],
                                            trigger_name=trigger_name)
-fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'), bbox='tight')
+fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'), bbox_inches='tight')
 
 ###########################
 # loop over all stations and produce station specific plots
