@@ -369,10 +369,11 @@ class LikelihoodCalculator:
                 Natural logarithm to the PDF value of the vector x given the multivariate normal distribution described by mu, cov_inv, and cov_log_det
         """
         n = self.n_samples
+        selection = noise_psd > np.max(noise_psd) * self.threshold_amplitude**2
         term_1 = -0.5 * n * np.log(2*np.pi)
-        term_2 = -0.5 * np.sum(np.log(noise_psd[noise_psd > np.max(noise_psd) * self.threshold_amplitude**2])) #-0.5 * self.cov_log_det[0]
-        integrand = abs(x_minus_mu_fft*x_minus_mu_fft.conj())/noise_psd
-        term_3 = -0.5 * 4*np.sum(integrand[noise_psd > np.max(noise_psd) * self.threshold_amplitude**2]) * (self.frequencies[1]-self.frequencies[0])
+        term_2 = -0.5 * np.sum(np.log(noise_psd[selection])) #-0.5 * self.cov_log_det[0]
+        integrand = abs(x_minus_mu_fft[selection] * x_minus_mu_fft.conj()[selection]) / noise_psd[selection]
+        term_3 = -0.5 * 4 * np.sum(integrand) * (self.frequencies[1] - self.frequencies[0])
         return term_1 + term_2 + term_3
 
     def calculate_delta_llh(self, data, signal=None, frequency_domain=False):
