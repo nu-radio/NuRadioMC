@@ -670,14 +670,20 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameter" title="NuRadioReco.framework.base_shower.BaseShower.get_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter</span></code></a>(key)</p></td>
 <td><p>Get a parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameter_error" title="NuRadioReco.framework.base_shower.BaseShower.get_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_error</span></code></a>(key)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameter_covariance" title="NuRadioReco.framework.base_shower.BaseShower.get_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_covariance</span></code></a>(key1, key2)</p></td>
+<td><p>Get the covariance of two parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameter_error" title="NuRadioReco.framework.base_shower.BaseShower.get_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_error</span></code></a>(key)</p></td>
 <td><p>Get the error of a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameters" title="NuRadioReco.framework.base_shower.BaseShower.get_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameters</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameters" title="NuRadioReco.framework.base_shower.BaseShower.get_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameters</span></code></a>()</p></td>
 <td><p>Get all parameters</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.has_parameter" title="NuRadioReco.framework.base_shower.BaseShower.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.has_parameter" title="NuRadioReco.framework.base_shower.BaseShower.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.has_parameter_covariance" title="NuRadioReco.framework.base_shower.BaseShower.has_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_covariance</span></code></a>(key1, key2)</p></td>
+<td><p>Returns <em class="xref py py-obj">True</em> if the covariance for <em class="xref py py-obj">key1</em> and <em class="xref py py-obj">key2</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.has_parameter_error" title="NuRadioReco.framework.base_shower.BaseShower.has_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_error</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if an uncertainty for the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
@@ -688,10 +694,13 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.set_parameter" title="NuRadioReco.framework.base_shower.BaseShower.set_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter</span></code></a>(key, value)</p></td>
 <td><p>Set a parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.set_parameter_error" title="NuRadioReco.framework.base_shower.BaseShower.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.set_parameter_covariance" title="NuRadioReco.framework.base_shower.BaseShower.set_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_covariance</span></code></a>(key1, key2, value)</p></td>
+<td><p>Set the covariance of two parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.set_parameter_error" title="NuRadioReco.framework.base_shower.BaseShower.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
 <td><p>Set the error of a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.show" title="NuRadioReco.framework.base_shower.BaseShower.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([show_parameters, print_stdout])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.show" title="NuRadioReco.framework.base_shower.BaseShower.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([show_parameters, print_stdout])</p></td>
 <td><p>Print an overview of the structure of the Shower.</p></td>
 </tr>
 </tbody>
@@ -804,6 +813,12 @@ Otherwise, return the string representation</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.get_parameter_covariance">
+<span class="sig-name descname"><span class="pre">get_parameter_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameter_covariance" title="Link to this definition"></a></dt>
+<dd><p>Get the covariance of two parameters</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.get_parameter_error">
 <span class="sig-name descname"><span class="pre">get_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.get_parameter_error" title="Link to this definition"></a></dt>
 <dd><p>Get the error of a parameter</p>
@@ -822,6 +837,12 @@ Otherwise, return the string representation</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.has_parameter_covariance">
+<span class="sig-name descname"><span class="pre">has_parameter_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.has_parameter_covariance" title="Link to this definition"></a></dt>
+<dd><p>Returns <em class="xref py py-obj">True</em> if the covariance for <em class="xref py py-obj">key1</em> and <em class="xref py py-obj">key2</em> is present, <em class="xref py py-obj">False</em> otherwise</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.has_parameter_error">
 <span class="sig-name descname"><span class="pre">has_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.has_parameter_error" title="Link to this definition"></a></dt>
 <dd><p>Returns <em class="xref py py-obj">True</em> if an uncertainty for the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p>
@@ -837,6 +858,12 @@ Otherwise, return the string representation</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.set_parameter">
 <span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.set_parameter" title="Link to this definition"></a></dt>
 <dd><p>Set a parameter</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.set_parameter_covariance">
+<span class="sig-name descname"><span class="pre">set_parameter_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.set_parameter_covariance" title="Link to this definition"></a></dt>
+<dd><p>Set the covariance of two parameters</p>
 </dd></dl>
 
 <dl class="py method">

@@ -680,29 +680,35 @@ a shower and ray tracing solution id</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter</span></code></a>(key)</p></td>
 <td><p>Get a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_error</span></code></a>(key)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter_covariance" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_covariance</span></code></a>(key1, key2)</p></td>
+<td><p>Get the covariance of two parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_error</span></code></a>(key)</p></td>
 <td><p>Get the error of a parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameters" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameters</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameters" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameters</span></code></a>()</p></td>
 <td><p>Get all parameters</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate" title="NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate" title="NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
 <td><p>Returns the sampling rate of the trace.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace" title="NuRadioReco.framework.sim_channel.SimChannel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace" title="NuRadioReco.framework.sim_channel.SimChannel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
 <td><p>Returns the time trace.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_channel</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_channel</span></code></a>()</p></td>
 <td><p>Returns the trigger channel of this channel.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
 <td><p>returns a unique identifier consisting of the tuple channel_id, shower_id and ray_tracing_id</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_extra_trigger_channel</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_extra_trigger_channel</span></code></a>()</p></td>
 <td><p>Returns True if an extra trigger channel is set, i.e., if <em class="xref py py-obj">self._trigger_channel</em> is not None.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter" title="NuRadioReco.framework.sim_channel.SimChannel.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter" title="NuRadioReco.framework.sim_channel.SimChannel.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter_covariance" title="NuRadioReco.framework.sim_channel.SimChannel.has_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_covariance</span></code></a>(key1, key2)</p></td>
+<td><p>Returns <em class="xref py py-obj">True</em> if the covariance for <em class="xref py py-obj">key1</em> and <em class="xref py py-obj">key2</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.has_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_error</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if an uncertainty for the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
@@ -719,16 +725,19 @@ a shower and ray tracing solution id</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter" title="NuRadioReco.framework.sim_channel.SimChannel.set_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter</span></code></a>(key, value)</p></td>
 <td><p>Set a parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter_covariance" title="NuRadioReco.framework.sim_channel.SimChannel.set_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_covariance</span></code></a>(key1, key2, value)</p></td>
+<td><p>Set the covariance of two parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
 <td><p>Set the error of a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate[, ...])</p></td>
 <td><p>Sets the time trace.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_channel</span></code></a>(trigger_channel)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_channel</span></code></a>(trigger_channel)</p></td>
 <td><p>Sets an extra trigger channel of this channel.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.show" title="NuRadioReco.framework.sim_channel.SimChannel.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([show_parameters, print_stdout])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.show" title="NuRadioReco.framework.sim_channel.SimChannel.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([show_parameters, print_stdout])</p></td>
 <td><p>Print an overview of the structure of this Channel/ElectricField object.</p></td>
 </tr>
 </tbody>
@@ -816,29 +825,35 @@ the channels of a single dual or triple polarized antenna as common in air showe
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter</span></code></a>(key)</p></td>
 <td><p>Get a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_error</span></code></a>(key)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter_covariance" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_covariance</span></code></a>(key1, key2)</p></td>
+<td><p>Get the covariance of two parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_error</span></code></a>(key)</p></td>
 <td><p>Get the error of a parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameters" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameters</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameters" title="NuRadioReco.framework.sim_channel.SimChannel.get_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameters</span></code></a>()</p></td>
 <td><p>Get all parameters</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate" title="NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate" title="NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
 <td><p>Returns the sampling rate of the trace.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace" title="NuRadioReco.framework.sim_channel.SimChannel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace" title="NuRadioReco.framework.sim_channel.SimChannel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
 <td><p>Returns the time trace.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_channel</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.get_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_channel</span></code></a>()</p></td>
 <td><p>Returns the trigger channel of this channel.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
 <td><p>returns a unique identifier consisting of the tuple channel_id, shower_id and ray_tracing_id</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_extra_trigger_channel</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.has_extra_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_extra_trigger_channel</span></code></a>()</p></td>
 <td><p>Returns True if an extra trigger channel is set, i.e., if <em class="xref py py-obj">self._trigger_channel</em> is not None.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter" title="NuRadioReco.framework.sim_channel.SimChannel.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter" title="NuRadioReco.framework.sim_channel.SimChannel.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter_covariance" title="NuRadioReco.framework.sim_channel.SimChannel.has_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_covariance</span></code></a>(key1, key2)</p></td>
+<td><p>Returns <em class="xref py py-obj">True</em> if the covariance for <em class="xref py py-obj">key1</em> and <em class="xref py py-obj">key2</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.has_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_error</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if an uncertainty for the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
@@ -855,16 +870,19 @@ the channels of a single dual or triple polarized antenna as common in air showe
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter" title="NuRadioReco.framework.sim_channel.SimChannel.set_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter</span></code></a>(key, value)</p></td>
 <td><p>Set a parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter_covariance" title="NuRadioReco.framework.sim_channel.SimChannel.set_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_covariance</span></code></a>(key1, key2, value)</p></td>
+<td><p>Set the covariance of two parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error" title="NuRadioReco.framework.sim_channel.SimChannel.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
 <td><p>Set the error of a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate[, ...])</p></td>
 <td><p>Sets the time trace.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_channel</span></code></a>(trigger_channel)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel" title="NuRadioReco.framework.sim_channel.SimChannel.set_trigger_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_channel</span></code></a>(trigger_channel)</p></td>
 <td><p>Sets an extra trigger channel of this channel.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.show" title="NuRadioReco.framework.sim_channel.SimChannel.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([show_parameters, print_stdout])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.show" title="NuRadioReco.framework.sim_channel.SimChannel.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>([show_parameters, print_stdout])</p></td>
 <td><p>Print an overview of the structure of this Channel/ElectricField object.</p></td>
 </tr>
 </tbody>
@@ -1103,6 +1121,12 @@ feature also on detector setups that don’t use this feature.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_parameter_covariance">
+<span class="sig-name descname"><span class="pre">get_parameter_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter_covariance" title="Link to this definition"></a></dt>
+<dd><p>Get the covariance of two parameters</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_parameter_error">
 <span class="sig-name descname"><span class="pre">get_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter_error" title="Link to this definition"></a></dt>
 <dd><p>Get the error of a parameter</p>
@@ -1176,6 +1200,12 @@ If no trigger channel is set, this just returns <code class="docutils literal no
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.has_parameter_covariance">
+<span class="sig-name descname"><span class="pre">has_parameter_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter_covariance" title="Link to this definition"></a></dt>
+<dd><p>Returns <em class="xref py py-obj">True</em> if the covariance for <em class="xref py py-obj">key1</em> and <em class="xref py py-obj">key2</em> is present, <em class="xref py py-obj">False</em> otherwise</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.has_parameter_error">
 <span class="sig-name descname"><span class="pre">has_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter_error" title="Link to this definition"></a></dt>
 <dd><p>Returns <em class="xref py py-obj">True</em> if an uncertainty for the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p>
@@ -1222,6 +1252,12 @@ If <em class="xref py py-obj">sampling_rate=”same”</em>, sampling rate is no
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_parameter">
 <span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter" title="Link to this definition"></a></dt>
 <dd><p>Set a parameter</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_parameter_covariance">
+<span class="sig-name descname"><span class="pre">set_parameter_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter_covariance" title="Link to this definition"></a></dt>
+<dd><p>Set the covariance of two parameters</p>
 </dd></dl>
 
 <dl class="py method">

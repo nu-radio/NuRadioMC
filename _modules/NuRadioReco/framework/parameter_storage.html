@@ -756,6 +756,34 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span></div>
 
 
+<div class="viewcode-block" id="ParameterStorage.set_parameter_covariance">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.set_parameter_covariance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_parameter_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Set the covariance of two parameters &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">[(</span><span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">[(</span><span class="n">key2</span><span class="p">,</span> <span class="n">key1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ParameterStorage.get_parameter_covariance">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameter_covariance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get the covariance of two parameters &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">[(</span><span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="ParameterStorage.has_parameter_covariance">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.has_parameter_covariance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_parameter_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns `True` if the covariance for `key1` and `key2` is present, `False` otherwise &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">key1</span><span class="p">,</span> <span class="n">key2</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span></div>
+
+
 <div class="viewcode-block" id="ParameterStorage.remove_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.remove_parameter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>

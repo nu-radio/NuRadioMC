@@ -670,26 +670,32 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_parameter" title="NuRadioReco.framework.base_station.BaseStation.get_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter</span></code></a>(key)</p></td>
 <td><p>Get a parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_parameter_error" title="NuRadioReco.framework.base_station.BaseStation.get_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_error</span></code></a>(key)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_parameter_covariance" title="NuRadioReco.framework.base_station.BaseStation.get_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_covariance</span></code></a>(key1, key2)</p></td>
+<td><p>Get the covariance of two parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_parameter_error" title="NuRadioReco.framework.base_station.BaseStation.get_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter_error</span></code></a>(key)</p></td>
 <td><p>Get the error of a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_parameters" title="NuRadioReco.framework.base_station.BaseStation.get_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameters</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_parameters" title="NuRadioReco.framework.base_station.BaseStation.get_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameters</span></code></a>()</p></td>
 <td><p>Get all parameters</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_primary_trigger" title="NuRadioReco.framework.base_station.BaseStation.get_primary_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_primary_trigger</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_primary_trigger" title="NuRadioReco.framework.base_station.BaseStation.get_primary_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_primary_trigger</span></code></a>()</p></td>
 <td><p>Returns the primary trigger of the station.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_station_time" title="NuRadioReco.framework.base_station.BaseStation.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time</span></code></a>([format])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_station_time" title="NuRadioReco.framework.base_station.BaseStation.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time</span></code></a>([format])</p></td>
 <td><p>Returns the station time as an astropy.time.Time object</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_trigger" title="NuRadioReco.framework.base_station.BaseStation.get_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger</span></code></a>(name)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_trigger" title="NuRadioReco.framework.base_station.BaseStation.get_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger</span></code></a>(name)</p></td>
 <td><p>returns the trigger with the name 'name'</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_triggers" title="NuRadioReco.framework.base_station.BaseStation.get_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggers</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.get_triggers" title="NuRadioReco.framework.base_station.BaseStation.get_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggers</span></code></a>()</p></td>
 <td><p>Returns a dictionary of the triggers.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.has_parameter" title="NuRadioReco.framework.base_station.BaseStation.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.has_parameter" title="NuRadioReco.framework.base_station.BaseStation.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.has_parameter_covariance" title="NuRadioReco.framework.base_station.BaseStation.has_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_covariance</span></code></a>(key1, key2)</p></td>
+<td><p>Returns <em class="xref py py-obj">True</em> if the covariance for <em class="xref py py-obj">key1</em> and <em class="xref py py-obj">key2</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.has_parameter_error" title="NuRadioReco.framework.base_station.BaseStation.has_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_error</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if an uncertainty for the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
@@ -715,16 +721,19 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.set_parameter" title="NuRadioReco.framework.base_station.BaseStation.set_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter</span></code></a>(key, value)</p></td>
 <td><p>Set a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.set_parameter_error" title="NuRadioReco.framework.base_station.BaseStation.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.set_parameter_covariance" title="NuRadioReco.framework.base_station.BaseStation.set_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_covariance</span></code></a>(key1, key2, value)</p></td>
+<td><p>Set the covariance of two parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.set_parameter_error" title="NuRadioReco.framework.base_station.BaseStation.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
 <td><p>Set the error of a parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.set_station_time" title="NuRadioReco.framework.base_station.BaseStation.set_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station_time</span></code></a>(time[, format])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.set_station_time" title="NuRadioReco.framework.base_station.BaseStation.set_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station_time</span></code></a>(time[, format])</p></td>
 <td><p>Set the (absolute) time for the station (stored as astropy.time.Time).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.set_trigger" title="NuRadioReco.framework.base_station.BaseStation.set_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger</span></code></a>(trigger)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.set_trigger" title="NuRadioReco.framework.base_station.BaseStation.set_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger</span></code></a>(trigger)</p></td>
 <td><p>sets a trigger for the station.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.set_triggered" title="NuRadioReco.framework.base_station.BaseStation.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_station.BaseStation.set_triggered" title="NuRadioReco.framework.base_station.BaseStation.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>Convenience function to set a simple trigger.</p></td>
 </tr>
 </tbody>
@@ -1022,6 +1031,12 @@ set_trigger() interface.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_station.BaseStation.get_parameter_covariance">
+<span class="sig-name descname"><span class="pre">get_parameter_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_station.BaseStation.get_parameter_covariance" title="Link to this definition"></a></dt>
+<dd><p>Get the covariance of two parameters</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_station.BaseStation.get_parameter_error">
 <span class="sig-name descname"><span class="pre">get_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_station.BaseStation.get_parameter_error" title="Link to this definition"></a></dt>
 <dd><p>Get the error of a parameter</p>
@@ -1040,6 +1055,12 @@ set_trigger() interface.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_station.BaseStation.has_parameter_covariance">
+<span class="sig-name descname"><span class="pre">has_parameter_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_station.BaseStation.has_parameter_covariance" title="Link to this definition"></a></dt>
+<dd><p>Returns <em class="xref py py-obj">True</em> if the covariance for <em class="xref py py-obj">key1</em> and <em class="xref py py-obj">key2</em> is present, <em class="xref py py-obj">False</em> otherwise</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_station.BaseStation.has_parameter_error">
 <span class="sig-name descname"><span class="pre">has_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_station.BaseStation.has_parameter_error" title="Link to this definition"></a></dt>
 <dd><p>Returns <em class="xref py py-obj">True</em> if an uncertainty for the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p>
@@ -1055,6 +1076,12 @@ set_trigger() interface.</p>
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_station.BaseStation.set_parameter">
 <span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_station.BaseStation.set_parameter" title="Link to this definition"></a></dt>
 <dd><p>Set a parameter</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_station.BaseStation.set_parameter_covariance">
+<span class="sig-name descname"><span class="pre">set_parameter_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.base_station.BaseStation.set_parameter_covariance" title="Link to this definition"></a></dt>
+<dd><p>Set the covariance of two parameters</p>
 </dd></dl>
 
 <dl class="py method">
