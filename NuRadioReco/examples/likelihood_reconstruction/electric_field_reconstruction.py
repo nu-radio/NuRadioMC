@@ -127,7 +127,7 @@ signal_fit, parameters_fit, minus_two_llh = reco.run(evt, station, det, use_MC_d
 
 efield_reco = station.get_electric_fields()[0]
 print(f"Reconstructed fluence: ({efield_reco[efp.signal_energy_fluence]:.3f} +/- {efield_reco.get_parameter_error(efp.signal_energy_fluence):.3f}) eV/m^2")
-print(f"Reconstructed polarization angle: ({efield_reco[efp.polarization_angle] / units.degree % 180:.3f} +/- {np.round(efield_reco.get_parameter_error(efp.polarization_angle) / units.degree, 3):.3f}) degree")
+print(f"Reconstructed polarization angle: ({efield_reco[efp.polarization_angle] / units.degree % 180:.3f} +/- {efield_reco.get_parameter_error(efp.polarization_angle) / units.degree:.3f}) degree")
 
 
 # Plot data traces and reconstructed signal:
