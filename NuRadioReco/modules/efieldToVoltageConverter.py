@@ -158,6 +158,14 @@ class efieldToVoltageConverter():
 
         # Add post_pulse_time as long as we reach the minimum required trace length
         while times_max - times_min < max_channel_trace_length:
+            if self.__post_pulse_time <= 0:
+                logger.warning(
+                    f"The channel trace length as requested by the detector description ({max_channel_trace_length} ns) "
+                    f"is not reached ({times_max - times_min} ns). To extend it we iterative add `post_pulse_time`. "
+                    f"However, `post_pulse_time` is set to {self.__post_pulse_time} and thus the traces are not extended. "
+                    "Please change it.")
+                break
+
             times_max += self.__post_pulse_time
 
         # assumes that all electric fields have the same sampling rate
