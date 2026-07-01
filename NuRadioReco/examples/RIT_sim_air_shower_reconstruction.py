@@ -1,3 +1,12 @@
+"""
+Example: radio-interferometric (RIT) reconstruction of a CoREAS air shower.
+
+Runs the interferometric depth reconstruction (`efieldRadioInterferometricReconstruction`)
+on the MC geometry and pulses.
+
+See read_full_CoREAS_shower.py for an explanation what readCoREAS and event_builder_auger do.
+"""
+
 from logging import debug
 from re import I
 import NuRadioReco.modules.io.coreas.readCoREAS

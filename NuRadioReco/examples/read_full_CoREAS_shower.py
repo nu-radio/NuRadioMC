@@ -1,3 +1,17 @@
+"""
+Example: read a full CoREAS shower and convert every simulated observer into a voltage trace.
+
+The `readCoREAS` module yields an event with a single station (id 0) whose SimStation holds all
+CoREAS observers as electric fields. This example uses the `event_builder_auger` helper defined
+below to convert that into an Auger-style event (one Station per observer) and to populate a
+`GenericDetector` on the fly, before running the efield-to-voltage conversion and writing the
+result to a `.nur` file.
+
+The `event_builder_auger` function is also imported and reused by the
+`RIT_sim_air_shower_reconstruction.py` example. Write your own event_builder to replicate a
+different experiment's layout (e.g. LOFAR/SKA, where a station is a cluster of antennas).
+"""
+
 import NuRadioReco.modules.io.coreas.readCoREAS
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.efieldToVoltageConverter
