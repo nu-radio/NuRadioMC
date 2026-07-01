@@ -89,7 +89,6 @@ class channelBandPassFilter:
             * 'hann_tapered' : a rectangular bandpass filter with the ends replaced by a half-Hann window to applied
               in the time domain. In this case the passband parameter is ignored
             * 'FIR <type> <parameter>' - see below for FIR filter options
-            * 'custom': any user-defined filter that is then passed through passband as a callable function that takes the frequencies as input and returns the filter response at these frequencies
 
             or any filter that is implemented in :mod:`NuRadioReco.detector.filterresponse`. In this case the
             passband parameter is ignored
@@ -289,8 +288,6 @@ class channelBandPassFilter:
             trace_fir = signal.lfilter(taps, 1.0, channel.get_trace())
             trace_fir = np.roll(trace_fir, -ndelay)
             isFIR = True
-        elif filter_type == 'custom':
-            trace_fft *= passband(frequencies)
         else:
             trace_fft *= self.get_filter(frequencies, 0, 0, None, passband, filter_type)
         if isFIR:
