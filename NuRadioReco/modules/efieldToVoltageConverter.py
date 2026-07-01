@@ -161,7 +161,7 @@ class efieldToVoltageConverter():
             if self.__post_pulse_time <= 0:
                 logger.warning(
                     f"The channel trace length as requested by the detector description ({max_channel_trace_length} ns) "
-                    f"is not reached ({times_max - times_min} ns). To extend it we iterative add `post_pulse_time`. "
+                    f"is not reached ({times_max - times_min} ns). To extend it, we iteratively add `post_pulse_time`. "
                     f"However, `post_pulse_time` is set to {self.__post_pulse_time} and thus the traces are not extended. "
                     "Please change it.")
                 break
