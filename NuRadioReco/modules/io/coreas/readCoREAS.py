@@ -5,7 +5,6 @@ However, it is important to stress that this module will return a single `statio
 the simulated electric fields (observers) within multiple stations you have to do it yourself.
 """
 
-import NuRadioReco.framework.event
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.io.coreas import coreas
 import time
@@ -84,22 +83,15 @@ class readCoREAS:
             corsika_evt = coreas.read_CORSIKA7(self.__input_files[self.__current_input_file], declination=declination)
 
             if self.__ascending_run_and_event_number:
-                evt = NuRadioReco.framework.event.Event(
-                    self.__ascending_run_and_event_number, self.__ascending_run_and_event_number)
+                corsika_evt.set_run_number(self.__ascending_run_and_event_number)
+                corsika_evt.set_id(self.__ascending_run_and_event_number)
                 self.__ascending_run_and_event_number += 1
-            else:
-                evt = NuRadioReco.framework.event.Event(corsika_evt.get_run_number(), corsika_evt.get_id())
-
-            # create sim shower, core is already set in read_CORSIKA7()
-            sim_shower = coreas.create_sim_shower(corsika_evt)
-            evt.set_event_time(corsika_evt.get_event_time())
-            evt.add_sim_shower(sim_shower)
 
             self.__t_per_event += time.time() - t_per_event
             self.__t += time.time() - t
 
             self.__current_input_file += 1
-            yield evt
+            yield corsika_evt
 
     def get_event(self, declination=None):
         """ Reads the next event """
