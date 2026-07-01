@@ -35,8 +35,8 @@ station_id = 11 #det.get_station_ids()[0]
 n_channels_total = det.get_number_of_channels(station_id)
 n_samples = det.get_number_of_samples(station_id, 0)
 sampling_rate = det.get_sampling_frequency(station_id, 0)
-use_channels = [0,1,2,3,4,5,6,7,8,9,10,11,21,22,23]
-ref_ch = 0
+use_channels = [0,1,2,3,4,5,6,7,8,9,10,11,21,22,23] # or [12,13,14,15,16,17,18,19,20] for shallow station
+ref_ch = 0 # or 12 for shallow station
 n_channels = len(use_channels)
 
 filter_type = "butter"
@@ -82,7 +82,7 @@ vertex_r = 1 * units.km
 vertex_zenith_temp = 90 * units.deg + 56 * units.deg # the same as zenith plus Cherenkov angle
 vertex_azimuth_temp = 45 * units.deg # the same as azimuth
 vertex_xyz = hp.spherical_to_cartesian(vertex_zenith_temp, vertex_azimuth_temp) * vertex_r
-vertex_xyz[2] -= 100 * units.m # assuming ~100 m antenna depth
+vertex_xyz[2] -= 100 * units.m # assuming ~100 m antenna depth. Remove this for shallow station.
 vertex_time = 0
 
 # Simulate the event:

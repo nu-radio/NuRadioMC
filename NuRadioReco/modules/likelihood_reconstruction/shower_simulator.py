@@ -386,13 +386,12 @@ class ShowerSimulator:
 
         if self.propagator.get_number_of_solutions() > 0:
             reference_travel_time = self.propagator.get_travel_time(0)
-            reference_index = np.argmax(self.channel_ids == self.reference_channel)
             reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel) if self.add_cable_delay else 0
 
-            shower[shp.vertex_time] = trace_start_times[reference_index] + pulse_time - reference_cable_delay - reference_travel_time
+            shower[shp.vertex_time] = trace_start_times[self.channel_ids.index(self.reference_channel)] + pulse_time - reference_cable_delay - reference_travel_time
             shower[shp.charge_excess_profile_id] = charge_excess_profile_id
 
-            station, traces, trace_start_times = self.simulate_showers([shower], trace_start_times)
+            station, traces, _ = self.simulate_showers([shower], trace_start_times)
 
         # Sometimes the ray-tracer fails to find any solutions. In this case we skip running
         # the simulation and return traces containing zeros instead:

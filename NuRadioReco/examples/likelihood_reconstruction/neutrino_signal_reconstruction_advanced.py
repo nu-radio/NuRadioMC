@@ -33,7 +33,8 @@ station_id = 11 #det.get_station_ids()[0]
 n_channels_total = det.get_number_of_channels(station_id)
 n_samples = det.get_number_of_samples(station_id, 0)
 sampling_rate = det.get_sampling_frequency(station_id, 0)
-use_channels = [0,1,2,3,4,5,6,7,8,9,10,11,21,22,23]
+use_channels = [0,1,2,3,4,5,6,7,8,9,10,11,21,22,23] # or [12,13,14,15,16,17,18,19,20] for shallow station
+ref_ch = 0 # or 12 for shallow station
 n_channels = len(use_channels)
 
 filter_type = "butter"
@@ -63,12 +64,12 @@ def detector_simulation_filter_amp(evt, station, det):
 signal_model = shower_simulator.ShowerSimulator(
             config_file="./neutrino_reco_sim_config.yaml", #"../../../NuRadioMC/examples/07_RNO_G_simulation/RNO_config.yaml",
             det = det,
-            station_id=station_id,
-            reference_channel=0,
-            evt_time=datetime.datetime(2022, 7, 1),
-            use_channels=use_channels,
-            detector_simulation_filter_amp=detector_simulation_filter_amp,
-            pre_pulse_time=100 * units.ns
+            station_id = station_id,
+            reference_channel = ref_ch,
+            evt_time = datetime.datetime(2022, 7, 1),
+            use_channels = use_channels,
+            detector_simulation_filter_amp = detector_simulation_filter_amp,
+            pre_pulse_time = 100 * units.ns
         )
 
 # Simple neutrino event that is likely to give a strong signal in the detector:
@@ -79,7 +80,7 @@ vertex_r = 1 * units.km
 vertex_zenith = 90 * units.deg + 56 * units.deg # the same as zenith plus Cherenkov angle
 vertex_azimuth = 45 * units.deg # the same as azimuth
 vertex_xyz = hp.spherical_to_cartesian(vertex_zenith, vertex_azimuth) * vertex_r
-vertex_xyz[2] -= 100 * units.m # assuming ~100 m antenna depth
+vertex_xyz[2] -= 100 * units.m # assuming ~100 m antenna depth. Remove this for shallow station.
 vertex_time = 0
 
 
@@ -115,14 +116,14 @@ for i_event in range(n_events):
 
     # Simulate the event:
     station, traces, trace_start_times = signal_model.simulate_single_shower(
-        energy=E_shower,
-        zenith=zenith,
-        azimuth=azimuth,
-        vertex=vertex_xyz,
-        vertex_time=vertex_time,
-        type="HAD",
-        charge_excess_profile_id=5,
-        trace_start_times=None # <- Automatically calculates start times based on pulse in reference antenna
+        energy = E_shower,
+        zenith = zenith,
+        azimuth = azimuth,
+        vertex = vertex_xyz,
+        vertex_time = vertex_time,
+        type = "HAD",
+        charge_excess_profile_id = 5,
+        trace_start_times = None # <- Automatically calculates start times based on pulse in reference antenna
     )
 
     # Add noise to the traces:
@@ -157,20 +158,20 @@ for i_event in range(n_events):
         sampling_rate,
         np.abs(filt),
         noise_amplitude,
-        config_file="./neutrino_reco_sim_config.yaml",
-        detector_simulation_filter_amp=detector_simulation_filter_amp,
-        use_chi2=False,
-        debug=True
+        config_file = "./neutrino_reco_sim_config.yaml",
+        detector_simulation_filter_amp = detector_simulation_filter_amp,
+        use_chi2 = False, # Set to True to see that using a chi2 gives under-coverage
+        debug = True
     )
     minus_two_llh_true = reco._function_to_minimize_llh(traces, signal_true)
 
     # The reconstructor class uses different parameters (that are better for minimization) than the
     # ones we used to simulate the event. Here we convert the vertex position to the spherical coordinates
     # relative to the reference antenna, and find the pulse time relative to the start of the trace:
-    vertex_xyz_rel = vertex_xyz - det.get_relative_position(station_id, 0)
+    vertex_xyz_rel = vertex_xyz - det.get_relative_position(station_id, ref_ch)
     vertex_zenith_rel, vertex_azimuth_rel = hp.cartesian_to_spherical(vertex_xyz_rel[0], vertex_xyz_rel[1], vertex_xyz_rel[2])
     vertex_r_rel = np.linalg.norm(vertex_xyz_rel)
-    pulse_time_guess = np.argmax(traces[0]) / sampling_rate
+    pulse_time_guess = np.argmax(traces[use_channels.index(ref_ch)]) / sampling_rate
 
     # Save true parameters:
     parameters_true = [E_shower, zenith, azimuth, vertex_r_rel, vertex_zenith_rel, vertex_azimuth_rel, 100 * units.ns]
@@ -186,7 +187,8 @@ for i_event in range(n_events):
         pulse_time_guess]
 
     # Run reconstruction:
-    parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=0, full_output=True)
+    parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
+        evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True)
 
     print()
     print("-2 LLH for true signal:", minus_two_llh_true)
@@ -195,6 +197,7 @@ for i_event in range(n_events):
     print("Fitted parameters:", parameters_fit)
     print("Uncertainties on fitted parameters:", uncertainties_fit)
     print("Fitted -2 LLH:", minus_two_llh_fit)
+    print("p-value for fitted signal:", p_value_fit)
 
     llh_true_array[i_event] = minus_two_llh_true
     minus_two_llh_initial_array[i_event] = minus_two_llh_initial
