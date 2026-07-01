@@ -6,7 +6,7 @@ in https://arxiv.org/abs/2510.21925. This approach uses a correct probablilistic
 of band-limited noise and parameterized signal models to achieve the most accurate reconstruction
 resolution and correctly estimate uncertainties on the reconstructed parameters. This method is
 applicable to, e.g., neutrino reconstruction and cosmic-ray electric-field reconstruction. The
-mehtods discussed in the paper are implemented in a set of NuRadioReco modules which are
+methods discussed in the paper are implemented in a set of NuRadioReco modules which are
 presented here.
 
 The code consists of 4 core modules that handle different parts of the reconstruction:

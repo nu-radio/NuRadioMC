@@ -41,10 +41,10 @@ class Minimizer:
             but it could be a numpy array with shape [n_antennas, n_samples] containing a radio signal in a number channels,
             or a list of channels.
         normalization : numpy.ndarray (optional)
-            Set normalization factors for the parameters before fitting. Each parameter is divided bythis value internally,
+            Set normalization factors for the parameters before fitting. Each parameter is divided by this value internally,
             which can help with minimizer stability when parameters have different scales. This can, e.g., be set to the
             natural units of a problem (PeV, km, deg, ...) or to the expected/estimated uncertainties on the parameters.
-            Should be a numpy array with length n_parameters. If set to None, a normalization of 1 (i.e., no noramlization
+            Should be a numpy array with length n_parameters. If set to None, a normalization of 1 (i.e., no normalization
             will be used).
         fixed : list(bool)
             Wheter to fix some of the parameters in the optimization. Should be a list of bools with length n_parameters.
