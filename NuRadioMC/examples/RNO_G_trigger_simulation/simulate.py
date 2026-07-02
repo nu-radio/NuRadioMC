@@ -372,6 +372,8 @@ if __name__ == "__main__":
 
     # Additonal arguments
     parser.add_argument("--index", '-i', default=0, type=int, help="Counter to create a unique data-set identifier")
+    parser.add_argument("--seed", type=int, default=None,
+                        help="Seed for the (random) generation of neutrino interactions. If None, a random seed is used.")
     parser.add_argument("--data_dir", type=str, default=def_data_dir, help="Cirectory name where the library will be created")
     parser.add_argument("--nur_output", action="store_true", help="Write nur files.")
 
@@ -379,7 +381,11 @@ if __name__ == "__main__":
     kwargs = args.__dict__
     assert args.station_id is not None, "Please specify a station id with `--station_id`"
 
-    root_seed = secrets.randbits(128)
+    root_seed = args.seed if args.seed is not None else secrets.randbits(128)
+    root_seed += args.index
+
+    # Re-initialize the noise adder with a seed to make the noise generation reproducible
+    channelGenericNoiseAdder.begin(seed=root_seed)
 
     det = rnog_detector.Detector(
         detector_file=args.detectordescription, log_level=logging.INFO,
@@ -435,7 +441,7 @@ if __name__ == "__main__":
             proposal_kwargs={},
             max_n_events_batch=args.n_events,
             write_events=False,
-            seed=root_seed + args.index,
+            seed=root_seed,
             interaction_type=args.interaction_type,
         )
     else:
