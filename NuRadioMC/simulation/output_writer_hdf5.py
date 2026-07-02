@@ -267,12 +267,15 @@ class outputWriterHDF5:
                         keys_channel_rt_data = ['travel_times', 'travel_distances']
                         if self._mout_attributes['config']['speedup']['amp_per_ray_solution']:
                             keys_channel_rt_data.extend(['time_shower_and_ray', 'max_amp_shower_and_ray'])
+
                         nCh = stn.get_number_of_channels()
                         for key in keys_channel_rt_data:
                             channel_rt_data[key] = np.zeros((nCh, self._nS)) * np.nan
+
                         keys_channel_rt_data_3D = ['launch_vectors', 'receive_vectors', 'polarization']
                         for key in keys_channel_rt_data_3D:
                             channel_rt_data[key] = np.zeros((nCh, self._nS, 3)) * np.nan
+
                         # important: we need to loop over the channels of the station object, not
                         # the channels present in the sim_station object. This is because the sim
                         # channel object only contains the channels that have a signal, i.e., a ray
@@ -287,6 +290,7 @@ class outputWriterHDF5:
                                         if key not in channel_rt_data:
                                             channel_rt_data[key] = np.zeros((nCh, self._nS)) * np.nan
                                         channel_rt_data[key][iCh, iS] = value
+
                                     channel_rt_data['launch_vectors'][iCh, iS] = efield[efp.launch_vector]
                                     receive_vector = hp.spherical_to_cartesian(efield[efp.zenith], efield[efp.azimuth])
                                     channel_rt_data['receive_vectors'][iCh, iS] = receive_vector
@@ -311,6 +315,7 @@ class outputWriterHDF5:
                         for key, value in channel_rt_data.items():
                             self.__add_parameter(sg, key, value)
             # end event loop
+
             # now determine triggers per shower. This is a bit tricky, we need to consider all events
             # and count a shower if it contributed to any of the events. The trigger_times field contains
             # the earliest trigger time of all stations and triggers
