@@ -210,7 +210,7 @@ def get_C_1(x1, C_0, n_ice, b, delta_n, z_0):
 
 def get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0,
                       medium_reflection, reflection=0, reflection_case=1):
-    
+
     """
     Calculates the different segments of the path that makes up the full ray tracing path
     One segment per bottom reflection.
@@ -322,14 +322,14 @@ def get_z_mirrored(x1, x2, C_0, n_ice, b, delta_n, z_0):
     gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
     #gamma_turn = gamma_turn[0]
     #z_turn = z_turn[0]
-    y_turn = get_y(gamma_turn, C_0, C_1, n_ice, b, z_0) 
+    y_turn = get_y(gamma_turn, C_0, C_1, n_ice, b, z_0)
     zstart = x1[1]
     zstop = x2[1]
     if(y_turn < x2[0]):
         zstop = zstart + np.abs(z_turn - x1[1]) + np.abs(z_turn - x2[1])
     x2_mirrored = [x2[0], zstop]
     return x2_mirrored
-    
+
 
 def get_angle(x2, x1, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection=0, reflection_case=1, in_air=False):
     """
@@ -353,7 +353,7 @@ def get_angle(x2, x1, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection
 
     """
     last_segment = get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case)[-1]
-    
+
     x_start = (last_segment[2], last_segment[3])
 
     if in_air:
@@ -365,7 +365,7 @@ def get_angle(x2, x1, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection
     if(angle < 0):
         angle = np.pi + angle
     return angle
-    
+
 def get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection=0, reflection_case=1, in_air=False):
     """
     calculates the angle under which the ray reflects off the surface. If not reflection occurs, None is returned
@@ -391,10 +391,10 @@ def get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection,
 
     c = n_ice ** 2 - C_0 ** -2
     segments = get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case)
-    
+
     nseg = segments.shape[0]
     out = np.empty(nseg, dtype=np.float64)
-    
+
     for i in range(nseg):
         segment = segments[i]
 
@@ -489,7 +489,7 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
         # Do nothing if ray is refracted. If ray is reflected, don't mirror but do straight line upwards
         if(z_turn == 0):
             in_air = x1[1] >= 0
-            zenith_reflection = get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case, in_air) 
+            zenith_reflection = get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case, in_air)
             zr = zenith_reflection
             # None check
             if zr is None:
@@ -505,14 +505,14 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
 
             n_1 = n(z_turn, n_ice, delta_n, z_0)
             zenith_air = get_fresnel_angle(zen, n_1=n_1, n_2=1)
-            
+
             if zenith_air is None or np.isnan(zenith_air):
                 diff = x2[1]
                 return diff
             z = (x2[0] - y_turn) / np.tan(zenith_air)
             diff = x2[1] - z
             return diff
-            
+
     if(y_turn > x2[0]):  # we always propagate from left to right
         # direct ray
         y2_fit = get_y(get_gamma(x2[1], delta_n, z_0), C_0_first, C_1, n_ice, b, z_0)  # calculate y position at get_path position
@@ -735,8 +735,8 @@ class ray_tracing_2D(ray_tracing_base):
                     get_y_diff = jit(get_y_diff, nopython=True, cache=True)
                     n = jit(n, nopython=True, cache=True)
                     self.use_cpp = False
-                except Exception:
-                    self.__logger.warning("Error in compiling methods using jit - proceeding without numba")
+                except Exception as e:
+                    self.__logger.error(f"Error in compiling methods using jit: \"{e}\" - proceeding without numba")
                     compile_numba = False
 
     def get_C_1(self, x1, C_0):
@@ -3197,6 +3197,7 @@ class ray_tracing(ray_tracing_base):
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
         else:
             focusing = 1
+
         output_dict = {
             'ray_tracing_C0': self.get_results()[i_solution]['C0'],
             'ray_tracing_C1': self.get_results()[i_solution]['C1'],
@@ -3243,7 +3244,7 @@ class ray_tracing(ray_tracing_base):
                 continue
             if(self._x2[1] > 0):  # we need to treat the case of air to ice/ice to air propagation sepatately:
                 # air/ice propagation
-                self.__logger.warning(f"calculation of transmission coefficients and focussing factor for air/ice propagation is experimental and needs further validation")
+                # self.__logger.warning(f"calculation of transmission coefficients and focussing factor for air/ice propagation is experimental and needs further validation")
                 if(not self._swap):  # ice to air case
                     t_theta = geometryUtilities.get_fresnel_t_p(
                         zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
