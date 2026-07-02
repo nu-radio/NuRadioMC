@@ -191,6 +191,11 @@ def rnog_flower_board_high_low_trigger_simulations(
                 pre_trigger_time=250 * units.ns,
             )
 
+            station.get_trigger(f"deep_high_low_{thresh_key}").set_jitter_params(
+                sample_block_size=128,
+                gaussian_jitter=0
+            )
+
     if pa_power_trigger_threshold is not None:
         for thresh_key, threshold_vrms in pa_power_trigger_threshold.items():
 
@@ -209,6 +214,12 @@ def rnog_flower_board_high_low_trigger_simulations(
                 threshold=pa_power_threshold,
                 **power_trigger_kwargs
             )
+
+            station.get_trigger(f"pa_power_{thresh_key}").set_jitter_params(
+                sample_block_size=128,
+                gaussian_jitter=0
+            )
+
 
     return vrms_after_gain
 
@@ -425,7 +436,7 @@ if __name__ == "__main__":
             max_n_events_batch=args.n_events,
             write_events=False,
             seed=root_seed + args.index,
-            interaction_type=args.interaction_type
+            interaction_type=args.interaction_type,
         )
     else:
         input_data = args.neutrino_file

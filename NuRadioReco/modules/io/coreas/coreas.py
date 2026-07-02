@@ -1,3 +1,4 @@
+import os
 import copy
 import h5py
 import numpy as np
@@ -5,11 +6,10 @@ import matplotlib.pyplot as plt
 from radiotools import helper as hp
 from radiotools import coordinatesystems
 
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, constants
 import NuRadioReco.framework.station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.event
-import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.radio_shower
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -21,18 +21,19 @@ logger = logging.getLogger('NuRadioReco.coreas')
 
 warning_printed_coreas_py = False
 
-conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
+# convert CoREAS traces [cgs units] to SI units [V/m]
+conversion_fieldstrength_cgs_to_SI = constants.c / (units.cm / units.s) * units.micro * units.volt / units.meter
 
 
 # DEPRECATED FUNCTIONS
 def make_sim_shower(*args, **kwargs):
     """
-    DEPRECATED: This function has been moved to `create_sim_shower_from_hdf5()`, however its functionality has been
-    modified heavily. You will probably want to move to `create_sim_shower()` instead, which has an easier
-    interface. Please refer to the documentation of `create_sim_shower()` for more information.
+    DEPRECATED: This function has been moved to `create_sim_shower_from_hdf5`, however its functionality has been
+    modified heavily. You will probably want to move to `create_sim_shower` instead, which has an easier
+    interface. Please refer to the documentation of `create_sim_shower` for more information.
     """
     raise DeprecationWarning("This function has been deprecated since version 3.0. "
-                             "You will probably want to move to create_sim_shower() instead.")
+                             "You will probably want to move to coreas.create_sim_shower instead.")
 
 
 def make_sim_station(*args, **kwargs):
@@ -41,7 +42,7 @@ def make_sim_station(*args, **kwargs):
     refer to the documentation of `create_sim_station()` for more information.
     """
     raise DeprecationWarning("This function has been deprecated since version 3.0. "
-                             "You will probably want to move to create_sim_station() instead.")
+                             "You will probably want to move to coreas.create_sim_station instead.")
 
 
 # UTILITY FUNCTIONS
@@ -93,7 +94,7 @@ def get_angles(corsika, declination):
     """
     zenith = corsika['inputs'].attrs["THETAP"][0] * units.deg
     azimuth = hp.get_normalized_angle(
-        3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]) + declination / units.rad
+        3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]) - declination / units.rad
     ) * units.rad
 
     # in CORSIKA convention, the first component points North (y in NRR) and the second component points down (minus z)
@@ -141,8 +142,8 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
 
     The on-sky CS in NRR has basis vectors eR, eTheta, ePhi.
     Before going to the on-sky CS, we account for the magnetic field which does not point strictly North.
-    To get the zenith, azimuth and magnetic field vector, one can use `get_angles()`.
-    The `observer` array should have the shape (n_samples, 4) with the columns (time, Ey, -Ex, Ez),
+    To get the zenith, azimuth and magnetic field vector, one can use `get_angles`.
+    The ``observer`` array should have the shape (n_samples, 4) with the columns (time, Ey, -Ex, Ez),
     where (x, y, z) is the NuRadio CS.
 
     Parameters
@@ -183,6 +184,47 @@ def convert_obs_to_nuradio_efield(observer, zenith, azimuth, magnetic_field_vect
     return efield_on_sky, efield_times
 
 
+def convert_nuradio_efield_to_obs(efield_on_sky, efield_times, zenith, azimuth, magnetic_field_vector):
+    """
+    Converts electric field from NuRadioReco on-sky CS back to the CORSIKA observer format.
+
+    Parameters
+    ----------
+    efield_on_sky : np.ndarray
+        Electric field in NRR on-sky CS (r, theta, phi), shape (3, n_samples).
+    efield_times : np.ndarray
+        Times in seconds, shape (n_samples,).
+    zenith : float
+        Shower zenith (internal units).
+    azimuth : float
+        Shower azimuth (internal units).
+    magnetic_field_vector : np.ndarray
+        Magnetic field vector.
+
+    Returns
+    -------
+    observer_array : np.ndarray
+        Shape (n_samples, 4): (time, Ey, -Ex, Ez) in CORSIKA coordinates.
+    """
+    cs = coordinatesystems.cstrafo(
+        zenith / units.rad, azimuth / units.rad,
+        magnetic_field_vector
+    )
+
+    # geographic ground coordinates
+    efield_ground_geo = cs.transform_from_onsky_to_ground(efield_on_sky)
+    efield_mag = cs.transform_from_geographic_to_magnetic(efield_ground_geo)
+
+    # convert to CORSIKA axis convention and CGS units
+    times_corsika = efield_times / units.second
+
+    Ex = efield_mag[1] / conversion_fieldstrength_cgs_to_SI
+    Ey = -efield_mag[0] / conversion_fieldstrength_cgs_to_SI
+    Ez = efield_mag[2] / conversion_fieldstrength_cgs_to_SI
+
+    return np.column_stack((times_corsika, Ex, Ey, Ez))
+
+
 def convert_obs_positions_to_nuradio_on_ground(observer_pos, declination=0):
     """
     Convert observer positions from the CORSIKA CS to the NRR ground CS.
@@ -190,8 +232,8 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, declination=0):
     First, the observer position is converted to the NRR coordinate conventions (i.e. x pointing East,
     y pointing North, z pointing up). Then, the observer position is corrected for magnetic north
     (as CORSIKA only has two components to its magnetic field vector) and put in the geographic CS.
-    To get the zenith, azimuth and magnetic field vector, one can use the `get_angles()` function.
-    If multiple observers are to be converted, the `observer` array should have the shape (n_observers, 3).
+    To get the zenith, azimuth and magnetic field vector, one can use the `get_angles` function.
+    If multiple observers are to be converted, the ``observer`` array should have the shape (n_observers, 3).
 
     Parameters
     ----------
@@ -219,6 +261,40 @@ def convert_obs_positions_to_nuradio_on_ground(observer_pos, declination=0):
 
     return np.squeeze(obs_positions)
 
+
+def convert_nuradio_positions_to_ground(geo_pos, declination=0):
+    """
+    Converts observer positions from NuRadioReco ground coordinates back to the CORSIKA CS.
+
+    Parameters
+    ----------
+    geo_pos : np.ndarray
+        Observer position(s) in NuRadioReco ground coordinates, shape (3,) or (n_observers, 3).
+    declination : float
+        Declination of the magnetic field (degrees).
+
+    Returns
+    -------
+    obs_positions_corsika : np.ndarray
+        Positions in CORSIKA coordinates (x=North, y=West, z=up), in cm.
+    """
+    # If single position is given, make sure it has the right shape (3,) -> (1, 3)
+    if geo_pos.ndim == 1:
+        geo_pos = geo_pos[np.newaxis, :]
+
+    # undo geographic rotation
+    rotated = hp.rotate_vector_in_2d(geo_pos.T, declination)
+
+    # convert from NuRadioReco to CORSIKA axes
+    corsika_positions = np.array([
+        rotated[1],         # CORSIKA x (north) from NRR y
+        -1*rotated[0],    # CORSIKA y (west) from -NRR x
+        rotated[2]         # CORSIKA z (up) same
+    ]).T / units.cm
+
+    return np.squeeze(corsika_positions)
+
+
 # READER FUNCTIONS
 def read_CORSIKA7(input_file, declination=None, site=None):
     """
@@ -232,7 +308,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     channel as it was read from the HDF5 file.
 
     Next to the (Sim)Station, the Event also contains a SimShower object, which stores the CORSIKA input parameters.
-    For a list of stored parameters, see the `create_sim_shower_from_hdf5()` function.
+    For a list of stored parameters, see the `create_sim_shower_from_hdf5` function.
 
     Note that the function assumes the energy has been fixed to a single value, as is typical with a CoREAS simulation.
 
@@ -306,7 +382,7 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     stn.set_sim_station(sim_station)
     evt.set_station(stn)
 
-    sim_shower = create_sim_shower_from_hdf5(corsika)
+    sim_shower = create_sim_shower_from_hdf5(corsika, declination=declination)
     evt.add_sim_shower(sim_shower)
 
     corsika.close()
@@ -314,9 +390,125 @@ def read_CORSIKA7(input_file, declination=None, site=None):
     return evt
 
 
+def write_CORSIKA7(evt, output_file, detector=None):
+    """
+    Writes a NuRadioReco Event object to an HDF5 file in CORSIKA/CoREAS format.
+
+    Parameters
+    ----------
+    evt : NuRadioReco.framework.event.Event
+        The Event to store.
+    output_file : str
+        Path to the output HDF5 file.
+    detector : NuRadioReco.detector.detector.Detector, optional
+        Detector object used to accurately retrieve absolute station positions.
+    """
+    if os.path.exists(output_file):
+        raise FileExistsError(f"File '{output_file}' already exists. Aborting.")
+
+    with h5py.File(output_file, "x") as f:
+
+        inputs_grp = f.create_group("inputs")
+        inputs_grp.attrs["RUNNR"] = evt.get_run_number()
+        inputs_grp.attrs["EVTNR"] = evt.get_id()
+
+        sim_shower = evt.get_first_sim_shower()
+        inputs_grp.attrs["PRMPAR"] = sim_shower.get_parameter(shp.primary_particle)
+        inputs_grp.attrs["OBSLEV"] = sim_shower.get_parameter(shp.observation_level) / units.cm
+        energy_GeV = sim_shower.get_parameter(shp.energy) / units.GeV
+        inputs_grp.attrs["ERANGE"] = np.array([energy_GeV, energy_GeV])
+
+        zenith_NNR = sim_shower.get_parameter(shp.zenith)
+        azimuth_NNR = sim_shower.get_parameter(shp.azimuth)
+        B_vec_NNR = sim_shower.get_parameter(shp.magnetic_field_vector)
+        declination = hp.get_declination(B_vec_NNR)
+        
+        def get_angles_corsika(z_nnr, a_nnr, b_vec_nnr, dec):
+            zenith = z_nnr / units.deg
+            azimuth = (a_nnr - 3 * np.pi / 2. - dec / units.rad) / units.deg
+
+            y_mag = np.array([np.sin(dec), np.cos(dec), 0.0])
+            z_hat = np.array([0.0, 0.0, 1.0])
+            By_corsika = np.dot(b_vec_nnr, y_mag) / (units.micro * units.tesla)
+            minBz_corsika = -np.dot(b_vec_nnr, z_hat) / (units.micro * units.tesla)
+
+            x_mag = np.array([np.cos(dec), -np.sin(dec), 0.0])
+            Bx_corsika = np.dot(B_vec_NNR, x_mag) / (units.micro * units.tesla)
+            if abs(Bx_corsika) > 1:
+                logger.warning(f"Non-zero east-of-magnetic component (Bx_mag ~ {Bx_corsika:.3g} μT). "
+                               "Implicitly assumed zero by CORSIKA MAGNET.")
+
+            return zenith, azimuth, np.array([By_corsika, minBz_corsika])
+
+        
+        zenith, azimuth, B_vec = get_angles_corsika(zenith_NNR, azimuth_NNR, B_vec_NNR, declination)
+        inputs_grp.attrs["THETAP"] = np.array([zenith, zenith])
+        inputs_grp.attrs["PHIP"] = np.array([azimuth, azimuth])
+        inputs_grp.attrs["MAGNET"] = B_vec
+
+        if sim_shower.has_parameter(shp.atmospheric_model):
+            inputs_grp.attrs["ATMOD"] = sim_shower.get_parameter(shp.atmospheric_model)
+
+        coreas_grp = f.create_group("CoREAS")
+        core_x, core_y, core_z = sim_shower.get_parameter(shp.core) / units.cm
+        coreas_grp.attrs["CoreCoordinateWest"] = -core_x
+        coreas_grp.attrs["CoreCoordinateNorth"] = core_y
+        coreas_grp.attrs["CoreCoordinateVertical"] = core_z
+
+        coreas_grp.attrs["DepthOfShowerMaximum"] = sim_shower.get_parameter(shp.shower_maximum) / (units.g / units.cm2)
+        coreas_grp.attrs["DistanceOfShowerMaximum"] = sim_shower.get_parameter(shp.distance_shower_maximum_geometric) / units.cm
+        coreas_grp.attrs["GroundLevelRefractiveIndex"] = sim_shower.get_parameter(shp.refractive_index_at_ground)
+        coreas_grp.attrs['RotationAngleForMagfieldDeclination'] = sim_shower.get_parameter(shp.magnetic_field_rotation)
+
+        try:
+            event_time = evt.get_event_time()
+            coreas_grp.attrs['GPSSecs'] = getattr(event_time, 'gps', float(event_time))
+        except ValueError:
+            logger.warning("Event time is not set. Defaulting GPSSecs to 0.0 in HDF5.")
+            coreas_grp.attrs['GPSSecs'] = 0.0
+
+        observers_grp = coreas_grp.create_group("observers")
+        sampling_rate = None
+
+        for station in evt.get_stations():
+            station_id = station.get_id()
+            sim_station = station.get_sim_station()
+
+            # Absolute positions using the detector if provided
+            if detector is not None:
+                station_abs_pos = detector.get_absolute_position(station_id)
+            else:
+                station_abs_pos = np.zeros(3)
+
+            for observer in sim_station.get_electric_fields():
+                ef_rate = observer.get_sampling_rate()
+                if sampling_rate is None:
+                    sampling_rate = ef_rate
+                    coreas_grp.attrs["TimeResolution"] = (1.0 / sampling_rate) / units.second
+                elif not np.isclose(ef_rate, sampling_rate):
+                    raise ValueError("All electric field traces must have the same sampling rate to be saved in a single CoREAS HDF5 file.")
+
+                # Add absolute station position to relative e-field position
+                global_pos = station_abs_pos + observer.get_position()
+                pos_corsika = convert_nuradio_positions_to_ground(global_pos, declination=declination)
+
+                efield_corsika = convert_nuradio_efield_to_obs(
+                    observer.get_trace(),
+                    observer.get_times(),
+                    zenith_NNR,
+                    azimuth_NNR,
+                    B_vec_NNR
+                )
+
+                dataset_name = f"station_{station_id}_ch_{observer.get_unique_identifier()[0][0]}"
+                data_set = observers_grp.create_dataset(dataset_name, data=efield_corsika)
+                data_set.attrs["position"] = pos_corsika
+                data_set.attrs["name"] = dataset_name
+                
 def create_sim_shower_from_hdf5(corsika, declination=0):
     """
     Creates an NuRadioReco `RadioShower` from a CoREAS HDF5 file, which contains the simulation inputs shower parameters.
+
     These include
 
     - the primary particle type
@@ -338,8 +530,8 @@ def create_sim_shower_from_hdf5(corsika, declination=0):
     - the atmospheric model used for the simulation
     - the electromagnetic energy of the shower (only present in high-level quantities are present)
 
-    This function is used in the `read_CORSIKA7()` function to create the SimShower object. In order to copy a
-    `SimShower` object from an Event object, use the `create_sim_shower()` method.
+    This function is used in the `read_CORSIKA7` function to create the SimShower object. In order to copy a
+    `SimShower` object from an Event object, use the `create_sim_shower` method.
 
     Parameters
     ----------
@@ -403,14 +595,14 @@ def create_sim_shower_from_hdf5(corsika, declination=0):
 
 def create_sim_shower(evt, core_shift=None):
     """
-    Create an NuRadioReco `SimShower` from an Event object created with e.g. read_CORSIKA7(),
+    Create an NuRadioReco `SimShower` from an Event object created with e.g. `read_CORSIKA7`,
     and apply a core shift if desired. If no core shift is given, the returned SimShower will
     have the same core as used in the CoREAS simulation.
 
     Parameters
     ----------
     evt: Event
-        event object containing the CoREAS output, e.g. created with read_CORSIKA7()
+        event object containing the CoREAS output, e.g. created with `read_CORSIKA7`
     core_shift: np.ndarray, default=None
         The core shift to apply to the core position, in internal units. Must be 3D array.
 
@@ -430,7 +622,7 @@ def create_sim_shower(evt, core_shift=None):
 
 def create_sim_station(station_id, evt, weight=None):
     """
-    Creates an NuRadioReco `SimStation` with the information from an `Event` object created with e.g. read_CORSIKA7().
+    Creates an NuRadioReco `SimStation` with the information from an `Event` object created with e.g. `read_CORSIKA7`.
 
     Optionally, station can be assigned a weight. Note that the station is empty. To add an
     electric field the function add_electric_field_to_sim_station() has to be used.
@@ -531,6 +723,7 @@ def add_electric_field_to_sim_station(
 def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debug=False):
     """
     Calculate weights according to the area that one observer position in a starshape pattern represents.
+
     Weights are therefore given in units of area.
     Note: The volume of a 2d convex hull is the area.
 
@@ -632,9 +825,10 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
 def set_fluence_of_efields(function, sim_station, quantity=efp.signal_energy_fluence):
     """
     This helper function is used to set the fluence quantity of all electric fields in a SimStation.
+
     Use this to calculate the fluences to use for interpolation.
 
-    One option to use as `function` is `trace_utilities.get_electric_field_energy_fluence()`.
+    One option to use as ``function`` is :func:`NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence`.
 
     Parameters
     ----------
