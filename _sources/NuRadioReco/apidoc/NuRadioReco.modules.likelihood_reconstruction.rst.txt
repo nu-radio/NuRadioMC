@@ -1,0 +1,18 @@
+NuRadioReco.modules.likelihood\_reconstruction package
+======================================================
+
+.. automodule:: NuRadioReco.modules.likelihood_reconstruction
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor
+   NuRadioReco.modules.likelihood_reconstruction.likelihood_calculator
+   NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor
+   NuRadioReco.modules.likelihood_reconstruction.shower_simulator

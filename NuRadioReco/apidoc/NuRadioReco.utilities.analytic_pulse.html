@@ -304,6 +304,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.likelihood_reconstruction.html">NuRadioReco.modules.likelihood_reconstruction package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
@@ -390,7 +391,9 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.logging.html">NuRadioReco.utilities.logging module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.matched_filter.html">NuRadioReco.utilities.matched_filter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.minimization.html">NuRadioReco.utilities.minimization module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
@@ -417,6 +420,11 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#interpolating-signals">Interpolating signals</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#what-happens-when-you-initialise-a-signal-interpolator">What happens when you initialise a signal interpolator?</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../pages/how_to/coreas_interpolation.html#some-tips-to-work-with-fluence-interpolation">Some tips to work with fluence interpolation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/how_to/likelihood_reconstruction.html">Likelihood-based forward folding reconstruction</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/likelihood_reconstruction.html#neutrino-reconstruction">Neutrino reconstruction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/how_to/likelihood_reconstruction.html#electric-field-reconstruction">Electric-field reconstruction</a></li>
 </ul>
 </li>
 </ul>
@@ -664,7 +672,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.analytic_pulse.get_analytic_pulse_freq">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.analytic_pulse.</span></span><span class="sig-name descname"><span class="pre">get_analytic_pulse_freq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/analytic_pulse.html#get_analytic_pulse_freq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.analytic_pulse.get_analytic_pulse_freq" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.analytic_pulse.</span></span><span class="sig-name descname"><span class="pre">get_analytic_pulse_freq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/analytic_pulse.html#get_analytic_pulse_freq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.analytic_pulse.get_analytic_pulse_freq" title="Link to this definition"></a></dt>
 <dd><p>Analytic pulse as described in PhD thesis Glaser and NuRadioReco paper in the frequency domain</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -683,6 +691,10 @@
 </dd>
 <dt><strong>bandpass:</strong></dt><dd><p>default None</p>
 </dd>
+<dt><strong>order:</strong></dt><dd><p>default 10
+The order of the butterworth filter. If a tuple of two integers is given, the first number is the order of
+the highpass filter and the second number is the order of the lowpass filter.</p>
+</dd>
 <dt><strong>quadratic_term:</strong></dt><dd><p>default 0</p>
 </dd>
 <dt><strong>quadratic_term_offset:</strong></dt><dd><p>default 0</p>
@@ -694,7 +706,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.analytic_pulse.get_analytic_pulse">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.analytic_pulse.</span></span><span class="sig-name descname"><span class="pre">get_analytic_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/analytic_pulse.html#get_analytic_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.analytic_pulse.get_analytic_pulse" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.analytic_pulse.</span></span><span class="sig-name descname"><span class="pre">get_analytic_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_p1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quadratic_term_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/analytic_pulse.html#get_analytic_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.analytic_pulse.get_analytic_pulse" title="Link to this definition"></a></dt>
 <dd><p>Analytic pulse as described in PhD thesis Glaser and NuRadioReco paper in the time domain</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -712,6 +724,10 @@
 <dt><strong>phase_p1:</strong></dt><dd><p>default 0</p>
 </dd>
 <dt><strong>bandpass:</strong></dt><dd><p>default None</p>
+</dd>
+<dt><strong>order:</strong></dt><dd><p>default 10
+The order of the butterworth filter. If a tuple of two integers is given, the first number is the order of
+the highpass filter and the second number is the order of the lowpass filter.</p>
 </dd>
 <dt><strong>quadratic_term:</strong></dt><dd><p>default 0</p>
 </dd>

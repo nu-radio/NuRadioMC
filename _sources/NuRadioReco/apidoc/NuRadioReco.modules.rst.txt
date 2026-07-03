@@ -20,6 +20,7 @@ Subpackages
    NuRadioReco.modules.custom
    NuRadioReco.modules.iftElectricFieldReconstructor
    NuRadioReco.modules.io
+   NuRadioReco.modules.likelihood_reconstruction
    NuRadioReco.modules.measured_noise
    NuRadioReco.modules.neutrinoDirectionReconstructor
    NuRadioReco.modules.neutrinoVertexReconstructor

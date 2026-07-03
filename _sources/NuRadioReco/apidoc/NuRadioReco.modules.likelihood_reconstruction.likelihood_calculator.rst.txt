@@ -1,0 +1,7 @@
+NuRadioReco.modules.likelihood\_reconstruction.likelihood\_calculator module
+============================================================================
+
+.. automodule:: NuRadioReco.modules.likelihood_reconstruction.likelihood_calculator
+   :members:
+   :undoc-members:
+   :show-inheritance:

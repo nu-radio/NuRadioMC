@@ -1,0 +1,7 @@
+NuRadioReco.modules.likelihood\_reconstruction.shower\_simulator module
+=======================================================================
+
+.. automodule:: NuRadioReco.modules.likelihood_reconstruction.shower_simulator
+   :members:
+   :undoc-members:
+   :show-inheritance:

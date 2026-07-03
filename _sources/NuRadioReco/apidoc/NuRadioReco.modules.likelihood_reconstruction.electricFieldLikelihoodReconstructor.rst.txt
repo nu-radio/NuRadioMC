@@ -1,0 +1,7 @@
+NuRadioReco.modules.likelihood\_reconstruction.electricFieldLikelihoodReconstructor module
+==========================================================================================
+
+.. automodule:: NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor
+   :members:
+   :undoc-members:
+   :show-inheritance:

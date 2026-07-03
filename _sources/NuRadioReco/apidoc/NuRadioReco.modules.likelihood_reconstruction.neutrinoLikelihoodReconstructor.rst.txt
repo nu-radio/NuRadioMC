@@ -1,0 +1,7 @@
+NuRadioReco.modules.likelihood\_reconstruction.neutrinoLikelihoodReconstructor module
+=====================================================================================
+
+.. automodule:: NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor
+   :members:
+   :undoc-members:
+   :show-inheritance:

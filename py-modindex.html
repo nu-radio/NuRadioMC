@@ -304,6 +304,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.html">NuRadioReco.modules.likelihood_reconstruction package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
@@ -390,7 +391,9 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.logging.html">NuRadioReco.utilities.logging module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html">NuRadioReco.utilities.matched_filter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.minimization.html">NuRadioReco.utilities.minimization module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
@@ -417,6 +420,11 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/coreas_interpolation.html#interpolating-signals">Interpolating signals</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/coreas_interpolation.html#what-happens-when-you-initialise-a-signal-interpolator">What happens when you initialise a signal interpolator?</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/coreas_interpolation.html#some-tips-to-work-with-fluence-interpolation">Some tips to work with fluence interpolation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco/pages/how_to/likelihood_reconstruction.html">Likelihood-based forward folding reconstruction</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/likelihood_reconstruction.html#neutrino-reconstruction">Neutrino reconstruction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco/pages/how_to/likelihood_reconstruction.html#electric-field-reconstruction">Electric-field reconstruction</a></li>
 </ul>
 </li>
 </ul>
@@ -1428,6 +1436,31 @@
      <tr class="cg-2">
        <td></td>
        <td>&#160;&#160;&#160;
+       <a href="NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.html#module-NuRadioReco.modules.likelihood_reconstruction"><code class="xref">NuRadioReco.modules.likelihood_reconstruction</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor.html#module-NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor"><code class="xref">NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.likelihood_calculator.html#module-NuRadioReco.modules.likelihood_reconstruction.likelihood_calculator"><code class="xref">NuRadioReco.modules.likelihood_reconstruction.likelihood_calculator</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor.html#module-NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor"><code class="xref">NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.shower_simulator.html#module-NuRadioReco.modules.likelihood_reconstruction.shower_simulator"><code class="xref">NuRadioReco.modules.likelihood_reconstruction.shower_simulator</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
        <a href="NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.html#module-NuRadioReco.modules.LOFAR"><code class="xref">NuRadioReco.modules.LOFAR</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-2">
@@ -1738,7 +1771,17 @@
      <tr class="cg-2">
        <td></td>
        <td>&#160;&#160;&#160;
+       <a href="NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#module-NuRadioReco.utilities.matched_filter"><code class="xref">NuRadioReco.utilities.matched_filter</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
        <a href="NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html#module-NuRadioReco.utilities.metaclasses"><code class="xref">NuRadioReco.utilities.metaclasses</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="NuRadioReco/apidoc/NuRadioReco.utilities.minimization.html#module-NuRadioReco.utilities.minimization"><code class="xref">NuRadioReco.utilities.minimization</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-2">
        <td></td>

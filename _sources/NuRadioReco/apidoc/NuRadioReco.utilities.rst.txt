@@ -24,7 +24,9 @@ Submodules
    NuRadioReco.utilities.interferometry
    NuRadioReco.utilities.io_utilities
    NuRadioReco.utilities.logging
+   NuRadioReco.utilities.matched_filter
    NuRadioReco.utilities.metaclasses
+   NuRadioReco.utilities.minimization
    NuRadioReco.utilities.noise
    NuRadioReco.utilities.particle_names
    NuRadioReco.utilities.signal_processing

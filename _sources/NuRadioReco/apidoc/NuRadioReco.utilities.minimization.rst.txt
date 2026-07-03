@@ -1,0 +1,7 @@
+NuRadioReco.utilities.minimization module
+=========================================
+
+.. automodule:: NuRadioReco.utilities.minimization
+   :members:
+   :undoc-members:
+   :show-inheritance:
