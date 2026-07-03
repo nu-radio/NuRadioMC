@@ -97,11 +97,23 @@ def _all_files_in_directory(mattak_dir):
         return False
 
     if full_run:
-        req_files = ["daqstatus.root", "headers.root"]
+        # headers.root is genuinely required (event index lives there).
+        # daqstatus.root is only required when callers also set
+        # read_daq_status=True (default in mattak); RNO-G handcarry runs
+        # often lack it, and callers like the interferometric reco /
+        # feature extraction drivers pass read_daq_status=False on
+        # purpose. Treat it as an optional input here -- the dataset
+        # constructor handles the absence consistently with the kwarg.
+        req_files = ["headers.root"]
         for file in req_files:
             if not os.path.exists(os.path.join(mattak_dir, file)):
                 logging.error(f"File {file} could not be found in {mattak_dir}")
                 return False
+        if not os.path.exists(os.path.join(mattak_dir, "daqstatus.root")):
+            logging.debug(
+                f"daqstatus.root not present in {mattak_dir}; "
+                f"OK if reader was started with read_daq_status=False"
+            )
 
     return True
 

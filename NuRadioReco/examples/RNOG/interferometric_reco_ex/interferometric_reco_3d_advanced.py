@@ -677,7 +677,10 @@ def main():
                     coh_ch_ids = [COH_WF_CHANNEL_BASE + i for i in range(n_coh)]
                     stn1_out = evt1.get_station(station_id)
                     for wf_key in wf_keys:
-                        pk_idx = int(wf_key.split('_')[-1])
+                        suffix = wf_key.split('_')[-1]
+                        if not suffix.isdigit():
+                            continue
+                        pk_idx = int(suffix)
                         ch_id = COH_WF_CHANNEL_BASE + pk_idx
                         ch = Channel(channel_id=ch_id)
                         wf_times = result.get('coherent_times')
@@ -762,9 +765,14 @@ def main():
         with h5py.File(args.outputfile, 'w') as f:
             grp = f.create_group('results')
             for key in numeric_keys:
-                grp.create_dataset(
-                    key,
-                    data=np.array([r.get(key, np.nan) for r in results]))
+                vals = [r.get(key, np.nan) for r in results]
+                try:
+                    arr = np.asarray(vals, dtype=float)
+                except (ValueError, TypeError):
+                    print(f"WARN: skipping scalar dataset '{key}' "
+                          f"due to inhomogeneous shape", flush=True)
+                    continue
+                grp.create_dataset(key, data=arr)
             grp.create_dataset(
                 'run_number',
                 data=np.array([r['run_number'] for r in results], dtype=int))
@@ -782,10 +790,15 @@ def main():
                     'times', data=results[0]['coherent_times'])
                 for wf_key in sorted(k for k in results[0]
                                      if k.startswith('coherent_wf_')):
-                    peak_idx = wf_key.split('_')[-1]
+                    suffix = wf_key[len('coherent_wf_'):]
                     wfs = np.array([r.get(wf_key, np.zeros_like(
                         results[0][wf_key])) for r in results])
-                    wf_grp.create_dataset(f'peak_{peak_idx}', data=wfs)
+                    ds_name = f'peak_{suffix}'
+                    if ds_name in wf_grp:
+                        print(f"WARN: coherent_waveforms/{ds_name} already exists; skipping",
+                              flush=True)
+                        continue
+                    wf_grp.create_dataset(ds_name, data=wfs)
 
             if args.validation:
                 for val_key, val_dtype, val_default in [
