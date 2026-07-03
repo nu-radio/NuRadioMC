@@ -295,15 +295,31 @@ class neutrinoLikelihoodReconstructor:
             # plot initial signal for debugging:
             signal_initial = signal_model_wrapper(parameters_initial)
             t_array = trace_start_times[0] + np.arange(0, self.n_samples) * self.delta_t
-            fig, ax = plt.subplots(self.n_channels, 1, figsize=(10, self.n_channels*3))
+            fig_1, ax_1 = plt.subplots(self.n_channels, 1, figsize=(10, self.n_channels*2.5))
             for i_ch in range(self.n_channels):
-                ax[i_ch].plot(t_array, traces[i_ch], label="data")
-                ax[i_ch].plot(t_array, signal_initial[i_ch], ls="--", label="initial")
-                ax[i_ch].set_ylabel("Voltage [V]")
-            ax[0].legend()
-            ax[-1].set_xlabel("Time [s]")
+                ax_1[i_ch].plot(t_array, traces[i_ch], label="Data")
+                ax_1[i_ch].plot(t_array, signal_initial[i_ch], ls="--", label="Initial guess signal")
+                ax_1[i_ch].set_ylabel("Voltage [V]")
+                ax_1[i_ch].set_xlim(t_array[0], t_array[-1])
+            ax_1[0].legend()
+            ax_1[-1].set_xlabel("Time [s]")
             plt.tight_layout()
             plt.savefig("debug_neutrinoLikelihoodReconstructor.png")
+
+            # Plot the spectra of the data and initial signal and likelihood calcualtor:
+            fig_2, ax_2 = plt.subplots(self.n_channels, 1, figsize=(10, self.n_channels*2.5))
+            for i_ch in range(self.n_channels):
+                data_spectrum = np.abs(fft.time2freq(traces[i_ch], self.sampling_rate))
+                signal_spectrum = np.abs(fft.time2freq(signal_initial[i_ch], self.sampling_rate))
+                ax_2[i_ch].plot(self.frequencies, data_spectrum, label="Data")
+                ax_2[i_ch].plot(self.frequencies, signal_spectrum, ls="--", label="Initial guess signal")
+                ax_2[i_ch].plot(self.frequencies, self.likelihood_calculator.spectra[i_ch], color="k", ls=":", label="Assumed spectrum for likelihood")
+                ax_2[i_ch].set_ylabel("Amplitude [V]")
+                ax_2[i_ch].set_xlim(self.frequencies[0], self.frequencies[-1])
+            ax_2[0].legend()
+            ax_2[-1].set_xlabel("Frequency [Hz]")
+            plt.tight_layout()
+            plt.savefig("debug_neutrinoLikelihoodReconstructor_spectra.png")
 
         minus_two_llh_initial, minus_two_llh_fit, parameters_fit, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, parameters_initial, two_step_optimization=two_step_optimization, bounds=bounds)
 
@@ -311,11 +327,19 @@ class neutrinoLikelihoodReconstructor:
 
         if self.debug:
             for i_ch in range(self.n_channels):
-                ax[i_ch].plot(t_array, signal_fit[i_ch], ls=":",label="fit")
+                ax_1[i_ch].plot(t_array, signal_fit[i_ch], ls=":",label="Fitted signal")
                 if i_ch == 0:
-                    ax[i_ch].legend()
-            plt.savefig("debug_neutrinoLikelihoodReconstructor.png")
-            plt.show()
+                    ax_1[i_ch].legend()
+            fig_1.savefig("debug_neutrinoLikelihoodReconstructor.png")
+            fig_1.show()
+
+            for i_ch in range(self.n_channels):
+                signal_spectrum = np.abs(fft.time2freq(signal_fit[i_ch], self.sampling_rate))
+                ax_2[i_ch].plot(self.frequencies, signal_spectrum, ls=":", label="Fitted signal")
+                if i_ch == 0:
+                    ax_2[i_ch].legend()
+            fig_2.savefig("debug_neutrinoLikelihoodReconstructor_spectra.png")
+            fig_2.show()
             plt.close()
 
         # Convert fitted parameters to shower parameters:
