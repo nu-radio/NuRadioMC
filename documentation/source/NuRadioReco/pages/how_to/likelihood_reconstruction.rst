@@ -28,8 +28,10 @@ The code consists of 4 core modules that handle different parts of the reconstru
     a useful method to separate signal traces from backgrounds in an event-selection. It is also used in reconstruction
     algorithms to efficiently profile over time and amplitude and improve reconstruction stability.
 
-An example script demonstrating how to use the core modules is available in `NuRadioReco/examples/likelihood_reconstruction/toy_signal_likelihood_fit_and_matched_filter.py <https://github.com/nu-radio/NuRadioMC/blob/develop/NuRadioReco/examples/likelihood_reconstruction/toy_signal_likelihood_fit_and_matched_filter.py>`__ 
-and a script demonstrating the :class:`ShowerSimulator <NuRadioReco.modules.likelihood_reconstruction.shower_simulator.ShowerSimulator>` class is available here `NuRadioReco/examples/likelihood_reconstruction/run_shower_simulator.py <https://github.com/nu-radio/NuRadioMC/blob/develop/NuRadioReco/examples/likelihood_reconstruction/run_shower_simulator.py>`__.
+An example script demonstrating how to use the core modules is available in
+`NuRadioReco/examples/likelihood_reconstruction/toy_signal_likelihood_fit_and_matched_filter.py <https://github.com/nu-radio/NuRadioMC/blob/develop/NuRadioReco/examples/likelihood_reconstruction/toy_signal_likelihood_fit_and_matched_filter.py>`__
+and a script demonstrating the :class:`ShowerSimulator <NuRadioReco.modules.likelihood_reconstruction.shower_simulator.ShowerSimulator>` class is available here
+`NuRadioReco/examples/likelihood_reconstruction/run_shower_simulator.py <https://github.com/nu-radio/NuRadioMC/blob/develop/NuRadioReco/examples/likelihood_reconstruction/run_shower_simulator.py>`__.
 
 These modules are then combined in modules for specific reconstruction tasks with easy-to-use interfaces:
 
@@ -88,7 +90,7 @@ An advanced example with repeated reconstructions of the same event demonstratin
 Electric-field reconstruction
 -----------------------------
 
-The :class:`electricFieldLikelihoodReconstructor <NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor.electricFieldLikelihoodReconstructor>` assumes that the data traces are stored in a station object. The reconstruction module is then intialized with:
+The :class:`electricFieldLikelihoodReconstructor <NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor.electricFieldLikelihoodReconstructor>` assumes that the data traces are stored in a station object. The reconstruction module is then initialized with:
 
 .. code-block:: Python
 
