@@ -20,7 +20,7 @@ The code consists of 4 core modules that handle different parts of the reconstru
     file. The signals can be calculated using a :class:`RadioShower <NuRadioReco.framework.radio_shower.RadioShower>` object or the parameters
     of the shower can be provided directly. This acts as a pure neutrino signal model and is used in forward-folding reconstruction of neutrino
     signals.
-  - :class:`Minimizer <NuRadioReco.utilities.minimization.minimizer>`: Class for minimization of, e.g., a -2 log likelihood that unifies
+  - :class:`Minimizer <NuRadioReco.utilities.minimization.Minimizer>`: Class for minimization of, e.g., a -2 log likelihood that unifies
     the interfaces of :code:`scipy.optimize` and :code:`iminuit`. The class adds additional functionality like normalization
     of the fitted parameters.
   - :class:`MatchedFilter <NuRadioReco.utilities.matched_filter.MatchedFilter>`: Class for performing a matched filter search of simulated signal
@@ -82,9 +82,9 @@ documentation of the class. The reconstruction is then run with:
 
 which saves the reconstructed shower as a :class:`RadioShower <NuRadioReco.framework.radio_shower.RadioShower>` in the :class:`Station<NuRadioReco.framework.station>` object. Alternatively, :code:`full_output = True`, the reconstructed parameters, signal, likelihood values, and fit p-value are returned.
 
-A full example of how to run the :class:`neutrinoLikelihoodReconstructor <NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor>` 
-is shown in `NuRadioReco/examples/likelihood_reconstruction/neutrino_signal_reconstruction.py <https://github.com/nu-radio/NuRadioMC/blob/develop/NuRadioReco/examples/likelihood_reconstruction/neutrino_signal_reconstruction.py>`__ .
-An advanced example with repeated reconstructions of the same event demonstrating correct coverage is shown in `NuRadioReco/examples/likelihood_reconstruction/neutrino_signal_reconstruction_advanced.py <https://github.com/nu-radio/NuRadioMC/blob/develop/NuRadioReco/examples/likelihood_reconstruction/neutrino_signal_reconstruction_advanced.py>`__ .
+A full example of how to run the :class:`neutrinoLikelihoodReconstructor <NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor>`
+is shown in `NuRadioReco/examples/likelihood_reconstruction/neutrino_signal_reconstruction.py <https://github.com/nu-radio/NuRadioMC/blob/develop/NuRadioReco/examples/likelihood_reconstruction/neutrino_signal_reconstruction.py>`__.
+An advanced example with repeated reconstructions of the same event demonstrating correct coverage is shown in `NuRadioReco/examples/likelihood_reconstruction/neutrino_signal_reconstruction_advanced.py <https://github.com/nu-radio/NuRadioMC/blob/develop/NuRadioReco/examples/likelihood_reconstruction/neutrino_signal_reconstruction_advanced.py>`__.
 
 
 Electric-field reconstruction
@@ -120,4 +120,4 @@ If ray-traced travel times are needed, they can be provided through :code:`trave
 If :code:`use_MC_direction` is :code:`False`, the already reconstructed arrival direction stored in :code:`station[stnp.zenith]` and :code:`station[stnp.azimuth]` is used. The reconstructed electric field is saved as an :class:`ElectricField <NuRadioReco.framework.electric_field.ElectricField>` in the :class:`Station <NuRadioReco.framework.station.Station>` object. Alternatively, if :code:`full_output = True`, the reconstructed signal, signal parameters, and fitted likelihood value are returned.
 
 A full example of how to run the :class:`electricFieldLikelihoodReconstructor <NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor.electricFieldLikelihoodReconstructor>`
-is shown in `NuRadioReco/examples/likelihood_reconstruction/electric_field_reconstruction.py <https://github.com/nu-radio/NuRadioMC/blob/develop/NuRadioReco/examples/likelihood_reconstruction/electric_field_reconstruction.py>`__ .
+is shown in `NuRadioReco/examples/likelihood_reconstruction/electric_field_reconstruction.py <https://github.com/nu-radio/NuRadioMC/blob/develop/NuRadioReco/examples/likelihood_reconstruction/electric_field_reconstruction.py>`__.
