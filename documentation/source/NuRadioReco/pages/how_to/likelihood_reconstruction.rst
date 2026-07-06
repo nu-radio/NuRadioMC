@@ -21,7 +21,7 @@ The code consists of 4 core modules that handle different parts of the reconstru
     of the shower can be provided directly. This acts as a pure neutrino signal model and is used in forward-folding reconstruction of neutrino
     signals.
   - :class:`Minimizer <NuRadioReco.utilities.minimization.Minimizer>`: Class for minimization of, e.g., a -2 log likelihood that unifies
-    the interfaces of :code:`scipy.optimize` and :code:`iminuit`. The class adds additional functionality like normalization
+    the interfaces of :code:`scipy.optimize`, :code:`iminuit`, :code:`skopt`, and :code:`noisyopt`. The class adds additional functionality like normalization
     of the fitted parameters.
   - :class:`MatchedFilter <NuRadioReco.utilities.matched_filter.MatchedFilter>`: Class for performing a matched filter search of simulated signal
     templates in noisy data. The class is initialized with the spectra of the noise in each antenna. This is
@@ -36,10 +36,10 @@ and a script demonstrating the :class:`ShowerSimulator <NuRadioReco.modules.like
 These modules are then combined in modules for specific reconstruction tasks with easy-to-use interfaces:
 
   - :class:`neutrinoLikelihoodReconstructor <NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor>`: Reconstructs a neutrino
-    signal using the data traces in a :class:`Station<NuRadioReco.framework.station>` object, the spectra of the noise for each antenna, a detector
+    signal using the data traces in a :class:`Station <NuRadioReco.framework.station>` object, the spectra of the noise for each antenna, a detector
     description, and a simulation config file.
   - :class:`electricFieldLikelihoodReconstructor <NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor.electricFieldLikelihoodReconstructor>`: Reconstructs a pulsed
-    electric field in an ensemble of antennas in close proximity to each other using the data traces in a :class:`Station<NuRadioReco.framework.station>` object. The method assumes that all antennas observe the same electric field and uses an analytic parametrization
+    electric field in an ensemble of antennas in close proximity to each other using the data traces in a :class:`Station <NuRadioReco.framework.station>` object. The method assumes that all antennas observe the same electric field and uses an analytic parametrization
     of an electric field which is forward-folded through the antenna responses. This can be used to reconstruct
     cosmic-ray electric-fields in dual-polarized antennas or in RNO-G shallow stations.
 
@@ -48,7 +48,7 @@ Neutrino reconstruction
 -----------------------
 
 The :class:`neutrinoLikelihoodReconstructor <NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor>` reconstructs the parameters of a shower from a neutrino signal given a set of measured traces.
-The code assumes that you have a :class:`Station<NuRadioReco.framework.station>` object with the measured traces stored in the channels, that the noise spectra are
+The code assumes that you have a :class:`Station <NuRadioReco.framework.station>` object with the measured traces stored in the channels, that the noise spectra are
 known, and a detector description (:code:`det`) corresponding to the data. The reconstructor is then initialized using a
 user-defined simulation config file and :code:`detector_simulation_filter_amp`:
 
@@ -80,7 +80,7 @@ documentation of the class. The reconstruction is then run with:
         full_output = False
     )
 
-which saves the reconstructed shower as a :class:`RadioShower <NuRadioReco.framework.radio_shower.RadioShower>` in the :class:`Station<NuRadioReco.framework.station>` object. Alternatively, :code:`full_output = True`, the reconstructed parameters, signal, likelihood values, and fit p-value are returned.
+which saves the reconstructed shower as a :class:`RadioShower <NuRadioReco.framework.radio_shower.RadioShower>` in the :class:`Station <NuRadioReco.framework.station>` object. Alternatively, :code:`full_output = True`, the reconstructed parameters, signal, likelihood values, and fit p-value are returned.
 
 A full example of how to run the :class:`neutrinoLikelihoodReconstructor <NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor>`
 is shown in `NuRadioReco/examples/likelihood_reconstruction/neutrino_signal_reconstruction.py <https://github.com/nu-radio/NuRadioMC/blob/develop/NuRadioReco/examples/likelihood_reconstruction/neutrino_signal_reconstruction.py>`__.
