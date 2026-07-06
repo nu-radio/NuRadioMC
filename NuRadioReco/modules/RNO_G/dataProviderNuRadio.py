@@ -3,6 +3,7 @@ from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.modules.io.eventReader
 import NuRadioReco.modules.RNO_G.channelPreprocessor
 
+import datetime
 import logging
 logger = logging.getLogger('NuRadioReco.RNO_G.dataProviderNuRadio')
 
@@ -31,6 +32,7 @@ class dataProviderNuRadio:
     def __init__(self):
         self.reader = NuRadioReco.modules.io.eventReader.eventReader()
         self.preprocessor = NuRadioReco.modules.RNO_G.channelPreprocessor.channelPreprocessor()
+        self._detector_updated = False
 
     def begin(self, files, det, reader_kwargs=None, preprocessor_config=None):
         """Initialize the reader and preprocessor.
@@ -102,6 +104,13 @@ class dataProviderNuRadio:
 
     def _preprocess_and_return(self, event):
         station = event.get_station()
-        self.detector.update(station.get_station_time())
+        station_time = station.get_station_time()
+        if station_time is not None:
+            self.detector.update(station_time)
+        elif not self._detector_updated:
+            # Sim sets without station times (e.g. FAERIE) still need a
+            # detector epoch; fall back to the 2022 analysis date once.
+            self.detector.update(datetime.datetime(2022, 10, 1))
+        self._detector_updated = True
         self.preprocessor.run(event, station, self.detector)
         return event
