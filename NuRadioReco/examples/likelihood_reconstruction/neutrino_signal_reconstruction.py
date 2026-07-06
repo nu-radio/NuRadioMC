@@ -157,7 +157,7 @@ parameters_initial = [
 
 # Run reconstruction:
 parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
-    evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True)
+    evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True, likelihood_scan=True)
 
 shower_reconstructed = list(evt.get_showers())[0]
 

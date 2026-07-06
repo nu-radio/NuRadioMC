@@ -165,7 +165,8 @@ class neutrinoLikelihoodReconstructor:
         reference_channel = 0,
         two_step_optimization = True,
         full_output = True,
-        bounds = None
+        bounds = None,
+        likelihood_scan = False
         ):
         """
         Run the likelihood reconstruction to fit a hadronic shower signal model to the traces in the station object.
@@ -209,6 +210,9 @@ class neutrinoLikelihoodReconstructor:
             - vertex_theta_rel: 90 to 180 deg
             - vertex_phi_rel: -360 to 360 deg
             - pulse_time: initial guess +/- self.signal_search_width
+        likelihood_scan : bool, optional
+            If ``True``, a likelihood scan is performed for each parameter after the fit and the plots are saved to the current working directory.
+            This is useful for debuggin, checking the fit quality, and the stability of the signal model.
 
         Returns
         -------
@@ -321,7 +325,7 @@ class neutrinoLikelihoodReconstructor:
             plt.tight_layout()
             plt.savefig("debug_neutrinoLikelihoodReconstructor_spectra.png")
 
-        minus_two_llh_initial, minus_two_llh_fit, parameters_fit, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, parameters_initial, two_step_optimization=two_step_optimization, bounds=bounds)
+        minus_two_llh_initial, minus_two_llh_fit, parameters_fit, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, parameters_initial, two_step_optimization=two_step_optimization, bounds=bounds, likelihood_scan=likelihood_scan)
 
         signal_fit = signal_model_wrapper(parameters_fit)
 
@@ -444,7 +448,7 @@ class neutrinoLikelihoodReconstructor:
         return chi2
 
 
-    def _reconstruct_signal(self, data, signal_function, parameters_initial, two_step_optimization=True, bounds=None):
+    def _reconstruct_signal(self, data, signal_function, parameters_initial, two_step_optimization=True, bounds=None, likelihood_scan=False):
         """
         Reconstruct the signal from the given data and the provided signal model using the initial guess of the signal parameters.
         """
@@ -525,5 +529,35 @@ class neutrinoLikelihoodReconstructor:
         fisher_information_matrix_fit = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function_scaled, params_fit / normalization, dx)
         f_i_fit = np.linalg.pinv(fisher_information_matrix_fit)
         uncertainties_fit = np.sqrt(np.diag(f_i_fit)) * normalization
+
+        # likelihood scan:
+        if likelihood_scan:
+            print("Likelihood scan:")
+            parameter_keys = ["energy", "zenith", "azimuth", "vertex_r_rel", "vertex_theta_rel", "vertex_phi_rel", "pulse_time"]
+            n_grid = 50
+            for i_param in range(len(params_fit)):
+                print("i_param:", i_param)
+                delta_x = abs(params_fit[i_param] - parameters_initial[i_param])
+                x_min = np.min([params_fit[i_param], parameters_initial[i_param]]) - 0.2 * delta_x
+                x_max = np.max([params_fit[i_param], parameters_initial[i_param]]) + 0.2 * delta_x
+                # delta_x = abs(params_fit[i_param] - parameters_initial_llh[i_param])
+                # x_min = np.min([params_fit[i_param], parameters_initial_llh[i_param]]) - 0.2 * delta_x
+                # x_max = np.max([params_fit[i_param], parameters_initial_llh[i_param]]) + 0.2 * delta_x
+
+                minimizer_llh.profile_scan_1D(
+                    method = "minuit",
+                    i_parameter_scan = i_param,
+                    parameter_grid_x = np.linspace(x_min, x_max, n_grid),
+                    parameters_best = params_fit,
+                    data = data,
+                    profile = False,
+                    true_value = None,
+                    plot = True
+                )
+                plt.axvline(x=parameters_initial[i_param], color="g", ls="--", label="Initial MF")
+                plt.axvline(x=parameters_initial_llh[i_param], color="r", ls=":", label="Initial LLH")
+                plt.legend()
+                plt.xlabel(f"{parameter_keys[i_param]} [au]")
+                plt.savefig(f"llh_scan_{i_param}.png")
 
         return minus_two_llh_initial, minus_two_llh_fit, params_fit, uncertainties_fit
