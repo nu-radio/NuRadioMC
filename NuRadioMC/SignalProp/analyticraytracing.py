@@ -2082,12 +2082,12 @@ class ray_tracing(ray_tracing_base):
         self._R = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1)))
         X1r = self._X1
         X2r = np.dot(self._R, self._X2 - self._X1) + self._X1
-        self.__logger.debug("X1 = {}, X2 = {}".format(self._X1, self._X2))
-        self.__logger.debug('dphi = {:.1f}'.format(self._dPhi / units.deg))
-        self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self._X2 - self._X1, X1r, X2r))
+        self.__logger.debug("X1 = %s, X2 = %s", self._X1, self._X2)
+        self.__logger.debug("dphi = %.1f", self._dPhi / units.deg)
+        self.__logger.debug("X2 - X1 = %s, X1r = %s, X2r = %s", dX, X1r, X2r)
         self._x1 = np.array([X1r[0], X1r[2]])
         self._x2 = np.array([X2r[0], X2r[2]])
-        self.__logger.debug("2D points {} {}".format(self._x1, self._x2))
+        self.__logger.debug("2D points %s %s", self._x1, self._x2)
 
     def set_solution(self, raytracing_results):
         """
