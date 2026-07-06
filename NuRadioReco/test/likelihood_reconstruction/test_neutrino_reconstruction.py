@@ -36,7 +36,7 @@ max_freq = 500 * units.MHz
 order_low_pass = 8
 frequencies = np.fft.rfftfreq(n_samples, 1/sampling_rate)
 filt = signal_processing.get_filter_response(frequencies, [min_freq, max_freq], "butter", 8)
-bandwidth = np.trapz(np.abs(filt) ** 2, frequencies)
+bandwidth = np.trapezoid(np.abs(filt) ** 2, frequencies)
 noise_amplitude = signal_processing.calculate_vrms_from_temperature(300 * units.kelvin, bandwidth)
 
 filter_settings_low = {'passband': [0 * units.MHz, max_freq],
