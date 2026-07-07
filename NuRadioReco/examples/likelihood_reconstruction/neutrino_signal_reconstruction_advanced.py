@@ -339,7 +339,7 @@ x = np.linspace(0, max(minus_two_llh_fit_array)*1.2, 1000)
 y = dist.pdf(x) * len(minus_two_llh_fit_array) * (hist[1][1] - hist[1][0]) * 1.0
 #plt.hist(llh_true_array, bins=20, alpha=0.5, label="True signal")
 plt.hist(minus_two_llh_initial_array, bins=20, alpha=0.2, label="Initial parameters -2 LLH")
-plt.plot(x, y, "y-", label=f"$\chi^2($dof$={str(n_dof_total)})$")
+plt.plot(x, y, "y-", label=rf"$\chi^2($dof$={str(n_dof_total)})$")
 plt.xlabel("Chi2 of fit")
 plt.ylabel("Number of events")
 plt.legend()

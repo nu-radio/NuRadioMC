@@ -40,7 +40,7 @@ def test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
 
         except AssertionError as e:
             print("\narray {} not almost equal".format(key))
-            print("\Reference: {}, reconstruction: {}".format(fin2['station_101'][key], fin1['station_101'][key]))
+            print("Reference: {}, reconstruction: {}".format(fin2['station_101'][key], fin1['station_101'][key]))
             print(e)
             error += 1
     return error
@@ -52,7 +52,7 @@ def test_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
             testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
         except AssertionError as e:
             print("\narray {} not almost equal".format(key))
-            print("\Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
+            print("Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
             print(e)
             error += 1
     return error
