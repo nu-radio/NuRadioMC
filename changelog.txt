@@ -15,6 +15,8 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Improved simulation of galactic noise with the channelGalacticNoiseAdder for deep in-ice antennas: I) take into account attenuation (small effect),
   II) more realistic treatment of refraction, calculate refraction through the firn layer and not only on the ice-air boundary (changes effective angle
   at the antenna and thus has, depending on the antenna model a noticeable effect on signal strength in antenna)
+- Likelihood-based reconstruction modules, including minimization and matched filter classes. Specialized reconstruction modules for electric fields and
+  in-ice neutrino showers are implemeted. See https://arxiv.org/abs/2510.21925 and documentation for details.
 
 bugfixes:
 - Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.

@@ -1,4 +1,4 @@
-import astropy.time
+import time
 
 
 def pretty_time_delta(seconds):
@@ -52,7 +52,7 @@ class timeLogger:
         The logger object used for logging.
     update_interval : int, optional
         The time interval (in seconds) at which the logger should be updated.
-        Default is 5 seconds.
+        Default is 20 seconds.
 
     Methods
     -------
@@ -68,7 +68,7 @@ class timeLogger:
         Display the progress information of a simulation run.
     """
 
-    def __init__(self, logger, update_interval=5):
+    def __init__(self, logger, update_interval=20):
         """
         Initialize the TimeLogger object.
 
@@ -78,14 +78,14 @@ class timeLogger:
             The logger object used for logging.
         update_interval : int, optional
             The time interval (in seconds) at which the logger should be updated.
-            Default is 5 seconds.
+            Default is 20 seconds.
         """
         self.__times = {}
         self.__total_start_time = None
         self.__start_times = {}
         self.__last_update = None
         self.__logger = logger
-        self.__update_interval = astropy.time.TimeDelta(update_interval, format='sec')
+        self.__update_interval = update_interval  # sec
 
     def reset_times(self, categories=None):
         """
@@ -113,8 +113,8 @@ class timeLogger:
         >>> logger.reset_times(['category1', 'category2'])  # Reset specific categories
         """
         self.__times = {}
-        self.__total_start_time = astropy.time.Time.now()
-        self.__last_update = astropy.time.Time.now()
+        self.__total_start_time = time.monotonic()
+        self.__last_update = time.monotonic()
 
         if categories is None:
             for key in self.__times:
@@ -134,7 +134,7 @@ class timeLogger:
 
         Notes
         -----
-        This method starts the timer for the specified category by recording the current time using `astropy.time.Time.now()`.
+        This method starts the timer for the specified category by recording the current time using `time.monotonic()`.
 
         If the category does not exist in the time log, it will be added and the timer will be reset to zero.
 
@@ -146,7 +146,7 @@ class timeLogger:
         if category not in self.__times:
             self.__times[category] = 0
             self.__logger.info(f"Time category {category} not found. Adding category and resetting time to zero.")
-        self.__start_times[category] = astropy.time.Time.now()
+        self.__start_times[category] = time.monotonic()
 
     def stop_time(self, category):
         """
@@ -170,7 +170,7 @@ class timeLogger:
         if category not in self.__start_times.keys() or self.__start_times[category] is None:
             raise RuntimeError('It looks like you stopped taking time for {} before starting it.'.format(category))
 
-        self.__times[category] += (astropy.time.Time.now() - self.__start_times[category]).sec
+        self.__times[category] += time.monotonic() - self.__start_times[category]
         self.__start_times[category] = None
 
     def show_time(self, n_event_groups, i_event_group):
@@ -187,22 +187,22 @@ class timeLogger:
         Raises:
             None
         """
-        if astropy.time.Time.now() - self.__last_update > self.__update_interval:
-            self.__last_update = astropy.time.Time.now()
-            elapsed_time = astropy.time.Time.now() - self.__total_start_time
+        if time.monotonic() - self.__last_update > self.__update_interval:
+            self.__last_update = time.monotonic()
+            elapsed_time = time.monotonic() - self.__total_start_time
             projected_time = elapsed_time * (n_event_groups - i_event_group - 1) / (i_event_group + 1)
             total_accounted_time = 0
             time_account_string = ''
             for category in self.__times:
                 total_accounted_time += self.__times[category]
-                time_account_string = time_account_string + '{} = {:.0f}%, '.format(category, self.__times[category] / elapsed_time.sec * 100)
+                time_account_string = time_account_string + '{} = {:.0f}%, '.format(category, self.__times[category] / elapsed_time * 100)
 
-            time_account_string = time_account_string + 'unaccounted: {:.0f}%'.format((elapsed_time.sec - total_accounted_time) / elapsed_time.sec * 100)
+            time_account_string = time_account_string + 'unaccounted: {:.0f}%'.format((elapsed_time - total_accounted_time) / elapsed_time * 100)
             self.__logger.status(
                 'Processing event group {}/{}. ETA: {}, time consumption: {}'.format(
                     i_event_group,
                     n_event_groups,
-                    pretty_time_delta(projected_time.sec),
+                    pretty_time_delta(projected_time),
                     time_account_string
                 )
             )

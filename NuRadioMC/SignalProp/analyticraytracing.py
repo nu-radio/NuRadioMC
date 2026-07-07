@@ -1155,7 +1155,7 @@ class ray_tracing_2D(ray_tracing_base):
                 freqs = np.append(freqs, np.linspace(frequency[~det_mask].min(), frequency[~det_mask].max(), n_freqs // 2))
 
 
-        self.__logger.debug("Frequency vector for attenuation calculation: {}".format(freqs))
+        self.__logger.debug("Frequency vector for attenuation calculation: %s", freqs)
         return freqs
 
     def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq,
@@ -1448,8 +1448,8 @@ class ray_tracing_2D(ray_tracing_base):
             res[~mask] = 2 * y_turn - get_y(gamma, C_0, C_1, self.medium.n_ice, self.__b, self.medium.z_0)
             zs[~mask] = 2 * z_turn - z[~mask]
 
-        self.__logger.debug('turning points for C_0 = {:.2f}, b= {:.2f}, gamma = {:.4f}, z = {:.1f}, y_turn = {:.0f}'.format(
-            C_0, self.__b, gamma_turn, z_turn, y_turn))
+        self.__logger.debug('turning points for C_0 = %.2f, b= %.2f, gamma = %.4f, z = %.1f, y_turn = %.0f',
+            C_0, self.__b, gamma_turn, z_turn, y_turn)
         return res, zs
 
     def get_path_reflections(self, x1, x2, C_0, n_points=1000, reflection=0, reflection_case=1):
@@ -1492,7 +1492,7 @@ class ray_tracing_2D(ray_tracing_base):
             # that will produce a downward going ray through x1
             y_turn = get_y_turn(C_0, x1, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
             dy = y_turn - x1[0]
-            self.__logger.debug("relaction case 2: shifting x1 {} to {}".format(x1, x1[0] - 2 * dy))
+            self.__logger.debug("reflection case 2: shifting x1 %s to %s", x1, x1[0] - 2 * dy)
             x1[0] = x1[0] - 2 * dy
 
         if(reflection == 0):
@@ -1500,7 +1500,7 @@ class ray_tracing_2D(ray_tracing_base):
             return self.get_path(x1, x2, C_0, n_points)
         x22 = copy.copy(x2)
         for i in range(reflection + 1):
-            self.__logger.debug("calculation path for reflection = {}".format(i))
+            self.__logger.debug("calculation path for reflection = %d", i)
             C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0,self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
             x2 = get_reflection_point(C_0, C_1,  self.medium.n_ice, self.reflection, self.__b, self.medium.z_0, self.medium.delta_n)
             if(x2[0] > x22[0]):
@@ -1508,7 +1508,7 @@ class ray_tracing_2D(ray_tracing_base):
             yyy, zzz = self.get_path(x1, x2, C_0, n_points)
             yy.extend(yyy)
             zz.extend(zzz)
-            self.__logger.debug("setting x1 from {} to {}".format(x1, x2))
+            self.__logger.debug("setting x1 from %s to %s", x1, x2)
             x1 = x2
 
         yy = np.array(yy)
@@ -1611,7 +1611,7 @@ class ray_tracing_2D(ray_tracing_base):
                 C_0_stop = self.get_C_0_from_angle(np.arcsin(1/self.medium.get_index_of_refraction([0, x1[0], x1[1]])), x1[1]).x[0]
                 logC0_stop = np.log(C_0_stop - 1/self.medium.n_ice)
                 delta_ys = [self.obj_delta_y(logC0, x1, x2, reflection, reflection_case) for logC0 in [logC0_start, logC0_stop]]
-                self.__logger.debug("Looking for ice-air solutions between log(C0) ({}, {}) with delta_y ({}, {})".format(logC0_start, logC0_stop, *delta_ys))
+                self.__logger.debug("Looking for ice-air solutions between log(C0) (%s, %s) with delta_y (%s, %s)", logC0_start, logC0_stop, *delta_ys)
                 if(np.sign(delta_ys[0]) == np.sign(delta_ys[1])):
                     self.__logger.warning(f"can't find a solution for ice/air propagation. The trajectory might be too vertical! This is currently not"\
                                           " supported because of numerical instabilities.")
@@ -1642,7 +1642,7 @@ class ray_tracing_2D(ray_tracing_base):
                 C_0_start, th_start = self.get_surf_skim_angle(x1)
                 logC_0_start = np.log(C_0_start - 1. / self.medium.n_ice)
                 self.__logger.debug(
-                    'starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(logC_0_start, C_0_start))
+                    'starting optimization with x0 = %.2f -> C0 = %.3f', logC_0_start, C_0_start)
             else:
                 logC_0_start = -1
             obj_delta_y_sqr = obj_delta_y_square
@@ -2243,12 +2243,12 @@ class ray_tracing(ray_tracing_base):
         self._R = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1)))
         X1r = self._X1
         X2r = np.dot(self._R, self._X2 - self._X1) + self._X1
-        self.__logger.debug("X1 = {}, X2 = {}".format(self._X1, self._X2))
-        self.__logger.debug('dphi = {:.1f}'.format(self._dPhi / units.deg))
-        self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self._X2 - self._X1, X1r, X2r))
+        self.__logger.debug("X1 = %s, X2 = %s", self._X1, self._X2)
+        self.__logger.debug("dphi = %.1f", self._dPhi / units.deg)
+        self.__logger.debug("X2 - X1 = %s, X1r = %s, X2r = %s", dX, X1r, X2r)
         self._x1 = np.array([X1r[0], X1r[2]])
         self._x2 = np.array([X2r[0], X2r[2]])
-        self.__logger.debug("2D points {} {}".format(self._x1, self._x2))
+        self.__logger.debug("2D points %s %s", self._x1, self._x2)
 
     def set_solution(self, raytracing_results):
         """
@@ -3022,9 +3022,8 @@ class ray_tracing(ray_tracing_base):
                 lauVec1 = self._r1.get_launch_vector(iS)
                 lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
                 self.__logger.debug(
-                    "focusing: receive angle {:.2f} / launch angle {:.2f} / d_launch_angle {:.4f}".format(
-                        recAng / units.deg, lauAng / units.deg, (lauAng1-lauAng) / units.deg
-                    )
+                    "focusing: receive angle %.2f / launch angle %.2f / d_launch_angle %.4f",
+                    recAng / units.deg, lauAng / units.deg, (lauAng1-lauAng) / units.deg
                 )
                 focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
 
@@ -3186,7 +3185,8 @@ class ray_tracing(ray_tracing_base):
             spec[1] *= reflection_coefficient * np.exp(1j * phase_shift)
             spec[2] *= reflection_coefficient * np.exp(1j * phase_shift)
             self.__logger.debug(
-                f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
+                "ray is reflecting %d times at the bottom -> reducing the signal by a factor of %.2f",
+                i_reflections, reflection_coefficient)
 
         # apply the focusing effect
         if self._config['propagation']['focusing']:
