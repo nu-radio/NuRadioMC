@@ -17,6 +17,7 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   at the antenna and thus has, depending on the antenna model a noticeable effect on signal strength in antenna)
 - Likelihood-based reconstruction modules, including minimization and matched filter classes. Specialized reconstruction modules for electric fields and
   in-ice neutrino showers are implemeted. See https://arxiv.org/abs/2510.21925 and documentation for details.
+- Improve time_logger functionality - yielding significant reduction in simulation time (25-40%). Smaller improvements to logging.
 
 bugfixes:
 - Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.
