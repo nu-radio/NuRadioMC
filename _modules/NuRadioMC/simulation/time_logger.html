@@ -644,7 +644,7 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.simulation.time_logger</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">astropy.time</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 
 <div class="viewcode-block" id="pretty_time_delta">
@@ -703,7 +703,7 @@
 <span class="sd">        The logger object used for logging.</span>
 <span class="sd">    update_interval : int, optional</span>
 <span class="sd">        The time interval (in seconds) at which the logger should be updated.</span>
-<span class="sd">        Default is 5 seconds.</span>
+<span class="sd">        Default is 20 seconds.</span>
 
 <span class="sd">    Methods</span>
 <span class="sd">    -------</span>
@@ -719,7 +719,7 @@
 <span class="sd">        Display the progress information of a simulation run.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">update_interval</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">update_interval</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the TimeLogger object.</span>
 
@@ -729,14 +729,14 @@
 <span class="sd">            The logger object used for logging.</span>
 <span class="sd">        update_interval : int, optional</span>
 <span class="sd">            The time interval (in seconds) at which the logger should be updated.</span>
-<span class="sd">            Default is 5 seconds.</span>
+<span class="sd">            Default is 20 seconds.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__times</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__total_start_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logger</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__update_interval</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">TimeDelta</span><span class="p">(</span><span class="n">update_interval</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;sec&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__update_interval</span> <span class="o">=</span> <span class="n">update_interval</span>  <span class="c1"># sec</span>
 
 <div class="viewcode-block" id="timeLogger.reset_times">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.reset_times">[docs]</a>
@@ -766,8 +766,8 @@
 <span class="sd">        &gt;&gt;&gt; logger.reset_times([&#39;category1&#39;, &#39;category2&#39;])  # Reset specific categories</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__times</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__total_start_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__total_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">categories</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">:</span>
@@ -790,7 +790,7 @@
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        This method starts the timer for the specified category by recording the current time using `astropy.time.Time.now()`.</span>
+<span class="sd">        This method starts the timer for the specified category by recording the current time using `time.monotonic()`.</span>
 
 <span class="sd">        If the category does not exist in the time log, it will be added and the timer will be reset to zero.</span>
 
@@ -802,7 +802,7 @@
         <span class="k">if</span> <span class="n">category</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time category </span><span class="si">{</span><span class="n">category</span><span class="si">}</span><span class="s2"> not found. Adding category and resetting time to zero.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="o">.</span><span class="n">now</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="timeLogger.stop_time">
@@ -829,7 +829,7 @@
         <span class="k">if</span> <span class="n">category</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;It looks like you stopped taking time for </span><span class="si">{}</span><span class="s1"> before starting it.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">category</span><span class="p">))</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="p">[</span><span class="n">category</span><span class="p">])</span><span class="o">.</span><span class="n">sec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
@@ -849,22 +849,22 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__update_interval</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-            <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__total_start_time</span>
+        <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__update_interval</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span>
+            <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__total_start_time</span>
             <span class="n">projected_time</span> <span class="o">=</span> <span class="n">elapsed_time</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_event_groups</span> <span class="o">-</span> <span class="n">i_event_group</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">i_event_group</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">total_accounted_time</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">time_account_string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
             <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">:</span>
                 <span class="n">total_accounted_time</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span>
-                <span class="n">time_account_string</span> <span class="o">=</span> <span class="n">time_account_string</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> = </span><span class="si">{:.0f}</span><span class="s1">%, &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">/</span> <span class="n">elapsed_time</span><span class="o">.</span><span class="n">sec</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+                <span class="n">time_account_string</span> <span class="o">=</span> <span class="n">time_account_string</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> = </span><span class="si">{:.0f}</span><span class="s1">%, &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">/</span> <span class="n">elapsed_time</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
 
-            <span class="n">time_account_string</span> <span class="o">=</span> <span class="n">time_account_string</span> <span class="o">+</span> <span class="s1">&#39;unaccounted: </span><span class="si">{:.0f}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="n">elapsed_time</span><span class="o">.</span><span class="n">sec</span> <span class="o">-</span> <span class="n">total_accounted_time</span><span class="p">)</span> <span class="o">/</span> <span class="n">elapsed_time</span><span class="o">.</span><span class="n">sec</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="n">time_account_string</span> <span class="o">=</span> <span class="n">time_account_string</span> <span class="o">+</span> <span class="s1">&#39;unaccounted: </span><span class="si">{:.0f}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="n">elapsed_time</span> <span class="o">-</span> <span class="n">total_accounted_time</span><span class="p">)</span> <span class="o">/</span> <span class="n">elapsed_time</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span>
                 <span class="s1">&#39;Processing event group </span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">. ETA: </span><span class="si">{}</span><span class="s1">, time consumption: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">i_event_group</span><span class="p">,</span>
                     <span class="n">n_event_groups</span><span class="p">,</span>
-                    <span class="n">pretty_time_delta</span><span class="p">(</span><span class="n">projected_time</span><span class="o">.</span><span class="n">sec</span><span class="p">),</span>
+                    <span class="n">pretty_time_delta</span><span class="p">(</span><span class="n">projected_time</span><span class="p">),</span>
                     <span class="n">time_account_string</span>
                 <span class="p">)</span>
             <span class="p">)</span></div>

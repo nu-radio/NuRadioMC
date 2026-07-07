@@ -811,6 +811,14 @@
 
         <span class="c1"># Add post_pulse_time as long as we reach the minimum required trace length</span>
         <span class="k">while</span> <span class="n">times_max</span> <span class="o">-</span> <span class="n">times_min</span> <span class="o">&lt;</span> <span class="n">max_channel_trace_length</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The channel trace length as requested by the detector description (</span><span class="si">{</span><span class="n">max_channel_trace_length</span><span class="si">}</span><span class="s2"> ns) &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;is not reached (</span><span class="si">{</span><span class="n">times_max</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">times_min</span><span class="si">}</span><span class="s2"> ns). To extend it, we iteratively add `post_pulse_time`. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;However, `post_pulse_time` is set to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span><span class="si">}</span><span class="s2"> and thus the traces are not extended. &quot;</span>
+                    <span class="s2">&quot;Please change it.&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+
             <span class="n">times_max</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span>
 
         <span class="c1"># assumes that all electric fields have the same sampling rate</span>

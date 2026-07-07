@@ -685,7 +685,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.time_logger.timeLogger">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.time_logger.</span></span><span class="sig-name descname"><span class="pre">timeLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/time_logger.html#timeLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.time_logger.timeLogger" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.time_logger.</span></span><span class="sig-name descname"><span class="pre">timeLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/time_logger.html#timeLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.time_logger.timeLogger" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A class for logging and tracking time durations for different categories.</p>
 <dl class="field-list simple">
@@ -694,7 +694,7 @@
 <dt><strong>logger</strong><span class="classifier">object</span></dt><dd><p>The logger object used for logging.</p>
 </dd>
 <dt><strong>update_interval</strong><span class="classifier">int, optional</span></dt><dd><p>The time interval (in seconds) at which the logger should be updated.
-Default is 5 seconds.</p>
+Default is 20 seconds.</p>
 </dd>
 </dl>
 </dd>
@@ -726,7 +726,7 @@ Default is 5 seconds.</p>
 <dt><strong>logger</strong><span class="classifier">object</span></dt><dd><p>The logger object used for logging.</p>
 </dd>
 <dt><strong>update_interval</strong><span class="classifier">int, optional</span></dt><dd><p>The time interval (in seconds) at which the logger should be updated.
-Default is 5 seconds.</p>
+Default is 20 seconds.</p>
 </dd>
 </dl>
 </dd>
@@ -790,7 +790,7 @@ to zero. It also updates the total start time and the last update time.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>This method starts the timer for the specified category by recording the current time using <em class="xref py py-obj">astropy.time.Time.now()</em>.</p>
+<p>This method starts the timer for the specified category by recording the current time using <em class="xref py py-obj">time.monotonic()</em>.</p>
 <p>If the category does not exist in the time log, it will be added and the timer will be reset to zero.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span> <span class="o">=</span> <span class="n">TimeLogger</span><span class="p">()</span>
