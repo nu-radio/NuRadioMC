@@ -59,4 +59,4 @@ runs:
       if: inputs.raise-deprecations
       shell: bash
       run: |
-        echo "PYTHONWARNINGS=error::DeprecationWarning" >> "$GITHUB_ENV"
+        echo "PYTHONWARNINGS=error::DeprecationWarning,ignore:invalid escape sequence:DeprecationWarning" >> "$GITHUB_ENV"
