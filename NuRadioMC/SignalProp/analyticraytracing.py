@@ -662,14 +662,14 @@ class ray_tracing_2D(ray_tracing_base):
         attenuation_model: string
             specifies which attenuation model to use
             (default: None -> 'SP1'). Unlike `ray_tracing`, this class does not call
-            `ray_tracing_base._set_arguments` and has no config-file support - the default is
+            ``ray_tracing_base._set_arguments`` and has no config-file support - the default is
             applied directly here.
         log_level: logging.loglevel object
             Overrides verbosity (default NOTSET)
         n_frequencies_integration: int
             specifies for how many frequencies the signal attenuation is being calculated
             (default: None -> 100). Unlike `ray_tracing`, this class does not call
-            `ray_tracing_base._set_arguments` and has no config-file support - the default is
+            ``ray_tracing_base._set_arguments`` and has no config-file support - the default is
             applied directly here.
         use_optimized_start_value: bool
             if True, the initial C_0 paramter (launch angle) is set to the ray that skims the surface
@@ -2117,7 +2117,7 @@ class ray_tracing(ray_tracing_base):
 
         attenuation_model: string
             signal attenuation model
-            (default: None -> 'SP1' (see `ray_tracing_base._set_arguments`))
+            (default: None -> 'SP1' (see ``ray_tracing_base._set_arguments``))
 
         log_name:  string
             name under which things should be logged
@@ -2136,11 +2136,11 @@ class ray_tracing(ray_tracing_base):
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
-            (default: None -> 100 (see `ray_tracing_base._set_arguments`))
+            (default: None -> 100 (see ``ray_tracing_base._set_arguments``))
 
         n_reflections: int
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
-            (default: None -> 0 (see `ray_tracing_base._set_arguments`))
+            (default: None -> 0 (see ``ray_tracing_base._set_arguments``))
 
         config: dict
             a dictionary with the optional config settings. If None, the config is intialized with default values,
