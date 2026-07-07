@@ -1460,7 +1460,7 @@ class simulation:
             logger.debug(f"Simulating event group id {event_group_id}")
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(event_group_ids == event_group_id)))
 
-            time_logger.show_time(len(unique_event_group_ids), i_event_group_id)
+            time_logger.show_time(len(unique_event_group_ids), i_event_group_id + 1, num_triggers=i_triggered_events)
 
             event_group = build_NuRadioEvents_from_hdf5(self._fin, self._fin_attrs, event_indices)
             event_group.set_event_time(self._evt_time)
@@ -1709,6 +1709,8 @@ class simulation:
 
                 self._output_writer_hdf5.add_event_group(output_buffer)
 
+        time_logger.show_time(len(unique_event_group_ids), i_event_group_id + 1, num_triggers=i_triggered_events, force=True)
+
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.end()
             logger.debug("closing nur file")
@@ -1716,7 +1718,7 @@ class simulation:
         self._output_writer_hdf5.calculate_Veff()
         if not self._output_writer_hdf5.write_output_file():
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
-            
+
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
         return i_triggered_events
