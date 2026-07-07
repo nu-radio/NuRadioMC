@@ -537,9 +537,9 @@ class neutrinoLikelihoodReconstructor:
             n_grid = 50
             for i_param in range(len(params_fit)):
                 print("i_param:", i_param)
+                x_min = np.min([params_fit[i_param], parameters_initial[i_param], parameters_initial_llh[i_param]])
+                x_max = np.max([params_fit[i_param], parameters_initial[i_param], parameters_initial_llh[i_param]])
                 delta_x = abs(params_fit[i_param] - parameters_initial[i_param])
-                x_min = np.min([params_fit[i_param], parameters_initial[i_param]]) - 0.2 * delta_x
-                x_max = np.max([params_fit[i_param], parameters_initial[i_param]]) + 0.2 * delta_x
                 # delta_x = abs(params_fit[i_param] - parameters_initial_llh[i_param])
                 # x_min = np.min([params_fit[i_param], parameters_initial_llh[i_param]]) - 0.2 * delta_x
                 # x_max = np.max([params_fit[i_param], parameters_initial_llh[i_param]]) + 0.2 * delta_x
@@ -547,7 +547,7 @@ class neutrinoLikelihoodReconstructor:
                 minimizer_llh.profile_scan_1D(
                     method = "minuit",
                     i_parameter_scan = i_param,
-                    parameter_grid_x = np.linspace(x_min, x_max, n_grid),
+                    parameter_grid_x = np.linspace(x_min - 0.2 * delta_x, x_max + 0.2 * delta_x, n_grid),
                     parameters_best = params_fit,
                     data = data,
                     profile = False,
@@ -555,7 +555,7 @@ class neutrinoLikelihoodReconstructor:
                     plot = True
                 )
                 plt.axvline(x=parameters_initial[i_param], color="g", ls="--", label="Initial MF")
-                plt.axvline(x=parameters_initial_llh[i_param], color="r", ls=":", label="Initial LLH")
+                plt.axvline(x=parameters_initial_llh[i_param], color="r", ls="-.", label="Initial LLH")
                 plt.legend()
                 plt.xlabel(f"{parameter_keys[i_param]} [au]")
                 plt.savefig(f"llh_scan_{i_param}.png")

@@ -185,9 +185,10 @@ class Minimizer:
             plt.axhline(4, linestyle=":", color="C0", label=r"$2\sigma$")
             plt.axhline(9, linestyle=":", color="C0", label=r"$3\sigma$")
             plt.axvline(best_fit_x, color="y", linestyle="--", label="Fit")
-            if true_value is not None: plt.axvline(true_value, color='r', linestyle='--', label="True/Initial")
+            if true_value is not None:
+                plt.axvline(true_value, color='r', linestyle='--', label="True/Initial")
             plt.axis([parameter_grid_x[0], parameter_grid_x[-1], 0, axis[3]*1.2])
-            plt.xlabel(r"Parameter [au]")
+            plt.xlabel(f"Parameter {i_parameter_scan} [au]")
             plt.ylabel(r"Objective value")
             plt.legend()
             plt.tight_layout()
@@ -238,8 +239,8 @@ class Minimizer:
             if true_values is not None: plt.plot(true_values[0], true_values[1], "r*",label="True")
             plt.plot(best_fit_x, best_fit_y, "g*", label="Fit")
             plt.legend()
-            plt.xlabel(r"Parameter 1 [au]")
-            plt.ylabel(r"Parameter 2 [au]")
+            plt.xlabel(f"Parameter {i_parameter_x} [au]")
+            plt.ylabel(f"Parameter {i_parameter_y} [au]")
             plt.tight_layout()
 
             # Contour labels:
