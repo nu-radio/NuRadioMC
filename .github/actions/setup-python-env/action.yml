@@ -11,6 +11,9 @@ inputs:
   restore-only:
     description: 'If true, only restore from cache (i.e. never saves/overwrites the cache)'
     default: true
+  raise-deprecations:
+    description: 'Turn deprecation warnings into errors'
+    default: true
 
 runs:
   using: 'composite'
@@ -51,3 +54,9 @@ runs:
       shell: bash
       run: |
         pip list
+
+    - name: Raise errors from DeprecationWarning
+      if: inputs.raise-deprecations
+      shell: bash
+      run: |
+        echo "PYTHONWARNINGS=error::DeprecationWarning" >> "$GITHUB_ENV"
