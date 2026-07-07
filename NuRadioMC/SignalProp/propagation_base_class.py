@@ -132,6 +132,59 @@ class ray_tracing_base:
                     "not have any reflective layer, setting number of reflections to zero.")
                 self._n_reflections = 0
 
+    @staticmethod
+    def _resolve_use_cpp_and_numba(use_cpp, compile_numba, cpp_available, numba_available, logger):
+        """
+        Decides whether the CPP or the numba-accelerated python backend should be used, given what
+        the caller requested and what is actually available, and logs the resolved choice.
+
+        This is shared so that ray tracers offering a CPP/numba backend (e.g. the analytic ray
+        tracer's `ray_tracing` and `ray_tracing_2D`) don't each have to duplicate this decision.
+
+        Parameters
+        ----------
+        use_cpp: bool or None
+            backend explicitly requested by the caller. If None, CPP is used whenever available.
+        compile_numba: bool or None
+            whether to numba-compile the python fallback backend. Only relevant if `use_cpp`
+            (after resolution) is False. If None, numba is used whenever available.
+        cpp_available: bool
+            whether the CPP extension could be imported (or compiled on the fly)
+        numba_available: bool
+            whether the numba package is available
+        logger: logging.Logger
+            logger used to announce the resolved backend / raise warnings
+
+        Returns
+        -------
+        use_cpp: bool
+        compile_numba: bool
+        """
+        if use_cpp is None:
+            use_cpp = cpp_available
+
+        if use_cpp and not cpp_available:
+            msg = ('C++ raytracer was explicitly requested, but is not available (i.e. on-the-fly compilation failed). '
+                   'Abort.... ! Either fix the compilation or set use_cpp to False. '
+                   'For compilation see NuRadioMC/SignalProp/install.sh resp. NuRadioMC/SignalProp/CPPAnalyticRayTracing.')
+            logger.error(msg)
+            raise RuntimeError(msg)
+
+        if use_cpp:
+            logger.status("Using CPP version of ray tracer")
+            return True, False  # compile_numba is irrelevant when using the CPP backend
+
+        if cpp_available:
+            logger.info('C++ raytracer is available, but Python raytracer was requested. Using Python raytracer')
+
+        compile_numba = numba_available if compile_numba is None else (compile_numba and numba_available)
+        if compile_numba:
+            logger.status("Using python with numba version of ray tracer")
+        else:
+            logger.status("Using python without numba version of ray tracer")
+
+        return False, compile_numba
+
     def reset_solutions(self):
         self._X1 = None
         self._X2 = None
