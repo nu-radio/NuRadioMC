@@ -1136,7 +1136,7 @@ class ray_tracing_2D(ray_tracing_base):
             # that will produce a downward going ray through x1
             y_turn = get_y_turn(C_0, x1, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
             dy = y_turn - x1[0]
-            self.__logger.debug("relaction case 2: shifting x1 %s to %s", x1, x1[0] - 2 * dy)
+            self.__logger.debug("reflection case 2: shifting x1 %s to %s", x1, x1[0] - 2 * dy)
             x1[0] = x1[0] - 2 * dy
 
         segments = []
@@ -1330,7 +1330,7 @@ class ray_tracing_2D(ray_tracing_base):
             # that will produce a downward going ray through x1
             y_turn = get_y_turn(C_0, x1, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
             dy = y_turn - x1[0]
-            self.__logger.debug("relaction case 2: shifting x1 %s to %s", x1, x1[0] - 2 * dy)
+            self.__logger.debug("reflection case 2: shifting x1 %s to %s", x1, x1[0] - 2 * dy)
             x1[0] = x1[0] - 2 * dy
 
         if(reflection == 0):
