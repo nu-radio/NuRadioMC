@@ -39,8 +39,8 @@ conventions:
   only 4 channels and the `deep` group mixes polarizations, so their
   coherent alignment is less physically interpretable than `pa`/`vpol`
   but still useful as classifier features.
-- `passed_hit_filter`, `n_coincident_pairs_{pa,in_ice}`,
-  `n_high_hits_{pa,in_ice}` — only present when `hit_filter.enabled` is
+- `passed_hit_filter`, `n_coincident_pairs_{pa,deep}`,
+  `n_high_hits_{pa,deep}` — only present when `hit_filter.enabled` is
   set in the config (see below).
 
 ## Optional: station hit filter

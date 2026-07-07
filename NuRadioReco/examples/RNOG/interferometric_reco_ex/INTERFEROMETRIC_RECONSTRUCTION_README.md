@@ -10,7 +10,7 @@ This README explains how to reproduce the reference results on the GZK neutrino 
 
 ## Prerequisites
 
-1. **NuRadioMC/NuRadioReco** installed (this repo, `reco3d_release` branch)
+1. **NuRadioMC/NuRadioReco** installed (this repo, `feat/feature-extractor` branch)
 2. **Python 3.11+** with numpy, scipy, h5py, pyyaml, numba (optional but recommended for speed)
 3. **Multiray travel time tables** for your station. Two table schemes are supported:
    - **Ray-type tables** (default): 44 NPZ files per station (11 Vpol channels x 4 tables: direct, refracted, reflected, combined). File pattern: `st{ID}_ch{CH}_rz_table_{ray_type}.npz`.
