@@ -26,46 +26,46 @@ class hardwareResponseIncorporator:
         self.__debug = debug
 
     def get_filter(self, frequencies, station_id=None, channel_id=None, det=None, sim_to_data=False):
-    """
-    Helper function to return the filter that the module applies. Loads entire system response from interpolating data of ARA_Electronics_TotalGain_TwoFilters.txt.
-
-    Parameters
-    ----------
-
-    frequencies: array of floats
-        the frequency array for which the filter should be returned
-
-    station_id: int (default None)
-        the station id
-
-    channel_id: int (default None)
-        the channel id
-
-    det: detector instance (default None)
-        the detector
-
-    sim_to_data: bool (default False)
-        If False, deconvolve the hardware response.
-        If True, convolve with the hardware response
-
-    Returns
-    -------
-    array of complex floats
-        the complex filter amplitudes
-    """
-
-    if station_id is not None or channel_id is not None or det is not None:
-        logger.warning("get_filter() warning: station_id/channel_id/det provided but not used."
-                       "ARA system response is not channel-dependent")
-
-    analog_components.load_system_response()
-    system_response = analog_components.get_system_response(frequencies)
-    system_complex_response = system_response['gain'] * system_response['phase']
-
-    if sim_to_data:
-        return system_complex_response
-    else:
-        return 1. / system_complex_response
+        """
+        Helper function to return the filter that the module applies. Loads entire system response from interpolating data of ARA_Electronics_TotalGain_TwoFilters.txt.
+    
+        Parameters
+        ----------
+    
+        frequencies: array of floats
+            the frequency array for which the filter should be returned
+    
+        station_id: int (default None)
+            the station id
+    
+        channel_id: int (default None)
+            the channel id
+    
+        det: detector instance (default None)
+            the detector
+    
+        sim_to_data: bool (default False)
+            If False, deconvolve the hardware response.
+            If True, convolve with the hardware response
+    
+        Returns
+        -------
+        array of complex floats
+            the complex filter amplitudes
+        """
+    
+        if station_id is not None or channel_id is not None or det is not None:
+            logger.warning("get_filter() warning: station_id/channel_id/det provided but not used."
+                           "ARA system response is not channel-dependent")
+    
+        analog_components.load_system_response()
+        system_response = analog_components.get_system_response(frequencies)
+        system_complex_response = system_response['gain'] * system_response['phase']
+    
+        if sim_to_data:
+            return system_complex_response
+        else:
+            return 1. / system_complex_response
         
     @register_run()
     def run(self, evt, station, det, sim_to_data=False):
