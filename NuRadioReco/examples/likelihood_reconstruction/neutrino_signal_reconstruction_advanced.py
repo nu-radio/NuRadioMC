@@ -14,6 +14,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.integrate
 import datetime
 from radiotools import helper as hp
 
@@ -44,7 +45,7 @@ max_freq = 500 * units.MHz
 order_low_pass = 8
 frequencies = np.fft.rfftfreq(n_samples, 1/sampling_rate)
 filt = signal_processing.get_filter_response(frequencies, [min_freq, max_freq], "butter", 8)
-bandwidth = np.trapezoid(np.abs(filt) ** 2, frequencies)
+bandwidth = scipy.integrate.trapezoid(np.abs(filt) ** 2, frequencies)
 noise_amplitude = signal_processing.calculate_vrms_from_temperature(300 * units.kelvin, bandwidth)
 
 filter_settings_low = {'passband': [0 * units.MHz, max_freq],
@@ -339,7 +340,7 @@ x = np.linspace(0, max(minus_two_llh_fit_array)*1.2, 1000)
 y = dist.pdf(x) * len(minus_two_llh_fit_array) * (hist[1][1] - hist[1][0]) * 1.0
 #plt.hist(llh_true_array, bins=20, alpha=0.5, label="True signal")
 plt.hist(minus_two_llh_initial_array, bins=20, alpha=0.2, label="Initial parameters -2 LLH")
-plt.plot(x, y, "y-", label=f"$\chi^2($dof$={str(n_dof_total)})$")
+plt.plot(x, y, "y-", label=rf"$\chi^2($dof$={str(n_dof_total)})$")
 plt.xlabel("Chi2 of fit")
 plt.ylabel("Number of events")
 plt.legend()
