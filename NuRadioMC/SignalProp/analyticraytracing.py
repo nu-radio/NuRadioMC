@@ -180,12 +180,12 @@ def get_turning_point(c, b, z_0, delta_n):
     typle (gamma, z coordinate of turning point)
     """
 
-    gamma2 = float(b * 0.5 - np.sqrt(0.25 * b ** 2 - c))
-    z2 = float(np.log(gamma2 / delta_n) * z_0)
+    gamma2 = b * 0.5 - np.sqrt(0.25 * b ** 2 - c)
+    z2 = np.log(gamma2 / delta_n) * z_0
 
     if z2 > 0.0:
         z2 = 0.0
-        gamma2 = float(get_gamma(z2, delta_n, z_0))
+        gamma2 = get_gamma(z2, delta_n, z_0)
 
     return gamma2, z2
 
@@ -476,11 +476,8 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
 
     if C0range[0] == -1.0 and C0range[1] == -1.0:
         C0range = (1. / n_ice, np.inf)
-    else:
-        C0range = (float(C0range[0]), float(C0range[1]))
 
-    C0range_array = np.array(C0range ,  dtype=np.float64)
-    if C_0_first < C0range_array[0] or C_0_first > C0range_array[1]:
+    if C_0_first < C0range[0] or C_0_first > C0range[1]:
         return -np.inf
 
     c = n_ice ** 2 - C_0 ** -2
@@ -1769,7 +1766,7 @@ class ray_tracing_2D(ray_tracing_base):
         '''
 
         C_0 = get_C0_from_log(logC_0, self.medium.n_ice)
-        C_0 = float(np.atleast_1d(C_0)[0])
+        C_0 = np.atleast_1d(C_0)[0]
         dydz = get_y_diff(z_pos, C_0, self.medium.n_ice, self.__b, self.medium.z_0, self.medium.delta_n, in_air=in_air)
         angle = np.arctan(dydz)
 
