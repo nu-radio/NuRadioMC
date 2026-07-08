@@ -2813,6 +2813,74 @@ class ray_tracing(ray_tracing_base):
         return self._r2d.get_reflection_angle(self._x1, self._x2, result['C0'],
                                                reflection=result['reflection'], reflection_case=result['reflection_case'])
 
+    def get_fresnel_coefficients(self, iS):
+        """
+        Calculates the fresnel coefficients for all interactions with the ice-air surface of solution iS
+
+        For rays that are reflected off the ice-air surface (emitter and receiver in the ice),
+        the fresnel reflection coefficients are calculated. If the ray crosses the ice-air
+        interface (emitter or receiver in the air), the fresnel transmission coefficients
+        are calculated. Reflections at an in-ice reflective (bottom) layer are not included here,
+        they are treated separately (see `apply_propagation_effects`).
+
+        Parameters
+        ----------
+        iS: int
+            Choose for which solution to compute the fresnel coefficients, counting
+            starts at zero
+
+        Returns
+        -------
+        fresnel_coefficients: list of dict
+            One dictionary per interaction with the ice-air surface (empty list for rays
+            that never reach the surface). Each dictionary contains:
+
+            * "zenith": zenith angle under which the ray hits the surface
+            * "case": "reflection" (in-ice reflection off the surface) or
+              "transmission" (ice-to-air / air-to-ice)
+            * "theta": fresnel coefficient for the eTheta (p-polarization) component
+            * "phi": fresnel coefficient for the ePhi (s-polarization) component
+        """
+        n_ice_surface = self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm])
+
+        fresnel_coefficients = []
+        # lets handle the general case of multiple reflections off the ice-air surface
+        # Multiple relfections are possible if a reflective bottom layer exists.
+        for zenith_reflection in np.atleast_1d(self.get_reflection_angle(iS)):
+
+            # skip all ray segments where no interaction with the surface happens
+            if zenith_reflection is None:
+                continue
+
+            # we need to treat the case of air to ice/ice to air propagation separately:
+            if self._x2[1] > 0:
+                # air/ice propagation
+                if not self._swap:
+                    # ice to air case
+                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_2=1., n_1=n_ice_surface)
+                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_2=1., n_1=n_ice_surface)
+                    self.__logger.info(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
+                else:
+                    # air to ice
+                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_1=1., n_2=n_ice_surface)
+                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_1=1., n_2=n_ice_surface)
+                    self.__logger.info(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
+
+                fresnel_coefficients.append(
+                    {'zenith': zenith_reflection, 'case': 'transmission', 'theta': t_theta, 'phi': t_phi})
+            else:
+                # in-ice propagation, reflection off the surface
+                r_theta = geometryUtilities.get_fresnel_r_p(zenith_reflection, n_2=1., n_1=n_ice_surface)
+                r_phi = geometryUtilities.get_fresnel_r_s(zenith_reflection, n_2=1., n_1=n_ice_surface)
+                self.__logger.info(
+                    "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
+                        zenith_reflection / units.deg, r_theta, r_phi))
+
+                fresnel_coefficients.append(
+                    {'zenith': zenith_reflection, 'case': 'reflection', 'theta': r_theta, 'phi': r_phi})
+
+        return fresnel_coefficients
+
     def get_path_length(self, iS, analytic=True):
         """
         Calculates the path length of solution iS
@@ -3154,52 +3222,13 @@ class ray_tracing(ray_tracing_base):
 
         # lets handle the general case of multiple reflections off the ice-air surface
         # Multiple relfections are possible if a reflective bottom layer exists.
-        zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))
-        for zenith_reflection in zenith_reflections:  # loop through all possible reflections
+        for fresnel_coefficients in self.get_fresnel_coefficients(i_solution):
+            if fresnel_coefficients['case'] == 'reflection':
+                efield[efp.reflection_coefficient_theta] = fresnel_coefficients['theta']
+                efield[efp.reflection_coefficient_phi] = fresnel_coefficients['phi']
 
-            # skip all ray segments where not reflection at surface happens
-            if zenith_reflection is None:
-                continue
-
-            # we need to treat the case of air to ice/ice to air propagation sepatately:
-            if self._x2[1] > 0:
-                # air/ice propagation
-                # self.__logger.warning(
-                    # "calculation of transmission coefficients and focussing factor for air/ice propagation is "
-                    # "experimental and needs further validation")
-
-                if not self._swap:
-                    # ice to air case
-                    t_theta = geometryUtilities.get_fresnel_t_p(
-                        zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    t_phi = geometryUtilities.get_fresnel_t_s(
-                        zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    self.__logger.info(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
-                else:
-                    # air to ice
-                    t_theta = geometryUtilities.get_fresnel_t_p(
-                        zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    t_phi = geometryUtilities.get_fresnel_t_s(
-                        zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                    self.__logger.info(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
-
-                spec[1] *= t_theta
-                spec[2] *= t_phi
-            else:
-                #in-ice propagation
-                r_theta = geometryUtilities.get_fresnel_r_p(
-                    zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-                r_phi = geometryUtilities.get_fresnel_r_s(
-                    zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-
-                efield[efp.reflection_coefficient_theta] = r_theta
-                efield[efp.reflection_coefficient_phi] = r_phi
-                spec[1] *= r_theta
-                spec[2] *= r_phi
-                self.__logger.info(
-                    "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
-                        zenith_reflection / units.deg,
-                        r_theta, r_phi))
+            spec[1] *= fresnel_coefficients['theta']
+            spec[2] *= fresnel_coefficients['phi']
 
         # Mow also take possible bottom reflections into account (not included in the previous loop!)
         i_reflections = self.get_results()[i_solution]['reflection']
