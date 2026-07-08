@@ -398,51 +398,55 @@ def get_angle(x2, x1, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection
 
 def get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection=0, reflection_case=1, in_air=False):
     """
-    calculates the angle under which the ray reflects off the surface. If not reflection occurs, None is returned
+    Calculates the angle under which the ray reflects off the (ice-air) surface. If not reflection occurs, None is returned
 
     If reflections off the bottom (e.g. Moore's Bay) are simulated, an array with reflection angles (one for
-    each track segment) is returned
+    each track segment) is returned (still only contains angles for the ice-air surface!).
 
     Parameters
     ----------
     x1: tuple
-        (y, z) start position of ray
+        Start position (y, z) of the ray
     x2: tuple
-        (y, z) stop position of the ray
+        Stop position (y, z) of the ray
     C_0: float
         C_0 parameter of analytic ray path function
     reflection: int (default 0)
-        the number of bottom reflections to consider
+        The number of bottom reflections to consider
     reflection_case: int (default 1)
-        only relevant if `reflection` is larger than 0
-        * 1: rays start upwards
-        * 2: rays start downwards
+        Only relevant if `reflection` is larger than 0
+        * 1: Rays start upwards
+        * 2: Rays start downwards
     """
 
     c = n_ice ** 2 - C_0 ** -2
     segments = get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case)
 
     nseg = segments.shape[0]
-    out = np.empty(nseg, dtype=np.float64)
+    out = np.full(nseg, np.nan, dtype=np.float64)
 
     for i in range(nseg):
         segment = segments[i]
 
-        x11 = (segment[0], segment[1])
+        x1_orig = (segment[0], segment[1])
         x1 = (segment[2], segment[3])
-        x22 = (segment[4], segment[5])
+        x2_orig = (segment[4], segment[5])
         x2 = (segment[6], segment[7])
         C_0 = segment[8]
         C_1 = segment[9]
 
-        gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
+        _, z_turn = get_turning_point(c, b, z_0, delta_n)
         y_turn = get_y_turn(C_0, x1, n_ice, b, delta_n, z_0)
-        if((z_turn >= 0) and (y_turn >= x11[0]) and (y_turn < x22[0])):  # for the first track segment we need to check if turning point is right of start point (otherwise we have a downward going ray that does not have a turning point),
-            #and for the last track segment we need to check that the turning point is left of the stop position.
+
+        # Looking for turning points above the surface (z=0) -> reflections at the ice-air boundary.
+        # The turning point only counts as a surface reflection if it lies on the physical
+        # path between the original start and stop points. The checks against x1_orig/x2_orig are
+        # trivially satisfied for interior segments (bounded by bottom-reflection points);
+        # they only reject (a) downward-starting rays, whose virtual turning point lies
+        # left of the start, and (b) paths that reach the stop point before turning.
+        if z_turn >= 0 and y_turn >= x1_orig[0] and y_turn < x2_orig[0]:
             r = get_angle(np.array([y_turn, 0]), x1, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case, in_air)
             out[i] = r
-        else:
-            out[i] = np.nan
 
     return out
 
@@ -507,7 +511,7 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
     gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
     y_turn = get_y(gamma_turn, C_0_first, C_1, n_ice, b, z_0)
 
-    if z_turn < min(x2[1], 0):  # turning points is deeper that x2 positions, can't reach target
+    if z_turn < min(x2[1], 0):  # turning points is deeper than x2 position -> ray can't reach target
         # the minimizer has problems finding the minimum if inf is returned here. Therefore, we return the distance
         # between the turning point and the target point + 10 x the distance between the z position of the turning points
         # and the target position. This results in a objective function that has the solutions as the only minima and
@@ -515,9 +519,10 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
         diff = ((z_turn - x2[1]) ** 2 + (y_turn - x2[0]) ** 2) ** 0.5 + 10 * np.abs(z_turn - x2[1])
         return -diff
 
-    if(x2[1] > 0):  # treat the ice to air case
-        # Do nothing if ray is refracted. If ray is reflected, don't mirror but do straight line upwards
-        if(z_turn == 0):
+    if x2[1] > 0:  # treat the ice to air case
+        if z_turn != 0:
+            raise ValueError(" For the ice to air case, `z_turn == 0` (if not z_turn < 0 see prev. if-condition)")
+
             in_air = x1[1] >= 0
             zenith_reflection = get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case, in_air)
             zen = zenith_reflection[0]  # get_reflection_angle always returns a non-empty array (nan if no reflection)
@@ -3114,7 +3119,13 @@ class ray_tracing(ray_tracing_base):
     def apply_propagation_effects(self, efield, i_solution):
         """
         Apply propagation effects to the electric field
-        Note that the 1/r weakening of the electric field is already accounted for in the signal generation
+
+        Note that the 1/r weakening of the electric field is already accounted for in the signal generation.
+        This function applies the 4 effects (if configured to do so...):
+        1. Attenuation
+        2. Reflection/Transmission (first at ice-air boundary and than at in-ice reflective layer)
+        3. Focusing
+        4. Birefringence
 
         Parameters
         ----------
@@ -3141,25 +3152,37 @@ class ray_tracing(ray_tracing_base):
             attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
             spec *= attenuation
 
-        zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))  # lets handle the general case of multiple reflections off the surface (possible if also a reflective bottom layer exists)
+        # lets handle the general case of multiple reflections off the ice-air surface
+        # Multiple relfections are possible if a reflective bottom layer exists.
+        zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))
         for zenith_reflection in zenith_reflections:  # loop through all possible reflections
-            if (zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
+
+            # skip all ray segments where not reflection at surface happens
+            if zenith_reflection is None:
                 continue
-            if(self._x2[1] > 0):  # we need to treat the case of air to ice/ice to air propagation sepatately:
+
+            # we need to treat the case of air to ice/ice to air propagation sepatately:
+            if self._x2[1] > 0:
                 # air/ice propagation
-                # self.__logger.warning(f"calculation of transmission coefficients and focussing factor for air/ice propagation is experimental and needs further validation")
-                if(not self._swap):  # ice to air case
+                # self.__logger.warning(
+                    # "calculation of transmission coefficients and focussing factor for air/ice propagation is "
+                    # "experimental and needs further validation")
+
+                if not self._swap:
+                    # ice to air case
                     t_theta = geometryUtilities.get_fresnel_t_p(
                         zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                     t_phi = geometryUtilities.get_fresnel_t_s(
                         zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                     self.__logger.info(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
-                else:   # air to ice
+                else:
+                    # air to ice
                     t_theta = geometryUtilities.get_fresnel_t_p(
                         zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                     t_phi = geometryUtilities.get_fresnel_t_s(
                         zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                     self.__logger.info(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
+
                 spec[1] *= t_theta
                 spec[2] *= t_phi
             else:
@@ -3168,6 +3191,7 @@ class ray_tracing(ray_tracing_base):
                     zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
                 r_phi = geometryUtilities.get_fresnel_r_s(
                     zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+
                 efield[efp.reflection_coefficient_theta] = r_theta
                 efield[efp.reflection_coefficient_phi] = r_phi
                 spec[1] *= r_theta
@@ -3176,8 +3200,10 @@ class ray_tracing(ray_tracing_base):
                     "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
                         zenith_reflection / units.deg,
                         r_theta, r_phi))
+
+        # Mow also take possible bottom reflections into account (not included in the previous loop!)
         i_reflections = self.get_results()[i_solution]['reflection']
-        if (i_reflections > 0):  # take into account possible bottom reflections
+        if i_reflections > 0:
             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
             reflection_coefficient = self._medium.reflection_coefficient ** i_reflections
             phase_shift = (i_reflections * self._medium.reflection_phase_shift) % (2 * np.pi)
