@@ -46,7 +46,7 @@ except ImportError:
     numba_available = False
 
 """
-analytic ray tracing solution
+Analytic ray tracing solution
 """
 speed_of_light = constants.c * units.m / units.s
 
@@ -126,22 +126,22 @@ def get_z_deep(ice_params):
 
 def get_C0_from_log(logC0, n_ice):
     """
-    transforms the fit parameter C_0 so that the likelihood looks better
+    Transforms the fit parameter C_0 so that the likelihood looks better
     """
     return np.exp(logC0) + 1. / n_ice
 
 def get_y(gamma, C_0, C_1, n_ice, b, z_0):
     """
-    analytic form of the ray tracing part given an exponential index of refraction profile
+    Analytic form of the ray tracing part given an exponential index of refraction profile
 
     Parameters
     ----------
     gamma: (float or array)
         gamma is a function of the depth z
     C_0: (float)
-        first parameter
+        First parameter
     C_1: (float)
-        second parameter
+        Second parameter
     """
     c = n_ice ** 2 - C_0 ** -2
     # we take the absolute number here but we only evaluate the equation for
@@ -155,14 +155,14 @@ def get_y(gamma, C_0, C_1, n_ice, b, z_0):
 
 def get_gamma(z, delta_n, z_0):
     """
-    transforms z coordinate into gamma
+    Transforms z coordinate into gamma
     """
     return delta_n * np.exp(z / z_0)
 
 
 def get_turning_point(c, b, z_0, delta_n):
     """
-    calculate the turning point, i.e. the maximum of the ray tracing path;
+    Calculate the turning point, i.e. the maximum of the ray tracing path;
     parameter is c = self.medium.n_ice ** 2 - C_0 ** -2
 
     This is either the point of reflection off the ice surface
@@ -173,7 +173,7 @@ def get_turning_point(c, b, z_0, delta_n):
     Parameters
     ----------
     c: float
-        related to C_0 parameter via c = self.medium.n_ice ** 2 - C_0 ** -2
+        Related to C_0 parameter via c = self.medium.n_ice ** 2 - C_0 ** -2
 
     Returns
     -------
@@ -185,13 +185,13 @@ def get_turning_point(c, b, z_0, delta_n):
 
     if z2 > 0.0:
         z2 = 0.0
-        gamma2 = float(get_gamma(z2, delta_n, z_0))  # must be compiled too!
+        gamma2 = float(get_gamma(z2, delta_n, z_0))
 
     return gamma2, z2
 
 def get_y_with_z_mirror(z, C_0, n_ice, b, delta_n, z_0, C_1=0.0):
     """
-    analytic form of the ray tracing part given an exponential index of refraction profile
+    Analytic form of the ray tracing part given an exponential index of refraction profile
 
     this function automatically mirrors z values that are above the turning point,
     so that this function is defined for all z
@@ -199,11 +199,11 @@ def get_y_with_z_mirror(z, C_0, n_ice, b, delta_n, z_0, C_1=0.0):
     Parameters
     ----------
     z: (float or array)
-        depth z
+        Depth z
     C_0: (float)
-        first parameter
+        First parameter
     C_1: (float)
-        second parameter
+        Second parameter
     """
     c = n_ice ** 2 - C_0 ** -2
     gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
@@ -217,7 +217,7 @@ def get_y_with_z_mirror(z, C_0, n_ice, b, delta_n, z_0, C_1=0.0):
 
 def get_y_turn(C_0, x1, n_ice, b, delta_n, z_0):
     """
-    calculates the y-coordinate of the turning point. This is either the point of reflection off the ice surface
+    Calculates the y-coordinate of the turning point. This is either the point of reflection off the ice surface
     or the point where the saddle point of the ray (transition from upward to downward going)
 
     Parameters
@@ -235,7 +235,7 @@ def get_y_turn(C_0, x1, n_ice, b, delta_n, z_0):
 
 def get_C_1(x1, C_0, n_ice, b, delta_n, z_0):
     """
-    calculates constant C_1 for a given C_0 and start point x1
+    Calculates constant C_1 for a given C_0 and start point x1
     """
     return x1[0] - get_y_with_z_mirror(x1[1], C_0, n_ice, b, delta_n, z_0)
 
@@ -256,9 +256,9 @@ def get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0,
     C_0: float
         C_0 parameter of analytic ray path function
     reflection: int (default 0)
-        the number of bottom reflections to consider
+        The number of bottom reflections to consider
     reflection_case: int (default 1)
-        only relevant if `reflection` is larger than 0
+        Only relevant if `reflection` is larger than 0
 
         * 1: rays start upwards
         * 2: rays start downwards
@@ -347,7 +347,7 @@ def get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0,
 
 def get_z_mirrored(x1, x2, C_0, n_ice, b, delta_n, z_0):
     """
-    calculates the mirrored x2 position so that y(z) can be used as a continuous function
+    Calculates the mirrored x2 position so that y(z) can be used as a continuous function
     """
     c = n_ice ** 2 - C_0 ** -2
     C_1 = x1[0] - get_y_with_z_mirror(x1[1], C_0, n_ice, b, delta_n, z_0)
@@ -363,7 +363,7 @@ def get_z_mirrored(x1, x2, C_0, n_ice, b, delta_n, z_0):
 
 def get_angle(x2, x1, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection=0, reflection_case=1, in_air=False):
     """
-    calculates the angle with respect to the positive z-axis of the ray path at position x
+    Calculates the angle with respect to the positive z-axis of the ray path at position x
 
     Parameters
     ----------
@@ -374,9 +374,9 @@ def get_angle(x2, x1, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection
     C_0: float
         C_0 parameter of analytic ray path function
     reflection: int (default 0)
-        the number of bottom reflections to consider
+        The number of bottom reflections to consider
     reflection_case: int (default 1)
-        only relevant if `reflection` is larger than 0
+        Only relevant if `reflection` is larger than 0
 
         * 1: rays start upwards
         * 2: rays start downwards
@@ -452,7 +452,7 @@ def get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection,
 
 def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.0):
     """
-    calculates the refracted angle using Snell's law
+    Calculates the refracted angle using Snell's law
     """
     t = n_1 / n_2 * np.sin(zenith_incoming)
 
@@ -469,7 +469,7 @@ def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.0):
 
 def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=(-1.0,-1.0), reflection=0, reflection_case=2):
     """
-    calculates the difference in the y position between the analytic ray tracing path
+    Calculates the difference in the y position between the analytic ray tracing path
     specified by C_0 at the position x2
     """
     C_0_first = C_0
@@ -478,15 +478,18 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
         C0range = (1. / n_ice, np.inf)
     else:
         C0range = (float(C0range[0]), float(C0range[1]))
-    Corange_array = np.array(C0range ,  dtype=np.float64)
-    if((C_0_first < Corange_array[0]) or(C_0_first > Corange_array[1])):
+
+    C0range_array = np.array(C0range ,  dtype=np.float64)
+    if C_0_first < C0range_array[0] or C_0_first > C0range_array[1]:
         return -np.inf
+
     c = n_ice ** 2 - C_0 ** -2
+
     # we consider two cases here,
     # 1) the rays start rising -> the default case
     # 2) the rays start decreasing -> we need to find the position left of the start point that
-    #    that has rising rays that go through the point x1
-    if(reflection > 0 and reflection_case == 2):
+    #    has rising rays that go through the point x1
+    if reflection > 0 and reflection_case == 2:
         y_turn = get_y_turn(C_0_first, x1, n_ice, b, delta_n, z_0)
         dy = y_turn - x1[0]
         x1[0] = x1[0] - 2.0 * dy
@@ -523,22 +526,22 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
         if z_turn != 0:
             raise ValueError(" For the ice to air case, `z_turn == 0` (if not z_turn < 0 see prev. if-condition)")
 
-            in_air = x1[1] >= 0
-            zenith_reflection = get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case, in_air)
-            zen = zenith_reflection[0]  # get_reflection_angle always returns a non-empty array (nan if no reflection)
+        in_air = x1[1] >= 0
+        zenith_reflection = get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case, in_air)
+        zen = zenith_reflection[0]  # get_reflection_angle always returns a non-empty array (nan if no reflection)
 
-            n_1 = n(z_turn, n_ice, delta_n, z_0)
-            zenith_air = get_fresnel_angle(zen, n_1=n_1, n_2=1)
+        n_1 = n(z_turn, n_ice, delta_n, z_0)
+        zenith_air = get_fresnel_angle(zen, n_1=n_1, n_2=1)
 
-            if zenith_air is None or np.isnan(zenith_air):
-                diff = x2[1]
-                return diff
-
-            z = (x2[0] - y_turn) / np.tan(zenith_air)
-            diff = x2[1] - z
+        if zenith_air is None or np.isnan(zenith_air):
+            diff = x2[1]
             return diff
 
-    if(y_turn > x2[0]):  # we always propagate from left to right
+        z = (x2[0] - y_turn) / np.tan(zenith_air)
+        diff = x2[1] - z
+        return diff
+
+    if y_turn > x2[0]:  # we always propagate from left to right
         # direct ray
         y2_fit = get_y(get_gamma(x2[1], delta_n, z_0), C_0_first, C_1, n_ice, b, z_0)  # calculate y position at get_path position
         diff = (x2[0] - y2_fit)
@@ -557,14 +560,14 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
 
 def obj_delta_y_square(logC_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, reflection=0, reflection_case=2):
     """
-    objective function to find solution for C0
+    Objective function to find solution for C0
     """
     c_0 = get_C0_from_log(logC_0[0], n_ice)
     return get_delta_y(c_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, (-1.0,-1.0), reflection=reflection, reflection_case=reflection_case) ** 2
 
 def get_reflection_point(c_0, c_1, n_ice, medium_reflection, b, z_0, delta_n):
     """
-    calculates the point where the signal gets reflected off the bottom of the ice shelf
+    Calculates the point where the signal gets reflected off the bottom of the ice shelf
 
     Returns tuple (y,z)
     """
@@ -577,7 +580,7 @@ def get_reflection_point(c_0, c_1, n_ice, medium_reflection, b, z_0, delta_n):
 
 def get_z_unmirrored(z, C_0, n_ice, b, z_0, delta_n):
     """
-    calculates the unmirrored z position
+    Calculates the unmirrored z position
     """
     c = n_ice ** 2 - C_0 ** -2
     gamma_turn, z_turn = get_turning_point(c, b, z_0, delta_n)
@@ -588,7 +591,7 @@ def get_z_unmirrored(z, C_0, n_ice, b, z_0, delta_n):
 
 def get_y_diff(z_raw, C_0, n_ice, b, z_0, delta_n, in_air=False):
     """
-    derivative dy(z)/dz
+    Derivative dy(z)/dz
 
     Uses equation C.12 from [1]_
 
@@ -640,7 +643,7 @@ def get_y_diff(z_raw, C_0, n_ice, b, z_0, delta_n, in_air=False):
 
 def n(z, n_ice, delta_n, z_0):
     """
-    refractive index as a function of depth
+    Refractive index as a function of depth
     """
     res = n_ice - delta_n * np.exp(z / z_0)
     if z > 0.0:
@@ -658,26 +661,26 @@ class ray_tracing_2D(ray_tracing_base):
                  use_cpp=None,
                  compile_numba=False):
         """
-        initialize 2D analytic ray tracing class
+        Initialize 2D analytic ray tracing class
 
         Parameters
         ----------
         medium: NuRadioMC.utilities.medium class
-            details of the medium
+            Details of the medium
         attenuation_model: string
-            specifies which attenuation model to use
+            Specifies which attenuation model to use
             (default: None -> 'SP1'). Unlike `ray_tracing`, this class does not call
             ``ray_tracing_base._set_arguments`` and has no config-file support - the default is
             applied directly here.
         log_level: logging.loglevel object
             Overrides verbosity (default NOTSET)
         n_frequencies_integration: int
-            specifies for how many frequencies the signal attenuation is being calculated
+            Specifies for how many frequencies the signal attenuation is being calculated
             (default: None -> 100). Unlike `ray_tracing`, this class does not call
             ``ray_tracing_base._set_arguments`` and has no config-file support - the default is
             applied directly here.
         use_optimized_start_value: bool
-            if True, the initial C_0 paramter (launch angle) is set to the ray that skims the surface
+            If True, the initial C_0 paramter (launch angle) is set to the ray that skims the surface
             (default: False)
         overwrite_speedup: bool
             The signal attenuation is calculated using a numerical integration
@@ -688,11 +691,11 @@ class ray_tracing_2D(ray_tracing_base):
             (True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
             listed in speedup_attenuation_models)
         use_cpp: bool (default: None)
-            if True, use the CPP implementation of the ray tracer; if explicitly set to True but
+            If True, use the CPP implementation of the ray tracer; if explicitly set to True but
             the CPP version is not available, a RuntimeError is raised.
             If None, the CPP version is used whenever it is available.
         compile_numba: bool (default: False)
-            if True, numba-compile the standalone python functions used as a fallback when not
+            If True, numba-compile the standalone python functions used as a fallback when not
             using the CPP backend. Only relevant if `use_cpp` is (or resolves to) False.
             If None, numba is used whenever it is available. Unlike `ray_tracing`, this defaults
             to False (rather than None) so that constructing a `ray_tracing_2D` directly does not
@@ -743,7 +746,7 @@ class ray_tracing_2D(ray_tracing_base):
 
     def get_C_1(self, x1, C_0):
         """
-        calculates constant C_1 for a given C_0 and start point x1
+        Calculates constant C_1 for a given C_0 and start point x1
         """
         return get_C_1(x1, C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
 
@@ -752,13 +755,13 @@ class ray_tracing_2D(ray_tracing_base):
 
     def get_z_mirrored(self, x1, x2, C_0):
         """
-        calculates the mirrored x2 position so that y(z) can be used as a continuous function
+        Calculates the mirrored x2 position so that y(z) can be used as a continuous function
         """
         return get_z_mirrored(x1, x2, C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0)
 
     def ds(self, t, C_0):
         """
-        helper to calculate line integral
+        Helper to calculate line integral
         """
         return (get_y_diff(t, C_0, self.medium.n_ice, self.__b, self.medium.z_0, self.medium.delta_n) ** 2 + 1) ** 0.5
 
@@ -798,7 +801,7 @@ class ray_tracing_2D(ray_tracing_base):
 
     def _get_launch_y_at_surface(self, x1, C_0):
         """
-        y-position where a ray launched from x1 (with parameter C_0) reaches the surface (z=0).
+        Return y-position where a ray launched from x1 (with parameter C_0) reaches the surface (z=0).
 
         Used for ice-to-air segments, where propagation continues as a straight line in air
         from this point onwards.
@@ -821,7 +824,7 @@ class ray_tracing_2D(ray_tracing_base):
         C_0: float
             C_0 parameter of analytic ray path function
         solution_type: int
-            solution type of this segment, see `determine_solution_type`
+            Solution type of this segment, see `determine_solution_type`
         F: callable
             segment-local antiderivative (`get_s` or `get_ct`) as a function of z
         """
@@ -1321,9 +1324,9 @@ class ray_tracing_2D(ray_tracing_base):
         C_0: float
             C_0 parameter of analytic ray path function
         reflection: int (default 0)
-            the number of bottom reflections to consider
+            The number of bottom reflections to consider
         reflection_case: int (default 1)
-            only relevant if `reflection` is larger than 0
+            Only relevant if `reflection` is larger than 0
 
             * 1: rays start upwards
             * 2: rays start downwards
@@ -1349,7 +1352,7 @@ class ray_tracing_2D(ray_tracing_base):
 
     def get_angle(self, x, x_start, C_0, reflection=0, reflection_case=1, in_air=False):
         """
-        calculates the angle with respect to the positive z-axis of the ray path at position x
+        Calculates the angle with respect to the positive z-axis of the ray path at position x
 
         Parameters
         ----------
@@ -1360,9 +1363,9 @@ class ray_tracing_2D(ray_tracing_base):
         C_0: float
             C_0 parameter of analytic ray path function
         reflection: int (default 0)
-            the number of bottom reflections to consider
+            The number of bottom reflections to consider
         reflection_case: int (default 1)
-            only relevant if `reflection` is larger than 0
+            Only relevant if `reflection` is larger than 0
 
             * 1: rays start upwards
             * 2: rays start downwards
@@ -1379,25 +1382,25 @@ class ray_tracing_2D(ray_tracing_base):
 
     def get_reflection_angle(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
-        calculates the angle under which the ray reflects off the surface. If not reflection occurs, None is returned
+        Calculates the angle under which the ray reflects off the (ice-air) surface. If not reflection occurs, None is returned
 
         If reflections off the bottom (e.g. Moore's Bay) are simulated, an array with reflection angles (one for
-        each track segment) is returned
+        each track segment) is returned (still only for reflections at the ice-air boundary).
 
         Parameters
         ----------
         x1: tuple
-            (y, z) start position of ray
+            Start position (y, z) of the ray
         x2: tuple
-            (y, z) stop position of the ray
+            Stop position (y, z) of the ray
         C_0: float
             C_0 parameter of analytic ray path function
         reflection: int (default 0)
-            the number of bottom reflections to consider
+            The number of bottom reflections to consider
         reflection_case: int (default 1)
-            only relevant if `reflection` is larger than 0
-            * 1: rays start upwards
-            * 2: rays start downwards
+            Only relevant if `reflection` is larger than 0
+            * 1: Rays start upwards
+            * 2: Rays start downwards
         """
         angles = get_reflection_angle(
             x1, x2, C_0, self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0,
@@ -1407,20 +1410,20 @@ class ray_tracing_2D(ray_tracing_base):
 
     def get_path(self, x1, x2, C_0, n_points=1000):
         """
-        for plotting purposes only, returns the ray tracing path between x1 and x2
+        For plotting purposes only, returns the ray tracing path between x1 and x2
 
         the result is only valid if C_0 is a solution to the ray tracing problem
 
         Parameters
         ----------
         x1: array
-            start position (y, z)
+            Start position (y, z)
         x2: array
-            stop position (y, z)
+            Stop position (y, z)
         C_0: (float)
-            first parameter
+            First parameter
         n_points: integer (optional)
-            the number of coordinates to calculate
+            The number of coordinates to calculate
 
         Returns
         -------
@@ -1459,7 +1462,7 @@ class ray_tracing_2D(ray_tracing_base):
 
     def get_path_reflections(self, x1, x2, C_0, n_points=1000, reflection=0, reflection_case=1):
         """
-        calculates the ray path in the presence of reflections at the bottom
+        Calculates the ray path in the presence of reflections at the bottom
         The full path is constructed by multiple calls to the `get_path()` function to put together the full path
 
         Parameters
@@ -1471,11 +1474,11 @@ class ray_tracing_2D(ray_tracing_base):
         C_0: float
             C_0 parameter of analytic ray path function
         n_points: int (default 1000)
-            the number of points of the numeric path
+            The number of points of the numeric path
         reflection: int (default 0)
-            the number of bottom reflections to consider
+            The number of bottom reflections to consider
         reflection_case: int (default 1)
-            only relevant if `reflection` is larger than 0
+            Only relevant if `reflection` is larger than 0
 
             * 1: rays start upwards
             * 2: rays start downwards
@@ -1523,7 +1526,7 @@ class ray_tracing_2D(ray_tracing_base):
 
     def obj_delta_y(self, logC_0, x1, x2, reflection=0, reflection_case=2):
         """
-        function to find solution for C0, returns distance in y between function and x2 position
+        Function to find solution for C0, returns distance in y between function and x2 position
         result is signed! (important to use a root finder)
         """
 
@@ -1532,14 +1535,14 @@ class ray_tracing_2D(ray_tracing_base):
         return get_delta_y(C_0, x1_arr, np.array(x2), self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0, self.reflection, (-1.0,-1.0), reflection, reflection_case)
 
     def determine_solution_type(self, x1, x2, C_0):
-        """ returns the type of the solution
+        """ Returns the type of the solution
 
         Parameters
         ----------
         x1: 2dim np.array
-            start position
+            Start position
         x2: 2dim np.array
-            stop position
+            Stop position
         C_0: float
             C_0 value of ray tracing solution
 
@@ -1574,7 +1577,7 @@ class ray_tracing_2D(ray_tracing_base):
 
     def find_solutions(self, x1, x2, plot=False, reflection=0, reflection_case=1):
         """
-        this function finds all ray tracing solutions
+        This function finds all ray tracing solutions
 
         prerequesite is that x2 is above and to the right of x1, this is not a violation of universality
         because this requirement can be achieved with a simple coordinate transformation
@@ -1586,7 +1589,7 @@ class ray_tracing_2D(ray_tracing_base):
         x2: tuple
             (y,z) coordinate of stop point
         reflection: int (default 0)
-            how many reflections off the reflective layer (bottom of ice shelf) should be simulated
+            How many reflections off the reflective layer (bottom of ice shelf) should be simulated
 
 
         returns an array of the C_0 paramters of the solutions (the array might be empty)
@@ -1723,7 +1726,7 @@ class ray_tracing_2D(ray_tracing_base):
 
     def plot_result(self, x1, x2, C_0, ax):
         """
-        helper function to visualize results
+        Helper function to visualize results
         """
         C_1 = self.get_C_1(x1, C_0)
 
@@ -1747,7 +1750,7 @@ class ray_tracing_2D(ray_tracing_base):
     def get_angle_from_logC_0(self, logC_0, z_pos, angoff=0, in_air=False):
 
         '''
-        argument angoff is provided so that the function can be used for minimization in get_C_0_from_angle(),
+        Argument angoff is provided so that the function can be used for minimization in get_C_0_from_angle(),
         in which case angoff is the angle for which the C_0 is sought and zero is returned when it is found.
 
         C_0 has a smallest possible value at 1./self.medium.n_ice . When it approaches this value, very
@@ -1822,7 +1825,7 @@ class ray_tracing_2D(ray_tracing_base):
 
     def get_z_from_n(self, n):
         '''
-        get z from given n - equation from get_n solved for z
+        Get z from given n - equation from get_n solved for z
         '''
 
         return np.log((self.medium.n_ice - n) / self.medium.delta_n) * self.medium.z_0
@@ -1972,7 +1975,7 @@ class ray_tracing_2D(ray_tracing_base):
             Set to True if surface ray travels in the firn, set to False (default) if it travels
             in air.
         angle:  String
-            specifying angle at which ray reaches/leaves the surface. Can be 'Brewster' or 'critical'
+            Specifying angle at which ray reaches/leaves the surface. Can be 'Brewster' or 'critical'
             If neither of these is chosen, a warning is printed and angle is set to 'critical'
         chdraw: string or None
             If None, do not draw the path of the ray. If the ray should be drawn, a string consistent with
@@ -2104,7 +2107,7 @@ class ray_tracing_2D(ray_tracing_base):
 
 class ray_tracing(ray_tracing_base):
     """
-    utility class (wrapper around the 2D analytic ray tracing code) to get
+    Utility class (wrapper around the 2D analytic ray tracing code) to get
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
 
@@ -2113,22 +2116,22 @@ class ray_tracing(ray_tracing_base):
                  detector=None, ray_tracing_2D_kwards={},
                  use_cpp=None, compile_numba=None):
         """
-        class initilization
+        Class initilization
 
         Parameters
         ----------
         medium: medium class
-            class describing the index-of-refraction profile
+            Class describing the index-of-refraction profile
 
         attenuation_model: string
-            signal attenuation model
+            Signal attenuation model
             (default: None -> 'SP1' (see ``ray_tracing_base._set_arguments``))
 
         log_name:  string
-            name under which things should be logged
+            Name under which things should be logged
 
         log_level: logging object
-            specify the log level of the ray tracing class
+            Specify the log level of the ray tracing class
 
             * logging.ERROR
             * logging.WARNING
@@ -2138,13 +2141,13 @@ class ray_tracing(ray_tracing_base):
             default is NOTSET (global control)
 
         n_frequencies_integration: int
-            the number of frequencies for which the frequency dependent attenuation
+            The number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
             (default: None -> 100 (see ``ray_tracing_base._set_arguments``))
 
         n_reflections: int
-            in case of a medium with a reflective layer at the bottom, how many reflections should be considered
+            In case of a medium with a reflective layer at the bottom, how many reflections should be considered
             (default: None -> 0 (see ``ray_tracing_base._set_arguments``))
 
         config: dict
@@ -2163,12 +2166,12 @@ class ray_tracing(ray_tracing_base):
             Additional arguments which are passed to ray_tracing_2D
 
         use_cpp: bool (default: None)
-            if True, use the CPP implementation of the ray tracer; if explicitly set to True but
+            If True, use the CPP implementation of the ray tracer; if explicitly set to True but
             the CPP version is not available, a RuntimeError is raised.
             If None, the CPP version is used whenever it is available.
 
         compile_numba: bool (default: None)
-            if True, numba-compile the standalone python functions used as a fallback when not
+            If True, numba-compile the standalone python functions used as a fallback when not
             using the CPP backend. Only relevant if `use_cpp` is (or resolves to) False.
             If None, numba is used whenever it is available.
         """
@@ -2227,9 +2230,9 @@ class ray_tracing(ray_tracing_base):
         Parameters
         ----------
         x1: 3dim np.array
-            start point of the ray
+            Start point of the ray
         x2: 3dim np.array
-            stop point of the ray
+            Stop point of the ray
         """
 
 
@@ -2283,7 +2286,7 @@ class ray_tracing(ray_tracing_base):
 
     def find_solutions(self):
         """
-        find all solutions between x1 and x2
+        Find all solutions between x1 and x2
         """
         self._results = self._r2d.find_solutions(self._x1, self._x2)
         for i in range(self._n_reflections):
@@ -2296,12 +2299,12 @@ class ray_tracing(ray_tracing_base):
             self._results = []
 
     def get_solution_type(self, iS):
-        """ returns the type of the solution
+        """ Returns the type of the solution
 
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
+            Choose for which solution to compute the launch vector, counting
             starts at zero
 
         Returns
@@ -2337,13 +2340,13 @@ class ray_tracing(ray_tracing_base):
         Parameters
         ----------
         direction: numpy.array
-            propagation direction of the wave
+            Propagation direction of the wave
         nx: float
-            the index of refraction in the x-direction
+            The index of refraction in the x-direction
         ny: float
-            the index of refraction in the y-direction
+            The index of refraction in the y-direction
         nz: float
-            the index of refraction in the z-direction
+            The index of refraction in the z-direction
 
         Returns
         -------
@@ -2385,15 +2388,15 @@ class ray_tracing(ray_tracing_base):
         Parameters
         ----------
         n: float
-            the effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+            The effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
         direction: numpy.array
-            propagation direction of the wave
+            Propagation direction of the wave
         nx: float
-            the index of refraction in the x-direction
+            The index of refraction in the x-direction
         ny: float
-            the index of refraction in the y-direction
+            The index of refraction in the y-direction
         nz: float
-            the index of refraction in the z-direction
+            The index of refraction in the z-direction
 
         Returns
         -------
@@ -2416,17 +2419,17 @@ class ray_tracing(ray_tracing_base):
         Parameters
         ----------
         N1: float
-            the first effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+            The first effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
         N2: float
-            the second effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+            The second effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
         direction: numpy.array
-            propagation direction of the wave
+            Propagation direction of the wave
         nx: float
-            the index of refraction in the x-direction
+            The index of refraction in the x-direction
         ny: float
-            the index of refraction in the y-direction
+            The index of refraction in the y-direction
         nz: float
-            the index of refraction in the z-direction
+            The index of refraction in the z-direction
 
         Returns
         -------
@@ -2514,11 +2517,11 @@ class ray_tracing(ray_tracing_base):
         Parameters
         ----------
         theta: float
-            zenith angle of the propagation direction
+            Zenith angle of the propagation direction
         phi: float
-            azimuth angle of the propagation direction
+            Azimuth angle of the propagation direction
         polarization: np.array([px, py, pz])
-            normalized e-field vector in cartesian coordinates
+            Normalized e-field vector in cartesian coordinates
 
         Returns
         -------
@@ -2543,11 +2546,11 @@ class ray_tracing(ray_tracing_base):
         pulse: np.ndarray
             3d array with the frequency spectrum of np.array([eR, eTheta, ePhi]), usually provided by the apply_propagation_effects function
         samp_rate: float
-            sampling rate of the time traces
+            Sampling rate of the time traces
         i_solution: int
-            choose which ray-tracing solution should be propagated
+            Choose which ray-tracing solution should be propagated
         bire_model: string
-            choose the interpolation to fit the measured refractive index data
+            Choose the interpolation to fit the measured refractive index data
             options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
 
         Returns
@@ -2620,9 +2623,9 @@ class ray_tracing(ray_tracing_base):
         ----------
 
         i_solution: int
-            choose which ray-tracing solution should be propagated
+            Choose which ray-tracing solution should be propagated
         bire_model: string
-            choose the interpolation to fit the measured refractive index data
+            Choose the interpolation to fit the measured refractive index data
             options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
 
         Returns
@@ -2725,12 +2728,12 @@ class ray_tracing(ray_tracing_base):
 
     def get_launch_vector(self, iS):
         """
-        calculates the launch vector (in 3D) of solution iS
+        Calculates the launch vector (in 3D) of solution iS
 
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
+            Choose for which solution to compute the launch vector, counting
             starts at zero
 
         Returns
@@ -2758,12 +2761,12 @@ class ray_tracing(ray_tracing_base):
 
     def get_receive_vector(self, iS):
         """
-        calculates the receive vector (in 3D) of solution iS
+        Calculates the receive vector (in 3D) of solution iS
 
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
+            Choose for which solution to compute the launch vector, counting
             starts at zero
 
         Returns
@@ -2791,12 +2794,12 @@ class ray_tracing(ray_tracing_base):
 
     def get_reflection_angle(self, iS):
         """
-        calculates the angle of reflection at the surface (in case of a reflected ray)
+        Calculates the angle of reflection at the surface (in case of a reflected ray)
 
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
+            Choose for which solution to compute the launch vector, counting
             starts at zero
 
         Returns
@@ -2815,12 +2818,12 @@ class ray_tracing(ray_tracing_base):
 
     def get_path_length(self, iS, analytic=True):
         """
-        calculates the path length of solution iS
+        Calculates the path length of solution iS
 
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
+            Choose for which solution to compute the launch vector, counting
             starts at zero
 
         analytic: bool
@@ -2862,12 +2865,12 @@ class ray_tracing(ray_tracing_base):
 
     def get_travel_time(self, iS, analytic=True):
         """
-        calculates the travel time of solution iS
+        Calculates the travel time of solution iS
 
         Parameters
         ----------
         iS : int
-            choose for which solution to compute the launch vector, counting
+            Choose for which solution to compute the launch vector, counting
             starts at zero
 
         analytic : bool
@@ -2909,19 +2912,19 @@ class ray_tracing(ray_tracing_base):
 
     def get_attenuation(self, iS, frequency, max_detector_freq=None):
         """
-        calculates the signal attenuation due to attenuation in the medium (ice)
+        Calculates the signal attenuation due to attenuation in the medium (ice)
 
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
+            Choose for which solution to compute the launch vector, counting
             starts at zero
 
         frequency: array of floats
-            the frequencies for which the attenuation is calculated
+            The frequencies for which the attenuation is calculated
 
         max_detector_freq: float or None
-            the maximum frequency of the final detector sampling
+            The maximum frequency of the final detector sampling
             (the simulation is internally run with a higher sampling rate, but the relevant part of the attenuation length
             calculation is the frequency interval visible by the detector, hence a finer calculation is more important)
 
@@ -2943,15 +2946,15 @@ class ray_tracing(ray_tracing_base):
 
     def get_focusing(self, iS, dz=-1. * units.cm, limit=2., analytic=False):
         """
-        calculate the focusing effect in the medium
+        Calculate the focusing effect in the medium
 
         Parameters
         ----------
         iS: int
-            choose for which solution to compute the launch vector, counting
+            Choose for which solution to compute the launch vector, counting
             starts at zero
         dz: float
-            the infinitesimal change of the depth of the receiver, 1cm by default
+            The infinitesimal change of the depth of the receiver, 1cm by default
             Only used if ``analytic=False``
         limit: float, default: 2
             The maximum signal focusing. Note that this limit is applied to the
