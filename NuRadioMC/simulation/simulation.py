@@ -1573,12 +1573,12 @@ class simulation:
                 # end channel loop, skip to next event group if all signals are empty (due to speedup cuts)
                 sim_station = station.get_sim_station()  # needed to get sim_station object containing all channels and not just the last one.
                 if len(sim_station.get_electric_fields()) == 0:
-                    logger.info(f"Eventgroup {event_group.get_run_number()} Station {station_id} has "
-                                f"{len(sim_station.get_electric_fields())} efields, skipping to next station")
+                    logger.info("Eventgroup {%d} Station {%d} has no efields, skipping to next station".format(
+                        event_group.get_run_number(), station_id))
                     continue
 
                 if candidate_station is False:
-                    logger.info(f"skipping station {station_id} because all electric fields are below threshold value")
+                    logger.info("skipping station %d because all electric fields are below threshold value", station_id)
                     continue
 
                 # group events into events based on signal arrival times
@@ -1614,10 +1614,12 @@ class simulation:
                     # fields belonging to this specific sub-event (see `group_into_events`), so this single
                     # call covers all trigger channels of this sub-event at once. This does not affect the
                     # official channel traces built by `apply_det_response` above.
-                    apply_det_response_sim(
-                        station.get_sim_station(), self._det, self._config, self.detector_simulation_filter_amp,
-                        evt=evt, event_time=self._evt_time,
-                        detector_simulation_part1=self.detector_simulation_part1)
+                    if (self._config['speedup']['amp_per_ray_solution'] or
+                            self._config['output']['sim_channel_traces']):
+                        apply_det_response_sim(
+                            station.get_sim_station(), self._det, self._config, self.detector_simulation_filter_amp,
+                            evt=evt, event_time=self._evt_time,
+                            detector_simulation_part1=self.detector_simulation_part1)
 
                     evt_group_triggered = True
                     output_buffer[station_id][evt.get_id()] = evt
