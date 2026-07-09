@@ -686,7 +686,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
         the output should contain all relevant information from the hdf5 file (except the attributes)
         to perform a NuRadioMC simulation
     """
-    time_logger.start_time('event builder (hdf5 -> nur)')
+    time_logger.start_time('event builder')
 
     parent_id = idxs[0]
     event_group_id = fin['event_group_ids'][parent_id]
@@ -764,7 +764,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
                         emitter_obj[key] = fin['emitter_' + key.name][idx]
             event_group.add_sim_emitter(emitter_obj)
 
-    time_logger.stop_time('event builder (hdf5 -> nur)')
+    time_logger.stop_time('event builder')
 
     return event_group
 
@@ -1390,7 +1390,7 @@ class simulation:
                 mean_integrated_response = self._integrated_channel_response_normalization[station_id][channel_id]
 
                 status_cells = [
-                    f'{station_id:3d} - {channel_id:02d}',
+                    f'{station_id:3d} - {channel_id: 2d}',
                     f'{noise_temp_channel:.1f} K',
                     f'{integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz',
                     f'{max_amplification:.2f}',
