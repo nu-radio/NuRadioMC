@@ -225,7 +225,7 @@ def calculate_sim_efield(
                 kwargs['k_L'] = shower[shp.k_L]
                 logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
 
-            time_logger.start_time('signal generation')
+            time_logger.start_time('signal gen.')
 
             spectrum, additional_output = askaryan.get_frequency_spectrum(shower[shp.energy], viewing_angles[iS],
                             n_samples, dt, shower[shp.type], n_index, wave_propagation_distance,
@@ -247,16 +247,16 @@ def calculate_sim_efield(
             polarization_direction_onsky = calculate_polarization_vector(shower_direction, propagator.get_launch_vector(iS), config)
             receive_vector = propagator.get_receive_vector(iS)
             eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
-            time_logger.stop_time('signal generation')
+            time_logger.stop_time('signal gen.')
 
             # this is common stuff which is the same between emitters and showers
             electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
                                     position=det.get_relative_position(station_id, channel_id),
                                     shower_id=shower.get_id(), ray_tracing_id=iS)
             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / dt)
-            time_logger.start_time('propagation effects')
+            time_logger.start_time('prop. effects')
             electric_field = propagator.apply_propagation_effects(electric_field, iS)
-            time_logger.stop_time('propagation effects')
+            time_logger.stop_time('prop. effects')
             # Trace start time is equal to the interaction time relative to the first
             # interaction plus the wave travel time.
             if shower.has_parameter(shp.vertex_time):
@@ -389,7 +389,7 @@ def calculate_sim_efield_for_emitter(
                     if emitter.has_parameter(key):
                         emitter_kwargs[key.name] = emitter[key]
 
-            time_logger.start_time('signal generation')
+            time_logger.start_time('signal gen.')
             if emitter_model.startswith("efield_"):
                 if emitter_model == "efield_idl1_spice":
                     if emitter.has_parameter(ep.realization_id):
@@ -425,16 +425,16 @@ def calculate_sim_efield_for_emitter(
             # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
             eTheta *= 1 / wave_propagation_distance
             ePhi *= 1 / wave_propagation_distance
-            time_logger.stop_time('signal generation')
+            time_logger.stop_time('signal gen.')
 
             # this is common stuff which is the same between emitters and showers. Make sure to do any changes to this code in both places
             electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
                                     position=det.get_relative_position(station_id, channel_id),
                                     shower_id=emitter.get_id(), ray_tracing_id=iS)
             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / dt)
-            time_logger.start_time('propagation effects')
+            time_logger.start_time('prop. effects')
             electric_field = propagator.apply_propagation_effects(electric_field, iS)
-            time_logger.stop_time('propagation effects')
+            time_logger.stop_time('prop. effects')
             # Trace start time is equal to the emitter time in case one was defined
             # (relevant for multiple emitters per event group)
             if emitter.has_parameter(ep.time):
@@ -506,7 +506,7 @@ def apply_det_response_sim(
 
     Returns nothing. The SimChannels are added to the SimStation object.
     """
-    time_logger.start_time('detector response (sim)')
+    time_logger.start_time('det. response (sim)')
 
     if evt is None:
         evt = NuRadioReco.framework.event.Event(0, 0)
@@ -531,7 +531,7 @@ def apply_det_response_sim(
     if config['speedup']['amp_per_ray_solution']:
         _calculate_amp_per_ray_solution(sim_station)
 
-    time_logger.stop_time('detector response (sim)')
+    time_logger.stop_time('det. response (sim)')
 
 
 def apply_det_response(
@@ -580,7 +580,7 @@ def apply_det_response(
 
     Returns nothing. The Channels are added to the Station object.
     """
-    time_logger.start_time('detector response')
+    time_logger.start_time('det. response')
 
     if detector_simulation_filter_amp is None and detector_simulation_part2 is None:
         logger.error("No detector response function provided. Please provide either detector_simulation_filter_amp or detector_simulation_part2")
@@ -613,7 +613,7 @@ def apply_det_response(
 
         detector_simulation_filter_amp(evt, station, det)
 
-    time_logger.stop_time('detector response')
+    time_logger.stop_time('det. response')
 
 
 def build_dummy_event(station_id, det, config):
@@ -686,7 +686,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
         the output should contain all relevant information from the hdf5 file (except the attributes)
         to perform a NuRadioMC simulation
     """
-    time_logger.start_time('event builder (hdf5 -> nur)')
+    time_logger.start_time('event builder')
 
     parent_id = idxs[0]
     event_group_id = fin['event_group_ids'][parent_id]
@@ -764,7 +764,7 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
                         emitter_obj[key] = fin['emitter_' + key.name][idx]
             event_group.add_sim_emitter(emitter_obj)
 
-    time_logger.stop_time('event builder (hdf5 -> nur)')
+    time_logger.stop_time('event builder')
 
     return event_group
 
@@ -1354,9 +1354,11 @@ class simulation:
         else:
             raise AttributeError("noise temperature and Vrms are both set to None")
 
-        status_message = (
-            '\nStation.channel | noise temperature | est. bandwidth | max. amplification | '
-            'integrated response | noise Vrms | efield Vrms (assuming VEL = 1m)')
+        status_columns = [
+            'Sta. - cha.', 'noise temp.', 'est. bandwidth', 'max. ampli.',
+            'int. response', 'noise Vrms', 'efield Vrms (VEL = 1m)']
+        status_column_widths = [len(col) for col in status_columns]
+        status_message = '\n' + ' | '.join(status_columns)
 
         self._noiseless_channels = collections.defaultdict(list)
         for station_id in self._integrated_channel_response:
@@ -1387,13 +1389,17 @@ class simulation:
                 # for logging
                 mean_integrated_response = self._integrated_channel_response_normalization[station_id][channel_id]
 
-                status_message += (
-                    f'\n   {station_id: 4d}.{channel_id:02d}      |      {noise_temp_channel}  K     | '
-                    f'  {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz   | '
-                    f'     {max_amplification:8.2f}      | '
-                    f'    {integrated_channel_response / units.MHz:.2e} MHz    | '
-                    f' {self._Vrms_per_channel[station_id][channel_id] / units.mV:5.2f} mV  | '
-                    f'      {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f} muV/m')
+                status_cells = [
+                    f'{station_id:3d} - {channel_id: 2d}',
+                    f'{noise_temp_channel:.1f} K',
+                    f'{integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz',
+                    f'{max_amplification:.2f}',
+                    f'{integrated_channel_response / units.MHz:.1e} MHz',
+                    f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.2f} mV',
+                    f'{self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f} muV/m',
+                ]
+                status_message += '\n' + ' | '.join(
+                    f'{cell:^{width}}' for cell, width in zip(status_cells, status_column_widths))
 
         logger.status(status_message)
 
