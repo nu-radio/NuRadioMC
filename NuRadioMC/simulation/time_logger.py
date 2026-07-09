@@ -214,7 +214,7 @@ class timeLogger:
             widths = [max(len(name), len(pct)) for name, pct in zip(names, percentages)]
             header_row = ' | '.join(name.center(width) for name, width in zip(names, widths))
             value_row = ' | '.join(pct.center(width) for pct, width in zip(percentages, widths))
-            time_account_string = '\t{}\n\t{}'.format(header_row, value_row)
+            time_account_string = '{}\n{}'.format(header_row, value_row)
 
             num_trigger_str = ''
             if num_triggers is not None:
