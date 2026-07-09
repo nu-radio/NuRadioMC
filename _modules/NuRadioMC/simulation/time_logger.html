@@ -645,7 +645,7 @@
              
   <h1>Source code for NuRadioMC.simulation.time_logger</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
 <div class="viewcode-block" id="pretty_time_delta">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.pretty_time_delta">[docs]</a>
@@ -715,7 +715,7 @@
 <span class="sd">        Stop the timer for the specified category.</span>
 <span class="sd">    pretty_time_delta(seconds)</span>
 <span class="sd">        Convert a time duration in seconds to a human-readable format.</span>
-<span class="sd">    show_time(n_event_groups, i_event_group)</span>
+<span class="sd">    show_time(n_event_groups, i_event_group, other_threshold=2, num_triggers=None)</span>
 <span class="sd">        Display the progress information of a simulation run.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -731,7 +731,7 @@
 <span class="sd">            The time interval (in seconds) at which the logger should be updated.</span>
 <span class="sd">            Default is 20 seconds.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__times</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__times</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__total_start_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">=</span> <span class="kc">None</span>
@@ -765,13 +765,11 @@
 <span class="sd">        &gt;&gt;&gt; logger.reset_times()  # Reset all categories</span>
 <span class="sd">        &gt;&gt;&gt; logger.reset_times([&#39;category1&#39;, &#39;category2&#39;])  # Reset specific categories</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__times</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__total_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">categories</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__times</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span></div>
@@ -799,9 +797,6 @@
 <span class="sd">        &gt;&gt;&gt; logger = TimeLogger()</span>
 <span class="sd">        &gt;&gt;&gt; logger.start_time(&#39;simulation&#39;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">category</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time category </span><span class="si">{</span><span class="n">category</span><span class="si">}</span><span class="s2"> not found. Adding category and resetting time to zero.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span></div>
 
 
@@ -818,14 +813,9 @@
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
-<span class="sd">        KeyError</span>
-<span class="sd">            If the specified category is not found in the time logger.</span>
 <span class="sd">        RuntimeError</span>
 <span class="sd">            If the timer for the specified category was not started before stopping it.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">category</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Time category </span><span class="si">{}</span><span class="s1"> not found. Did you reset times?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">category</span><span class="p">))</span>
-
         <span class="k">if</span> <span class="n">category</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">__start_times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;It looks like you stopped taking time for </span><span class="si">{}</span><span class="s1"> before starting it.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">category</span><span class="p">))</span>
 
@@ -835,35 +825,69 @@
 
 <div class="viewcode-block" id="timeLogger.show_time">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.time_logger.html#NuRadioMC.simulation.time_logger.timeLogger.show_time">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">show_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_event_groups</span><span class="p">,</span> <span class="n">i_event_group</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_event_groups</span><span class="p">,</span> <span class="n">i_event_group</span><span class="p">,</span> <span class="n">other_threshold</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_triggers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Display the progress information of a simulation run.</span>
 
-<span class="sd">        Parameters:</span>
-<span class="sd">            n_event_groups (int): Total number of event groups.</span>
-<span class="sd">            i_event_group (int): Index of the current event group.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        n_event_groups : int</span>
+<span class="sd">            Total number of event groups.</span>
+<span class="sd">        i_event_group : int</span>
+<span class="sd">            Index of the current event group.</span>
+<span class="sd">        other_threshold : float, optional</span>
+<span class="sd">            Categories that account for less than this percentage of the</span>
+<span class="sd">            elapsed time are grouped together into a single &#39;others&#39; column</span>
+<span class="sd">            instead of being shown individually. Default is 2%.</span>
+<span class="sd">        num_triggers : int, optional</span>
+<span class="sd">            The number of triggered events so far. If provided, it is</span>
+<span class="sd">            included in the status message.</span>
+<span class="sd">        force : bool, optional</span>
+<span class="sd">            Print regardless of interval. (Default: False)</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            None</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            None</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__update_interval</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__update_interval</span> <span class="ow">or</span> <span class="n">force</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__last_update</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span>
             <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__total_start_time</span>
             <span class="n">projected_time</span> <span class="o">=</span> <span class="n">elapsed_time</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_event_groups</span> <span class="o">-</span> <span class="n">i_event_group</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">i_event_group</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">total_accounted_time</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">time_account_string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-            <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">:</span>
-                <span class="n">total_accounted_time</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span>
-                <span class="n">time_account_string</span> <span class="o">=</span> <span class="n">time_account_string</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> = </span><span class="si">{:.0f}</span><span class="s1">%, &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">/</span> <span class="n">elapsed_time</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="n">total_accounted_time</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
-            <span class="n">time_account_string</span> <span class="o">=</span> <span class="n">time_account_string</span> <span class="o">+</span> <span class="s1">&#39;unaccounted: </span><span class="si">{:.0f}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="n">elapsed_time</span> <span class="o">-</span> <span class="n">total_accounted_time</span><span class="p">)</span> <span class="o">/</span> <span class="n">elapsed_time</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">percentages</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">other_time</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">category</span><span class="p">,</span> <span class="n">category_time</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__times</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">percentage</span> <span class="o">=</span> <span class="n">category_time</span> <span class="o">/</span> <span class="n">elapsed_time</span> <span class="o">*</span> <span class="mi">100</span>
+                <span class="k">if</span> <span class="n">percentage</span> <span class="o">&lt;</span> <span class="n">other_threshold</span><span class="p">:</span>
+                    <span class="n">other_time</span> <span class="o">+=</span> <span class="n">category_time</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
+                    <span class="n">percentages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:.0f}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">percentage</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">other_time</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;others&#39;</span><span class="p">)</span>
+                <span class="n">percentages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:.0f}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">other_time</span> <span class="o">/</span> <span class="n">elapsed_time</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span>
+
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;unaccounted&#39;</span><span class="p">)</span>
+            <span class="n">percentages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:.0f}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="n">elapsed_time</span> <span class="o">-</span> <span class="n">total_accounted_time</span><span class="p">)</span> <span class="o">/</span> <span class="n">elapsed_time</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span>
+
+            <span class="n">widths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pct</span><span class="p">))</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pct</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">percentages</span><span class="p">)]</span>
+            <span class="n">header_row</span> <span class="o">=</span> <span class="s1">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">width</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">widths</span><span class="p">))</span>
+            <span class="n">value_row</span> <span class="o">=</span> <span class="s1">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pct</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="k">for</span> <span class="n">pct</span><span class="p">,</span> <span class="n">width</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">percentages</span><span class="p">,</span> <span class="n">widths</span><span class="p">))</span>
+            <span class="n">time_account_string</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="si">{}</span><span class="se">\n\t</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">header_row</span><span class="p">,</span> <span class="n">value_row</span><span class="p">)</span>
+
+            <span class="n">num_trigger_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">if</span> <span class="n">num_triggers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">num_trigger_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; (</span><span class="si">{</span><span class="n">num_triggers</span><span class="si">}</span><span class="s2"> triggered events)&quot;</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span>
-                <span class="s1">&#39;Processing event group </span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">. ETA: </span><span class="si">{}</span><span class="s1">, time consumption: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="s1">&#39;Processing event group </span><span class="si">{}</span><span class="s1"> / </span><span class="si">{}{}</span><span class="s1">. Duration: </span><span class="si">{}</span><span class="s1">, ETA: </span><span class="si">{}</span><span class="s1">. </span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">i_event_group</span><span class="p">,</span>
                     <span class="n">n_event_groups</span><span class="p">,</span>
+                    <span class="n">num_trigger_str</span><span class="p">,</span>
+                    <span class="n">pretty_time_delta</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">),</span>
                     <span class="n">pretty_time_delta</span><span class="p">(</span><span class="n">projected_time</span><span class="p">),</span>
                     <span class="n">time_account_string</span>
                 <span class="p">)</span>

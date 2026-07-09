@@ -714,7 +714,7 @@ Default is 20 seconds.</p>
 <tr class="row-even"><td><p><strong>pretty_time_delta(seconds)</strong></p></td>
 <td><p>Convert a time duration in seconds to a human-readable format.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>show_time(n_event_groups, i_event_group)</strong></p></td>
+<tr class="row-odd"><td><p><strong>show_time(n_event_groups, i_event_group, other_threshold=2, num_triggers=None)</strong></p></td>
 <td><p>Display the progress information of a simulation run.</p></td>
 </tr>
 </tbody>
@@ -737,7 +737,7 @@ Default is 20 seconds.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.simulation.time_logger.timeLogger.reset_times" title="NuRadioMC.simulation.time_logger.timeLogger.reset_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_times</span></code></a>([categories])</p></td>
 <td><p>Reset the time values for the specified categories or all categories.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.simulation.time_logger.timeLogger.show_time" title="NuRadioMC.simulation.time_logger.timeLogger.show_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_time</span></code></a>(n_event_groups, i_event_group)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.simulation.time_logger.timeLogger.show_time" title="NuRadioMC.simulation.time_logger.timeLogger.show_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_time</span></code></a>(n_event_groups, i_event_group[, ...])</p></td>
 <td><p>Display the progress information of a simulation run.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.simulation.time_logger.timeLogger.start_time" title="NuRadioMC.simulation.time_logger.timeLogger.start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">start_time</span></code></a>(category)</p></td>
@@ -812,8 +812,6 @@ to zero. It also updates the total start time and the last update time.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>KeyError</dt><dd><p>If the specified category is not found in the time logger.</p>
-</dd>
 <dt>RuntimeError</dt><dd><p>If the timer for the specified category was not started before stopping it.</p>
 </dd>
 </dl>
@@ -823,15 +821,30 @@ to zero. It also updates the total start time and the last update time.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.time_logger.timeLogger.show_time">
-<span class="sig-name descname"><span class="pre">show_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_event_groups</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_event_group</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/time_logger.html#timeLogger.show_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.time_logger.timeLogger.show_time" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">show_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_event_groups</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_event_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/time_logger.html#timeLogger.show_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.time_logger.timeLogger.show_time" title="Link to this definition"></a></dt>
 <dd><p>Display the progress information of a simulation run.</p>
-<dl class="simple">
-<dt>Parameters:</dt><dd><p>n_event_groups (int): Total number of event groups.
-i_event_group (int): Index of the current event group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>n_event_groups</strong><span class="classifier">int</span></dt><dd><p>Total number of event groups.</p>
 </dd>
-<dt>Returns:</dt><dd><p>None</p>
+<dt><strong>i_event_group</strong><span class="classifier">int</span></dt><dd><p>Index of the current event group.</p>
 </dd>
-<dt>Raises:</dt><dd><p>None</p>
+<dt><strong>other_threshold</strong><span class="classifier">float, optional</span></dt><dd><p>Categories that account for less than this percentage of the
+elapsed time are grouped together into a single ‘others’ column
+instead of being shown individually. Default is 2%.</p>
+</dd>
+<dt><strong>num_triggers</strong><span class="classifier">int, optional</span></dt><dd><p>The number of triggered events so far. If provided, it is
+included in the status message.</p>
+</dd>
+<dt><strong>force</strong><span class="classifier">bool, optional</span></dt><dd><p>Print regardless of interval. (Default: False)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>
