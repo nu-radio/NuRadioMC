@@ -524,6 +524,7 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
             raise ValueError(" For the ice to air case, `z_turn == 0` (if not z_turn < 0 see prev. if-condition)")
 
         in_air = x1[1] >= 0
+
         zenith_reflection = get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case, in_air)
         zen = zenith_reflection[0]  # get_reflection_angle always returns a non-empty array (nan if no reflection)
 
@@ -701,7 +702,7 @@ class ray_tracing_2D(ray_tracing_base):
         """
         self.__logger = logging.getLogger('NuRadioMC.ray_tracing_2D')
         self.__logger.setLevel(log_level)
-        use_cpp, compile_numba = self._resolve_use_cpp_and_numba(
+        self.use_cpp, self.compile_numba = self._resolve_use_cpp_and_numba(
             use_cpp, compile_numba, cpp_available, numba_available, self.__logger)
 
         self.medium = medium
@@ -733,8 +734,6 @@ class ray_tracing_2D(ray_tracing_base):
         if overwrite_speedup is not None:
             self._use_optimized_calculation = overwrite_speedup
 
-        self.use_cpp = use_cpp
-        self.compile_numba = compile_numba
         if self.compile_numba:
             try:
                 _compile_function_numba()
@@ -2199,6 +2198,7 @@ class ray_tracing(ray_tracing_base):
             n_frequencies_integration=self._n_frequencies_integration,
             **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
         self.use_cpp = self._r2d.use_cpp
+        self.compile_numba = self._r2d.compile_numba
 
         self._swap = None
         self._dPhi = None
@@ -3054,26 +3054,24 @@ class ray_tracing(ray_tracing_base):
 
         """
 
-        recVec = self.get_receive_vector(iS)
-        recVec = -1.0 * recVec
+        recVec = -1.0 * self.get_receive_vector(iS)
         recAng = np.arccos(recVec[2] / np.sqrt(recVec[0] ** 2 + recVec[1] ** 2 + recVec[2] ** 2))
         lauVec = self.get_launch_vector(iS)
         lauAng = np.arccos(lauVec[2] / np.sqrt(lauVec[0] ** 2 + lauVec[1] ** 2 + lauVec[2] ** 2))
+
         # we need to be careful here. If X1 (the emitter) is above the X2 (the receiver) the positions are swapped
         # do to technical reasons. Here, we want to change the receiver position slightly, so we need to check
         # is X1 and X2 was swapped and use the receiver value!
         if self._swap:
             vetPos = copy.copy(self._X2) # emitter
             recPos = copy.copy(self._X1) # receiver
-            recPos1 = np.array([self._X1[0], self._X1[1], self._X1[2] + dz])
-            n1 = self._medium.get_index_of_refraction(self._X2)
-            n2 = self._medium.get_index_of_refraction(self._X1)
         else:
             vetPos = copy.copy(self._X1) # emitter
             recPos = copy.copy(self._X2) # receiver
-            recPos1 = np.array([self._X2[0], self._X2[1], self._X2[2] + dz])
-            n1 = self._medium.get_index_of_refraction(self._X1)
-            n2 = self._medium.get_index_of_refraction(self._X2)
+
+        recPos1 = np.array([recPos[0], recPos[1], recPos[2] + dz])
+        n1 = self._medium.get_index_of_refraction(vetPos)
+        n2 = self._medium.get_index_of_refraction(recPos)
 
         f = np.nan
         if analytic:
@@ -3086,18 +3084,23 @@ class ray_tracing(ray_tracing_base):
         if np.isnan(f): # either the analytic calculation failed, or we asked for the numerical solution
             distance = self.get_path_length(iS)
             if not hasattr(self, "_r1"):
-                self._r1 = ray_tracing(self._medium, self._attenuation_model, logging.WARNING,
-                                self._n_frequencies_integration, self._n_reflections, use_cpp=self.use_cpp)
+                self._r1 = ray_tracing(
+                    self._medium, self._attenuation_model, logging.WARNING,
+                    self._n_frequencies_integration, self._n_reflections,
+                    use_cpp=self.use_cpp, compile_numba=self.compile_numba)
 
             self._r1.set_start_and_end_point(vetPos, recPos1)
             self._r1.find_solutions()
+
             if iS < self._r1.get_number_of_solutions():
                 lauVec1 = self._r1.get_launch_vector(iS)
                 lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
+
                 self.__logger.debug(
                     "focusing: receive angle %.2f / launch angle %.2f / d_launch_angle %.4f",
                     recAng / units.deg, lauAng / units.deg, (lauAng1-lauAng) / units.deg
                 )
+
                 focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
 
                 # also take into account focussing in the phi-direction
@@ -3119,9 +3122,9 @@ class ray_tracing(ray_tracing_base):
             impedance_factor = np.sqrt(n1 / n2)
             f = focusing * impedance_factor
 
-        self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {f / impedance_factor:.3f}')
-        if(f/impedance_factor > limit):
-            self.__logger.info(f"amplification due to focusing is {f/impedance_factor:.1f}x -> limiting amplification factor to {limit:.1f}x")
+        self.__logger.debug('amplification due to focusing of solution %d = .3f', iS, f / impedance_factor)
+        if f / impedance_factor > limit:
+            self.__logger.info(f"amplification due to focusing is {f / impedance_factor:.1f}x -> limiting amplification factor to {limit:.1f}x")
             f = limit * impedance_factor
 
         # for ice-to-air transmission, the fresnel amplitude coefficients include an impedance factor
