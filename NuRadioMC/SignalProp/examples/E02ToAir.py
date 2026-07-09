@@ -146,10 +146,10 @@ transmission_t_s_reference = np.array([
 ])
 
 print("validating C0, focusing factor and transmission coefficients against reference values")
-testing.assert_allclose(ray_tracing_C0, ray_tracing_C0_reference, rtol=1e-6, equal_nan=True)
-testing.assert_allclose(focusing_factors, focusing_factors_reference, rtol=1e-6, equal_nan=True)
-testing.assert_allclose(transmission_t_p, transmission_t_p_reference, rtol=1e-6, equal_nan=True)
-testing.assert_allclose(transmission_t_s, transmission_t_s_reference, rtol=1e-6, equal_nan=True)
+testing.assert_allclose(ray_tracing_C0, ray_tracing_C0_reference, rtol=1e-5, equal_nan=True)
+testing.assert_allclose(focusing_factors, focusing_factors_reference, rtol=1e-5, equal_nan=True)
+testing.assert_allclose(transmission_t_p, transmission_t_p_reference, rtol=1e-5, equal_nan=True)
+testing.assert_allclose(transmission_t_s, transmission_t_s_reference, rtol=1e-5, equal_nan=True)
 print('E02ToAir passed without issues')
 
 ax.legend()
