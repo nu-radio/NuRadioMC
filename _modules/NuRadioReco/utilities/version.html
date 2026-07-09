@@ -656,43 +656,49 @@
 
 <div class="viewcode-block" id="get_git_commit_hash">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html#NuRadioReco.utilities.version.get_git_commit_hash">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_git_commit_hash</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_git_commit_hash</span><span class="p">(</span><span class="n">module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">gitproc</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;git&#39;</span><span class="p">,</span> <span class="s1">&#39;show&#39;</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
-        <span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">)</span> <span class="o">=</span> <span class="n">gitproc</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">check</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^[a-f0-9]</span><span class="si">{40}</span><span class="s2">(:.+)?$&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
-        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">check</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">h</span><span class="p">)):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;NuRadioMC version could not be determined, returning None&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">module</span><span class="o">.</span><span class="n">_IS_DEV_VERSION</span><span class="p">:</span>
+            <span class="c1"># distribution versions won&#39;t have a Git repository;</span>
+            <span class="c1"># eagerly return to not waste time</span>
             <span class="k">return</span> <span class="s2">&quot;none&quot;</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
+
+        <span class="n">gitproc</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;git&#39;</span><span class="p">,</span> <span class="s1">&#39;rev-parse&#39;</span><span class="p">,</span> <span class="s1">&#39;HEAD&#39;</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">)</span> <span class="o">=</span> <span class="n">gitproc</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^[a-f0-9]</span><span class="si">{40}</span><span class="s2">(:.+)?$&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">check</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
     <span class="k">except</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;NuRadioMC/Reco version could not be determined, returning None&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s2">&quot;none&quot;</span>
     <span class="k">return</span> <span class="n">h</span></div>
 
 
-<span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">NuRadioMC</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
-<span class="n">NuRadioMC_hash</span> <span class="o">=</span> <span class="n">get_git_commit_hash</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="c1"># preload in case the source changes during execution</span>
+<span class="n">_NuRadioMC_hash</span> <span class="o">=</span> <span class="n">get_git_commit_hash</span><span class="p">(</span><span class="n">NuRadioMC</span><span class="p">)</span>
+<span class="n">_NuRadioReco_hash</span> <span class="o">=</span> <span class="n">get_git_commit_hash</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_NuRadioMC_commit_hash">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html#NuRadioReco.utilities.version.get_NuRadioMC_commit_hash">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_NuRadioMC_commit_hash</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_NuRadioMC_commit_hash</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    returns the hash of the current commit of the NuRadioMC git repository</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">NuRadioMC_hash</span></div>
+    <span class="k">return</span> <span class="n">_NuRadioMC_hash</span></div>
 
 
-<span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
-<span class="n">NuRadioReco_hash</span> <span class="o">=</span> <span class="n">get_git_commit_hash</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
 <div class="viewcode-block" id="get_NuRadioReco_commit_hash">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html#NuRadioReco.utilities.version.get_NuRadioReco_commit_hash">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_NuRadioReco_commit_hash</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_NuRadioReco_commit_hash</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    returns the hash of the current commit of the NuRadioReco git repository</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">NuRadioReco_hash</span></div>
+    <span class="k">return</span> <span class="n">_NuRadioReco_hash</span></div>
 
 </pre></div>
 
