@@ -19,21 +19,21 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
         self.__candidate = None
 
     def set_candidate(self, candidate_status):
-            """
-            Set the candidate for the simulation station. True means the station is a candidate for producing a trigger.
+        """
+        Set the candidate for the simulation station. True means the station is a candidate for producing a trigger.
 
-            Parameters
-            ----------
-            candidate_status : bool
-                If the station is a candidate for producing a trigger.
+        Parameters
+        ----------
+        candidate_status : bool
+            If the station is a candidate for producing a trigger.
 
-            Returns
-            -------
-            None
-            """
-            if not isinstance(candidate_status, bool) and candidate_status is not None:
-                raise ValueError("The candidate_status must be a bool or None.")
-            self.__candidate = candidate_status
+        Returns
+        -------
+        None
+        """
+        if not isinstance(candidate_status, bool) and candidate_status is not None:
+            raise ValueError("The candidate_status must be a bool or None.")
+        self.__candidate = candidate_status
 
     def is_candidate(self):
         """

@@ -663,7 +663,7 @@ def build_dummy_event(station_id, det, config):
     return evt
 
 
-def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
+def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs, particle_mode):
     """
     Build NuRadioReco event structures from the input file
 
@@ -678,6 +678,8 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
         the input file attributes dictionary
     idxs : list of ints
         the indices of the events that should be built
+    particle_mode : bool
+        Flag indicating whether the events are a particle simulations or not (i.e. an emitter simulation)
 
     Returns
     -------
@@ -696,7 +698,6 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
         if enum_entry.name in fin_attrs:
             event_group.set_parameter(enum_entry, fin_attrs[enum_entry.name])
 
-    particle_mode = "simulation_mode" not in fin_attrs or fin_attrs['simulation_mode'] != "emitter"
     if particle_mode:  # first case: simulation of a particle interaction which produces showers
         # there is only one primary particle per event group
         input_particle = NuRadioReco.framework.particle.Particle(event_group_id)
@@ -910,7 +911,7 @@ def calculate_particle_weight(event_group, idx, cfg, fin=None):
     return primary[simp.weight]
 
 
-def group_into_events(station, event_group, particle_mode, split_event_time_diff,
+def group_into_events(station, det, event_group, particle_mode, split_event_time_diff,
                       zerosignal=False):
     """
     Group the signals from a station into multiple events based on signal arrival times.
@@ -919,6 +920,8 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
     ----------
     station : NuRadioReco.framework.station.Station
         The station object containing the signals.
+    det : Detector object
+        the detector description defining all channels.
     event_group : NuRadioMC.framework.event.Event
         The event group object containing all showers or emitters and other meta attributes
     particle_mode : bool
@@ -932,15 +935,52 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
     -------
     events : list of NuRadioReco.framework.event.Event
         The list of events created from the grouped signals.
+
+    Notes
+    -----
+    The signal arrival time used here to group signals into events (electric field start time + cable
+    delay) does not include the group delay that the antenna response convolution and the
+    `detector_simulation_filter_amp` chain applied by `apply_det_response_sim` would add. This is
+    typically small (on the order of a couple of ns) and is therefore neglected. It could become large
+    if, for example, `detector_simulation_filter_amp` were to (incorrectly) include the full cable delay
+    - which should not be the case, since the cable delay is already accounted for separately above.
+    Even then, this would only affect the event splitting if the missing delay differs between the
+    trigger channels being compared here, since the splitting is based on relative (not absolute) time
+    differences between channels.
     """
     time_logger.start_time('group into events')
 
     event_group_id = event_group.get_run_number()
+    station_id = station.get_id()
+
+    # We determine the (channel_id, shower_id, ray_tracing_id) identifiers and their signal arrival
+    # times directly from the electric fields rather than from the SimChannels that
+    # `apply_det_response_sim` would produce. This gives the same start time (efield start time +
+    # cable delay) without having to run the antenna response convolution and filter/amp chain before
+    # we even know whether the event triggers.
     start_times = []
     channel_identifiers = []
-    for channel in station.get_sim_station().iter_channels():
-        channel_identifiers.append(channel.get_unique_identifier())
-        start_times.append(channel.get_trace_start_time())
+    for efield in station.get_sim_station().get_electric_fields():
+        for channel_id in efield.get_channel_ids():
+            cab_delay = det.get_cable_delay(station_id, channel_id)
+            t0 = efield.get_trace_start_time() + cab_delay
+
+            # `calculate_sim_efield`/`calculate_sim_efield_for_emitter` always simulate the electric
+            # field exactly at the channel position, so no additional travel time correction (as done
+            # e.g. in `efieldToVoltageConverter` for cosmic ray simulations with a shared efield) is
+            # needed here. This is a sanity check that this assumption still holds.
+            dist_channel_efield = np.linalg.norm(
+                det.get_relative_position(station_id, channel_id) - efield.get_position())
+            if dist_channel_efield / units.mm > 0.01:
+                raise ValueError(
+                    f"Electric field for channel {channel_id} (shower {efield.get_shower_id()}, ray "
+                    f"tracing solution {efield.get_ray_tracing_solution_id()}) is simulated "
+                    f"{dist_channel_efield / units.m:.3f}m away from the channel position. "
+                    "`group_into_events` assumes electric fields are always simulated exactly at the "
+                    "channel position, which no longer seems to be the case.")
+
+            channel_identifiers.append((channel_id, efield.get_shower_id(), efield.get_ray_tracing_solution_id()))
+            start_times.append(t0)
 
     start_times = np.array(start_times)
     start_times_sort = np.argsort(start_times)
@@ -993,7 +1033,7 @@ def group_into_events(station, event_group, particle_mode, split_event_time_diff
             shower_id = ch_uid[1]
             if shower_id not in shower_ids_of_sub_event:
                 shower_ids_of_sub_event.append(shower_id)
-            sim_station.add_channel(tmp_sim_station.get_channel(ch_uid))
+
             efield_uid = (tuple([ch_uid[0]]), ch_uid[1], ch_uid[2])  # the efield unique identifier has as first parameter an array of the channels it is valid for
             for efield in tmp_sim_station.get_electric_fields():
                 if efield.get_unique_identifier() == efield_uid:
@@ -1423,11 +1463,11 @@ class simulation:
 
             self._get_distance_cut = get_distance_cut
 
-        particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
+        self._particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
         self._output_writer_hdf5 = outputWriterHDF5(
             self._outputfilename, self._config, self._det, self._station_ids,
             self._propagator.get_number_of_raytracing_solutions(),
-            particle_mode=particle_mode)
+            particle_mode=self._particle_mode)
 
         # For neutrino simulations caching the VEL is not useful as it is unlikely that a electric field has the
         # identical arrival direction at an antenna twice. On the other side the trace lengths vary from event to
@@ -1452,7 +1492,6 @@ class simulation:
         time_logger.reset_times()
 
         i_triggered_events = 0  # counter for triggered events
-        particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
         event_group_ids = np.array(self._fin['event_group_ids'])
         unique_event_group_ids = np.unique(event_group_ids)
 
@@ -1468,13 +1507,13 @@ class simulation:
 
             time_logger.show_time(len(unique_event_group_ids), i_event_group_id + 1, num_triggers=i_triggered_events)
 
-            event_group = build_NuRadioEvents_from_hdf5(self._fin, self._fin_attrs, event_indices)
+            event_group = build_NuRadioEvents_from_hdf5(self._fin, self._fin_attrs, event_indices, self._particle_mode)
             event_group.set_event_time(self._evt_time)
 
             # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
             time_logger.start_time("weight calc.")
             weight = 1
-            if particle_mode:
+            if self._particle_mode:
                 weight = calculate_particle_weight(event_group, event_indices[0], self._config, self._fin)
             time_logger.stop_time("weight calc.")
 
@@ -1494,9 +1533,6 @@ class simulation:
                 station.set_sim_station(sim_station)
                 event_group.set_station(station)
 
-                sim_efield_kwargs = dict(
-                    det=self._det, propagator=self._propagator, medium=self._ice, config=self._config
-                )
 
                 # we allow to first only simualte trigger channels. As the trigger channels might be different per station,
                 # we need to determine the channels to simulate first per station
@@ -1510,21 +1546,8 @@ class simulation:
                 # loop over all trigger channels
                 candidate_station = False
                 for iCh, channel_id in enumerate(channel_ids):
-                    min_amplitude = float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id]
-                    if particle_mode:
-                        sim_station = calculate_sim_efield(
-                            showers=event_group.get_sim_showers(),
-                            station_id=station_id, channel_id=channel_id,
-                            min_efield_amplitude=min_amplitude,
-                            distance_cut=self._get_distance_cut,
-                            **sim_efield_kwargs)
-                    else:
-                        sim_station = calculate_sim_efield_for_emitter(
-                            emitters=event_group.get_sim_emitters(),
-                            station_id=station_id, channel_id=channel_id,
-                            min_efield_amplitude=min_amplitude,
-                            rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
-                            **sim_efield_kwargs)
+                    sim_station = self._simulate_electric_field(
+                        event_group, station_id, channel_id)
 
                     if sim_station.is_candidate():
                         candidate_station = True
@@ -1536,13 +1559,13 @@ class simulation:
                                     "efields, skipping to next channel")
                         continue
 
-                    # applies the detector response to the electric fields (the antennas are defined
-                    # in the json detector description file)
-                    apply_det_response_sim(
-                        sim_station, self._det, self._config, self.detector_simulation_filter_amp,
-                        event_time=self._evt_time,
-                        detector_simulation_part1=self.detector_simulation_part1)
-
+                    # Note: we intentionally do not call `apply_det_response_sim` here (i.e. before the
+                    # trigger decision). The trigger decision is made from the electric fields directly
+                    # (via `apply_det_response`/`efieldToVoltageConverter`, see below), so running the
+                    # antenna response + filter/amp chain for every trigger channel here would be wasted
+                    # work for the (typical) case that the event group does not trigger. It is deferred to
+                    # after the trigger decision (see below), where it also produces the per-ray-solution
+                    # SimChannels needed for `amp_per_ray_solution` and the sim-channel output.
                     logger.debug(f"adding sim_station to station {station_id} for event group "
                                  f"{event_group.get_run_number()}, channel {channel_id}")
                     station.add_sim_station(sim_station)  # this will add the channels and efields to the existing sim_station object
@@ -1560,7 +1583,7 @@ class simulation:
 
                 # group events into events based on signal arrival times
                 events = group_into_events(
-                    station, event_group, particle_mode, self._config['split_event_time_diff'], bool(self._config['signal']['zerosignal']))
+                    station, self._det, event_group, self._particle_mode, self._config['split_event_time_diff'], bool(self._config['signal']['zerosignal']))
 
                 evt_group_triggered = False
                 for evt in events:
@@ -1584,6 +1607,18 @@ class simulation:
                     time_logger.start_time('readout windows')
                     channelReadoutWindowCutter.run(evt, station, self._det)
                     time_logger.stop_time('readout windows')
+
+                    # Now that we know this (sub-)event triggered, build the per-ray-solution SimChannels
+                    # for the trigger channels (needed for `amp_per_ray_solution` and the optional
+                    # sim-channel/sim-efield output). This sim_station already only contains the electric
+                    # fields belonging to this specific sub-event (see `group_into_events`), so this single
+                    # call covers all trigger channels of this sub-event at once. This does not affect the
+                    # official channel traces built by `apply_det_response` above.
+                    apply_det_response_sim(
+                        station.get_sim_station(), self._det, self._config, self.detector_simulation_filter_amp,
+                        evt=evt, event_time=self._evt_time,
+                        detector_simulation_part1=self.detector_simulation_part1)
+
                     evt_group_triggered = True
                     output_buffer[station_id][evt.get_id()] = evt
                 # end event loop
@@ -1599,21 +1634,8 @@ class simulation:
                 if len(non_trigger_channels):
                     logger.debug(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
-                        min_amplitude = float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id]
-                        if particle_mode:
-                            sim_station = calculate_sim_efield(
-                                showers=event_group.get_sim_showers(),
-                                station_id=station_id, channel_id=channel_id,
-                                min_efield_amplitude=min_amplitude,
-                                distance_cut=self._get_distance_cut,
-                                **sim_efield_kwargs)
-                        else:
-                            sim_station = calculate_sim_efield_for_emitter(
-                                emitters=event_group.get_sim_emitters(),
-                                station_id=station_id, channel_id=channel_id,
-                                rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
-                                min_efield_amplitude=min_amplitude,
-                                **sim_efield_kwargs)
+                        sim_station = self._simulate_electric_field(
+                            event_group, station_id, channel_id)
 
                         # skip to next channel if the efield is below the speed cut
                         if not sim_station.get_electric_fields():
@@ -1758,6 +1780,46 @@ class simulation:
             channel.set_frequency_spectrum(channel.get_frequency_spectrum() + noise, channel.get_sampling_rate())
 
         time_logger.stop_time('noise (non-trigger channels)')
+
+    def _simulate_electric_field(self, event_group, station_id, channel_id):
+        """
+        Simulate the electric fields for one channel (applying the `min_efield_amplitude` speedup cut).
+
+        Parameters
+        ----------
+        event_group : NuRadioMC.framework.event.Event
+            The event group object containing all showers or emitters and other meta attributes
+        station_id : int
+            The station id
+        channel_id : int
+            The channel id to simulate the electric field(s) for
+
+        Returns
+        -------
+        sim_station : NuRadioReco.framework.sim_station.SimStation
+            the simulated electric field(s) for this channel
+        """
+        sim_efield_kwargs = dict(
+            det=self._det, propagator=self._propagator, medium=self._ice, config=self._config
+        )
+
+        min_amplitude = float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id]
+        if self._particle_mode:
+            sim_station = calculate_sim_efield(
+                showers=event_group.get_sim_showers(),
+                station_id=station_id, channel_id=channel_id,
+                min_efield_amplitude=min_amplitude,
+                distance_cut=self._get_distance_cut,
+                **sim_efield_kwargs)
+        else:
+            sim_station = calculate_sim_efield_for_emitter(
+                emitters=event_group.get_sim_emitters(),
+                station_id=station_id, channel_id=channel_id,
+                min_efield_amplitude=min_amplitude,
+                rnd=self._rnd, antenna_pattern_provider=self._antenna_pattern_provider,
+                **sim_efield_kwargs)
+
+        return sim_station
 
     def _add_empty_channel(self, station, channel_id):
         """ Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time """
