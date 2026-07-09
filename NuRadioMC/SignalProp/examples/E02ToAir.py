@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+from numpy import testing
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
@@ -11,6 +12,14 @@ from radiotools import plthelpers as php
 logger = logging.getLogger('NuRadioMC.SignalProp.raytracing')
 logger.setLevel(logging.INFO)
 # ray.cpp_available=False
+
+"""
+this example calculates ice-to-air and air-to-ice raytracing solutions for a
+few fixed geometries. Because the geometries (and hence the solutions) are
+fixed, the resulting C0, focusing factor and fresnel transmission
+coefficients (t_s, t_p) are validated against hardcoded reference values so
+that regressions in the ice/air raytracing code are caught in CI.
+"""
 
 x1 = np.array([0, 0., -149.]) * units.m
 
@@ -29,6 +38,9 @@ ray_tracing_C1 = np.zeros((N, 2)) * np.nan
 ray_tracing_solution_type = np.zeros((N, 2), dtype=int) * np.nan
 travel_times = np.zeros((N, 2)) * np.nan
 travel_distances = np.zeros((N, 2)) * np.nan
+focusing_factors = np.zeros((N, 2)) * np.nan
+transmission_t_p = np.zeros((N, 2)) * np.nan
+transmission_t_s = np.zeros((N, 2)) * np.nan
 
 ice = medium.southpole_simple()
 
@@ -65,10 +77,19 @@ for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
 
             # get focussing factor
             focusing = r.get_focusing(0)
+            focusing_factors[i, iS] = focusing
             print(f"     focusing factor = {focusing:.8f}")
 
             att = r.get_attenuation(iS, np.array([100, 200]) * units.MHz)
             print(f"     attenuation: {att}")
+
+            # get fresnel transmission coefficients for the ice-air crossing
+            fresnel_coefficients = r.get_fresnel_coefficients(iS)
+            t_p = fresnel_coefficients[0]['theta']  # p-polarization
+            t_s = fresnel_coefficients[0]['phi']  # s-polarization
+            transmission_t_p[i, iS] = t_p
+            transmission_t_s[i, iS] = t_s
+            print(f"     transmission coefficients: t_p = {t_p:.8f}, t_s = {t_s:.8f}")
 
 
             efield=NuRadioReco.framework.electric_field.ElectricField([0])
@@ -91,6 +112,45 @@ for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
             # yy, zz = r_2d.get_path(x1_2d, x2_2d, ray_tracing_C0[i, iS])
             ax.plot(xx, zz, '{}'.format(php.get_color_linestyle(i)), label='{} C0 = {:.4f}, f = {:.2f}'.format(ray_tracing_solution_type[i, iS], ray_tracing_C0[i, iS], focusing))
             ax.plot(x_stop[0], x_stop[2], '{}{}-'.format('d', php.get_color(i)))
+
+# validate C0, focusing factor and fresnel transmission coefficients (t_s, t_p) against
+# hardcoded reference values for these fixed geometries, to catch regressions in the
+# ice/air raytracing code. Entries that have no solution (NaN) are checked to remain NaN.
+ray_tracing_C0_reference = np.array([
+    [np.nan, np.nan],
+    [1.3087854182874152, np.nan],
+    [1.0064308743162975, np.nan],
+    [1.000051230401809, np.nan],
+    [1.000051230401809, np.nan],
+])
+focusing_factors_reference = np.array([
+    [np.nan, np.nan],
+    [0.6745008127981844, np.nan],
+    [0.11276768090229355, np.nan],
+    [0.00904245808763914, np.nan],
+    [0.8156608271155307, np.nan],
+])
+transmission_t_p_reference = np.array([
+    [np.nan, np.nan],
+    [1.3158607675442617, np.nan],
+    [2.2121657628702147, np.nan],
+    [2.688037008129911, np.nan],
+    [0.7700603399040962, np.nan],
+])
+transmission_t_s_reference = np.array([
+    [np.nan, np.nan],
+    [1.2681682723971317, np.nan],
+    [1.7820897369092514, np.nan],
+    [1.991883270830427, np.nan],
+    [0.7453550705622974, np.nan],
+])
+
+print("validating C0, focusing factor and transmission coefficients against reference values")
+testing.assert_allclose(ray_tracing_C0, ray_tracing_C0_reference, rtol=1e-6, equal_nan=True)
+testing.assert_allclose(focusing_factors, focusing_factors_reference, rtol=1e-6, equal_nan=True)
+testing.assert_allclose(transmission_t_p, transmission_t_p_reference, rtol=1e-6, equal_nan=True)
+testing.assert_allclose(transmission_t_s, transmission_t_s_reference, rtol=1e-6, equal_nan=True)
+print('E02ToAir passed without issues')
 
 ax.legend()
 ax.set_xlabel("y [m]")
