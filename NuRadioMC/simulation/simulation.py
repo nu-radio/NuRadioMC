@@ -1354,9 +1354,11 @@ class simulation:
         else:
             raise AttributeError("noise temperature and Vrms are both set to None")
 
-        status_message = (
-            '\nStation.channel | noise temperature | est. bandwidth | max. amplification | '
-            'integrated response | noise Vrms | efield Vrms (assuming VEL = 1m)')
+        status_columns = [
+            'Sta. - cha.', 'noise temp.', 'est. bandwidth', 'max. ampli.',
+            'int. response', 'noise Vrms', 'efield Vrms (VEL = 1m)']
+        status_column_widths = [len(col) for col in status_columns]
+        status_message = '\n' + ' | '.join(status_columns)
 
         self._noiseless_channels = collections.defaultdict(list)
         for station_id in self._integrated_channel_response:
@@ -1387,13 +1389,17 @@ class simulation:
                 # for logging
                 mean_integrated_response = self._integrated_channel_response_normalization[station_id][channel_id]
 
-                status_message += (
-                    f'\n   {station_id: 4d}.{channel_id:02d}      |      {noise_temp_channel}  K     | '
-                    f'  {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz   | '
-                    f'     {max_amplification:8.2f}      | '
-                    f'    {integrated_channel_response / units.MHz:.2e} MHz    | '
-                    f' {self._Vrms_per_channel[station_id][channel_id] / units.mV:5.2f} mV  | '
-                    f'      {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f} muV/m')
+                status_cells = [
+                    f'{station_id:3d} - {channel_id:02d}',
+                    f'{noise_temp_channel:.1f} K',
+                    f'{integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz',
+                    f'{max_amplification:.2f}',
+                    f'{integrated_channel_response / units.MHz:.1e} MHz',
+                    f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.2f} mV',
+                    f'{self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f} muV/m',
+                ]
+                status_message += '\n' + ' | '.join(
+                    f'{cell:^{width}}' for cell, width in zip(status_cells, status_column_widths))
 
         logger.status(status_message)
 
