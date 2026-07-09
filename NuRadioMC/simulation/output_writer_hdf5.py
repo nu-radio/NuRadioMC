@@ -543,7 +543,7 @@ class outputWriterHDF5:
             logger.debug("No 'weights' present in HDF5 output, assuming all weights are unity.")
             n_triggered_weighted = n_triggered
         n_events = self._mout_attributes['n_events']
-        logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} (sum of weights = {n_triggered_weighted:.2f})')
+        logger.status(f'Fraction of triggered events = {n_triggered:.0f}/{n_events:.0f}. Sum of triggered event weights = {n_triggered_weighted:.2f}.')
 
         if 'volume' in self._mout_attributes: # this key is not present for e.g. emitter simulations
             V = self._mout_attributes['volume']

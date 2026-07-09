@@ -158,6 +158,14 @@ class efieldToVoltageConverter():
 
         # Add post_pulse_time as long as we reach the minimum required trace length
         while times_max - times_min < max_channel_trace_length:
+            if self.__post_pulse_time <= 0:
+                logger.warning(
+                    f"The channel trace length as requested by the detector description ({max_channel_trace_length} ns) "
+                    f"is not reached ({times_max - times_min} ns). To extend it, we iteratively add `post_pulse_time`. "
+                    f"However, `post_pulse_time` is set to {self.__post_pulse_time} and thus the traces are not extended. "
+                    "Please change it.")
+                break
+
             times_max += self.__post_pulse_time
 
         # assumes that all electric fields have the same sampling rate
@@ -410,8 +418,9 @@ def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id):
     antenna_position_rel = det.get_relative_position(station_id, channel_id) - efield.get_position()
 
     if np.linalg.norm(antenna_position_rel) > 5 * units.m:
-        logger.warning("Calculate an additional time shift for an electric field that is more than 5 meters "
-                       "away from the antenna position.")
+        logger.warning(f"Calculate an additional time shift for an electric field that is more than 5 meters "
+                       f"away from the antenna position. Station: {station_id}, Channel: {channel_id}, "
+                       f"Distance: {np.linalg.norm(antenna_position_rel) / units.m} m")
 
     travel_time_shift = geo_utl.get_time_delay_from_direction(
         efield.get_parameter(efp.zenith),

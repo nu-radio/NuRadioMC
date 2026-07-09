@@ -163,7 +163,7 @@ def calculate_sim_efield(
             time_logger.stop_time('distance cut')
 
         time_logger.start_time('ray tracing')
-        logger.debug(f"Calculating electric field for shower {shower.get_id()} and station {station_id}, channel {channel_id}")
+        logger.debug("Calculating electric field for shower %d and station %d, channel %d", shower.get_id(), station_id, channel_id)
         shower_direction = -1 * shower.get_axis() # We need the propagation direction here, so we multiply the shower axis with '-1'
         n_index = medium.get_index_of_refraction(x1)
         cherenkov_angle = np.arccos(1. / n_index)
@@ -175,12 +175,15 @@ def calculate_sim_efield(
             # TODO: initiatlize ray tracer with existing results if available
 
         propagator.find_solutions()
+        time_logger.stop_time('ray tracing')
         if not propagator.has_solution():
-            logger.debug(f"shower {shower.get_id()} and station {station_id}, channel {channel_id} from {x1} to {x2} does not have any ray tracing solution")
+            logger.debug("shower %d and station %d, channel %d from %s to %s does not have any ray tracing solution",
+                         shower.get_id(), station_id, channel_id, x1, x2)
             continue
 
         n = propagator.get_number_of_solutions()
-        logger.debug(f"found {n} solutions for shower {shower.get_id()} and station {station_id}, channel {channel_id} from {x1} to {x2}")
+        logger.debug("found %d solutions for shower %d and station %d, channel %d from %s to %s",
+                     n, shower.get_id(), station_id, channel_id, x1, x2)
 
         delta_Cs = np.zeros(n)
         viewing_angles = np.zeros(n)
@@ -193,10 +196,8 @@ def calculate_sim_efield(
         if min(np.abs(delta_Cs)) > config['speedup']['delta_C_cut']:
             logger.debug(f'delta_C too large, event unlikely to be observed, (min(Delta_C) = {min(np.abs(delta_Cs))/units.deg:.1f}deg), skipping event')
             continue
-        time_logger.stop_time('ray tracing')
 
         for iS in range(n): # loop through all ray tracing solution
-            time_logger.start_time('ray tracing (time)')
             # skip individual channels where the viewing angle difference is too large
             # discard event if delta_C (angle off cherenkov cone) is too large
             if np.abs(delta_Cs[iS]) > config['speedup']['delta_C_cut']:
@@ -204,9 +205,10 @@ def calculate_sim_efield(
                 continue
 
             # TODO: Fill with previous values if RT was already performed
+            time_logger.start_time('ray tracing (time)')
             wave_propagation_distance = propagator.get_path_length(iS)  # calculate path length
             wave_propagation_time = propagator.get_travel_time(iS)  # calculate travel time
-            time_logger.start_time('ray tracing (time)')
+            time_logger.stop_time('ray tracing (time)')
             if wave_propagation_distance is None or wave_propagation_time is None:
                 logger.warning('travel distance or travel time could not be calculated, skipping ray tracing solution. '
                                f'Shower ID: {shower.get_id()} Station ID: {station_id} Channel ID: {channel_id}')
@@ -282,8 +284,10 @@ def calculate_sim_efield(
             electric_field[efp.launch_vector] = propagator.get_launch_vector(iS)
 
             if min_efield_amplitude is not None:
+                time_logger.start_time('candidate check')
                 if np.max(np.abs(electric_field.get_trace())) > min_efield_amplitude:
                     sim_station.set_candidate(True)
+                time_logger.stop_time('candidate check')
 
             sim_station.add_electric_field(electric_field)
             logger.debug(
@@ -455,8 +459,10 @@ def calculate_sim_efield_for_emitter(
             electric_field[efp.launch_vector] = propagator.get_launch_vector(iS)
 
             if min_efield_amplitude is not None:
+                time_logger.start_time('candidate check')
                 if np.max(np.abs(electric_field.get_trace())) > min_efield_amplitude:
                     sim_station.set_candidate(True)
+                time_logger.stop_time('candidate check')
 
             sim_station.add_electric_field(electric_field)
 
@@ -1454,7 +1460,7 @@ class simulation:
             logger.debug(f"Simulating event group id {event_group_id}")
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(event_group_ids == event_group_id)))
 
-            time_logger.show_time(len(unique_event_group_ids), i_event_group_id)
+            time_logger.show_time(len(unique_event_group_ids), i_event_group_id + 1, num_triggers=i_triggered_events)
 
             event_group = build_NuRadioEvents_from_hdf5(self._fin, self._fin_attrs, event_indices)
             event_group.set_event_time(self._evt_time)
@@ -1569,7 +1575,9 @@ class simulation:
                     if not evt.get_station().has_triggered():
                         continue
 
+                    time_logger.start_time('readout windows')
                     channelReadoutWindowCutter.run(evt, station, self._det)
+                    time_logger.stop_time('readout windows')
                     evt_group_triggered = True
                     output_buffer[station_id][evt.get_id()] = evt
                 # end event loop
@@ -1657,12 +1665,15 @@ class simulation:
                     if bool(self._config['noise']):
                         self.add_filtered_noise_to_channels(evt, station, non_trigger_channels)
 
+                    time_logger.start_time('signal reconstruction')
                     channelSignalReconstructor.run(evt, station, self._det)
+                    time_logger.stop_time('signal reconstruction')
                     self._set_event_station_parameters(evt)
 
                     i_triggered_events += 1 # count the number of triggered events
 
                     if self._outputfilenameNuRadioReco is not None:
+                        time_logger.start_time('event writer (nur)')
                         # downsample traces to detector sampling rate to save file size
                         sampling_rate_detector = self._det.get_sampling_frequency(
                             station_id, self._det.get_channel_ids(station_id)[0])
@@ -1692,10 +1703,13 @@ class simulation:
                             eventWriter.run(evt, self._det, mode=output_mode)
                         else:
                             eventWriter.run(evt, mode=output_mode)
+                        time_logger.stop_time('event writer (nur)')
 
                     remove_all_traces(evt)  # remove all traces to save memory
 
                 self._output_writer_hdf5.add_event_group(output_buffer)
+
+        time_logger.show_time(len(unique_event_group_ids), i_event_group_id + 1, num_triggers=i_triggered_events, force=True)
 
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.end()
@@ -1704,7 +1718,7 @@ class simulation:
         self._output_writer_hdf5.calculate_Veff()
         if not self._output_writer_hdf5.write_output_file():
             logger.warning("No events were triggered. Writing empty HDF5 output file.")
-            
+
             self._output_writer_hdf5.write_empty_output_file(self._fin_attrs)
 
         return i_triggered_events
@@ -1716,6 +1730,7 @@ class simulation:
         The traces of the non-trigger channels already have the detector response applied to them.
         Hence we add "filtered" noise, i.e., noise which is based through the same filter seperatly.
         """
+        time_logger.start_time('noise (non-trigger channels)')
         station_id = station.get_id()
         for channel_id in channel_ids:
             channel = station.get_channel(channel_id)
@@ -1736,6 +1751,7 @@ class simulation:
 
             channel.set_frequency_spectrum(channel.get_frequency_spectrum() + noise, channel.get_sampling_rate())
 
+        time_logger.stop_time('noise (non-trigger channels)')
 
     def _add_empty_channel(self, station, channel_id):
         """ Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time """
