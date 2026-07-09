@@ -58,14 +58,16 @@ class hardwareResponseIncorporator:
             logger.warning("get_filter() warning: station_id/channel_id/det provided but not used."
                            "ARA system response is not channel-dependent")
     
-        analog_components.load_system_response()
         system_response = analog_components.get_system_response(frequencies)
         system_complex_response = system_response['gain'] * system_response['phase']
-    
+
         if sim_to_data:
             return system_complex_response
         else:
-            return 1. / system_complex_response
+            filt = np.zeros_like(system_complex_response)
+            mask = np.abs(gain) > 0
+            filt[mask] = 1. / system_complex_response[mask]
+            return filt
         
     @register_run()
     def run(self, evt, station, det, sim_to_data=False):
@@ -81,20 +83,14 @@ class hardwareResponseIncorporator:
             system_response = analog_components.get_system_response(frequencies)
             trace_fft = channel.get_frequency_spectrum()
 
+            filt = self.get_filter(frequencies, station.get_id(), channel.get_id(), det, sim_to_data=sim_to_data)
+            trace_after_system_fft = trace_fft * filt
+            
             if sim_to_data:
-
-                trace_after_system_fft = trace_fft * system_response['gain'] * system_response['phase']
                 # zero first bins to avoid DC offset
                 trace_after_system_fft[0] = 0
-                channel.set_frequency_spectrum(trace_after_system_fft, channel.get_sampling_rate())
 
-            else:
-                trace_before_system_fft = np.zeros_like(trace_fft)
-                trace_before_system_fft[np.abs(system_response['gain']) > 0] = (
-                    trace_fft[np.abs(system_response['gain']) > 0] /
-                    (system_response['gain'] * system_response['phase'])[np.abs(system_response['gain']) > 0]
-                )
-                channel.set_frequency_spectrum(trace_before_system_fft, channel.get_sampling_rate())
+            channel.set_frequency_spectrum(trace_after_system_fft, channel.get_sampling_rate())
 
         if not sim_to_data:
             # Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added
