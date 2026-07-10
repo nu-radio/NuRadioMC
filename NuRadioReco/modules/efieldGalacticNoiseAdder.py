@@ -9,7 +9,7 @@ import healpy
 logger = logging.getLogger('NuRadioReco.efieldGalacticNoiseAdder')
 
 class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
-    """
+    r"""
     Class that simulates the noise produced by galactic radio emission
 
     Uses the pydgsm package (https://github.com/telegraphic/pygdsm), which provides

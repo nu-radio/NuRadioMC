@@ -133,7 +133,7 @@ class channelGalacticNoiseAdder:
         scaling: float, default: 1.0
             Scaling factor for the noise. This is useful when doing interferometry with extremely large arrays
             such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas.
-            Instead, one can use every nth antenna and scale the noise by a factor of 1/\sqrt{n} (since the SNR
+            Instead, one can use every nth antenna and scale the noise by a factor of 1/sqrt(n) (since the SNR
             is expected to scale with the square root of the number of antennas when using interferomtery/beamforming).
         ice_model: str, default: None
             The ice model to use for the simulation of in-ice antennas.
