@@ -1573,8 +1573,8 @@ class simulation:
                 # end channel loop, skip to next event group if all signals are empty (due to speedup cuts)
                 sim_station = station.get_sim_station()  # needed to get sim_station object containing all channels and not just the last one.
                 if len(sim_station.get_electric_fields()) == 0:
-                    logger.info("Eventgroup {%d} Station {%d} has no efields, skipping to next station".format(
-                        event_group.get_run_number(), station_id))
+                    logger.info("Eventgroup %d Station %d has no efields, skipping to next station",
+                        event_group.get_run_number(), station_id)
                     continue
 
                 if candidate_station is False:
