@@ -733,6 +733,20 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span></div>
 
 
+<div class="viewcode-block" id="Event.set_run_number">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.set_run_number">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_run_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_nr</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the run number.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        run_nr : int</span>
+<span class="sd">            The run number to set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span> <span class="o">=</span> <span class="n">run_nr</span></div>
+
+
 <div class="viewcode-block" id="Event.get_waveforms">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_waveforms">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_waveforms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

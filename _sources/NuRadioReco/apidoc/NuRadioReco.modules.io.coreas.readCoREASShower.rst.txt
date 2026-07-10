@@ -1,7 +1,0 @@
-NuRadioReco.modules.io.coreas.readCoREASShower module
-=====================================================
-
-.. automodule:: NuRadioReco.modules.io.coreas.readCoREASShower
-   :members:
-   :undoc-members:
-   :show-inheritance:
