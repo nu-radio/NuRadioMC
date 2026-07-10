@@ -938,46 +938,37 @@ def group_into_events(station, det, event_group, particle_mode, split_event_time
 
     Notes
     -----
-    The signal arrival time used here to group signals into events (electric field start time + cable
-    delay) does not include the group delay that the antenna response convolution and the
-    `detector_simulation_filter_amp` chain applied by `apply_det_response_sim` would add. This is
-    typically small (on the order of a couple of ns) and is therefore neglected. It could become large
-    if, for example, `detector_simulation_filter_amp` were to (incorrectly) include the full cable delay
-    - which should not be the case, since the cable delay is already accounted for separately above.
-    Even then, this would only affect the event splitting if the missing delay differs between the
-    trigger channels being compared here, since the splitting is based on relative (not absolute) time
-    differences between channels.
+    Events are split using the electric field start time plus the cable delay only. This does not
+    include the group delay added by the antenna response convolution and the
+    `detector_simulation_filter_amp` chain, which are only applied later (in
+    `apply_det_response_sim`/`apply_det_response`, after the split). That extra delay is typically small
+    (order of a couple of ns) and is neglected here so that sub-events can be determined without running
+    the antenna+filter chain for every channel. It would only affect the splitting if it differs between
+    the trigger channels being compared, since splitting depends on relative (not absolute) time
+    differences between channels, and only once it becomes comparable to `split_event_time_diff`.
+
+    `simulation.__init__` measures this extra delay empirically per channel
+    (`self._pulse_based_group_delay_per_channel`), using a test pulse run through the same signal chain,
+    and logs a warning if it varies by more than 50 ns across a station's trigger channels.
+
+    Other places in this module that touch on this same omission point back to this note rather than
+    repeating the explanation.
     """
     time_logger.start_time('group into events')
 
     event_group_id = event_group.get_run_number()
     station_id = station.get_id()
 
-    # We determine the (channel_id, shower_id, ray_tracing_id) identifiers and their signal arrival
-    # times directly from the electric fields rather than from the SimChannels that
-    # `apply_det_response_sim` would produce. This gives the same start time (efield start time +
-    # cable delay) without having to run the antenna response convolution and filter/amp chain before
-    # we even know whether the event triggers.
+    # Determine the (channel_id, shower_id, ray_tracing_id) identifiers and arrival times directly from
+    # the electric fields, instead of from the SimChannels `apply_det_response_sim` would produce -- this
+    # avoids running the antenna response + filter/amp chain before we even know whether the event
+    # triggers. See the Notes above for what this arrival time does and does not include.
     start_times = []
     channel_identifiers = []
     for efield in station.get_sim_station().get_electric_fields():
         for channel_id in efield.get_channel_ids():
             cab_delay = det.get_cable_delay(station_id, channel_id)
             t0 = efield.get_trace_start_time() + cab_delay
-
-            # `calculate_sim_efield`/`calculate_sim_efield_for_emitter` always simulate the electric
-            # field exactly at the channel position, so no additional travel time correction (as done
-            # e.g. in `efieldToVoltageConverter` for cosmic ray simulations with a shared efield) is
-            # needed here. This is a sanity check that this assumption still holds.
-            dist_channel_efield = np.linalg.norm(
-                det.get_relative_position(station_id, channel_id) - efield.get_position())
-            if dist_channel_efield / units.mm > 0.01:
-                raise ValueError(
-                    f"Electric field for channel {channel_id} (shower {efield.get_shower_id()}, ray "
-                    f"tracing solution {efield.get_ray_tracing_solution_id()}) is simulated "
-                    f"{dist_channel_efield / units.m:.3f}m away from the channel position. "
-                    "`group_into_events` assumes electric fields are always simulated exactly at the "
-                    "channel position, which no longer seems to be the case.")
 
             channel_identifiers.append((channel_id, efield.get_shower_id(), efield.get_ray_tracing_solution_id()))
             start_times.append(t0)
@@ -1333,10 +1324,7 @@ class simulation:
         self._integrated_channel_response_normalization = {}
         self._max_amplification_per_channel = {}
 
-        # Empirical (pulse-timing-based) estimate of the group delay that the antenna response
-        # convolution and the `detector_simulation_filter_amp` chain add on top of the known cable
-        # delay. Measured from the same dummy-event signal chain run below by comparing the arrival
-        # time of the injected test pulse in the output channel trace to its known input time.
+        # Empirical, pulse-timing-based estimate of the group delay that `group_into_events` neglects (see its docstring)
         self._pulse_based_group_delay_per_channel = {}
 
         # first create dummy event and station with channels, run the signal chain,
@@ -1373,13 +1361,10 @@ class simulation:
                 logger.debug(f"Station.channel {station_id}.{channel_id} estimated bandwidth is "
                              f"{integrated_channel_response / mean_integrated_response / units.MHz:.1f} MHz")
 
-                # Empirical group delay: compare the arrival time of the injected test pulse in the
-                # (unprocessed) sim electric field to its arrival time in the processed channel trace
-                # produced by the signal chain run above. Unlike the `get_filter`-based estimate above,
-                # this also captures any group delay introduced by the antenna response convolution
-                # (`efieldToVoltageConverter`), which does not expose a `get_filter` method. The known
-                # cable delay is subtracted out so that the result reflects only the *additional*,
-                # otherwise unaccounted-for group delay (see `group_into_events`).
+                # Compare the known arrival time of the injected test pulse in the (unprocessed) sim
+                # electric field to its arrival time in the processed channel trace from the signal chain
+                # run above. The cable delay is subtracted out to isolate the extra group
+                # delay that `group_into_events` neglects (see its docstring).
                 sim_efield = next(evt.get_station(station_id).get_sim_station().get_electric_fields_for_channels([channel_id]))
                 trace_in = sim_efield.get_trace()[1]
                 idx_in = np.average(np.arange(len(trace_in)), weights=np.abs(trace_in))
@@ -1406,9 +1391,10 @@ class simulation:
             grp_delays = np.array([self._pulse_based_group_delay_per_channel[station][chid] for chid in channel_ids])
             max_dt = grp_delays.max() - grp_delays.min()
             if max_dt > 50 * units.ns:
-                logger.warning(f"Found a maximum difference in the group delay for channels in station {station} of {max_dt / units.ns:.1f} ns. "
-                               "This is potentially problematic if this difference is between trigger channels as this difference is "
-                               "not accounted for when splitting signals which arrive to far apart to each other into individual events.")
+                logger.warning(f"Found a maximum difference in the group delay for the trigger channels in station {station} of "
+                               f"{max_dt / units.ns:.1f} ns. This delay is not accounted for when splitting signals into individual "
+                               "events (see the Notes in `group_into_events`), so it is potentially problematic if channels whose "
+                               "signals arrive close enough together to matter differ by this much.")
 
         self._bandwidth = next(iter(next(iter(self._integrated_channel_response.values())).values()))  # get value of first station/channel key pair
 
@@ -1653,7 +1639,8 @@ class simulation:
                     # call covers all trigger channels of this sub-event at once. This does not affect the
                     # official channel traces built by `apply_det_response` above.
                     if (self._config['speedup']['amp_per_ray_solution'] or
-                            self._config['output']['sim_channel_traces']):
+                            (self._config['output']['sim_channel_traces'] and
+                             self._outputfilenameNuRadioReco is not None)):
                         apply_det_response_sim(
                             station.get_sim_station(), self._det, self._config, self.detector_simulation_filter_amp,
                             evt=evt, event_time=self._evt_time,
