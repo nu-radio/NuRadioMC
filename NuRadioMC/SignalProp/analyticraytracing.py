@@ -2800,7 +2800,7 @@ class ray_tracing(ray_tracing_base):
         # the C0 parameter (together with the reflection specifiers) uniquely identifies the ray path
         # for the current geometry, hence the attenuation only needs to be calculated once per path
         # and frequency grid
-        cache_key = (result['C0'], result['reflection'], result['reflection_case'],
+        cache_key = (self._x1.tobytes(), self._x2.tobytes(), result['C0'], result['reflection'], result['reflection_case'],
                      np.asarray(frequency).tobytes(), max_detector_freq)
         if cache_key not in self._cache_attenuation:
             self._cache_attenuation[cache_key] = self._r2d.get_attenuation_along_path(
@@ -2842,7 +2842,7 @@ class ray_tracing(ray_tracing_base):
         # factor is requested several times per solution (e.g. by `get_raytracing_output` and
         # `apply_propagation_effects`), hence, caching it avoids expensive recalculations
         # (the numerical calculation requires an additional ray tracing)
-        cache_key = (iS, self._results[iS]['C0'], dz, limit, analytic)
+        cache_key = (self._x1.tobytes(), self._x2.tobytes(), iS, self._results[iS]['C0'], dz, limit, analytic)
         if cache_key in self._cache_focusing:
             return self._cache_focusing[cache_key]
 
