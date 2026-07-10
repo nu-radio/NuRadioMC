@@ -1448,7 +1448,7 @@ class Detector():
                                     log_level=self.__log_level)
 
                 weight = component_dic.get("weight", 1)
-                time_delay += weight * response._calculate_time_delay()
+                time_delay += weight * response.calculate_time_delay()
 
         return time_delay
 
