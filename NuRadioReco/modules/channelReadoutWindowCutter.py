@@ -258,6 +258,51 @@ def _get_number_of_samples(sampling_rate, detector_sampling_rate, detector_n_sam
     return number_of_samples, valid_sampling_rate
 
 
+def get_readout_window(station_id, channel_id, detector, trigger, sampling_rate):
+    """
+    Returns the readout window (trace start time and number of samples) of a channel.
+
+    The trace start time is given by the trigger, the duration of the trace is determined by
+    the detector description, and the number of samples determined by the duration and the
+    given sampling rate (such that resampling to the detector sampling rate yields the
+    correct number of samples).
+
+    Parameters
+    ----------
+    station_id: int
+        The station id
+
+    channel_id: int
+        The channel id
+
+    detector: `NuRadioReco.detector.detector.Detector`
+        The detector description
+
+    trigger: `NuRadioReco.framework.trigger.Trigger`
+        The trigger that triggered the station
+
+    sampling_rate: float
+        The sampling rate of the channel
+
+    Returns
+    -------
+    channel_trace_start_time: float
+        The start time of the readout window
+    n_samples: int
+        The number of samples of the readout window (at the given sampling rate)
+    """
+    detector_n_samples = detector.get_number_of_samples(station_id, channel_id)
+    detector_sampling_rate = detector.get_sampling_frequency(station_id, channel_id)
+
+    n_samples, _ = _get_number_of_samples(
+        sampling_rate, detector_sampling_rate, detector_n_samples, issue_error=False)
+
+    # get the correct trace start time taking into account different `pre_trigger_times`
+    channel_trace_start_time = trigger.get_trigger_time() - trigger.get_pre_trigger_time_channel(channel_id)
+
+    return channel_trace_start_time, n_samples
+
+
 def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     """
     Returns a channel with a trace containing zeros.
@@ -285,14 +330,8 @@ def get_empty_channel(station_id, channel_id, detector, trigger, sampling_rate):
     """
     channel = NuRadioReco.framework.channel.Channel(channel_id)
 
-    detector_n_samples = detector.get_number_of_samples(station_id, channel_id)
-    detector_sampling_rate = detector.get_sampling_frequency(station_id, channel_id)
-
-    n_samples, _ = _get_number_of_samples(
-        sampling_rate, detector_sampling_rate, detector_n_samples, issue_error=False)
-
-    # get the correct trace start time taking into account different `pre_trigger_times`
-    channel_trace_start_time = trigger.get_trigger_time() - trigger.get_pre_trigger_time_channel(channel_id)
+    channel_trace_start_time, n_samples = get_readout_window(
+        station_id, channel_id, detector, trigger, sampling_rate)
 
     channel.set_trace(np.zeros(n_samples), sampling_rate)
     channel.set_trace_start_time(channel_trace_start_time)

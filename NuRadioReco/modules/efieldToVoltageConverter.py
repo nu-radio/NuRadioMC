@@ -108,8 +108,29 @@ class efieldToVoltageConverter():
 
 
     @register_run()
-    def run(self, evt, station, det, channel_ids=None):
+    def run(self, evt, station, det, channel_ids=None, time_windows=None):
+        """
+        Convert (simulated) electric fields to voltage traces.
+
+        Parameters
+        ----------
+        evt : Event
+        station : Station
+        det : Detector
+        channel_ids : list of ints, optional
+            The channel ids for which the voltage traces are calculated.
+            If None (default), all channels of the station are used.
+        time_windows : dict, optional
+            Dictionary ``{channel_id: (trace_start_time, n_samples)}`` specifying, per channel, the
+            time window in which the voltage trace is calculated. Contributions of electric fields
+            (partially) outside this window are cut away. This can be used to simulate the voltage
+            trace directly in a known readout window (e.g., for non-trigger channels once the readout
+            windows are defined by the trigger). If None (default), a common time window that contains
+            the electric fields of all requested channels (plus a pre/post pulse time padding) is
+            determined automatically.
+        """
         t = time.time()
+        explicit_window = time_windows is not None
 
         # access simulated efield and high level parameters
         sim_station = station.get_sim_station()
@@ -117,68 +138,75 @@ class efieldToVoltageConverter():
         if len(sim_station.get_electric_fields()) == 0:
             raise LookupError(f"station {station.get_id()} has no efields")
 
-        # first we determine the trace start time of all channels and correct
-        times_min = []
-        times_max = []
         if channel_ids is None:
             channel_ids = det.get_channel_ids(sim_station_id)
 
-        for channel_id in channel_ids:
+        if explicit_window:
+            # assumes that all electric fields have the same sampling rate
+            time_resolution = 1. / sim_station.get_electric_fields()[0].get_sampling_rate()
+        else:
+            # first we determine the trace start time of all channels and correct
+            times_min = []
+            times_max = []
+            for channel_id in channel_ids:
 
-            for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
-                cab_delay = det.get_cable_delay(sim_station_id, channel_id)
-                t0 = electric_field.get_trace_start_time() + cab_delay
+                for electric_field in sim_station.get_electric_fields_for_channels([channel_id]):
+                    cab_delay = det.get_cable_delay(sim_station_id, channel_id)
+                    t0 = electric_field.get_trace_start_time() + cab_delay
 
-                # If the efield is not at the antenna (as possible for a simulated cosmic ray event),
-                # the different signal travel time to the antennas has to be taken into account
-                dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position())
-                if dist_channel_efield / units.mm > 0.01:
-                    travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
-                    t0 += travel_time_shift
+                    # If the efield is not at the antenna (as possible for a simulated cosmic ray event),
+                    # the different signal travel time to the antennas has to be taken into account
+                    dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position())
+                    if dist_channel_efield / units.mm > 0.01:
+                        travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
+                        t0 += travel_time_shift
 
-                if not np.isnan(t0):
-                    # trace start time is None if no ray tracing solution was found and channel contains only zeros
-                    times_min.append(t0)
-                    times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
-                    logger.debug("trace start time {}, cable delay {}, tracelength {}".format(
-                        electric_field.get_trace_start_time(), cab_delay,
-                        electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
+                    if not np.isnan(t0):
+                        # trace start time is None if no ray tracing solution was found and channel contains only zeros
+                        times_min.append(t0)
+                        times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
+                        logger.debug("trace start time {}, cable delay {}, tracelength {}".format(
+                            electric_field.get_trace_start_time(), cab_delay,
+                            electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
 
-        times_min = np.min(times_min)
-        times_max = np.max(times_max)
+            times_min = np.min(times_min)
+            times_max = np.max(times_max)
 
-        # Determine the maximum length of the "readout window"
-        max_channel_trace_length = np.max([
-            det.get_number_of_samples(station.get_id(), channel_id) / det.get_sampling_frequency(station.get_id(), channel_id)
-            for channel_id in channel_ids])
+            # Determine the maximum length of the "readout window"
+            max_channel_trace_length = np.max([
+                det.get_number_of_samples(station.get_id(), channel_id) / det.get_sampling_frequency(station.get_id(), channel_id)
+                for channel_id in channel_ids])
 
-        # pad event times by pre/post pulse time
-        times_min -= self.__pre_pulse_time
-        times_max += self.__post_pulse_time
-
-        # Add post_pulse_time as long as we reach the minimum required trace length
-        while times_max - times_min < max_channel_trace_length:
-            if self.__post_pulse_time <= 0:
-                logger.warning(
-                    f"The channel trace length as requested by the detector description ({max_channel_trace_length} ns) "
-                    f"is not reached ({times_max - times_min} ns). To extend it, we iteratively add `post_pulse_time`. "
-                    f"However, `post_pulse_time` is set to {self.__post_pulse_time} and thus the traces are not extended. "
-                    "Please change it.")
-                break
-
+            # pad event times by pre/post pulse time
+            times_min -= self.__pre_pulse_time
             times_max += self.__post_pulse_time
 
-        # assumes that all electric fields have the same sampling rate
-        time_resolution = 1. / electric_field.get_sampling_rate()
+            # Add post_pulse_time as long as we reach the minimum required trace length
+            while times_max - times_min < max_channel_trace_length:
+                if self.__post_pulse_time <= 0:
+                    logger.warning(
+                        f"The channel trace length as requested by the detector description ({max_channel_trace_length} ns) "
+                        f"is not reached ({times_max - times_min} ns). To extend it, we iteratively add `post_pulse_time`. "
+                        f"However, `post_pulse_time` is set to {self.__post_pulse_time} and thus the traces are not extended. "
+                        "Please change it.")
+                    break
 
-        trace_length = times_max - times_min
-        trace_length_samples = int(round(trace_length / time_resolution))
-        if trace_length_samples % 2 != 0:
-            trace_length_samples += 1
+                times_max += self.__post_pulse_time
 
-        logger.debug(
-            "smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(
-                times_min, times_max, trace_length_samples, trace_length / units.ns))
+            # assumes that all electric fields have the same sampling rate
+            time_resolution = 1. / electric_field.get_sampling_rate()
+
+            trace_length = times_max - times_min
+            trace_length_samples = int(round(trace_length / time_resolution))
+            if trace_length_samples % 2 != 0:
+                trace_length_samples += 1
+
+            logger.debug(
+                "smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(
+                    times_min, times_max, trace_length_samples, trace_length / units.ns))
+
+            # all channels share the same, automatically determined time window
+            time_windows = {channel_id: (times_min, trace_length_samples) for channel_id in channel_ids}
 
         # loop over all channels
         for channel_id in channel_ids:
@@ -189,6 +217,7 @@ class efieldToVoltageConverter():
             # and everything up in the time domain
             logger.debug('channel id {}'.format(channel_id))
             channel = NuRadioReco.framework.channel.Channel(channel_id)
+            times_min, trace_length_samples = time_windows[channel_id]
 
             if self.__debug:
                 from matplotlib import pyplot as plt
@@ -234,16 +263,27 @@ class efieldToVoltageConverter():
                     tr = new_efield.get_trace()
                     stop_bin = start_bin + new_efield.get_number_of_samples()
 
-                    # if checks should never be true...
+                    if stop_bin <= 0 or start_bin >= trace_length_samples:
+                        # The electric field is completely outside the requested time window. This is
+                        # expected when simulating directly into a fixed readout window (the signal
+                        # simply does not contribute to the readout) but should not happen when the
+                        # window is determined automatically.
+                        (logger.debug if explicit_window else logger.warning)(
+                            "electric field trace is completely outside the trace window and will be skipped.")
+                        continue
+
+                    # if checks should never be true (unless an explicit time window was requested)...
                     if stop_bin > np.shape(new_trace)[-1]:
-                        # ensure new efield does not extend beyond end of trace although this should not happen
-                        logger.warning("electric field trace extends beyond the end of the trace and will be cut.")
+                        # ensure new efield does not extend beyond end of trace
+                        (logger.debug if explicit_window else logger.warning)(
+                            "electric field trace extends beyond the end of the trace and will be cut.")
                         stop_bin = np.shape(new_trace)[-1]
                         tr = np.atleast_2d(tr)[:, :stop_bin-start_bin]
 
                     if start_bin < 0:
-                        # ensure new efield does not extend beyond start of trace although this should not happen
-                        logger.warning("electric field trace extends beyond the beginning of the trace and will be cut.")
+                        # ensure new efield does not extend beyond start of trace
+                        (logger.debug if explicit_window else logger.warning)(
+                            "electric field trace extends beyond the beginning of the trace and will be cut.")
                         tr = np.atleast_2d(tr)[:, -start_bin:]
                         start_bin = 0
 

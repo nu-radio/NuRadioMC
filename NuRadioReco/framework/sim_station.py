@@ -60,9 +60,22 @@ class SimStation(NuRadioReco.framework.base_station.BaseStation):
     def set_simulation_weight(self, simulation_weight):
         self.__simulation_weight = simulation_weight
 
-    def iter_channels(self):
+    def iter_channels(self, use_channels=None):
+        """ Iterates over all `SimChannels` of the `SimStation`.
+
+        Parameters
+        ----------
+        use_channels : list of int, optional
+            List of (physical) channel ids. If not None, only the `SimChannels`
+            with these channel ids are iterated over. (Default: None)
+
+        Yields
+        ------
+        NuRadioReco.framework.sim_channel.SimChannel
+        """
         for channel in self.__channels.values():
-            yield channel
+            if use_channels is None or channel.get_id() in use_channels:
+                yield channel
 
     def add_channel(self, channel, overwrite=False):
         """

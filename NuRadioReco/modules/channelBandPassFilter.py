@@ -67,7 +67,8 @@ class channelBandPassFilter:
     @register_run()
     def run(self, evt, station, det, passband=None,
             filter_type='rectangular', order=2, rp=None,
-            roll_width=2.5 * units.MHz, half_hann_percent=0.1):
+            roll_width=2.5 * units.MHz, half_hann_percent=0.1,
+            channel_ids=None):
         """
         Run the filter
 
@@ -107,6 +108,9 @@ class channelBandPassFilter:
         half_hann_percent : float, default=0.1
             The size of the half-Hann window expressed as a percentage of the length of the trace.
             (Relevant for the Hann tapered filter)
+        channel_ids : list of ints, optional
+            The channel ids of the channels the filter is applied to. If None (default), the filter
+            is applied to all channels of the station.
 
         Notes
         -----
@@ -134,7 +138,7 @@ class channelBandPassFilter:
         """
         if passband is None:
             passband = [55 * units.MHz, 1000 * units.MHz]
-        for channel in station.iter_channels():
+        for channel in station.iter_channels(use_channels=channel_ids):
             tmp_passband, tmp_order, tmp_filter_type, tmp_rp, tmp_roll_width, tmp_half_hann_percent = \
                 self.get_filter_arguments(
                     channel.get_id(), passband, filter_type, order, rp, roll_width, half_hann_percent

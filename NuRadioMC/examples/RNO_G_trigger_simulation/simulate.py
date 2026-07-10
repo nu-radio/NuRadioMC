@@ -79,7 +79,7 @@ envelope_trigger_kwargs = {
 }
 
 
-def detector_simulation(evt, station, det, noise_vrms, max_freq, add_noise=True):
+def detector_simulation(evt, station, det, noise_vrms, max_freq, add_noise=True, channel_ids=None, time_windows=None):
     """ Run the detector simulation.
 
     It performs the following steps:
@@ -99,15 +99,25 @@ def detector_simulation(evt, station, det, noise_vrms, max_freq, add_noise=True)
         The noise vrms (without any filter!). If a dict is given, the keys are the channel ids.
     max_freq : float
         The maximum frequency for the noise, i.e., the nyquist frequency for the simulated sampling rate.
+    channel_ids : list of ints, optional
+        The channel ids to process. Restricting the processing to the given channels is essential
+        to not process the same channel twice (the simulation calls this function once for the
+        trigger channels and once for the non-trigger channels of each event).
+    time_windows : dict, optional
+        Dictionary {channel_id: (trace_start_time, n_samples)} with the time windows in which
+        the voltage traces are simulated (used for the non-trigger channels for which the readout
+        windows are already defined by the trigger; see `efieldToVoltageConverter`).
     """
+    if channel_ids is None:
+        channel_ids = deep_trigger_channels
 
-    efieldToVoltageConverter.run(evt, station, det, channel_ids=deep_trigger_channels)
+    efieldToVoltageConverter.run(evt, station, det, channel_ids=channel_ids, time_windows=time_windows)
     if add_noise:
         channelGenericNoiseAdder.run(
             evt, station, det, amplitude=noise_vrms, min_freq=0 * units.MHz,
-            max_freq=max_freq, type='rayleigh')
+            max_freq=max_freq, type='rayleigh', channel_ids=channel_ids)
 
-    rnogHardwareResponse.run(evt, station, det, sim_to_data=True)
+    rnogHardwareResponse.run(evt, station, det, sim_to_data=True, channel_ids=channel_ids)
 
 
 def rnog_flower_board_high_low_trigger_simulations(

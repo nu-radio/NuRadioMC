@@ -135,7 +135,8 @@ class hardwareResponseIncorporator:
             return 1. / signal_chain_response
 
     @register_run()
-    def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
+    def run(self, evt, station, det, temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None,
+            channel_ids=None):
         """
         Switch sim_to_data to go from simulation to data or otherwise.
 
@@ -179,6 +180,10 @@ class hardwareResponseIncorporator:
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
             ``analog_components.get_amplifier_response()``
 
+        channel_ids: list of ints, optional
+            The channel ids of the channels the response is applied to. If None (default),
+            the response is applied to all channels of the station.
+
         """
 
         self.__mingainlin = mingainlin
@@ -193,7 +198,7 @@ class hardwareResponseIncorporator:
             raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
 
         has_trigger_channels = False
-        for channel in station.iter_channels():
+        for channel in station.iter_channels(use_channels=channel_ids):
             frequencies = channel.get_frequencies()
             trace_fft = channel.get_frequency_spectrum()
 

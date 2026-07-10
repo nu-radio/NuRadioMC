@@ -384,7 +384,8 @@ class channelGenericNoiseAdder:
             max_freq=2000 * units.MHz,
             type='perfect_white',
             excluded_channels=None,
-            bandwidth=None):
+            bandwidth=None,
+            channel_ids=None):
 
         """
         Add noise to given event.
@@ -415,11 +416,14 @@ class channelGenericNoiseAdder:
             if this parameter is specified, the amplitude is interpreted as the amplitude for the bandwidth specified here
             Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq
             If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`
+        channel_ids: list of ints, optional
+            the channel ids of the channels noise is added to. If None (default), noise is added to all
+            channels of the station (except those in `excluded_channels`).
 
         """
         if excluded_channels is None:
             excluded_channels = []
-        channels = station.iter_channels()
+        channels = station.iter_channels(use_channels=channel_ids)
         for channel in channels:
             if(channel.get_id() in excluded_channels):
                 continue

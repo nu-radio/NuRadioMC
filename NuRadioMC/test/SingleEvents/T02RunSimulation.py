@@ -24,12 +24,12 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 
 class mySimulation(simulation.simulation):
 
-    def _detector_simulation_filter_amp(self, evt, station, det):
+    def _detector_simulation_filter_amp(self, evt, station, det, channel_ids=None):
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
-                                  filter_type='butter', order=2)
+                                  filter_type='butter', order=2, channel_ids=channel_ids)
         channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],
-                                  filter_type='butter', order=10)
+                                  filter_type='butter', order=10, channel_ids=channel_ids)
 
     def _detector_simulation_trigger(self, evt, station, det):
         # first run a simple threshold trigger
