@@ -49,6 +49,7 @@ except ImportError:
 Analytic ray tracing solution
 """
 speed_of_light = constants.c * units.m / units.s
+N_AIR = 1.0  # index of refraction of air
 
 """
 Models in the following list will use the speed-optimized algorithm to calculate the attenuation along the path.
@@ -61,7 +62,7 @@ def _compile_function_numba():
     """ Compile function with jit - does nothing if already compiled """
 
     global get_reflection_point, obj_delta_y_square, get_delta_y, get_y_turn, \
-        get_y_with_z_mirror, get_turning_point, get_reflection_angle, get_path_segments, \
+        get_y_with_z_mirror, get_turning_point, get_reflection_angle, _get_path_segments, \
         get_angle, get_fresnel_angle, get_C_1, get_z_mirrored, get_gamma, get_y, get_C0_from_log, \
         get_z_unmirrored, n, get_y_diff, numba_compiled
 
@@ -73,7 +74,7 @@ def _compile_function_numba():
     get_C_1 = jit(get_C_1, nopython=True, cache=True)
     get_fresnel_angle = jit(get_fresnel_angle, nopython=True, cache=True)
     get_reflection_angle = jit(get_reflection_angle, nopython=True, cache=True)
-    get_path_segments = jit(get_path_segments, nopython=True, cache=True)
+    _get_path_segments = jit(_get_path_segments, nopython=True, cache=True)
     get_angle = jit(get_angle, nopython=True, cache=True)
     get_reflection_point = jit(get_reflection_point, nopython=True, cache=True)
     obj_delta_y_square = jit(obj_delta_y_square, nopython=True, cache=True)
@@ -240,7 +241,7 @@ def get_C_1(x1, C_0, n_ice, b, delta_n, z_0):
     return x1[0] - get_y_with_z_mirror(x1[1], C_0, n_ice, b, delta_n, z_0)
 
 
-def get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0,
+def _get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0,
                       medium_reflection, reflection=0, reflection_case=1):
 
     """
@@ -382,7 +383,7 @@ def get_angle(x2, x1, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection
         * 2: rays start downwards
 
     """
-    last_segment = get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case)[-1]
+    last_segment = _get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case)[-1]
 
     x_start = (last_segment[2], last_segment[3])
 
@@ -420,7 +421,7 @@ def get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection,
     """
 
     c = n_ice ** 2 - C_0 ** -2
-    segments = get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case)
+    segments = _get_path_segments(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection, reflection, reflection_case)
 
     nseg = segments.shape[0]
     out = np.full(nseg, np.nan, dtype=np.float64)
@@ -450,7 +451,7 @@ def get_reflection_angle(x1, x2, C_0, n_ice, b, delta_n, z_0, medium_reflection,
 
     return out
 
-def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=1.0):
+def get_fresnel_angle(zenith_incoming, n_2=1.3, n_1=N_AIR):
     """
     Calculates the refracted angle using Snell's law
     """
@@ -529,7 +530,7 @@ def get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range=
         zen = zenith_reflection[0]  # get_reflection_angle always returns a non-empty array (nan if no reflection)
 
         n_1 = n(z_turn, n_ice, delta_n, z_0)
-        zenith_air = get_fresnel_angle(zen, n_1=n_1, n_2=1)
+        zenith_air = get_fresnel_angle(zen, n_1=n_1, n_2=N_AIR)
 
         if zenith_air is None or np.isnan(zenith_air):
             diff = x2[1]
@@ -1017,10 +1018,11 @@ class ray_tracing_2D(ray_tracing_base):
             n_ice, z_0, alpha, gamma, l1, l2 = self._get_analytic_ray_params(x1, C_0, reflection, reflection_case)
 
             def get_ct(z):
-                return z_0 * (
+                ct = z_0 * (
                     np.sqrt(gamma(z)) - n_ice**2/np.sqrt(alpha) * np.log(l1(z))
                     + n_ice * np.log(l2(z))
                 ) + n_ice**2 * z / np.sqrt(alpha)
+                return ct
 
             ct += self._combine_segment_analytic(x1, x2, C_0, solution_type, get_ct)
 
@@ -1340,7 +1342,7 @@ class ray_tracing_2D(ray_tracing_base):
                 * C_1: C_1 of path segment
 
         """
-        rows = get_path_segments(
+        rows = _get_path_segments(
             x1, x2, C_0,
             self.medium.n_ice, self.__b, self.medium.delta_n, self.medium.z_0,
             self.reflection, reflection, reflection_case)
@@ -1444,7 +1446,7 @@ class ray_tracing_2D(ray_tracing_base):
         if x2[1] > 0:  # treat ice to air case
             zenith_reflection = self.get_reflection_angle(x1, x2, C_0)
             n_1 = self.medium.get_index_of_refraction([y_turn, 0, z_turn])
-            zenith_air = geometryUtilities.get_fresnel_angle(zenith_reflection, n_1=n_1, n_2=1)
+            zenith_air = geometryUtilities.get_fresnel_angle(zenith_reflection, n_1=n_1, n_2=N_AIR)
             zs[~mask] = z[~mask]
             res[~mask] = zs[~mask] * np.tan(zenith_air) + y_turn
         else:
@@ -1986,7 +1988,7 @@ class ray_tracing_2D(ray_tracing_base):
             draw = True
 
         if infirn == False:
-            nlayer = 1.  # index of refraction at surface, default is n=1 for air
+            nlayer = N_AIR  # index of refraction at surface
         else:
             nlayer = n(0, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
 
@@ -2857,21 +2859,21 @@ class ray_tracing(ray_tracing_base):
                 # air/ice propagation
                 if not self._swap:
                     # ice to air case
-                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_2=1., n_1=n_ice_surface)
-                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_2=1., n_1=n_ice_surface)
+                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_2=N_AIR, n_1=n_ice_surface)
+                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_2=N_AIR, n_1=n_ice_surface)
                     self.__logger.info(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
                 else:
                     # air to ice
-                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_1=1., n_2=n_ice_surface)
-                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_1=1., n_2=n_ice_surface)
+                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_1=N_AIR, n_2=n_ice_surface)
+                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_1=N_AIR, n_2=n_ice_surface)
                     self.__logger.info(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
 
                 fresnel_coefficients.append(
                     {'zenith': zenith_reflection, 'case': 'transmission', 'theta': t_theta, 'phi': t_phi})
             else:
                 # in-ice propagation, reflection off the surface
-                r_theta = geometryUtilities.get_fresnel_r_p(zenith_reflection, n_2=1., n_1=n_ice_surface)
-                r_phi = geometryUtilities.get_fresnel_r_s(zenith_reflection, n_2=1., n_1=n_ice_surface)
+                r_theta = geometryUtilities.get_fresnel_r_p(zenith_reflection, n_2=N_AIR, n_1=n_ice_surface)
+                r_phi = geometryUtilities.get_fresnel_r_s(zenith_reflection, n_2=N_AIR, n_1=n_ice_surface)
                 self.__logger.info(
                     "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
                         zenith_reflection / units.deg, r_theta, r_phi))
