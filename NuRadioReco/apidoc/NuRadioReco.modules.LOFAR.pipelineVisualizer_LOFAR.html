@@ -656,17 +656,32 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.check_for_good_ant">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.</span></span><span class="sig-name descname"><span class="pre">check_for_good_ant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/pipelineVisualizer_LOFAR.html#check_for_good_ant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.check_for_good_ant" title="Link to this definition"></a></dt>
-<dd><p>Create a dictionary which for every station in the event contains a list of antennas which have not
-been flagged.</p>
+<dd><p>Create a list of good (non-flagged) antennas</p>
+<p>Create a dictionary, which for every station in the event contains
+a list of antennas which have not been flagged.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>event</strong><span class="classifier">Event</span></dt><dd></dd>
+<dt><strong>detector</strong><span class="classifier">Detector</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>good_antenna_dict</strong><span class="classifier">dict</span></dt><dd><p>Dictionary listing non-flagged antennas</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.pipelineVisualizer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.</span></span><span class="sig-name descname"><span class="pre">pipelineVisualizer</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/pipelineVisualizer_LOFAR.html#pipelineVisualizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.pipelineVisualizer" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Creates debug plots from the LOFAR pipeline - 
-This is the pipelineVisualizerTM for LOFAR.</p>
-<p>Any significant plots resulting from the pipeline
+<p>Creates debug plots from the LOFAR pipeline.</p>
+<p>This is the pipelineVisualizerTM for LOFAR.
+Any significant plots resulting from the pipeline
 should be added here by creating a function for them,
 and calling all functions sequentially.</p>
 <p class="rubric">Methods</p>
@@ -704,8 +719,8 @@ and calling all functions sequentially.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.pipelineVisualizer.plot_polarization">
 <span class="sig-name descname"><span class="pre">plot_polarization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/LOFAR/pipelineVisualizer_LOFAR.html#pipelineVisualizer.plot_polarization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.pipelineVisualizer.plot_polarization" title="Link to this definition"></a></dt>
-<dd><p>Plot the polarization of the electric field.
-This method calculates the stokes parameters of the pulse
+<dd><p>Plot the polarization of the electric field.</p>
+<p>This method calculates the stokes parameters of the pulse
 using get_stokes from framework.electric_field, and
 determines the polarization angle and degree, plotting
 them as arrows in the vxB and vxvxB plane.

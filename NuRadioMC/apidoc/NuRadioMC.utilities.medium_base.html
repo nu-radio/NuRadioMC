@@ -1296,16 +1296,6 @@ describing the vertical ice density profile</p>
 </dd>
 <dt><strong>z_0: float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
 </dd>
-<dt><strong>[optional]</strong></dt><dd></dd>
-<dt><strong>z_shift: float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
-</dd>
-<dt><strong>z_air_boundary: float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
-</dd>
-<dt><strong>z_bottom: float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
-</dd>
-<dt><strong>density_factor: float, NuRadio density units</strong></dt><dd><p>factor used to translate density to refractive index
-using Robin’s equation.</p>
-</dd>
 </dl>
 </dd>
 </dl>
@@ -1335,6 +1325,21 @@ using Robin’s equation.</p>
 </tr>
 </tbody>
 </table>
+<dl class="field-list simple">
+<dt class="field-odd">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_shift: float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+<dt><strong>z_air_boundary: float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom: float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>density_factor: float, NuRadio density units</strong></dt><dd><p>factor used to translate density to refractive index
+using Robin’s equation.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExponentialPolynomial.get_index_of_refraction">
 <span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelExponentialPolynomial.get_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExponentialPolynomial.get_index_of_refraction" title="Link to this definition"></a></dt>
