@@ -589,7 +589,7 @@ def apply_det_response(
     station = evt.get_station()  # will raise an error if there are more than one station, but this should never happen
     # convert efields to voltages at digitizer
     if detector_simulation_part2 is not None:
-        detector_simulation_part2(evt, station, det, add_noise=add_noise)
+        detector_simulation_part2(evt, station, det, add_noise=add_noise, channel_ids=channel_ids)
     else:
         dt = 1. / (config['sampling_rate'])
         # start detector simulation
@@ -1295,7 +1295,6 @@ class simulation:
         self._station_ids = self._det.get_station_ids()
         self._event_ids_counter = {station_id: -1 for station_id in self._station_ids} # we initialize with -1 becaue we increment the counter before we use it the first time
 
-
         logger.status(
             f"\n\tSetting event time to {evt_time}"
             f"\n\tSimulating noise: {bool(self._config['noise'])}"
@@ -1334,6 +1333,12 @@ class simulation:
         self._integrated_channel_response_normalization = {}
         self._max_amplification_per_channel = {}
 
+        # Empirical (pulse-timing-based) estimate of the group delay that the antenna response
+        # convolution and the `detector_simulation_filter_amp` chain add on top of the known cable
+        # delay. Measured from the same dummy-event signal chain run below by comparing the arrival
+        # time of the injected test pulse in the output channel trace to its known input time.
+        self._pulse_based_group_delay_per_channel = {}
+
         # first create dummy event and station with channels, run the signal chain,
         # and determine the integrated channel response (to be able to normalize the noise level)
         for station_id in self._station_ids:
@@ -1341,11 +1346,13 @@ class simulation:
             evt = build_dummy_event(station_id, self._det, self._config)
             # TODO: It seems to be sufficient to just apply the `detector_simulation_filter_amp` function to a dummy event
             apply_det_response(evt, self._det, self._config, self.detector_simulation_filter_amp,
-                               add_noise=False, detector_simulation_part2=self.detector_simulation_part2)
+                               add_noise=False, detector_simulation_part2=self.detector_simulation_part2,
+                               channel_ids=self._det.get_channel_ids(station_id))
 
             self._integrated_channel_response[station_id] = {}
             self._integrated_channel_response_normalization[station_id] = {}
             self._max_amplification_per_channel[station_id] = {}
+            self._pulse_based_group_delay_per_channel[station_id] = {}
 
             for channel_id in self._det.get_channel_ids(station_id):
                 ff = np.linspace(0, 0.5 * self._config['sampling_rate'], 10000)
@@ -1365,7 +1372,43 @@ class simulation:
 
                 logger.debug(f"Station.channel {station_id}.{channel_id} estimated bandwidth is "
                              f"{integrated_channel_response / mean_integrated_response / units.MHz:.1f} MHz")
-        ################################
+
+                # Empirical group delay: compare the arrival time of the injected test pulse in the
+                # (unprocessed) sim electric field to its arrival time in the processed channel trace
+                # produced by the signal chain run above. Unlike the `get_filter`-based estimate above,
+                # this also captures any group delay introduced by the antenna response convolution
+                # (`efieldToVoltageConverter`), which does not expose a `get_filter` method. The known
+                # cable delay is subtracted out so that the result reflects only the *additional*,
+                # otherwise unaccounted-for group delay (see `group_into_events`).
+                sim_efield = next(evt.get_station(station_id).get_sim_station().get_electric_fields_for_channels([channel_id]))
+                trace_in = sim_efield.get_trace()[1]
+                idx_in = np.average(np.arange(len(trace_in)), weights=np.abs(trace_in))
+                t_in = sim_efield.get_trace_start_time() + idx_in / sim_efield.get_sampling_rate()
+
+                channel = evt.get_station(station_id).get_channel(channel_id)
+                envelope_out = trace_utilities.get_hilbert_envelope(channel.get_trace())
+                idx_out = np.argmax(envelope_out)
+                t_out = channel.get_trace_start_time() + idx_out / channel.get_sampling_rate()
+
+                cable_delay = self._det.get_cable_delay(station_id, channel_id)
+                pulse_group_delay = (t_out - t_in) - cable_delay
+                self._pulse_based_group_delay_per_channel[station_id][channel_id] = pulse_group_delay
+
+                logger.debug(f"Station.channel {station_id}.{channel_id} pulse-based group delay "
+                             f"(beyond cable delay) is {pulse_group_delay / units.ns:.2f} ns")
+
+        for station in self._pulse_based_group_delay_per_channel:
+            if self.__trigger_channel_ids is None:
+                channel_ids = list(self._pulse_based_group_delay_per_channel[station].keys())
+            else:
+                channel_ids = self.__trigger_channel_ids
+
+            grp_delays = np.array([self._pulse_based_group_delay_per_channel[station][chid] for chid in channel_ids])
+            max_dt = grp_delays.max() - grp_delays.min()
+            if max_dt > 50 * units.ns:
+                logger.warning(f"Found a maximum difference in the group delay for channels in station {station} of {max_dt / units.ns:.1f} ns. "
+                               "This is potentially problematic if this difference is between trigger channels as this difference is "
+                               "not accounted for when splitting signals which arrive to far apart to each other into individual events.")
 
         self._bandwidth = next(iter(next(iter(self._integrated_channel_response.values())).values()))  # get value of first station/channel key pair
 
@@ -1395,10 +1438,10 @@ class simulation:
             raise AttributeError("noise temperature and Vrms are both set to None")
 
         status_columns = [
-            'Sta. - cha.', 'noise temp.', 'est. bandwidth', 'max. ampli.',
-            'int. response', 'noise Vrms', 'efield Vrms (VEL = 1m)']
+            'St./Ch.', 'noise temp.', 'est. bandwidth', 'max. ampli.',
+            'int. response', 'noise Vrms', 'efield Vrms (VEL = 1m)', "cable delay", "group delay"]
         status_column_widths = [len(col) for col in status_columns]
-        status_message = '\n' + ' | '.join(status_columns)
+        status_message = '\n ' + ' | '.join(status_columns)
 
         self._noiseless_channels = collections.defaultdict(list)
         for station_id in self._integrated_channel_response:
@@ -1430,13 +1473,15 @@ class simulation:
                 mean_integrated_response = self._integrated_channel_response_normalization[station_id][channel_id]
 
                 status_cells = [
-                    f'{station_id:3d} - {channel_id: 2d}',
+                    f'{station_id:3d}/{channel_id:2d}',
                     f'{noise_temp_channel:.1f} K',
                     f'{integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz',
                     f'{max_amplification:.2f}',
                     f'{integrated_channel_response / units.MHz:.1e} MHz',
                     f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.2f} mV',
                     f'{self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f} muV/m',
+                    f'{self._det.get_cable_delay(station_id, channel_id) / units.ns:.1f} ns',
+                    f'{self._pulse_based_group_delay_per_channel[station_id][channel_id] / units.ns:.1f} ns'
                 ]
                 status_message += '\n' + ' | '.join(
                     f'{cell:^{width}}' for cell, width in zip(status_cells, status_column_widths))
@@ -1533,19 +1578,12 @@ class simulation:
                 station.set_sim_station(sim_station)
                 event_group.set_station(station)
 
-
-                # we allow to first only simualte trigger channels. As the trigger channels might be different per station,
-                # we need to determine the channels to simulate first per station
-                channel_ids = self._det.get_channel_ids(station_id)
-                if self.__trigger_channel_ids is not None:
-                    if isinstance(self.__trigger_channel_ids, dict):
-                        channel_ids = self.__trigger_channel_ids[station_id]
-                    else:
-                        channel_ids = self.__trigger_channel_ids
+                # we allow to first only simualte trigger channels.
+                trigger_channel_ids = self._get_trigger_channels(station_id)
 
                 # loop over all trigger channels
                 candidate_station = False
-                for iCh, channel_id in enumerate(channel_ids):
+                for iCh, channel_id in enumerate(trigger_channel_ids):
                     sim_station = self._simulate_electric_field(
                         event_group, station_id, channel_id)
 
@@ -1593,7 +1631,7 @@ class simulation:
                         bool(self._config['noise']),
                         self._Vrms_per_channel, self._integrated_channel_response,
                         self._noiseless_channels,
-                        channel_ids=channel_ids,
+                        channel_ids=trigger_channel_ids,
                         detector_simulation_part2=self.detector_simulation_part2)
 
                     # calculate trigger
@@ -1623,7 +1661,6 @@ class simulation:
 
                     evt_group_triggered = True
                     output_buffer[station_id][evt.get_id()] = evt
-                # end event loop
 
                 # Only simulate the remaining channels & store the event when the event triggered.
                 if not evt_group_triggered:
@@ -1632,7 +1669,7 @@ class simulation:
                 # now simulate non-trigger channels
                 # we loop through all non-trigger channels and simulate the electric fields for all showers.
                 # then we apply the detector response to the electric fields and find the event in which they will be visible in the readout window
-                non_trigger_channels = list(set(self._det.get_channel_ids(station_id)) - set(channel_ids))
+                non_trigger_channels = list(set(self._det.get_channel_ids(station_id)) - set(trigger_channel_ids))
                 if len(non_trigger_channels):
                     logger.debug(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
                     for iCh, channel_id in enumerate(non_trigger_channels):
@@ -1822,6 +1859,19 @@ class simulation:
                 **sim_efield_kwargs)
 
         return sim_station
+
+
+    def _get_trigger_channels(self, station_id):
+        # we allow to first only simualte trigger channels. As the trigger channels might be different per station,
+        # we need to determine the channels to simulate first per station
+        if self.__trigger_channel_ids is not None:
+            if isinstance(self.__trigger_channel_ids, dict):
+                return self.__trigger_channel_ids[station_id]
+            else:
+                return self.__trigger_channel_ids
+
+        return self._det.get_channel_ids(station_id)
+
 
     def _add_empty_channel(self, station, channel_id):
         """ Adds a channel with an empty trace (all zeros) to the station with the correct length and trace_start_time """
