@@ -1825,7 +1825,6 @@ class ray_tracing_2D(ray_tracing_base):
         '''
         Get z from given n - equation from get_n solved for z
         '''
-
         return np.log((self.medium.n_ice - n) / self.medium.delta_n) * self.medium.z_0
 
     def get_surf_skim_angle(self, x1):
@@ -2201,6 +2200,10 @@ class ray_tracing(ray_tracing_base):
             **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
         self.use_cpp = self._r2d.use_cpp
         self.compile_numba = self._r2d.compile_numba
+
+        # As long as we use horizontal-translational invariant raytracing/ice models (2d)
+        # this should be fine. _n(0) is also used in _get_delta_y for air-ice raytracing
+        self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
 
         self._swap = None
         self._dPhi = None
@@ -2869,7 +2872,6 @@ class ray_tracing(ray_tracing_base):
             * "theta": fresnel coefficient for the eTheta (p-polarization) component
             * "phi": fresnel coefficient for the ePhi (s-polarization) component
         """
-        n_ice_surface = self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm])
 
         fresnel_coefficients = []
         # lets handle the general case of multiple reflections off the ice-air surface
@@ -2885,21 +2887,21 @@ class ray_tracing(ray_tracing_base):
                 # air/ice propagation
                 if not self._swap:
                     # ice to air case
-                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_2=N_AIR, n_1=n_ice_surface)
-                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_2=N_AIR, n_1=n_ice_surface)
+                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_2=N_AIR, n_1=self.n_at_surface)
+                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_2=N_AIR, n_1=self.n_at_surface)
                     self.__logger.info(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
                 else:
                     # air to ice
-                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_1=N_AIR, n_2=n_ice_surface)
-                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_1=N_AIR, n_2=n_ice_surface)
+                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_1=N_AIR, n_2=self.n_at_surface)
+                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_1=N_AIR, n_2=self.n_at_surface)
                     self.__logger.info(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
 
                 fresnel_coefficients.append(
                     {'zenith': zenith_reflection, 'case': 'transmission', 'theta': t_theta, 'phi': t_phi})
             else:
                 # in-ice propagation, reflection off the surface
-                r_theta = geometryUtilities.get_fresnel_r_p(zenith_reflection, n_2=N_AIR, n_1=n_ice_surface)
-                r_phi = geometryUtilities.get_fresnel_r_s(zenith_reflection, n_2=N_AIR, n_1=n_ice_surface)
+                r_theta = geometryUtilities.get_fresnel_r_p(zenith_reflection, n_2=N_AIR, n_1=self.n_at_surface)
+                r_phi = geometryUtilities.get_fresnel_r_s(zenith_reflection, n_2=N_AIR, n_1=self.n_at_surface)
                 self.__logger.info(
                     "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
                         zenith_reflection / units.deg, r_theta, r_phi))
@@ -3175,11 +3177,9 @@ class ray_tracing(ray_tracing_base):
         # as well as a correction for the focusing for a plane wave. We have already included these
         # in the focusing factor f, so we should correct for this:
         if recPos[-1] > 0: # receiver in air
-            n_at_surface = self._medium.get_index_of_refraction([0, 0, -0.01*units.m])
-            f *= np.sqrt(n2/n_at_surface * np.abs(np.cos(recAng) / np.cos(np.arcsin(np.sin(recAng) / n_at_surface))))
+            f *= np.sqrt(n2/self.n_at_surface * np.abs(np.cos(recAng) / np.cos(np.arcsin(np.sin(recAng) / self.n_at_surface))))
         elif vetPos[-1] > 0: # emitter in air
-            n_at_surface = self._medium.get_index_of_refraction([0, 0, -0.01*units.m])
-            f *= np.sqrt(n_at_surface/n1 * np.abs(np.cos(np.arcsin(np.sin(lauAng) / n_at_surface)) / np.cos(lauAng)))
+            f *= np.sqrt(self.n_at_surface/n1 * np.abs(np.cos(np.arcsin(np.sin(lauAng) / self.n_at_surface)) / np.cos(lauAng)))
 
         self._cache_focusing[cache_key] = f
         return f
