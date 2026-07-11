@@ -2889,8 +2889,9 @@ class ray_tracing(ray_tracing_base):
                     self.__logger.info(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
                 else:
                     # air to ice
-                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_1=N_AIR, n_2=self.n_at_surface)
-                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_1=N_AIR, n_2=self.n_at_surface)
+                    incoming_angle = np.arcsin(np.sin(zenith_reflection) * self.n_at_surface / N_AIR)
+                    t_theta = geometryUtilities.get_fresnel_t_p(incoming_angle, n_1=N_AIR, n_2=self.n_at_surface)
+                    t_phi = geometryUtilities.get_fresnel_t_s(incoming_angle, n_1=N_AIR, n_2=self.n_at_surface)
                     self.__logger.info(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
 
                 fresnel_coefficients.append(
@@ -3119,6 +3120,7 @@ class ray_tracing(ray_tracing_base):
         f = np.nan
         if analytic:
             res = self.get_results()[iS]
+            impedance_factor = np.sqrt(n1 / n2) # used for debugging only
             f = self._r2d.get_focusing_analytic(
                 self._x1, self._x2, res['C0'],
                 res['reflection'], res['reflection_case']
@@ -3165,7 +3167,7 @@ class ray_tracing(ray_tracing_base):
             impedance_factor = np.sqrt(n1 / n2)
             f = focusing * impedance_factor
 
-        self.__logger.debug('amplification due to focusing of solution %d = .3f', iS, f / impedance_factor)
+        self.__logger.debug('amplification due to focusing of solution %d = %.3f x %.3f = %.3f ', iS, f / impedance_factor, impedance_factor, f)
         if f / impedance_factor > limit:
             self.__logger.info(f"amplification due to focusing is {f / impedance_factor:.1f}x -> limiting amplification factor to {limit:.1f}x")
             f = limit * impedance_factor
@@ -3174,9 +3176,14 @@ class ray_tracing(ray_tracing_base):
         # as well as a correction for the focusing for a plane wave. We have already included these
         # in the focusing factor f, so we should correct for this:
         if recPos[-1] > 0: # receiver in air
-            f *= np.sqrt(n2/self.n_at_surface * np.abs(np.cos(recAng) / np.cos(np.arcsin(np.sin(recAng) / self.n_at_surface))))
+            correction_term = np.sqrt(n2/self.n_at_surface * np.abs(np.cos(recAng) / np.cos(np.arcsin(np.sin(recAng) / self.n_at_surface))))
+            self.__logger.debug('raytracing to air - correct focusing by %.3f', correction_term)
+            f *= correction_term
+
         elif vetPos[-1] > 0: # emitter in air
-            f *= np.sqrt(self.n_at_surface/n1 * np.abs(np.cos(np.arcsin(np.sin(lauAng) / self.n_at_surface)) / np.cos(lauAng)))
+            correction_term = np.sqrt(self.n_at_surface/n1 * np.abs(np.cos(np.arcsin(np.sin(lauAng) / self.n_at_surface)) / np.cos(lauAng)))
+            self.__logger.debug('raytracing from air to ice - correct focusing by %.3f', correction_term)
+            f *= correction_term
 
         self._cache_focusing[cache_key] = f
         return f
