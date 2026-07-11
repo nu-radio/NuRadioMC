@@ -46,7 +46,7 @@ except ImportError:
     numba_available = False
 
 SPEED_OF_LIGHT = nu_constants.c
-N_AIR = 1.000293  # index of refraction of air
+N_AIR = 1  #1.000293  # index of refraction of air
 
 """
 Models in the following list will use the speed-optimized algorithm to calculate the attenuation along the path.
