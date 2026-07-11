@@ -805,8 +805,12 @@
         <span class="n">x1</span> <span class="o">=</span> <span class="n">shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">vertex</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">distance_cut</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;distance cut&#39;</span><span class="p">)</span>
+            <span class="c1"># Aggregate energy of showers which are close to the shower in question</span>
             <span class="n">mask_shower_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vertex_distances</span> <span class="o">-</span> <span class="n">vertex_distances</span><span class="p">[</span><span class="n">iSh</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;distance_cut_sum_length&#39;</span><span class="p">]</span>
             <span class="n">shower_energy_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">shower_energies</span><span class="p">[</span><span class="n">mask_shower_sum</span><span class="p">])</span>
+
+            <span class="c1"># Check with the aggregated energy whether the shower could be detected.</span>
+            <span class="c1"># (This does not skip showers which are to close to a other shower!)</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">distance_cut</span><span class="p">(</span><span class="n">shower_energy_sum</span><span class="p">):</span>
                 <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;distance cut&#39;</span><span class="p">)</span>
                 <span class="k">continue</span>
@@ -819,14 +823,16 @@
         <span class="n">n_index</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
         <span class="n">cherenkov_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">n_index</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;redo_raytracing&#39;</span><span class="p">]:</span>
+            <span class="c1"># force a recalculation even if solutions for the same geometry (e.g., from a previous</span>
+            <span class="c1"># shower at the same position) are still stored in the propagator</span>
+            <span class="n">propagator</span><span class="o">.</span><span class="n">reset_solutions</span><span class="p">()</span>
+
         <span class="n">propagator</span><span class="o">.</span><span class="n">set_start_and_end_point</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
         <span class="n">propagator</span><span class="o">.</span><span class="n">use_optional_function</span><span class="p">(</span><span class="s1">&#39;set_shower_axis&#39;</span><span class="p">,</span> <span class="n">shower_direction</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;redo_raytracing&#39;</span><span class="p">]:</span>  <span class="c1"># check if raytracing was already performed</span>
-            <span class="k">pass</span>
-            <span class="c1"># TODO: initiatlize ray tracer with existing results if available</span>
-
         <span class="n">propagator</span><span class="o">.</span><span class="n">find_solutions</span><span class="p">()</span>
         <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;ray tracing&#39;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">propagator</span><span class="o">.</span><span class="n">has_solution</span><span class="p">():</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;shower </span><span class="si">%d</span><span class="s2"> and station </span><span class="si">%d</span><span class="s2">, channel </span><span class="si">%d</span><span class="s2"> from </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2"> does not have any ray tracing solution&quot;</span><span class="p">,</span>
                          <span class="n">shower</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
@@ -1008,12 +1014,15 @@
         <span class="n">x1</span> <span class="o">=</span> <span class="n">emitter</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">ep</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
         <span class="n">n_index</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;redo_raytracing&#39;</span><span class="p">]:</span>
+            <span class="c1"># force a recalculation even if solutions for the same geometry (e.g., from a previous</span>
+            <span class="c1"># emitter at the same position) are still stored in the propagator</span>
+            <span class="n">propagator</span><span class="o">.</span><span class="n">reset_solutions</span><span class="p">()</span>
+
         <span class="n">propagator</span><span class="o">.</span><span class="n">set_start_and_end_point</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;redo_raytracing&#39;</span><span class="p">]:</span>  <span class="c1"># check if raytracing was already performed</span>
-            <span class="k">pass</span>
-            <span class="c1"># TODO: initiatlize ray tracer with existing results if available</span>
         <span class="n">propagator</span><span class="o">.</span><span class="n">find_solutions</span><span class="p">()</span>
         <span class="n">time_logger</span><span class="o">.</span><span class="n">stop_time</span><span class="p">(</span><span class="s1">&#39;ray tracing&#39;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">propagator</span><span class="o">.</span><span class="n">has_solution</span><span class="p">():</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;emitter </span><span class="si">{</span><span class="n">emitter</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> and station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">, &quot;</span>
                         <span class="sa">f</span><span class="s2">&quot;channel </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">x2</span><span class="si">}</span><span class="s2"> does not have any ray tracing solution&quot;</span><span class="p">)</span>

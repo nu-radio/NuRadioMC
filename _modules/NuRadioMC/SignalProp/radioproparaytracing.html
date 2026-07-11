@@ -786,18 +786,31 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the start and end points of the raytracing</span>
 
+<span class="sd">        If the start and end points are identical to those of the previous ray tracing,</span>
+<span class="sd">        the existing solutions are kept and `find_solutions` will not recalculate them.</span>
+<span class="sd">        Call `reset_solutions` before this function to force a recalculation.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        x1: 3dim np.array</span>
 <span class="sd">            start point of the ray</span>
 <span class="sd">        x2: 3dim np.array</span>
 <span class="sd">            stop point of the ray</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        geometry_changed: bool</span>
+<span class="sd">            False if the start and end points are unchanged with respect to the previous</span>
+<span class="sd">            ray tracing (in which case the existing solutions are kept), True otherwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">x1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_antenna</span> <span class="o">=</span> <span class="n">x2</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_start_and_end_point</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_iterative_step_sizes</span><span class="p">(</span><span class="n">step_zeniths</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_step_zeniths</span><span class="p">)</span> <span class="c1">#if auto is on this set the automated step size, otherwise nothing happens</span></div>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_start_and_end_point</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_iterative_step_sizes</span><span class="p">(</span><span class="n">step_zeniths</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_step_zeniths</span><span class="p">)</span> <span class="c1">#if auto is on this set the automated step size, otherwise nothing happens</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
 
 
 <div class="viewcode-block" id="radiopropa_ray_tracing.set_shower_axis">
@@ -811,7 +824,14 @@
 <span class="sd">        shower_axis: np.array of shape (3,), default unit</span>
 <span class="sd">            the direction of the shower in cartesian coordinates</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_shower_axis</span> <span class="o">=</span> <span class="n">shower_axis</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">shower_axis</span><span class="p">)</span></div>
+        <span class="n">shower_axis</span> <span class="o">=</span> <span class="n">shower_axis</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">shower_axis</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shower_axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">shower_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shower_axis</span><span class="p">):</span>
+            <span class="c1"># the solutions can depend on the shower axis (rays are preselected with a viewing angle</span>
+            <span class="c1"># cut around the cherenkov angle), so existing solutions have to be recalculated</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rays</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shower_axis</span> <span class="o">=</span> <span class="n">shower_axis</span></div>
 
 
 <div class="viewcode-block" id="radiopropa_ray_tracing.set_iterative_sphere_sizes">
@@ -1342,7 +1362,14 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">find_solutions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        find all solutions between X1 and X2</span>
+
+<span class="sd">        If solutions for the current start and end points (and shower axis) already exist,</span>
+<span class="sd">        they are kept and not recalculated. Call `reset_solutions` first to force a recalculation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;solutions for the current geometry already exist, skipping ray tracing&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
         <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">rays_results</span> <span class="o">=</span> <span class="p">[]</span>
 

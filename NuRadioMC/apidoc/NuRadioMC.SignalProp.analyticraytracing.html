@@ -968,7 +968,7 @@ default: True if CPP version is available</p>
 <td><p>Function to change the configuration file used by the raytracer</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_start_and_end_point" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_start_and_end_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point</span></code></a>(x1, x2)</p></td>
-<td><p>Set the start and end points between which raytracing solutions shall be found It is recommended to also reset the solutions from any previous raytracing to avoid confusing them with the current solution</p></td>
+<td><p>Set the start and end points between which raytracing solutions shall be found.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.use_optional_function" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.use_optional_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_optional_function</span></code></a>(function_name, *args, ...)</p></td>
 <td><p>Use optional function which may be different for each ray tracer.</p></td>
@@ -1710,15 +1710,24 @@ starts at zero</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_start_and_end_point">
 <span class="sig-name descname"><span class="pre">set_start_and_end_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_start_and_end_point" title="Link to this definition"></a></dt>
-<dd><p>Set the start and end points between which raytracing solutions shall be found
-It is recommended to also reset the solutions from any previous raytracing to avoid
-confusing them with the current solution</p>
+<dd><p>Set the start and end points between which raytracing solutions shall be found.</p>
+<p>If the start and end points are identical to those of the previous ray tracing,
+the existing solutions are kept and <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.find_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.find_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_solutions</span></code></a> will not recalculate them
+(relevant e.g. if several showers are simulated at the same position).
+Call <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a> before this function to force a recalculation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>x1: np.array of shape (3,), default unit</strong></dt><dd><p>start point of the ray</p>
 </dd>
 <dt><strong>x2: np.array of shape (3,), default unit</strong></dt><dd><p>stop point of the ray</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>geometry_changed: bool</dt><dd><p>False if the start and end points are unchanged with respect to the previous
+ray tracing (in which case the existing solutions are kept), True otherwise.</p>
 </dd>
 </dl>
 </dd>
@@ -2018,12 +2027,22 @@ points in order to not accidentally use results from previous raytracings.</p>
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point">
 <span class="sig-name descname"><span class="pre">set_start_and_end_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.set_start_and_end_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point" title="Link to this definition"></a></dt>
 <dd><p>Set the start and end points of the raytracing</p>
+<p>If the start and end points are identical to those of the previous ray tracing,
+the existing solutions are kept and <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_solutions</span></code></a> will not recalculate them.
+Call <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a> before this function to force a recalculation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>x1: 3dim np.array</strong></dt><dd><p>start point of the ray</p>
 </dd>
 <dt><strong>x2: 3dim np.array</strong></dt><dd><p>stop point of the ray</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>geometry_changed: bool</dt><dd><p>False if the start and end points are unchanged with respect to the previous
+ray tracing (in which case the existing solutions are kept), True otherwise.</p>
 </dd>
 </dl>
 </dd>
@@ -2048,6 +2067,9 @@ points in order to not accidentally use results from previous raytracings.</p>
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions">
 <span class="sig-name descname"><span class="pre">find_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.find_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions" title="Link to this definition"></a></dt>
 <dd><p>find all solutions between x1 and x2</p>
+<p>If solutions for the current start and end points already exist (i.e., the geometry
+did not change since the last ray tracing or the solutions were set with <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_solution</span></code></a>),
+they are kept and not recalculated. Call <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a> first to force a recalculation.</p>
 </dd></dl>
 
 <dl class="py method">
