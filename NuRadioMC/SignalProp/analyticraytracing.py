@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units, geometryUtilities
+from NuRadioReco.utilities import units, geometryUtilities, constants as nu_constants
 from NuRadioMC.utilities import attenuation as attenuation_util, medium
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
@@ -48,8 +48,8 @@ except ImportError:
 """
 Analytic ray tracing solution
 """
-speed_of_light = constants.c * units.m / units.s
-N_AIR = 1.0  # index of refraction of air
+SPEED_OF_LIGHT = nu_constants
+N_AIR = 1.000293  # index of refraction of air
 
 """
 Models in the following list will use the speed-optimized algorithm to calculate the attenuation along the path.
@@ -921,7 +921,7 @@ class ray_tracing_2D(ray_tracing_base):
                 # we need to integrat only until the ray touches the surface
                 z_turn = 0
                 y_turn = self._get_launch_y_at_surface(x1, C_0)
-                T_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5 / speed_of_light
+                T_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5 / SPEED_OF_LIGHT
                 tmp += T_air
                 z_int = z_turn
                 self.__logger.info(f"adding additional propagation path through air of {T_air/units.ns:.1f}ns")
@@ -932,7 +932,7 @@ class ray_tracing_2D(ray_tracing_base):
                 z_int = x2_mirrored[1]
             def dt(t, C_0):
                 z = _get_z_unmirrored(t, C_0, self.medium.n_ice, self.__b, self.medium.z_0, self.medium.delta_n)
-                return self.ds(t, C_0) / speed_of_light * _n(z, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
+                return self.ds(t, C_0) / SPEED_OF_LIGHT * _n(z, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
             travel_time = integrate.quad(dt, x1[1], z_int, args=(C_0), points=points,
                                          epsabs=1e-10, epsrel=1.49e-08, limit=500)
             self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(
@@ -1026,7 +1026,7 @@ class ray_tracing_2D(ray_tracing_base):
 
             ct += self._combine_segment_analytic(x1, x2, C_0, solution_type, get_ct)
 
-        return ct / speed_of_light
+        return ct / SPEED_OF_LIGHT
 
 
     def get_focusing_analytic(self, x1, x2, C_0, reflection=0, reflection_case=1):
@@ -1949,11 +1949,11 @@ class ray_tracing_2D(ray_tracing_base):
         z_0 = self.medium.z_0
 
         if dz > 0:
-            return 1. / speed_of_light * np.sqrt((dx / dz) ** 2 + 1) * (
+            return 1. / SPEED_OF_LIGHT * np.sqrt((dx / dz) ** 2 + 1) * (
             n_ice * dz - delta_n * z_0 * (np.exp(x2[1] / z_0) - np.exp(x1[1] / z_0))
             )
         else:
-            return _n(x2[1], self.medium.n_ice, self.medium.delta_n, self.medium.z_0) / speed_of_light * dx
+            return _n(x2[1], self.medium.n_ice, self.medium.delta_n, self.medium.z_0) / SPEED_OF_LIGHT * dx
 
     def get_surface_pulse(self, x1, x2, infirn=False, angle='critical', chdraw=None, label=None):
 
@@ -2042,7 +2042,7 @@ class ray_tracing_2D(ray_tracing_base):
         self.__logger.info(' time, distance travelled to and from surface: {}, {} '.format(tice, sice))
 
         sair = abs(x2[0] - x1[0]) - sice
-        tair = sair * nlayer / speed_of_light
+        tair = sair * nlayer / SPEED_OF_LIGHT
         self.__logger.info(' time, distance travelled at surface: {}, {}'.format(tair, sair))
         ttot = tice + tair
         if sair < 0:
@@ -2619,7 +2619,7 @@ class ray_tracing(ray_tracing_base):
             N_effective = self.get_effective_index_birefringence(direction, nx, ny, nz)
             sky_polarization = self.get_polarization_birefringence(N_effective[0], N_effective[1], direction, nx, ny, nz)
 
-            t_0, t_1 = len_diff * N_effective / (speed_of_light * units.m / units.ns)
+            t_0, t_1 = len_diff * N_effective / (SPEED_OF_LIGHT * units.m / units.ns)
 
             a, b = sky_polarization[0, 1:]
             c, d = sky_polarization[1, 1:]
@@ -2718,7 +2718,7 @@ class ray_tracing(ray_tracing_base):
             N_effective = self.get_effective_index_birefringence(direction, nx, ny, nz)
             sky_polarization = self.get_polarization_birefringence(N_effective[0], N_effective[1], direction, nx, ny, nz)
 
-            t_0, t_1 = len_diff * N_effective / (speed_of_light * units.m / units.ns)
+            t_0, t_1 = len_diff * N_effective / (SPEED_OF_LIGHT * units.m / units.ns)
             n_nominal[i] = refractive_index
 
             Nx[i] = refractive_index_birefringence[0]
