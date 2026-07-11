@@ -154,8 +154,12 @@ def calculate_sim_efield(
         x1 = shower.get_parameter(shp.vertex)
         if distance_cut is not None:
             time_logger.start_time('distance cut')
+            # Aggregate energy of showers which are close to the shower in question
             mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < config['speedup']['distance_cut_sum_length']
             shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
+
+            # Check with the aggregated energy whether the shower could be detected.
+            # (This does not skip showers which are to close to a other shower!)
             if np.linalg.norm(x1 - x2) > distance_cut(shower_energy_sum):
                 time_logger.stop_time('distance cut')
                 continue
@@ -168,14 +172,16 @@ def calculate_sim_efield(
         n_index = medium.get_index_of_refraction(x1)
         cherenkov_angle = np.arccos(1. / n_index)
 
+        if config['speedup']['redo_raytracing']:
+            # force a recalculation even if solutions for the same geometry (e.g., from a previous
+            # shower at the same position) are still stored in the propagator
+            propagator.reset_solutions()
+
         propagator.set_start_and_end_point(x1, x2)
         propagator.use_optional_function('set_shower_axis', shower_direction)
-        if config['speedup']['redo_raytracing']:  # check if raytracing was already performed
-            pass
-            # TODO: initiatlize ray tracer with existing results if available
-
         propagator.find_solutions()
         time_logger.stop_time('ray tracing')
+
         if not propagator.has_solution():
             logger.debug("shower %d and station %d, channel %d from %s to %s does not have any ray tracing solution",
                          shower.get_id(), station_id, channel_id, x1, x2)
@@ -354,12 +360,15 @@ def calculate_sim_efield_for_emitter(
         x1 = emitter.get_parameter(ep.position)
         n_index = medium.get_index_of_refraction(x1)
 
+        if config['speedup']['redo_raytracing']:
+            # force a recalculation even if solutions for the same geometry (e.g., from a previous
+            # emitter at the same position) are still stored in the propagator
+            propagator.reset_solutions()
+
         propagator.set_start_and_end_point(x1, x2)
-        if config['speedup']['redo_raytracing']:  # check if raytracing was already performed
-            pass
-            # TODO: initiatlize ray tracer with existing results if available
         propagator.find_solutions()
         time_logger.stop_time('ray tracing')
+
         if not propagator.has_solution():
             logger.debug(f"emitter {emitter.get_id()} and station {station_id}, "
                         f"channel {channel_id} from {x1} to {x2} does not have any ray tracing solution")

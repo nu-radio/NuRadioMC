@@ -81,6 +81,8 @@ class ray_tracing_base:
 
         self._X1 = None
         self._X2 = None
+        self._X1_input = None  # used for caching
+        self._X2_input = None
         self._results = None
 
     def _set_arguments(self, n_frequencies_integration, n_reflections, attenuation_model):
@@ -135,13 +137,18 @@ class ray_tracing_base:
     def reset_solutions(self):
         self._X1 = None
         self._X2 = None
+        self._X1_input = None
+        self._X2_input = None
         self._results = None
 
     def set_start_and_end_point(self, x1, x2):
         """
-        Set the start and end points between which raytracing solutions shall be found
-        It is recommended to also reset the solutions from any previous raytracing to avoid
-        confusing them with the current solution
+        Set the start and end points between which raytracing solutions shall be found.
+
+        If the start and end points are identical to those of the previous ray tracing,
+        the existing solutions are kept and `find_solutions` will not recalculate them
+        (relevant e.g. if several showers are simulated at the same position).
+        Call `reset_solutions` before this function to force a recalculation.
 
         Parameters
         ----------
@@ -149,16 +156,35 @@ class ray_tracing_base:
             start point of the ray
         x2: np.array of shape (3,), default unit
             stop point of the ray
+
+        Returns
+        -------
+        geometry_changed: bool
+            False if the start and end points are unchanged with respect to the previous
+            ray tracing (in which case the existing solutions are kept), True otherwise.
         """
+        x1 = np.array(x1, dtype=float)
+        x2 = np.array(x2, dtype=float)
+        if (self._results is not None and self._X1_input is not None
+                and np.array_equal(x1, self._X1_input) and np.array_equal(x2, self._X2_input)):
+            self.__logger.debug("start and end points are unchanged, keeping existing ray tracing solutions")
+            return False
+
         self.reset_solutions()
-        self._X1 = np.array(x1, dtype =float)
-        self._X2 = np.array(x2, dtype = float)
+        # keep a copy of the unmodified input points to detect geometry changes
+        # (subclasses may modify self._X1/self._X2, e.g., swap them)
+        self._X1_input = x1
+        self._X2_input = x2
+        self._X1 = np.copy(x1)
+        self._X2 = np.copy(x2)
         if (self._n_reflections):
             if (self._X1[2] < self._medium.reflection or self._X2[2] < self._medium.reflection):
                 self.__logger.error("start or stop point is below the reflective bottom layer at {:.1f}m".format(
                     self._medium.reflection / units.m))
                 raise AttributeError("start or stop point is below the reflective bottom layer at {:.1f}m".format(
                     self._medium.reflection / units.m))
+
+        return True
 
     def use_optional_function(self, function_name, *args, **kwargs):
         """
