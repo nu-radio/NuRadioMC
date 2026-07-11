@@ -45,10 +45,7 @@ except ImportError:
     logger.warning("Numba is not available")
     numba_available = False
 
-"""
-Analytic ray tracing solution
-"""
-SPEED_OF_LIGHT = nu_constants
+SPEED_OF_LIGHT = nu_constants.c
 N_AIR = 1.000293  # index of refraction of air
 
 """
