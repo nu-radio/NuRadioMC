@@ -76,6 +76,17 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         """
         return self.__run_number
 
+    def set_run_number(self, run_nr):
+        """
+        Sets the run number.
+
+        Parameters
+        ----------
+        run_nr : int
+            The run number to set.
+        """
+        self.__run_number = run_nr
+
     def get_waveforms(self, station_id=None, channel_id=None):
         """
         Returns the waveforms stored within the event.

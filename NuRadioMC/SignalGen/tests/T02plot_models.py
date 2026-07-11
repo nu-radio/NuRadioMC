@@ -31,7 +31,7 @@ for i in range(len(emstr)):  # loop over EM/EM+LPM/HAD
         time_trace = param.get_time_trace(energy=E, theta=theta, N=n_samples, dt=dt, 
             shower_type=emstr[i], n_index=n_index, R=R, model=model)
         spectrum = fft.time2freq(time_trace, 1/dt)
-        ax.plot(ff / units.MHz, np.abs(spectrum) / units.V * units.m, php.get_color_linestyle(iOmega), label='$\Delta \Omega$ = {:.1f}deg'.format(domega / units.deg))
+        ax.plot(ff / units.MHz, np.abs(spectrum) / units.V * units.m, php.get_color_linestyle(iOmega), label=r'$\Delta \Omega$ = {:.1f}deg'.format(domega / units.deg))
     ax.semilogx(True)
     ax.semilogy(True)
     ax.set_xlim(10, 2e3)
@@ -70,7 +70,7 @@ for i in range(len(emstr)):  # loop over EM/EM+LPM/HAD
         ax.set_xlabel("frequency [MHz]")
         ax.set_ylabel("amplitude [V/m] * R [m] per {:.1f}MHz".format(df / units.MHz))
         ax.legend(fontsize='small')
-        ax.set_title("{} E = {:.1e}eV, $\Delta \Omega$ = {:.1f}deg, {}".format(model, E / units.eV, domega / units.deg, emstr[i]))
+        ax.set_title(r"{} E = {:.1e}eV, $\Delta \Omega$ = {:.1f}deg, {}".format(model, E / units.eV, domega / units.deg, emstr[i]))
         fig.tight_layout()
         fig.savefig("plots/{}_E{:.1e}eV_dOmega{:.1f}_EM{}_LPM{}.png".format(model, E / units.eV, domega / units.deg, em[i], lpm[i]))
         plt.show()

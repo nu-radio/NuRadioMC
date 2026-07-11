@@ -26,6 +26,9 @@ bugfixes:
 deprecations:
 - Remove default values for `use_channels` and `bandpass` in voltageToAnalyticEfieldConverter.py and voltageToEfieldConverter.py which were suitable for ARIANNA.
   Now, the arguments are required and an error is raised when they are not set.
+- Replaced the readCoREASShower module with the readCoREAS module. readCoREAS returns a single station (id 0) holding all
+  CoREAS observers as electric fields; use an event_builder helper (see the examples) to organize the observers into
+  per-observer stations. The examples read_full_CoREAS_shower.py and RIT_sim_air_shower_reconstruction.py were updated accordingly.
 
 version 3.1.1
 new features:

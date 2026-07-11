@@ -2207,6 +2207,11 @@ class ray_tracing(ray_tracing_base):
         self._R = None
         self._x1 = None
         self._x2 = None
+        # caches for the attenuation and focusing factors. They are only valid for the current
+        # geometry and are invalidated whenever the solutions are reset. This avoids recalculating
+        # these (expensive) quantities if several showers/emitters are simulated at the same position
+        self._cache_attenuation = {}
+        self._cache_focusing = {}
 
 
     def reset_solutions(self):
@@ -2221,10 +2226,16 @@ class ray_tracing(ray_tracing_base):
         self._swap = None
         self._dPhi = None
         self._R = None
+        self._cache_attenuation = {}
+        self._cache_focusing = {}
 
     def set_start_and_end_point(self, x1, x2):
         """
         Set the start and end points of the raytracing
+
+        If the start and end points are identical to those of the previous ray tracing,
+        the existing solutions are kept and `find_solutions` will not recalculate them.
+        Call `reset_solutions` before this function to force a recalculation.
 
         Parameters
         ----------
@@ -2232,10 +2243,15 @@ class ray_tracing(ray_tracing_base):
             Start point of the ray
         x2: 3dim np.array
             Stop point of the ray
+
+        Returns
+        -------
+        geometry_changed: bool
+            False if the start and end points are unchanged with respect to the previous
+            ray tracing (in which case the existing solutions are kept), True otherwise.
         """
-
-
-        super().set_start_and_end_point(x1, x2)
+        if not super().set_start_and_end_point(x1, x2):
+            return False
 
         self._swap = False
         if(self._X2[2] < self._X1[2]):
@@ -2256,6 +2272,8 @@ class ray_tracing(ray_tracing_base):
         self._x1 = np.array([X1r[0], X1r[2]])
         self._x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points %s %s", self._x1, self._x2)
+
+        return True
 
     def set_solution(self, raytracing_results):
         """
@@ -2286,7 +2304,15 @@ class ray_tracing(ray_tracing_base):
     def find_solutions(self):
         """
         Find all solutions between x1 and x2
+
+        If solutions for the current start and end points already exist (i.e., the geometry
+        did not change since the last ray tracing or the solutions were set with `set_solution`),
+        they are kept and not recalculated. Call `reset_solutions` first to force a recalculation.
         """
+        if self._results is not None:
+            self.__logger.debug("solutions for the current geometry already exist, skipping ray tracing")
+            return
+
         self._results = self._r2d.find_solutions(self._x1, self._x2)
         for i in range(self._n_reflections):
             for j in range(2):
@@ -3007,9 +3033,18 @@ class ray_tracing(ray_tracing_base):
             raise IndexError
 
         result = self._results[iS]
-        return self._r2d.get_attenuation_along_path(self._x1, self._x2, result['C0'], frequency, max_detector_freq,
-                                                     reflection=result['reflection'],
-                                                     reflection_case=result['reflection_case'])
+        # the C0 parameter (together with the reflection specifiers) uniquely identifies the ray path
+        # for the current geometry, hence the attenuation only needs to be calculated once per path
+        # and frequency grid
+        cache_key = (self._x1.tobytes(), self._x2.tobytes(), result['C0'], result['reflection'], result['reflection_case'],
+                     np.asarray(frequency).tobytes(), max_detector_freq)
+        if cache_key not in self._cache_attenuation:
+            self._cache_attenuation[cache_key] = self._r2d.get_attenuation_along_path(
+                self._x1, self._x2, result['C0'], frequency, max_detector_freq,
+                reflection=result['reflection'],
+                reflection_case=result['reflection_case'])
+
+        return np.copy(self._cache_attenuation[cache_key])
 
     def get_focusing(self, iS, dz=-1. * units.cm, limit=2., analytic=False):
         """
@@ -3055,6 +3090,13 @@ class ray_tracing(ray_tracing_base):
         for air-to-ice trajectories.
 
         """
+        # the C0 parameter uniquely identifies the ray path for the current geometry. The focusing
+        # factor is requested several times per solution (e.g. by `get_raytracing_output` and
+        # `apply_propagation_effects`), hence, caching it avoids expensive recalculations
+        # (the numerical calculation requires an additional ray tracing)
+        cache_key = (self._x1.tobytes(), self._x2.tobytes(), iS, self._results[iS]['C0'], dz, limit, analytic)
+        if cache_key in self._cache_focusing:
+            return self._cache_focusing[cache_key]
 
         recVec = -1.0 * self.get_receive_vector(iS)
         recAng = np.arccos(recVec[2] / np.sqrt(recVec[0] ** 2 + recVec[1] ** 2 + recVec[2] ** 2))
@@ -3139,6 +3181,7 @@ class ray_tracing(ray_tracing_base):
             n_at_surface = self._medium.get_index_of_refraction([0, 0, -0.01*units.m])
             f *= np.sqrt(n_at_surface/n1 * np.abs(np.cos(np.arcsin(np.sin(lauAng) / n_at_surface)) / np.cos(lauAng)))
 
+        self._cache_focusing[cache_key] = f
         return f
 
     def get_ray_path(self, iS):
