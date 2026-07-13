@@ -2,12 +2,11 @@
 from __future__ import absolute_import, division, print_function
 import sys
 import h5py
-import numpy as np
-from numpy import testing
-import argparse
 from NuRadioReco.utilities import units
-
-
+from NuRadioMC.utilities.test_helpers import (
+    assert_equal_keys, assert_equal_station_keys,
+    assert_almost_equal_keys_absolute, assert_almost_equal_station_keys,
+    assert_almost_equal_station_keys_absolute)
 
 
 file1 = sys.argv[1]
@@ -18,7 +17,6 @@ fin1 = h5py.File(file1, 'r')
 fin2 = h5py.File(file2, 'r')
 
 error = 0
-accuracy = 0.0005
 
 # Timing quantities (travel_times, trigger_times) are subject to last-bit differences in the
 # C++ raytracer's GSL numerical integration that vary across GSL versions/platforms (see
@@ -27,108 +25,6 @@ accuracy = 0.0005
 # since this noise floor is an absolute quantity that does not scale with the (arbitrarily large)
 # travel/trigger time, so these are checked against an absolute tolerance instead.
 time_accuracy = 1e-3 * units.ns
-
-
-def test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
-    for key in keys:
-        try:
-            testing.assert_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
-
-        except AssertionError as e:
-            print("\narray {} not almost equal".format(key))
-            print("Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
-            print(e)
-            error += 1
-    return error
-
-
-def test_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
-    for key in keys:
-        try:
-            testing.assert_equal(np.array(fin1[key]), np.array(fin2[key]))
-        except AssertionError as e:
-            print("\narray {} not almost equal".format(key))
-            print("Reference: {}, reconstruction: {}".format(fin2[key], fin1[key]))
-            print(e)
-            error += 1
-    return error
-
-
-def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=accuracy):
-    gids = np.array(fin1["station_101"]['event_group_ids'])
-    for key in keys:
-        arr1 = np.array(fin1['station_101'][key])
-        arr2 = np.array(fin2['station_101'][key])
-        for i in range(arr1.shape[0]):
-            zero_mask = arr2[i] == 0
-            max_diff = np.max(np.abs((arr1[i][~zero_mask] - arr2[i][~zero_mask]) / arr2[i][~zero_mask]))
-#             print('Reconstruction of {} of event {} (relative error: {})'.format(key, i, np.abs((arr1[i] - arr2[i]) / arr2[i])))
-            if max_diff > accuracy:
-#                 print(arr1.shape)
-                print(f'Reconstruction of {key} of event index {i} = group event id {gids[i]} does not agree with reference (relative error: {max_diff})')
-                print("\n attribute {} not almost equal".format(key))
-                print(np.abs((arr1[i] - arr2[i]) / arr2[i]))
-                print(arr1[i])
-                print(arr2[i])
-                error += 1
-            # now test zero entries for equality
-            if not np.all(arr1[i][zero_mask] == arr2[i][zero_mask]):
-                max_diff = np.max(np.abs(arr1[i][zero_mask] - arr2[i][zero_mask]))
-                print('Reconstruction of {} of event {} does not agree with reference (absolute error: {})'.format(key, i, max_diff))
-                print("attribute {} not almost equal".format(key))
-                error += 1
-    return error
-
-
-def test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
-    for key in keys:
-        arr1 = np.array(fin1[key])
-        arr2 = np.array(fin2[key])
-        for i in range(arr1.shape[0]):
-            max_diff = np.max(np.abs((arr1[i] - arr2[i]) / arr2[i]))
-            if max_diff > accuracy:
-                print('Reconstruction of {} of event {} does not agree with reference (error: {})'.format(key, i, max_diff))
-                print(arr1[i])
-                print(arr2[i])
-                print("attribute {} not almost equal".format(key))
-                error += 1
-    return error
-
-
-def test_almost_equal_station_keys_absolute(keys, fin1=fin1, fin2=fin2, error=error, atol=time_accuracy):
-    # like test_almost_equal_station_keys, but checks an absolute tolerance instead of a relative
-    # one; use for quantities (e.g. timing) where an absolute tolerance is physically appropriate
-    gids = np.array(fin1["station_101"]['event_group_ids'])
-    for key in keys:
-        arr1 = np.array(fin1['station_101'][key])
-        arr2 = np.array(fin2['station_101'][key])
-        for i in range(arr1.shape[0]):
-            max_diff = np.max(np.abs(arr1[i] - arr2[i]))
-            if max_diff > atol:
-                print(f'Reconstruction of {key} of event index {i} = group event id {gids[i]} does not agree with reference (absolute error: {max_diff})')
-                print("\n attribute {} not almost equal".format(key))
-                print(np.abs(arr1[i] - arr2[i]))
-                print(arr1[i])
-                print(arr2[i])
-                error += 1
-    return error
-
-
-def test_almost_equal_keys_absolute(keys, fin1=fin1, fin2=fin2, error=error, atol=time_accuracy):
-    # like test_almost_equal_keys, but checks an absolute tolerance instead of a relative one;
-    # use for quantities (e.g. timing) where an absolute tolerance is physically appropriate
-    for key in keys:
-        arr1 = np.array(fin1[key])
-        arr2 = np.array(fin2[key])
-        for i in range(arr1.shape[0]):
-            max_diff = np.max(np.abs(arr1[i] - arr2[i]))
-            if max_diff > atol:
-                print('Reconstruction of {} of event {} does not agree with reference (absolute error: {})'.format(key, i, max_diff))
-                print(arr1[i])
-                print(arr2[i])
-                print("attribute {} not almost equal".format(key))
-                error += 1
-    return error
 
 # Test those station keys that should be perfectly equal
 
@@ -149,19 +45,19 @@ keys = [u'emitter_amplitudes',
  u'zz',
  u'shower_ids']
 
-error = test_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
+error = assert_equal_keys(fin1, fin2, keys, error=error)
 
 # Test those keys that should be perfectly equal
 
 keys = [
 u'ray_tracing_solution_type'
 ]
-error = test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
+error = assert_equal_station_keys(fin1, fin2, keys, error=error)
 
 keys = [
  u'trigger_times']
 
-error = test_almost_equal_keys_absolute(keys, fin1=fin1, fin2=fin2, error=error)
+error = assert_almost_equal_keys_absolute(fin1, fin2, keys, atol=time_accuracy, error=error)
 
 keys = [
  u'max_amp_shower_and_ray',
@@ -173,29 +69,26 @@ keys = [
  u'max_amp_shower_and_ray',
  u'ray_tracing_C1']
 
-
-
-error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
+error = assert_almost_equal_station_keys(fin1, fin2, keys, error=error)
 
 keys = [
  u'travel_times',
  u'trigger_times']
 
-error = test_almost_equal_station_keys_absolute(keys, fin1=fin1, fin2=fin2, error=error)
+error = assert_almost_equal_station_keys_absolute(fin1, fin2, keys, atol=time_accuracy, error=error)
 
 # for some reason the test suddenly can't achieve a good enough precision on this quantity. Lets reduce precision
 # for this vairble for now.
 keys = [u'maximum_amplitudes_envelope']
-error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=0.001)
+error = assert_almost_equal_station_keys(fin1, fin2, keys, accuracy=0.001, error=error)
 
 # test maximimum amplitude separately because it might differ slightly because of differences in the interferene between signals
 keys = [u'maximum_amplitudes',
  u'time_shower_and_ray']
-error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=0.01)
+error = assert_almost_equal_station_keys(fin1, fin2, keys, accuracy=0.01, error=error)
 
 if error == 0:
     print("The two files {} and {} are (almost) identical.".format(file1, file2))
 else:
     print("The two files {} and {} are not (almost) identical. Found {} errors.".format(file1, file2, error))
     sys.exit(error)
-
