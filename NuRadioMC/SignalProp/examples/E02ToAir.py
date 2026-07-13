@@ -125,24 +125,24 @@ ray_tracing_C0_reference = np.array([
 ])
 focusing_factors_reference = np.array([
     [np.nan, np.nan],
-    [0.6745008127981844, np.nan],
-    [0.11276768090229355, np.nan],
-    [0.00904245808763914, np.nan],
-    [0.8156608271155307, np.nan],
+    [0.6745227377161311, np.nan],
+    [0.11277309434909118, np.nan],
+    [0.00904289875471403, np.nan],
+    [0.8156210793664358, np.nan],
 ])
 transmission_t_p_reference = np.array([
     [np.nan, np.nan],
-    [1.3158607675442617, np.nan],
-    [2.2121657628702147, np.nan],
-    [2.688037008129911, np.nan],
-    [0.7700603399040962, np.nan],
+    [1.3157903900606893, np.nan],
+    [2.210688211073233, np.nan],
+    [2.654051751148146, np.nan],
+    [0.02942659577064398, np.nan],
 ])
 transmission_t_s_reference = np.array([
     [np.nan, np.nan],
-    [1.2681682723971317, np.nan],
-    [1.7820897369092514, np.nan],
-    [1.991883270830427, np.nan],
-    [0.7453550705622974, np.nan],
+    [1.2681188663353486, np.nan],
+    [1.7814111089911056, np.nan],
+    [1.9780683188262487, np.nan],
+    [0.02193168117375125, np.nan],
 ])
 
 print("validating C0, focusing factor and transmission coefficients against reference values")
