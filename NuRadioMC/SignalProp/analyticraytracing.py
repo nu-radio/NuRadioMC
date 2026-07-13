@@ -579,10 +579,11 @@ def _get_z_unmirrored(z, C_0, n_ice, b, z_0, delta_n):
     Calculates the unmirrored z position
     """
     c = n_ice ** 2 - C_0 ** -2
-    gamma_turn, z_turn = _get_turning_point(c, b, z_0, delta_n)
+    _, z_turn = _get_turning_point(c, b, z_0, delta_n)
     z_unmirrored = z
-    if(z > z_turn):
+    if z > z_turn:
         z_unmirrored = 2 * z_turn - z
+
     return z_unmirrored
 
 def _get_y_diff(z_raw, C_0, n_ice, b, z_0, delta_n, in_air=False):
@@ -595,15 +596,16 @@ def _get_y_diff(z_raw, C_0, n_ice, b, z_0, delta_n, in_air=False):
     ----------
     .. [1] https://arxiv.org/abs/1906.01670
     """
-    correct_for_air = False
-    # if we are above the ice surface, the analytic expression below
+    # If we are above the ice surface, the analytic expression below
     # does not apply. Therefore, we instead calculate dy/dz at z=0 where it is still valid
     # and then correct this using Snell's law
-    if (not in_air) or (z_raw < 0):
+    correct_for_air = False
+    if not in_air or z_raw < 0:
         z = _get_z_unmirrored(z_raw, C_0, n_ice, b, z_0, delta_n)
     else: # we are above the ice surface, where the below expression does not apply
         z = 0
         correct_for_air = True
+
     # There are two expressions for dy/dz in the NuRadioMC paper: C.12 and C.38
     # For some reason, C.38 was used initially, and is still included below in
     # case someone wants to verify they're equivalent. C.12 is much simpler and therefore used currently.
@@ -617,7 +619,6 @@ def _get_y_diff(z_raw, C_0, n_ice, b, z_0, delta_n, in_air=False):
     # E = (E1 + E2 + c)
     # res = (-np.sqrt(c) * np.exp(z / z_0) * b * delta_n + 0.2e1 * np.sqrt(-b * delta_n * np.exp(z /
     #          z_0) + delta_n ** 2 * np.exp(0.2e1 * z / z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
-
     n_z = _n(z, n_ice, delta_n, z_0)
 
     if C_0**2 * n_z**2 > 1:
@@ -2201,6 +2202,19 @@ class ray_tracing(ray_tracing_base):
         # As long as we use horizontal-translational invariant raytracing/ice models (2d)
         # this should be fine. _n(0) is also used in _get_delta_y for air-ice raytracing
         self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
+
+        # Some consitency checks...
+
+        # Check that `self.n_at_surface` is reasonably large to avoid a bug where the index of air
+        # is returned
+        if self.n_at_surface < 1.1:
+            raise ValueError(f"Calculated index of refraction for ice at the ice-air boundary is {self.n_at_surface} which is to small.")
+
+        if self._medium.z_air_boundary != 0:
+            raise ValueError(f"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!")
+
+        if self._medium.z_shift != 0:
+            raise ValueError(f"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!")
 
         self._swap = None
         self._dPhi = None
