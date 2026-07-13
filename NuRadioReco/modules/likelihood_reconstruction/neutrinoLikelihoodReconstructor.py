@@ -449,7 +449,7 @@ class neutrinoLikelihoodReconstructor:
         Reconstruct the signal from the given data and the provided signal model using the initial guess of the signal parameters.
         """
 
-        normalization = np.array([units.EeV, units.rad, units.rad, units.km, units.deg, units.deg, units.ns])
+        normalization = np.array([units.PeV, units.deg, units.deg, units.m, units.deg, units.deg, units.ns])
 
         if bounds is None:
             bounds = np.array([(1 * units.PeV, 100 * units.EeV),
