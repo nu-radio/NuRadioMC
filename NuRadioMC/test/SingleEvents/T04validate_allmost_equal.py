@@ -21,6 +21,15 @@ error = 0
 
 accuracy = 0.0005
 
+# Timing quantities (travel_times, trigger_times, trigger_times_per_event) are subject to
+# last-bit differences in the C++ raytracer's GSL numerical integration that vary across GSL
+# versions/platforms (see get_travel_time() in
+# NuRadioMC/SignalProp/CPPAnalyticRayTracing/analytic_raytracing.cpp), independent of any actual
+# code change. A relative tolerance is physically inappropriate here since this noise floor is an
+# absolute quantity that does not scale with the (arbitrarily large) travel/trigger time, so these
+# are checked against an absolute tolerance instead.
+time_accuracy = 1e-3 * units.ns
+
 
 def test_equal_attributes(keys, fin1=fin1, fin2=fin2, error=error):
     for key in keys:
@@ -114,6 +123,40 @@ def test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
                 error += 1
     return error
 
+
+def test_almost_equal_keys_absolute(keys, fin1=fin1, fin2=fin2, error=error, atol=time_accuracy):
+    # like test_almost_equal_keys, but checks an absolute tolerance instead of a relative one;
+    # use for quantities (e.g. timing) where an absolute tolerance is physically appropriate
+    for key in keys:
+        arr1 = np.array(fin1[key])
+        arr2 = np.array(fin2[key])
+        for i in range(arr1.shape[0]):
+            max_diff = np.max(np.abs(arr1[i] - arr2[i]))
+            if max_diff > atol:
+                print('Reconstruction of {} of event {} does not agree with reference (absolute error: {})'.format(key, i, max_diff))
+                print("\n attribute {} not almost equal".format(key))
+                error += 1
+    return error
+
+
+def test_almost_equal_station_keys_absolute(keys, fin1=fin1, fin2=fin2, error=error, atol=time_accuracy):
+    # like test_almost_equal_station_keys, but checks an absolute tolerance instead of a relative
+    # one; use for quantities (e.g. timing) where an absolute tolerance is physically appropriate
+    gids = np.array(fin1['event_group_ids'])
+    for key in keys:
+        arr1 = np.array(fin1['station_101'][key])
+        arr2 = np.array(fin2['station_101'][key])
+        for i in range(arr1.shape[0]):
+            max_diff = np.max(np.abs(arr1[i] - arr2[i]))
+            if max_diff > atol:
+                print(f'Reconstruction of {key} of event index {i} = group event id {gids[i]} does not agree with reference (absolute error: {max_diff})')
+                print("\n attribute {} not almost equal".format(key))
+                print(np.abs(arr1[i] - arr2[i]))
+                print(arr1[i])
+                print(arr2[i])
+                error += 1
+    return error
+
 # Test those attributes that should be perfectly equal
 
 
@@ -177,25 +220,34 @@ u'ray_tracing_solution_type'
 error = test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
 keys = [
- u'trigger_times',
  u'weights']
 
 error = test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
+
+keys = [
+ u'trigger_times']
+
+error = test_almost_equal_keys_absolute(keys, fin1=fin1, fin2=fin2, error=error)
 
 keys = [
  u'ray_tracing_C0',
  u'ray_tracing_C1',
  u'launch_vectors',
  u'receive_vectors',
- u'travel_times',
- u'trigger_times_per_event',
- u'trigger_times',
  u'travel_distances',
  u'polarization',
  u'max_amp_shower_and_ray',
  ]
 
 error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
+
+keys = [
+ u'travel_times',
+ u'trigger_times_per_event',
+ u'trigger_times',
+ ]
+
+error = test_almost_equal_station_keys_absolute(keys, fin1=fin1, fin2=fin2, error=error)
 
 # for some reason the test suddenly can't achieve a good enough precision on this quantity. Lets reduce precision
 # for this vairble for now.
