@@ -1641,13 +1641,30 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
         """
         if phase_type == 'frontlobe_lpda':
-            a = 100 * (freq - 400 * units.MHz) ** 2 - 20
-            a[np.where(freq > 400 * units.MHz)] -= 0.00007 * (
-                freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
+            # a = 100 * (freq - 400 * units.MHz) ** 2 - 20
+            # a[np.where(freq > 400 * units.MHz)] -= 0.00007 * (
+            #     freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
+
+            # Fifth order polynomial fit to the complex phase of createLPDA_100MHz_v2_InfFirn_n1.4
+            # antenna response theta component for theta = 30 deg and phi = 45 deg:
+            a = -2.074e+02 * freq**5 + 6.815e+02 * freq**4 - 8.960e+02 * freq**3 + 6.100e+02 * freq**2 - 2.062e+02 * freq + 6.826e+00
+
         elif phase_type == 'side_lpda':
-            a = 40 * (freq - 950 * units.MHz) ** 2 - 40
+            #a = 40 * (freq - 950 * units.MHz) ** 2 - 40
+            #a = -8.950e+01 * freq**3 + 1.916e+02 * freq**2 - 1.305e+02 * freq + 2.051e+00
+            #a = -8.426e+01 * freq**3 + 1.836e+02 * freq**2 - 1.483e+02 * freq + 4.211e+00
+
+            # Fifth order polynomial fit to the complex phase of createLPDA_100MHz_v2_InfFirn_n1.4
+            # antenna response theta component for theta = 67.5 deg and phi = 22.5 deg:
+            a = 8.528e+01 * freq**5 + 3.902e+01 * freq**4 - 4.270e+02 * freq**3 + 4.651e+02 * freq**2 - 2.060e+02 * freq + 7.184e+00
+
         elif phase_type == 'back_lpda':
-            a = 50 * (freq - 950 * units.MHz) ** 2 - 50
+            #a = 50 * (freq - 950 * units.MHz) ** 2 - 50
+
+            # Fifth order polynomial fit to the complex phase of createLPDA_100MHz_v2_InfFirn_n1.4
+            # antenna response theta component for theta = 115 deg and phi = 22.5 deg:
+            a = -1.203e+03 * freq**5 + 3.125e+03 * freq**4 - 2.953e+03 * freq**3 + 1.267e+03 * freq**2 - 3.119e+02 * freq + 8.328e+00
+
         elif phase_type == "theoretical":
             # ratio of two elements
             tau = 0.75
