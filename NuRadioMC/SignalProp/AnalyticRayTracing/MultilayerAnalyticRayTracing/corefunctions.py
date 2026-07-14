@@ -2,7 +2,7 @@
 import numpy as np
 from scipy import optimize
 from operator import itemgetter
-from numba import njit
+#from numba import njit
 #from numba.typed import List
 from functools import lru_cache
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
