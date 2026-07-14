@@ -2,12 +2,12 @@
 import numpy as np
 from scipy import optimize
 from operator import itemgetter
-#from numba import njit
+from numba import njit
 #from numba.typed import List
 from functools import lru_cache
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 from NuRadioMC.utilities import attenuation
-
+from NuRadioMC.SignalProp.AnalyticRayTracing.maybenumba import njit
 from NuRadioReco.utilities import units, geometryUtilities, constants
 #from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
@@ -17,155 +17,7 @@ from math import sqrt, log, sin
 
 NumbaList = list # fallback for get_path_segments function
 
-# ------------------------------
-# Layer definitions
-# ------------------------------
-LAYERS_SINGLE = [{
-    "n_ice": 1.78,
-    "delta_n": 0.51,
-    "z_0": 37.25,
-    "z_min": -3000.0,
-    "z_max": 0.0,
-    "region": "single",
-    "region_name": "SingleModel"
-}]
-
-LAYERS_FIRN = [
-    {
-        "z_min": -14.9,
-        "z_max": 0.0,
-        "n_ice": 1.78,
-        "delta_n": 0.502,
-        "z_0": 30.8,
-        "region": "firn",
-        "region_name": "Firn"
-    },
-    {
-        "z_min": -3000.0,
-        "z_max": -14.9,
-        "n_ice": 1.78,
-        "delta_n": 0.446,   # converted from shifted exponential from the definition in greenland_firn by multiplying delta_n with exp(-z_shift/z_0) to adapt to our case. 
-                            # However, it might be worth to look into easier model defintions to simplify the boundary C0 in the minmizing process
-        "z_0": 40.9,
-        "region": "ice",
-        "region_name": "Ice"
-    }]
-
-LAYERS = [
-    {
-        "z_min": -14.9,
-        "z_max": 0.0,
-        "n_ice": 1.51188,
-        "delta_n": 0.271579,
-        "z_0": 1/0.114553,
-        "region": "snow",
-        "region_name": "Snow"
-    },
-    {
-        "z_min": -80.5,
-        "z_max": -14.9,
-        "n_ice": 1.89957,
-        "delta_n": 0.529715,
-        "z_0": 1/0.0129175,
-        "region": "firn",
-        "region_name": "Firn"
-    },
-    {
-        "z_min": -3000.0,
-        "z_max": -80.5,
-        "n_ice": 1.77468,
-        "delta_n": 1.41573,
-        "z_0": 1/0.0387882,
-        "region": "bubbly_ice",
-        "region_name": "Ice"
-    }]
-
-LAYERS_AIR = [
-
-        {
-        "z_min": 0.0,
-        "z_max": np.inf,
-        "n_ice": 1.00027,
-        "delta_n": 2.7e-4,
-        "z_0": -8000.0,
-        "region": "air",
-        "region_name": "Air"
-    },
-    {
-        "z_min": -14.9,
-        "z_max": 0.0,
-        "n_ice": 1.51188,
-        "delta_n": 0.271579,
-        "z_0": 1/0.114553,
-        "region": "snow",
-        "region_name": "Snow"
-    },
-    {
-        "z_min": -80.5,
-        "z_max": -14.9,
-        "n_ice": 1.89957,
-        "delta_n": 0.529715,
-        "z_0": 1/0.0129175,
-        "region": "firn",
-        "region_name": "Firn"
-    },
-    {
-        "z_min": -3000.0,
-        "z_max": -80.5,
-        "n_ice": 1.77468,
-        "delta_n": 1.41573,
-        "z_0": 1/0.0387882,
-        "region": "bubbly_ice",
-        "region_name": "Ice"
-    }]
-
-LAYERS_TEST = [
-    {
-        "z_min": 0.0,
-        "z_max": np.inf,
-        "n_ice": 1.0,
-        "delta_n": 0.000001,
-        "z_0": -500.0,
-        "region": "air",
-        "region_name": "Air"
-    },
-    {
-        "z_min": -14.9,
-        "z_max": 0.0,
-        "n_ice": 1.51188,
-        "delta_n": 0.271579,
-        "z_0": 1/0.114553,
-        "region": "snow",
-        "region_name": "Snow"
-    },
-    {
-        "z_min": -80.5,
-        "z_max": -14.9,
-        "n_ice": 1.89957,
-        "delta_n": 0.529715,
-        "z_0": 1/0.0129175,
-        "region": "firn",
-        "region_name": "Firn"
-    },
-    {
-        "z_min": -300.0,
-        "z_max": -80.5,
-        "n_ice": 1.77468,
-        "delta_n": 1.41573,
-        "z_0": 1/0.0387882,
-        "region": "upper_ice",
-        "region_name": "Upper Ice"
-    },
-    {
-        "z_min": -3000.0,
-        "z_max": -300.0,
-        "n_ice": 1.9468,
-        "delta_n": 1.41573,
-        "z_0": 1/0.0387882,
-        "region": "lower_ice",
-        "region_name": "Lower Ice"
-    }]
-
+#@njit(cache=True)
 def layers_to_arrays(layers):
     """
     Convert layer definitions from dictionaries to NumPy arrays.
@@ -215,7 +67,7 @@ def layers_to_arrays(layers):
 
     return z_min, z_max, n_ice, delta_n, z0
 
-
+@njit(cache=True)
 def init_layer_arrays(z_min, z_max, n_ice, delta_n, z0):
     """
     Validate and return layer arrays.
@@ -255,7 +107,7 @@ def init_layer_arrays(z_min, z_max, n_ice, delta_n, z0):
 
     return z_min, z_max, n_ice, delta_n, z0
 
-#@njit(cache = True)
+@njit(cache = True)
 def get_layer_index(z, z_min, z_max):
     """
     Determine the layer index corresponding to a given depth.
@@ -284,7 +136,7 @@ def get_layer_index(z, z_min, z_max):
     return -1
 
 
-#@njit(cache = True)
+@njit(cache = True)
 def analytic_F(z, C0, n_ice, delta_n, z0):
     """
     Evaluate the analytic ray integral F(z) for an exponential index profile.
@@ -349,7 +201,7 @@ def analytic_F(z, C0, n_ice, delta_n, z0):
 
     return float(np.real(val))
 
-#@njit(cache = True)
+@njit(cache = True)
 def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False):
     """
     Compute horizontal offset constants for all layers.
@@ -425,7 +277,7 @@ def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False
     else:
         return C1, idx_start, np.zeros(n_layers -1), np.zeros(n_layers -1)
 
-#@njit(cache = True)
+@njit(cache = True)
 def build_y_field(C0, z_array, layers, C1):
     """
     Evaluate the horizontal ray trajectory y(z).
@@ -468,7 +320,7 @@ def build_y_field(C0, z_array, layers, C1):
 
     return y, layer_idx
 
-#@njit(cache = True)
+@njit(cache = True)
 def evaluate_y(C0, C1, z, layers):
     """
     Evaluate the horizontal ray coordinate at a given depth.
@@ -511,7 +363,7 @@ def evaluate_y(C0, C1, z, layers):
     return float(F + C1[idx])
 
 
-#@njit(cache=True)
+@njit(cache=True)
 def find_z_turn(C0, layers):
     """
     Determine the depth of the ray turning point.
@@ -569,7 +421,7 @@ def find_z_turn(C0, layers):
     return np.max(z_max)
 
 
-#@njit(cache = True)
+@njit(cache = True)
 def get_turning_point(C0, y_start, z_start, layers, C1=None,
                       downgoing=False, with_air=False):
     """
@@ -629,7 +481,7 @@ def get_turning_point(C0, y_start, z_start, layers, C1=None,
     
     return y_turn, z_turn
 
-#@njit(cache = True)
+@njit(cache = True)
 def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
                 downgoing, with_air):
     """
@@ -713,7 +565,7 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
         y_fit = evaluate_y(C0, C1, z2, layers)
         return y2 - y_fit
     
-#@njit(cache = True)
+@njit(cache = True)
 def get_n_1D(z, layers):
     """
     Evaluate the refractive index at a given depth.
@@ -742,7 +594,7 @@ def get_n_1D(z, layers):
 
     return n_ice[idx] - delta_n[idx] * np.exp(z / z0[idx])
 
-#@njit(cache = True)
+@njit(cache = True)
 def get_C0_from_theta(z_start, theta, layers):
     """
     Convert a launch angle to the corresponding ray parameter.
@@ -773,7 +625,7 @@ def get_C0_from_theta(z_start, theta, layers):
     return 1.0 / p
 
 
-#@njit(cache = True)
+@njit(cache = True)
 def get_skim_angle(y1, z1, zskim, layers):
     """
     Compute the critical launch angle for a ray that skims a given depth.
@@ -824,7 +676,7 @@ DIRECT = solution_types_revert['direct']
 REFLECTED = solution_types_revert['reflected']
 REFRACTED = solution_types_revert['refracted']
 
-#@njit(cache=True)
+@njit(cache=True)
 def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing=False, with_air=False):
     """
     Determine the physical type of a ray tracing solution.

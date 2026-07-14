@@ -164,7 +164,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
                  use_optimized_start_values=False,
                  overwrite_speedup=None,
                  use_cpp=None,
-                 compile_numba=False):
+                 compile_numba=True):
         """
         initialize 2D analytic ray tracing class for multilayer analytic raytracing
 
@@ -216,8 +216,9 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             NumbaList = list # fallback for get_path_segments function
             numba_available = False
             
-
-        if compile_numba:
+        use_ensure_jitted = False
+        
+        if compile_numba and use_ensure_jitted:
 
             def ensure_jitted(func): # Function to check if already jitted or not and use jitted if available
                 if isinstance(func, CPUDispatcher):

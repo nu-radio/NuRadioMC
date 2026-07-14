@@ -8,6 +8,8 @@ from functools import lru_cache
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 from NuRadioMC.utilities import attenuation
 
+from NuRadioMC.SignalProp.AnalyticRayTracing.maybenumba import njit
+
 from NuRadioReco.utilities import units, geometryUtilities, constants
 #from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
@@ -22,7 +24,6 @@ NumbaList = list # fallback for get_path_segments function
 DIRECT = solution_types_revert['direct']
 REFLECTED = solution_types_revert['reflected']
 REFRACTED = solution_types_revert['refracted']
-
 
 def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, get_segments = False):
     """
@@ -132,7 +133,7 @@ def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, ge
             return y_path, z_path
 
 
-#@njit(cache=True)
+@njit(cache=True)
 def get_path_segments(C0, x1, x2, layers):
     """
     Construct piecewise ray path segments in a multilayer medium.
@@ -284,7 +285,7 @@ def get_path_segments(C0, x1, x2, layers):
 
     return segments
 
-#@njit(cache=True)
+@njit(cache=True)
 def get_path_length_analytic(C0, x1, x2, layers):
     """
     Compute total analytic ray path length in a multilayer medium.
@@ -367,7 +368,7 @@ def get_path_length_analytic(C0, x1, x2, layers):
 
     return total_s
 
-#@njit
+@njit(cache=True)
 def get_launch_angle(C0, x1, x2, layers):
     """
     Compute the ray launch angle at the starting point.
@@ -417,7 +418,7 @@ def get_launch_angle(C0, x1, x2, layers):
 
     return angle
 
-#@njit
+@njit(cache=True)
 def get_receiving_angle(C0, x1, x2, layers):
     """
     Compute the ray receiving angle at the endpoint.
@@ -470,6 +471,7 @@ def get_receiving_angle(C0, x1, x2, layers):
         angle = np.arcsin(1/(n*C0))
     return angle
 
+@njit(cache=True)
 def get_launch_vector(C0, x1, x2, layers):
     """
     Compute the launch direction vector of the ray.
@@ -506,6 +508,7 @@ def get_launch_vector(C0, x1, x2, layers):
 
     return np.array((vy, vz))
 
+@njit(cache=True)
 def get_receiving_vector(C0, x1, x2, layers):
     """
     Compute the receiving direction vector of the ray.
@@ -542,6 +545,7 @@ def get_receiving_vector(C0, x1, x2, layers):
 
     return np.array((vy, vz))
 
+@njit(cache=True)
 def get_reflection_angle(C0, x1, x2, layers):
     """
     Compute the surface reflection angle of a ray solution.
@@ -605,7 +609,7 @@ def get_reflection_angle(C0, x1, x2, layers):
 
     return 2.0 * incidence_angle
 
-#@njit(cache=True)
+@njit(cache=True)
 def get_travel_time_analytic(C0, x1, x2, layers):
     """
     Compute total analytic ray path length in a multilayer medium.
@@ -762,7 +766,7 @@ def get_frequencies_for_attenuation(
 
     return f_det
 
-#@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def ds_dz_layer(z, C0, idx, layers):
     """
     Compute differential path length factor ds/dz for a layered refractive index.
@@ -1015,7 +1019,7 @@ def get_attenuation_along_path(
 
     return attenuation_factor
 
-#@njit(cache=True)
+@njit(cache=True)
 def get_focusing_factor(C0, x1, x2, layers):
     """
     Analytic solution to calculate the focusing factor
