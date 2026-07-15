@@ -3190,12 +3190,16 @@ class ray_tracing(ray_tracing_base):
         # as well as a correction for the focusing for a plane wave. We have already included these
         # in the focusing factor f, so we should correct for this:
         if recPos[-1] > 0: # receiver in air
-            correction_term = np.sqrt(n2/self.n_at_surface * np.abs(np.cos(recAng) / np.cos(np.arcsin(np.sin(recAng) / self.n_at_surface))))
+            correction_term = np.sqrt(
+                n2/self.n_at_surface
+                * np.abs(np.cos(recAng) / np.cos(np.arcsin(np.sin(recAng) * n2 / self.n_at_surface))))
             self.__logger.debug('raytracing to air - correct focusing by %.3f', correction_term)
             f *= correction_term
 
         elif vetPos[-1] > 0: # emitter in air
-            correction_term = np.sqrt(self.n_at_surface/n1 * np.abs(np.cos(np.arcsin(np.sin(lauAng) / self.n_at_surface)) / np.cos(lauAng)))
+            correction_term = np.sqrt(
+                self.n_at_surface/n1
+                * np.abs(np.cos(np.arcsin(np.sin(lauAng) * n1 / self.n_at_surface)) / np.cos(lauAng)))
             self.__logger.debug('raytracing from air to ice - correct focusing by %.3f', correction_term)
             f *= correction_term
 
