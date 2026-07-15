@@ -1136,6 +1136,14 @@
 <span class="sd">        ----------</span>
 <span class="sd">        time: `datetime.datetime` or ``astropy.time.Time``</span>
 <span class="sd">            Unix time of measurement.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        updated: bool</span>
+<span class="sd">            True if the detector description was (re-)queried from the database because the</span>
+<span class="sd">            detector time moved into a new period. False if the buffered description was still</span>
+<span class="sd">            valid and no update was necessary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">):</span>
             <span class="n">time</span> <span class="o">=</span> <span class="n">_convert_astro_time_to_datetime</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
@@ -1148,7 +1156,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__db</span><span class="o">.</span><span class="n">set_detector_time</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
 
         <span class="n">update_buffer_for_station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_update_buffer</span><span class="p">()</span>
-        <span class="n">any_update</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">([</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">update_buffer_for_station</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+        <span class="n">any_update</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">([</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">update_buffer_for_station</span><span class="o">.</span><span class="n">values</span><span class="p">()]))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det_imported_from_file</span> <span class="ow">and</span> <span class="n">any_update</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Update detector to </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1171,14 +1179,15 @@
         <span class="c1"># Return when buffer is not empty. This has to come first ...</span>
         <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">]):</span>
-                <span class="k">return</span>
+                <span class="k">return</span> <span class="n">any_update</span>
 
         <span class="c1"># ... and than second</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">):</span>
-            <span class="k">return</span>
+            <span class="k">return</span> <span class="n">any_update</span>
 
         <span class="c1"># When you reach this point something went wrong ...</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Empty detector for </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Empty detector for </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">any_update</span></div>
 
 
 

@@ -1632,6 +1632,14 @@ the basic information of all stations and checks if station is among them.</p>
 </dd>
 </dl>
 </dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>updated: bool</dt><dd><p>True if the detector description was (re-)queried from the database because the
+detector time moved into a new period. False if the buffered description was still
+valid and no update was necessary.</p>
+</dd>
+</dl>
+</dd>
 </dl>
 <p class="rubric">Notes</p>
 <p>A station’s description is updated if a change in the detector description is detected. The check
