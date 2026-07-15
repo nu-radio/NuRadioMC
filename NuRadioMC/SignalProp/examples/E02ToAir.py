@@ -3,15 +3,16 @@ import numpy as np
 import time
 from numpy import testing
 from NuRadioMC.SignalProp import analyticraytracing as ray
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, logging as nu_logging
 from NuRadioMC.utilities import medium
 import NuRadioReco.framework.electric_field
-import logging
 from radiotools import helper as hp
 from radiotools import plthelpers as php
+
+import logging
 logger = logging.getLogger('NuRadioMC.SignalProp.raytracing')
 logger.setLevel(logging.INFO)
-# ray.cpp_available=False
+nu_logging.set_general_log_level(logging.INFO)
 
 """
 this example calculates ice-to-air and air-to-ice raytracing solutions for a
@@ -47,7 +48,7 @@ ice = medium.southpole_simple()
 if 0:  # for debug purpuses, plot the objective function
     fig2, ax2 = plt.subplots(1, 1)
     for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
-        r2d = ray.ray_tracing_2D(ice, log_level=logging.WARNING)
+        r2d = ray.ray_tracing_2D(ice)
         logC0s = np.linspace(-0.9, 10, 10)
         oo = [r2d.obj_delta_y(t, x_start[np.array([0,2])], x_stop[np.array([0,2])]) for t in logC0s]
         ax2.plot(logC0s, oo, "-o")
@@ -57,7 +58,7 @@ fig, ax = plt.subplots(1, 1)
 for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
     ax.plot(x_start[0], x_start[2], 'ko')
     print(f'finding solutions for {x_start} to {x_stop}')
-    r = ray.ray_tracing(ice, log_level=logging.WARNING, use_cpp=False)
+    r = ray.ray_tracing(ice, use_cpp=False)
     r.set_start_and_end_point(x_start, x_stop)
     r.find_solutions()
     if(r.has_solution()):
