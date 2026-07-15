@@ -4,6 +4,8 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Added automatic test coverage measurement to CI. Coverage is combined across all test jobs and reported as a PR
+  comment and a README badge; see the "Test coverage" section of the contributing guide for details.
 - Store shower Xmax in simulated shower when simulating with ARZ Askaryan emission models.
 - Added the option to use custom (user-specified) amplifiers. Custom amplifiers can be provided as .csv files
   under NuRadioReco/detector/amps/custom.

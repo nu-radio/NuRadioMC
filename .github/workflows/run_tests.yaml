@@ -118,6 +118,10 @@ jobs:
         pip uninstall numba -y # easiest way to test ARZ without numba
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
 
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data
+
   signal-processing:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
@@ -160,6 +164,10 @@ jobs:
       run: |
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
 
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data
+
   effective-volume:
     name: Validation of effective volume and area simulation (fixed seeds)
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
@@ -197,6 +205,10 @@ jobs:
       if: always()
       run: |
         NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
+
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data
 
   rno-g-tests:
     name: RNO-G example scripts and code
@@ -236,6 +248,10 @@ jobs:
       if: always()
       run: |
         NuRadioMC/test/examples/test_rnog_trigger_simulation.sh
+
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data
 
   other-tests:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
@@ -297,6 +313,10 @@ jobs:
         python NuRadioReco/test/likelihood_reconstruction/test_efield_reconstruction.py
         python NuRadioReco/test/likelihood_reconstruction/test_neutrino_reconstruction.py
 
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data
+
   examples:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
@@ -349,3 +369,7 @@ jobs:
       run: |
         python NuRadioMC/simulation/examples/A01calculate_sim_efield.py
         python NuRadioMC/simulation/examples/A02calculate_channel.py
+
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data

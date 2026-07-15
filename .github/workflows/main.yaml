@@ -17,6 +17,31 @@ jobs:
       python_version: "3.10"
       os: ubuntu-latest
 
+  coverage:
+    name: Combine coverage and report
+    needs: unit-tests
+    # Same condition as unit-tests: fork PRs get no coverage comment (no write access to post one anyway).
+    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name) }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download coverage data from all test jobs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-data-*
+          merge-multiple: true
+
+      - name: Combine coverage and post/update report
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          MERGE_COVERAGE_FILES: true
+
   docs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name }}
     uses: ./.github/workflows/deploy_documentation.yaml
