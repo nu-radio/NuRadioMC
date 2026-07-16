@@ -37,24 +37,14 @@ jobs:
     name: Setup environment and Linting
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
 
-    outputs:
-      env-cache-key: ${{ steps.cache-keys.outputs.env-key }}
-      data-cache-key: ${{ steps.cache-keys.outputs.data-key }}
-
     steps:
     - uses: actions/checkout@v6
-
-    - name: Generate cache keys
-      id: cache-keys
-      run: |
-        echo "env-key=${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3" >> $GITHUB_OUTPUT
-        echo "data-key=ci-data" >> $GITHUB_OUTPUT
 
     - name: Set up Python and install dependencies
       uses: ./.github/actions/setup-python-env
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ steps.cache-keys.outputs.env-key }}
+        cache-key: ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3
         restore-only: false
 
     - name: Lint with flake8 (important)
@@ -75,22 +65,11 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v6
-
-    - name: Setup GSL
-      timeout-minutes: 5
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
-
-    - name: Cache CI Data
-      uses: ./.github/actions/cache-ci-data
-      with:
-        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
 
     - name: "Validate separate trigger channels"
       if: always()
@@ -127,22 +106,11 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v6
-
-    - name: Setup GSL
-      timeout-minutes: 5
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
-
-    - name: Cache CI Data
-      uses: ./.github/actions/cache-ci-data
-      with:
-        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
 
     - name: Signal generation test
       if: always()
@@ -174,22 +142,11 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v6
-
-    - name: Setup GSL
-      timeout-minutes: 5
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
-    
-    - name: Cache CI Data
-      uses: ./.github/actions/cache-ci-data
-      with:
-        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
 
     - name: "Veff test"
       if: always()
@@ -216,22 +173,11 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v6
-
-    - name: Setup GSL
-      timeout-minutes: 5
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
-
-    - name: Cache CI Data
-      uses: ./.github/actions/cache-ci-data
-      with:
-        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
 
     - name: "RNO-G Detector"
       if: always()
@@ -258,23 +204,11 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v6
-
-    - name: Setup GSL
-      timeout-minutes: 5
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
-  
-    - name: Cache CI Data
-      uses: ./.github/actions/cache-ci-data
-      with:
-        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
-
 
     - name: "channelGalacticNoiseAdder"
       if: always()
@@ -322,22 +256,11 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v6
-
-    - name: Setup GSL
-      timeout-minutes: 5
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
-
-    - name: Cache CI Data
-      uses: ./.github/actions/cache-ci-data
-      with:
-        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
 
     - name: "Test Veff example"
       if: always()

@@ -1,0 +1,26 @@
+name: 'Setup Test Job'
+description: 'Checkout repo, install GSL, set up Python environment, and restore CI test data cache'
+
+inputs:
+  python-version:
+    description: 'Python version to set up'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v6
+
+    - name: Setup GSL
+      uses: ./.github/actions/setup-gsl
+
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache-key: ${{ runner.os }}-env-${{ inputs.python-version }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3
+
+    - name: Cache CI Data
+      uses: ./.github/actions/cache-ci-data
+      with:
+        cache-key: ci-data-${{ github.job }}
