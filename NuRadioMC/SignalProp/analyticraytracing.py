@@ -54,6 +54,12 @@ Can be overwritten by init.
 """
 speedup_attenuation_models = ["GL3"]
 
+def _get_zenith(v):
+    """ Different to hp.get_zenith() ... (also supports only 1d array)"""
+    if len(v) != 3 or v.ndim != 1:
+        raise ValueError()
+    return np.arccos(v[2] / np.linalg.norm(v))
+
 
 def _compile_function_numba():
     """ Compile function with jit - does nothing if already compiled """
@@ -2201,7 +2207,8 @@ class ray_tracing(ray_tracing_base):
 
         # As long as we use horizontal-translational invariant raytracing/ice models (2d)
         # this should be fine. _n(0) is also used in _get_delta_y for air-ice raytracing
-        self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
+        # self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
+        self.n_at_surface = self._medium.get_index_of_refraction([0, 0, -0.001])
 
         # Some consitency checks...
 
@@ -3113,9 +3120,11 @@ class ray_tracing(ray_tracing_base):
             return self._cache_focusing[cache_key]
 
         recVec = -1.0 * self.get_receive_vector(iS)
-        recAng = np.arccos(recVec[2] / np.sqrt(recVec[0] ** 2 + recVec[1] ** 2 + recVec[2] ** 2))
+        # whether recVec or -recVec does not matter as sin(x) = sin(x+pi)
+        # and cos(x) = - cos(x+pi) but cos terms only appear in abs(...)
+        recAng = _get_zenith(recVec)
         lauVec = self.get_launch_vector(iS)
-        lauAng = np.arccos(lauVec[2] / np.sqrt(lauVec[0] ** 2 + lauVec[1] ** 2 + lauVec[2] ** 2))
+        lauAng = _get_zenith(lauVec)
 
         # we need to be careful here. If X1 (the emitter) is above the X2 (the receiver) the positions are swapped
         # do to technical reasons. Here, we want to change the receiver position slightly, so we need to check
@@ -3155,7 +3164,7 @@ class ray_tracing(ray_tracing_base):
 
             if iS < self._r1.get_number_of_solutions():
                 lauVec1 = self._r1.get_launch_vector(iS)
-                lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
+                lauAng1 = _get_zenith(lauVec1)
 
                 self.__logger.debug(
                     "focusing: receive angle %.2f / launch angle %.2f / d_launch_angle %.4f",
@@ -3192,16 +3201,16 @@ class ray_tracing(ray_tracing_base):
         # as well as a correction for the focusing for a plane wave. We have already included these
         # in the focusing factor f, so we should correct for this:
         if recPos[-1] > 0: # receiver in air
+            reflection_angle = np.atleast_1d(self.get_reflection_angle(iS))[0]
             correction_term = np.sqrt(
-                n2/self.n_at_surface
-                * np.abs(np.cos(recAng) / np.cos(np.arcsin(np.sin(recAng) * n2 / self.n_at_surface))))
+                n2 / self.n_at_surface * np.abs(np.cos(recAng) / np.cos(reflection_angle)))
             self.__logger.debug('raytracing to air - correct focusing by %.3f', correction_term)
             f *= correction_term
 
         elif vetPos[-1] > 0: # emitter in air
+            reflection_angle = np.atleast_1d(self.get_reflection_angle(iS))[0]
             correction_term = np.sqrt(
-                self.n_at_surface/n1
-                * np.abs(np.cos(np.arcsin(np.sin(lauAng) * n1 / self.n_at_surface)) / np.cos(lauAng)))
+                self.n_at_surface / n1 * np.abs(np.cos(reflection_angle) / np.cos(lauAng)))
             self.__logger.debug('raytracing from air to ice - correct focusing by %.3f', correction_term)
             f *= correction_term
 
