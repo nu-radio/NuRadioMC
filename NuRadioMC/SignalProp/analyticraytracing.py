@@ -3144,8 +3144,10 @@ class ray_tracing(ray_tracing_base):
             distance = self.get_path_length(iS)
             if not hasattr(self, "_r1"):
                 self._r1 = ray_tracing(
-                    self._medium, self._attenuation_model, logging.WARNING,
-                    self._n_frequencies_integration, self._n_reflections,
+                    self._medium, self._attenuation_model,
+                    log_level=self.__logger.level,
+                    n_frequencies_integration=self._n_frequencies_integration,
+                    n_reflections=self._n_reflections,
                     use_cpp=self.use_cpp, compile_numba=self.compile_numba)
 
             self._r1.set_start_and_end_point(vetPos, recPos1)

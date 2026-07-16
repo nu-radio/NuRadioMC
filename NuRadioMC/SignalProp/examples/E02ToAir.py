@@ -9,10 +9,7 @@ import NuRadioReco.framework.electric_field
 from radiotools import helper as hp
 from radiotools import plthelpers as php
 
-import logging
-logger = logging.getLogger('NuRadioMC.SignalProp.raytracing')
-logger.setLevel(logging.INFO)
-nu_logging.set_general_log_level(logging.INFO)
+# nu_logging.set_general_log_level(nu_logging.DEBUG)
 
 """
 this example calculates ice-to-air and air-to-ice raytracing solutions for a
