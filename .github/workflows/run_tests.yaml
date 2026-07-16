@@ -65,6 +65,8 @@ jobs:
     needs: setup
 
     steps:
+    - uses: actions/checkout@v6
+
     - name: Setup test job
       timeout-minutes: 10
       uses: ./.github/actions/setup-test-job
@@ -106,6 +108,8 @@ jobs:
     needs: setup
 
     steps:
+    - uses: actions/checkout@v6
+
     - name: Setup test job
       timeout-minutes: 10
       uses: ./.github/actions/setup-test-job
@@ -142,6 +146,8 @@ jobs:
     needs: setup
 
     steps:
+    - uses: actions/checkout@v6
+
     - name: Setup test job
       timeout-minutes: 10
       uses: ./.github/actions/setup-test-job
@@ -173,6 +179,8 @@ jobs:
     needs: setup
 
     steps:
+    - uses: actions/checkout@v6
+
     - name: Setup test job
       timeout-minutes: 10
       uses: ./.github/actions/setup-test-job
@@ -204,6 +212,8 @@ jobs:
     needs: setup
 
     steps:
+    - uses: actions/checkout@v6
+
     - name: Setup test job
       timeout-minutes: 10
       uses: ./.github/actions/setup-test-job
@@ -256,6 +266,8 @@ jobs:
     needs: setup
 
     steps:
+    - uses: actions/checkout@v6
+
     - name: Setup test job
       timeout-minutes: 10
       uses: ./.github/actions/setup-test-job

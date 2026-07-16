@@ -9,8 +9,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - uses: actions/checkout@v6
-
     - name: Setup GSL
       uses: ./.github/actions/setup-gsl
 
