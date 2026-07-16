@@ -54,10 +54,6 @@ class hardwareResponseIncorporator:
             the complex filter amplitudes
         """
     
-        if station_id is not None or channel_id is not None or det is not None:
-            logger.warning("get_filter() warning: station_id/channel_id/det provided but not used."
-                           "ARA system response is not channel-dependent")
-    
         system_response = analog_components.get_system_response(frequencies)
         system_complex_response = system_response['gain'] * system_response['phase']
 
@@ -65,7 +61,7 @@ class hardwareResponseIncorporator:
             return system_complex_response
         else:
             filt = np.zeros_like(system_complex_response)
-            mask = np.abs(gain) > 0
+            mask = np.abs(system_complex_response) > 0
             filt[mask] = 1. / system_complex_response[mask]
             return filt
         
@@ -80,7 +76,6 @@ class hardwareResponseIncorporator:
         for channel in channels:
 
             frequencies = channel.get_frequencies()
-            system_response = analog_components.get_system_response(frequencies)
             trace_fft = channel.get_frequency_spectrum()
 
             filt = self.get_filter(frequencies, station.get_id(), channel.get_id(), det, sim_to_data=sim_to_data)
