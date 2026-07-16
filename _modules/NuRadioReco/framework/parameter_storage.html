@@ -659,6 +659,15 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.framework.parameter_storage&#39;</span><span class="p">)</span>
 
+<span class="c1"># Module-level alias so `get_parameter` can use a `copy` keyword argument</span>
+<span class="c1"># without shadowing the `copy` module inside its own body.</span>
+<span class="n">_deepcopy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span>
+
+<span class="c1"># Types that can never be mutated in place, so returning them without copying</span>
+<span class="c1"># is always safe. Everything else (list, dict, set, numpy.ndarray, custom</span>
+<span class="c1"># objects, ...) is deep-copied by `get_parameter` unless `copy=False`.</span>
+<span class="n">_IMMUTABLE_SCALAR_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+
 
 <div class="viewcode-block" id="ParameterStorage">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage">[docs]</a>
@@ -718,10 +727,32 @@
 
 <div class="viewcode-block" id="ParameterStorage.get_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_storage.html#NuRadioReco.framework.parameter_storage.ParameterStorage.get_parameter">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get a parameter &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a parameter</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : parameter key</span>
+<span class="sd">            The parameter to retrieve.</span>
+<span class="sd">        copy : bool (default: True)</span>
+<span class="sd">            If `True` (default), mutable values (e.g. `list`, `dict`, `numpy.ndarray`) are</span>
+<span class="sd">            deep-copied before being returned, so that modifying the returned value does not</span>
+<span class="sd">            also modify the parameter stored in this object. Values of immutable types (e.g.</span>
+<span class="sd">            `int`, `float`, `str`, `None`) are never copied, since they cannot be mutated in</span>
+<span class="sd">            place regardless of this option.</span>
+
+<span class="sd">            Set to `False` to retrieve the stored object itself without copying, e.g. for</span>
+<span class="sd">            read-only access to large objects in performance-critical code. Note that in this</span>
+<span class="sd">            case, any in-place modification of the returned object will also modify the</span>
+<span class="sd">            parameter stored in this object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">copy</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_IMMUTABLE_SCALAR_TYPES</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">_deepcopy</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">value</span></div>
 
 
 <div class="viewcode-block" id="ParameterStorage.has_parameter">

@@ -727,8 +727,16 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">efield</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">efp</span><span class="o">.</span><span class="n">max_amp_antenna</span><span class="p">):</span>
                     <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">max_amp_antenna</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
                     <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">max_amp_antenna_envelope</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-                <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">max_amp_antenna</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">maximum</span>
-                <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">max_amp_antenna_envelope</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">maximum_envelope</span>
+
+                <span class="c1"># `get_parameter` returns a copy of the stored dict, so it needs to be</span>
+                <span class="c1"># written back with `set_parameter` after being updated in place.</span>
+                <span class="n">max_amp_antenna</span> <span class="o">=</span> <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">max_amp_antenna</span><span class="p">]</span>
+                <span class="n">max_amp_antenna</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">maximum</span>
+                <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">max_amp_antenna</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_amp_antenna</span>
+
+                <span class="n">max_amp_antenna_envelope</span> <span class="o">=</span> <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">max_amp_antenna_envelope</span><span class="p">]</span>
+                <span class="n">max_amp_antenna_envelope</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">maximum_envelope</span>
+                <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">max_amp_antenna_envelope</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_amp_antenna_envelope</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t</span></div>
 
