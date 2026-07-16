@@ -73,13 +73,13 @@ A C++ version of the ray tracer exists, which can be called from Python, and is 
 
     export GSLDIR=/path/to/my/GNU_Scientific_Library
 
-Once GSLDIR is configured, the user can also compile it by hand executing the following instruction in the SignalProp/CPPAnalyticRayTracing folder:
+Once GSLDIR is configured, the user can also compile it by hand executing the following instruction in the SignalProp/AnalyticRayTracing/CPPAnalyticRayTracing folder:
 
   .. code-block:: bash
 
     python setup.py build_ext --inplace
 
-The C++ analytic ray tracer can also be used standalone, using the ``MakeFile`` included. For instructions, please refer to the ``README`` included in the ``NuRadioMC/SignalProp/CPPAnalyticRayTracing`` directory.
+The C++ analytic ray tracer can also be used standalone, using the ``MakeFile`` included. For instructions, please refer to the ``README`` included in the ``NuRadioMC/SignalProp/AnalyticRayTracing/CPPAnalyticRayTracing`` directory.
 
 RadioPropa numerical ray tracer (in development)
 _________________________________________________
@@ -104,7 +104,8 @@ The following code shows how to perform a analytic ray tracing and extract infor
   .. code-block:: Python
 
     from NuRadioMC.SignalProp import propagation
-    from NuRadioMC.SignalProp.analyticraytracing import solution_types, ray_tracing_2D
+    from NuRadioMC.SignalProp.propagation import solution_types
+    from NuRadioMC.SignalProp.analyticraytracing import ray_tracing_2D
     from NuRadioMC.utilities import medium
     from NuRadioReco.utilities import units
     import matplotlib.pyplot as plt
