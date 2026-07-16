@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import h5py
 from NuRadioReco.utilities import units
-from NuRadioMC.utilities.test_helpers import (
+from NuRadioMC.utilities._test_helpers import (
     assert_equal_attributes, assert_equal_keys, assert_equal_station_keys,
     assert_almost_equal_attributes, assert_almost_equal_keys, assert_almost_equal_keys_absolute,
     assert_almost_equal_station_keys, assert_almost_equal_station_keys_absolute)
