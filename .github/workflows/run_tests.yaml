@@ -296,6 +296,11 @@ jobs:
       run: |
         python NuRadioReco/test/check_modules.py -r
 
+    - name: "Test ParameterStorage get/set copy semantics"
+      if: always()
+      run: |
+        python NuRadioReco/test/framework/test_parameter_storage.py
+
     - name: "Test calibration pulser example"
       if: always()
       run: |
