@@ -1,0 +1,4 @@
+config/config.yaml
+workflow_logs/
+.snakemake/
+__pycache__/

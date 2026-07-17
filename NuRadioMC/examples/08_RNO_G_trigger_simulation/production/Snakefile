@@ -1,0 +1,207 @@
+"""Production workflow for the RNO-G FLOWER trigger simulation (simulate.py).
+
+Throws simulated events until each energy bin reaches target_triggers_per_bin, then
+truncates each bin to a manifest of the chunks needed to hit that target. Every
+site-specific value lives in config/config.yaml; nothing is hardcoded here.
+
+Architecture:
+    - Each chunk = one (energy, chunk_id) pair, one SLURM job.
+    - throw_chunk runs simulate.py, producing NUR + HDF5 + per-event ledger CSV.
+    - Chunks are round-robin distributed across SLURM accounts (config `accounts`)
+      in proportion to their weights so multiple pools fill in parallel.
+    - truncate_lgE reads the bin's ledgers and writes manifest.txt: the smallest set
+      of chunks whose summed triggers reach the target. Overage chunks stay on disk.
+    - register_dataset writes a dataset README.md into the output dir.
+
+Usage:
+    cp config/config.yaml.example config/config.yaml   # then edit
+    snakemake -n                                        # dry-run
+    snakemake --executor slurm --jobs 200 --workflow-profile config/profile
+"""
+import glob as _glob
+from pathlib import Path
+
+configfile: "config/config.yaml"
+
+localrules: all, truncate_lgE, register_dataset
+
+DATA_DIR = Path(config["data_dir"])
+WORKFLOW_DIR = Path(workflow.basedir)
+LOG_DIR = WORKFLOW_DIR / "workflow_logs"
+
+ENERGIES = [str(e) for e in config["energies"]]
+TARGET_TRIGGERS = config["target_triggers_per_bin"]
+TARGET_PER_BIN = {str(k): int(v) for k, v in config.get("target_per_bin", {}).items()}
+
+
+def target_for_energy(e):
+    """Per-bin triggered target, defaulting to the scalar target_triggers_per_bin."""
+    return TARGET_PER_BIN.get(str(e), TARGET_TRIGGERS)
+
+ACCOUNTS = config["accounts"]
+ROUTING_GRAIN = 10
+
+
+def _bucket_size(weight, total):
+    """Round each account's routing bucket to an integer share of ROUTING_GRAIN."""
+    return max(1, round(ROUTING_GRAIN * weight / total))
+
+
+_total_weight = sum(a["weight"] for a in ACCOUNTS)
+_bucket_sizes = [_bucket_size(a["weight"], _total_weight) for a in ACCOUNTS]
+_bucket_sizes[-1] = ROUTING_GRAIN - sum(_bucket_sizes[:-1])
+ACCOUNT_BUCKET_BOUNDS = []
+cum = 0
+for size in _bucket_sizes:
+    ACCOUNT_BUCKET_BOUNDS.append(cum + size)
+    cum += size
+
+
+def account_for_chunk(chunk_id: int):
+    """Map chunk_id deterministically to an account dict (account, partition)."""
+    idx = chunk_id % ROUTING_GRAIN
+    for a, upper in zip(ACCOUNTS, ACCOUNT_BUCKET_BOUNDS):
+        if idx < upper:
+            return a
+    return ACCOUNTS[-1]
+
+
+def all_chunk_ledgers(energy):
+    """On-disk ledgers for a bin, globbed (tolerant of missing/non-contiguous chunk ids).
+
+    Scheduler preemption can leave scattered chunk-id gaps. The finalize stage consumes
+    whatever completed rather than the planned contiguous 0..n_chunks-1 range, so a lost
+    chunk never re-demands a throw.
+    """
+    return sorted(_glob.glob(str(DATA_DIR / f"lgE{energy}" / f"lgE{energy}_c*_ledger.csv")))
+
+
+print("[production workflow] on-disk plan (glob):")
+total_on_disk = 0
+for e in ENERGIES:
+    n = len(all_chunk_ledgers(e))
+    total_on_disk += n
+    print(f"  lgE {e}: {n:4d} chunks on disk (target {target_for_energy(e):,})")
+print(f"  TOTAL: {total_on_disk} chunks on disk")
+
+
+rule all:
+    input:
+        manifests = expand(str(DATA_DIR / "lgE{energy}" / "manifest.txt"), energy=ENERGIES),
+        readme    = DATA_DIR / "README.md",
+
+
+rule throw_chunk:
+    """Run one sim chunk: produces NUR (waveforms), HDF5 (input event list), and
+    ledger CSV (per-event outcomes). Auto-routes to an account by chunk_id."""
+    output:
+        ledger = DATA_DIR / "lgE{energy}" / "lgE{energy}_c{chunk}_ledger.csv",
+        nur    = DATA_DIR / "lgE{energy}" / "lgE{energy}_c{chunk}.nur",
+        hdf5   = DATA_DIR / "lgE{energy}" / "lgE{energy}_c{chunk}.hdf5",
+    log:
+        LOG_DIR / "throw_lgE{energy}_c{chunk}.log",
+    params:
+        n_events         = lambda wc: config["thrown_per_chunk"][wc.energy],
+        ft_seed          = lambda wc: config["ft_seed_base"] + int(wc.chunk),
+        energy_ev        = lambda wc: f"{10 ** float(wc.energy):.6e}",
+        python_bin       = config.get("python_bin", "python3"),
+        pythonpath       = config.get("pythonpath", ""),
+        env_setup        = config.get("env_setup", ""),
+        sim_script       = config["sim_script"],
+        sim_config       = config["sim_config"],
+        det_file         = config.get("detector_file", ""),
+        event_time       = config.get("event_time", "2022-10-01"),
+        ft_dir           = config["ft_noise_dir"],
+        ft_mask          = config["ft_clean_mask"],
+        trigger_vrms     = config.get("trigger_vrms", ""),
+        clip_thresholds  = config.get("clip_thresholds", ""),
+        pedestal_voltage = config.get("pedestal_voltage", 1.5),
+        fiducial_rmax    = config.get("fiducial_rmax", ""),
+        flavor           = config.get("flavor", "e"),
+        ch0_model        = config.get("ch0_trigger_model", "normal"),
+        station_id       = config["station_id"],
+        interaction      = config["interaction_type"],
+        data_dir         = lambda wc: str(DATA_DIR / f"lgE{wc.energy}"),
+        out_basename     = lambda wc: f"lgE{wc.energy}_c{wc.chunk}.hdf5",
+    resources:
+        mem_mb          = lambda wc, attempt: int(config["slurm_resources"][wc.energy]["mem_mb"] * (1.0 + 0.25 * (attempt - 1))),
+        runtime         = lambda wc, attempt: config["slurm_resources"][wc.energy]["runtime_min"] * attempt,
+        slurm_account   = lambda wc: account_for_chunk(int(wc.chunk))["account"],
+        slurm_partition = lambda wc: account_for_chunk(int(wc.chunk))["partition"],
+        cpus_per_task   = 1,
+    retries: 2
+    shell:
+        r"""
+        mkdir -p {params.data_dir}
+        {params.env_setup}
+        if [ -n "{params.pythonpath}" ]; then export PYTHONPATH={params.pythonpath}:${{PYTHONPATH:-}}; fi
+
+        echo "=== chunk lgE{wildcards.energy} c{wildcards.chunk} ==="
+        echo "host: $(hostname)"
+        echo "date: $(date -Is)"
+
+        DET_ARG="--event_time {params.event_time}"
+        if [ -n "{params.det_file}" ]; then DET_ARG="--detector_file {params.det_file}"; fi
+        VRMS_ARG=""
+        if [ -n "{params.trigger_vrms}" ]; then VRMS_ARG="--trigger_vrms {params.trigger_vrms}"; fi
+        RMAX_ARG=""
+        if [ -n "{params.fiducial_rmax}" ]; then RMAX_ARG="--fiducial_rmax {params.fiducial_rmax}"; fi
+        CLIP_ARG=""
+        if [ -n "{params.clip_thresholds}" ]; then CLIP_ARG="--clip_thresholds {params.clip_thresholds}"; fi
+
+        {params.python_bin} {params.sim_script} \
+            --config {params.sim_config} \
+            --station_id {params.station_id} \
+            --energy {params.energy_ev} \
+            --flavor {params.flavor} \
+            --interaction_type {params.interaction} \
+            --n_events {params.n_events} \
+            --output_file {params.out_basename} \
+            --data_dir {params.data_dir} \
+            $DET_ARG \
+            --nur_output \
+            --ft_noise_dir {params.ft_dir} \
+            --ft_seed {params.ft_seed} \
+            --ft_clean_mask {params.ft_mask} \
+            $VRMS_ARG \
+            $CLIP_ARG \
+            $RMAX_ARG \
+            --ch0_trigger_model {params.ch0_model} \
+            --pedestal_voltage {params.pedestal_voltage}
+        rc=$?
+
+        echo "exit: $rc, end: $(date -Is)"
+        exit $rc
+        """ + " 2>&1 | tee {log}"
+
+
+rule truncate_lgE:
+    """Pick the smallest set of chunks whose summed triggers reach the target,
+    write a manifest of those chunk NUR basenames."""
+    input:
+        ledgers = lambda wc: all_chunk_ledgers(wc.energy),
+    output:
+        manifest = DATA_DIR / "lgE{energy}" / "manifest.txt",
+    log:
+        LOG_DIR / "truncate_lgE{energy}.log",
+    params:
+        target = lambda wc: target_for_energy(wc.energy),
+    script:
+        "scripts/truncate_to_target.py"
+
+
+rule register_dataset:
+    """Write the dataset README into the output dir and report totals per bin."""
+    input:
+        manifests = expand(str(DATA_DIR / "lgE{energy}" / "manifest.txt"), energy=ENERGIES),
+    output:
+        readme = DATA_DIR / "README.md",
+    log:
+        LOG_DIR / "register_dataset.log",
+    params:
+        target      = TARGET_TRIGGERS,
+        energies    = ENERGIES,
+        station_id  = config["station_id"],
+        interaction = config["interaction_type"],
+    script:
+        "scripts/write_readme.py"

@@ -1,0 +1,20 @@
+trigger_vrms_V:
+  0: 4.466136e-3
+  1: 3.387901e-3
+  2: 2.683482e-3
+  3: 3.137378e-3
+metadata:
+  station_id: 13
+  event_time: '2022-10-01'
+  transfer: trigger_DB / readout_CALIBRATED
+  provenance: >
+    Full-FT-pool trigger-path Vrms measured with the calibrated season-2022 readout
+    response in the injection transfer (calibration is readout-only, so trigger stays DB
+    and the transfer becomes trigger_DB/readout_CALIBRATED). measure_trigger_vrms_full.py,
+    clean-masked station-13 FT pool (277,974 events, 429 runs). Median per channel;
+    run-to-run std ch0 0.390 / ch1 0.045 / ch2 0.037 / ch3 0.131 mV.
+  ch0_note: >
+    ch0's 4.47 mV is the H1 (loud) value from readout_CALIBRATED being ~4.8x below DB. The
+    daqstatus/harness confirm ch0's TRIGGER path is suppressed (H2), so production applies
+    the measured ch0 model (post-ADC scale 1/8 + 4-count floor) on top; this Vrms only sets
+    the VGA gain, which the ch0 model normalizes away.

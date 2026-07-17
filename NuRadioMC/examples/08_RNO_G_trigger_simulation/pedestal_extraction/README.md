@@ -2,15 +2,32 @@
 
 The RADIANT 12-bit ADC digitizes over a 0-2.5 V range (4096 counts). The pedestal (DC baseline) sits at approximately 1.5 V, not the 1.25 V midpoint. This makes the effective dynamic range asymmetric: signals can swing further negative (~1.5 V headroom) than positive (~1.0 V headroom) before clipping.
 
-`simulate.py` applies asymmetric clipping via `--pedestal_voltage`.
+`simulate.py` applies this clip in the readout resampler. Per-channel bounds come from
+`--clip_thresholds <yaml>` (`{ch: [lo_mV, hi_mV]}`); with no file it falls back to a single
+uniform range built from the scalar `--pedestal_voltage`, an approximation.
+
+## Shipped values
+
+The number is the per-channel pedestal position in the 0-2500 mV RADIANT range, turned into
+asymmetric saturation bounds (`clip- = -pedestal`, `clip+ = 2500 - pedestal`). The shipped
+`clip_thresholds_station{11,12,13,21,22,23,24}.yaml` carry per-station bounds from measured
+2022 pedestals; the pedestal source per station is recorded in each file's metadata.
+Pedestals drift, so re-derive for a new station or epoch with `pedestal_analysis.py`.
+
+![Clip check](clip_check.png)
+
+Left: the per-run pedestal distributions the bounds derive from (station 23). Middle:
+shipped bounds against bounds re-derived from a fresh pedestal extraction, agreeing to a
+few percent (extraction-vintage drift). Right: the asymmetric saturation the bounds
+produce. `plot_clip_check.py --npz <pedestal npz> --clip_yaml <yaml>` regenerates this.
 
 ## Files
 
 | File | Description |
 |------|-------------|
-| `pedestal_analysis.py` | Extracts per-channel pedestal voltages from pedestal.root files |
-| `clip_thresholds_station23_2022.yaml` | Output: per-channel clip thresholds from 1,124 runs (2022 only) |
-| `pedestal_analysis_results.npz` | Raw per-run, per-channel pedestal voltages for further analysis |
+| `clip_thresholds_station{NN}.yaml` | Per-station clip thresholds (used by `simulate.py --clip_thresholds`) |
+| `pedestal_analysis.py` | Re-derives per-channel pedestal voltages / clip thresholds from pedestal.root files; writes `pedestal_analysis_results.npz` (per-run, per-channel pedestals) |
+| `plot_clip_check.py` | Plots the shipped bounds against the measured pedestal distributions (reads the npz above + a clip YAML) |
 
 ## Method
 
@@ -21,19 +38,6 @@ Each RNO-G run includes a pedestal measurement that records the ADC pedestal dis
 3. Optionally filters by year using the UTC timestamp in the ROOT file
 4. Computes the median pedestal across all qualifying runs for each channel
 5. Derives asymmetric clip thresholds: `clip_negative = -median`, `clip_positive = 2500 - median` (in mV)
-
-## 2022 clip thresholds
-
-Derived from 1,124 runs for station 23 between 2022-06-27 and 2022-10-01. Sample values:
-
-| Channel | Pedestal (mV) | Clip- (mV) | Clip+ (mV) |
-|---------|--------------|------------|------------|
-| ch0 | 1416 | -1416 | +1084 |
-| ch1 | 1467 | -1467 | +1033 |
-| ch3 | 1593 | -1593 | +907 |
-| ch9 | 1560 | -1560 | +940 |
-
-The full set is in `clip_thresholds_station23_2022.yaml`.
 
 ## Usage
 
@@ -54,8 +58,6 @@ python ../simulate.py \
 The script uses `joblib` for parallel processing of ROOT files. Run with `--cpus-per-task=20` on SLURM for the full 6,849-file dataset.
 
 ## Known limitations
-
-- **Station 23, 2022 only.** The included `clip_thresholds_station23_2022.yaml` was derived from station 23 runs between 2022-06-27 and 2022-10-01. Other stations require separate extraction.
 
 - **Single median per channel.** Pedestals drift over time, so the script uses `--year` to restrict to a single year. However, even within a year some channels show run-to-run variation that a single median doesn't capture.
 

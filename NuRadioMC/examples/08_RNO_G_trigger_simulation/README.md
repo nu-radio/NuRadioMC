@@ -21,11 +21,15 @@ General-purpose RNO-G simulation with a FLOWER trigger model and two noise modes
 
 1. **Measured noise injection.** Real forced-trigger (FT) waveforms replace synthetic thermal noise via `--ft_noise_dir`. See [noise modes](#noise-modes).
 
-2. **Asymmetric ADC saturation.** Models the off-center pedestal bias of the RADIANT ADC via `--pedestal_voltage`. See [ADC pedestal](#adc-pedestal-and-asymmetric-saturation) and [`pedestal_extraction/`](pedestal_extraction/).
+2. **Asymmetric ADC saturation.** Models the off-center pedestal bias of the RADIANT ADC. Clipping is per-channel from measured pedestals via `--clip_thresholds <yaml>` (the shipped per-station YAMLs carry measured 2022 bounds); `--pedestal_voltage` is the uniform-clip fallback. See [ADC pedestal](#adc-pedestal-and-asymmetric-saturation) and [`pedestal_extraction/`](pedestal_extraction/).
 
 3. **FLOWER trigger model.** `triggerBoardResponse` + `highLowThreshold`. First-pass approximation; see [known limitations](#known-limitations).
 
 All three are optional. Without `--ft_noise_dir`, thermal noise is used. Without `--pedestal_voltage`, the ADC range is symmetric. The FLOWER trigger is always active.
+
+## Data requirements
+
+Measured-noise mode needs standard RNO-G full-waveform run data (`station{id}_run*.root`) for the station and year, obtained through normal collaboration data access; the pool selects `FORCE` events itself, so no pre-filtering is needed. The detector description comes from MongoDB (default) or a `--detector_file`. The shipped clean masks, trigger vrms, and ADC clip thresholds are measured 2022 values (detector epoch 2022-10-01); the `trigger_vrms_station{13,23}_calibrated.yaml` files pair with the calibrated season-2022 readout detector description. Other years, stations, or detector epochs need re-derivation with the tools in `noise_analysis/` and `pedestal_extraction/`. See [`production/`](production/) for running at scale.
 
 ## Files
 
@@ -44,15 +48,23 @@ Without `--ft_noise_dir`, the framework generates noise from a temperature model
 
 ### Measured FT noise (`--ft_noise_dir`)
 
-FT waveforms are recorded through the readout signal chain (RADIANT, 3.2 GHz). The trigger path uses a different signal chain after the 3 dB splitter (arXiv:2411.12922, Sec. 3.2). So FT noise must be injected differently for each path:
+FT waveforms are recorded through the readout signal chain (RADIANT, 3.2 GHz). The trigger path uses a different signal chain after the 3 dB splitter (arXiv:2411.12922, Sec. 3.2). So FT noise must be injected differently for each path, implemented in-script:
 
-1. **Trigger path** (at 5 GHz internal sim rate): FT noise is upsampled from 3.2 to 5 GHz (to match the internal sim rate), then multiplied by a transfer function (`trigger_response / readout_response`, from the detector description) to convert from readout domain to trigger domain. This stage only touches trigger channel copies.
+1. **Trigger path** (at 5 GHz internal sim rate): the internal trigger trace is much longer than one FT event (padded to ~2 us for linear convolution), so several FT events are each upsampled from 3.2 to 5 GHz and stitched into one continuous noise trace with an equal-power crossfade (`tile_noise_overlap_add`, `TILE_OVERLAP` samples of overlap). The stitched noise is multiplied by a transfer function (`trigger_response / readout_response`, from the detector description) to convert from readout to trigger domain, then added to the trigger channel copies (ch 0-3), so the trigger is always evaluated on signal plus noise.
 
-2. **Readout path** (at 3.2 GHz): the same FT event is added directly to readout channels at native rate. No transform needed since the noise was already recorded through the readout chain.
+2. **Readout path** (at 3.2 GHz): a separate FT event is added directly to the readout channels at native rate, after the readout-window cut and resample. No transform is needed since the noise was recorded through the readout chain.
 
-Both stages use the same noise realization. The config must set `noise: False` to prevent the framework from also adding thermal noise on top of the injected FT noise.
+The two paths draw independent FT realizations from the same streaming pool (the trigger tiles and the readout event are different draws). The config must set `noise: False` to prevent the framework from also adding thermal noise on top of the injected FT noise.
 
-Point `--ft_noise_dir` at a directory of ROOT files (`station{id}_run*.root` or `run*/waveforms.root`). To exclude non-thermal FT events, pass `--ft_clean_mask` with an NPZ mask file from [`noise_analysis/ft_cleaning/`](noise_analysis/ft_cleaning/).
+The crossfade uses equal-power sqrt-Hann weights (head^2 + tail^2 = 1 at every overlap sample), so the summed variance of independent tiles stays constant through each seam; the outermost edges carry full amplitude. On real station-23 FT data this reproduces the near-threshold noise-only trigger probability of an ideal seamless noise fill within measurement errors.
+
+![Tiling example](noise_analysis/tiling_example.png)
+
+The figure shows one stitched trace with the crossfade regions shaded; the per-sample RMS over 200 stitched traces, flat through every seam and both edges; and the evidence that crossfade regions are statistically identical to the rest of the trace: the local-RMS distribution of all crossfade windows lies on top of the random-window distribution (KS test in the panel title), and every seam's ensemble RMS sits inside the random-window spread. Regenerate it for any station with `noise_analysis/plot_tiling_example.py --ft_noise_dir <dir> --station <id> [--clean_mask <npz>]`.
+
+The readout window is cut with a zero-padded cutter (`zero_padded_readout_window_cutter`) that replaces the framework's cyclic roll: when the readout window extends past the internal trace edge, the overflow is filled with zeros rather than wrapped. In FT mode the zeros are then covered by the readout FT injection, which spans the full 2048-sample readout trace.
+
+Point `--ft_noise_dir` at a directory of `station{id}_run*.root` ROOT files. To exclude non-thermal FT events, pass `--ft_clean_mask` with an NPZ mask file (`runNum`/`eventNum`/`is_clean`) from [`noise_analysis/ft_cleaning/`](noise_analysis/ft_cleaning/). A pool smaller than `--n_events` simply reuses realizations (the file list is cycled and reshuffled).
 
 ## FLOWER trigger model
 
@@ -69,7 +81,7 @@ In FT mode, the trigger-path Vrms is loaded from a YAML file (`--trigger_vrms`).
 
 The RADIANT ADC digitizes a 0-2.5V range. The pedestal bias sits at ~1.5V, off-center from the 1.25V midpoint, making the effective clip range asymmetric in pedestal-subtracted coordinates: [-1500, +1000] mV for a 1.5V pedestal.
 
-`--pedestal_voltage` accepts a single value for all channels. For per-channel precision, use `analogToDigitalConverter.set_pedestal_voltage(dict)` programmatically. See [`pedestal_extraction/`](pedestal_extraction/) for measured per-channel values.
+`--clip_thresholds <yaml>` applies per-channel asymmetric bounds `{ch: [lo_mV, hi_mV]}` from measured pedestals; the shipped `pedestal_extraction/clip_thresholds_station{NN}.yaml` carry measured 2022 values. `--pedestal_voltage` is the uniform fallback (a single value for all channels) when no clip file is given. See [`pedestal_extraction/`](pedestal_extraction/).
 
 ## Usage
 
@@ -152,13 +164,44 @@ python simulate.py --station_id 23 --energy 1e18 --n_events 100 \
 
 - **No pedestal in the detector database.** The RNO-G MongoDB doesn't store pedestal voltages yet, so they must be passed via `--pedestal_voltage`.
 
+## FT noise injection lives in the script
+
+The measured-FT-noise machinery is implemented in `simulate.py` itself, not in a framework module:
+
+- `FTNoisePool`: streaming reader/cycler over `station{id}_run*.root` FORCE events, with clean-mask and corrupt-file handling.
+- `upsample_trace` + `tile_noise_overlap_add`: build the trigger-copy noise (equal-power crossfade of upsampled FT tiles) spanning the full internal trace.
+- `_get_readout_to_trigger_transfer`: readout->trigger domain conversion for the trigger copies.
+- `zero_padded_readout_window_cutter`: monkey-patched over the framework cutter (FT mode only).
+- `resampler_with_noise_and_clip`: monkey-patched over `channelResampler` to add the readout FT realization and apply the ADC clip.
+
 ## Framework changes on this branch
 
-This branch (`ft_noise_trigger_sim`) adds to NuRadioMC:
+This branch (`ft_noise_trigger_sim`) also carries these NuRadioMC modifications:
 
-1. **`noiseImporter`**: trigger copy injection, two-stage mode, explicit file list parameter
-2. **`analogToDigitalConverter`**: pedestal voltage support (`set_pedestal_voltage()`)
-3. **`readRNOGDataMattak`**: `ValueError` catch for corrupt ROOT files
-4. **`efieldToVoltageConverterPerEfield`**: pre/post pulse zero-padding for linear convolution
-5. **`rnog_detector`**: response_chain dict-to-list format conversion for exported detector files
-6. **`highLowThreshold`**: channel ID included in trace_start_time warning
+1. **`analogToDigitalConverter`**: pedestal voltage support (`set_pedestal_voltage()`)
+2. **`readRNOGDataMattak`**: `ValueError` catch for corrupt ROOT files
+3. **`efieldToVoltageConverterPerEfield`**: pre/post pulse zero-padding for linear convolution
+4. **`rnog_detector`**: response_chain dict-to-list format conversion for exported detector files
+5. **`highLowThreshold`**: channel ID included in trace_start_time warning
+6. **`noiseImporter`**: trigger copy injection and two-stage mode. Not used by this example, which injects FT noise in-script (see above).
+
+## Production quickstart
+
+`production/` holds a Snakemake workflow that runs `simulate.py` at scale: one chunk per
+SLURM job producing NUR + HDF5 + ledger, throwing until each energy bin reaches a target
+triggered count, then writing a per-bin manifest. All site-specific values live in
+`production/config/config.yaml`.
+
+```bash
+cd production
+cp config/config.yaml.example config/config.yaml
+# edit config/config.yaml (paths, station, energies, targets, accounts)
+snakemake -n                                                # dry-run
+
+# full run: launch the driver detached so it survives an SSH drop
+tmux new-session -d -s production \
+  'snakemake --executor slurm --jobs 200 --workflow-profile config/profile'
+```
+
+See `production/README.md` for the config-key table, account routing, and the single-chunk
+pilot recipe.

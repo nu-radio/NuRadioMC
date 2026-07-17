@@ -4,6 +4,8 @@ Forced-trigger (FT) events serve as the noise pool for simulations using measure
 
 This directory contains scripts to identify non-thermal FT events and produce a clean mask (`--ft_clean_mask` in `simulate.py`). All numbers below are from station 23, 2022 FT data. Results will vary for other stations and time periods.
 
+The mask flags FT events whose per-channel RMS sits above a per-channel threshold (contaminated by CW, transients, or other non-thermal activity). Passing `--ft_clean_mask` excludes those events so only thermal noise is injected; running without a mask is allowed but injects the contaminated events too, which raises the noise level. Shipped masks (2022 FT data): `clean_mask_station{11,12,13,21,22,23,24}.npz`. The station-23 file is from `generate_clean_mask.py` here; stations 11/12/13/21/22/24 are the May 2026 full-pool campaign masks recovered from the 2026-05-17 snapshot (flagged counts st13 879, st21 1826, st22 2912, st24 613, st11 4866, st12 508). Re-derive for a new station or epoch with the pipeline below.
+
 ## Pipeline
 
 ```

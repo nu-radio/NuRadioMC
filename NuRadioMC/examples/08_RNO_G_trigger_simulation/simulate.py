@@ -9,8 +9,20 @@ Both modes use the full FLOWER trigger model: hardware response,
 triggerBoardResponse (VGA gain + ADC), and highLowThreshold with
 calibrated thresholds.
 
+Measured FT noise uses the v9 production method (matching
+08_RNO_G_trigger_simulation_testing/.../simulate_fixed_response_v9.py):
+- Trigger channel copies (ch 0-3) get FT noise at the 5 GHz internal rate,
+  built by upsampling FT tiles and stitching them with a Hann overlap-add to
+  span the full internal trace length, then transformed readout->trigger via
+  the hardware-response ratio.
+- Readout channels get a separate FT realization added at the native 3.2 GHz
+  rate after the readout-window cut and resample.
+- The readout window is cut with a zero-padded cutter instead of the stock
+  cyclic roll, so overflow past the trace edge is filled with zeros (later
+  covered by the readout FT injection) rather than wrapped.
+
 Based on RNO_G_trigger_simulation/simulate.py with additions:
-- Measured FT noise injection via noiseImporter (with trigger copy support)
+- Measured FT noise injection (in-script tiled pool, trigger + readout paths)
 - Asymmetric ADC saturation from pedestal voltage
 - Hardware response padding for linear convolution
 - Per-event ledger output
@@ -21,6 +33,7 @@ import numpy as np
 import os
 import secrets
 import datetime as dt
+from collections import deque
 import pandas as pd
 import yaml
 
@@ -39,7 +52,7 @@ import NuRadioReco.framework.sim_station
 
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
 from NuRadioReco.modules.trigger import highLowThreshold
-from NuRadioReco.modules.measured_noise.RNO_G.noiseImporter import noiseImporter
+from NuRadioReco.modules.channelReadoutWindowCutter import _get_number_of_samples
 
 import logging
 logger = logging.getLogger("NuRadioMC.RNOG_trigger_simulation")
@@ -47,10 +60,265 @@ logger.setLevel(logging.INFO)
 
 DEEP_TRIGGER_CHANNELS = [0, 1, 2, 3]
 DEFAULT_PEDESTAL_V = 1.5
+TILE_OVERLAP = 200  # samples of Hann crossfade between FT tiles at 5 GHz
 
-# Module-level state for the resampler monkey-patch
-_noise_importer = None
+# Module-level state for the monkey-patched resampler/cutter
+_ft_noise_pool = None
 _adc_clip_range = None
+_adc_clip_per_channel = None
+# st13 measured ch0 trigger model ("normal" | "measured_8x" | "measured_dead")
+_ch0_trigger_model = "normal"
+
+
+class FTNoisePool:
+    """Streaming pool of forced-trigger noise traces from ROOT files.
+
+    Loads one ROOT file at a time (~560 events, ~210 MB) and hands out one
+    event's traces per call. Events flagged as non-thermal by the clean mask
+    are skipped. Files are cycled and reshuffled indefinitely so a pool
+    smaller than the number of thrown events simply reuses realizations.
+    """
+
+    def __init__(self, ft_dir, station_id=23, seed=None, clean_mask_path=None):
+        """Discover FT ROOT files and load the contamination mask.
+
+        Args:
+            ft_dir: Directory of ``station{station_id}_run*.root`` files.
+            station_id: Station whose channels to read.
+            seed: RNG seed for file shuffling (reproducible event order).
+            clean_mask_path: Optional NPZ with ``runNum``/``eventNum``/
+                ``is_clean``; events with ``is_clean == 0`` are skipped.
+
+        Raises:
+            FileNotFoundError: If no matching ROOT files are found.
+        """
+        self._station_id = station_id
+        self._rng = np.random.default_rng(seed)
+        self._buffer = deque()
+        self._files_loaded = 0
+
+        self._ft_files = sorted([
+            os.path.join(ft_dir, f)
+            for f in os.listdir(ft_dir)
+            if f.startswith(f"station{station_id}_run") and f.endswith(".root")
+        ])
+        self._rng.shuffle(self._ft_files)
+
+        if not self._ft_files:
+            raise FileNotFoundError(
+                f"No FT ROOT files matching station{station_id}_run*.root in {ft_dir}")
+
+        self._file_idx = 0
+
+        self._flagged = set()
+        if clean_mask_path:
+            if not os.path.exists(clean_mask_path):
+                raise FileNotFoundError(
+                    f"FT clean mask not found: {clean_mask_path}. Running "
+                    f"unmasked injects contaminated FT events that inflate "
+                    f"the noise-trigger rate; omit the mask argument only "
+                    f"deliberately.")
+            mask_data = np.load(clean_mask_path)
+            for r, e, c in zip(mask_data['runNum'], mask_data['eventNum'],
+                               mask_data['is_clean']):
+                if c == 0:
+                    self._flagged.add((int(r), int(e)))
+            logger.info(f"FTNoisePool: loaded clean mask, "
+                        f"{len(self._flagged)} flagged events")
+
+        logger.info(f"FTNoisePool: {len(self._ft_files)} ROOT files in {ft_dir}")
+
+    def _load_next_file(self):
+        """Read the next ROOT file's FORCE events into the buffer.
+
+        Skips corrupt files and reshuffles when the file list is exhausted.
+
+        Raises:
+            RuntimeError: If no events load after several file attempts.
+        """
+        from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
+
+        max_retries = 10
+        for _ in range(max_retries):
+            if self._file_idx >= len(self._ft_files):
+                self._file_idx = 0
+                self._rng.shuffle(self._ft_files)
+                logger.info("FTNoisePool: cycled through all files, reshuffling")
+
+            fpath = self._ft_files[self._file_idx]
+            self._file_idx += 1
+            self._files_loaded += 1
+
+            try:
+                reader = readRNOGData()
+                reader.begin(
+                    [fpath],
+                    convert_to_voltage=True,
+                    apply_baseline_correction="median",
+                    selectors=[lambda einfo: einfo.triggerType == "FORCE"],
+                    select_runs=False,
+                    read_calibrated_data=False,
+                )
+            except Exception as e:
+                logger.warning(f"FTNoisePool: skipping corrupt file "
+                               f"{os.path.basename(fpath)}: {e}")
+                continue
+
+            loaded = 0
+            skipped = 0
+            try:
+                for evt in reader.run():
+                    station = evt.get_station(self._station_id)
+                    if station is None:
+                        continue
+
+                    key = (evt.get_run_number(), evt.get_id())
+                    if key in self._flagged:
+                        skipped += 1
+                        continue
+
+                    traces = {ch.get_id(): ch.get_trace().copy()
+                              for ch in station.iter_channels()}
+                    if traces:
+                        self._buffer.append(traces)
+                        loaded += 1
+            except Exception as e:
+                logger.warning(f"FTNoisePool: error reading events from "
+                               f"{os.path.basename(fpath)}: {e}")
+
+            try:
+                reader.end()
+            except Exception:
+                pass
+
+            if self._files_loaded <= 3 or self._files_loaded % 50 == 0:
+                logger.info(f"FTNoisePool: loaded {loaded} events from "
+                            f"{os.path.basename(fpath)} (skipped {skipped} flagged)")
+
+            if loaded > 0:
+                return
+
+        raise RuntimeError(
+            f"FTNoisePool: failed to load events after {max_retries} files")
+
+    def get_noise_event(self):
+        """Return one event's traces as ``{channel_id: np.array}``.
+
+        Traces are in Volts, 2048 samples at 3.2 GHz. Loads the next file
+        when the buffer empties.
+        """
+        if not self._buffer:
+            self._load_next_file()
+        return self._buffer.popleft()
+
+
+def upsample_trace(trace, target_n_samples):
+    """Upsample a trace to ``target_n_samples`` via FFT zero-padding above Nyquist."""
+    n_orig = len(trace)
+    spec = np.fft.rfft(trace)
+    new_spec = np.zeros(target_n_samples // 2 + 1, dtype=complex)
+    new_spec[:len(spec)] = spec
+    return np.fft.irfft(new_spec, n=target_n_samples) * (target_n_samples / n_orig)
+
+
+def tile_noise_overlap_add(tiles, target_length, overlap=TILE_OVERLAP):
+    """Stitch upsampled FT noise tiles into one trace with an equal-power crossfade.
+
+    Interior seams use head weight sqrt(ramp) and tail weight sqrt(1 - ramp) so that
+    head^2 + tail^2 = 1 at every overlap sample. For independent tiles the summed
+    variance is then constant through the seam, unlike the linear Hann crossfade,
+    which attenuates it. The first tile's leading edge and the last tile's trailing
+    edge are left at full amplitude (no neighbor to fill them).
+
+    Args:
+        tiles: List of equal-length 1D arrays (upsampled FT traces at 5 GHz).
+        target_length: Output length in samples.
+        overlap: Crossfade width in samples.
+
+    Returns:
+        1D array of length ``target_length``.
+    """
+    if not tiles:
+        return np.zeros(target_length)
+
+    n_tile = len(tiles[0])
+    ramp = 0.5 * (1 - np.cos(np.pi * np.arange(overlap) / overlap))
+    head = np.sqrt(ramp)
+    tail = np.sqrt(1.0 - ramp)
+
+    total_len = n_tile + (len(tiles) - 1) * (n_tile - overlap)
+    result = np.zeros(max(total_len, target_length + overlap))
+
+    last = len(tiles) - 1
+    pos = 0
+    for k, tile in enumerate(tiles):
+        windowed = tile.copy()
+        if k > 0:
+            windowed[:overlap] *= head
+        if k < last:
+            windowed[-overlap:] *= tail
+        result[pos:pos + n_tile] += windowed
+        pos += n_tile - overlap
+
+    return result[:target_length]
+
+
+def zero_padded_readout_window_cutter(event, station, detector):
+    """Cut each channel to the readout window, zero-filling any overflow.
+
+    Drop-in replacement for ``channelReadoutWindowCutter.run``. Where the
+    readout window extends past the internal trace boundaries, the missing
+    region is filled with zeros instead of being wrapped cyclically. In FT
+    mode the readout FT-noise injection later covers those zeros with a real
+    noise realization.
+
+    Side effects:
+        Replaces each channel's trace and trace start time in place.
+    """
+    trigger = station.get_primary_trigger()
+    if trigger is None:
+        trigger = station.get_first_trigger()
+        if trigger is not None:
+            trigger.set_primary(True)
+
+    if trigger is None or not trigger.has_triggered():
+        return
+
+    trigger_time = trigger.get_trigger_time()
+
+    for channel in station.iter_channels():
+        channel_id = channel.get_id()
+        sampling_rate = channel.get_sampling_rate()
+        detector_sampling_rate = detector.get_sampling_frequency(
+            station.get_id(), channel_id)
+        detector_n_samples = detector.get_number_of_samples(
+            station.get_id(), channel_id)
+
+        number_of_samples, _ = _get_number_of_samples(
+            sampling_rate, detector_sampling_rate, detector_n_samples,
+            issue_error=True)
+
+        trace = channel.get_trace()
+        if number_of_samples > trace.shape[0]:
+            raise AttributeError(
+                f"Input has fewer samples ({trace.shape[0]}) "
+                f"than desired output ({number_of_samples}).")
+
+        pre_trigger_time = trigger.get_pre_trigger_time_channel(channel_id)
+        readout_start_time = trigger_time - pre_trigger_time
+        offset_time = readout_start_time - channel.get_trace_start_time()
+        start_sample = int(round(offset_time * sampling_rate))
+        end_sample = start_sample + number_of_samples
+
+        result = np.zeros(number_of_samples)
+        src_start = max(0, start_sample)
+        src_end = min(len(trace), end_sample)
+        if src_start < src_end:
+            dst_start = src_start - start_sample
+            result[dst_start:dst_start + (src_end - src_start)] = trace[src_start:src_end]
+
+        channel.set_trace(result, sampling_rate)
+        channel.set_trace_start_time(readout_start_time)
 
 
 def RNO_G_HighLow_Thresh(lgRate_per_hz):
@@ -122,18 +390,30 @@ if __name__ == "__main__":
         if isinstance(station, NuRadioReco.framework.sim_station.SimStation):
             return
 
-        # Inject FT noise into readout channels (stage 2)
-        if _noise_importer is not None:
-            _noise_importer.run(event, station, detector)
-            logger.debug("Stage 2: readout noise injected")
-
-        # ADC saturation clipping
-        if _adc_clip_range is not None:
-            lo, hi = _adc_clip_range
+        # Readout path: add a fresh FT realization directly at the native
+        # 3.2 GHz rate (the noise was recorded through the readout chain, so
+        # no readout->trigger transform is needed here). Independent from the
+        # tiles used for the trigger copies.
+        if _ft_noise_pool is not None:
+            ft_evt = _ft_noise_pool.get_noise_event()
             for channel in station.iter_channels():
-                trace = channel.get_trace()
+                ft_ch = ft_evt.get(channel.get_id())
+                if ft_ch is not None and len(channel.get_trace()) == len(ft_ch):
+                    channel.set_trace(
+                        channel.get_trace() + ft_ch,
+                        channel.get_sampling_rate())
+            logger.debug("Stage 2: readout FT noise injected")
+
+        # ADC saturation clipping. Per-channel asymmetric bounds from measured
+        # pedestals when a clip_thresholds file is loaded; otherwise the uniform
+        # range from the scalar pedestal_voltage.
+        if _adc_clip_per_channel is not None or _adc_clip_range is not None:
+            for channel in station.iter_channels():
+                lo, hi = _adc_clip_range
+                if _adc_clip_per_channel is not None:
+                    lo, hi = _adc_clip_per_channel.get(channel.get_id(), (lo, hi))
                 channel.set_trace(
-                    np.clip(trace, lo, hi),
+                    np.clip(channel.get_trace(), lo, hi),
                     channel.get_sampling_rate())
 
     simulation.channelResampler.run = resampler_with_noise_and_clip
@@ -145,7 +425,14 @@ if __name__ == "__main__":
                         help="NuRadioMC YAML config file")
     parser.add_argument("--station_id", type=int, required=True)
     parser.add_argument("--detector_file", '--det', type=str, default=None,
-                        help="Detector description file (default: query MongoDB)")
+                        help="Detector description file (default: RNOG_DETECTOR_FILE env var, "
+                             "else query MongoDB)")
+    parser.add_argument("--ch0_trigger_model",
+                        choices=["normal", "measured_8x", "measured_dead"], default="normal",
+                        help="st13 measured ch0 trigger model. measured_8x: ch0 count trace "
+                             "x1/8 + 4-count absolute floor (>=8x-suppressed trigger path from "
+                             "the daqstatus scaler bound). measured_dead: ch0 removed from the "
+                             "2-of-4 (conservative bracket). normal: standard 3.759-sigma ch0.")
 
     # Event generation
     parser.add_argument("--neutrino_file", type=str, default=None,
@@ -181,7 +468,12 @@ if __name__ == "__main__":
 
     # ADC pedestal
     parser.add_argument("--pedestal_voltage", type=float, default=DEFAULT_PEDESTAL_V,
-                        help="ADC pedestal voltage in V (default: 1.5)")
+                        help="ADC pedestal voltage in V (default: 1.5); uniform-clip fallback "
+                             "when --clip_thresholds is not given")
+    parser.add_argument("--clip_thresholds", type=str, default=None,
+                        help="YAML of per-channel ADC clip bounds {ch: [lo_mV, hi_mV]} "
+                             "(from pedestal_extraction/pedestal_analysis.py); per-channel "
+                             "asymmetric clip, overrides the uniform --pedestal_voltage clip")
 
     # Per-channel noise temperatures (workaround until DB has calibrated values)
     parser.add_argument("--noise_temperatures", type=str, default=None,
@@ -193,11 +485,17 @@ if __name__ == "__main__":
     parser.add_argument("--event_time", type=str, default="2022-10-01")
 
     args = parser.parse_args()
+    _ch0_trigger_model = args.ch0_trigger_model
 
     # Determine noise mode
     use_ft_noise = args.ft_noise_dir is not None
     if use_ft_noise:
         logger.info(f"Using measured FT noise from {args.ft_noise_dir}")
+        # Zero-pad readout-window overflow instead of the stock cyclic roll.
+        # Only in FT mode: the post-cut readout FT injection refills the
+        # zero region, whereas thermal mode has no post-cut noise stage and
+        # relies on the stock behavior.
+        simulation.channelReadoutWindowCutter.run = zero_padded_readout_window_cutter
     else:
         logger.info("Using thermal noise")
 
@@ -209,9 +507,12 @@ if __name__ == "__main__":
 
     _override_noise_false = use_ft_noise and config.get("noise", True)
 
-    # Detector
+    # Detector. The file path may come from --detector_file or, so the production config
+    # need not embed a detector-export path, from the RNOG_DETECTOR_FILE env var. If neither
+    # is set, the DB is queried at --event_time.
+    detector_file = args.detector_file or os.environ.get("RNOG_DETECTOR_FILE")
     det = rnog_detector.Detector(
-        detector_file=args.detector_file, log_level=logging.INFO,
+        detector_file=detector_file, log_level=logging.INFO,
         always_query_entire_description=False,
         select_stations=args.station_id)
 
@@ -237,6 +538,15 @@ if __name__ == "__main__":
                        adc_max - args.pedestal_voltage * units.V)
     logger.info(f"ADC clip range (pedestal={args.pedestal_voltage:.2f}V): "
                 f"[{_adc_clip_range[0]/units.mV:.0f}, {_adc_clip_range[1]/units.mV:.0f}] mV")
+
+    if args.clip_thresholds is not None:
+        with open(args.clip_thresholds) as f:
+            clip_data = yaml.safe_load(f)
+        _adc_clip_per_channel = {int(ch): (lo * units.mV, hi * units.mV)
+                                 for ch, (lo, hi) in clip_data["clip_thresholds_mV"].items()}
+        logger.info(f"Loaded per-channel ADC clip thresholds from {args.clip_thresholds} "
+                    f"(ch0 [{_adc_clip_per_channel[0][0]/units.mV:.0f}, "
+                    f"{_adc_clip_per_channel[0][1]/units.mV:.0f}] mV)")
 
     # Trigger thresholds
     high_low_trigger_thresholds = {
@@ -292,74 +602,18 @@ if __name__ == "__main__":
         post_pulse_time=2000 * units.ns,
     )
 
-    # FT noise importer (if using measured noise)
+    # FT noise pool (if using measured noise). The pool streams FORCE events
+    # from station{id}_run*.root, skips clean-mask-flagged and corrupt events,
+    # and cycles the file list so a pool smaller than n_events reuses
+    # realizations. The readout->trigger transform is applied in-script (see
+    # mySimulation), so no hardware-response handle is needed here.
     if use_ft_noise:
-        # Discover FT noise files explicitly (avoid recursive glob issues)
-        import glob as _glob
-        import uproot as _uproot
-        ft_dir = args.ft_noise_dir
-        ft_files = sorted(_glob.glob(os.path.join(ft_dir, "station*_run*.root")))
-        if not ft_files:
-            ft_files = sorted(_glob.glob(os.path.join(ft_dir, "run*/waveforms.root")))
-        if not ft_files:
-            raise FileNotFoundError(f"No FT ROOT files found in {ft_dir}")
-
-        # Validate files (skip corrupt ones that crash mattak)
-        valid_files = []
-        for f in ft_files:
-            try:
-                with _uproot.open(f) as rf:
-                    if "combined" in rf or "waveforms" in rf:
-                        valid_files.append(f)
-            except Exception:
-                pass
-        if len(valid_files) < len(ft_files):
-            logger.warning(f"Skipped {len(ft_files) - len(valid_files)} corrupt FT files")
-        ft_files = valid_files
-        logger.info(f"Found {len(ft_files)} valid FT noise files")
-
-        # Build event selectors (FORCE trigger + optional clean mask)
-        ft_selectors = [lambda einfo: einfo.triggerType == "FORCE"]
-        if args.ft_clean_mask is not None:
-            mask_data = np.load(args.ft_clean_mask)
-            if 'station_id' in mask_data:
-                mask_station = int(mask_data['station_id'])
-                if mask_station != args.station_id:
-                    logger.warning(f"Clean mask is for station {mask_station}, "
-                                   f"but simulating station {args.station_id}")
-            flagged = set()
-            for r, e, c in zip(mask_data['runNum'], mask_data['eventNum'],
-                               mask_data['is_clean']):
-                if c == 0:
-                    flagged.add((int(r), int(e)))
-            ft_selectors.append(
-                lambda einfo, _f=flagged: (einfo.run, einfo.eventNumber) not in _f)
-            logger.info(f"Clean mask: excluding {len(flagged)} flagged FT events")
-
-        _noise_importer_instance = noiseImporter()
-        _noise_importer_instance.begin(
-            noise_files=ft_files,
-            match_station_id=True,
-            scramble_noise_file_order=True,
-            random_seed=args.ft_seed,
-            inject_trigger_copies=True,
-            trigger_channels=DEEP_TRIGGER_CHANNELS,
-            hardware_response_incorporator=hw_resp,
-            reader_kwargs={
-                "selectors": ft_selectors,
-                "select_runs": False,
-                "convert_to_voltage": True,
-                "apply_baseline_correction": "median",
-            },
+        _ft_noise_pool = FTNoisePool(
+            ft_dir=args.ft_noise_dir,
+            station_id=args.station_id,
+            seed=args.ft_seed,
+            clean_mask_path=args.ft_clean_mask,
         )
-        _noise_importer = _noise_importer_instance
-
-        n_pool = _noise_importer.n_events_available
-        if args.n_events > n_pool:
-            logger.warning(
-                f"FT noise pool ({n_pool} events) is smaller than n_events "
-                f"({args.n_events}). Noise events will be reused. Consider "
-                f"adding more FT data to reduce repetition.")
 
     # Fiducial volume + zenith range: CLI overrides config, config overrides defaults
     fid_config = config.get("fiducial_volume", {})
@@ -396,6 +650,13 @@ if __name__ == "__main__":
 
         def __init__(self, *args_init, **kwargs_init):
             """Set up noise wrapper and configure efield converter padding."""
+            # Set before super().__init__(): the parent constructor runs
+            # _detector_simulation_filter_amp on a dummy event (noise-level
+            # normalization), which for FT mode already reaches the trigger-copy
+            # injection and the transfer cache.
+            self.event_log = []
+            self._readout_to_trigger_transfer = {}
+
             if not use_ft_noise:
                 tmp_config = simulation.get_config(kwargs_init["config_file"])
                 noise_temp = tmp_config['trigger']['noise_temperature']
@@ -425,8 +686,6 @@ if __name__ == "__main__":
                 post_pulse_time=2000 * units.ns,
             )
 
-            self.event_log = []
-
         def _detector_simulation_filter_amp(self, evt, station, det_arg):
             """Apply hardware response with padding, then inject FT trigger noise."""
             is_sim = isinstance(station, NuRadioReco.framework.sim_station.SimStation)
@@ -454,13 +713,62 @@ if __name__ == "__main__":
                     channel.get_trace()[:N],
                     channel.get_sampling_rate())
 
-            if is_sim:
+            if is_sim or _ft_noise_pool is None:
                 return
 
-            # Stage 1: inject FT noise into trigger copies only (at 5 GHz).
-            if _noise_importer is not None:
-                _noise_importer.run(evt, station, det_arg, trigger_copies_only=True)
-                logger.debug("Stage 1: trigger copy noise injected")
+            # Stage 1: inject FT noise into the trigger copies (ch 0-3) at the
+            # 5 GHz internal rate. Upsample FT tiles and Hann overlap-add them
+            # to span the full internal trace, then transform readout->trigger
+            # via the hardware-response ratio.
+            n_internal = len(next(station.iter_channels()).get_trace())
+            n_up = int(round(2048 * (5.0 / 3.2)))  # one FT event upsampled to 5 GHz
+            stride = n_up - TILE_OVERLAP
+            n_tiles = max(1, int(np.ceil(n_internal / stride)))
+            ft_events = [_ft_noise_pool.get_noise_event() for _ in range(n_tiles)]
+
+            for channel in station.iter_channels():
+                ch_id = channel.get_id()
+                if (ch_id not in DEEP_TRIGGER_CHANNELS
+                        or not channel.has_extra_trigger_channel()):
+                    continue
+
+                tiles = [upsample_trace(ft_evt[ch_id], n_up)
+                         for ft_evt in ft_events if ch_id in ft_evt]
+                if not tiles:
+                    continue
+
+                noise = tile_noise_overlap_add(tiles, n_internal)
+                transfer = self._get_readout_to_trigger_transfer(
+                    ch_id, n_internal, det_arg, station.get_id())
+                trig_noise = np.fft.irfft(np.fft.rfft(noise) * transfer, n=n_internal)
+
+                trig_ch = channel.get_trigger_channel()
+                trig_trace = trig_ch.get_trace()
+                n_trig = len(trig_trace)
+                trig_ch.set_trace(trig_trace + trig_noise[:n_trig],
+                                  trig_ch.get_sampling_rate())
+            logger.debug("Stage 1: trigger copy FT noise injected")
+
+        def _get_readout_to_trigger_transfer(self, ch_id, n_samples, det_arg, station_id):
+            """Return the cached readout->trigger transfer (trigger/readout filter ratio).
+
+            FT noise carries the readout signal chain; the trigger copies need
+            trigger-path noise. The ratio is evaluated on an ``n_samples`` rfft
+            grid at the 5 GHz internal rate and regularized where the readout
+            response is near zero.
+            """
+            key = (ch_id, n_samples)
+            if key not in self._readout_to_trigger_transfer:
+                ff = np.fft.rfftfreq(n_samples, d=1.0 / (5.0 * units.GHz))
+                readout = hw_resp.get_filter(
+                    ff, station_id, ch_id, det_arg, sim_to_data=True, is_trigger=False)
+                trigger = hw_resp.get_filter(
+                    ff, station_id, ch_id, det_arg, sim_to_data=True, is_trigger=True)
+                readout_abs = np.abs(readout)
+                max_r = np.max(readout_abs)
+                safe_readout = np.where(readout_abs > 1e-3 * max_r, readout, max_r)
+                self._readout_to_trigger_transfer[key] = trigger / safe_readout
+            return self._readout_to_trigger_transfer[key]
 
         def _detector_simulation_trigger(self, evt, station, det_arg):
             """Run FLOWER trigger (triggerBoardResponse + highLowThreshold) and log results."""
@@ -483,6 +791,27 @@ if __name__ == "__main__":
                                   for ch, vrms in zip(DEEP_TRIGGER_CHANNELS, vrms_after_gain)}
                 threshold_low = {ch: int(round(-threshold * vrms))
                                  for ch, vrms in zip(DEEP_TRIGGER_CHANNELS, vrms_after_gain)}
+
+                if _ch0_trigger_model != "normal":
+                    # Measured st13 ch0 trigger model (daqstatus servo + Task B harness): ch0
+                    # runs at an absolute 4-count floor on an >=8x-suppressed trigger path.
+                    # Cast the trigger count traces to float so the fractional 1/8-scaled ch0
+                    # and float thresholds satisfy get_high_low_triggers' dtype==type check
+                    # (int-trace/int-threshold gives identical crossings, so ch1-3 are
+                    # unchanged). ch1-3 stay at their 3.759-sigma count thresholds.
+                    for _ch in DEEP_TRIGGER_CHANNELS:
+                        _tc = station.get_trigger_channel(_ch)
+                        _tc.set_trace(_tc.get_trace().astype(np.float64), _tc.get_sampling_rate())
+                    threshold_high = {ch: float(v) for ch, v in threshold_high.items()}
+                    threshold_low = {ch: float(v) for ch, v in threshold_low.items()}
+                    if _ch0_trigger_model == "measured_8x":
+                        _t0 = station.get_trigger_channel(0)
+                        _t0.set_trace(_t0.get_trace() / 8.0, _t0.get_sampling_rate())
+                        threshold_high[0] = 4.0
+                        threshold_low[0] = -4.0
+                    elif _ch0_trigger_model == "measured_dead":
+                        threshold_high[0] = 1.0e9
+                        threshold_low[0] = -1.0e9
 
                 trigger_sim.run(
                     evt, station, det_arg,

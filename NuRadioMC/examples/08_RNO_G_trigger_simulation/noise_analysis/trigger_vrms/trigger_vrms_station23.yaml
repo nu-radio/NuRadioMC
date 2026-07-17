@@ -1,11 +1,15 @@
 trigger_vrms_V:
-  0: 0.004303603662497474
-  1: 0.0051208517568708135
-  2: 0.004200548272436807
-  3: 0.002986970413144379
+  0: 0.004102
+  1: 0.004627
+  2: 0.003703
+  3: 0.002625
 metadata:
   station_id: 23
   event_time: '2022-10-01'
-  n_events: 100
-  seed: 42
-  ft_noise_dir: /storage/group/szw5718/default/rno-g/data/forced_triggers/station23
+  transfer: trigger_DB / readout_DB
+  measurement: >
+    200-realization trigger-path FT-noise std (measure_trigger_vrms.py), 2022 pool; per
+    channel
+  note: >
+    DB-transfer values; for the calibrated season-2022 readout detector description use
+    trigger_vrms_station23_calibrated.yaml

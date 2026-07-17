@@ -1,0 +1,12 @@
+trigger_vrms_V:
+  0: 5.0408e-3
+  1: 6.0087e-3
+  2: 3.2731e-3
+  3: 3.8167e-3
+metadata:
+  station_id: 12
+  event_time: '2022-10-01'
+  transfer: trigger_DB / readout_DB
+  measurement: >
+    full-FT-pool trigger-path Vrms (measure_trigger_vrms_full.py +
+    submit_measure_vrms.sh), clean-masked 2022 pool; median per channel

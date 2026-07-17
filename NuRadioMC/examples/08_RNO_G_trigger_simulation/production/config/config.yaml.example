@@ -1,0 +1,71 @@
+sim_script: /path/to/NuRadioMC/examples/08_RNO_G_trigger_simulation/simulate.py
+sim_config: /path/to/NuRadioMC/examples/08_RNO_G_trigger_simulation/RNO_config.yaml
+python_bin: python3
+pythonpath: /path/to/NuRadioMC_checkout_root
+env_setup: ""
+
+data_dir: /path/to/output/production
+
+station_id: 23
+detector_file: ""
+event_time: "2022-10-01"
+
+ft_noise_dir: /path/to/forced_triggers/station23
+ft_clean_mask: /path/to/clean_mask_station23.npz
+trigger_vrms: /path/to/trigger_vrms_station23.yaml
+clip_thresholds: /path/to/clip_thresholds_station23.yaml
+pedestal_voltage: 1.5
+fiducial_rmax: ""
+
+flavor: e
+interaction_type: nc
+ch0_trigger_model: normal
+ft_seed_base: 2026042400
+
+target_triggers_per_bin: 40000
+safety_margin: 1.5
+
+# Optional per-bin triggered target overrides (defaults to target_triggers_per_bin).
+# Use when a bin's achievable clean-rate ceiling is below the global target.
+# target_per_bin:
+#   "16.0": 5500
+
+energies:
+  - "16.0"
+  - "16.5"
+  - "17.0"
+  - "17.5"
+  - "18.0"
+  - "18.5"
+  - "19.0"
+
+trigger_rates:
+  "16.0": 0.0010
+  "16.5": 0.0132
+  "17.0": 0.0427
+  "17.5": 0.0866
+  "18.0": 0.1217
+  "18.5": 0.1471
+  "19.0": 0.1643
+
+thrown_per_chunk:
+  "16.0": 30000
+  "16.5": 30000
+  "17.0": 6000
+  "17.5": 4500
+  "18.0": 3500
+  "18.5": 3000
+  "19.0": 2500
+
+slurm_resources:
+  "16.0": {mem_mb: 4500, runtime_min: 240}
+  "16.5": {mem_mb: 4500, runtime_min: 240}
+  "17.0": {mem_mb: 4500, runtime_min: 90}
+  "17.5": {mem_mb: 4500, runtime_min: 90}
+  "18.0": {mem_mb: 4500, runtime_min: 120}
+  "18.5": {mem_mb: 4500, runtime_min: 120}
+  "19.0": {mem_mb: 4500, runtime_min: 150}
+
+accounts:
+  - {account: account_a, partition: partition_a, weight: 100}
+  - {account: account_b, partition: partition_b, weight: 100}

@@ -1,0 +1,17 @@
+executor: slurm
+jobs: 200
+
+keep-going: true
+rerun-incomplete: true
+restart-times: 2
+latency-wait: 60
+printshellcmds: true
+verbose: false
+show-failed-logs: true
+
+default-resources:
+  mem_mb: 4500
+  runtime: 60
+  cpus_per_task: 1
+  slurm_account: account_a
+  slurm_partition: partition_a

@@ -1,0 +1,19 @@
+trigger_vrms_V:
+  0: 3.247549e-3
+  1: 2.385429e-3
+  2: 1.643651e-3
+  3: 1.948858e-3
+metadata:
+  station_id: 23
+  event_time: '2022-10-01'
+  transfer: trigger_DB / readout_CALIBRATED
+  provenance: >
+    Full-FT-pool trigger-path Vrms measured with the calibrated season-2022 readout
+    response in the injection transfer (calibration is readout-only, so trigger stays DB
+    and the transfer becomes trigger_DB/readout_CALIBRATED). measure_trigger_vrms_full.py,
+    clean-masked station-23 FT pool (317,340 events, 507 runs). Median per channel;
+    run-to-run std ch0 0.049 / ch1 0.054 / ch2 0.033 / ch3 0.042 mV.
+  note: >
+    st23 values sit below the DB-transfer baseline because the calibrated readout is louder
+    than DB (calib/DB 1.4-2.5), so trigger_DB/readout_CALIBRATED is smaller. No ch0 model:
+    st23 ch0 is a healthy trigger channel (daqstatus scaler ~671 Hz).
