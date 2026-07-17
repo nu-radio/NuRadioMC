@@ -1,0 +1,21 @@
+noise: False 
+sampling_rate: 5.  # sampling rate in GHz used internally in the simulation. At the end the waveforms will be downsampled to the sampling rate specified in the detector description
+
+speedup:
+  delta_C_cut: 3.14159  # no cut, since it can cause jumps in the likelihood landscape
+  min_efield_amplitude: 0  # no cut, since it can cause jumps in the likelihood landscape
+  distance_cut: False # no cut, since it can cause jumps in the likelihood landscape
+
+propagation:
+  module: analytic
+  ice_model: greenland_simple
+  attenuation_model: SP1
+  attenuate_ice: True
+  n_freq: 25
+  focusing: False
+  focusing_limit: 2
+  n_reflections: 0
+  birefringence: False
+
+signal:
+  model: Alvarez2009 # deterministic Askaryan model, which is needed for likelihood optimization

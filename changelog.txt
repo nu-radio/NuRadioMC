@@ -4,6 +4,8 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Added automatic test coverage measurement to CI. Coverage is combined across all test jobs and reported as a PR
+  comment and a README badge; see the "Test coverage" section of the contributing guide for details.
 - Store shower Xmax in simulated shower when simulating with ARZ Askaryan emission models.
 - Added the option to use custom (user-specified) amplifiers. Custom amplifiers can be provided as .csv files
   under NuRadioReco/detector/amps/custom.
@@ -15,6 +17,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Improved simulation of galactic noise with the channelGalacticNoiseAdder for deep in-ice antennas: I) take into account attenuation (small effect),
   II) more realistic treatment of refraction, calculate refraction through the firn layer and not only on the ice-air boundary (changes effective angle
   at the antenna and thus has, depending on the antenna model a noticeable effect on signal strength in antenna)
+- Likelihood-based reconstruction modules, including minimization and matched filter classes. Specialized reconstruction modules for electric fields and
+  in-ice neutrino showers are implemeted. See https://arxiv.org/abs/2510.21925 and documentation for details.
+- Improve time_logger functionality - yielding significant reduction in simulation time (25-40%). Smaller improvements to logging.
 
 bugfixes:
 - Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.
@@ -23,6 +28,9 @@ bugfixes:
 deprecations:
 - Remove default values for `use_channels` and `bandpass` in voltageToAnalyticEfieldConverter.py and voltageToEfieldConverter.py which were suitable for ARIANNA.
   Now, the arguments are required and an error is raised when they are not set.
+- Replaced the readCoREASShower module with the readCoREAS module. readCoREAS returns a single station (id 0) holding all
+  CoREAS observers as electric fields; use an event_builder helper (see the examples) to organize the observers into
+  per-observer stations. The examples read_full_CoREAS_shower.py and RIT_sim_air_shower_reconstruction.py were updated accordingly.
 
 version 3.1.1
 new features:
@@ -51,6 +59,8 @@ new features:
 - Added analytic VPol and HPol antenna model approximations
 
 bugfixes:
+- Fixed raytracing from air to ice and vice versa. Only supported by python
+and numba implementation. (Note that the calculation of the focussing factor was not thoroughly tested.)
 - Fixed the core parameter in Events created by the readCoREASDetector module not being 3-dimensional
 - Convert list of channel ids to tuple in efield.get_unique_identifier() to make it hashable
 - Fixed discrepancy in index of refraction (NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction) when calling with 1D vs. 2D array

@@ -477,6 +477,14 @@ class Detector():
         ----------
         time: `datetime.datetime` or ``astropy.time.Time``
             Unix time of measurement.
+
+        Returns
+        -------
+
+        updated: bool
+            True if the detector description was (re-)queried from the database because the
+            detector time moved into a new period. False if the buffered description was still
+            valid and no update was necessary.
         """
         if isinstance(time, astropy.time.Time):
             time = _convert_astro_time_to_datetime(time)
@@ -489,7 +497,7 @@ class Detector():
             self.__db.set_detector_time(time)
 
         update_buffer_for_station = self._check_update_buffer()
-        any_update = np.any([v for v in update_buffer_for_station.values()])
+        any_update = bool(np.any([v for v in update_buffer_for_station.values()]))
 
         if self._det_imported_from_file and any_update:
             self.logger.warning(f"Update detector to {time}")
@@ -512,14 +520,15 @@ class Detector():
         # Return when buffer is not empty. This has to come first ...
         for station_id in self.__buffered_stations:
             if len(self.__buffered_stations[station_id]):
-                return
+                return any_update
 
         # ... and than second
         if len(self.__buffered_stations):
-            return
+            return any_update
 
         # When you reach this point something went wrong ...
         self.logger.warning(f"Empty detector for {time}!")
+        return any_update
 
 
     @_check_detector_time
@@ -1448,7 +1457,7 @@ class Detector():
                                     log_level=self.__log_level)
 
                 weight = component_dic.get("weight", 1)
-                time_delay += weight * response._calculate_time_delay()
+                time_delay += weight * response.calculate_time_delay()
 
         return time_delay
 
