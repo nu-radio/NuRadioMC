@@ -16,13 +16,13 @@ def get_effective_index_birefringence(direction, nx, ny, nz):
     Parameters
     ----------
     direction: numpy.array
-        propagation direction of the wave
+        Propagation direction of the wave
     nx: float
-        the index of refraction in the x-direction
+        The index of refraction in the x-direction
     ny: float
-        the index of refraction in the y-direction
+        The index of refraction in the y-direction
     nz: float
-        the index of refraction in the z-direction
+        The index of refraction in the z-direction
 
     Returns
     -------
@@ -35,16 +35,16 @@ def get_effective_index_birefringence(direction, nx, ny, nz):
     sz = direction[2]
 
     n1 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) /
-                    (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2))
-                    - np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2)
+                 (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2))
+                  - np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2)
                                                                 + ny ** 2 * (-1 + sx ** 2 + sz ** 2)
                                                                 + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2))
                                                                 + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2)
                                                                 + nx ** 2 * (nz ** 2 * ( - 1 + sy ** 2)
                                                                 + ny ** 2 * ( - 1 + sz ** 2))) ** 2)))
     n2 = np.sqrt((-2 * nx ** 2 * ny ** 2 * nz ** 2) /
-                    (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2))
-                    + np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2)
+                 (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2) + nx ** 2 * (nz ** 2 * ( -1 + sy ** 2) + ny ** 2 * ( - 1 + sz ** 2))
+                  + np.sqrt(4 * nx ** 2 * ny ** 2 * nz ** 2 * (nz ** 2 * ( - 1 + sx ** 2 + sy ** 2)
                                                                 + ny ** 2 * (-1 + sx ** 2 + sz ** 2)
                                                                 + nx ** 2 * ( - 1 + sy ** 2 + sz ** 2))
                                                                 + (ny ** 2 * nz ** 2 * ( - 1 + sx ** 2)
@@ -65,15 +65,15 @@ def get_polarization_birefringence_simple(n, direction, nx, ny, nz):
     Parameters
     ----------
     n: float
-        the effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+        The effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
     direction: numpy.array
-        propagation direction of the wave
+        Propagation direction of the wave
     nx: float
-        the index of refraction in the x-direction
+        The index of refraction in the x-direction
     ny: float
-        the index of refraction in the y-direction
+        The index of refraction in the y-direction
     nz: float
-        the index of refraction in the z-direction
+        The index of refraction in the z-direction
 
     Returns
     -------
@@ -97,17 +97,19 @@ def get_polarization_birefringence(N1, N2, direction, nx, ny, nz, logger=None):
     Parameters
     ----------
     N1: float
-        the first effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+        The first effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
     N2: float
-        the second effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
+        The second effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
     direction: numpy.array
-        propagation direction of the wave
+        Propagation direction of the wave
     nx: float
-        the index of refraction in the x-direction
+        The index of refraction in the x-direction
     ny: float
-        the index of refraction in the y-direction
+        The index of refraction in the y-direction
     nz: float
-        the index of refraction in the z-direction
+        The index of refraction in the z-direction
+    logger: logging.Logger, optional
+        If given, used to warn if the polarization vectors are not computable
 
     Returns
     -------
@@ -197,11 +199,11 @@ def on_sky_birefringence(theta, phi, polarization):
     Parameters
     ----------
     theta: float
-        zenith angle of the propagation direction
+        Zenith angle of the propagation direction
     phi: float
-        azimuth angle of the propagation direction
+        Azimuth angle of the propagation direction
     polarization: np.array([px, py, pz])
-        normalized e-field vector in cartesian coordinates
+        Normalized e-field vector in cartesian coordinates
 
     Returns
     -------

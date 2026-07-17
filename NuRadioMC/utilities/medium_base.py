@@ -423,7 +423,7 @@ class IceModelExponentialPolynomial(IceModel):
     """
     def __init__(self, a, z_0, z_shift=0 * units.meter, z_air_boundary=0 * units.meter, z_bottom=None,
                  density_factor=0.8506 * (units.cm**3 / units.gram)):
-        """
+        r"""
         Initiation of an exponential polynomial ice model.
 
         .. math::
@@ -448,7 +448,8 @@ class IceModelExponentialPolynomial(IceModel):
         z_0: float, NuRadio length units
             scale depth of the exponential
 
-        [optional]
+        Other Parameters
+        ----------------
         z_shift: float, NuRadio length units
             up or down shift od the exponential profile
         z_air_boundary: float, NuRadio length units

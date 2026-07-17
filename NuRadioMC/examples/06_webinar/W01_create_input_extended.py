@@ -110,7 +110,7 @@ flavor = [12, -12, 14, -14, 16, -16]
 Simulations of effective volumes should contain around hundreds of thousands or
 millions of events to have large enough statistics. We recommend the use of
 clusters to simulate each energy bin separately, and the compilation of the
-C++ version of the ray tracer (see SignalProp/CPPAnalyticRayTracing/README.md).
+C++ version of the ray tracer (see SignalProp/AnalyticRayTracing/CPPAnalyticRayTracing/README.md).
 But sometimes, if the array is too large or the detector is so complex that its
 simulation takes more time than what is desirable, we can use the argument
 n_events_per_file to split the files. Let us choose 250 events per file:

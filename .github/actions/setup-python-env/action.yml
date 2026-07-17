@@ -11,6 +11,9 @@ inputs:
   restore-only:
     description: 'If true, only restore from cache (i.e. never saves/overwrites the cache)'
     default: true
+  raise-deprecations:
+    description: 'Turn deprecation warnings into errors'
+    default: true
 
 runs:
   using: 'composite'
@@ -45,9 +48,15 @@ runs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
-        pip install -e .[proposal,galacticnoise,cr_interpolator]
+        pip install -e .[proposal,galacticnoise,cr_interpolator,minimizers]
 
     - name: Display installed Python modules
       shell: bash
       run: |
         pip list
+
+    - name: Raise errors from DeprecationWarning
+      if: inputs.raise-deprecations
+      shell: bash
+      run: |
+        echo "PYTHONWARNINGS=error::DeprecationWarning,ignore:invalid escape sequence:DeprecationWarning" >> "$GITHUB_ENV"

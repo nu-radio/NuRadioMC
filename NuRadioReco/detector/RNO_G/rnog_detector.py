@@ -969,6 +969,9 @@ class Detector():
                 # if is_equal and component_entry["collection"] == "drab_board":
                 #     continue
 
+                if "collection" not in component_entry:
+                    component_entry["collection"] = "default"
+
                 if component_entry['collection'] == "gain_calibration":
                     ydata = component_entry["gain_factor"]
                     y_units = component_entry["gain_factor_unit"]
@@ -1445,7 +1448,7 @@ class Detector():
                                     log_level=self.__log_level)
 
                 weight = component_dic.get("weight", 1)
-                time_delay += weight * response._calculate_time_delay()
+                time_delay += weight * response.calculate_time_delay()
 
         return time_delay
 

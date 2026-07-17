@@ -95,6 +95,25 @@ class ParameterStorage:
         self._check_key(key)
         return (key, key) in self._parameter_covariances
 
+    def set_parameter_covariance(self, key1, key2, value):
+        """ Set the covariance of two parameters """
+        self._check_key(key1)
+        self._check_key(key2)
+        self._parameter_covariances[(key1, key2)] = value
+        self._parameter_covariances[(key2, key1)] = value
+
+    def get_parameter_covariance(self, key1, key2):
+        """ Get the covariance of two parameters """
+        self._check_key(key1)
+        self._check_key(key2)
+        return self._parameter_covariances[(key1, key2)]
+
+    def has_parameter_covariance(self, key1, key2):
+        """ Returns `True` if the covariance for `key1` and `key2` is present, `False` otherwise """
+        self._check_key(key1)
+        self._check_key(key2)
+        return (key1, key2) in self._parameter_covariances
+
     def remove_parameter(self, key):
         """ Remove a parameter """
         self._check_key(key)

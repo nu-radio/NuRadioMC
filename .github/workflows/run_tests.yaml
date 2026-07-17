@@ -87,6 +87,11 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
         cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
+    - name: Cache CI Data
+      uses: ./.github/actions/cache-ci-data
+      with:
+        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
+
     - name: "Validate separate trigger channels"
       if: always()
       run: |
@@ -130,6 +135,11 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
         cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
+    - name: Cache CI Data
+      uses: ./.github/actions/cache-ci-data
+      with:
+        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
+
     - name: Signal generation test
       if: always()
       run : |
@@ -167,6 +177,11 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache-key: ${{ needs.setup.outputs.env-cache-key }}
+    
+    - name: Cache CI Data
+      uses: ./.github/actions/cache-ci-data
+      with:
+        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
 
     - name: "Veff test"
       if: always()
@@ -204,7 +219,7 @@ jobs:
     - name: Cache CI Data
       uses: ./.github/actions/cache-ci-data
       with:
-        cache-key: ${{ needs.setup.outputs.data-cache-key }}
+        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
 
     - name: "RNO-G Detector"
       if: always()
@@ -220,7 +235,7 @@ jobs:
     - name: "RNO-G simulation example"
       if: always()
       run: |
-        python3 NuRadioMC/examples/RNO_G_trigger_simulation/simulate.py --station_id 11 -e 1e19 -n 2000
+        NuRadioMC/test/examples/test_rnog_trigger_simulation.sh
 
   other-tests:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
@@ -238,6 +253,12 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache-key: ${{ needs.setup.outputs.env-cache-key }}
+  
+    - name: Cache CI Data
+      uses: ./.github/actions/cache-ci-data
+      with:
+        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
+
 
     - name: "channelGalacticNoiseAdder"
       if: always()
@@ -269,6 +290,13 @@ jobs:
       run: |
         NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
 
+    - name: "Test likelihood reconstruction examples"
+      if: always()
+      run: |
+        python NuRadioReco/examples/likelihood_reconstruction/toy_signal_likelihood_fit_and_matched_filter.py
+        python NuRadioReco/test/likelihood_reconstruction/test_efield_reconstruction.py
+        python NuRadioReco/test/likelihood_reconstruction/test_neutrino_reconstruction.py
+
   examples:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
@@ -289,7 +317,7 @@ jobs:
     - name: Cache CI Data
       uses: ./.github/actions/cache-ci-data
       with:
-        cache-key: ${{ needs.setup.outputs.data-cache-key }}
+        cache-key: ${{ needs.setup.outputs.data-cache-key }}-${{ github.job }}
 
     - name: "Test Veff example"
       if: always()

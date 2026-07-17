@@ -45,6 +45,9 @@ for iX, x in enumerate(points):
 # with open("reference_C0.pkl", "wb") as fout:
 #     pickle.dump(results_C0s_cpp, fout)
 results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0.pkl", encoding='latin1')
-testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref)
+# rtol is loosened from the numpy default (1e-7) because the C++ raytracer relies on GSL root
+# finding, whose last-bit behavior differs slightly across platforms/GSL versions (observed
+# relative differences up to ~1.4e-7 between macOS and the reference values).
+testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref, rtol=1e-6)
 
 print('T05unit_test_c0_SP passed without issues')
