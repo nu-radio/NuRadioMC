@@ -87,6 +87,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Contributing to NuRadioMC</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#installing-nuradiomc-for-developers">Installing NuRadioMC for developers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#workflow">Workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-coverage">Test coverage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coding-conventions">Coding conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#how-to">How to</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#writing-docstrings">Writing docstrings</a></li>
@@ -722,6 +723,22 @@ does not break anything, the new code is correctly documented, and NuRadioMC can
 even if it has been approved, so that other developers may also have a look - they might find something the first reviewer
 missed!</strong></p></li>
 </ul>
+</section>
+<section id="test-coverage">
+<h2>Test coverage<a class="headerlink" href="#test-coverage" title="Link to this heading"></a></h2>
+<p>Every CI run measures Python code coverage across all of the <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/actions/workflows/run_tests.yaml">test jobs</a>.
+Since most tests invoke plain scripts rather than a single <code class="docutils literal notranslate"><span class="pre">pytest</span></code> run, coverage is collected via
+<a class="reference external" href="https://coverage.readthedocs.io/en/latest/subprocess.html">coverage.py’s subprocess measurement</a>: the shared
+<code class="docutils literal notranslate"><span class="pre">setup-python-env</span></code> action (<code class="docutils literal notranslate"><span class="pre">.github/actions/setup-python-env</span></code>) installs a <code class="docutils literal notranslate"><span class="pre">.pth</span></code> hook that transparently starts
+coverage in every Python process spawned during a job. Each job uploads its own coverage data as an artifact
+(<code class="docutils literal notranslate"><span class="pre">.github/actions/upload-coverage-data</span></code>); a final <code class="docutils literal notranslate"><span class="pre">coverage</span></code> job in <code class="docutils literal notranslate"><span class="pre">main.yaml</span></code> combines all of them and reports
+the result using <a class="reference external" href="https://github.com/py-cov-action/python-coverage-comment-action">python-coverage-comment-action</a>,
+which:</p>
+<ul class="simple">
+<li><p>posts a comment on pull requests showing diff coverage (whether the lines changed in the PR are covered by tests),</p></li>
+<li><p>updates the coverage badge and HTML report on the <code class="docutils literal notranslate"><span class="pre">python-coverage-comment-action-data</span></code> branch after each push to <code class="docutils literal notranslate"><span class="pre">develop</span></code>.</p></li>
+</ul>
+<p>Coverage measurement is currently informational only - it does not block merging on a minimum threshold.</p>
 </section>
 <section id="coding-conventions">
 <h2>Coding conventions<a class="headerlink" href="#coding-conventions" title="Link to this heading"></a></h2>
