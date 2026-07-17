@@ -1316,7 +1316,7 @@ class simulation:
             self._integrated_channel_response_normalization[station_id] = {}
             self._max_amplification_per_channel[station_id] = {}
 
-            for channel_id in self._det.get_channel_ids(station_id):
+            for channel_id in np.sort(self._det.get_channel_ids(station_id)):
                 ff = np.linspace(0, 0.5 * self._config['sampling_rate'], 10000)
                 filt = np.ones_like(ff, dtype=complex)
                 for i, (name, instance, kwargs) in enumerate(evt.iter_modules(station_id)):
