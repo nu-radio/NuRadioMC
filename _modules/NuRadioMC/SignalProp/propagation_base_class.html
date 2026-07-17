@@ -782,6 +782,59 @@
                     <span class="s2">&quot;not have any reflective layer, setting number of reflections to zero.&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_n_reflections</span> <span class="o">=</span> <span class="mi">0</span>
 
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_use_cpp_and_numba</span><span class="p">(</span><span class="n">use_cpp</span><span class="p">,</span> <span class="n">compile_numba</span><span class="p">,</span> <span class="n">cpp_available</span><span class="p">,</span> <span class="n">numba_available</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decides whether the CPP or the numba-accelerated python backend should be used, given what</span>
+<span class="sd">        the caller requested and what is actually available, and logs the resolved choice.</span>
+
+<span class="sd">        This is shared so that ray tracers offering a CPP/numba backend (e.g. the analytic ray</span>
+<span class="sd">        tracer&#39;s `ray_tracing` and `ray_tracing_2D`) don&#39;t each have to duplicate this decision.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        use_cpp: bool or None</span>
+<span class="sd">            backend explicitly requested by the caller. If None, CPP is used whenever available.</span>
+<span class="sd">        compile_numba: bool or None</span>
+<span class="sd">            whether to numba-compile the python fallback backend. Only relevant if `use_cpp`</span>
+<span class="sd">            (after resolution) is False. If None, numba is used whenever available.</span>
+<span class="sd">        cpp_available: bool</span>
+<span class="sd">            whether the CPP extension could be imported (or compiled on the fly)</span>
+<span class="sd">        numba_available: bool</span>
+<span class="sd">            whether the numba package is available</span>
+<span class="sd">        logger: logging.Logger</span>
+<span class="sd">            logger used to announce the resolved backend / raise warnings</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        use_cpp: bool</span>
+<span class="sd">        compile_numba: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">use_cpp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">use_cpp</span> <span class="o">=</span> <span class="n">cpp_available</span>
+
+        <span class="k">if</span> <span class="n">use_cpp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">cpp_available</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;C++ raytracer was explicitly requested, but is not available (i.e. on-the-fly compilation failed). &#39;</span>
+                   <span class="s1">&#39;Abort.... ! Either fix the compilation or set use_cpp to False. &#39;</span>
+                   <span class="s1">&#39;For compilation see NuRadioMC/SignalProp/install.sh resp. NuRadioMC/SignalProp/CPPAnalyticRayTracing.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">use_cpp</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Using CPP version of ray tracer&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span>  <span class="c1"># compile_numba is irrelevant when using the CPP backend</span>
+
+        <span class="k">if</span> <span class="n">cpp_available</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;C++ raytracer is available, but Python raytracer was requested. Using Python raytracer&#39;</span><span class="p">)</span>
+
+        <span class="n">compile_numba</span> <span class="o">=</span> <span class="n">numba_available</span> <span class="k">if</span> <span class="n">compile_numba</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="n">compile_numba</span> <span class="ow">and</span> <span class="n">numba_available</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">compile_numba</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Using python with numba version of ray tracer&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Using python without numba version of ray tracer&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">compile_numba</span>
+
 <div class="viewcode-block" id="ray_tracing_base.reset_solutions">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.reset_solutions">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset_solutions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
