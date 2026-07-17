@@ -54,7 +54,7 @@ Output goes to `data_dir` (set in config):
 | `trigger_vrms` | YAML of trigger-path Vrms per channel (empty lets the sim default). Stations 13 and 23 use `trigger_vrms_station{13,23}_calibrated.yaml`, which pair with the calibrated season-2022 readout detector description; the other stations' `trigger_vrms_station{NN}.yaml` carry DB-transfer values |
 | `clip_thresholds` | YAML of per-channel ADC clip bounds; use the `pedestal_extraction/clip_thresholds_station{station_id}.yaml` matching `station_id` (empty falls back to the uniform `pedestal_voltage` clip). The shipped per-station YAMLs carry the measured 2022 values used in production |
 | `pedestal_voltage` | ADC pedestal voltage in volts; the uniform-clip fallback when `clip_thresholds` is empty |
-| `fiducial_rmax` | optional override of the config fiducial-volume max radius in m (restricts the throw volume to raise the trigger fraction); empty uses the `sim_config` volume |
+| `fiducial_rmax` | selects the near-surface CR-proxy fiducial volume with this radius in m (see the example README's CR proxy section); empty falls back to the energy-dependent neutrino volume, and an explicit `fiducial_volume` block in the sim config overrides both |
 | `flavor` | neutrino flavor (`e`, `mu`, `tau`, `all`) |
 | `interaction_type` | `cc`, `nc`, or `ccnc` |
 | `ft_seed_base` | added to `chunk_id` for a deterministic per-chunk FT seed |

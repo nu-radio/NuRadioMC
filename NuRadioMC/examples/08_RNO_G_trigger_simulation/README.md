@@ -9,6 +9,7 @@ General-purpose RNO-G simulation with a FLOWER trigger model and two noise modes
 - [Noise modes](#noise-modes)
 - [FLOWER trigger model](#flower-trigger-model)
 - [ADC pedestal and asymmetric saturation](#adc-pedestal-and-asymmetric-saturation)
+- [CR proxy configuration](#cr-proxy-configuration)
 - [Usage](#usage)
 - [CLI arguments](#cli-arguments)
 - [Output](#output)
@@ -26,6 +27,8 @@ General-purpose RNO-G simulation with a FLOWER trigger model and two noise modes
 3. **FLOWER trigger model.** `triggerBoardResponse` + `highLowThreshold`. First-pass approximation; see [known limitations](#known-limitations).
 
 All three are optional. Without `--ft_noise_dir`, thermal noise is used. Without `--pedestal_voltage`, the ADC range is symmetric. The FLOWER trigger is always active.
+
+Note: the shipped production configuration (electron-neutrino NC events, a near-surface 200 m fiducial volume, half-decade shower energies 10^16-10^19 eV) is set up for cosmic-ray proxy simulation. Each of those is a config/CLI choice, not a property of the machinery - modify them as needed for other uses, and see [CR proxy configuration](#cr-proxy-configuration) for what the CR-proxy values are and why.
 
 ## Data requirements
 
@@ -82,6 +85,35 @@ In FT mode, the trigger-path Vrms is loaded from a YAML file (`--trigger_vrms`).
 The RADIANT ADC digitizes a 0-2.5V range. The pedestal bias sits at ~1.5V, off-center from the 1.25V midpoint, making the effective clip range asymmetric in pedestal-subtracted coordinates: [-1500, +1000] mV for a 1.5V pedestal.
 
 `--clip_thresholds <yaml>` applies per-channel asymmetric bounds `{ch: [lo_mV, hi_mV]}` from measured pedestals; the shipped `pedestal_extraction/clip_thresholds_station{NN}.yaml` carry measured 2022 values. `--pedestal_voltage` is the uniform fallback (a single value for all channels) when no clip file is given. See [`pedestal_extraction/`](pedestal_extraction/).
+
+## CR proxy configuration
+
+The machinery here is general purpose, but the shipped production configs generate
+cosmic-ray proxy datasets: in-ice cascades standing in for the energy that cosmic-ray
+air-shower cores deposit just below the ice surface (Coleman et al., arXiv:2410.08615).
+The specific choices and why:
+
+- **`flavor: e`, `interaction_type: nc`.** A neutral-current interaction leaves a single
+  hadronic cascade at the vertex with no outgoing lepton signature - the generator's
+  closest analog of a compact deposited shower core. The thrown energy is the
+  shower-scale (deposited) energy, not a cosmic-ray primary energy; the mapping to
+  primary energy and all flux weighting happen downstream in analysis, using the
+  zenith-dependent deposited-energy flux of Coleman et al.
+- **`fiducial_rmax: 200`.** Passing `--fiducial_rmax` selects the CR fiducial volume
+  (`get_fiducial_volume_cr`): vertices uniform in a cylinder of that radius around the
+  station, in the top meter of ice (z in [-1, 0] m), where core deposition happens.
+  Omitting it falls back to the energy-dependent neutrino volume (km scale, deep), and
+  an explicit `fiducial_volume` block in the sim config overrides both.
+- **`energies` 16.0-19.0 in half-decade bins, thrown flat within each bin.** Generation
+  is flat-spectrum with per-bin triggered targets; no flux assumption enters at
+  generation time.
+- **No air shower is simulated.** Vertices are in-ice and signals propagate from the
+  vertex to the antennas through ice only; the connection to cosmic rays is entirely
+  through the deposited-energy interpretation above.
+
+For neutrino or other non-CR use: pick `flavor` and `interaction_type`, drop
+`fiducial_rmax` (or set an explicit `fiducial_volume` block in the sim config), and set
+`energies` and targets for the spectrum you need.
 
 ## Usage
 
