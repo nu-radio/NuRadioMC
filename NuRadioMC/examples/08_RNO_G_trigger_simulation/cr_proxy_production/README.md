@@ -1,4 +1,4 @@
-# Production workflow
+# CR proxy production workflow
 
 Snakemake workflow that throws `simulate.py` chunks until each energy bin reaches a
 target triggered count, then writes a per-bin manifest of the chunks needed to hit that
@@ -54,7 +54,7 @@ Output goes to `data_dir` (set in config):
 | `trigger_vrms` | YAML of trigger-path Vrms per channel (empty lets the sim default). Stations 13 and 23 use `trigger_vrms_station{13,23}_calibrated.yaml`, which pair with the calibrated season-2022 readout detector description; the other stations' `trigger_vrms_station{NN}.yaml` carry DB-transfer values |
 | `clip_thresholds` | YAML of per-channel ADC clip bounds; use the `pedestal_extraction/clip_thresholds_station{station_id}.yaml` matching `station_id` (empty falls back to the uniform `pedestal_voltage` clip). The shipped per-station YAMLs carry the measured 2022 values used in production |
 | `pedestal_voltage` | ADC pedestal voltage in volts; the uniform-clip fallback when `clip_thresholds` is empty |
-| `fiducial_rmax` | selects the near-surface CR-proxy fiducial volume with this radius in m (see the example README's CR proxy section); empty falls back to the energy-dependent neutrino volume, and an explicit `fiducial_volume` block in the sim config overrides both |
+| `fiducial_rmax` | fiducial-volume max radius in m, a general knob (overrides `fiducial_volume.rmax` in the sim config). The depth range comes from `fiducial_volume.zmin`/`zmax` in the sim config and defaults to the near-surface z in [-1, 0] m when unset (the CR-proxy value); leave `fiducial_rmax` empty with no `fiducial_volume` block for the energy-dependent neutrino volume |
 | `flavor` | neutrino flavor (`e`, `mu`, `tau`, `all`) |
 | `interaction_type` | `cc`, `nc`, or `ccnc` |
 | `ft_seed_base` | added to `chunk_id` for a deterministic per-chunk FT seed |
@@ -98,7 +98,7 @@ A collaborator needs, for their station and year:
 Copy and edit the config, then dry-run:
 
 ```bash
-cd production
+cd cr_proxy_production
 cp config/config.yaml.example config/config.yaml
 # edit config/config.yaml
 snakemake -n

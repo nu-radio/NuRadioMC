@@ -51,7 +51,7 @@ def main():
     md.append(f"# RNO-G FLOWER-trigger simulation dataset (station {station_id}, "
               f"interaction {interaction})\n")
     md.append(f"Simulation for RNO-G station {station_id}, interaction type "
-              f"`{interaction}`, produced by the `production/` Snakemake workflow with "
+              f"`{interaction}`, produced by the `cr_proxy_production/` Snakemake workflow with "
               f"`simulate.py` (measured FT-noise injection). Contains "
               f"**{grand['kept']:,} kept triggered events** (per-bin triggered targets; "
               f"see the Kept column) across {len(rows)} bins.\n")
@@ -82,7 +82,7 @@ def main():
 
     md.append("## Provenance\n")
     md.append(f"- Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} via the "
-              f"`production/` Snakemake workflow.\n")
+              f"`cr_proxy_production/` Snakemake workflow.\n")
     md.append(f"- Sim script: `simulate.py` with `--interaction_type {interaction}` and "
               f"measured FT-noise injection (`--ft_noise_dir`, `--trigger_vrms`).\n")
     md.append("- Per-event ledger `status` is one of `triggered`, `trigger_failed`, "

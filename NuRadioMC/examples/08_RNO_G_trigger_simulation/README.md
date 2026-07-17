@@ -32,7 +32,7 @@ Note: the shipped production configuration (electron-neutrino NC events, a near-
 
 ## Data requirements
 
-Measured-noise mode needs standard RNO-G full-waveform run data (`station{id}_run*.root`) for the station and year, obtained through normal collaboration data access; the pool selects `FORCE` events itself, so no pre-filtering is needed. The detector description comes from MongoDB (default) or a `--detector_file`. The shipped clean masks, trigger vrms, and ADC clip thresholds are measured 2022 values (detector epoch 2022-10-01); the `trigger_vrms_station{13,23}_calibrated.yaml` files pair with the calibrated season-2022 readout detector description. Other years, stations, or detector epochs need re-derivation with the tools in `noise_analysis/` and `pedestal_extraction/`. See [`production/`](production/) for running at scale.
+Measured-noise mode needs standard RNO-G full-waveform run data (`station{id}_run*.root`) for the station and year, obtained through normal collaboration data access; the pool selects `FORCE` events itself, so no pre-filtering is needed. The detector description comes from MongoDB (default) or a `--detector_file`. The shipped clean masks, trigger vrms, and ADC clip thresholds are measured 2022 values (detector epoch 2022-10-01); the `trigger_vrms_station{13,23}_calibrated.yaml` files pair with the calibrated season-2022 readout detector description. Other years, stations, or detector epochs need re-derivation with the tools in `noise_analysis/` and `pedestal_extraction/`. See [`cr_proxy_production/`](cr_proxy_production/) for running at scale.
 
 ## Files
 
@@ -42,6 +42,7 @@ Measured-noise mode needs standard RNO-G full-waveform run data (`station{id}_ru
 | `RNO_config.yaml` | Default NuRadioMC config (`noise: False` for FT mode) |
 | [`noise_analysis/`](noise_analysis/) | FT noise cleaning (clean mask) and trigger-path Vrms extraction |
 | [`pedestal_extraction/`](pedestal_extraction/) | ADC pedestal extraction from `pedestal.root` files, produces per-channel clip thresholds |
+| [`cr_proxy_production/`](cr_proxy_production/) | Snakemake workflow for CR proxy production at scale (see [CR proxy configuration](#cr-proxy-configuration)) |
 
 ## Noise modes
 
@@ -99,17 +100,25 @@ The specific choices and why:
   shower-scale (deposited) energy, not a cosmic-ray primary energy; the mapping to
   primary energy and all flux weighting happen downstream in analysis, using the
   zenith-dependent deposited-energy flux of Coleman et al.
-- **`fiducial_rmax: 200`.** Passing `--fiducial_rmax` selects the CR fiducial volume
-  (`get_fiducial_volume_cr`): vertices uniform in a cylinder of that radius around the
-  station, in the top meter of ice (z in [-1, 0] m), where core deposition happens.
-  Omitting it falls back to the energy-dependent neutrino volume (km scale, deep), and
-  an explicit `fiducial_volume` block in the sim config overrides both.
+- **Volume and zenith range: general knobs, CR-proxy defaults.** The geometry is fully
+  configurable (a `fiducial_volume` block in the sim config sets rmax/zmin/zmax and the
+  zenith range; `--fiducial_rmax` overrides the radius). The CR-proxy choices are the
+  values: radius 200 m around the station, the default depth range z in [-1, 0] m (used
+  whenever no `zmin` is set) putting vertices in the top meter of ice where core
+  deposition happens, and the default thrown zenith range [0, 60] deg covering the
+  arrival directions that dominate the deposited-energy flux. With no radius and no
+  `fiducial_volume` block, the volume falls back to the energy-dependent neutrino
+  geometry (km scale, deep).
 - **`energies` 16.0-19.0 in half-decade bins, thrown flat within each bin.** Generation
   is flat-spectrum with per-bin triggered targets; no flux assumption enters at
   generation time.
 - **No air shower is simulated.** Vertices are in-ice and signals propagate from the
   vertex to the antennas through ice only; the connection to cosmic rays is entirely
   through the deposited-energy interpretation above.
+
+The at-scale workflow that generates the CR proxy datasets, with the per-station
+production configs carrying these choices, lives in
+[`cr_proxy_production/`](cr_proxy_production/).
 
 For neutrino or other non-CR use: pick `flavor` and `interaction_type`, drop
 `fiducial_rmax` (or set an explicit `fiducial_volume` block in the sim config), and set
@@ -219,13 +228,13 @@ This branch (`ft_noise_trigger_sim`) also carries these NuRadioMC modifications:
 
 ## Production quickstart
 
-`production/` holds a Snakemake workflow that runs `simulate.py` at scale: one chunk per
+`cr_proxy_production/` holds a Snakemake workflow that runs `simulate.py` at scale: one chunk per
 SLURM job producing NUR + HDF5 + ledger, throwing until each energy bin reaches a target
 triggered count, then writing a per-bin manifest. All site-specific values live in
-`production/config/config.yaml`.
+`cr_proxy_production/config/config.yaml`.
 
 ```bash
-cd production
+cd cr_proxy_production
 cp config/config.yaml.example config/config.yaml
 # edit config/config.yaml (paths, station, energies, targets, accounts)
 snakemake -n                                                # dry-run
@@ -235,5 +244,5 @@ tmux new-session -d -s production \
   'snakemake --executor slurm --jobs 200 --workflow-profile config/profile'
 ```
 
-See `production/README.md` for the config-key table, account routing, and the single-chunk
+See `cr_proxy_production/README.md` for the config-key table, account routing, and the single-chunk
 pilot recipe.
