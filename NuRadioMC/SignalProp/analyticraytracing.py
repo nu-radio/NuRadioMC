@@ -17,7 +17,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.AnalyticRayTracing.single_layer_analytic_raytracer import (
-    ray_tracing_2D, SPEED_OF_LIGHT, N_AIR, _get_zenith
+    ray_tracing_2D, SPEED_OF_LIGHT, N_AIR, _get_zenith, _n
 )
 from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.multilayeranalyticraytracing import multi_layer_ray_tracing_2D
 from NuRadioMC.utilities.birefringence import get_effective_index_birefringence, get_polarization_birefringence
@@ -128,42 +128,37 @@ class ray_tracing(ray_tracing_base):
                 self._medium, self._attenuation_model, log_level=log_level,
                 n_frequencies_integration=self._n_frequencies_integration,
                 **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
-            self.use_cpp = self._r2d.use_cpp
-            self.compile_numba = self._r2d.compile_numba
 
-            # As long as we use horizontal-translational invariant raytracing/ice models (2d)
-            # this should be fine. _n(0) is also used in _get_delta_y for air-ice raytracing
-            # self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
-            self.n_at_surface = self._medium.get_index_of_refraction([0, 0, -0.001])
-
-            # Some consitency checks...
-
-            # Check that `self.n_at_surface` is reasonably large to avoid a bug where the index of air
-            # is returned
-            if self.n_at_surface < 1.1:
-                raise ValueError(f"Calculated index of refraction for ice at the ice-air boundary is {self.n_at_surface} which is to small.")
-
-            # `z_air_boundary`/`z_shift` describe the single, flat ice-air interface `IceModelSimple`
-            # assumes; `IceModelExpLayers` has no such single interface (its `z_air_boundary`/`z_shift`
-            # properties are only kept for backwards compatibility and don't carry the same meaning),
-            # so these checks don't apply to the multilayer raytracer.
-            if self._medium.z_air_boundary != 0:
-                raise ValueError(f"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!")
-
-            if self._medium.z_shift != 0:
-                raise ValueError(f"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!")
         else:
             self.__logger.status("IceModelExpLayers was provided: using the multilayer analytic ray tracer as the 2D raytracing module.")
             self._r2d = multi_layer_ray_tracing_2D(
                 self._medium, self._attenuation_model, log_level=log_level,
                 n_frequencies_integration=self._n_frequencies_integration,
                 **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
-            self.use_cpp = self._r2d.use_cpp
-            self.compile_numba = compile_numba
 
-            self.n_at_surface = self._medium.get_index_of_refraction([0, 0, -0.001])
-            if self.n_at_surface < 1.1:
-                raise ValueError(f"Calculated index of refraction for ice at the ice-air boundary is {self.n_at_surface} which is to small.")
+        self.use_cpp = self._r2d.use_cpp
+        self.compile_numba = self._r2d.compile_numba
+
+        # As long as we use horizontal-translational invariant raytracing/ice models (2d)
+        # this should be fine. _n(0) is also used in _get_delta_y for air-ice raytracing
+        self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
+
+        # Some consitency checks...
+
+        # Check that `self.n_at_surface` is reasonably large to avoid a bug where the index of air
+        # is returned
+        if self.n_at_surface < 1.1:
+            raise ValueError(f"Calculated index of refraction for ice at the ice-air boundary is {self.n_at_surface} which is to small.")
+
+        # `z_air_boundary`/`z_shift` describe the single, flat ice-air interface `IceModelSimple`
+        # assumes; `IceModelExpLayers` has no such single interface (its `z_air_boundary`/`z_shift`
+        # properties are only kept for backwards compatibility and don't carry the same meaning),
+        # so these checks don't apply to the multilayer raytracer.
+        if self._medium.z_air_boundary != 0:
+            raise ValueError(f"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!")
+
+        if hasattr(self._medium, "z_shift") and self._medium.z_shift != 0:
+            raise ValueError(f"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!")
 
         self._swap = None
         self._dPhi = None
@@ -1137,6 +1132,6 @@ class ray_tracing(ray_tracing_base):
         if src_zenith > np.pi/2:
             self.__logger.warning(f"Source zenith angle: {src_zenith:3f} ({src_zenith/units.deg:2f} deg) is above pi/2 (90 deg)! The plane wave time difference calculation only works for signals traversing from air to ice, aka coming from above, aka having theta between 0 and 90 degrees. Make sure to catch this!")
             return np.nan
-        
+
         dt = self._r2d.get_time_difference_plane_wave_analytic(self._X1, self._X2, src_zenith, src_azimuth, azimuth_convention)
         return dt
