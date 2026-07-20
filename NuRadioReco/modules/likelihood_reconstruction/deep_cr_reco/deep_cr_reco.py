@@ -25,7 +25,7 @@ import NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReco
 from NuRadioReco.detector.RNO_G import rnog_detector
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stp
-from NuRadioReco.utilities import fft
+from NuRadioReco.utilities import fft, trace_utilities
 import argparse
 import scipy as scp
 import glob
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     plot_traces = False if args.plot_traces == 0 else True
 
     # Make output:
-    output_dir = os.path.join(ABS_PATH_HERE, "./results/rnog", f"{output_folder}")
+    output_dir = os.path.join(ABS_PATH_HERE, "./results", f"{output_folder}")
     if not os.path.exists(output_dir):
         print("Making dir", output_dir)
         os.makedirs(output_dir)
@@ -284,6 +284,7 @@ if __name__ == "__main__":
 
     # initialize arrays:# load previous results:
     if not continue_flag:
+        snr_array = np.zeros([n_events])
         polarization_llh_array = np.zeros([n_events])
         fluence_array = np.zeros([n_events])
         zenith_initial_array = np.zeros([n_events])
@@ -297,11 +298,13 @@ if __name__ == "__main__":
         polarization_h2_array = np.zeros([n_events])  # [Theta, Phi, Total]
         polarization_uf_array = np.zeros([n_events])  # [Theta, Phi, Total]
         fluence_uf_all_array = np.zeros([n_events])  # [Theta, Phi, Total]
+        polarization_uf_error_array = np.zeros([n_events])  # [Theta, Phi, Total]
         polarization_uf_all_array = np.zeros([n_events])  # [Theta, Phi, Total]
         params_array = np.zeros([n_events, 8]) #, 6 if not zenith_azimuth_free else 8])
         llh_array = np.zeros([n_events])
         polarization_error_array = np.zeros([n_events])
         fluence_error_array = np.zeros([n_events])
+        p_value_array = np.zeros([n_events])
         n_processed = 0
     # else:
     #     results_file = os.path.join(output_dir, f"results_run_number_{run_number}.npz")
@@ -364,6 +367,20 @@ if __name__ == "__main__":
         # Hardware response:
         hardwareResponseIncorporator.run(event, station, det, sim_to_data=False, mingainlin=0.001)
 
+        # Get noise RMS for each channel and save max SNR:
+        snrs = np.zeros(len(use_channels))
+        Vrms = np.array([np.std(station.get_channel(i_ch).get_trace()[n_samples//2:]) for i_ch in use_channels])  # estimate noise level from second half of trace
+        for i_ch, ch_id in enumerate(use_channels):
+            snrs[i_ch] = trace_utilities.get_signal_to_noise_ratio(station.get_channel(i_ch).get_trace(), Vrms[i_ch])
+        snr_array[i_event] = np.max(snrs)
+
+        if use_spectrum:
+            noise_spectra = np.ones_like(frequencies)
+            filter_1 = channelBandPassFilter.get_filter(frequencies, station.get_id(), use_channels[0], det, **filt_settings_low)
+            filter_2 = channelBandPassFilter.get_filter(frequencies, station.get_id(), use_channels[0], det, **filt_settings_high)
+            filter_3 = channelBandPassFilter.get_filter(frequencies, station.get_id(), use_channels[0], det, **filt_settings_rectangular)
+            noise_spectra = abs(filter_1 * filter_2 * filter_3)
+
         traces, traces_fft, trace_start_times, max_voltage = get_array_of_channels(station, use_channels, n_channels, n_samples, n_frequencies, frequencies, event, output_dir, plot=plot_traces)
 
         # Get and save true polarization:
@@ -384,56 +401,62 @@ if __name__ == "__main__":
         polarization_true_array[i_event] = polararization
         polarization_ref_array[i_event] = efields_ch_0[1][efp.polarization_angle] if len(efields_ch_0) > 0 else np.nan
 
+        # Determine ray-traced tracvel times to each antenna based on the (true) reconstructed zenith angle (or vertex position?):
+        travel_time_shifts = get_travel_time_delays(propagator, det, sim_station.get_id(), use_channels, zenith, azimuth, reference_channel=0, i_solution=0)
+
         # Unfolding:
         channelSignalReconstructor.run(event, station, det)
-        voltageToEfieldConverter.run(event, station, det, use_channels=use_channels, use_MC_direction=True)
-        electricFieldSignalReconstructor.run(event, station, det, signal_search_window=[0,100000], debug=True) #, theta_phi_rotation=-45 * units.deg) #, theta=zenith, phi=azimuth)
+        voltageToEfieldConverter.run(event, station, det, use_channels=use_channels, use_MC_direction=True, travel_time_delays=travel_time_shifts)
+        times = station.get_channel(use_channels[0]).get_times()
+        signal_search_window = [times[0], times[-1]]
+        electricFieldSignalReconstructor.run(event, station, det, signal_search_window=signal_search_window, debug=True, fluence_method="rice") #, theta_phi_rotation=-45 * units.deg) #, theta=zenith, phi=azimuth)
         efield = station.get_electric_fields()[0]
         fluence_uf_array[i_event] = sum(efield[efp.signal_energy_fluence])
         polarization_uf_array[i_event] = efield[efp.polarization_angle]
+        polarization_uf_error_array[i_event] = efield.get_parameter_error(efp.polarization_angle)
 
         # Add cable delays again since voltageToEfieldConverter adds it in efield_reconstructor:
         channelCableDelayAdder.run(event, station, det, mode='add')
 
         # Likelihood reconstruction:
-        Vrms = np.array([np.std(station.get_channel(i_ch).get_trace()[n_samples//2:]) for i_ch in use_channels])  # estimate noise level from first half of trace
-        travel_time_shifts = get_travel_time_delays(propagator, det, sim_station.get_id(), use_channels, zenith, azimuth, reference_channel=0, i_solution=0)
         efield_reconstructor.begin(n_channels, n_samples, sampling_rate, noise_spectra, Vrms, [filt_settings_low, filt_settings_high, filt_settings_rectangular], use_chi2=False, zenith_azimuth_free=False, debug=True, travel_time_shifts=travel_time_shifts) #filt_settings_2
         trace_hilbert_envelope = scp.signal.hilbert(station.get_channel(use_channels[0]).get_trace())
         t_max = np.argmax(trace_hilbert_envelope) / sampling_rate + station.get_channel(use_channels[0]).get_trace_start_time()
-        signal_fit, params_fit, minus_two_llh_best = efield_reconstructor.run(event, station, det, use_channels=use_channels, signal_search_window=[t_max-50-30, t_max+50-30], use_MC_direction=True, full_output=True, second_order=False)
+        signal_fit, params_fit, minus_two_llh_best, p_value_fit = efield_reconstructor.run(event, station, det, use_channels=use_channels, signal_search_window=[t_max-50-30, t_max+50-30], use_MC_direction=True, full_output=True, second_order=False)
 
         # Plot results:
-        fig, ax = plt.subplots(len(use_channels), 2, figsize=[len(use_channels)*2, 4])
-        for i, i_channel in enumerate(use_channels):
-            ax[i, 0].set_title("z: " + str(round(zenith,2)) + " a: " + str(round(azimuth,2)), y=1.05, pad=-14, fontsize=8)
-            ax[i, 0].plot(station.get_channel(i_channel).get_times(), signal_fit[i, :], "r-", linewidth=1)
-            ax[i, 0].set_xlabel("Time [ns]")
-            ax[i, 0].set_ylabel("Voltage [mV]")
+        if plot_traces:
+            fig, ax = plt.subplots(len(use_channels), 2, figsize=[len(use_channels)*2, 4])
+            for i, i_channel in enumerate(use_channels):
+                ax[i, 0].set_title("z: " + str(round(zenith,2)) + " a: " + str(round(azimuth,2)), y=1.05, pad=-14, fontsize=8)
+                ax[i, 0].plot(station.get_channel(i_channel).get_times(), signal_fit[i, :], "r-", linewidth=1)
+                ax[i, 0].set_xlabel("Time [ns]")
+                ax[i, 0].set_ylabel("Voltage [mV]")
 
-            ax[i, 1].plot(frequencies, np.abs(fft.time2freq(signal_fit[i, :], station.get_channel(i_channel).get_sampling_rate())), "r-", linewidth=1)
-            ax[i, 1].set_xlabel("Frequency [GHz]")
-            ax[i, 1].set_ylabel("Ampl. [mV/GHz]")
-        plt.savefig(os.path.join(output_dir, f"Station{station.get_id()}_Run{event.get_run_number()}_Event{event.get_id()}_fit.png"))
-        plt.close()
+                ax[i, 1].plot(frequencies, np.abs(fft.time2freq(signal_fit[i, :], station.get_channel(i_channel).get_sampling_rate())), "r-", linewidth=1)
+                ax[i, 1].set_xlabel("Frequency [GHz]")
+                ax[i, 1].set_ylabel("Ampl. [mV/GHz]")
+            plt.savefig(os.path.join(output_dir, f"Station{station.get_id()}_Run{event.get_run_number()}_Event{event.get_id()}_fit.png"))
+            plt.close()
 
-        get_array_of_channels(station, use_channels, n_channels, n_samples, n_frequencies, frequencies, event, output_dir, signal=signal_fit, n_channels_total=n_channels_total, plot=True, zoom=False, zenith=zenith, azimuth=azimuth)
+        get_array_of_channels(station, use_channels, n_channels, n_samples, n_frequencies, frequencies, event, output_dir, signal=signal_fit, n_channels_total=n_channels_total, plot=plot_traces, zoom=False, zenith=zenith, azimuth=azimuth)
 
         # Save results:
         efiled_llh = station.get_electric_fields()[1]
 
         # Plot efield:
-        plt.figure(figsize=[15,3])
-        plt.title(str("Parameters: ") + str(np.round(params_fit, 2)), y=1.05, pad=-14, fontsize=8)
-        plt.plot(efiled_llh.get_times(), efiled_llh.get_trace()[1], "b-", linewidth=1, label="Theta")
-        plt.plot(efiled_llh.get_times(), efiled_llh.get_trace()[2], "g--", linewidth=1, label="Phi")
-        plt.xlim(min(efiled_llh.get_times()), max(efiled_llh.get_times()))
-        plt.legend()
-        plt.xlabel("Time [ns]")
-        plt.ylabel("Amplitude [V/m]")
-        plt.tight_layout()
-        plt.savefig(os.path.join(output_dir, f"Station{station.get_id()}_Run{event.get_run_number()}_Event{event.get_id()}_efield.png"))
-        plt.close()
+        if plot_traces:
+            plt.figure(figsize=[15,3])
+            plt.title(str("Parameters: ") + str(np.round(params_fit, 2)), y=1.05, pad=-14, fontsize=8)
+            plt.plot(efiled_llh.get_times(), efiled_llh.get_trace()[1], "b-", linewidth=1, label="Theta")
+            plt.plot(efiled_llh.get_times(), efiled_llh.get_trace()[2], "g--", linewidth=1, label="Phi")
+            plt.xlim(min(efiled_llh.get_times()), max(efiled_llh.get_times()))
+            plt.legend()
+            plt.xlabel("Time [ns]")
+            plt.ylabel("Amplitude [V/m]")
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, f"Station{station.get_id()}_Run{event.get_run_number()}_Event{event.get_id()}_efield.png"))
+            plt.close()
 
         polarization_llh_array[i_event] = efiled_llh[efp.polarization_angle]
         fluence_array[i_event] = efiled_llh[efp.signal_energy_fluence]
@@ -443,6 +466,7 @@ if __name__ == "__main__":
         azimuth_reco_array[i_event] = efiled_llh[efp.azimuth]
         params_array[i_event, :] = params_fit
         llh_array[i_event] = minus_two_llh_best
+        p_value_array[i_event] = p_value_fit
         polarization_error_array[i_event] = efiled_llh.get_parameter_error(efp.polarization_angle)
         fluence_error_array[i_event] = efiled_llh.get_parameter_error(efp.signal_energy_fluence)
 
@@ -459,10 +483,13 @@ if __name__ == "__main__":
             polarization_uf=polarization_uf_array,
             fluence_uf_all=fluence_uf_all_array,
             polarization_uf_all=polarization_uf_all_array,
+            polarization_uf_error=polarization_uf_error_array,
             params=params_array,
             llh=llh_array,
+            p_value=p_value_array,
             polarization_error=polarization_error_array,
             fluence_error=fluence_error_array,
+            snr=snr_array
         )
 
 
