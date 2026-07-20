@@ -16,7 +16,7 @@ from NuRadioMC.utilities.medium_base import IceModelSimple, IceModelExpLayers
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
-from NuRadioMC.SignalProp.AnalyticRayTracing.single_layer_analytic_raytracer import (
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer import (
     ray_tracing_2D, SPEED_OF_LIGHT, N_AIR, _get_zenith, _n
 )
 from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.multilayeranalyticraytracing import multi_layer_ray_tracing_2D

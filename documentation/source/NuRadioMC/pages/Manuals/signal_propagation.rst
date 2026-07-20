@@ -2,7 +2,7 @@ Signal Propagation
 ===================
 Propagation module
 ------------------
-The modules for the raytracing are stored in the folder **SignalProp**. All the propagation effects (attenuation, focussing) are also taken account for in the raytracer module itself. 
+The modules for the raytracing are stored in the folder **SignalProp**. All the propagation effects (attenuation, focussing) are also taken account for in the raytracer module itself.
 The configuration of the raytracing and propagation effects are specified in the ``config.yaml`` file under ``propagation`` with the following attributes:
 
 * module: [string] the ray tracing method to use
@@ -15,26 +15,26 @@ The configuration of the raytracing and propagation effects are specified in the
 * n_reflections: [int] the maximum number of reflections off a reflective layer at the bottom of the ice layer
 
 Below you find the **default settings** of the **config file**.
-  
+
   .. code-block:: yaml
 
     propagation:
       module: analytic
       ice_model: southpole_2015
       attenuation_model: SP1
-      attenuate_ice: True 
+      attenuate_ice: True
       n_freq: 25
       focusing: False
       focusing_limit: 2
       n_reflections: 0
-      birefringence: False 
+      birefringence: False
 
-How to implement new ice-models and information on all the available ice-models and attenuation/birefringence models can be found in the documentation. 
+How to implement new ice-models and information on all the available ice-models and attenuation/birefringence models can be found in the documentation.
 
 Ray tracing
 -----------
 Ray tracing is the module to calculate the trajectory of the emitted radiation. Depending on the ice model one wants to use, the user can specify which ray tracer method should be used by NuRadioMC. This can be done in the ``config.yaml`` file by setting the propagation module to the desired module name.
-  
+
   .. code-block:: yaml
 
     propagation:
@@ -63,7 +63,7 @@ According to the variational principle, the ray path in a medium given by Eq. (1
 
 where y is the horizontal coordinate, :math:`\gamma = \Delta_n \exp(z/z_0)`, :math:`b = 2n_{ice}`, and :math:`d = n_{ice}^2 - C_0^{-2}`. :math:`C_0` is an integration constant related to the angle at launch position and :math:`C_1`  is another integration constant that gives the starting point.
 
-The ray path can be expressed in closed form, as well as the travel time and the path length. However, the calculation of the frequency-dependent attenuation length must be done numerically. 
+The ray path can be expressed in closed form, as well as the travel time and the path length. However, the calculation of the frequency-dependent attenuation length must be done numerically.
 
 GSL speed-boost
 ^^^^^^^^^^^^^^^
@@ -73,13 +73,13 @@ A C++ version of the ray tracer exists, which can be called from Python, and is 
 
     export GSLDIR=/path/to/my/GNU_Scientific_Library
 
-Once GSLDIR is configured, the user can also compile it by hand executing the following instruction in the SignalProp/AnalyticRayTracing/CPPAnalyticRayTracing folder:
+Once GSLDIR is configured, the user can also compile it by hand executing the following instruction in the SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing folder:
 
   .. code-block:: bash
 
     python setup.py build_ext --inplace
 
-The C++ analytic ray tracer can also be used standalone, using the ``MakeFile`` included. For instructions, please refer to the ``README`` included in the ``NuRadioMC/SignalProp/AnalyticRayTracing/CPPAnalyticRayTracing`` directory.
+The C++ analytic ray tracer can also be used standalone, using the ``MakeFile`` included. For instructions, please refer to the ``README`` included in the ``NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing`` directory.
 
 RadioPropa numerical ray tracer (in development)
 _________________________________________________
@@ -121,8 +121,8 @@ The following code shows how to perform a analytic ray tracing and extract infor
     final_point = np.array( [100, 0, -30] ) * units.m
     attenuation_model = 'GL1'
 
-    # This function creates a ray tracing instance refracted index, attenuation model, 
-    # number of frequencies # used for integrating the attenuation and interpolate afterwards, 
+    # This function creates a ray tracing instance refracted index, attenuation model,
+    # number of frequencies # used for integrating the attenuation and interpolate afterwards,
     # and the number of allowed reflections.
     rays = prop(ice, attenuation_model,
                 n_frequencies_integration=25,
@@ -169,7 +169,7 @@ The following code shows how to perform a analytic ray tracing and extract infor
 
         solution_int = rays.get_solution_type(i_solution)
         solution_type = solution_types[solution_int]
-   
+
         attenuation = rays.get_attenuation(i_solution, frequencies, nyquist_frequency)
 
         plt.plot(frequencies/units.MHz, attenuation, label=solution_type)
@@ -203,8 +203,8 @@ The following code shows how to perform a ray tracing and extract  information o
     final_point = np.array( [100, 0, -30] ) * units.m
     attenuation_model = 'GL1'
 
-    # This function creates a ray tracing instance refracted index, attenuation model, 
-    # number of frequencies # used for integrating the attenuation and interpolate afterwards, 
+    # This function creates a ray tracing instance refracted index, attenuation model,
+    # number of frequencies # used for integrating the attenuation and interpolate afterwards,
     # and the number of allowed reflections.
     rays = prop(ice, attenuation_model,
                 n_frequencies_integration=25,
@@ -220,7 +220,7 @@ The following code shows how to perform a ray tracing and extract  information o
 
         path = rays.get_path(i_solution)
         # We can calculate the azimuthal angle phi to rotate the
-        # 3D path into the 2D plane of the points. This is only 
+        # 3D path into the 2D plane of the points. This is only
         # necessary if we are not working in the y=0 plane
         launch_vector = rays.get_launch_vector(i_solution))
         phi = np.arctan(launch_vector[1]/launch_vector[0])
@@ -248,7 +248,7 @@ The following code shows how to perform a ray tracing and extract  information o
 
         solution_int = rays.get_solution_type(i_solution)
         solution_type = solution_types[solution_int]
-    
+
         attenuation = rays.get_attenuation(i_solution, frequencies, nyquist_frequency)
 
         plt.plot(frequencies/units.MHz, attenuation, label=solution_type)
