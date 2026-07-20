@@ -12,14 +12,14 @@ from NuRadioReco.utilities import units, geometryUtilities, constants
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 
 from math import sqrt, log, sin
-from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.corefunctions import compute_offsets, evaluate_y, get_n_1D
-from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.getrayparameters import get_travel_time_analytic
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import compute_offsets, evaluate_y, get_n_1D
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters import get_travel_time_analytic
 
 from NuRadioMC.SignalProp.AnalyticRayTracing.maybenumba import njit
 
 
 @njit(cache=True)
-def get_inice_quantities(pos, theta_air, layers):   
+def get_inice_quantities(pos, theta_air, layers):
     """
     Compute the in-ice propagation quantities for a ray entering the surface
     at a given air incidence angle.
@@ -56,7 +56,7 @@ def get_inice_quantities(pos, theta_air, layers):
 
     Notes
     -----
-    The ray parameter is determined from Snell's law 
+    The ray parameter is determined from Snell's law
     and the analytic multilayer ray tracing formalism is used to evaluate
     the corresponding trajectory and travel time.
     """
@@ -111,8 +111,8 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
         Layered refractive-index model as returned by
         layers_to_arrays().
     azimuth_convention : string
-        Which azimuth convention to use ('nuradio' or 'astropy') 
-        'nuradio': 0deg east, 90deg north, 180 deg west, 270deg south, 'astropy': 0deg north, 90deg east, 180 deg south, 270deg west, 
+        Which azimuth convention to use ('nuradio' or 'astropy')
+        'nuradio': 0deg east, 90deg north, 180 deg west, 270deg south, 'astropy': 0deg north, 90deg east, 180 deg south, 270deg west,
 
     Returns
     -------
@@ -127,7 +127,7 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     - the horizontal surface displacement between the receiver and the
       corresponding surface intersection point of the refracted ray
 
-    The surface intersection points are reconstructed from the incoming wave vector and 
+    The surface intersection points are reconstructed from the incoming wave vector and
     the horizontal displacements yielded with the analytic raytracer.
 
     The difference in air propagation length is then obtained from the
@@ -155,7 +155,7 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     # in-ice raytracing solution for given surface angle and antenna depth
     # r: radial distance the ray covers on the way from the surface to the antenna depth
     # t: travel time along this path in ice
-    
+
     r1, t1 = get_inice_quantities(pos1, theta_air, layers)
     r2, t2 = get_inice_quantities(pos2, theta_air, layers)
 
@@ -169,14 +169,14 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
 
     #print(f"P1: {P1}")
     #print(f"P2: {P2}")
-    
+
     # vector connecting both surface intersection points
     dP = P2 - P1
 
     # projection of this connection vector onto src_hvec
     # surface_shift = dP if incoming wave is along dP
     # surface_shift = 0 if incoming wave is perpendicular to dP
-    
+
     # difference in air travel length from projection of the surface_shift onto the actual 3D incoming ray vector
     # same as multiplying by sin(theta)
 

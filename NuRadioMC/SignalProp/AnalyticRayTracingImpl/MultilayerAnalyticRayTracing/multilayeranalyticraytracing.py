@@ -2,12 +2,12 @@
 Ray tracing module for layered exponential refractive index profiles.
 
 This module implements analytic ray tracing in glacial ice or another medium where the
-refractive index can be described as layers of exponentials where each layer follows 
+refractive index can be described as layers of exponentials where each layer follows
 
 n(z) = n_ice - delta_n * exp(z / z_0)
 
 This also supports propagation across layer boundaries where n(z) is not continuous, so also air-to-ice tracing.
-We can also model the refractive index of air as one or more exponential layers. Note that we expect the ice surface at z=0 and an in-ice antenna (z<0). This is important, since we search for the in-ice reflected rays for signals from within the ice and for the ones passing through the surface coming from the air and therefore treat both situations a bit differently. 
+We can also model the refractive index of air as one or more exponential layers. Note that we expect the ice surface at z=0 and an in-ice antenna (z<0). This is important, since we search for the in-ice reflected rays for signals from within the ice and for the ones passing through the surface coming from the air and therefore treat both situations a bit differently.
 
 To find the ray solutions we needed to implement a number of functions
 that you can use to :
@@ -31,8 +31,8 @@ Once a solution is found we can evaluate a number of path specific parameters, s
 The implementation is an expansion of the previous analytic ray
 tracing solver used in NuRadioMC . In order to enable compilation with
 ``numba.njit(nopython=True)``, the layer definitions are internally
-converted from dictionary-based objects to arrays. 
-For more insight into the physics behind this approach and remarks on the solving strategy it is recommended 
+converted from dictionary-based objects to arrays.
+For more insight into the physics behind this approach and remarks on the solving strategy it is recommended
 to have a look at the companion note to this module ``MultilayerAnalyticRayTracting.md`` (will be added in the future) and the appendix C of
 "NuRadioMC: Simulating the Radio Emission of Neutrinos from Interaction to Detector“ (2020). https://doi.org/10.1140/epjc/s10052-020-7612-8.
 This appendix describes the implementation of the previously used single layer analytic raytracer.
@@ -103,10 +103,10 @@ logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 
 NumbaList = list # fallback for get_path_segments function
 
-from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.corefunctions import get_layer_index, get_n_1D, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn, get_turning_point, get_C0_from_theta, get_delta_y, get_skim_angle, determine_solution_type
-from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.solver import find_solutions, find_solutions_bulk, reduce_solutions
-from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.getrayparameters import get_path, get_path_segments, get_path_length_analytic, get_travel_time_analytic, get_launch_angle, get_receiving_angle, get_reflection_angle, get_attenuation_along_path, get_focusing_factor, get_launch_vector, get_receiving_vector, ds_dz_layer
-from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.planewave import get_inice_quantities, get_time_difference_plane_wave_analytic
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import get_layer_index, get_n_1D, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn, get_turning_point, get_C0_from_theta, get_delta_y, get_skim_angle, determine_solution_type
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.solver import find_solutions, find_solutions_bulk, reduce_solutions
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters import get_path, get_path_segments, get_path_length_analytic, get_travel_time_analytic, get_launch_angle, get_receiving_angle, get_reflection_angle, get_attenuation_along_path, get_focusing_factor, get_launch_vector, get_receiving_vector, ds_dz_layer
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.planewave import get_inice_quantities, get_time_difference_plane_wave_analytic
 
 
 import time
@@ -168,7 +168,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         """
         initialize 2D analytic ray tracing class for multilayer analytic raytracing
 
-        This class is designed to have the same appearance and user interface as the corresponding 2D class from analyticraytracing.py, 
+        This class is designed to have the same appearance and user interface as the corresponding 2D class from analyticraytracing.py,
         which is why sometimes there are seemingly unnecessary variables defined and the naming and structure of some functions might seem a bit off.
         This is done, so that we can reuse the ray_tracing class from analyticraytracing.py which maps from 3D to 2D and then back after the relevant parameters are calculated.
 
@@ -203,7 +203,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         #self.compile_numba = None # For compatibility with old raytracer
 
         numba_available = False
-        
+
 
         try:
             from numba import njit
@@ -215,16 +215,16 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             self._logger.warning("Numba is not available")
             NumbaList = list # fallback for get_path_segments function
             numba_available = False
-            
+
         use_ensure_jitted = False
-        
+
         if compile_numba and use_ensure_jitted:
 
             def ensure_jitted(func): # Function to check if already jitted or not and use jitted if available
                 if isinstance(func, CPUDispatcher):
                     return func
                 return njit(cache=True)(func)
-            
+
             if numba_available:
 
                 global get_layer_index, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn
@@ -283,9 +283,9 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             z1, z2 = z2, z1
             downgoing = True
 
-        
+
         solution_type = determine_solution_type(y1, z1, y2, z2, C0, self._layers_arr, downgoing, with_air)
-        
+
         self._logger.info(
             "solution_type | x1=%s x2=%s C0=%s type=%s",
             x1,
@@ -293,9 +293,9 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             C0,
             solution_type
             )
-        
+
         return solution_type
-    
+
     def find_solutions(self, x1, x2, plot=False, reduce=True, *_, **__):
 
         with_air = (x1[1] > 0 or x2[1] > 0)
@@ -348,7 +348,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             n_z1 = self.get_n_2D(x1)
             direct_time_lightspeed = direct_len * n_z1 / constants.c
 
-            #if travel_time > direct_time_lightspeed * 1.5: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier) 
+            #if travel_time > direct_time_lightspeed * 1.5: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier)
             #    return None
             #if travel_time < direct_time_lightspeed * 0.9:
             #    return None
@@ -375,9 +375,9 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
             direct_len = np.sqrt((x2[0]-x1[0])**2 + (x2[1]-x1[1])**2) * units.m
 
-            #if path_length > direct_len * 1.5: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier) 
+            #if path_length > direct_len * 1.5: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier)
             #    return None
-            
+
             #if path_length < direct_len * 0.9:
             #    return None
 
@@ -393,10 +393,10 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
     def get_launch_vector(self, x1, x2, C0):
         return get_launch_vector(C0, x1, x2, self._layers_arr)
-    
+
     def get_receive_vector(self, x1, x2, C0):
         return get_receiving_vector(C0, x1, x2, self._layers_arr)
-    
+
     #@log_timing()
     def get_launch_angle(self, x1, C0, *_, **__):
 
@@ -410,7 +410,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             )
 
         return launch_angle
-    
+
     #@log_timing()
     def get_receive_angle(self, x1, x2, C0, *_, **__):
 
@@ -444,10 +444,10 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
     def get_path_reflections(self, x1, x2, C0, npoints=1000,*_, **__):
         return get_path(C0, x1, x2, self._layers_arr, npoints)
-    
+
     def get_path_segments(self, x1, x2, C0, *_, **__):
         return get_path_segments(C0, x1, x2, self._layers_arr)
-    
+
     def get_turning_point(self, x1, C0):
         with_air = False
         if x1[1] > 0.0 : with_air = True
@@ -515,16 +515,16 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
         self._logger.debug("Frequency vector for attenuation calculation: {}".format(freqs))
         return freqs
-    
+
     #@log_timing()
     def get_attenuation_along_path(self, x1, x2, C0, frequency, max_detector_frequency=None, *_, **__):
-        
+
         attenuation_model =  self.attenuation_model
         dz = self.dz
         freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_frequency)
-        
+
         attenuation_factor = get_attenuation_along_path(C0, x1, x2, self._layers_arr, frequency, freqs, attenuation_model, dz)
-        
+
         self._logger.info(
             "get_attenuation_along_path | x1=%s x2=%s C0=%s attenuation_factor=%s",
             x1,

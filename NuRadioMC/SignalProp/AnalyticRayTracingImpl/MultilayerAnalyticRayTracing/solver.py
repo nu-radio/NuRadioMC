@@ -14,7 +14,7 @@ from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from math import sqrt, log, sin
 
 
-from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_delta_y, get_n_1D, get_C0_from_theta, get_skim_angle, determine_solution_type
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_delta_y, get_n_1D, get_C0_from_theta, get_skim_angle, determine_solution_type
 from NuRadioMC.SignalProp.AnalyticRayTracing.maybenumba import njit
 
 
@@ -92,7 +92,7 @@ def obj_delta_y_sqr(logC0, y1, z1, y2, z2, layers, n_deep,
 
     if not np.isfinite(dy):
         return 1e30
-    
+
     return dy*dy
 
 def obj_delta_y(logC0, y1, z1, y2, z2, layers, n_deep,
@@ -137,7 +137,7 @@ def obj_delta_y(logC0, y1, z1, y2, z2, layers, n_deep,
 
     if not np.isfinite(dy):
             return 1e30
-    
+
     return dy
 
 
@@ -201,11 +201,11 @@ def find_solutions(x1, x2, layers,tol=1e-12):
     >>> find_solutions((0,-50), (1,0), LAYERS)
     [{'type': 1, 'C0': 0.5, 'D': 0.1, 'x1': (0,-50)}]
     """
-    
+
 
     if isinstance(layers, list):
         layers = layers_to_arrays(layers)
-    
+
 
     results = []
     C0s = []
@@ -231,7 +231,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     theta_straight = np.arctan2((z2-z1),(y2-y1))
 
-    if theta_straight < np.pi/4 and not with_air: 
+    if theta_straight < np.pi/4 and not with_air:
         theta_straight = np.pi/4
 
     _, theta_skim = get_skim_angle(
@@ -242,7 +242,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     if not np.isfinite(theta_skim):
         theta_skim = np.arctan2(z1,y1)
-    
+
 
     C0skim = get_C0_from_theta(
         z1,
@@ -260,7 +260,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
     logC0straight = np.log(max(C0straight - 1./n_deep, 1e-12))
     logC0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
     logC0skim = np.log(max(C0skim- 1./n_deep, 1e-12))
-    
+
     result = optimize.root(obj_delta_y_sqr, x0=logC0straight, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
     if(result.fun < 1e-7):
         if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
@@ -268,7 +268,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
             C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
             C0s.append(C_0)
             solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
-            
+
             results.append({'type': solution_type,
                             'C0': C_0,
                             'C1': C_1,
@@ -286,7 +286,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
                 C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
                 C0s.append(C_0)
                 solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
-                
+
                 results.append({'type': solution_type,
                                 'C0': C_0,
                                 'C1': C_1,
@@ -295,10 +295,10 @@ def find_solutions(x1, x2, layers,tol=1e-12):
                                 'D' : result.x[0],
                                 'x1': x1,
                                 'flag' : 1})
-                    
-    
+
+
     # check if another solution with higher logC0 exists
-    if result.x[0] is None: 
+    if result.x[0] is None:
         result_x = logC0skim_nz
     else:
         result_x = result.x[0]
@@ -352,7 +352,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
                             'x1': x1,
                             'flag' : 3})
 
-    
+
     theta_min =  1e-5
     C0theta_min = get_C0_from_theta(
         z1,
@@ -363,7 +363,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
         C0theta_min = 1/n_deep + 1e-12  # small buffer to avoid log(0)
 
     logC0_start = max(np.log(C0theta_min - 1. / n_deep),-100)
-    
+
     logC0_stop = result_x - 0.00001
     delta_start = obj_delta_y(
         logC0_start,
@@ -458,11 +458,11 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
     >>> find_solutions((0,-50), (1,0), LAYERS)
     [{'type': 1, 'C0': 0.5, 'D': 0.1, 'x1': (0,-50)}]
     """
-    
+
 
     if isinstance(layers, list):
         layers = layers_to_arrays(layers)
-    
+
 
     results = []
     C0s = []
@@ -492,13 +492,13 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
     if with_air and downgoing:
         theta_straight = np.pi/2 - 0.1
 
-    if theta_straight < np.pi/4: 
+    if theta_straight < np.pi/4:
         theta_straight = np.pi/4
 
     #if abs(z1-z2) < 2:
     #    theta_straight = np.pi/2
 
-    
+
     _, theta_skim = get_skim_angle(
         y1, z1,
         z2,
@@ -553,15 +553,15 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
         try:
             result = optimize.root(obj_delta_y_sqr, x0=x0, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
-            
+
             C_0 = get_C0_from_log(result.x[0],n_deep)
             if(result.fun < 1e-7):
                 if(np.round(C_0, 3) not in np.round(C0s, 3)):
-                    
+
                     C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
                     C0s.append(C_0)
                     solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
-                    
+
                     results.append({'type': solution_type,
                                     'C0': C_0,
                                     'C1': C_1,
@@ -573,15 +573,15 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
         except Exception:
             continue
-    
+
     # check if another solution with higher logC0 exists
-    if result.x[0] is None: 
+    if result.x[0] is None:
         result_x = logC0skim_nz
     else:
         result_x = result.x[0]
 
     logC0_start = result_x + 0.00001
-    
+
     if with_air:
         C0cross_min = 1.0
         logC0_start = np.log(max(C0cross_min - 1./n_deep, 1e-12))
@@ -621,7 +621,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
                             'x1': x1,
                             'flag' : 3})
 
-    
+
     theta_min =  1e-5
     C0theta_min = get_C0_from_theta(
         z1,
@@ -632,7 +632,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
         C0theta_min = 1/n_deep + 1e-12  # small buffer to avoid log(0)
 
     logC0_start = max(np.log(C0theta_min - 1. / n_deep),-100)
-    
+
     logC0_stop = result_x - 0.00001
     delta_start = obj_delta_y(
         logC0_start,
@@ -667,7 +667,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
                             'D' : result3,
                             'x1': x1,
                             'flag' : 4})
-    
+
     return sorted(results, key=itemgetter('type', 'C0'))
 
 def reduce_solutions(results, with_air=False, tol = 1e-3):
@@ -716,7 +716,7 @@ def reduce_solutions(results, with_air=False, tol = 1e-3):
 
     if len(results) > 2: # keep results with higher C0 (sometimes numerical issues result in wrong solutions with low C0)
         results = sorted(results, key=itemgetter('C0'))[-2:]
-    
+
     results = sorted(results, key=itemgetter('type', 'C0'))
 
     return results
