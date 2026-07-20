@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+from functools import lru_cache
 from scipy import integrate
 from numpy.random import Generator, Philox
 from NuRadioReco.utilities import units, fft
@@ -104,11 +105,13 @@ class channelGenericNoiseAdder:
         params: dict
             Dictionary with the keys ``n_samples``, ``n_samples_freq``, ``sampling_rate``,
             ``selection``, ``nbinsactive``, ``sigscale`` and ``bandwidth_scale``.
-        """
-        cache_key = (min_freq, max_freq, n_samples, sampling_rate, bandwidth)
-        if cache_key in self.__noise_param_cache:
-            return self.__noise_param_cache[cache_key]
 
+        Notes
+        -----
+        This method is wrapped with `functools.lru_cache` in `__init__` (bound per-instance,
+        not as a class-level decorator - see the note there), so repeated calls with the same
+        arguments hit the cache instead of recomputing.
+        """
         frequencies = fft.freqs(n_samples, sampling_rate)
         n_samples_freq = len(frequencies)
 
@@ -154,11 +157,6 @@ class channelGenericNoiseAdder:
             "bandwidth_scale": bandwidth_scale,
         }
 
-        # avoid unbounded growth of the cache if this is called with many different parameter combinations
-        if len(self.__noise_param_cache) >= self._noise_param_cache_maxsize:
-            self.__noise_param_cache.clear()
-        self.__noise_param_cache[cache_key] = params
-
         return params
 
     def _draw_amplitude_spectrum(self, n_samples_freq, selection, nbinsactive, amplitude, sigscale, type):
@@ -189,6 +187,10 @@ class channelGenericNoiseAdder:
         ampl: array of floats
             amplitude spectrum of length `n_samples_freq`
         """
+        if type is None:
+            raise ValueError("You have to provide a noise \"type\" for the channelGenericNoiseAdder. "
+                             "We removed \"perfect_white\", only option is \"rayleigh\".")
+
         if type in ('white', 'perfect_white'):
             raise ValueError(
                 f"The noise type '{type}' is no longer supported. Please use type='rayleigh' instead, "
@@ -205,7 +207,7 @@ class channelGenericNoiseAdder:
 
         return ampl
 
-    def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='rayleigh',
+    def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type=None,
                           time_domain=True, bandwidth=None):
         """
         Generate noise of n_samples in a bandwidth [min_freq,max_freq].
@@ -228,7 +230,9 @@ class channelGenericNoiseAdder:
         amplitude: float
             desired voltage of noise as V_rms (only roughly, since bandpass limited)
         type: string
-            rayleigh (default): Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            required, no default. Only "rayleigh" is currently supported: the amplitude of each
+            frequency bin is drawn from a Rayleigh distribution. "white"/"perfect_white" (a flat,
+            non-physical amplitude spectrum) are no longer supported and raise a ValueError.
         time_domain: bool (default True)
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
             might be more performant as the noise is generated internally in the frequency domain.
@@ -260,7 +264,7 @@ class channelGenericNoiseAdder:
         else:
             return noise
 
-    def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude=None, type='rayleigh',
+    def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude=None, type=None,
                           time_domain=True):
         """
         Generate noise of n_samples with a given frequency spectrum shape.
@@ -279,7 +283,9 @@ class channelGenericNoiseAdder:
             desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the
             power of the spectrum.
         type: string
-            rayleigh (default): Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            required, no default. Only "rayleigh" is currently supported: the amplitude of each
+            frequency bin is drawn from a Rayleigh distribution. "white"/"perfect_white" (a flat,
+            non-physical amplitude spectrum) are no longer supported and raise a ValueError.
         time_domain: bool (default True)
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
             might be more performant as the noise is generated internally in the frequency domain.
@@ -316,9 +322,16 @@ class channelGenericNoiseAdder:
     def __init__(self):
         self.__debug = None
         self.__random_generator = None
-        self.__noise_param_cache = {}
-        self._noise_param_cache_maxsize = 32
         self.logger = logging.getLogger('NuRadioReco.channelGenericNoiseAdder')
+
+        # Wrap `_get_noise_generation_parameters` with `functools.lru_cache`, bound here per-instance
+        # rather than as a `@lru_cache` decorator on the class method. Decorating the method directly
+        # would key the (module-wide, class-level) cache on `self` too, keeping every instance that
+        # was ever called alive forever (and mixing entries from all instances in one cache). Rebinding
+        # it here instead gives each `channelGenericNoiseAdder` its own independent, instance-scoped
+        # cache that is garbage collected along with the instance.
+        self._get_noise_generation_parameters = lru_cache(maxsize=32)(self._get_noise_generation_parameters)
+
         self.begin()
 
     def begin(self, debug=False, seed=None):
@@ -332,7 +345,7 @@ class channelGenericNoiseAdder:
             amplitude=1 * units.mV,
             min_freq=50 * units.MHz,
             max_freq=2000 * units.MHz,
-            type='rayleigh',
+            type=None,
             excluded_channels=None,
             bandwidth=None):
 
@@ -357,7 +370,9 @@ class channelGenericNoiseAdder:
             Maximum frequency of passband for noise generation
             If the maximum frequency is above the Nquist frequencey (0.5 * sampling rate), the Nquist frequency is used
         type: string
-            rayleigh (default): Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            required, no default. Only "rayleigh" is currently supported: the amplitude of each
+            frequency bin is drawn from a Rayleigh distribution. "white"/"perfect_white" (a flat,
+            non-physical amplitude spectrum) are no longer supported and raise a ValueError.
         excluded_channels: list of ints
             the channels ids of channels where no noise will be added, default is that no channel is excluded
         bandwidth: float or None (default)

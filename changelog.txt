@@ -32,9 +32,9 @@ deprecations:
   caches the frequency-domain bookkeeping internally, so there is no performance benefit to the
   precalculate/generate split anymore.
 - Removed the noise types `"white"` and `"perfect_white"` from `channelGenericNoiseAdder`. Only
-  `"rayleigh"` is supported (and is now the default `type` everywhere in the module); specifying a
-  removed type now raises a `ValueError` instead of silently falling back to a flat, non-physical
-  amplitude spectrum.
+  `"rayleigh"` is supported; `type` no longer has a default anywhere in the module and must be passed
+  explicitly (omitting it, or passing a removed type, raises a `ValueError` instead of silently
+  falling back to a flat, non-physical amplitude spectrum).
 
 version 3.1.1
 new features:
