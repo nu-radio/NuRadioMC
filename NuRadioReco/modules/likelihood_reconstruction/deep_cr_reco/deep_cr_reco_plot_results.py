@@ -188,7 +188,7 @@ if __name__ == "__main__":
     plt.figure(figsize=[6, 4])
     x = abs(polarization_uf/units.deg) - abs(polarization_true_90/units.deg)
     sigma_68 = (np.quantile(x, 0.84) - np.quantile(x, 0.16))/2
-    plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"Unfolding - True polarization, $\sigma_{{{"68\%"}}} = {str(np.round(sigma_68, 1))}$ deg")
+    plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"Unfolding - True polarization, $\sigma_{{68\%}} = {str(np.round(sigma_68, 1))}$ deg")
     plt.xlabel("Delta polarization angle [deg]")
     plt.ylabel("Counts")
     plt.legend(loc=1)
@@ -230,7 +230,7 @@ if __name__ == "__main__":
     plt.figure(figsize=[6, 4])
     x = polarization_llh/units.deg - polarization_true/units.deg
     sigma_68 = (np.quantile(x, 0.84) - np.quantile(x, 0.16))/2
-    plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"LLH reco - True polarization, $\sigma_{{{"68\%"}}} = {str(np.round(sigma_68, 1))}$ deg")
+    plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"LLH reco - True polarization, $\sigma_{{68\%}} = {str(np.round(sigma_68, 1))}$ deg")
     plt.xlabel("Delta polarization angle [deg]")
     plt.ylabel("Counts")
     plt.legend(loc=1)
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     plt.figure(figsize=[6, 4])
     x = abs(polarization_llh/units.deg) - abs(polarization_true/units.deg)
     sigma_68 = (np.quantile(x, 0.84) - np.quantile(x, 0.16))/2
-    plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"LLH reco - True polarization, $\sigma_{{{"68\%"}}} = {str(np.round(sigma_68, 1))}$ deg")
+    plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"LLH reco - True polarization, $\sigma_{{68\%}} = {str(np.round(sigma_68, 1))}$ deg")
     plt.xlabel("Delta polarization angle [deg]")
     plt.ylabel("Counts")
     plt.legend(loc=1)
