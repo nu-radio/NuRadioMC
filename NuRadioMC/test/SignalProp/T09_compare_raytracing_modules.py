@@ -47,6 +47,14 @@ TEST_CASES = [
         module_b="analytic",
         ice_b="greenland_simple_layered",
         grid=GRID_FINE,
+    ),
+    dict(
+        name="firn_layered_vs_radiopropa",
+        module_a="analytic",
+        ice_a="greenland_firn_layered",
+        module_b="radiopropa",
+        ice_b="greenland_firn",
+        grid=GRID_COARSE,
     )
 ]
 
