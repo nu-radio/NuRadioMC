@@ -8,7 +8,7 @@ from functools import lru_cache
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 from NuRadioMC.utilities import attenuation
 
-from NuRadioMC.SignalProp.AnalyticRayTracing.maybenumba import njit
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
 
 from NuRadioReco.utilities import units, geometryUtilities, constants
 #from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
@@ -16,7 +16,7 @@ from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 
 from math import sqrt, log, sin
 
-from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_turning_point, get_layer_index, build_y_field, get_n_1D, determine_solution_type
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_turning_point, get_layer_index, build_y_field, get_n_1D, determine_solution_type
 
 NumbaList = list # fallback for get_path_segments function
 
@@ -99,7 +99,7 @@ def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, ge
     else:
         z_forward = np.linspace(z1, z_turn, n_points)
         y_forward, _ = build_y_field(C0, z_forward, layers, C1)
-        
+
         y_mirror = 2*y_turn - y_forward
         z_up = z_forward[::-1]
         y_up = y_mirror[::-1]
@@ -126,7 +126,7 @@ def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, ge
             return y_path, z_path, y_turn, z_turn, yb, zb
         else:
             return y_path, z_path, y_turn, z_turn
-    else: 
+    else:
         if get_segments is True:
             return y_path, z_path, yb, zb
         else:
@@ -248,7 +248,7 @@ def get_path_segments(C0, x1, x2, layers):
 
         points_down.sort()
         points_down.reverse()
-    
+
     else: # Direct path: upwards going from x1 to x2
         points_up = NumbaList()
         points_up.append(z1)
@@ -298,7 +298,7 @@ def get_path_length_analytic(C0, x1, x2, layers):
 
     The path length within each segment is evaluated using a closed-form
     solution derived from the ray equation.
-    The math was taken from Appendix C.5 of https://doi.org/10.1140/epjc/s10052-020-7612-8 
+    The math was taken from Appendix C.5 of https://doi.org/10.1140/epjc/s10052-020-7612-8
     but without the detour over the angle to get beta but using beta = 1/C0 which should be equivalent (according to my understanding -> know where to search if stuff)
 
     Parameters
@@ -323,7 +323,7 @@ def get_path_length_analytic(C0, x1, x2, layers):
     """
 
 
-    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers    
+    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers
     total_s = 0.0
 
     segments = get_path_segments(C0,x1,x2,layers)
@@ -335,16 +335,16 @@ def get_path_length_analytic(C0, x1, x2, layers):
         delta_n = delta_n_arr[idx]
         z0 = z0_arr[idx]
 
-        
-        beta = 1.0 / C0 
+
+        beta = 1.0 / C0
         alpha = max(n_ice**2 - beta**2, 1e-15)
 
-        
+
         def gamma(z):
             n_z = n_ice - delta_n * np.exp(z / z0)
             g = n_z**2 - beta**2
             return max(g,1e-14)
-        
+
         EPS = 1e-10
 
         def l1(z):
@@ -393,7 +393,7 @@ def get_launch_angle(C0, x1, x2, layers):
     Returns
     -------
     angle : float
-        Launch angle in radians, measured with respect to the vertical. 
+        Launch angle in radians, measured with respect to the vertical.
     """
 
     y1, z1 = float(x1[0]), float(x1[1])
@@ -411,7 +411,7 @@ def get_launch_angle(C0, x1, x2, layers):
     solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
     n = get_n_1D(x1[1],layers)
 
-    if solution_type == DIRECT and downgoing: 
+    if solution_type == DIRECT and downgoing:
         angle = np.pi - np.arcsin(1/(n*C0))
     else:
         angle = np.arcsin(1/(n*C0))
@@ -447,7 +447,7 @@ def get_receiving_angle(C0, x1, x2, layers):
         Receiving angle in radians, measured with respect to the vertical.
 
     """
-    
+
     z_min, z_max, n_ice, delta_n, z0 = layers
 
     y1, z1 = float(x1[0]), float(x1[1])
@@ -601,7 +601,7 @@ def get_reflection_angle(C0, x1, x2, layers):
 
     if solution_type != REFLECTED:
         return None
-    
+
     # evaluate just below surface
     x_surface = (y1, -1e-12)
 
@@ -621,8 +621,8 @@ def get_travel_time_analytic(C0, x1, x2, layers):
         n(z) = n_ice - delta_n * exp(z / z0)
 
     The path length within each segment is evaluated using a closed-form
-    solution derived from the ray equation. 
-    The math is taken from Appendix C.5 of https://doi.org/10.1140/epjc/s10052-020-7612-8 
+    solution derived from the ray equation.
+    The math is taken from Appendix C.5 of https://doi.org/10.1140/epjc/s10052-020-7612-8
     but without the detour over the angle to get beta but using beta = 1/C0 which should be equivalent (according to my understanding)
 
     Parameters
@@ -646,7 +646,7 @@ def get_travel_time_analytic(C0, x1, x2, layers):
         Total geometric path length of the ray.
     """
 
-    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers    
+    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers
     total_t = 0.0
 
     segments = get_path_segments(C0,x1,x2,layers)
@@ -658,11 +658,11 @@ def get_travel_time_analytic(C0, x1, x2, layers):
         delta_n = delta_n_arr[idx]
         z0 = z0_arr[idx]
 
-        
-        beta = 1.0 / C0 
+
+        beta = 1.0 / C0
         alpha = max(n_ice**2 - beta**2, 1e-15)
 
-        
+
         def gamma(z):
             n_z = n_ice - delta_n * np.exp(z / z0)
             g = n_z**2 - beta**2
@@ -672,12 +672,12 @@ def get_travel_time_analytic(C0, x1, x2, layers):
         def l1(z):
             n_z = n_ice - delta_n * np.exp(z / z0)
             val = sqrt(alpha * gamma(z)) + n_ice * n_z - beta**2
-            return abs(val) 
+            return abs(val)
 
         def l2(z):
             val = sqrt(gamma(z)) + (n_ice - delta_n * np.exp(z / z0))
-            return abs(val) 
-        
+            return abs(val)
+
         def get_t(z):
             return ( z0 * ( sqrt(gamma(z)) + n_ice * log(l2(z)) - log(l1(z)) * (n_ice**2 / sqrt(alpha)) ) + z * (n_ice**2 / sqrt(alpha)) ) / constants.c
 
@@ -724,7 +724,7 @@ def get_frequencies_for_attenuation(
 
     Notes
     -----
-    This function is implemented as an alternative to analyticraytracing.ray_tracing_2D.__get_frequencies_for_attenuation to test functionality without class structure. 
+    This function is implemented as an alternative to analyticraytracing.ray_tracing_2D.__get_frequencies_for_attenuation to test functionality without class structure.
     Should be omitted once the class structure is implemented and the other function can be used.
     """
 
@@ -941,7 +941,7 @@ def get_attenuation_along_path(
         direction = 1 if z2 > z1 else -1
 
         while (z < z2 if direction > 0 else z > z2):
-            
+
             if refine:
                 use_fine = False
                 use_very_fine = False
@@ -956,7 +956,7 @@ def get_attenuation_along_path(
                 # refine near receiver
                 if abs(z - z_receiver) < receiver_window:
                     use_fine = True
-                
+
                 if abs(z - z_receiver) < receiver_window_fine:
                     use_very_fine = True
 
@@ -986,7 +986,7 @@ def get_attenuation_along_path(
 
         # Get ds_dz factor used in the integral
         ds_dz = ds_dz_layer(z_mid, C0, idx, layers)
-        
+
         # Compute sparse frequencies
         attenuation_sparse = np.empty_like(freqs)
 
@@ -1013,7 +1013,7 @@ def get_attenuation_along_path(
             attenuation_sparse
         )
 
-        # Overall attenuation: each individual attenuation contribution reduces the signal 
+        # Overall attenuation: each individual attenuation contribution reduces the signal
         # -> multiply factor of each integration segment
         attenuation_factor *= attenuation_segment
 
@@ -1024,7 +1024,7 @@ def get_focusing_factor(C0, x1, x2, layers):
     """
     Analytic solution to calculate the focusing factor
 
-    This was adapted from analyticraytracing.py and evaluates the path integrals taken from Sjoerd Bouma's PhD thesis. 
+    This was adapted from analyticraytracing.py and evaluates the path integrals taken from Sjoerd Bouma's PhD thesis.
     The segments to evaulate are again calculated with the get_path_segments function, analogously to how it is done in the other functions here.
 
     Parameters
@@ -1049,7 +1049,7 @@ def get_focusing_factor(C0, x1, x2, layers):
 
     """
 
-    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers    
+    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers
     beta = 1.0 / C0
 
     y1, z1 = float(x1[0]), float(x1[1])
@@ -1068,7 +1068,7 @@ def get_focusing_factor(C0, x1, x2, layers):
 
     if solution_type == REFRACTED:
         return np.nan
-    
+
     segments = get_path_segments(C0, x1, x2, layers)
 
 
@@ -1118,7 +1118,7 @@ def get_focusing_factor(C0, x1, x2, layers):
             w_phi += phi_F(z1) - phi_F(z2)
             w_theta += theta_F(z1) - theta_F(z2)
 
-    
+
 
 
     if x1[1] > 0:
@@ -1147,5 +1147,5 @@ def get_focusing_factor(C0, x1, x2, layers):
         * abs(np.cos(launch_angle) * np.cos(receive_angle))
         * (w_theta * w_phi / (s**2))
         )
-    
+
     return np.sqrt(1 / f_inv_sq)

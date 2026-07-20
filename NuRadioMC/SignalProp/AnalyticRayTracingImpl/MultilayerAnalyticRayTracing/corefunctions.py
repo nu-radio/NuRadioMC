@@ -7,7 +7,7 @@ from operator import itemgetter
 from functools import lru_cache
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 from NuRadioMC.utilities import attenuation
-from NuRadioMC.SignalProp.AnalyticRayTracing.maybenumba import njit
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
 from NuRadioReco.utilities import units, geometryUtilities, constants
 #from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
@@ -49,7 +49,7 @@ def layers_to_arrays(layers):
             Refractive index contrast.
 
         z0 : ndarray
-            Exponential scale depth. 
+            Exponential scale depth.
     """
     n = len(layers)
     z_min = np.zeros(n)
@@ -92,7 +92,7 @@ def init_layer_arrays(z_min, z_max, n_ice, delta_n, z0):
             Refractive index contrast.
 
         z0 : ndarray
-            Exponential scale depth. 
+            Exponential scale depth.
     """
     z_min = np.asarray(z_min, dtype=float)
     z_max = np.asarray(z_max, dtype=float)
@@ -174,8 +174,8 @@ def analytic_F(z, C0, n_ice, delta_n, z0):
 
         y(z) = F(z) + C1
 
-    where C1 is a layer-dependent offset constant. 
-    The offsets are defined from the boundary conditions (e.g. x_start) and can be calculated with 
+    where C1 is a layer-dependent offset constant.
+    The offsets are defined from the boundary conditions (e.g. x_start) and can be calculated with
     the calculate_offsets function.
     """
     z = float(z)
@@ -190,11 +190,11 @@ def analytic_F(z, C0, n_ice, delta_n, z0):
     # F only valid for positive c
     if c < 0 :
         return np.nan
-    
-    
+
+
     gamma = delta_n * np.exp(z / z0)
     root = max(gamma*gamma - gamma*b + c, 1e-14)
-    
+
     logargument = gamma / (2.0*np.sqrt(c)*np.sqrt(root) - b*gamma + 2.0*c)
 
     val = z0 * (n_ice*n_ice*C0*C0 - 1.0)**-0.5 * np.log(abs(logargument))
@@ -251,12 +251,12 @@ def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False
         if z_start >= z_min[i] and z_start <= z_max[i]:
             idx_start = i
             break
-    
+
     F_start = analytic_F(z_start, C0, n_ice[idx_start], delta_n[idx_start], z0[idx_start])
     C1[idx_start] = float(y_start - F_start)
 
     if get_intersection_point is True:
-        ybs = np.zeros(n_layers-1) 
+        ybs = np.zeros(n_layers-1)
         zbs = np.zeros(n_layers-1)
 
     for i in range(idx_start - 1, -1, -1):
@@ -466,19 +466,19 @@ def get_turning_point(C0, y_start, z_start, layers, C1=None,
     if C1 is None:
         # Compute offsets once
         C1, _, _, _ = compute_offsets(C0, y_start, z_start, layers)
-    
+
     # Find depth of turning point
     z_turn = find_z_turn(C0, layers)
-    
+
     numerical_safety_offset = 1e-12
     z_surface = 0.0 - numerical_safety_offset
 
     if (z_turn >= z_surface) and not with_air:
             z_turn = z_surface
-    
+
     # Evaluate horizontal coordinate at turning point
     y_turn = evaluate_y(C0, C1, z_turn, layers)
-    
+
     return y_turn, z_turn
 
 @njit(cache = True)
@@ -537,13 +537,13 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
 
     if C0 < C0range[0] or C0 > C0range[1]:
         return -np.inf
-    
+
 
     C1, _ , _, _= compute_offsets(C0, y1, z1, layers)
 
     y_turn, z_turn = get_turning_point(C0,y1,z1,layers,C1,downgoing,with_air)
 
-    
+
     if (y_turn is not None) and (z_turn is not None):
 
         if z_turn <= z2:
@@ -551,20 +551,20 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
             dy = y_turn - y2
             diff = np.sqrt(dz*dz + dy*dy) + 10.0 * np.abs(dz)
             return -diff
-        
+
         elif y_turn >= y2:
             y_fit = evaluate_y(C0, C1, z2, layers)
             return y2 - y_fit
-        
+
         else:
             y_raw = evaluate_y(C0, C1, z2, layers)
             y_fit = 2.0*y_turn - y_raw
             return -(y2 - y_fit)
-        
-    elif (y_turn is None) and (z_turn is None): 
+
+    elif (y_turn is None) and (z_turn is None):
         y_fit = evaluate_y(C0, C1, z2, layers)
         return y2 - y_fit
-    
+
 @njit(cache = True)
 def get_n_1D(z, layers):
     """
@@ -621,7 +621,7 @@ def get_C0_from_theta(z_start, theta, layers):
 
     if p == 0.0:
         return 1e12  # avoid division by zero
-    
+
     return 1.0 / p
 
 
@@ -659,7 +659,7 @@ def get_skim_angle(y1, z1, zskim, layers):
     """
     nlaunch = get_n_1D(z1, layers)
     nsurf = get_n_1D(zskim, layers)
-    
+
     sinthcrit = min(nsurf / nlaunch, 0.99999999)
     if sinthcrit <= 1.0:
         thcrit = np.arcsin(sinthcrit)
@@ -683,7 +683,7 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing=False, with_ai
 
     This function classifies a ray trajectory based on the location of
     its turning point relative to the emitter and receiver.
-    Since it is used in the find_solutions function and we are getting the flipped coordinates here, 
+    Since it is used in the find_solutions function and we are getting the flipped coordinates here,
     we just take the information for downgoing and with_air as well, makes this function a bit stupid, sorry
 
     Parameters
@@ -762,7 +762,7 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing=False, with_ai
     if with_air: # and downgoing:
         # from air we only find direct solutions (very sloppy check, I know)
         return DIRECT
-    
+
     if y2 < y_turn:
         # receiver reached before turning point -> direct ray
         return DIRECT
@@ -770,5 +770,5 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing=False, with_ai
     if z_turn >= -1e-12:
         # turning point above ice -> reflection of upwards going ray
         return REFLECTED
-    
+
     return REFRACTED

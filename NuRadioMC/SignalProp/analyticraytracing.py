@@ -7,7 +7,7 @@ CPP version, a python version with numba and a python version without numba, the
 The CPP version is the default if available, otherwise the python version with numba is used if available,
 otherwise the python version without numba is used.
 
-Implementations are in NuRadioMC/SignalProp/AnalyticRayTracing/
+Implementations are in NuRadioMC/SignalProp/AnalyticRayTracingImpl/
 """
 
 from NuRadioReco.utilities import units, geometryUtilities
@@ -19,7 +19,7 @@ from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer import (
     ray_tracing_2D, SPEED_OF_LIGHT, N_AIR, _get_zenith, _n
 )
-from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.multilayeranalyticraytracing import multi_layer_ray_tracing_2D
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.multilayeranalyticraytracing import multi_layer_ray_tracing_2D
 from NuRadioMC.utilities.birefringence import get_effective_index_birefringence, get_polarization_birefringence
 
 import numpy as np

@@ -11,7 +11,7 @@ from NuRadioMC.utilities import medium
 from NuRadioMC.SignalProp import propagation
 
 # Import your existing functions from the comparison script
-from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.testutils import (
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.testutils import (
     make_grid,
     run_batch_comparison_full,
     flatten_full,
@@ -221,7 +221,7 @@ def test_raytracing(case):
         print(case["name"])
         pprint.pprint(stats)
         return
-    
+
     elif REFERENCE[case["name"]]:
         assert_statistics(
             stats,

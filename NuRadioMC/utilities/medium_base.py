@@ -1,5 +1,5 @@
 from NuRadioReco.utilities import units
-from NuRadioMC.SignalProp.AnalyticRayTracing.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays
 
 from scipy import interpolate, integrate, linalg
 import numpy as np
@@ -375,7 +375,7 @@ class IceModelSimple(IceModel):
         )
 
         return RadioPropaIceWrapper(self, scalar_field)
-    
+
 
 class IceModelBirefringence(IceModelSimple):
     """
@@ -882,7 +882,7 @@ class IceModelExpLayers(IceModel):
         Setting refractive index layer definitions
 
         Layers get sorted and validated and a numba compatible array is provided
-        
+
         Parameters
         ----------
         layers : list of dict
@@ -909,7 +909,7 @@ class IceModelExpLayers(IceModel):
         for i in range(len(self.layers) - 1):
             if not np.isclose(self.layers[i]["z_min"], self.layers[i+1]["z_max"]):
                 raise ValueError(f"Layers {i} and {i+1} don't overlap, boundaries are not continuous! Check definition!")
-            
+
         z_min = np.asarray([layer["z_min"] for layer in self.layers], dtype=float)
         z_max = np.asarray([layer["z_max"] for layer in self.layers], dtype=float)
         n_ice = np.asarray([layer["n_ice"] for layer in self.layers], dtype=float)
@@ -921,7 +921,7 @@ class IceModelExpLayers(IceModel):
         # --- Length consistency check ---
         if not (len(z_max) == len(n_ice) == len(delta_n) == len(z0) == n):
             raise ValueError("All layer parameter arrays must have the same length. Did you forget to specify something?")
-        
+
     def get_index_of_refraction(self, position):
         """
         Compute the refractive index at a given position.
@@ -950,9 +950,9 @@ class IceModelExpLayers(IceModel):
         ValueError
             If a position lies outside all defined layers.
         """
-        
+
         z_min, z_max, n_ice, delta_n, z0 = self._layers_arr
-        
+
         def n_of_z(z):
             for i in range(len(z_min)):
                 if z_min[i] <= z < z_max[i]:
@@ -972,7 +972,7 @@ class IceModelExpLayers(IceModel):
                 out[i] = n_of_z(zvals[i])
 
             return out
-        
+
     def get_layer_name(self, z):
         """
         Return the name of the layer at a given depth.
@@ -996,7 +996,7 @@ class IceModelExpLayers(IceModel):
             if L["z_min"] <= z < L["z_max"]:
                 return L["region_name"]
         raise ValueError(f"Position z={z} is not covered by any layer!")
-    
+
     def get_average_index_of_refraction(self, position1, position2):
         """
         Returns average refractive index between two points.
@@ -1113,9 +1113,9 @@ class IceModelExpLayers(IceModel):
                 ),
                 axis=1
             )
-        
-    
-    @property        
+
+
+    @property
     def get_layers_array(self):
         """
         Get layer parameters as NumPy arrays.
@@ -1126,7 +1126,7 @@ class IceModelExpLayers(IceModel):
             See the internal method _layers_to_arrays for details.
         """
         return self._layers_arr
-    
+
     # for backwards compatibility with stuff IceModelSimple:
 
     @property
@@ -1154,7 +1154,7 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
     """
     Implements a continuous and continuously-differentiable piecewise-exponential ice model.
     """
-    def _parametrized_layers(self, nN, delta_nN, ls, zs, 
+    def _parametrized_layers(self, nN, delta_nN, ls, zs,
                              z_bot = -3000.0, z_surface = 0.0):
         """
         Parametrizes a three-layer ice model with continuous n(z) and n'(z) in terms of
@@ -1169,7 +1169,7 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
 
         def _get_ni_delta_ni(zz, li, nii, delta_nii, lii):
             """
-            Calculate parameters (ni, delta_ni) for layer `i` from parameters for 
+            Calculate parameters (ni, delta_ni) for layer `i` from parameters for
             layer `ii`, such that the two layers are connected at `zz` in a continuous and
             continuously-differentiable way.
             """
@@ -1185,7 +1185,7 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
 
         cur_n = nN
         cur_delta_n = delta_nN
-        for cur_l, next_l, cur_zmin, cur_zmax in zip(ls, ls[1:] + [1], 
+        for cur_l, next_l, cur_zmin, cur_zmax in zip(ls, ls[1:] + [1],
                                                      z_trans[:-1], z_trans[1:]):
             layers_gen.append(
                     {
@@ -1249,4 +1249,3 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
                         }
                     }
         return desc
-
