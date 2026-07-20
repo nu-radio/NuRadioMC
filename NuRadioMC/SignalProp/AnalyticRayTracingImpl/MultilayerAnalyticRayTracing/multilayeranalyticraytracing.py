@@ -103,10 +103,10 @@ logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 
 NumbaList = list # fallback for get_path_segments function
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImplImpl.MultilayerAnalyticRayTracing.corefunctions import get_layer_index, get_n_1D, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn, get_turning_point, get_C0_from_theta, get_delta_y, get_skim_angle, determine_solution_type
-from NuRadioMC.SignalProp.AnalyticRayTracingImplImpl.MultilayerAnalyticRayTracing.solver import find_solutions, find_solutions_bulk, reduce_solutions
-from NuRadioMC.SignalProp.AnalyticRayTracingImplImpl.MultilayerAnalyticRayTracing.getrayparameters import get_path, get_path_segments, get_path_length_analytic, get_travel_time_analytic, get_launch_angle, get_receiving_angle, get_reflection_angle, get_attenuation_along_path, get_focusing_factor, get_launch_vector, get_receiving_vector, ds_dz_layer, get_path_length_numerical, get_travel_time_numerical
-from NuRadioMC.SignalProp.AnalyticRayTracingImplImpl.MultilayerAnalyticRayTracing.planewave import get_inice_quantities, get_time_difference_plane_wave_analytic
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import get_layer_index, get_n_1D, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn, get_turning_point, get_C0_from_theta, get_delta_y, get_skim_angle, determine_solution_type
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.solver import find_solutions, find_solutions_bulk, reduce_solutions
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters import get_path, get_path_segments, get_path_length_analytic, get_travel_time_analytic, get_launch_angle, get_receiving_angle, get_reflection_angle, get_attenuation_along_path, get_focusing_factor, get_launch_vector, get_receiving_vector, ds_dz_layer, get_path_length_numerical, get_travel_time_numerical
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.planewave import get_inice_quantities, get_time_difference_plane_wave_analytic
 
 
 import time

@@ -15,7 +15,7 @@ from math import sqrt, log, sin
 
 
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_delta_y, get_n_1D, get_C0_from_theta, get_skim_angle, determine_solution_type
-from NuRadioMC.SignalProp.AnalyticRayTracing.maybenumba import njit
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
 
 
 def get_C0_from_log_scalar(logC0, n_ice):

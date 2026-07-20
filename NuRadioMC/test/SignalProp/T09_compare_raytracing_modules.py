@@ -236,13 +236,8 @@ def test_raytracing(case):
         print(case["name"])
         pprint.pprint(stats)
         return
-<<<<<<< HEAD
-
-    elif REFERENCE[case["name"]]:
-=======
     
     elif False: #REFERENCE[case["name"]]:
->>>>>>> edecd6dbd (New tests and adapting init for multilayer media)
         assert_statistics(
             stats,
             REFERENCE[case["name"]],
