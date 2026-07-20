@@ -229,16 +229,3 @@ def test_raytracing(case):
     assert np.all(df["path_diff_rel"].dropna() < PATH_TOL)
     assert np.all(df["angle_diff_rel"].dropna() < ANGLE_TOL)
 
-    #stats = evaluate_statistics(df)
-
-    #print_statistics(case["name"], stats)
-    if False: # GENERATE_REFERENCE:
-        print(case["name"])
-        pprint.pprint(stats)
-        return
-    
-    elif False: #REFERENCE[case["name"]]:
-        assert_statistics(
-            stats,
-            REFERENCE[case["name"]],
-        )
