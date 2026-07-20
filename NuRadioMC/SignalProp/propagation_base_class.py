@@ -168,7 +168,7 @@ class ray_tracing_base:
         if use_cpp and not cpp_available:
             msg = ('C++ raytracer was explicitly requested, but is not available (i.e. on-the-fly compilation failed). '
                    'Abort.... ! Either fix the compilation or set use_cpp to False. '
-                   'For compilation see NuRadioMC/SignalProp/AnalyticRayTracing/install.sh resp. NuRadioMC/SignalProp/AnalyticRayTracing/CPPAnalyticRayTracing.')
+                   'For compilation see NuRadioMC/SignalProp/AnalyticRayTracingImpl/install.sh resp. NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing.')
             logger.error(msg)
             raise RuntimeError(msg)
 

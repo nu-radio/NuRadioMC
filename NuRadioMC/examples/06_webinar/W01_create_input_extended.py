@@ -24,14 +24,14 @@ print(length/units.cm)
 """
 from NuRadioReco.utilities import units
 """
-When importing a NuRadioReco or NuRadioMC module, the parent loggers are 
+When importing a NuRadioReco or NuRadioMC module, the parent loggers are
 initialised automatically. They are instances of a custom logging class called
 NuRadioLogger, which is set as the default logging class when using this
 library. The NuRadioLogger class also has a STATUS logging level.
 
 All modules configure their own logger, following the NuRadioMC.MODULE or
 NuRadioReco.MODULE naming scheme. This ensures that the messages are properly
-passed on to the parent loggers, and as such ensures the output of all module 
+passed on to the parent loggers, and as such ensures the output of all module
 logging is consistent.
 """
 
@@ -110,7 +110,7 @@ flavor = [12, -12, 14, -14, 16, -16]
 Simulations of effective volumes should contain around hundreds of thousands or
 millions of events to have large enough statistics. We recommend the use of
 clusters to simulate each energy bin separately, and the compilation of the
-C++ version of the ray tracer (see SignalProp/AnalyticRayTracing/CPPAnalyticRayTracing/README.md).
+C++ version of the ray tracer (see SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing/README.md).
 But sometimes, if the array is too large or the detector is so complex that its
 simulation takes more time than what is desirable, we can use the argument
 n_events_per_file to split the files. Let us choose 250 events per file:

@@ -30,7 +30,7 @@ except Exception:
     except Exception:
         logger.warning(
             "Compilation was not successful, using python version of ray tracer. "
-            "Check NuRadioMC/NuRadioMC/SignalProp/AnalyticRayTracing/CPPAnalyticRayTracing for manual compilation.")
+            "Check NuRadioMC/NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing for manual compilation.")
         cpp_available = False
 
 numba_available = False
@@ -2102,4 +2102,3 @@ class ray_tracing_2D(ray_tracing_base):
             result = np.inf  # set to infinity
 
         return result
-
