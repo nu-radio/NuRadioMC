@@ -35,7 +35,7 @@ ff = np.linspace(0, 500 * units.MHz, n_freqs)
 # tt = 0
 for iX, x in enumerate(points):
 #     t_start2 = time.time()
-    r = ray.ray_tracing(x, x_receiver, ice)
+    r = ray.ray_tracing(x, x_receiver, ice, n_reflections=2)
 #     tt += (time.time() - t_start2)
     r.find_solutions()
     if(r.has_solution()):
