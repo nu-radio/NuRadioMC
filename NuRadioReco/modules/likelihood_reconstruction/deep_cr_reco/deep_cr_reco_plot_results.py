@@ -331,18 +331,6 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, f"polarization_pull.png"))
 
-    print(abs(polarization_llh))
-    print(abs(polarization_true))
-    print(polarization_error)
-    print(abs(polarization_llh) - abs(polarization_true))
-
-    plt.figure()
-    #plt.errorbar(abs(polarization_true), abs(polarization_llh), yerr=polarization_error, fmt='o', markersize=2, alpha=0.5)
-    #plt.scatter(abs(polarization_true), abs(polarization_llh), c=np.log10(snr), s=3, label="LLH reco", alpha=1)
-    plt.scatter((abs(polarization_true) - abs(polarization_llh))/polarization_error, polarization_error, c=np.log10(snr), s=3, label="LLH reco", alpha=1)
-    plt.savefig("debug.png")
-    quit()
-
 
     # Plot llh vs unfolding correlation
     plt.figure(figsize=[6, 4])
