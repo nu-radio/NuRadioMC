@@ -3,8 +3,8 @@ from NuRadioMC.utilities import medium
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
-from NuRadioMC.SignalProp.AnalyticRayTracing.single_layer_analytic_raytracer import (
-    ray_tracing_2D, SPEED_OF_LIGHT, N_AIR, _get_zenith
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer import (
+    ray_tracing_2D, SPEED_OF_LIGHT, N_AIR, _get_zenith, _n
 )
 from NuRadioMC.utilities.birefringence import get_effective_index_birefringence, get_polarization_birefringence
 
@@ -652,7 +652,7 @@ class ray_tracing(ray_tracing_base):
         Notes
         -----
         The analytic solution is based on the equation in the appendix of Sjoerd Bouma's PhD thesis.
-        For more details, see there, or see the notes of `ray_tracing_2D.get_path_length_analytic`.
+        For more details, see there, or see the notes of ``ray_tracing_2D.get_path_length_analytic``.
 
         """
         n = self.get_number_of_solutions()
