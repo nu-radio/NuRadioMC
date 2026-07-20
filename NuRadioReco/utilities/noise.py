@@ -423,21 +423,17 @@ class thermalNoiseGeneratorPhasedArray():
 
         self.noise = channelGenericNoiseAdder.channelGenericNoiseAdder()
 
-        # pre-calculate all parameters which will be used to simulate each triggered noise event to avoid re-calculation
-        self.noise.precalculate_bandlimited_noise_parameters(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
-                                                  self.sampling_rate * self.upsampling,
-                                                  self.amplitude, self.noise_type)
-
     def __generation(self):
         """ separated trace generation part for PA noise trigger """
 
         for iCh in range(self.n_channels):
-            # spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
-            #                                    self.sampling_rate * self.upsampling,
-            #                                    self.amplitude, self.noise_type, time_domain=False)
-
-            # function that does not re-calculate parameters in each simulated trace
-            spec = self.noise.bandlimited_noise_from_precalculated_parameters(self.noise_type, time_domain=False)
+            # `bandlimited_noise` caches the frequency-domain bookkeeping (frequency bins, passband
+            # selection, ...) internally, so calling it repeatedly with the same min_freq/max_freq/
+            # n_samples/sampling_rate/bandwidth (as we do here, once per channel per simulated trace)
+            # does not re-calculate those parameters every time.
+            spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
+                                                self.sampling_rate * self.upsampling,
+                                                self.amplitude, self.noise_type, time_domain=False)
             spec *= self.filt
             trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)
 

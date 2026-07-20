@@ -4,6 +4,10 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Refactored channelGenericNoiseAdder: `bandlimited_noise` now internally caches the frequency-domain
+  bookkeeping (frequency binning, passband selection) for repeated calls with the same min_freq/max_freq/
+  n_samples/sampling_rate/bandwidth, so it is now efficient to call directly in a loop (e.g. once per
+  channel per event) without a separate pre-calculation step.
 - Store shower Xmax in simulated shower when simulating with ARZ Askaryan emission models.
 - Added the option to use custom (user-specified) amplifiers. Custom amplifiers can be provided as .csv files
   under NuRadioReco/detector/amps/custom.
@@ -23,6 +27,14 @@ bugfixes:
 deprecations:
 - Remove default values for `use_channels` and `bandpass` in voltageToAnalyticEfieldConverter.py and voltageToEfieldConverter.py which were suitable for ARIANNA.
   Now, the arguments are required and an error is raised when they are not set.
+- Removed `channelGenericNoiseAdder.precalculate_bandlimited_noise_parameters` and
+  `bandlimited_noise_from_precalculated_parameters`. Call `bandlimited_noise` directly instead - it now
+  caches the frequency-domain bookkeeping internally, so there is no performance benefit to the
+  precalculate/generate split anymore.
+- Removed the noise types `"white"` and `"perfect_white"` from `channelGenericNoiseAdder`. Only
+  `"rayleigh"` is supported (and is now the default `type` everywhere in the module); specifying a
+  removed type now raises a `ValueError` instead of silently falling back to a flat, non-physical
+  amplitude spectrum.
 
 version 3.1.1
 new features:

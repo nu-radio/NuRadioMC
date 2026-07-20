@@ -32,7 +32,7 @@ class channelGenericNoiseAdder:
         amps[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
 
         return amps
-    
+
     def fftnoise_fullfft(self, *args, **kwargs):
         """Deprecated"""
         warnings.warn("The 'fftnoise_fullfft' method will be deprecated in a future release", DeprecationWarning)
@@ -69,47 +69,47 @@ class channelGenericNoiseAdder:
 
         return np.fft.ifft(f).real
 
-    def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='perfect_white',
-                          time_domain=True, bandwidth=None):
+    def _get_noise_generation_parameters(self, min_freq, max_freq, n_samples, sampling_rate, bandwidth):
         """
-        Generate noise of n_samples in a bandwidth [min_freq,max_freq].
+        Compute (and cache) the frequency-domain bookkeeping needed to generate bandlimited noise.
+
+        The frequency binning and the selection of bins within the requested passband only depend on
+        `min_freq`, `max_freq`, `n_samples`, `sampling_rate` and `bandwidth` - not on the noise
+        amplitude, type, or the random realization. In many use cases (e.g. adding noise to every
+        channel of every event with the same passband), this method is called repeatedly with the
+        same parameters, so we cache the result to avoid recomputing it every time.
 
         Parameters
         ----------
-
         min_freq: float
-            Minimum frequency of passband for noise generation
+            Minimum frequency of passband for noise generation.
             min_freq = None: Only the DC component is removed. If the DC component should be included,
-            min_freq = 0 has to be specified
+            min_freq = 0 has to be specified.
         max_freq: float
-            Maximum frequency of passband for noise generation
-            If the maximum frequency is above the Nquist frequencey (0.5 * sampling rate), the Nquist frequency is used
-            max_freq = None: Frequencies up to Nyquist freq are used.
+            Maximum frequency of passband for noise generation.
+            If the maximum frequency is above the Nyquist frequency (0.5 * sampling rate), the Nyquist
+            frequency is used. max_freq = None: Frequencies up to Nyquist freq are used.
         n_samples: int
             number of samples in the time domain
         sampling_rate: float
             desired sampling rate of data
-        amplitude: float
-            desired voltage of noise as V_rms (only roughly, since bandpass limited)
-        type: string
-            perfect_white: flat frequency spectrum
-            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
-        time_domain: bool (default True)
-            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
-            might be more performant as the noise is generated internally in the frequency domain.
-        bandwidth: float or None (default)
-            if this parameter is specified, the amplitude is interpreted as the amplitude for the bandwidth specified here
-            Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq
-            If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`
+        bandwidth: float or None
+            if this parameter is specified, the amplitude is interpreted as the amplitude for the
+            bandwidth specified here. Otherwise the amplitude is interpreted for the bandwidth of
+            min(max_freq, 0.5 * sampling rate) - min_freq. If `bandwidth` is larger than
+            (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`.
 
-        Notes
-        -----
-        *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq
-            is implemented (RL 17-Sept-2018)
-
+        Returns
+        -------
+        params: dict
+            Dictionary with the keys ``n_samples``, ``n_samples_freq``, ``sampling_rate``,
+            ``selection``, ``nbinsactive``, ``sigscale`` and ``bandwidth_scale``.
         """
-        frequencies = fft.freqs(n_samples, sampling_rate)
+        cache_key = (min_freq, max_freq, n_samples, sampling_rate, bandwidth)
+        if cache_key in self.__noise_param_cache:
+            return self.__noise_param_cache[cache_key]
 
+        frequencies = fft.freqs(n_samples, sampling_rate)
         n_samples_freq = len(frequencies)
 
         if min_freq is None or min_freq == 0:
@@ -133,42 +133,82 @@ class channelGenericNoiseAdder:
                     'max_freq or increase the sampling_rate.')
 
         selection = (frequencies >= min_freq) & (frequencies <= max_freq)
-
         nbinsactive = np.sum(selection)
         self.logger.debug('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples, nbinsactive))
 
         if bandwidth is not None:
             sampling_bandwidth = min(0.5 * sampling_rate, max_freq) - min_freq
-            amplitude *= 1. / (bandwidth / (sampling_bandwidth)) ** 0.5  # normalize noise level to the bandwidth its generated for
-
-        ampl = np.zeros(n_samples_freq)
-        sigscale = (1. * n_samples) / np.sqrt(nbinsactive)
-        if type == 'perfect_white':
-            ampl[selection] = amplitude * sigscale
-        elif type == 'rayleigh':
-            fsigma = amplitude * sigscale / np.sqrt(2.)
-            ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
-        # FIXME: amplitude normalization is not correct for 'white'
-        # elif type == 'white':
-        #   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
+            bandwidth_scale = 1. / (bandwidth / sampling_bandwidth) ** 0.5  # normalize noise level to the bandwidth its generated for
         else:
+            bandwidth_scale = 1.
+
+        sigscale = (1. * n_samples) / np.sqrt(nbinsactive)
+
+        params = {
+            "n_samples": n_samples,
+            "n_samples_freq": n_samples_freq,
+            "sampling_rate": sampling_rate,
+            "selection": selection,
+            "nbinsactive": nbinsactive,
+            "sigscale": sigscale,
+            "bandwidth_scale": bandwidth_scale,
+        }
+
+        # avoid unbounded growth of the cache if this is called with many different parameter combinations
+        if len(self.__noise_param_cache) >= self._noise_param_cache_maxsize:
+            self.__noise_param_cache.clear()
+        self.__noise_param_cache[cache_key] = params
+
+        return params
+
+    def _draw_amplitude_spectrum(self, n_samples_freq, selection, nbinsactive, amplitude, sigscale, type):
+        """
+        Draw a random amplitude spectrum for the frequency bins selected by `selection`.
+
+        This is the shared core of `bandlimited_noise` and `bandlimited_noise_from_spectrum`: given
+        the number of active (in-passband) frequency bins and the amplitude scaling to use, it draws
+        the per-bin amplitudes for the requested noise `type`.
+
+        Parameters
+        ----------
+        n_samples_freq: int
+            length of the (unilateral) frequency spectrum
+        selection: array of bool
+            boolean mask of length `n_samples_freq` selecting the frequency bins in the passband
+        nbinsactive: int
+            number of `True` entries in `selection`
+        amplitude: float
+            desired voltage of noise as V_rms
+        sigscale: float
+            scaling factor converting the target V_rms into the per-bin Rayleigh scale parameter
+        type: string
+            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+
+        Returns
+        -------
+        ampl: array of floats
+            amplitude spectrum of length `n_samples_freq`
+        """
+        if type in ('white', 'perfect_white'):
+            raise ValueError(
+                f"The noise type '{type}' is no longer supported. Please use type='rayleigh' instead, "
+                "which draws the amplitude of every frequency bin from a Rayleigh distribution and is "
+                "the physically correct model for thermal/white noise."
+            )
+        if type != 'rayleigh':
             self.logger.error("Other types of noise not yet implemented.")
             raise NotImplementedError("Other types of noise not yet implemented.")
 
-        noise = self.add_random_phases(ampl, n_samples) / sampling_rate
-        if time_domain:
-            return fft.freq2time(noise, sampling_rate, n=n_samples)
-        else:
-            return noise
+        ampl = np.zeros(n_samples_freq)
+        fsigma = amplitude * sigscale / np.sqrt(2.)
+        ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
 
-    def precalculate_bandlimited_noise_parameters(
-            self, min_freq, max_freq, n_samples, sampling_rate, amplitude,
-            type='perfect_white', bandwidth=None):
+        return ampl
+
+    def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='rayleigh',
+                          time_domain=True, bandwidth=None):
         """
-        Precalculate parameters for bandlimited noise.
-
-        Precalculate some parameters to use to generate noise using the 
-        `bandlimited_noise_from_precalculated_parameters`.
+        Generate noise of n_samples in a bandwidth [min_freq,max_freq].
 
         Parameters
         ----------
@@ -188,8 +228,7 @@ class channelGenericNoiseAdder:
         amplitude: float
             desired voltage of noise as V_rms (only roughly, since bandpass limited)
         type: string
-            perfect_white: flat frequency spectrum
-            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            rayleigh (default): Amplitude of each frequency bin is drawn from a Rayleigh distribution
         time_domain: bool (default True)
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
             might be more performant as the noise is generated internally in the frequency domain.
@@ -203,102 +242,28 @@ class channelGenericNoiseAdder:
         *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq
             is implemented (RL 17-Sept-2018)
 
-        See Also
-        --------
-        bandlimited_noise_from_precalculated_parameters
-        bandlimited_noise: method to generate noise without pre-calculating parameters
-        """
-        frequencies = np.fft.rfftfreq(n_samples, 1. / sampling_rate)
-
-        n_samples_freq = len(frequencies)
-
-        if min_freq is None or min_freq == 0:
-            # remove DC component; fftfreq returns the DC component as 0-th element and the negative
-            # frequencies at the end, so frequencies[1] should be the lowest frequency; it seems safer,
-            # to take the difference between two frequencies to determine the minimum frequency, in case
-            # future versions of numpy change the order and maybe put the negative frequencies first
-            min_freq = 0.5 * (frequencies[2] - frequencies[1])
-            self.logger.info(' Set min_freq from None to {} MHz!'.format(min_freq / units.MHz))
-        if max_freq is None:
-            # sample up to Nyquist frequency
-            max_freq = max(frequencies)
-            self.logger.info(' Set max_freq from None to {} GHz!'.format(max_freq / units.GHz))
-        selection = (frequencies >= min_freq) & (frequencies <= max_freq)
-
-        nbinsactive = np.sum(selection)
-        self.logger.debug('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples, nbinsactive))
-
-        if(bandwidth is not None):
-            sampling_bandwidth = min(0.5 * sampling_rate, max_freq) - min_freq
-            amplitude *= 1. / (bandwidth / (sampling_bandwidth)) ** 0.5  # normalize noise level to the bandwidth its generated for
-
-        ampl = np.zeros(n_samples_freq)
-        sigscale = (1. * n_samples) / np.sqrt(nbinsactive)
-        fsigma = amplitude * sigscale / np.sqrt(2.)
-
-
-        self.precalculated_parameters = {
-                "n_samples_freq": n_samples_freq,
-                "selection": selection,
-                "nbinsactive": nbinsactive,
-                "amplitude": amplitude,
-                "sigscale": sigscale,
-                "fsigma": fsigma,
-                "sampling_rate": sampling_rate,
-                "frequencies": frequencies,
-                "n_samples": n_samples
-                }
-
-
-    def bandlimited_noise_from_precalculated_parameters(self, type='perfect_white',
-                          time_domain=True):
-        """
-        Generate noise using previously set parameters
-        
-        Generates noise using parameters pre-set using `precalculate_bandlimited_noise_parameters`.
-
-        Parameters
-        ----------
-
-        type: string
-            perfect_white: flat frequency spectrum
-            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
-        time_domain: bool (default True)
-            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
-            might be more performant as the noise is generated internally in the frequency domain.
-
-        Notes
-        -----
-        *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq
-            is implemented (RL 17-Sept-2018)
-
-        See Also
-        --------
-        precalculate_bandlimited_noise_parameters
-        bandlimited_noise: method to generate noise without pre-calculating parameters
+        *   The frequency-domain bookkeeping (frequency binning, passband selection) is cached internally,
+            keyed on (min_freq, max_freq, n_samples, sampling_rate, bandwidth). Calling this method
+            repeatedly with the same values for those parameters (e.g. once per channel per event) is
+            therefore cheap, even though a new random noise realization is drawn on every call.
 
         """
+        params = self._get_noise_generation_parameters(min_freq, max_freq, n_samples, sampling_rate, bandwidth)
+        amplitude = amplitude * params["bandwidth_scale"]
 
-        ampl = np.zeros(self.precalculated_parameters["n_samples_freq"])
-        if type == 'perfect_white':
-            ampl[self.precalculated_parameters["selection"]] = self.precalculated_parameters["amplitude"] * self.precalculated_parameters["sigscale"]
-        elif type == 'rayleigh':
-            ampl[self.precalculated_parameters["selection"]] = self.__random_generator.rayleigh(self.precalculated_parameters["fsigma"], self.precalculated_parameters["nbinsactive"])
-        else:
-            self.logger.error("Other types of noise not yet implemented.")
-            raise NotImplementedError("Other types of noise not yet implemented.")
+        ampl = self._draw_amplitude_spectrum(
+            params["n_samples_freq"], params["selection"], params["nbinsactive"], amplitude, params["sigscale"], type)
 
-        noise = self.add_random_phases(ampl, self.precalculated_parameters["n_samples"]) / self.precalculated_parameters["sampling_rate"]
+        noise = self.add_random_phases(ampl, params["n_samples"]) / params["sampling_rate"]
         if time_domain:
-            return fft.freq2time(noise, self.precalculated_parameters["sampling_rate"], n=self.precalculated_parameters["n_samples"])
+            return fft.freq2time(noise, params["sampling_rate"], n=params["n_samples"])
         else:
             return noise
 
-
-    def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude=None, type='perfect_white',
+    def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude=None, type='rayleigh',
                           time_domain=True):
         """
-        Generate noise of n_samples in a bandwidth [min_freq,max_freq].
+        Generate noise of n_samples with a given frequency spectrum shape.
 
         Parameters
         ----------
@@ -314,13 +279,16 @@ class channelGenericNoiseAdder:
             desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the
             power of the spectrum.
         type: string
-            perfect_white: flat frequency spectrum
-            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            rayleigh (default): Amplitude of each frequency bin is drawn from a Rayleigh distribution
         time_domain: bool (default True)
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
             might be more performant as the noise is generated internally in the frequency domain.
+
+        See Also
+        --------
+        bandlimited_noise: generates noise with a flat/rectangular passband instead of an arbitrary spectrum shape
         """
-        frequencies = np.fft.rfftfreq(n_samples, 1. / sampling_rate)
+        frequencies = fft.freqs(n_samples, sampling_rate)
         selection = frequencies > 0
         n_samples_freq = np.sum(selection)
 
@@ -328,24 +296,15 @@ class channelGenericNoiseAdder:
             spectrum = spectrum(frequencies)
 
         if amplitude is not None:
-            # power = np.sum(spectrum**2)
             norm = integrate.trapezoid(np.abs(spectrum) ** 2, frequencies)
             max_freq = frequencies[-1]
             amplitude = amplitude / (norm / max_freq) ** 0.5
             sigscale = (1. * n_samples) / np.sqrt(n_samples_freq)
-        elif amplitude is None:
-            amplitude = np.sqrt(n_samples)
-            sigscale = 1
-
-        ampl = np.zeros(len(frequencies), dtype=complex)
-        if type == 'perfect_white':
-            ampl = amplitude * sigscale
-        elif type == 'rayleigh':
-            fsigma = amplitude * sigscale / np.sqrt(2.)
-            ampl[selection] = self.__random_generator.rayleigh(fsigma, n_samples_freq)
         else:
-            self.logger.error("Other types of noise not yet implemented.")
-            raise NotImplementedError("Other types of noise not yet implemented.")
+            amplitude = np.sqrt(n_samples)
+            sigscale = 1.
+
+        ampl = self._draw_amplitude_spectrum(len(frequencies), selection, n_samples_freq, amplitude, sigscale, type)
 
         noise = self.add_random_phases(ampl, n_samples) / sampling_rate
         noise *= spectrum
@@ -357,6 +316,8 @@ class channelGenericNoiseAdder:
     def __init__(self):
         self.__debug = None
         self.__random_generator = None
+        self.__noise_param_cache = {}
+        self._noise_param_cache_maxsize = 32
         self.logger = logging.getLogger('NuRadioReco.channelGenericNoiseAdder')
         self.begin()
 
@@ -371,7 +332,7 @@ class channelGenericNoiseAdder:
             amplitude=1 * units.mV,
             min_freq=50 * units.MHz,
             max_freq=2000 * units.MHz,
-            type='perfect_white',
+            type='rayleigh',
             excluded_channels=None,
             bandwidth=None):
 
@@ -396,8 +357,7 @@ class channelGenericNoiseAdder:
             Maximum frequency of passband for noise generation
             If the maximum frequency is above the Nquist frequencey (0.5 * sampling rate), the Nquist frequency is used
         type: string
-            perfect_white: flat frequency spectrum
-            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            rayleigh (default): Amplitude of each frequency bin is drawn from a Rayleigh distribution
         excluded_channels: list of ints
             the channels ids of channels where no noise will be added, default is that no channel is excluded
         bandwidth: float or None (default)

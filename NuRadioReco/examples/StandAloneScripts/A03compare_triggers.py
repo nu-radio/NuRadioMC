@@ -122,7 +122,7 @@ for scaling in np.linspace(10 * units.mV, 200 * units.mV, n_scaling):
             amplitude=20 * units.mV,
             min_freq=50 * units.MHz,
             max_freq=1000 * units.MHz,
-            type='perfect_white'
+            type='rayleigh'
         )
         channelGenericNoiseAdder.run(
             event_ARIANNA,
@@ -131,7 +131,7 @@ for scaling in np.linspace(10 * units.mV, 200 * units.mV, n_scaling):
             amplitude=20 * units.mV,
             min_freq=50 * units.MHz,
             max_freq=1000 * units.MHz,
-            type='perfect_white'
+            type='rayleigh'
         )
 
         channelResampler.run(event_ARA, station_ARA, det, sampling_rate=1 * units.GHz)

@@ -50,7 +50,7 @@ def get_ARA_power_mean_rms(sampling_rate, Vrms, min_freq, max_freq):
                                                             n_samples=2 ** 20,
                                                             sampling_rate=sampling_rate,
                                                             amplitude=Vrms,
-                                                            type='perfect_white')
+                                                            type='rayleigh')
     long_noise *= Vrms / long_noise.std()
 
     print(long_noise.std())
@@ -140,7 +140,7 @@ long_noise = channelGenericNoiseAdder.bandlimited_noise(
     n_samples=2 ** 20,
     sampling_rate=1 / dt,
     amplitude=Vrms,
-    type='perfect_white'
+    type='rayleigh'
 )
 NN = 10000
 SS_LPDA = np.zeros(NN)
@@ -234,7 +234,7 @@ for signal_scaling in np.linspace(1, 100, NN):
         channelGenericNoiseAdder.run(event, station, det, amplitude=Vrms,
                                      min_freq=100 * units.MHz,
                                      max_freq=500 * units.MHz,
-                                     type='perfect_white')
+                                     type='rayleigh')
         trace_LPDA = station.get_channel(3).get_trace()
         trace_bicone = station.get_channel(2).get_trace()
         Vp2p_LPDA_noise_1[counter] = get_Vp2p(trace_LPDA)
