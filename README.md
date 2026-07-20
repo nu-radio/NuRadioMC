@@ -1,4 +1,5 @@
 # NuRadioMC and NuRadioReco
+[![Coverage badge](https://raw.githubusercontent.com/nu-radio/NuRadioMC/python-coverage-comment-action-data/badge.svg)](https://github.com/nu-radio/NuRadioMC/tree/python-coverage-comment-action-data)
 ### [Quickstart](https://nu-radio.github.io/NuRadioMC/Introduction/pages/quickstart.html)
 ### [Documentation](https://nu-radio.github.io/NuRadioMC/main.html)
 ### [Contributing](https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html)
