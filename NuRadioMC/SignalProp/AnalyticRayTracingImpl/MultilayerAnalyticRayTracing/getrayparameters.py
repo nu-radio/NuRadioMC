@@ -1,6 +1,6 @@
 
 import numpy as np
-from scipy import optimize
+from scipy import integrate
 from operator import itemgetter
 #from numba import njit
 #from numba.typed import List
@@ -1149,3 +1149,113 @@ def get_focusing_factor(C0, x1, x2, layers):
         )
 
     return np.sqrt(1 / f_inv_sq)
+
+
+def get_path_length_numerical(C0, x1, x2, layers):
+    """
+    Numerically compute the ray path length in a multi-layer medium.
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter (inverse horizontal slowness).
+    x1 : tuple of float
+        Start point (y, z).
+    x2 : tuple of float
+        End point (y, z).
+    layers : tuple of ndarray
+        Medium definition: (z_min, z_max, n_ice_arr, delta_n_arr, z0_arr)
+
+    Returns
+    -------
+    total_s : float
+        Total geometric path length.
+    """
+    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers
+    total_s = 0.0
+
+    segments = get_path_segments(C0, x1, x2, layers)
+
+    for seg in segments:
+        z1, z2, C0, idx, upgoing = seg
+        n_ice = n_ice_arr[idx]
+        delta_n = delta_n_arr[idx]
+        z0 = z0_arr[idx]
+
+        # Define the refractive index profile for this layer
+        def n(z):
+            return n_ice - delta_n * np.exp(z / z0)
+
+        # Integrand: ds/dz = sec(theta) = sqrt(1 + (dz/dy)^2)
+        def ds(d, C0):
+            z = d  # Depth variable
+            n_z = n(z)
+            gamma = n_z**2 - (1.0 / C0)**2  # beta = 1/C0
+            if gamma <= 0:
+                return 1e10  # Avoid division by zero (ray turns around)
+            cos_theta = np.sqrt(gamma) / n_z
+            return 1.0 / cos_theta
+
+        # Handle directionality (upgoing vs downgoing)
+        if upgoing:
+            s_seg, _ = integrate.quad(ds, z1, z2, args=(C0,), epsabs=1e-4, epsrel=1.49e-08)
+        else:
+            s_seg, _ = integrate.quad(ds, z2, z1, args=(C0,), epsabs=1e-4, epsrel=1.49e-08)
+
+        total_s += s_seg
+
+    return total_s
+
+def get_travel_time_numerical(C0, x1, x2, layers):
+    """
+    Numerically compute the ray travel time in a multi-layer medium.
+
+    Parameters
+    ----------
+    C0 : float
+        Ray parameter.
+    x1 : tuple of float
+        Start point (y, z).
+    x2 : tuple of float
+        End point (y, z).
+    layers : tuple of ndarray
+        Medium definition: (z_min, z_max, n_ice_arr, delta_n_arr, z0_arr)
+
+    Returns
+    -------
+    total_t : float
+        Total travel time (in seconds).
+    """
+
+    z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers
+    total_t = 0.0
+
+    segments = get_path_segments(C0, x1, x2, layers)
+
+    for seg in segments:
+        z1, z2, C0, idx, upgoing = seg
+        n_ice = n_ice_arr[idx]
+        delta_n = delta_n_arr[idx]
+        z0 = z0_arr[idx]
+
+        def n(z):
+            return n_ice - delta_n * np.exp(z / z0)
+
+        # Integrand: dt/dz = n(z)/cos(theta)
+        def dt(d, C0):
+            z = d
+            n_z = n(z)
+            gamma = n_z**2 - (1.0 / C0)**2
+            if gamma <= 0:
+                return 1e10  # Avoid singularities
+            cos_theta = np.sqrt(gamma) / n_z
+            return n_z / (constants.c * cos_theta)
+
+        if upgoing:
+            t_seg, _ = integrate.quad(dt, z1, z2, args=(C0,), epsabs=1e-10, epsrel=1.49e-08)
+        else:
+            t_seg, _ = integrate.quad(dt, z2, z1, args=(C0,), epsabs=1e-10, epsrel=1.49e-08)
+
+        total_t += t_seg 
+
+    return total_t

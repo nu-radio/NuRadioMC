@@ -503,6 +503,7 @@ class greenland_3exp_layered(medium_base.IceModelContinuousExpLayers):
      
     Values for below the ice obtained from a fit to ice core density data. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
     """
+
     def __init__(self):
         super().__init__(
             nN = 1.77468,

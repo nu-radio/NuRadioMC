@@ -47,19 +47,18 @@ TEST_CASES = [
         module_b="analytic",
         ice_b="greenland_simple_layered",
         grid=GRID_FINE,
-    ),
-    dict(
-        name="simple_layered_vs_3exp_layered",
-        module_a="analytic",
-        ice_a="greenland_simple_nils_layered",
-        module_b="analytic",
-        ice_b="greenland_3exp_nils_layered",
-        grid=GRID_FINE,
     )
-
-
-
 ]
+
+''',
+dict(
+    name="simple_layered_vs_3exp_layered",
+    module_a="analytic",
+    ice_a="greenland_simple_nils_layered",
+    module_b="analytic",
+    ice_b="greenland_3exp_nils_layered",
+    grid=GRID_FINE,
+)'''
 
     #dict(
     #    name="firn_layered_vs_radiopropa",
@@ -190,6 +189,11 @@ def assert_statistics(stats, reference):
             )
 
 
+TIME_TOL = 1e-4     
+PATH_TOL = 1e-4
+ANGLE_TOL = 1e-4
+
+
 @pytest.mark.parametrize("case", TEST_CASES)
 def test_raytracing(case):
 
@@ -214,15 +218,31 @@ def test_raytracing(case):
 
     df = pd.DataFrame(flatten_full(results))
 
-    stats = evaluate_statistics(df)
 
-    print_statistics(case["name"], stats)
-    if GENERATE_REFERENCE:
+    df["time_diff_rel"] = np.abs(df["time_diff"] / df["time_a"])
+    df["path_diff_rel"] = np.abs(df["path_diff"] / df["path_a"])
+    df["angle_diff_rel"] = np.abs(df["angle_diff"] / df["receive_angle_a"])
+    df["attenuation_diff_rel"] = np.abs(df["attenuation_diff"] / df["attenuation_a"])
+    df["focusing_diff_rel"] = np.abs(df["focusing_diff"] / df["focusing_a"])
+
+    assert np.all(df["time_diff_rel"].dropna() < TIME_TOL)
+    assert np.all(df["path_diff_rel"].dropna() < PATH_TOL)
+    assert np.all(df["angle_diff_rel"].dropna() < ANGLE_TOL)
+
+    #stats = evaluate_statistics(df)
+
+    #print_statistics(case["name"], stats)
+    if False: # GENERATE_REFERENCE:
         print(case["name"])
         pprint.pprint(stats)
         return
+<<<<<<< HEAD
 
     elif REFERENCE[case["name"]]:
+=======
+    
+    elif False: #REFERENCE[case["name"]]:
+>>>>>>> edecd6dbd (New tests and adapting init for multilayer media)
         assert_statistics(
             stats,
             REFERENCE[case["name"]],

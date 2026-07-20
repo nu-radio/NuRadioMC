@@ -210,6 +210,9 @@ def compare_point_full(
                 tt_a = tracer_a.get_travel_time(i_a)
                 pl_a = tracer_a.get_path_length(i_a)
                 rv_a = tracer_a.get_receive_vector(i_a)
+                freqs = np.linspace(100*units.MHz, 700*units.MHz, 1)
+                att_a = tracer_a.get_attenuation(i_a,freqs)[0]
+                foc_a = tracer_a.get_focusing(i_a)
                 #ra_a = tracer_a.get_receive_angle(i_a)
 
                 entry["a"] = {
@@ -234,6 +237,16 @@ def compare_point_full(
                         lambda : np.degrees(np.arccos(rv_a[2] / np.linalg.norm(rv_a))),
                         default=None,
                         warning=f"recive angle failed (A, group {group})",
+                    ),
+                    "attenuation": safe_get(
+                        lambda : att_a,
+                        default=None,
+                        warning=f"attenuation failed (A, group {group})",
+                    ),
+                    "focusing": safe_get(
+                        lambda : foc_a,
+                        default=None,
+                        warning=f"focusing failed (A, group {group})",
                     )
                 }
 
@@ -250,6 +263,9 @@ def compare_point_full(
                 tt_b = tracer_b.get_travel_time(i_b)
                 pl_b = tracer_b.get_path_length(i_b)
                 rv_b = tracer_b.get_receive_vector(i_b)
+                freqs = np.linspace(100*units.MHz, 700*units.MHz, 1)
+                att_b = tracer_b.get_attenuation(i_b,freqs)[0]
+                foc_b = tracer_b.get_focusing(i_b)
                 #ra_b = tracer_b.get_receive_angle(i_b)
 
                 entry["b"] = {
@@ -274,6 +290,16 @@ def compare_point_full(
                         lambda : np.degrees(np.arccos(rv_b[2] / np.linalg.norm(rv_b))),
                         default=None,
                         warning=f"recive angle failed (B, group {group})",
+                    ),
+                    "attenuation": safe_get(
+                        lambda : att_b,
+                        default=None,
+                        warning=f"attenuation failed (B, group {group})",
+                    ),
+                    "focusing": safe_get(
+                        lambda : foc_b,
+                        default=None,
+                        warning=f"focusing failed (B, group {group})",
                     )
                     
                 }
@@ -309,6 +335,17 @@ def compare_point_full(
                         ),
                         warning=f"solving time ratio failed (group {group})",
                     ),
+                    "attenuation_diff": safe_get(
+                        lambda : (entry["b"]["attenuation"]-entry["a"]["attenuation"]),
+                        default=None,
+                        warning=f"attenuation diff failed (group {group})",
+                    ),
+                    "focusing_diff": safe_get(
+                        lambda : (entry["b"]["focusing"]-entry["a"]["focusing"]),
+                        default=None,
+                        warning=f"focusing diff failed (group {group})",
+                    )
+
                 }
 
             out["solutions"][group] = entry
@@ -390,6 +427,8 @@ def flatten_full(results):
                 row["path_a"] = sol["a"]["path_length_m"]
                 row["solving_time_a"] = sol["a"]["solving_time_ms"]
                 row["receive_angle_a"] = sol["a"]["receive_angle"]
+                row["attenuation_a"] = sol["a"]["attenuation"]
+                row["focusing_a"] = sol["a"]["focusing"]
 
             # -------------------------
             # module B
@@ -399,6 +438,8 @@ def flatten_full(results):
                 row["path_b"] = sol["b"]["path_length_m"]
                 row["solving_time_b"] = sol["b"]["solving_time_ms"]
                 row["receive_angle_b"] = sol["b"]["receive_angle"]
+                row["attenuation_b"] = sol["b"]["attenuation"]
+                row["focusing_b"] = sol["b"]["focusing"]
 
             # -------------------------
             # differences
@@ -409,6 +450,8 @@ def flatten_full(results):
                 row["path_diff"] = sol["diff"]["path_diff"]
                 row["angle_diff"] = sol["diff"]["angle_diff"]
                 row["solving_time_ratio"] = sol["diff"]["solving_time_ratio"]
+                row["attenuation_diff"] = sol["diff"]["attenuation_diff"]
+                row["focusing_diff"] = sol["diff"]["focusing_diff"]
 
             # NEW: solution existence flags
             row["has_a"] = sol["a"] is not None

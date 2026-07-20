@@ -141,7 +141,8 @@ class ray_tracing(ray_tracing_base):
 
         # As long as we use horizontal-translational invariant raytracing/ice models (2d)
         # this should be fine. _n(0) is also used in _get_delta_y for air-ice raytracing
-        self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
+        #self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
+        self.n_at_surface = self._medium.get_index_of_refraction(np.array([0,0,0]))
 
         # Some consitency checks...
 

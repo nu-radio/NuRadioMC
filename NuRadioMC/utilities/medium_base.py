@@ -1,5 +1,6 @@
 from NuRadioReco.utilities import units
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays
 
 from scipy import interpolate, integrate, linalg
 import numpy as np
@@ -875,9 +876,11 @@ class IceModelExpLayers(IceModel):
         layers : list of dict
             Layer definitions (see class docstring).
         """
+        
         self._set_layers(layers)
+        
 
-    def _set_layers(self, layers):
+    def _set_layers(self, layers, z_shift=0*units.meter, z_air_boundary=0*units.meter):
         """
         Setting refractive index layer definitions
 
@@ -888,6 +891,9 @@ class IceModelExpLayers(IceModel):
         layers : list of dict
             Layer definitions (see class docstring).
         """
+        
+        #self.z_air_boundary = z_air_boundary
+        #self.z_shift = z_shift
         self.layers = sorted(layers, key=lambda L: L["z_min"],reverse = True)
         self._validate_layers()
 
@@ -952,10 +958,11 @@ class IceModelExpLayers(IceModel):
         """
 
         z_min, z_max, n_ice, delta_n, z0 = self._layers_arr
+        eps = 1e-14
 
         def n_of_z(z):
             for i in range(len(z_min)):
-                if z_min[i] <= z < z_max[i]:
+                if z_min[i] + eps <= z < z_max[i]+eps:
                     return n_ice[i] - delta_n[i] * np.exp(z / z0[i])
 
             raise ValueError(f"Position z={z} is not covered by any layer!")
@@ -1143,7 +1150,7 @@ class IceModelExpLayers(IceModel):
 
     @property
     def z_air_boundary(self):
-        return self.layers[-1]["z_max"]
+        return 0.0
 
     @property
     def z_shift(self):

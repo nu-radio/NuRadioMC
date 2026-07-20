@@ -103,10 +103,10 @@ logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 
 NumbaList = list # fallback for get_path_segments function
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import get_layer_index, get_n_1D, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn, get_turning_point, get_C0_from_theta, get_delta_y, get_skim_angle, determine_solution_type
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.solver import find_solutions, find_solutions_bulk, reduce_solutions
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters import get_path, get_path_segments, get_path_length_analytic, get_travel_time_analytic, get_launch_angle, get_receiving_angle, get_reflection_angle, get_attenuation_along_path, get_focusing_factor, get_launch_vector, get_receiving_vector, ds_dz_layer
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.planewave import get_inice_quantities, get_time_difference_plane_wave_analytic
+from NuRadioMC.SignalProp.AnalyticRayTracingImplImpl.MultilayerAnalyticRayTracing.corefunctions import get_layer_index, get_n_1D, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn, get_turning_point, get_C0_from_theta, get_delta_y, get_skim_angle, determine_solution_type
+from NuRadioMC.SignalProp.AnalyticRayTracingImplImpl.MultilayerAnalyticRayTracing.solver import find_solutions, find_solutions_bulk, reduce_solutions
+from NuRadioMC.SignalProp.AnalyticRayTracingImplImpl.MultilayerAnalyticRayTracing.getrayparameters import get_path, get_path_segments, get_path_length_analytic, get_travel_time_analytic, get_launch_angle, get_receiving_angle, get_reflection_angle, get_attenuation_along_path, get_focusing_factor, get_launch_vector, get_receiving_vector, ds_dz_layer, get_path_length_numerical, get_travel_time_numerical
+from NuRadioMC.SignalProp.AnalyticRayTracingImplImpl.MultilayerAnalyticRayTracing.planewave import get_inice_quantities, get_time_difference_plane_wave_analytic
 
 
 import time
@@ -201,6 +201,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         self.dz = dz
         self.use_cpp = False # For compatibility with old raytracer
         #self.compile_numba = None # For compatibility with old raytracer
+        self.compile_numba = compile_numba
 
         numba_available = False
 
@@ -362,6 +363,20 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             )
 
         return travel_time
+    
+    def get_travel_time(self,x1, x2, C0, *_, **__):
+
+        travel_time = get_travel_time_numerical(C0, x1, x2, self._layers_arr)
+
+        self._logger.info(
+            "get_ptravel_time_numerical | x1=%s x2=%s C0=%s travel_time=%s",
+            x1,
+            x2,
+            C0,
+            travel_time
+            )
+
+        return travel_time
 
     #@log_timing()
     def get_path_length_analytic(self, x1, x2, C0, *_, **__):
@@ -383,6 +398,20 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
         self._logger.info(
             "get_path_length_analytic | x1=%s x2=%s C0=%s path_length=%s",
+            x1,
+            x2,
+            C0,
+            path_length
+            )
+
+        return path_length
+    
+    def get_path_length(self,x1, x2, C0, *_, **__):
+
+        path_length = get_path_length_numerical(C0, x1, x2, self._layers_arr)
+
+        self._logger.info(
+            "get_path_length_numerical | x1=%s x2=%s C0=%s path_length=%s",
             x1,
             x2,
             C0,
