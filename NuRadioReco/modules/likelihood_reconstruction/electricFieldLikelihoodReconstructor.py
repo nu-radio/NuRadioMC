@@ -3,6 +3,7 @@ from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
+import scipy as scp
 
 from NuRadioReco.utilities.analytic_pulse import get_analytic_pulse_freq
 from NuRadioReco.utilities import units, fft, minimization, matched_filter, trace_utilities
@@ -262,8 +263,12 @@ class electricFieldLikelihoodReconstructor:
 
         station.add_electric_field(electric_field)
 
+        # Calculate goodness of fit:
+        n_dof_fit = self.likelihood_calculator.get_dof() - 6
+        p_value_fit = 1 - scp.stats.chi2.cdf(minus_two_llh_best, n_dof_fit)
+
         if full_output:
-            return fitted_signal, fitted_params_best, minus_two_llh_best
+            return fitted_signal, fitted_params_best, minus_two_llh_best, p_value_fit
 
     def _function_to_minimize_mf(self, data, signal):
         """
