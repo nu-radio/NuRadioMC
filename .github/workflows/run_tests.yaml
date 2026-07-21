@@ -37,44 +37,15 @@ jobs:
     name: Setup environment and Linting
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
 
-    outputs:
-      env-cache-key: ${{ steps.cache-keys.outputs.env-key }}
-      data-cache-key: ${{ steps.cache-keys.outputs.data-key }}
-
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-    - name: Set up Python [${{ env.PYTHON_VERSION }}]
-      uses: actions/setup-python@v5
+    - name: Set up Python and install dependencies
+      uses: ./.github/actions/setup-python-env
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Generate cache keys
-      id: cache-keys
-      run: |
-        echo "env-key=${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3" >> $GITHUB_OUTPUT
-        echo "data-key=ci-data" >> $GITHUB_OUTPUT
-
-    - name: Cache Python environment
-      id: cache-env
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/pip
-          ${{ env.pythonLocation }}
-        key: ${{ steps.cache-keys.outputs.env-key }}
-        restore-keys: |
-          ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-
-          ${{ runner.os }}-env-
-
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        pip install -e .[proposal,galacticnoise,cr_interpolator]
-
-    - name: Display Python version
-      run: python -c "import sys; print(sys.version)"
+        cache-key: ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3
+        restore-only: false
 
     - name: Lint with flake8 (important)
       if: always()
@@ -94,16 +65,13 @@ jobs:
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-    - name: Setup GSL
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
     - name: "Validate separate trigger channels"
       if: always()
@@ -131,21 +99,22 @@ jobs:
         pip uninstall numba -y # easiest way to test ARZ without numba
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
 
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data
+
   signal-processing:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-    - name: Setup GSL
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
     - name: Signal generation test
       if: always()
@@ -167,22 +136,23 @@ jobs:
       run: |
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
 
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data
+
   effective-volume:
     name: Validation of effective volume and area simulation (fixed seeds)
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-    - name: Setup GSL
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
     - name: "Veff test"
       if: always()
@@ -199,27 +169,23 @@ jobs:
       run: |
         NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
 
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data
+
   rno-g-tests:
     name: RNO-G example scripts and code
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-    - name: Setup GSL
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
-
-    - name: Cache CI Data
-      uses: ./.github/actions/cache-ci-data
-      with:
-        cache-key: ${{ needs.setup.outputs.data-cache-key }}
 
     - name: "RNO-G Detector"
       if: always()
@@ -235,23 +201,24 @@ jobs:
     - name: "RNO-G simulation example"
       if: always()
       run: |
-        python3 NuRadioMC/examples/RNO_G_trigger_simulation/simulate.py --station_id 11 -e 1e19 -n 2000
+        NuRadioMC/test/examples/test_rnog_trigger_simulation.sh
+
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data
 
   other-tests:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-    - name: Setup GSL
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
 
     - name: "channelGalacticNoiseAdder"
       if: always()
@@ -273,6 +240,11 @@ jobs:
       run: |
         python NuRadioReco/test/check_modules.py -r
 
+    - name: "Test ParameterStorage get/set copy semantics"
+      if: always()
+      run: |
+        python NuRadioReco/test/framework/test_parameter_storage.py
+
     - name: "Test calibration pulser example"
       if: always()
       run: |
@@ -283,26 +255,29 @@ jobs:
       run: |
         NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
 
+    - name: "Test likelihood reconstruction examples"
+      if: always()
+      run: |
+        python NuRadioReco/examples/likelihood_reconstruction/toy_signal_likelihood_fit_and_matched_filter.py
+        python NuRadioReco/test/likelihood_reconstruction/test_efield_reconstruction.py
+        python NuRadioReco/test/likelihood_reconstruction/test_neutrino_reconstruction.py
+
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data
+
   examples:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: setup
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-    - name: Setup GSL
-      uses: ./.github/actions/setup-gsl
-
-    - name: Setup Python Environment
-      uses: ./.github/actions/setup-python-env
+    - name: Setup test job
+      timeout-minutes: 10
+      uses: ./.github/actions/setup-test-job
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ needs.setup.outputs.env-cache-key }}
-
-    - name: Cache CI Data
-      uses: ./.github/actions/cache-ci-data
-      with:
-        cache-key: ${{ needs.setup.outputs.data-cache-key }}
 
     - name: "Test Veff example"
       if: always()
@@ -328,3 +303,13 @@ jobs:
         jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_RNOG_data.ipynb
+
+    - name: "Simulation examples"
+      if: always()
+      run: |
+        python NuRadioMC/simulation/examples/A01calculate_sim_efield.py
+        python NuRadioMC/simulation/examples/A02calculate_channel.py
+
+    - name: Upload coverage data
+      if: always()
+      uses: ./.github/actions/upload-coverage-data

@@ -230,10 +230,6 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        z_air_boundary: float, NuRadio length units
-            z coordinate of the surface of the glacier
-        z_bottom: float, NuRadio length units
-            z coordinate of the bedrock/bottom of the glacier.
         n_ice: float, dimensionless
             refractive index of the deep bulk ice
         delta_n: float, NuRadio length units
@@ -243,6 +239,10 @@ class IceModelSimple(IceModel):
             scale depth of the exponential
         z_shift: float, NuRadio length units
             up or down shift od the exponential profile
+        z_air_boundary: float, NuRadio length units
+            z coordinate of the surface of the glacier
+        z_bottom: float, NuRadio length units
+            z coordinate of the bedrock/bottom of the glacier.
         """
 
         super().__init__(z_air_boundary, z_bottom)
@@ -336,14 +336,14 @@ class IceModelSimple(IceModel):
         def gradient_z(z):
             return -self.delta_n / self.z_0 * np.exp((z - self.z_shift) / self.z_0)
 
-        if (isinstance(position, list) or position.ndim == 1):
-            gradient = np.array([0,0,0])
+        if isinstance(position, list) or position.ndim == 1:
+            gradient = np.array([0, 0, 0], dtype=float)
             if (position[2] - self.z_air_boundary) <= 0:
                 gradient[2] = gradient_z(position[2])
         else:
-            gradient = gradient_z(position[:,2])
+            gradient = gradient_z(position[:, 2])
             gradient[position[:, 2] - self.z_air_boundary > 0] = 0
-            gradient = np.stack((np.zeros_like(gradient),np.zeros_like(gradient),gradient),axis=1)
+            gradient = np.stack((np.zeros_like(gradient), np.zeros_like(gradient), gradient), axis=1)
 
         return gradient
 
@@ -425,7 +425,7 @@ class IceModelExponentialPolynomial(IceModel):
     """
     def __init__(self, a, z_0, z_shift=0 * units.meter, z_air_boundary=0 * units.meter, z_bottom=None,
                  density_factor=0.8506 * (units.cm**3 / units.gram)):
-        """
+        r"""
         Initiation of an exponential polynomial ice model.
 
         .. math::
@@ -450,7 +450,8 @@ class IceModelExponentialPolynomial(IceModel):
         z_0: float, NuRadio length units
             scale depth of the exponential
 
-        [optional]
+        Other Parameters
+        ----------------
         z_shift: float, NuRadio length units
             up or down shift od the exponential profile
         z_air_boundary: float, NuRadio length units

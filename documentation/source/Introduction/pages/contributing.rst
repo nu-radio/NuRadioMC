@@ -82,6 +82,22 @@ You will only be able to merge your pull request once:
   even if it has been approved, so that other developers may also have a look - they might find something the first reviewer
   missed!**
 
+Test coverage
+-------------
+Every CI run measures Python code coverage across all of the `test jobs <https://github.com/nu-radio/NuRadioMC/actions/workflows/run_tests.yaml>`_.
+Since most tests invoke plain scripts rather than a single ``pytest`` run, coverage is collected via
+`coverage.py's subprocess measurement <https://coverage.readthedocs.io/en/latest/subprocess.html>`_: the shared
+``setup-python-env`` action (``.github/actions/setup-python-env``) installs a ``.pth`` hook that transparently starts
+coverage in every Python process spawned during a job. Each job uploads its own coverage data as an artifact
+(``.github/actions/upload-coverage-data``); a final ``coverage`` job in ``main.yaml`` combines all of them and reports
+the result using `python-coverage-comment-action <https://github.com/py-cov-action/python-coverage-comment-action>`_,
+which:
+
+* posts a comment on pull requests showing diff coverage (whether the lines changed in the PR are covered by tests),
+* updates the coverage badge and HTML report on the ``python-coverage-comment-action-data`` branch after each push to ``develop``.
+
+Coverage measurement is currently informational only - it does not block merging on a minimum threshold.
+
 Coding conventions
 ------------------
 In general we try to follow 'industry' coding workflow conventions. So, if

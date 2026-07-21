@@ -3,12 +3,12 @@ import NuRadioReco.framework.event
 import NuRadioReco.detector.detector
 import NuRadioReco.modules.io.event_parser_factory
 from NuRadioReco.utilities import io_utilities
+from NuRadioReco.framework.parameters import stationParameters as stnp
 
+from collections import defaultdict
+from functools import partial
 import numpy as np
-import astropy.time
-
 import logging
-
 import time
 import os
 
@@ -67,6 +67,7 @@ class NuRadioRecoio(object):
         self.__detectors = None
         self._event_specific_detector_changes = None
         self.__event_headers = None
+        self.__event_showers = None
         self._current_event_id = None
         self._current_run_number = None
         self.__fail_on_version_mismatch = fail_on_version_mismatch
@@ -161,7 +162,8 @@ class NuRadioRecoio(object):
         self.__detectors = {}
         self._event_specific_detector_changes = {}
 
-        self.__event_headers = {}
+        self.__event_headers = defaultdict(lambda: defaultdict(list))
+        self.__event_showers = {}
         if self.__parse_header:
             self.__scan_files()
 
@@ -172,25 +174,20 @@ class NuRadioRecoio(object):
     def get_filenames(self):
         return self._filenames
 
+
     def _parse_event_header(self, evt_header):
-        from NuRadioReco.framework.parameters import stationParameters as stnp
         self.__event_ids.append(evt_header['event_id'])
 
+
         for station_id, station in evt_header['stations'].items():
-
-            if station_id not in self.__event_headers:
-                self.__event_headers[station_id] = {}
-
             for key, value in station.items():
-                # treat sim_station differently
-                if key != 'sim_station':
-
-                    if key not in self.__event_headers[station_id]:
-                        self.__event_headers[station_id][key] = []
-
-                    if key == stnp.station_time:
+                if key == 'sim_station':
+                    self.__event_headers[station_id]['sim_station'] = value
+                else:
+                    if key != stnp.station_time:
+                        self.__event_headers[station_id][key].append(value)
+                    else:
                         station_time = io_utilities._time_object_to_astropy(value)
-
                         if station_time is not None:
                             try:
                                 station_time.format = 'isot'
@@ -203,8 +200,10 @@ class NuRadioRecoio(object):
                                     pass
 
                         self.__event_headers[station_id][key].append(station_time)
-                    else:
-                        self.__event_headers[station_id][key].append(value)
+
+        if 'showers' in evt_header:
+            current_event_id = evt_header['event_id']
+            self.__event_showers[current_event_id] = evt_header['showers']
 
     def __scan_files(self):
         current_byte = 12  # skip datafile header

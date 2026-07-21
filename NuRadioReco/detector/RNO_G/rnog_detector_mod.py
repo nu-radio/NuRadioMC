@@ -74,10 +74,10 @@ class ModDetector(Detector):
     @_check_detector_time
     def get_channel(self, station_id, channel_id):
         """
-        Returns a dictionary of all channel parameters. 
-        
-        The dictionary is returned as a "reference" (as every mutable object in python, without a copy call). 
-        That means, changing entries in this dictionary will change the detector description in memory. 
+        Returns a dictionary of all channel parameters.
+
+        The dictionary is returned as a "reference" (as every mutable object in python, without a copy call).
+        That means, changing entries in this dictionary will change the detector description in memory.
 
         Parameters
         ----------
@@ -177,7 +177,10 @@ class ModDetector(Detector):
 
         # generate a response object from the component dict
         component_response = Response(
-            **component,
+            component["frequencies"], 
+            [component["mag"], component["phase"]],
+            component["y-axis_units"], name = component["name"],
+            weight = component["weight"], time_delay = component["time_delay"],
             station_id=station_id,
             channel_id=channel_id
         )
@@ -187,7 +190,7 @@ class ModDetector(Detector):
 
         # modify the signal chain
         signal_chain_dict["total_response"] = orig_response * component_response
-        signal_chain_dict["response_chain"][component['name']] = component
+        signal_chain_dict["response_chain"].append(component)
 
         # write the modified signal chain back to the buffered station
         self._Detector__buffered_stations[station_id]["channels"][channel_id]['signal_chain'] = signal_chain_dict
@@ -228,9 +231,10 @@ class ModDetector(Detector):
 
         component = {
             'weight': weight,
-            'y_unit': ['mag', 'rad'],
-            'y': [list(mag), list(phase)],
-            'frequency': list(freqs),
+            'y-axis_units': ['mag', 'rad'],
+            'mag': list(mag),
+            'phase': list(phase),
+            'frequencies': list(freqs),
             'name': name,
             'time_delay': time_delay
         }
@@ -278,7 +282,7 @@ if __name__ == "__main__":
     import datetime
     det.update(datetime.datetime(2023, 1, 1, 0, 0, 0))
     resp = det.get_signal_chain_response(11, 0)
-    print(resp.get_time_delay(), resp._calculate_time_delay())
+    print(resp.get_time_delay(), resp.calculate_time_delay())
     det.add_manual_time_delay(11, 0, 250)
     resp = det.get_signal_chain_response(11, 0)
-    print(resp.get_time_delay(), resp._calculate_time_delay())
+    print(resp.get_time_delay(), resp.calculate_time_delay())
