@@ -661,7 +661,10 @@
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.run" title="NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, sim_to_data])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter" title="NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filter</span></code></a>(frequencies[, station_id, ...])</p></td>
+<td><p>Helper function to return the filter that the module applies.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.run" title="NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, station, det[, sim_to_data])</p></td>
 <td><p>Switch sim_to_data to go from simulation to data or otherwise.</p></td>
 </tr>
 </tbody>
@@ -680,6 +683,35 @@
 <dt class="sig sig-object py" id="NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.begin">
 <span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/ARA/hardwareResponseIncorporator.html#hardwareResponseIncorporator.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.begin" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter">
+<span class="sig-name descname"><span class="pre">get_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_to_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/ARA/hardwareResponseIncorporator.html#hardwareResponseIncorporator.get_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter" title="Link to this definition"></a></dt>
+<dd><p>Helper function to return the filter that the module applies. Loads entire system response from interpolating data of ARA_Electronics_TotalGain_TwoFilters.txt.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>frequencies: array of floats</strong></dt><dd><p>the frequency array for which the filter should be returned</p>
+</dd>
+<dt><strong>station_id: int (default None)</strong></dt><dd><p>the station id</p>
+</dd>
+<dt><strong>channel_id: int (default None)</strong></dt><dd><p>the channel id</p>
+</dd>
+<dt><strong>det: detector instance (default None)</strong></dt><dd><p>the detector</p>
+</dd>
+<dt><strong>sim_to_data: bool (default False)</strong></dt><dd><p>If False, deconvolve the hardware response.
+If True, convolve with the hardware response</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array of complex floats</dt><dd><p>the complex filter amplitudes</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.run">

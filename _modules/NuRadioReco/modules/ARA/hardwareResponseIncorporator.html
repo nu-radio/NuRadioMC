@@ -677,6 +677,49 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="n">debug</span></div>
 
 
+<div class="viewcode-block" id="hardwareResponseIncorporator.get_filter">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">det</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to return the filter that the module applies. Loads entire system response from interpolating data of ARA_Electronics_TotalGain_TwoFilters.txt.</span>
+<span class="sd">    </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">    </span>
+<span class="sd">        frequencies: array of floats</span>
+<span class="sd">            the frequency array for which the filter should be returned</span>
+<span class="sd">    </span>
+<span class="sd">        station_id: int (default None)</span>
+<span class="sd">            the station id</span>
+<span class="sd">    </span>
+<span class="sd">        channel_id: int (default None)</span>
+<span class="sd">            the channel id</span>
+<span class="sd">    </span>
+<span class="sd">        det: detector instance (default None)</span>
+<span class="sd">            the detector</span>
+<span class="sd">    </span>
+<span class="sd">        sim_to_data: bool (default False)</span>
+<span class="sd">            If False, deconvolve the hardware response.</span>
+<span class="sd">            If True, convolve with the hardware response</span>
+<span class="sd">    </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array of complex floats</span>
+<span class="sd">            the complex filter amplitudes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+        <span class="n">system_response</span> <span class="o">=</span> <span class="n">analog_components</span><span class="o">.</span><span class="n">get_system_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
+        <span class="n">system_complex_response</span> <span class="o">=</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">sim_to_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">system_complex_response</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">filt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">system_complex_response</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">system_complex_response</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="n">filt</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">system_complex_response</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">filt</span></div>
+
+        
 <div class="viewcode-block" id="hardwareResponseIncorporator.run">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
@@ -690,23 +733,16 @@
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
 
             <span class="n">frequencies</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
-            <span class="n">system_response</span> <span class="o">=</span> <span class="n">analog_components</span><span class="o">.</span><span class="n">get_system_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
             <span class="n">trace_fft</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
 
+            <span class="n">filt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">det</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="n">sim_to_data</span><span class="p">)</span>
+            <span class="n">trace_after_system_fft</span> <span class="o">=</span> <span class="n">trace_fft</span> <span class="o">*</span> <span class="n">filt</span>
+            
             <span class="k">if</span> <span class="n">sim_to_data</span><span class="p">:</span>
-
-                <span class="n">trace_after_system_fft</span> <span class="o">=</span> <span class="n">trace_fft</span> <span class="o">*</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span>
                 <span class="c1"># zero first bins to avoid DC offset</span>
                 <span class="n">trace_after_system_fft</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="n">channel</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">trace_after_system_fft</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
 
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">trace_before_system_fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">trace_fft</span><span class="p">)</span>
-                <span class="n">trace_before_system_fft</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">trace_fft</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/</span>
-                    <span class="p">(</span><span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">])[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
-                <span class="p">)</span>
-                <span class="n">channel</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">trace_before_system_fft</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">trace_after_system_fft</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">sim_to_data</span><span class="p">:</span>
             <span class="c1"># Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added</span>
