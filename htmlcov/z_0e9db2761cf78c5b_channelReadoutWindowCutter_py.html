@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for NuRadioReco/modules/channelReadoutWindowCutter.py: 75%</title>
+    <title>Coverage for NuRadioReco/modules/channelReadoutWindowCutter.py: 76%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_4667309f.css" type="text/css">
     <script src="coverage_html_cb_dd2e7eb5.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>NuRadioReco<span class="sep">/</span>modules<span class="sep">/</span>channelReadoutWindowCutter.py</b>:
-            <span class="pc_cov">75%</span>
+            <span class="pc_cov">76%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">114 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">85<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">29<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">87<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">27<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_0e9db2761cf78c5b_channelResampler_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.14.3">coverage.py v7.14.3</a>,
-            created at 2026-07-21 11:20 +0000
+            created at 2026-07-22 14:30 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -223,15 +223,15 @@
     <p class="run run2"><span class="n"><a id="t141" href="#t141">141</a></span><span class="t">                        <span class="nam">event</span><span class="op">.</span><span class="nam">get_run_number</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">event</span><span class="op">.</span><span class="nam">get_id</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t142" href="#t142">142</a></span><span class="t">                <span class="nam">logger</span><span class="op">.</span><span class="nam">warning</span><span class="op">(</span><span class="nam">msg</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t143" href="#t143">143</a></span><span class="t">            <span class="key">elif</span> <span class="nam">pre_trigger_time_channel</span> <span class="op">+</span> <span class="nam">number_of_samples</span> <span class="op">/</span> <span class="nam">sampling_rate</span> <span class="op">></span> <span class="nam">trace_length</span> <span class="op">/</span> <span class="nam">sampling_rate</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t144" href="#t144">144</a></span><span class="t">                <span class="nam">msg</span> <span class="op">=</span> <span class="op">(</span><span class="str">"End of the readout window is outside the end of the trace for station.channel {}.{}. "</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t145" href="#t145">145</a></span><span class="t">                       <span class="str">"(trigger time = {:.2f}ns, pre-trigger time = {:.2f}ns, start of sim. trace = {:.2f}ns, "</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t146" href="#t146">146</a></span><span class="t">                       <span class="str">"end of sim. trace {:.2f}, length of readout window {:.2f}ns, requested time after trace = "</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t147" href="#t147">147</a></span><span class="t">                       <span class="str">"{:.2f}ns), the trace will be rolled over the edge to fit in the readout window (Run: {}, Event: {})"</span><span class="op">)</span><span class="op">.</span><span class="nam">format</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t148" href="#t148">148</a></span><span class="t">                        <span class="nam">station</span><span class="op">.</span><span class="nam">get_id</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">channel_id</span><span class="op">,</span> <span class="nam">trigger_time</span><span class="op">,</span> <span class="nam">pre_trigger_time</span><span class="op">,</span> <span class="nam">channel</span><span class="op">.</span><span class="nam">get_trace_start_time</span><span class="op">(</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t149" href="#t149">149</a></span><span class="t">                        <span class="nam">channel</span><span class="op">.</span><span class="nam">get_trace_start_time</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="nam">trace_length</span> <span class="op">/</span> <span class="nam">sampling_rate</span><span class="op">,</span> <span class="nam">number_of_samples</span> <span class="op">/</span> <span class="nam">sampling_rate</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t150" href="#t150">150</a></span><span class="t">                        <span class="nam">pre_trigger_time_channel</span> <span class="op">+</span> <span class="nam">number_of_samples</span> <span class="op">/</span> <span class="nam">sampling_rate</span> <span class="op">-</span> <span class="nam">trace_length</span> <span class="op">/</span> <span class="nam">sampling_rate</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t151" href="#t151">151</a></span><span class="t">                        <span class="nam">event</span><span class="op">.</span><span class="nam">get_run_number</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">event</span><span class="op">.</span><span class="nam">get_id</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t152" href="#t152">152</a></span><span class="t">                <span class="nam">logger</span><span class="op">.</span><span class="nam">warning</span><span class="op">(</span><span class="nam">msg</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t144" href="#t144">144</a></span><span class="t">                <span class="nam">msg</span> <span class="op">=</span> <span class="op">(</span><span class="str">"End of the readout window is outside the end of the trace for station.channel {}.{}. "</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t145" href="#t145">145</a></span><span class="t">                       <span class="str">"(trigger time = {:.2f}ns, pre-trigger time = {:.2f}ns, start of sim. trace = {:.2f}ns, "</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t146" href="#t146">146</a></span><span class="t">                       <span class="str">"end of sim. trace {:.2f}, length of readout window {:.2f}ns, requested time after trace = "</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t147" href="#t147">147</a></span><span class="t">                       <span class="str">"{:.2f}ns), the trace will be rolled over the edge to fit in the readout window (Run: {}, Event: {})"</span><span class="op">)</span><span class="op">.</span><span class="nam">format</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t148" href="#t148">148</a></span><span class="t">                        <span class="nam">station</span><span class="op">.</span><span class="nam">get_id</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">channel_id</span><span class="op">,</span> <span class="nam">trigger_time</span><span class="op">,</span> <span class="nam">pre_trigger_time</span><span class="op">,</span> <span class="nam">channel</span><span class="op">.</span><span class="nam">get_trace_start_time</span><span class="op">(</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t149" href="#t149">149</a></span><span class="t">                        <span class="nam">channel</span><span class="op">.</span><span class="nam">get_trace_start_time</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="nam">trace_length</span> <span class="op">/</span> <span class="nam">sampling_rate</span><span class="op">,</span> <span class="nam">number_of_samples</span> <span class="op">/</span> <span class="nam">sampling_rate</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t150" href="#t150">150</a></span><span class="t">                        <span class="nam">pre_trigger_time_channel</span> <span class="op">+</span> <span class="nam">number_of_samples</span> <span class="op">/</span> <span class="nam">sampling_rate</span> <span class="op">-</span> <span class="nam">trace_length</span> <span class="op">/</span> <span class="nam">sampling_rate</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t151" href="#t151">151</a></span><span class="t">                        <span class="nam">event</span><span class="op">.</span><span class="nam">get_run_number</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">event</span><span class="op">.</span><span class="nam">get_id</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t152" href="#t152">152</a></span><span class="t">                <span class="nam">logger</span><span class="op">.</span><span class="nam">warning</span><span class="op">(</span><span class="nam">msg</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t153" href="#t153">153</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t154" href="#t154">154</a></span><span class="t">            <span class="com"># "roll" the start of the readout window to the start of the trace</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t155" href="#t155">155</a></span><span class="t">            <span class="nam">channel</span><span class="op">.</span><span class="nam">apply_time_shift</span><span class="op">(</span><span class="op">-</span><span class="nam">pre_trigger_time_channel</span><span class="op">,</span> <span class="nam">silent</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -453,7 +453,7 @@
             <a class="nav" href="z_0e9db2761cf78c5b_channelResampler_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.14.3">coverage.py v7.14.3</a>,
-            created at 2026-07-21 11:20 +0000
+            created at 2026-07-22 14:30 +0000
         </p>
     </div>
 </footer>
