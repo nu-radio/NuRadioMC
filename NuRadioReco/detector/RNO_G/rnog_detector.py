@@ -61,6 +61,9 @@ def _check_detector_time(method):
         return method(self, *method_args, **method_kwargs)
     return _impl
 
+def _format_t(t, f="%Y-%m-%d %H:%M:%S"):
+    return t.strftime(f)
+
 
 class Detector():
     def __init__(self, database_connection='RNOG_public', log_level=logging.NOTSET, over_write_handset_values=None,
@@ -509,12 +512,7 @@ class Detector():
         if isinstance(time, astropy.time.Time):
             time = _convert_astro_time_to_datetime(time)
 
-        if self.__detector_time is None:
-            self.logger.info(f"Update detector to {time}")
-
         self.__set_detector_time(time)
-        if not self._det_imported_from_file:
-            self.__db.set_detector_time(time)
 
         update_buffer_for_station = self._check_update_buffer()
         any_update = bool(np.any([v for v in update_buffer_for_station.values()]))
@@ -523,7 +521,7 @@ class Detector():
             for station_id, need_update in update_buffer_for_station.items():
                 if need_update:
                     self.logger.warning(
-                        f"Station {station_id} is not valid anymore at {time} but the detector description "
+                        f"Station {station_id} is not valid anymore at {_format_t(time)} but the detector description "
                         "was imported from a pickle/json file and can not be updated. Dropping this "
                         "station's description entirely.")
                     # remove everything (could be handled smarter ...)
@@ -532,15 +530,18 @@ class Detector():
             if not any(self.__buffered_stations.values()):
                 self.logger.error(
                     "You have imported the detector description from a json file but none of the "
-                    f"stations' description are valid anymore for {time}. Change the detector time by "
+                    f"stations' description are valid anymore for {_format_t(time)}. Change the detector time by "
                     "calling `det.update(...)`. Full stop!")
                 raise ValueError(
                     "You have imported the detector description from a json file but none of the "
-                    f"stations' description are valid anymore for {time}. Change the detector time by "
+                    f"stations' description are valid anymore for {_format_t(time)}. Change the detector time by "
                     "calling `det.update(...)`. Full stop!")
 
         elif any_update:
-            self.logger.info(f"Update detector to {time}")
+            self.logger.info(
+                "Update description of station(s) "
+                f"{', '.join(str(st) for st, up in update_buffer_for_station.items() if up)} to {_format_t(time)}")
+
             for key in self.__buffered_stations:
                 if update_buffer_for_station[key]:
                     # remove everything (could be handled smarter ...)
@@ -641,7 +642,7 @@ class Detector():
             raise ValueError(
                 f"Query information for station {station_id} which is still in buffer.")
 
-        self.logger.info(
+        self.logger.debug(
             f"Query information for station {station_id} at {self.get_detector_time()}")
 
         if query_all_information:
@@ -1033,11 +1034,6 @@ class Detector():
                     ydata = [component_entry["mag"], component_entry["phase"]]
                     y_units = component_entry["y-axis_units"]
                     frequencies = component_entry["frequencies"]
-
-                    # if "weight" not in component_entry.keys():
-                    #     self.logger.warning(
-                    #         f"Component {component_entry['collection']} with the name {component_entry['name']} "
-                    #         "does not have a weight. Assume a weight of 1 ...")
 
                     weight = component_entry.get("weight", 1) # returns 1 as the default if weight is not included
                     attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
