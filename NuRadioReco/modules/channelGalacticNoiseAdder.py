@@ -494,9 +494,9 @@ class channelGalacticNoiseAdder:
 
                 # scale noise spectrum:
                 channel_noise_spectrum *= self.scaling
-                if self.scaling:
-                    # add noise spectrum from pixel in the sky to channel spectrum
-                    channel_spectra[channel.get_id()][passband_filter] += channel_noise_spectrum
+
+                # add noise spectrum from pixel in the sky to channel spectrum
+                channel_spectra[channel.get_id()][passband_filter] += channel_noise_spectrum
 
         # store the updated channel spectra
         for channel in station.iter_channels(use_channels=selected_channel_ids):
