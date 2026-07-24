@@ -783,7 +783,11 @@ def window_response_in_time_domain(
     selected_islands = islands[np.logical_and(distance_mask, size_mask)]
 
     if not np.any(selected_islands):
-        raise ValueError("No islands found that satisfy the conditions")
+        logger.warning("No islands found that satisfy the conditions. Returning original response.")
+        if input_response:
+            return resp
+        else:
+            return spec
 
     # Connect selected islands
     sample_padding = 3  # padding because we apply a window
