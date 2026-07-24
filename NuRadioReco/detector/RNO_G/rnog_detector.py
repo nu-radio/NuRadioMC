@@ -167,7 +167,7 @@ class Detector():
 
             self.logger.debug("Register the following modification periods:")
             for key, value in self._time_periods_per_station.items():
-                self.logger.debug(f'{key}: {value}["modification_timestamps"]')
+                self.logger.debug(f'{key}: {value["modification_timestamps"]}')
 
             # Used to keep track which time period is buffered. Index of 0, not buffered jet.
             self._time_period_index_per_station = collections.defaultdict(int)
