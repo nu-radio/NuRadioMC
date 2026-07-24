@@ -476,7 +476,7 @@ class Detector():
 
         self.__detector_time = time
 
-        if not self._det_imported_from_file: # 
+        if not self._det_imported_from_file:
             if self.__db is None:
                 self.logger.error("Database is None.")
                 raise ValueError("Database is None.")
