@@ -29,13 +29,14 @@ def plot_hist(ax, data, label, **kwargs):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot deep_cr_reco results from a saved run number")
     parser.add_argument("output_folder", type=str, default="results", help="Load results from folder with this name")
-    parser.add_argument("--show", action="store_true", help="Show the plots interactively")
+    parser.add_argument("--real_data", action="store_true", help="If set, the plots using the MC true values will be skipped")
     args = parser.parse_args()
 
     # Match the same output directory structure used in deep_cr_reco.py
     here = os.path.dirname(os.path.realpath(__file__))
     output_dir = os.path.join(here, "results", f"{args.output_folder}")
     input_file = os.path.join(output_dir, "results.npz")
+    real_data = args.real_data
 
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"Results file not found: {input_file}")
@@ -64,7 +65,7 @@ if __name__ == "__main__":
     fluence_error = data.get("fluence_error")
     p_value = data.get("p_value")
 
-    valid_indicies = polarization_true!=0
+    valid_indicies = snr!=0 #polarization_true!=0
     snr = snr[valid_indicies]
     polarization_true = polarization_true[valid_indicies]
     #polarization_true = abs(polarization_true) + 2 * (90 * units.deg - abs(polarization_true))
@@ -110,26 +111,28 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------
     # Polarization comparisons
     # ------------------------------------------------------------------
-    plt.figure(figsize=[6, 4])
-    plt.hist(polarization_true/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls='-', label="True polarization")
-    #plt.hist(polarization_ref_array/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls='--', label="Refracted")
-    # plt.hist(polarization_h1_array/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls='--', label="H1")
-    # plt.hist(polarization_h2_array/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls=':', label="H2")
-    plt.xlabel("Polarization angle [deg]")
-    plt.ylabel("Counts")
-    plt.legend()
-    plt.title("True polarization distribution")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"polarization_true_distribution.png"))
-    plt.show()
-    plt.close()
+    if not real_data:
+        plt.figure(figsize=[6, 4])
+        plt.hist(polarization_true/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls='-', label="True polarization")
+        #plt.hist(polarization_ref_array/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls='--', label="Refracted")
+        # plt.hist(polarization_h1_array/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls='--', label="H1")
+        # plt.hist(polarization_h2_array/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls=':', label="H2")
+        plt.xlabel("Polarization angle [deg]")
+        plt.ylabel("Counts")
+        plt.legend()
+        plt.title("True polarization distribution")
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f"polarization_true_distribution.png"))
+        plt.show()
+        plt.close()
 
 
 
     # Unfolding results:
     plt.figure(figsize=[6, 4])
-    plt.hist(polarization_true/units.deg, bins=30, range=[-180, 180], histtype='step', linewidth=2, ls='-', label="True polarization")
+    if not real_data:
+        plt.hist(polarization_true/units.deg, bins=30, range=[-180, 180], histtype='step', linewidth=2, ls='-', label="True polarization")
     plt.hist(polarization_uf/units.deg, bins=30, range=[-180, 180], histtype='step', linewidth=2, ls='--', label="Unfolded polarization")
     plt.xlabel("Polarization angle [deg]")
     plt.ylabel("Counts")
@@ -141,21 +144,24 @@ if __name__ == "__main__":
     plt.show()
     plt.close()
 
-    plt.figure(figsize=[6, 4])
-    plt.scatter(polarization_true/units.deg, polarization_uf/units.deg, label="Unfolded", alpha=0.5)
-    plt.xlabel("Polarization angle 0 [deg]")
-    plt.ylabel("Polarization angle unfolded [deg]")
-    plt.legend()
-    plt.title("True vs Unfolded polarization")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"polarization_uf_2D.png"))
-    plt.show()
-    plt.close()
+    if not real_data:
+        plt.figure(figsize=[6, 4])
+        plt.scatter(polarization_true/units.deg, polarization_uf/units.deg, label="Unfolded", alpha=0.5)
+        plt.xlabel("Polarization angle 0 [deg]")
+        plt.ylabel("Polarization angle unfolded [deg]")
+        plt.legend()
+        plt.title("True vs Unfolded polarization")
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f"polarization_uf_2D.png"))
+        plt.show()
+        plt.close()
 
 
     # Limit to 0-90 deg:
-    plt.hist(polarization_true_90/units.deg, bins=30, range=[0, 90], histtype='step', linewidth=2, ls='-', label="True polarization")
+    plt.figure(figsize=[6, 4])
+    if not real_data:
+        plt.hist(polarization_true_90/units.deg, bins=30, range=[0, 90], histtype='step', linewidth=2, ls='-', label="True polarization")
     plt.hist(polarization_uf/units.deg, bins=30, range=[0, 90], histtype='step', linewidth=2, ls='--', label="Unfolded polarization")
     plt.xlabel("Polarization angle [deg]")
     plt.ylabel("Counts")
@@ -167,42 +173,45 @@ if __name__ == "__main__":
     plt.show()
     plt.close()
 
-    plt.figure(figsize=[5, 4])
-    x = polarization_true_90/units.deg
-    y = polarization_uf/units.deg
-    xy_min = 0
-    xy_max = 91
-    plt.plot([xy_min, xy_max], [xy_min, xy_max], "k--", label = "1:1")
-    plt.scatter(x, y, c=np.log10(snr), s=3, label="UF reco", alpha=1)
-    plt.axis([xy_min, xy_max, xy_min, xy_max])
-    plt.xlabel("True polarization [deg]")
-    plt.ylabel("Reconstructed polarization (UF) [deg]")
-    plt.colorbar(label=r"log10(SNR$_{max}$)")
-    plt.legend()
-    plt.title("True vs UF reco polarization")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"polarization_uf_2D_alt.png"))
-    plt.show()
+    if not real_data:
+        plt.figure(figsize=[5, 4])
+        x = polarization_true_90/units.deg
+        y = polarization_uf/units.deg
+        xy_min = 0
+        xy_max = 91
+        plt.plot([xy_min, xy_max], [xy_min, xy_max], "k--", label = "1:1")
+        plt.scatter(x, y, c=np.log10(snr), s=3, label="UF reco", alpha=1)
+        plt.axis([xy_min, xy_max, xy_min, xy_max])
+        plt.xlabel("True polarization [deg]")
+        plt.ylabel("Reconstructed polarization (UF) [deg]")
+        plt.colorbar(label=r"log10(SNR$_{max}$)")
+        plt.legend()
+        plt.title("True vs UF reco polarization")
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f"polarization_uf_2D_alt.png"))
+        plt.show()
 
-    plt.figure(figsize=[6, 4])
-    x = abs(polarization_uf/units.deg) - abs(polarization_true_90/units.deg)
-    sigma_68 = (np.quantile(x, 0.84) - np.quantile(x, 0.16))/2
-    plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"Unfolding - True polarization, $\sigma_{{68\%}} = {str(np.round(sigma_68, 1))}$ deg")
-    plt.xlabel("Delta polarization angle [deg]")
-    plt.ylabel("Counts")
-    plt.legend(loc=1)
-    plt.title("Unfolding vs True polarization")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"polarization_uf_delta_alt.png"))
-    plt.show()
-    plt.close()
+    if not real_data:
+        plt.figure(figsize=[6, 4])
+        x = abs(polarization_uf/units.deg) - abs(polarization_true_90/units.deg)
+        sigma_68 = (np.quantile(x, 0.84) - np.quantile(x, 0.16))/2
+        plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"Unfolding - True polarization, $\sigma_{{68\%}} = {str(np.round(sigma_68, 1))}$ deg")
+        plt.xlabel("Delta polarization angle [deg]")
+        plt.ylabel("Counts")
+        plt.legend(loc=1)
+        plt.title("Unfolding vs True polarization")
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f"polarization_uf_delta_alt.png"))
+        plt.show()
+        plt.close()
 
 
     # LLH reconstruction results:
     plt.figure(figsize=[6, 4])
-    plt.hist(polarization_true/units.deg, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', label="True polarization")
+    if not real_data:
+        plt.hist(polarization_true/units.deg, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', label="True polarization")
     plt.hist(polarization_llh/units.deg, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='--', label="LLH reco polarization")
     plt.xlabel("Polarization angle [deg]")
     plt.ylabel("Counts")
@@ -215,7 +224,8 @@ if __name__ == "__main__":
     plt.close()
 
     plt.figure(figsize=[6, 4])
-    plt.hist(abs(polarization_true/units.deg), bins=25, range=[0, 180], histtype='step', linewidth=2, ls='-', label="True polarization") #label=""""True" polarization""")
+    if not real_data:
+        plt.hist(abs(polarization_true/units.deg), bins=25, range=[0, 180], histtype='step', linewidth=2, ls='-', label="True polarization") #label=""""True" polarization""")
     plt.hist(abs(polarization_llh/units.deg), bins=25, range=[0, 180], histtype='step', linewidth=2, ls='--', label="LLH reco polarization")
     plt.xlabel("Polarization angle [deg]")
     plt.ylabel("Counts")
@@ -227,68 +237,101 @@ if __name__ == "__main__":
     plt.show()
     plt.close()
 
-    plt.figure(figsize=[6, 4])
-    x = polarization_llh/units.deg - polarization_true/units.deg
-    sigma_68 = (np.quantile(x, 0.84) - np.quantile(x, 0.16))/2
-    plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"LLH reco - True polarization, $\sigma_{{68\%}} = {str(np.round(sigma_68, 1))}$ deg")
-    plt.xlabel("Delta polarization angle [deg]")
-    plt.ylabel("Counts")
-    plt.legend(loc=1)
-    plt.title("LLH plarization reconstruction minus true distribution")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"polarization_llh_delta.png"))
-    plt.show()
-    plt.close()
+    if not real_data:
+        plt.figure(figsize=[6, 4])
+        x = polarization_llh/units.deg - polarization_true/units.deg
+        sigma_68 = (np.quantile(x, 0.84) - np.quantile(x, 0.16))/2
+        plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"LLH reco - True polarization, $\sigma_{{68\%}} = {str(np.round(sigma_68, 1))}$ deg")
+        plt.xlabel("Delta polarization angle [deg]")
+        plt.ylabel("Counts")
+        plt.legend(loc=1)
+        plt.title("LLH plarization reconstruction minus true distribution")
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f"polarization_llh_delta.png"))
+        plt.show()
+        plt.close()
+
+
+    if not real_data:
+        plt.figure(figsize=[6, 4])
+        x = abs(polarization_llh/units.deg) - abs(polarization_true/units.deg)
+        sigma_68 = (np.quantile(x, 0.84) - np.quantile(x, 0.16))/2
+        plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"LLH reco - True polarization, $\sigma_{{68\%}} = {str(np.round(sigma_68, 1))}$ deg")
+        plt.xlabel("Delta polarization angle [deg]")
+        plt.ylabel("Counts")
+        plt.legend(loc=1)
+        plt.title("LLH plarization reconstruction minus true distribution")
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f"polarization_llh_delta_alt.png"))
+        plt.show()
+        plt.close()
+
+    if not real_data:
+        plt.figure(figsize=[5, 4])
+        x = polarization_true/units.deg
+        y = polarization_llh/units.deg
+        xy_min = min([min(x), min(y)]) * 1.2
+        xy_max = max([max(x), max(y)]) * 1.2
+        plt.plot([xy_min, xy_max], [xy_min, xy_max], "k--", label = "1:1")
+        plt.scatter(x, y, s=2, label="LLH reco", alpha=0.5)
+        plt.axis([xy_min, xy_max, xy_min, xy_max])
+        plt.xlabel("True polarization [deg]")
+        plt.ylabel("Reconstructed polarization (LLH) [deg]")
+        plt.legend()
+        plt.title("True vs LLH reco polarization")
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f"polarization_llh_2D.png"))
+        plt.show()
+
+    if not real_data:
+        plt.figure(figsize=[5, 4])
+        x = abs(polarization_true)/units.deg
+        y = abs(polarization_llh)/units.deg
+        xy_min = 0
+        xy_max = 180
+        plt.plot([xy_min, xy_max], [xy_min, xy_max], "k--", label = "1:1")
+        plt.scatter(x, y, c=np.log10(snr), s=3, label="LLH reco", alpha=1)
+        plt.axis([xy_min, xy_max, xy_min, xy_max])
+        plt.xlabel("True polarization [deg]")
+        plt.ylabel("Reconstructed polarization (LLH) [deg]")
+        plt.colorbar(label=r"log10(SNR$_{max}$)")
+        plt.legend()
+        plt.title("True vs LLH reco polarization")
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f"polarization_llh_2D_alt.png"))
+        plt.show()
 
     plt.figure(figsize=[6, 4])
-    x = abs(polarization_llh/units.deg) - abs(polarization_true/units.deg)
-    sigma_68 = (np.quantile(x, 0.84) - np.quantile(x, 0.16))/2
-    plt.hist(x, bins=25, range=[-180, 180], histtype='step', linewidth=2, ls='-', color="r", label=f"LLH reco - True polarization, $\sigma_{{68\%}} = {str(np.round(sigma_68, 1))}$ deg")
-    plt.xlabel("Delta polarization angle [deg]")
-    plt.ylabel("Counts")
-    plt.legend(loc=1)
-    plt.title("LLH plarization reconstruction minus true distribution")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"polarization_llh_delta_alt.png"))
-    plt.show()
-    plt.close()
-
-    plt.figure(figsize=[5, 4])
-    x = polarization_true/units.deg
-    y = polarization_llh/units.deg
-    xy_min = min([min(x), min(y)]) * 1.2
-    xy_max = max([max(x), max(y)]) * 1.2
-    plt.plot([xy_min, xy_max], [xy_min, xy_max], "k--", label = "1:1")
-    plt.scatter(x, y, s=2, label="LLH reco", alpha=0.5)
-    plt.axis([xy_min, xy_max, xy_min, xy_max])
-    plt.xlabel("True polarization [deg]")
-    plt.ylabel("Reconstructed polarization (LLH) [deg]")
+    x = abs(polarization_llh/units.deg)
+    error_x = polarization_error/units.deg
+    y = np.arange(len(x))
+    plt.errorbar(x, y, xerr=error_x, fmt='o', markersize=2, alpha=0.5, label="LLH reco polarization")
+    plt.xlim(0, 180)
+    plt.xlabel("LLH reco polarization [deg]")
+    plt.ylabel("Event index")
     plt.legend()
-    plt.title("True vs LLH reco polarization")
+    plt.title("LLH reco polarization with error bars")
     plt.grid()
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"polarization_llh_2D.png"))
-    plt.show()
+    plt.savefig(os.path.join(output_dir, f"polarization_llh_with_error.png"))
 
-    plt.figure(figsize=[5, 4])
-    x = abs(polarization_true)/units.deg
-    y = abs(polarization_llh)/units.deg
-    xy_min = 0
-    xy_max = 180
-    plt.plot([xy_min, xy_max], [xy_min, xy_max], "k--", label = "1:1")
-    plt.scatter(x, y, c=np.log10(snr), s=3, label="LLH reco", alpha=1)
-    plt.axis([xy_min, xy_max, xy_min, xy_max])
-    plt.xlabel("True polarization [deg]")
-    plt.ylabel("Reconstructed polarization (LLH) [deg]")
-    plt.colorbar(label=r"log10(SNR$_{max}$)")
+    plt.figure(figsize=[6, 4])
+    x = abs(polarization_uf/units.deg)
+    error_x = polarization_uf_error/units.deg
+    y = np.arange(len(x))
+    plt.errorbar(x, y, xerr=error_x, fmt='o', markersize=2, alpha=0.5, label="Unfolded polarization")
+    plt.xlim(0, 180)
+    plt.xlabel("Unfolded polarization [deg]")
+    plt.ylabel("Event index")
     plt.legend()
-    plt.title("True vs LLH reco polarization")
+    plt.title("Unfolded polarization with error bars")
     plt.grid()
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"polarization_llh_2D_alt.png"))
-    plt.show()
+    plt.savefig(os.path.join(output_dir, f"polarization_uf_with_error.png"))
 
     # LLH and P value distributions:
     fig, ax = plt.subplots(2, 1, figsize=[4, 6])
@@ -308,28 +351,29 @@ if __name__ == "__main__":
     plt.show()
 
     # Pull plots:
-    fig, ax = plt.subplots(1, 2, figsize=[8, 4])
-    x = (abs(polarization_llh) - abs(polarization_true))
-    selection = abs(x) < 45 * units.deg
-    pull = x[selection] / polarization_error[selection]
-    std = np.std(pull)
-    ax[0].hist(pull, bins=15, histtype='step', linewidth=2, ls='-', label=f"Pull distribution, std = {str(np.round(std, 3))}") #, range=[-5, 5]
-    ax[0].set_xlabel("Pull (reco - true)/uncertainty")
-    ax[0].set_ylabel("Counts")
-    ax[0].legend(loc=1)
-    ax[0].grid()
-    ax[0].set_title("LLH reco polarization pull")
-    x = (abs(polarization_uf) - abs(polarization_true_90))
-    selection = abs(x) < 90 * units.deg
-    std = np.std(x[selection])
-    ax[1].hist(x[selection], bins=15, histtype='step', linewidth=2, ls='-', label=f"Pull distribution, std = {str(np.round(std, 3))}") #, range=[-5, 5]
-    ax[1].set_xlabel("Pull (reco - true)/uncertainty")
-    ax[1].set_ylabel("Counts")
-    ax[1].legend(loc=1)
-    ax[1].grid()
-    ax[1].set_title("Unfolded polarization pull")
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f"polarization_pull.png"))
+    if not real_data:
+        fig, ax = plt.subplots(1, 2, figsize=[8, 4])
+        x = (abs(polarization_llh) - abs(polarization_true))
+        selection = abs(x) < 45 * units.deg
+        pull = x[selection] / polarization_error[selection]
+        std = (np.quantile(pull, 0.84) - np.quantile(pull, 0.16)) / 2
+        ax[0].hist(pull, bins=15, histtype='step', linewidth=2, ls='-', label=fr"Pull distribution, $\sigma_{{68\%}}$ = {str(np.round(std, 3))}") #, range=[-5, 5]
+        ax[0].set_xlabel("Pull (reco - true)/uncertainty")
+        ax[0].set_ylabel("Counts")
+        ax[0].legend(loc=1)
+        ax[0].grid()
+        ax[0].set_title("LLH reco polarization pull")
+        x = (abs(polarization_uf) - abs(polarization_true_90))
+        selection = abs(x) < 90 * units.deg
+        std = (np.quantile(x[selection], 0.84) - np.quantile(x[selection], 0.16)) / 2
+        ax[1].hist(x[selection], bins=15, histtype='step', linewidth=2, ls='-', label=fr"Pull distribution, $\sigma_{{68\%}}$ = {str(np.round(std, 3))}") #, range=[-5, 5]
+        ax[1].set_xlabel("Pull (reco - true)/uncertainty")
+        ax[1].set_ylabel("Counts")
+        ax[1].legend(loc=1)
+        ax[1].grid()
+        ax[1].set_title("Unfolded polarization pull")
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, f"polarization_pull.png"))
 
 
     # Plot llh vs unfolding correlation
