@@ -411,7 +411,11 @@ if __name__ == "__main__":
 
     evtReader = eventReader.eventReader()
     evtReader.begin(filename=filenames, read_detector=True)
-    det = rnog_detector.Detector(select_stations=station_ids, database_time=datetime.datetime(2026, 3, 1, tzinfo=datetime.timezone.utc)) # Not evtReader.get_detector() since rnog_detector is not saved in nur file
+    if not args.calibrated_response:
+        det = rnog_detector.Detector(select_stations=station_ids) #, database_time=datetime.datetime(2026, 3, 1, tzinfo=datetime.timezone.utc)) # Not evtReader.get_detector() since rnog_detector is not saved in nur file
+        #det = evtReader.get_detector()
+    elif args.calibrated_response:
+        det = Detector(source="rnog_mongo", detector_file="./detector_calibrated_response_season2022_2026_07_11.json.xz")
 
     n_events = sum(1 for x in evtReader.run())
     evtReader.begin(filename=filenames, read_detector=True)
