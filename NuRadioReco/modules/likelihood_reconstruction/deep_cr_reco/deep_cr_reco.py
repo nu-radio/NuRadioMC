@@ -22,13 +22,16 @@ import NuRadioReco.modules.electricFieldSignalReconstructor
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.io.eventReader as eventReader
 import NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor
+import NuRadioReco.modules.likelihood_reconstruction.likelihood_calculator
 from NuRadioReco.detector.RNO_G import rnog_detector
+from NuRadioReco.detector.detector import Detector
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stp
 from NuRadioReco.utilities import fft, trace_utilities
 import argparse
 import scipy as scp
 import glob
+from get_noise_spectrum_FT import get_noise_spectrum_from_FT_data
 
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelBandPassFilter.begin()
@@ -39,7 +42,7 @@ hardwareResponseIncorporator.begin()
 channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
 channelSignalReconstructor.begin()
 voltageToEfieldConverter = NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter()
-voltageToEfieldConverter.begin()
+voltageToEfieldConverter.begin(debug=True)
 electricFieldSignalReconstructor = NuRadioReco.modules.electricFieldSignalReconstructor.electricFieldSignalReconstructor()
 electricFieldSignalReconstructor.begin(signal_window_pre=15 * units.ns, signal_window_post=30 * units.ns, noise_window=200 * units.ns,)
 efield_reconstructor = NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor.electricFieldLikelihoodReconstructor()
@@ -80,7 +83,7 @@ def get_array_of_channels(station, use_channels, n_channels, n_samples, n_freque
 
     # Plot the traces (Upwardfacing LPDAs)
     if plot:
-        fig, ax = plt.subplots(len(use_channels), 2, figsize=[len(use_channels)*2, 4])
+        fig, ax = plt.subplots(len(use_channels), 2, figsize=[12, len(use_channels)*2])
         for i, i_channel in enumerate(use_channels):
             channel = station.get_channel(i_channel)
 
@@ -102,7 +105,7 @@ def get_array_of_channels(station, use_channels, n_channels, n_samples, n_freque
             if i != len(use_channels)-1:
                 plt.xticks([])
             if i == 0:
-                plt.legend()
+                plt.legend(loc=1)
             plt.title("Antenna " + str(channel.get_id()), y=1.05, pad=-14, fontsize=9)
 
             plt.sca(ax[i, 1])
@@ -130,6 +133,17 @@ def get_array_of_channels(station, use_channels, n_channels, n_samples, n_freque
                 output_dir,
                 f"Station{station.get_id()}_Run{event.get_run_number()}_Event{event.get_id()}_traces.png"
             ))
+            if zoom:
+                channel = station.get_channel(use_channels[0])
+                t_array = trace_start_times[0] + np.arange(0, n_samples) * (1 / channel.get_sampling_rate())
+                t_max = t_array[np.argmax(np.abs(channel.get_trace()))]
+                for i, i_channel in enumerate(use_channels):
+                    plt.sca(ax[i, 0])
+                    plt.xlim(t_max - 75, t_max + 75)
+                plt.savefig(os.path.join(
+                    output_dir,
+                    f"Station{station.get_id()}_Run{event.get_run_number()}_Event{event.get_id()}_traces_zoom.png"
+                ))
         plt.close(fig)
 
         # Plot the traces for all channels
@@ -224,35 +238,172 @@ def get_travel_time_delays(propagator, det, station_id, use_channels, zenith, az
     return travel_times - travel_times[np.where(np.atleast_1d(use_channels) == reference_channel)[0][0]]
 
 
+def get_noise_spectrum_from_traces(filenames, det, use_channels, filter_settings_list, plot=False, mingainlin=0.001, use_first_half=True, n_events_max=1000):
+
+    evtReader = eventReader.eventReader()
+    evtReader.begin(filename=filenames, read_detector=True)
+
+    traces_array = []
+    n_events = sum(1 for x in evtReader.run())
+
+    for i_event, event in enumerate(evtReader.run()):
+        if i_event >= n_events_max:
+            break
+        print(i_event, "out of", n_events)
+
+        station = event.get_station()
+        station.set_is_cosmic_ray()
+        #n_channels = station.get_number_of_channels()
+        n_samples = station.get_channel(0).get_number_of_samples()
+        sampling_rate = station.get_channel(0).get_sampling_rate()
+        frequencies = np.fft.rfftfreq(n_samples, 1/sampling_rate)
+        n_frequencies = len(frequencies)
+        det.update(station.get_station_time())
+
+        # Filters:
+        for filt_settings in filter_settings_list:
+            channelBandPassFilter.run(event, station, det, **filt_settings)
+
+        # Hardware response:
+        hardwareResponseIncorporator.run(event, station, det, sim_to_data=False, mingainlin=mingainlin)
+
+        traces, traces_fft, trace_start_times, max_voltage = get_array_of_channels(station, use_channels, len(use_channels), n_samples, n_frequencies, frequencies, event, output_dir=None)
+
+        traces_array.append(traces)
+
+        #sids[i_event] = station.get_id()
+
+    traces_array = np.array(traces_array)
+
+    # Split into first and second half:
+    traces_array_first_half = traces_array[:,:,:n_samples//2]
+    traces_array_second_half = traces_array[:,:,n_samples//2:]
+    if use_first_half:
+        traces_array_combined = np.append(traces_array_first_half, np.roll(traces_array_first_half, 1, axis=0), axis=2) #np.tile(traces_array_first_half, (1, 1, 2))
+    else:
+        traces_array_combined = np.append(traces_array_second_half, np.roll(traces_array_second_half, 1, axis=0), axis=2)
+
+    # initialize noise model:
+    noise_model = NuRadioReco.modules.likelihood_reconstruction.likelihood_calculator.LikelihoodCalculator(n_antennas=len(use_channels), n_samples=n_samples, sampling_rate=sampling_rate, matrix_inversion_method="pseudo_inv", threshold_amplitude=0.1)
+    noise_model.initialize_with_data(traces_array_combined)
+
+    spectra = noise_model.spectra
+
+    # Remove artefacts in frequency domain from truncation:
+    for filt_settings in filter_settings_list:
+        if filt_settings["filter_type"] == "rectangular":
+            for i in range(len(use_channels)):
+                spectra[i, frequencies > filt_settings["passband"][1]] = 0
+                spectra[i, frequencies < filt_settings["passband"][0]] = 0
+
+    if plot:
+        fig, ax = plt.subplots(1, len(use_channels), figsize=(len(use_channels)*3, 5))
+
+        for i in range(len(use_channels)):
+            plt.sca(ax[i])
+            plt.title("Channel " + str(use_channels[i]))
+            plt.plot(frequencies, spectra[i], "b-", linewidth=1)
+            plt.xlabel("Frequency [GHz]")
+            plt.ylabel("Amplitude [mV/GHz]")
+            plt.axis([min(frequencies), max(frequencies), 0, np.max(spectra)*1.1])
+
+        plt.tight_layout()
+        plt.savefig("spectrum.png")
+        plt.close()
+
+    noise_model.plot_llh_distribution(traces_array_combined, np.sum(np.linalg.matrix_rank(noise_model.cov_inv)), frequency_domain=False, make_new_figure=True)
+    plt.savefig("llh_distribution_1.png")
+    plt.close()
+
+    noise_model.initialize_with_spectra(spectra)
+    noise_model.plot_llh_distribution(traces_array_combined, np.sum(np.linalg.matrix_rank(noise_model.cov_inv)), frequency_domain=False, make_new_figure=True)
+    plt.savefig("llh_distribution_2.png")
+    plt.close()
+
+    # stds = np.std(traces_array_combined, axis=2)
+    # fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+    # s = np.unique(sids)
+    # for i in range(3):
+    #     plt.sca(ax[i])
+    #     plt.plot(stds[sids==s[0],i], ".", c="r")
+    #     plt.plot(stds[sids==s[1],i], ".", c="y")
+    #     plt.plot(stds[sids==s[2],i], ".", c="b")
+    #     plt.ylim(0,np.max(stds)*1.1)
+    # plt.tight_layout()
+    # plt.savefig("stds.png")
+    # quit()
+
+    return spectra
+
+
+import csv
+PA_VERTEX_LOOKUP_FILE = "./deep_cr_reco/data/pa_vertex_lookup.txt"
+def _load_pa_vertex_lookup(table_path=PA_VERTEX_LOOKUP_FILE):
+    zenith_by_event = {}
+    azimuth_by_event = {}
+    z_relative_PA = {}
+    with open(table_path, newline="", encoding="utf-8") as table_file:
+        reader = csv.DictReader(table_file)
+        for row in reader:
+            key = (int(row["station"]), int(row["run"]), int(row["event"]))
+            zenith_by_event[key] = float(row["zenith_PA_deg"])
+            azimuth_by_event[key] = float(row["azimuth_PA_deg"])
+            z_relative_PA[key] = float(row["z_PA_m"])
+    return zenith_by_event, azimuth_by_event, z_relative_PA
+
+def get_zenith_and_azimuth_from_table(station, run, event, table_path=PA_VERTEX_LOOKUP_FILE):
+    """Return the phased-array zenith and azimuth for a station/run/event tuple."""
+    zenith_by_event, azimuth_by_event, z_relative_PA = _load_pa_vertex_lookup(table_path)
+    key = (int(station), int(run), int(event))
+    try:
+        return zenith_by_event[key] * units.deg, azimuth_by_event[key] * units.deg, z_relative_PA[key] * units.m
+    except KeyError as exc:
+        raise KeyError(
+            f"No zenith or azimuth found for station={station}, run={run}, event={event} in {table_path}"
+        ) from exc
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("filenames", type=str, nargs="+", help="Input .nur files")
-    parser.add_argument("output_folder", type=str, default="results", help="Save results to folder with this name")
-    parser.add_argument("station_ids", type=int, nargs="+", default=[23], help="Station IDs to process")
-    #parser.add_argument("zenith_azimuth_free", type=int, default=False, help="Free zenith and azimuth angles")
-    parser.add_argument("use_spectrum", type=int, default=False, help="If 0 use flat spectrum. If 1 use spectrum of first half of trace")
-    parser.add_argument("flow", type=float, default=80, help="Lowest frequency [MHz]")
-    parser.add_argument("fhigh", type=float, default=750, help="Highest frequency [MHz]")
-    parser.add_argument("cont", type=int, default=False, help="If 1, skip events that are already in the output file from previous runs")
+    parser.add_argument("--output_folder", type=str, default="results", help="Save results to folder with this name")
+    parser.add_argument("--station_ids", type=int, nargs="+", default=[23], help="Station IDs to process")
+    #parser.add_argument("--zenith_azimuth_free", type=int, default=False, help="Free zenith and azimuth angles")
+    parser.add_argument("--use_spectrum", type=int, default=False,
+                        help="If 0: use flat spectrum. 1: Use flat spectrum + bandpass filters. 2: Use noise spectrum second half of trace (for simulations). 3: Use noise spectrum from FT data.")
+    parser.add_argument("--flow", type=float, default=80, help="Lowest frequency [MHz]")
+    parser.add_argument("--fhigh", type=float, default=750, help="Highest frequency [MHz]")
+    parser.add_argument("--cont", type=int, default=False, help="If 1, skip events that are already in the output file from previous runs")
     parser.add_argument("--plot_traces", type=int, default=False, help="If 1, plot traces for each event")
-
+    parser.add_argument("--real_data", type=int, default=False, help="If 1, use real data instead of simulation")
+    parser.add_argument("--use_alvarez", type=int, default=False, help="If 1, use Alvarez2009 model for electric field")
+    parser.add_argument("--apply_butterworth", type=int, default=False, help="If 1, apply butterworth filter using flow and fhigh")
+    parser.add_argument("--calibrated_response", type=int, default=False, help="If 1, use calibrated detector response")
+    parser.add_argument("--rnog_data_path", type=str, default="/mnt/md0/data/RNO-G/inbox/", help="Path to RNOG data for FT noise spectrum calculation")
 
     args = parser.parse_args()
     output_folder = args.output_folder
     #zenith_azimuth_free = False if args.zenith_azimuth_free == 0 else True
-    use_spectrum = False if args.use_spectrum == 0 else True
+    use_spectrum = args.use_spectrum
     flow = args.flow
     fhigh = args.fhigh
     continue_flag = False if args.cont == 0 else True
     plot_traces = False if args.plot_traces == 0 else True
+    real_data = False if args.real_data == 0 else True
+    use_alvarez = args.use_alvarez
+    rnog_data_path = args.rnog_data_path
 
     # Make output:
     output_dir = os.path.join(ABS_PATH_HERE, "./results", f"{output_folder}")
     if not os.path.exists(output_dir):
         print("Making dir", output_dir)
         os.makedirs(output_dir)
-        
+
+    # Dump arguments to file:
+    with open(os.path.join(output_dir, "args.txt"), "w") as f:
+        for key, value in vars(args).items():
+            f.write(f"{key}: {value}\n")
+
     # Path to data:
     filenames = args.filenames # glob.glob("./data/lgE17.0_*.nur")
 
@@ -268,17 +419,9 @@ if __name__ == "__main__":
         n_samples = event.get_station().get_channel(0).get_number_of_samples()
         sampling_rate = event.get_station().get_channel(0).get_sampling_rate()
         frequencies = np.fft.rfftfreq(n_samples, 1/sampling_rate)
-        noise_spectra = np.ones_like(frequencies)  # placeholder, we don't use noise spectra for now
-        # det.update(event.get_station().get_station_time())
-        # station = event.get_station()
-        # hardwareResponseIncorporator.run(event, station, det, sim_to_data=False, mingainlin=0.001)
-        # Vrms = np.std(station.get_channel(0).get_trace()[n_samples//2:])  # estimate noise level from first half of trace
-        #print(station.get_channel(0).get_trace())
+        station = event.get_station()
+        det.update(station.get_station_time())
         break
-
-    use_channels = [0, 1, 2, 3, 4, 8]
-    n_channels_total = 24
-    n_channels = len(use_channels)
 
     filters_llh = None
 
@@ -293,9 +436,6 @@ if __name__ == "__main__":
         azimuth_reco_array = np.zeros([n_events])
         fluence_uf_array = np.zeros([n_events])  # [Theta, Phi, Total]
         polarization_true_array = np.zeros([n_events])  # [Theta, Phi, Total]
-        polarization_ref_array = np.zeros([n_events])  # [Theta, Phi, Total]
-        polarization_h1_array = np.zeros([n_events])  # [Theta, Phi, Total]
-        polarization_h2_array = np.zeros([n_events])  # [Theta, Phi, Total]
         polarization_uf_array = np.zeros([n_events])  # [Theta, Phi, Total]
         fluence_uf_all_array = np.zeros([n_events])  # [Theta, Phi, Total]
         polarization_uf_error_array = np.zeros([n_events])  # [Theta, Phi, Total]
@@ -326,22 +466,47 @@ if __name__ == "__main__":
     #     polarization_error_array = data['polarization_error']
     #     fluence_error_array = data['fluence_error']
     #     n_processed = sum(polarization_llh_array != 0) - sum(np.isnan(polarization_llh_array))
-
-    filt_settings_low = {'passband': [0 * units.MHz, fhigh * units.MHz],
-                            'filter_type': 'butter', #'rectangular', butter
-                            'order': 8}
-    filt_settings_high = {'passband': [flow * units.MHz, 1000 * units.MHz],
-                            'filter_type': 'butter', #'rectangular', butter
-                            'order': 3}
+    
     filt_settings_rectangular = {'passband': [75 * units.MHz, 700* units.MHz], 'filter_type': 'rectangular'}
+
+    apply_butterworth_filter = args.apply_butterworth
+    if apply_butterworth_filter:
+        filt_settings_low = {'passband': [0 * units.MHz, fhigh * units.MHz],
+                             'filter_type': 'butter', #'rectangular', butter
+                             'order': 8}
+        filt_settings_high = {'passband': [flow * units.MHz, 1000 * units.MHz],
+                              'filter_type': 'butter', #'rectangular', butter
+                              'order': 3}
+        filter_settings_list = [filt_settings_low, filt_settings_high, filt_settings_rectangular]
+    else:
+        filter_settings_list = [filt_settings_rectangular]
+
+    noise_spectra = None
+    if use_spectrum == 0:
+        noise_spectra = np.ones_like(frequencies)
+    elif use_spectrum == 1:
+        if apply_butterworth_filter:
+            filter_1 = channelBandPassFilter.get_filter(frequencies, station.get_id(), 0, det, **filt_settings_low)
+            filter_2 = channelBandPassFilter.get_filter(frequencies, station.get_id(), 0, det, **filt_settings_high)
+            filter_3 = channelBandPassFilter.get_filter(frequencies, station.get_id(), 0, det, **filt_settings_rectangular)
+            noise_spectra = abs(filter_1 * filter_2 * filter_3) * 1.0
+        else:
+            filter_3 = channelBandPassFilter.get_filter(frequencies, station.get_id(), 0, det, **filt_settings_rectangular)
+            noise_spectra = abs(filter_3) * 1.0
+    elif use_spectrum == 2:
+        noise_spectra = get_noise_spectrum_from_traces(
+            filenames, det, use_channels = [0, 1, 2, 3, 8, 4],
+            filter_settings_list = filter_settings_list,
+            plot=True, mingainlin=0.001, use_first_half=False, n_events_max=100
+        )
 
     ice = medium.get_ice_model('greenland_simple')
     propagator = propagation.get_propagation_module("analytic")(ice, attenuation_model="SP1", n_frequencies_integration=25, n_reflections=0) #, detector=det)
 
     for i_event, event in enumerate(evtReader.run()):
-        if i_event < n_processed and continue_flag:
-            print("skipped:", i_event, event.get_station().get_id(), event.get_run_number()) #, event_ids[i_event])
-            continue
+        # if i_event < n_processed and continue_flag:
+        #     print("skipped:", i_event, event.get_station().get_id(), event.get_run_number()) #, event_ids[i_event])
+        #     continue
         station = event.get_station()
         station.set_is_cosmic_ray()
         #n_channels = station.get_number_of_channels()
@@ -350,6 +515,14 @@ if __name__ == "__main__":
         frequencies = np.fft.rfftfreq(n_samples, 1/sampling_rate)
         n_frequencies = len(frequencies)
         det.update(station.get_station_time())
+
+        use_channels = [0, 1, 2, 3, 8, 4] # 9, 10, 11, 23, 22, 21]
+        ref_channel = 3
+        if station.get_id() == 13:
+            use_channels = [1, 2, 3, 8, 4] #9, 10, 11, 23, 22, 21]
+            ref_channel = 3
+        n_channels_total = 24
+        n_channels = len(use_channels)
 
         # Flip VPol antenna traces for test dataset:
         # for i_channel in [0,1,2,3]:
@@ -360,54 +533,97 @@ if __name__ == "__main__":
         print("i_event:", i_event, "- Station:", station.get_id(), "- Run:", event.get_run_number(), "- Event:", event.get_id())
 
         # Apply bandpass filters:
-        channelBandPassFilter.run(event, station, det, **filt_settings_low)
-        channelBandPassFilter.run(event, station, det, **filt_settings_high)
+        if apply_butterworth_filter:
+            channelBandPassFilter.run(event, station, det, **filt_settings_low)
+            channelBandPassFilter.run(event, station, det, **filt_settings_high)
         channelBandPassFilter.run(event, station, det, **filt_settings_rectangular)
+
+        # Remove cable delays:
+        if not event._has_been_processed_by_module('channelAddCableDelay', station.get_id()):
+            channelCableDelayAdder.run(event, station, det, mode='subtract')
 
         # Hardware response:
         hardwareResponseIncorporator.run(event, station, det, sim_to_data=False, mingainlin=0.001)
 
         # Get noise RMS for each channel and save max SNR:
         snrs = np.zeros(len(use_channels))
-        Vrms = np.array([np.std(station.get_channel(i_ch).get_trace()[n_samples//2:]) for i_ch in use_channels])  # estimate noise level from second half of trace
+        Vrms = np.array([np.std(station.get_channel(ch_id).get_trace()[n_samples//2:]) for ch_id in use_channels])  # estimate noise level from second half of trace
         for i_ch, ch_id in enumerate(use_channels):
-            snrs[i_ch] = trace_utilities.get_signal_to_noise_ratio(station.get_channel(i_ch).get_trace(), Vrms[i_ch])
+            snrs[i_ch] = trace_utilities.get_signal_to_noise_ratio(station.get_channel(ch_id).get_trace(), Vrms[i_ch])
         snr_array[i_event] = np.max(snrs)
 
-        if use_spectrum:
-            noise_spectra = np.ones_like(frequencies)
-            filter_1 = channelBandPassFilter.get_filter(frequencies, station.get_id(), use_channels[0], det, **filt_settings_low)
-            filter_2 = channelBandPassFilter.get_filter(frequencies, station.get_id(), use_channels[0], det, **filt_settings_high)
-            filter_3 = channelBandPassFilter.get_filter(frequencies, station.get_id(), use_channels[0], det, **filt_settings_rectangular)
-            noise_spectra = abs(filter_1 * filter_2 * filter_3)
+        if use_spectrum == 3:
+            if not os.path.exists("/mnt/md0/data/RNO-G/inbox/"):
+                raise ValueError("rnog_data_path must be specified when use_spectrum=3")
+            n_ft_events, noise_spectra, Vrms_FT, minus_two_llh_dist = get_noise_spectrum_from_FT_data(
+                rnog_data_path, event, use_channels, det,
+                filter_settings_list = filter_settings_list,
+                n_min_ft_events=100, plot_llh_dist=True, output_directory=output_dir, mingainlin=0.001, return_traces=False)
+
+            # debug llh calculation:
+            from NuRadioReco.modules.likelihood_reconstruction import likelihood_calculator
+            spectra_second_half = noise_spectra[:, ::2]
+            llh_calculator = likelihood_calculator.LikelihoodCalculator(len(use_channels), station.get_channel(0).get_number_of_samples()//2, station.get_channel(0).get_sampling_rate(), threshold_amplitude=0.1)
+            traces_first_half = np.array([station.get_channel(ch_id).get_trace()[:n_samples//2] for ch_id in use_channels])
+            traces_second_half = np.array([station.get_channel(ch_id).get_trace()[n_samples//2:] for ch_id in use_channels])
+            llh_calculator.initialize_with_spectra(spectra_second_half, np.std(traces_second_half, axis=1))
+            llh_first_half = llh_calculator.calculate_minus_two_delta_llh(traces_first_half, np.zeros_like(traces_first_half), frequency_domain=True)
+            llh_second_half = llh_calculator.calculate_minus_two_delta_llh(traces_second_half, np.zeros_like(traces_second_half), frequency_domain=True)
+            plt.figure()
+            plt.hist(minus_two_llh_dist, bins=50)
+            plt.axvline(llh_first_half*2, color="r", label="Event LLH from first half of trace")
+            plt.axvline(llh_second_half*2, color="b", label="Event LLH from second half of trace")
+            plt.xlabel("-2 Delta LLH")
+            plt.ylabel("Counts")
+            plt.title(f"Station {station.get_id()} - Run {event.get_run_number()} - Event {event.get_id()}")
+            plt.legend()
+            plt.savefig(os.path.join(output_dir, f"Station{station.get_id()}_Run{event.get_run_number()}_Event{event.get_id()}_llh_distribution.png"))
+            plt.close()
 
         traces, traces_fft, trace_start_times, max_voltage = get_array_of_channels(station, use_channels, n_channels, n_samples, n_frequencies, frequencies, event, output_dir, plot=plot_traces)
 
         # Get and save true polarization:
-        sim_station = event.get_station().get_sim_station()
-        efields_ch_0 = list(sim_station.get_electric_fields_for_channels([0]))
-        largest_amplitude_efield = None
-        max_amplitude_efield = 0
-        for i_efield, sim_channel in enumerate(sim_station.get_channels_by_channel_id(0)):
-            if largest_amplitude_efield is None or np.max(sim_channel.get_trace()) > max_amplitude_efield:
-                largest_amplitude_efield = i_efield
-                max_amplitude_efield = np.max(sim_channel.get_trace())
-        zenith = efields_ch_0[largest_amplitude_efield][efp.zenith] #+ np.random.normal(0, 5*units.deg)
-        azimuth = efields_ch_0[largest_amplitude_efield][efp.azimuth] #+ np.random.uniform(0, 360*units.deg)
-        sim_station.set_parameter(stp.zenith, zenith)
-        sim_station.set_parameter(stp.azimuth, azimuth)
-        polararization = efields_ch_0[largest_amplitude_efield][efp.polarization_angle]
+        if not real_data:
+            sim_station = event.get_station().get_sim_station()
+            efields_ch_0 = list(sim_station.get_electric_fields_for_channels([ref_channel]))
+            largest_amplitude_efield = None
+            max_amplitude_efield = 0
+            for i_efield, sim_channel in enumerate(sim_station.get_channels_by_channel_id(ref_channel)):
+                if largest_amplitude_efield is None or np.max(sim_channel.get_trace()) > max_amplitude_efield:
+                    largest_amplitude_efield = i_efield
+                    max_amplitude_efield = np.max(sim_channel.get_trace())
+            zenith = efields_ch_0[largest_amplitude_efield][efp.zenith] #+ np.random.normal(0, 5*units.deg)
+            azimuth = efields_ch_0[largest_amplitude_efield][efp.azimuth] #+ np.random.uniform(0, 360*units.deg)
+            sim_station.set_parameter(stp.zenith, zenith)
+            sim_station.set_parameter(stp.azimuth, azimuth)
+            polarization = efields_ch_0[largest_amplitude_efield][efp.polarization_angle]
+        else:
+            zenith_vert, azimuth_vert, z_relative_PA = get_zenith_and_azimuth_from_table(station.get_id(), event.get_run_number(), event.get_id())
+            z_vert_local = det.get_relative_position(station.get_id(), ref_channel)[2] + z_relative_PA
+            xy_vert_local = np.tan(zenith_vert) * abs(z_relative_PA) #det.get_relative_position(station.get_id(), ref_channel)[2] - z_vert)
+            xyz_ant_local = [0, 0, det.get_relative_position(station.get_id(), ref_channel)[2]]
+            propagator.set_start_and_end_point(np.array([xy_vert_local, 0, z_vert_local]), xyz_ant_local)
+            propagator.find_solutions()
+            receive_vector = propagator.get_receive_vector(0)
+            zenith = np.arccos(receive_vector[2] / np.linalg.norm(receive_vector))
+            azimuth = azimuth_vert
+            station.set_parameter(stp.zenith, zenith)
+            station.set_parameter(stp.azimuth, azimuth)
+            polarization = 0
+            print("zenith_vert:", zenith_vert/units.deg, "azimuth_vert:", azimuth_vert/units.deg, "zenith:", zenith/units.deg, "azimuth:", azimuth/units.deg)
 
-        polarization_true_array[i_event] = polararization
-        polarization_ref_array[i_event] = efields_ch_0[1][efp.polarization_angle] if len(efields_ch_0) > 0 else np.nan
+
+        polarization_true_array[i_event] = polarization
 
         # Determine ray-traced tracvel times to each antenna based on the (true) reconstructed zenith angle (or vertex position?):
-        travel_time_shifts = get_travel_time_delays(propagator, det, sim_station.get_id(), use_channels, zenith, azimuth, reference_channel=0, i_solution=0)
+        travel_time_shifts = get_travel_time_delays(propagator, det, station.get_id(), use_channels, zenith, azimuth, reference_channel=ref_channel, i_solution=0)
 
         # Unfolding:
+        # if real_data:
+        #     channelCableDelayAdder.run(event, station, det, mode='subtract')
         channelSignalReconstructor.run(event, station, det)
-        voltageToEfieldConverter.run(event, station, det, use_channels=use_channels, use_MC_direction=True, travel_time_delays=travel_time_shifts)
-        times = station.get_channel(use_channels[0]).get_times()
+        voltageToEfieldConverter.run(event, station, det, use_channels=use_channels, use_MC_direction=False if real_data else True, travel_time_delays=travel_time_shifts)
+        times = station.get_channel(ref_channel).get_times()
         signal_search_window = [times[0], times[-1]]
         electricFieldSignalReconstructor.run(event, station, det, signal_search_window=signal_search_window, debug=True, fluence_method="rice") #, theta_phi_rotation=-45 * units.deg) #, theta=zenith, phi=azimuth)
         efield = station.get_electric_fields()[0]
@@ -415,14 +631,14 @@ if __name__ == "__main__":
         polarization_uf_array[i_event] = efield[efp.polarization_angle]
         polarization_uf_error_array[i_event] = efield.get_parameter_error(efp.polarization_angle)
 
-        # Add cable delays again since voltageToEfieldConverter adds it in efield_reconstructor:
+        # Add cable delays again since EfieldToVoltageConverter adds it in efield_reconstructor:
         channelCableDelayAdder.run(event, station, det, mode='add')
 
         # Likelihood reconstruction:
-        efield_reconstructor.begin(n_channels, n_samples, sampling_rate, noise_spectra, Vrms, [filt_settings_low, filt_settings_high, filt_settings_rectangular], use_chi2=False, zenith_azimuth_free=False, debug=True, travel_time_shifts=travel_time_shifts) #filt_settings_2
-        trace_hilbert_envelope = scp.signal.hilbert(station.get_channel(use_channels[0]).get_trace())
-        t_max = np.argmax(trace_hilbert_envelope) / sampling_rate + station.get_channel(use_channels[0]).get_trace_start_time()
-        signal_fit, params_fit, minus_two_llh_best, p_value_fit = efield_reconstructor.run(event, station, det, use_channels=use_channels, signal_search_window=[t_max-50-30, t_max+50-30], use_MC_direction=True, full_output=True, second_order=False)
+        efield_reconstructor.begin(n_channels, n_samples, sampling_rate, noise_spectra, Vrms, filter_settings_list, use_chi2=False, zenith_azimuth_free=False, debug=True, travel_time_shifts=travel_time_shifts, use_alvarez=use_alvarez) #filt_settings_2
+        trace_hilbert_envelope = scp.signal.hilbert(station.get_channel(ref_channel).get_trace())
+        t_max = np.argmax(trace_hilbert_envelope) / sampling_rate + station.get_channel(ref_channel).get_trace_start_time()
+        signal_fit, params_fit, minus_two_llh_best, p_value_fit = efield_reconstructor.run(event, station, det, use_channels=use_channels, signal_search_window=[t_max-50-30, t_max+50-30], use_MC_direction=True, full_output=True, second_order=False, save_filtered_efield=True)
 
         # Plot results:
         if plot_traces:
@@ -439,36 +655,47 @@ if __name__ == "__main__":
             plt.savefig(os.path.join(output_dir, f"Station{station.get_id()}_Run{event.get_run_number()}_Event{event.get_id()}_fit.png"))
             plt.close()
 
-        get_array_of_channels(station, use_channels, n_channels, n_samples, n_frequencies, frequencies, event, output_dir, signal=signal_fit, n_channels_total=n_channels_total, plot=plot_traces, zoom=False, zenith=zenith, azimuth=azimuth)
+        get_array_of_channels(station, use_channels, n_channels, n_samples, n_frequencies, frequencies, event, output_dir, signal=signal_fit, n_channels_total=n_channels_total, plot=plot_traces, zoom=True, zenith=zenith, azimuth=azimuth)
 
         # Save results:
-        efiled_llh = station.get_electric_fields()[1]
+        efield_uf = station.get_electric_fields()[0]
+        efield_llh = station.get_electric_fields()[1]
 
         # Plot efield:
         if plot_traces:
-            plt.figure(figsize=[15,3])
+            fig, ax = plt.subplots(2, 1, figsize=[15, 6])
+            plt.sca(ax[0])
+            t_min = min([min(efield_uf.get_times()), min(efield_llh.get_times())])
+            t_max = max([max(efield_uf.get_times()), max(efield_llh.get_times())])
             plt.title(str("Parameters: ") + str(np.round(params_fit, 2)), y=1.05, pad=-14, fontsize=8)
-            plt.plot(efiled_llh.get_times(), efiled_llh.get_trace()[1], "b-", linewidth=1, label="Theta")
-            plt.plot(efiled_llh.get_times(), efiled_llh.get_trace()[2], "g--", linewidth=1, label="Phi")
-            plt.xlim(min(efiled_llh.get_times()), max(efiled_llh.get_times()))
-            plt.legend()
+            plt.plot(efield_llh.get_times(), efield_llh.get_trace()[1], "b-", linewidth=1, label="Theta (LLH)")
+            plt.plot(efield_llh.get_times(), efield_llh.get_trace()[2], "g--", linewidth=1, label="Phi (LLH)")
+            plt.xlim(t_min, t_max)
+            plt.legend(loc=1)
+
+            plt.sca(ax[1])
+            plt.plot(efield_uf.get_times(), efield_uf.get_trace()[1], "b-", linewidth=1, label="Theta (UF)")
+            plt.plot(efield_uf.get_times(), efield_uf.get_trace()[2], "g--", linewidth=1, label="Phi (UF)")
+            plt.xlim(t_min, t_max)
+            plt.legend(loc=1)
+
             plt.xlabel("Time [ns]")
             plt.ylabel("Amplitude [V/m]")
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, f"Station{station.get_id()}_Run{event.get_run_number()}_Event{event.get_id()}_efield.png"))
             plt.close()
 
-        polarization_llh_array[i_event] = efiled_llh[efp.polarization_angle]
-        fluence_array[i_event] = efiled_llh[efp.signal_energy_fluence]
+        polarization_llh_array[i_event] = efield_llh[efp.polarization_angle]
+        fluence_array[i_event] = efield_llh[efp.signal_energy_fluence]
         zenith_initial_array[i_event] = zenith
         azimuth_initial_array[i_event] = azimuth
-        zenith_reco_array[i_event] = efiled_llh[efp.zenith]
-        azimuth_reco_array[i_event] = efiled_llh[efp.azimuth]
+        zenith_reco_array[i_event] = efield_llh[efp.zenith]
+        azimuth_reco_array[i_event] = efield_llh[efp.azimuth]
         params_array[i_event, :] = params_fit
         llh_array[i_event] = minus_two_llh_best
         p_value_array[i_event] = p_value_fit
-        polarization_error_array[i_event] = efiled_llh.get_parameter_error(efp.polarization_angle)
-        fluence_error_array[i_event] = efiled_llh.get_parameter_error(efp.signal_energy_fluence)
+        polarization_error_array[i_event] = efield_llh.get_parameter_error(efp.polarization_angle)
+        fluence_error_array[i_event] = efield_llh.get_parameter_error(efp.signal_energy_fluence)
 
         np.savez(
             os.path.join(output_dir, f"results.npz"),
@@ -492,14 +719,13 @@ if __name__ == "__main__":
             snr=snr_array
         )
 
+        if i_event > 20:
+            plot_traces = False
 
 
         # Plot true polarization distribution:
         plt.figure(figsize=[6, 4])
         plt.hist(polarization_true_array[polarization_true_array!=0]/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls='-', label="True polarization")
-        #plt.hist(polarization_ref_array/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls='--', label="Refracted")
-        # plt.hist(polarization_h1_array/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls='--', label="H1")
-        # plt.hist(polarization_h2_array/units.deg, bins=20, range=[-90, 90], histtype='step', linewidth=2, ls=':', label="H2")
         plt.xlabel("Polarization angle [deg]")
         plt.ylabel("Counts")
         plt.legend()
