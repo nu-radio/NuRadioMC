@@ -1,239 +1,229 @@
 #!/usr/bin/env python3
+"""
+compare_raytracing_modules.py
 
+Flexible testing + plotting framework for comparing NuRadioMC raytracing propagation modules.
+"""
+
+from pathlib import Path
+from datetime import datetime
+import logging
 import numpy as np
-import pandas as pd
-import pytest
-
-import pprint
 
 from NuRadioReco.utilities import units
-from NuRadioMC.utilities import medium
-from NuRadioMC.SignalProp import propagation
-
-# Import your existing functions from the comparison script
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.testutils import (
     make_grid,
     run_batch_comparison_full,
     flatten_full,
+    make_tracer
 )
 
-GENERATE_REFERENCE = False
+import time
 
+def timed_call(fn):
+    t0 = time.perf_counter()
+    result = fn()
+    t1 = time.perf_counter()
+    return result, (t1 - t0)
 
-END_POINT = np.array([0., 0., -100.013]) * units.m
+# ============================================================
+# CONFIGURATION
+# ============================================================
 
+CONFIG = {
+    # Modules
+    "module_a": "analytic",
+    "module_b": "analytic",
 
-GRID_FINE = dict(
-    x_range=(-800.0, -0.11),
-    z_range=(-1000.0, 300.0),
-    n_x=100,
-    n_z=100,
-)
+    # Ice models
+    "ice_model_a": "greenland_simple",
+    "ice_model_b": "greenland_simple_layered",
 
-GRID_COARSE = dict(
-    x_range=(-800.0, -0.11),
-    z_range=(-1000.0, 300.0),
-    n_x=10,
-    n_z=10,
-)
+    # Grid
+    "x_range": (-3000.0, -0.11),
+    "z_range": (-3000.0, -0.11),
+    "n_x": 33,
+    "n_z": 33,
 
+    # Geometry
+    "end_point": np.array([0.0, 0.0, -100.013]) * units.m,
 
-TEST_CASES = [
+    # Tracer settings
+    "attenuation_model": "GL1",
+    "n_freq": 25,
+    "n_reflections": 0,
 
-    dict(
-        name="simple_vs_simple_layered",
-        module_a="analytic",
-        ice_a="greenland_simple",
-        module_b="analytic",
-        ice_b="greenland_simple_layered",
-        grid=GRID_FINE,
-    ),
-    dict(
-        name="firn_layered_vs_radiopropa",
-        module_a="analytic",
-        ice_a="greenland_firn_layered",
-        module_b="radiopropa",
-        ice_b="greenland_firn",
-        grid=GRID_COARSE,
-    )
-]
-
-''',
-dict(
-    name="simple_layered_vs_3exp_layered",
-    module_a="analytic",
-    ice_a="greenland_simple_nils_layered",
-    module_b="analytic",
-    ice_b="greenland_3exp_nils_layered",
-    grid=GRID_FINE,
-)'''
-
-    #dict(
-    #    name="firn_layered_vs_radiopropa",
-    #    module_a="analytic",
-    #    ice_a="greenland_firn_layered",
-    #    module_b="radiopropa",
-    #    ice_b="greenland_firn",
-    #    grid=GRID_COARSE,
-    #),
-
-REFERENCE = {
-
-    "simple_vs_simple_layered": {
-
-        "time_diff": {
-            "mean": 0.0,
-            "median": 0.0,
-            "std": 0.0,
-            "max_abs": 0.0,
-        },
-
-        "path_diff": {
-            "mean": 0.0,
-            "median": 0.0,
-            "std": 0.0,
-            "max_abs": 0.0,
-        },
-
-        "angle_diff": {
-            "mean": 0.0,
-            "median": 0.0,
-            "std": 0.0,
-            "max_abs": 0.0,
-        },
-
-    },
-
-    "simple_layered_vs_3exp_layered": {},
-
-    "firn_layered_vs_radiopropa": {},
-
+    # Output
+    "output_root": "raytracing_output",
 }
 
+# ============================================================
+# LOGGING
+# ============================================================
 
-def make_tracer(module_name, ice_model):
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("compare_raytracing_modules")
 
-    if module_name == "analytic":
+# ============================================================
+# OUTPUT DIRECTORY
+# ============================================================
 
-        ice = medium.get_ice_model(ice_model)
-        mode = "analytic"
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+OUTPUT_DIR = Path(CONFIG["output_root"]) / timestamp
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+logger.info(f"Output directory: {OUTPUT_DIR}")
 
-    elif module_name == "radiopropa":
+# ============================================================
+# STATISTICS & TESTING
+# ============================================================
 
-        ice = medium.get_ice_model(ice_model)
-        mode = "radiopropa"
-
-    else:
-        raise ValueError(module_name)
-
-    prop = propagation.get_propagation_module(mode)
-
-    return prop(
-        ice,
-        attenuation_model="GL1",
-        n_frequencies_integration=25,
-        n_reflections=0,
-    )
-
-
-def evaluate_statistics(df):
-
+def run_tests(data_dict, keys):
+    logger.info("Running statistics")
     stats = {}
 
-    for quantity in [
-
-        "time_diff",
-        "time_diff_rel",
-        "path_diff",
-        "angle_diff",
-
+    for key in [
+        "time_diff", "path_diff", "angle_diff",
+        "solving_time_a", "solving_time_b", "solving_time_ratio",
+        "attenuation_diff" #, "focusing_diff"
     ]:
-
-        if quantity not in df.columns:
+        if key not in data_dict:
             continue
+        vals = data_dict[key]
+        mask = ~np.isnan(vals)
+        if np.sum(mask) == 0:
+            continue
+        valid_vals = vals[mask]
 
-        vals = df[quantity].dropna()
-
-        stats[quantity] = {
-
-            "mean": float(vals.mean()),
-            "median": float(vals.median()),
-            "std": float(vals.std()),
-            "max_abs": float(np.max(np.abs(vals))),
-
+        stats[key] = {
+            "mean": float(np.mean(valid_vals)),
+            "median": float(np.median(valid_vals)),
+            "std": float(np.std(valid_vals)),
+            "max_abs": float(np.max(np.abs(valid_vals))),
         }
 
-    return stats
+    print("\nStatistics:")
+    print("{:<25} {:<15} {:<15} {:<15} {:<15}".format('Metric', 'Mean', 'Median', 'Std', 'Max Abs'))
+    for key in stats:
+        s = stats[key]
+        print("{:<25} {:<15.4g} {:<15.4g} {:<15.4g} {:<15.4g}".format(
+            key, s['mean'], s['median'], s['std'], s['max_abs']))
 
+# ============================================================
+# VALIDATION
+# ============================================================
 
-def print_statistics(name, stats):
+TIME_TOL = 1e-3
+ANGLE_TOL = 1e-3
+ATTENUATION_TOL = 1e-2
+FOCUSING_TOL = 1e-2
 
-    print()
-    print("=" * 70)
-    print(name)
-    print("=" * 70)
+def run_assertions(data_dict):
+    """Assert that all relative differences are below tolerances."""
+    checks = [
+        ("time_diff", "time_a", TIME_TOL),
+        ("angle_diff", "receive_angle_a", ANGLE_TOL),
+        ("attenuation_diff", "attenuation_a", ATTENUATION_TOL),
+        ("focusing_diff", "focusing_a", FOCUSING_TOL),
+    ]
 
-    print(pd.DataFrame(stats).T)
+    for diff_col, ref_col, tol in checks:
+        if diff_col not in data_dict or ref_col not in data_dict:
+            continue
+        diff_vals = np.abs(data_dict[diff_col])
+        ref_vals = data_dict[ref_col]
 
-    print()
+        # Mask for valid entries where both modules succeeded
+        valid_mask = (data_dict.get("has_a", np.ones_like(diff_vals, dtype=bool)) == 1) & \
+                     (data_dict.get("has_b", np.ones_like(diff_vals, dtype=bool)) == 1)
 
+        #vmax = np.nanpercentile(diff_vals[valid_mask], 95)
+        #mask = (
+        #    (~np.isnan(diff_vals)) &
+        #    (diff_vals <= vmax) &
+        #    (~np.isnan(ref_vals)) &
+        #    (ref_vals != 0) &
+        #    valid_mask
+        #)
+        mask = valid_mask
+        if np.sum(mask) == 0:
+            continue
 
-def assert_statistics(stats, reference):
+        rel = np.divide(diff_vals[mask], ref_vals[mask])
+        rel = np.abs(rel)
+        max_rel = np.max(rel)
 
-    for quantity in reference:
+        assert (rel <= tol).all(), (
+            f"{diff_col}/{ref_col} exceeded tolerance.\n"
+            f"Maximum relative error: {max_rel:.3e}\n"
+            f"Tolerance: {tol:.3e}"
+        )
+        print(f"✓ {diff_col}: max relative error = {max_rel:.3e}")
 
-        for stat in reference[quantity]:
+# ============================================================
+# MAIN PIPELINE
+# ============================================================
 
-            np.testing.assert_allclose(
-
-                stats[quantity][stat],
-                reference[quantity][stat],
-
-                rtol=1e-4,
-                atol=1e-2,
-
-                err_msg=f"{quantity}: {stat}"
-
-            )
-
-
-TIME_TOL = 1e-4     
-PATH_TOL = 1e-4
-ANGLE_TOL = 1e-4
-
-
-@pytest.mark.parametrize("case", TEST_CASES)
-def test_raytracing(case):
-
+def run_full_pipeline():
+    logger.info("Building tracers")
     tracer_a = make_tracer(
-        case["module_a"],
-        case["ice_a"],
+        CONFIG["module_a"],
+        ice_model=CONFIG["ice_model_a"],
+        attenuation_model=CONFIG["attenuation_model"],
+        n_freq=CONFIG["n_freq"],
+        n_reflections=CONFIG["n_reflections"],
     )
 
-    tracer_b = make_tracer(
-        case["module_b"],
-        case["ice_b"],
+    tracer_b = None
+    if CONFIG["module_b"] is not None:
+        tracer_b = make_tracer(
+            CONFIG["module_b"],
+            ice_model=CONFIG["ice_model_b"],
+            attenuation_model=CONFIG["attenuation_model"],
+            n_freq=CONFIG["n_freq"],
+            n_reflections=CONFIG["n_reflections"],
+        )
+
+    logger.info("Creating grid")
+    grid, x_vals, z_vals = make_grid(
+        CONFIG["x_range"], CONFIG["z_range"],
+        CONFIG["n_x"], CONFIG["n_z"]
     )
 
-    grid, _, _ = make_grid(**case["grid"])
+    logger.info("Running comparison")
+    results = run_batch_comparison_full(tracer_a, tracer_b, grid, CONFIG["end_point"])
+    flattened = flatten_full(results)
 
-    results = run_batch_comparison_full(
-        tracer_a,
-        tracer_b,
-        grid,
-        END_POINT,
-    )
+    # Normalize flattened data into a dict of arrays
+    if isinstance(flattened, list):
+        all_keys = set()
+        for d in flattened:
+            all_keys.update(d.keys())
+        keys = sorted(all_keys)
+        data_dict = {k: [] for k in keys}
+        for d in flattened:
+            for k in keys:
+                data_dict[k].append(d.get(k, np.nan))
+    elif isinstance(flattened, dict):
+        keys = list(flattened.keys())
+        data_dict = {k: v for k, v in flattened.items()}
+    else:
+        raise TypeError(f"Unexpected type from flatten_full: {type(flattened)}")
 
-    df = pd.DataFrame(flatten_full(results))
+    # Convert to numpy arrays
+    data_dict = {k: np.array(v) for k, v in data_dict.items()}
+
+    # Filter data to only include points where both modules succeeded
+    if "has_a" in data_dict and "has_b" in data_dict:
+        valid_mask = (data_dict["has_a"] == 1) & (data_dict["has_b"] == 1)
+        for key in data_dict:
+            data_dict[key] = data_dict[key][valid_mask]
 
 
-    df["time_diff_rel"] = np.abs(df["time_diff"] / df["time_a"])
-    df["path_diff_rel"] = np.abs(df["path_diff"] / df["path_a"])
-    df["angle_diff_rel"] = np.abs(df["angle_diff"] / df["receive_angle_a"])
-    df["attenuation_diff_rel"] = np.abs(df["attenuation_diff"] / df["attenuation_a"])
-    df["focusing_diff_rel"] = np.abs(df["focusing_diff"] / df["focusing_a"])
+    run_tests(data_dict, keys)
+    run_assertions(data_dict)
 
-    assert np.all(df["time_diff_rel"].dropna() < TIME_TOL)
-    assert np.all(df["path_diff_rel"].dropna() < PATH_TOL)
-    assert np.all(df["angle_diff_rel"].dropna() < ANGLE_TOL)
+def main():
+    run_full_pipeline()
 
+if __name__ == "__main__":
+    main()

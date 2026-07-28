@@ -821,6 +821,7 @@ def ds_dz_layer(z, C0, idx, layers):
 
     return n / np.sqrt(gamma)
 
+
 def get_attenuation_along_path(
         C0,
         x1,
@@ -901,11 +902,11 @@ def get_attenuation_along_path(
             turning_z = z2_prev
             break
     if refine:
-        dz_fine = dz / 2.0          # finer resolution near turning point
+        dz_fine = dz / 20.0          # finer resolution near turning point
         turning_window = 10 * dz      # refine within this distance
         receiver_window = 10 * dz
 
-        dz_very_fine = dz / 200.0          # finer resolution near turning point
+        dz_very_fine = dz / 500.0          # finer resolution near turning point
         turning_window_fine = 3 * dz      # refine within this distance
         receiver_window_fine = 3 * dz
 
@@ -1019,6 +1020,191 @@ def get_attenuation_along_path(
 
     return attenuation_factor
 
+def get_attenuation_along_path_new(
+        C0,
+        x1,
+        x2,
+        layers,
+        frequency,
+        freqs=None,
+        attenuation_model="GL3",
+        dz=10 * units.m,
+        refine=True,
+        n_frequencies_integration=32,
+        max_detector_freq=None
+        ):
+    """
+    Compute frequency-dependent attenuation along a ray path.
+
+    The attenuation is calculated by integrating the inverse attenuation
+    length along ray segments within ice layers. The computation is performed
+    on a reduced set of frequencies and interpolated to the full frequency
+    array for efficiency.
+
+    Parameters
+    ----------
+    x1 : array_like
+        Starting position of the ray.
+    x2 : array_like
+        End position of the ray.
+    C0 : float
+        Ray tracing constant defining the trajectory.
+    layers : tuple
+        Layered medium definition passed to the ray tracing and refractive
+        index evaluation routines.
+    frequency : ndarray
+        Frequencies at which the attenuation factor is evaluated.
+    freqs : ndarray
+        Coarser frequencies that were calculated from ``frequency`` using the ``__get_frequencies_for_attenuation`` function. If not provided, this will be calculated using the adapted function above. Default is None.
+    attenuation_model : str, optional
+        Name of the attenuation model passed to
+        ``attenuation.get_attenuation_length``. Default is "GL3".
+    dz : float, optional
+        Step size in depth for numerical integration. Default is 10 m.
+    n_frequencies_integration : int, optional
+        Number of frequencies used for sparse attenuation integration.
+        Default is 32.
+    max_detector_freq : float or None, optional
+        Maximum detector frequency used to bias frequency sampling toward the
+        detector band. Default is None.
+
+    Returns
+    -------
+    ndarray
+        Frequency-dependent attenuation factor along the full path.
+
+    Notes
+    -----
+    - Only segments below the surface (z < 0) contribute to attenuation.
+    - The integral is evaluated as
+
+      exp(-∫ ds / L(f, z))
+
+      where ``L`` is the attenuation length.
+    - The exponent is clipped to avoid overflow in the exponential.
+    - Sparse-frequency attenuation is interpolated to the full frequency grid.
+    """
+    integration_window_size = 20 * units.m  # e.g., 20 meters
+
+    # We can again use our segment function to get monotonous segments contained into one layer
+    segments = get_path_segments(C0, x1, x2, layers)
+
+    y1, z1 = float(x1[0]), float(x1[1])
+    y2, z2 = float(x2[0]), float(x2[1])
+
+    with_air = False
+    if (z1 > 0.0) or (z2 > 0.0):
+        with_air = True
+
+    downgoing = False
+    if z1 > z2:
+        z1, z2 = z2, z1
+        downgoing = True
+
+
+    C1, _ , _, _= compute_offsets(C0, y1, z1, layers)
+    y_turn, z_turn = get_turning_point(C0,y1,z1,layers,C1,downgoing,with_air)
+
+    turning_z = z_turn
+    z_receiver = x2[1]
+
+    for i in range(len(segments) - 1):
+        _, z2_prev, _, _, up1 = segments[i]
+        _, _, _, _, up2 = segments[i + 1]
+
+        # upgoing -> downgoing transition
+        if up1 == 1 and up2 == 0:
+            turning_z = z2_prev
+            break
+
+    attenuation_factor = np.ones_like(frequency)
+
+    if freqs is None:
+        # Get sparser frequencies that we use for calculation, can then interpolate for finer results afterwards
+        freqs = get_frequencies_for_attenuation(
+            frequency,
+            n_frequencies_integration,
+            max_detector_freq
+        )
+
+    if len(freqs) == 0:
+        return attenuation_factor
+
+    mask = frequency > 0
+
+    for seg in segments:
+        z1, z2, C0, idx, direction = seg
+
+        # Skip air segments
+        if z1 >= 0 and z2 >= 0:
+            continue
+
+        z1 = min(z1, 0.0)
+        z2 = min(z2, 0.0)
+
+        # Determine if this segment overlaps with the integration window around the turning point
+        lower_bound = turning_z - integration_window_size / 2
+        upper_bound = turning_z + integration_window_size / 2
+
+        is_near_turning = (
+            turning_z is not None and
+            not (z2 < lower_bound or z1 > upper_bound)
+        )
+
+        if is_near_turning:
+            def integrand(z, f):
+                L = attenuation.get_attenuation_length(z, f, attenuation_model)
+                ds_dz_val = ds_dz_layer(z, C0, idx, layers)
+                return ds_dz_val / L
+
+            attenuation_sparse = []
+            for f in freqs:
+                exponent, _ = integrate.quad(
+                    lambda z: integrand(z, f),
+                    z1, z2,
+                    epsabs=1e-4, epsrel=1e-2,
+                    points=[turning_z]  # Force evaluation at turning point
+                )
+                if exponent > 700.0:
+                    exponent = 700.0
+                attenuation_sparse.append(np.exp(-exponent))
+
+            attenuation_sparse = np.array(attenuation_sparse)
+        else:
+            z_edges = [z1]
+            z = z1
+            while (z < z2 if direction > 0 else z > z2):
+                dz_local = dz
+                z_next = z + direction * dz_local
+                if (direction > 0 and z_next > z2) or (direction < 0 and z_next < z2):
+                    z_next = z2
+                z_edges.append(z_next)
+                z = z_next
+
+            z_edges = np.array(z_edges)
+            dz_actual = np.abs(np.diff(z_edges))
+            z_mid = z_edges[:-1] + 0.5 * np.diff(z_edges)
+            ds_dz_vals = ds_dz_layer(z_mid, C0, idx, layers)
+
+            attenuation_sparse = np.zeros_like(freqs)
+            for i, f in enumerate(freqs):
+                L = attenuation.get_attenuation_length(z_mid, f, attenuation_model)
+                exponent = np.sum(ds_dz_vals * dz_actual / L)
+                if exponent > 700.0:
+                    exponent = 700.0
+                attenuation_sparse[i] = np.exp(-exponent)
+
+        # Interpolate sparse results onto full frequency grid
+        attenuation_segment = np.ones_like(frequency)
+        attenuation_segment[mask] = np.interp(
+            frequency[mask],
+            freqs,
+            attenuation_sparse
+        )
+        attenuation_factor *= attenuation_segment
+
+    return attenuation_factor
+
 @njit(cache=True)
 def get_focusing_factor(C0, x1, x2, layers):
     """
@@ -1122,23 +1308,23 @@ def get_focusing_factor(C0, x1, x2, layers):
 
 
     if x1[1] > 0:
-        launch_angle = get_launch_angle(C0, x1, (0,-0.001), layers)
-        n1 = get_n_1D(-0.001, layers)
+        launch_angle = get_launch_angle(C0, x1, (0,-0.0001), layers)
+        n1 = get_n_1D(-0.0001, layers)
     else:
         launch_angle = get_launch_angle(C0, x1, x2, layers)
         n1 = get_n_1D(x1[1], layers)
 
     if x2[1] > 0:
-        receive_angle = get_receiving_angle(C0, (0,-0.001), x2, layers)
-        n2 = get_n_1D(-0.001, layers)
+        receive_angle = get_receiving_angle(C0, (0,-0.0001), x2, layers)
+        n2 = get_n_1D(-0.0001, layers)
     else:
         receive_angle = get_receiving_angle(C0, x1, x2, layers)
         n2 = get_n_1D(x2[1], layers)
 
     if x1[1] > 0:
-        s = get_path_length_analytic(C0, (0, -0.001), x2, layers)
+        s = get_path_length_analytic(C0, (0, -0.0001), x2, layers)
     elif x2[1] > 0:
-        s = get_path_length_analytic(C0, x1, (0, -0.001), layers)
+        s = get_path_length_analytic(C0, x1, (0, -0.0001), layers)
     else:
         s = get_path_length_analytic(C0, x1, x2, layers)
 

@@ -25,8 +25,9 @@ from pathlib import Path
 from datetime import datetime
 import logging
 
+
+
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 
 plt.rcParams.update({
@@ -42,12 +43,15 @@ plt.rcParams.update({
 })
 
 from NuRadioReco.utilities import units
-
+from NuRadioMC.utilities import medium
+from NuRadioMC.SignalProp import propagation
 import time
 
+# ------------------------------------------------------------------
+# Logging setup
+# ------------------------------------------------------------------
 logging.basicConfig(level=logging.INFO)
-
-logger = logging.getLogger("compare_raytracing_modules")
+logger = logging.getLogger("raytracing_utils")
 
 
 # ============================================================
@@ -61,6 +65,24 @@ def timed_call(fn):
     result = fn()
     t1 = time.perf_counter()
     return result, (t1 - t0)
+
+def make_tracer(
+    module_name,
+    ice_model="greenland_simple",
+    attenuation_model="GL1",
+    n_freq=25,
+    n_reflections=0,
+):
+    ice = medium.get_ice_model(ice_model)
+
+    prop = propagation.get_propagation_module(module_name)
+
+    return prop(
+        ice,
+        attenuation_model,
+        n_frequencies_integration=n_freq,
+        n_reflections=n_reflections,
+    )
 
 def make_grid(x_range, z_range, n_x, n_z, y=0.0):
 
