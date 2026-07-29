@@ -623,6 +623,10 @@ class stationRFIFilter:
     def end(self, event=None):
         if event is not None:
             for station in event.get_stations():
+                if station.get_id() not in self.__median_spectrum:
+                    continue  # station was skipped during RFI cleaning (no RFI packet found)
+                if not station.get_channel_ids():
+                    continue  # all channels were removed at read-in
                 self.plot_median_freq_spectrum(event, station, rfi_cleaned=False, flagging=True)
                 self.plot_median_freq_spectrum(event, station, rfi_cleaned=True, flagging=False)
 

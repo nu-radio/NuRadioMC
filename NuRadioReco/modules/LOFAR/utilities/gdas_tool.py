@@ -11,7 +11,9 @@ if sys.version_info < (2,7):
 from argparse import ArgumentParser, RawTextHelpFormatter
 import subprocess
 import logging
+import os
 import os.path
+import shutil
 import struct
 
 try:
@@ -64,7 +66,91 @@ if matplotlibAvailable:
     parser.add_argument('-g', '--createplot', default=False, action='store_true', help='plot density profile.')
 
 
-def generate_atmosphere(utctimestamp, output="ATMOSPHERE.DAT", observatory=None, coordinates=None, 
+# Mirrors for the weekly GDAS1 archive, tried in order. HTTPS first: cluster
+# firewalls often drop outbound FTP silently. Override with the
+# LOFAR_GDAS_MIRRORS environment variable (comma-separated base URLs).
+GDAS_MIRRORS = (
+    'https://www.ready.noaa.gov/data/archives/gdas1',
+    'ftp://arlftp.arlhq.noaa.gov/pub/archives/gdas1',
+)
+
+# Keep a dead mirror cheap, rather than wget's default 20 retries.
+_GDAS_CONNECT_TIMEOUT = 30
+_GDAS_TRIES = 3
+
+
+def _gdas_mirrors():
+    env = os.environ.get('LOFAR_GDAS_MIRRORS')
+    if env:
+        mirrors = tuple(u.strip().rstrip('/') for u in env.split(',') if u.strip())
+        if mirrors:
+            return mirrors
+    return GDAS_MIRRORS
+
+
+def _fetch(url, dest):
+    """Fetch *url* to *dest* with wget, falling back to curl. Returns True on success."""
+    if shutil.which('wget'):
+        cmd = ['wget', '--tries={}'.format(_GDAS_TRIES),
+               '--timeout={}'.format(_GDAS_CONNECT_TIMEOUT),
+               '--no-verbose', '-O', dest, url]
+    elif shutil.which('curl'):
+        cmd = ['curl', '--fail', '--location', '--silent', '--show-error',
+               '--retry', str(_GDAS_TRIES),
+               '--connect-timeout', str(_GDAS_CONNECT_TIMEOUT),
+               '-o', dest, url]
+    else:
+        print('ERROR: neither wget nor curl is available to download GDAS data.')
+        return False
+
+    if subprocess.call(cmd) == 0 and os.path.isfile(dest) and os.path.getsize(dest) > 0:
+        return True
+    if os.path.isfile(dest):
+        os.remove(dest)
+    return False
+
+
+def download_gdas_file(gdaspath_abs, gdasname):
+    """
+    Download the weekly GDAS1 file *gdasname* into *gdaspath_abs*.
+
+    Tries each mirror in :data:`GDAS_MIRRORS` in turn, downloading to a
+    process-unique temporary name and moving it into place only when complete, so
+    that jobs sharing a cache directory never read a half-written file.
+
+    Returns True on success, False if every mirror failed.
+    """
+    target = os.path.join(gdaspath_abs, gdasname)
+
+    # Another job may have finished the download while we were getting here.
+    if os.path.isfile(target) and os.path.getsize(target) > 0:
+        print("Found {} in {}, no download.".format(gdasname, gdaspath_abs))
+        return True
+
+    tmp = os.path.join(gdaspath_abs, '.{}.part.{}'.format(gdasname, os.getpid()))
+    try:
+        for base in _gdas_mirrors():
+            url = '{}/{}'.format(base.rstrip('/'), gdasname)
+            print('Downloading GDAS file from {}'.format(url))
+            if _fetch(url, tmp):
+                os.replace(tmp, target)
+                print('Downloaded {} ({:.1f} MiB).'.format(
+                    gdasname, os.path.getsize(target) / 1024.0**2))
+                return True
+            # A concurrent job may have succeeded while this mirror was failing.
+            if os.path.isfile(target) and os.path.getsize(target) > 0:
+                return True
+            print('Mirror failed: {}'.format(url))
+    finally:
+        if os.path.isfile(tmp):
+            os.remove(tmp)
+
+    print('ERROR DOWNLOADING {} from any mirror ({}) -- ABORTING!'.format(
+        gdasname, ', '.join(_gdas_mirrors())))
+    return False
+
+
+def generate_atmosphere(utctimestamp, output="ATMOSPHERE.DAT", observatory=None, coordinates=None,
                         minheight=-1E3, maxheight=None, interpolationSteps=1.0, 
                         gdaspath='.', verbose=0, createplot=False, cleanup=False):
     """
@@ -123,12 +209,8 @@ def generate_atmosphere(utctimestamp, output="ATMOSPHERE.DAT", observatory=None,
     if os.path.isfile(os.path.join(gdaspath_abs, gdasname)):
         print("Found {} in {}, no download.".format(gdasname, gdaspath_abs))
     else:
-        gdasurl = 'ftp://arlftp.arlhq.noaa.gov/pub/archives/gdas1'
-        print("File not found in {}, download from {}".format(gdaspath_abs, gdasurl))
-        cmd = ['wget', '--directory-prefix={}'.format(gdaspath_abs), '{}/{}'.format(gdasurl, gdasname)]
-        v = subprocess.call(cmd)
-        if not v == 0:
-            print('ERROR DOWNLOADING {}/{} -- ABORTING!'.format(gdasurl, gdasname))
+        print("File not found in {}, downloading.".format(gdaspath_abs))
+        if not download_gdas_file(gdaspath_abs, gdasname):
             return False
 
     def parseGDAS_File_local(gdaspath, gdasname, date_time, coordinates):

@@ -26,13 +26,14 @@ logger = logging.getLogger("NuRadioReco.LOFAR.iftDataHelpers")
 CORE_STATIONS_ALWAYS_KEEP = set()
 POSITION_CUT = 350 * units.m
 MIN_TIMING_POINTS = 24
-TIMING_UNCERT_THRESHOLD = 15e-9
+TIMING_UNCERT_THRESHOLD = 15.0 * units.ns / units.s
 SNR_CUT = 2.5
 ROI_START_NS = 0.0
 ROI_END_NS = 400000.0
 DEFAULT_FLUENCE_WINDOW_NS = 400.0
-C_LIGHT = scipy.constants.c
-C_LIGHT_M_NS = C_LIGHT * 1e-9
+# Trace and detector values use NuRadioReco's internal unit system. This is
+# therefore the speed of light in internal metres per internal time unit.
+C_LIGHT_NURADIO = scipy.constants.c * units.m / units.s
 OUTLIER_NEIGHBORS_K = 10
 OUTLIER_STD_FACTOR = 2.5
 MIN_ABSOLUTE_NEIGHBORS = 8
@@ -41,13 +42,31 @@ TRIGGER_WINDOW_NS = 55.0
 TRIGGER_ANTENNA_FRACTION = 0.5
 TRIGGER_MIN_STATIONS = 3
 TRIGGER_SNR_BUFFER_FRAC = 0.05
-HIGH_SNR_TIMING_PROTECTION_SNR = 6.0
+# SNR above which a timing point is shielded from global pruning unless it is
+# also a severe local outlier. Wrong-peak locks reach SNR 8-15, so a lower gate
+# shields them and stalls the pruning.
+HIGH_SNR_TIMING_PROTECTION_SNR = 15.0
 HIGH_SNR_TIMING_OUTLIER_SIGMA = 10.0
 HIGH_SNR_TIMING_MIN_LOCAL_SIGMA_NS = 1.0
 LOCAL_FIT_NEIGHBORS_K = 20
 DEFAULT_SCAN_RANGE_DEG = 5.0
 DEFAULT_STEP_DEG = 0.5
 DEFAULT_SMOOTHING_NS = 5.0
+
+# --- Blind "largest signal in every channel" fallback (extract_max_signal_timing_data)
+# Calibrated on real LBA_OUTER data. P(noise>=thr) / P(signal>=thr):
+# 5.0: 0.157/0.83, 6.0: 0.015/0.73, 8.0: 0.009/0.49, 12.0: 0.007/0.18. Above ~6
+# the noise curve flattens at ~1% (RFI, not thermal), so a higher cut only costs
+# signal.
+MAX_SIGNAL_SNR_THRESHOLD = 6.0
+# Trace fraction skipped at each end, where the band-pass and taper suppress power.
+MAX_SIGNAL_EDGE_FRACTION = 0.125
+# Half-width (ns) of the arrival-time consensus window.
+MAX_SIGNAL_CONSENSUS_WINDOW_NS = 150.0
+# Antennas that must share one arrival plane before a station reports anything.
+# The per-antenna cut alone is not enough (~7 noise antennas survive in a
+# 450-antenna event); the consensus window is what rejects them.
+MAX_SIGNAL_MIN_CONSENSUS_ANTENNAS = MIN_ABSOLUTE_NEIGHBORS
 
 conversion_factor_integrated_signal = (
     scipy.constants.c
@@ -135,7 +154,8 @@ def station_beamform_pulse_finder(
         sigma_ns=DEFAULT_SMOOTHING_NS):
     """Find a station pulse time with clustered incoherent envelope beamforming.
 
-    Returns (best_time_ns, best_snr, best_direction) where best_direction is (az, zen).
+    Returns (best_time_nuradio, best_snr, best_direction), where the time is
+    in NuRadioReco internal units and the direction is (azimuth, zenith).
     """
     if len(efield_list) < 2:
         return None, 0.0, (shower_az, shower_zen)
@@ -145,7 +165,7 @@ def station_beamform_pulse_finder(
         return None, 0.0, (shower_az, shower_zen)
     dt = ref_times[1] - ref_times[0]
     n_samples = len(ref_times)
-    sigma_samples = sigma_ns / dt
+    sigma_samples = sigma_ns * units.ns / dt
 
     envelopes = []
     valid_indices = []
@@ -168,7 +188,7 @@ def station_beamform_pulse_finder(
     zen_grid = shower_zen + np.deg2rad(np.arange(-scan_range_deg, scan_range_deg + 0.1, step_deg))
 
     best_snr = 0.0
-    best_time_ns = None
+    best_time_nuradio = None
     best_zen, best_az = shower_zen, shower_az
     rel_pos_x = positions[:, 0] - np.mean(positions[:, 0])
     rel_pos_y = positions[:, 1] - np.mean(positions[:, 1])
@@ -177,7 +197,7 @@ def station_beamform_pulse_finder(
     # kx/ky: (n_zen, n_az); delays_all: (n_zen, n_az, n_ant)
     kx_grid = np.outer(np.sin(zen_grid), np.cos(az_grid))
     ky_grid = np.outer(np.sin(zen_grid), np.sin(az_grid))
-    delays_all = (1.0 / C_LIGHT_M_NS) * (
+    delays_all = (1.0 / C_LIGHT_NURADIO) * (
         kx_grid[:, :, np.newaxis] * rel_pos_x[np.newaxis, np.newaxis, :]
         + ky_grid[:, :, np.newaxis] * rel_pos_y[np.newaxis, np.newaxis, :]
     )
@@ -211,10 +231,10 @@ def station_beamform_pulse_finder(
                     beamformed_sum[peak_idx] - np.mean(noise_section)) / noise_std
                 if current_snr > best_snr:
                     best_snr = current_snr
-                    best_time_ns = ref_times[peak_idx]
+                    best_time_nuradio = ref_times[peak_idx]
                     best_zen, best_az = zenith, azimuth
 
-    return best_time_ns, best_snr, (best_az, best_zen)
+    return best_time_nuradio, best_snr, (best_az, best_zen)
 
 
 def simple_hilbert_finder(voltage_traces, voltage_times):
@@ -284,7 +304,7 @@ def template_match_finder(voltage_traces, voltage_times, template_library):
         if len(tmpl1_n) > len(data_pol1_norm):
             continue
         combined = correlate(data_pol1_norm, tmpl1_n, mode='valid', method='fft') + \
-                   correlate(data_pol2_norm, tmpl2_n, mode='valid', method='fft')
+            correlate(data_pol2_norm, tmpl2_n, mode='valid', method='fft')
         if len(combined) == 0:
             continue
         peak_val = np.max(combined)
@@ -303,14 +323,16 @@ def template_match_finder(voltage_traces, voltage_times, template_library):
 
 def _neighbor_timing_outlier_test(positions, times, point_index, n_neighbors=OUTLIER_NEIGHBORS_K):
     n_points = times.size
-    if n_points <= 1: return 0.0, np.inf, False
+    if n_points <= 1:
+        return 0.0, np.inf, False
     k_for_point = min(n_neighbors, n_points - 1)
-    if k_for_point < MIN_ABSOLUTE_NEIGHBORS: return 0.0, np.inf, False
+    if k_for_point < MIN_ABSOLUTE_NEIGHBORS:
+        return 0.0, np.inf, False
     dist_matrix = cdist(positions.T, positions.T)
     neighbor_indices = np.argsort(dist_matrix[point_index, :])[1:k_for_point + 1]
-    neighbor_times_ns = times[neighbor_indices] * 1e9
+    neighbor_times_ns = times[neighbor_indices] * units.s / units.ns
     neighbor_median_ns = np.median(neighbor_times_ns)
-    diff_ns = np.abs(times[point_index] * 1e9 - neighbor_median_ns)
+    diff_ns = np.abs(times[point_index] * units.s / units.ns - neighbor_median_ns)
     neighbor_residuals_ns = neighbor_times_ns - neighbor_median_ns
     local_sigma_ns = 1.4826 * np.median(np.abs(neighbor_residuals_ns))
     if local_sigma_ns <= 0 or not np.isfinite(local_sigma_ns):
@@ -323,17 +345,22 @@ def _neighbor_timing_outlier_test(positions, times, point_index, n_neighbors=OUT
 
 
 def _high_snr_timing_point_can_be_demoted(global_index, positions, times, candidate_mask, station_ids, timing_snrs):
-    if timing_snrs is None or timing_snrs.size == 0: return True, None, None
+    if timing_snrs is None or timing_snrs.size == 0:
+        return True, None, None
     snr = timing_snrs[global_index]
-    if not np.isfinite(snr) or snr < HIGH_SNR_TIMING_PROTECTION_SNR: return True, None, None
+    if not np.isfinite(snr) or snr < HIGH_SNR_TIMING_PROTECTION_SNR:
+        return True, None, None
     local_mask = candidate_mask.copy()
     if station_ids is not None:
         station_mask = local_mask & (station_ids == station_ids[global_index])
-        if np.sum(station_mask) > MIN_ABSOLUTE_NEIGHBORS: local_mask = station_mask
+        if np.sum(station_mask) > MIN_ABSOLUTE_NEIGHBORS:
+            local_mask = station_mask
     local_indices = np.where(local_mask)[0]
-    if local_indices.size <= MIN_ABSOLUTE_NEIGHBORS: return False, 0.0, np.inf
+    if local_indices.size <= MIN_ABSOLUTE_NEIGHBORS:
+        return False, 0.0, np.inf
     local_matches = np.where(local_indices == global_index)[0]
-    if local_matches.size == 0: return False, 0.0, np.inf
+    if local_matches.size == 0:
+        return False, 0.0, np.inf
     diff_ns, sigma_ns, is_severe_outlier = _neighbor_timing_outlier_test(
         positions[:, local_indices], times[local_indices], int(local_matches[0]))
     return is_severe_outlier, diff_ns, sigma_ns
@@ -359,13 +386,16 @@ def detect_timing_outliers(positions, times, station_ids, timing_snrs=None):
         k_for_station = min(OUTLIER_NEIGHBORS_K, len(station_indices) - 1)
         if k_for_station < MIN_ABSOLUTE_NEIGHBORS:
             continue
-        time_std_ns = np.std((station_times - np.mean(station_times)) * 1e9)
+        time_std_ns = np.std((station_times - np.mean(station_times)) * units.s / units.ns)
         threshold_ns = max(OUTLIER_STD_FACTOR * time_std_ns, 15.0)
         dist_matrix = cdist(station_positions.T, station_positions.T)
         station_is_outlier = np.zeros(len(station_indices), dtype=bool)
         for index in range(len(station_indices)):
             neighbor_indices = np.argsort(dist_matrix[index, :])[1:k_for_station + 1]
-            diff_ns = np.abs(station_times[index] - np.median(station_times[neighbor_indices])) * 1e9
+            diff_ns = np.abs(
+                (station_times[index] - np.median(station_times[neighbor_indices]))
+                * units.s / units.ns
+            )
             is_outlier = diff_ns > threshold_ns
             if is_outlier and timing_snrs is not None:
                 global_idx = station_indices[index]
@@ -401,7 +431,7 @@ def iterative_timing_pruning(shower_direction, positions, times, initial_mask,
         std_residual = np.std(residuals)
         if std_residual < TIMING_UNCERT_THRESHOLD:
             logger.info("Timing pruning converged. Std: %.2f ns. Points remaining: %d",
-                        std_residual * 1e9, len(active_indices))
+                        std_residual * units.s / units.ns, len(active_indices))
             return (current_mask, std_residual, result["coeffs"], result["mean_pos_2d"],
                     result["scale"], result["inv_AtA"])
         removed_point = False
@@ -426,7 +456,7 @@ def iterative_timing_pruning(shower_direction, positions, times, initial_mask,
         result = _fit_timing_polynomial(positions[:, active_indices], times[active_indices])
         return (current_mask, np.std(result["residuals"]), result["coeffs"], result["mean_pos_2d"],
                 result["scale"], result["inv_AtA"])
-    return current_mask, 15e-9, None, None, 1.0, None
+    return current_mask, 15.0 * units.ns / units.s, None, None, 1.0, None
 
 
 def _fit_timing_polynomial(active_pos, active_times):
@@ -454,7 +484,8 @@ def _fit_timing_polynomial(active_pos, active_times):
 
 
 def get_local_timing_uncertainties(
-        positions, times, station_ids, shower_direction, min_uncertainty_s=1.5e-9, cluster_size=20):
+        positions, times, station_ids, shower_direction,
+        min_uncertainty_s=1.5 * units.ns / units.s, cluster_size=20):
     """Estimate per-antenna timing uncertainty from local nearest-neighbor residuals."""
     del station_ids, shower_direction
     from scipy.spatial import KDTree
@@ -469,7 +500,7 @@ def get_local_timing_uncertainties(
     for index in range(n_antennas):
         _, neighbor_indices = tree.query(pos_2d[index], k=min(cluster_size, n_antennas))
         if np.size(neighbor_indices) < 8:
-            uncertainties[index] = 5.0e-9
+            uncertainties[index] = 5.0 * units.ns / units.s
             continue
         result = _fit_timing_polynomial(positions[:, neighbor_indices], times[neighbor_indices])
         uncertainties[index] = max(np.std(result["residuals"]), min_uncertainty_s)
@@ -482,6 +513,11 @@ def extract_fluence_and_timing_data(
         scan_range_deg=DEFAULT_SCAN_RANGE_DEG, step_deg=DEFAULT_STEP_DEG,
         sigma_ns=DEFAULT_SMOOTHING_NS, skip_lba_inner=False):
     """Extract antenna fluences and pulse times for one station.
+
+    Each antenna's region of interest is centred on the plane-wave-propagated
+    global reference pulse (``global_ref_time``), or on the station's beamformed
+    pulse time when no global reference is available, with a fixed +/- 500 ns
+    window. Antennas for which no pulse is found are simply not reported.
 
     Returns: posx, posy, fluences, max_times, is_signal, noise_fluences, snr_values, best_direction
     """
@@ -499,8 +535,12 @@ def extract_fluence_and_timing_data(
 
     station_abs_pos = detector.get_absolute_position(station_id)
 
+    # Trace times and ROIs use NuRadioReco's internal time unit. The IFT
+    # likelihood, by contrast, receives SI-second timing observables below.
+    fluence_window_nuradio = fluence_window_ns * units.ns
+
     # 1. Station-level beamforming to find best direction and ROI centre
-    beamformed_time_ns = None
+    beamformed_time_nuradio = None
     try:
         bf_traces, bf_times_list, bf_pos_list = [], [], []
         for ch in station.iter_channels():
@@ -522,11 +562,11 @@ def extract_fluence_and_timing_data(
                 continue
         if bf_traces:
             az_guess, zen_guess = shower_direction
-            bf_t, bf_s, bf_dir = station_beamform_pulse_finder(
+            bf_t, _, bf_dir = station_beamform_pulse_finder(
                 bf_traces, bf_times_list, np.array(bf_pos_list), zen_guess, az_guess,
                 scan_range_deg=scan_range_deg, step_deg=step_deg, sigma_ns=sigma_ns)
             if bf_t is not None:
-                beamformed_time_ns = bf_t
+                beamformed_time_nuradio = bf_t
                 best_direction = bf_dir
     except Exception as exc:
         logger.debug("BF failed for station %s: %s", station_id, exc)
@@ -534,15 +574,10 @@ def extract_fluence_and_timing_data(
     az, zen = shower_direction
     kx = np.sin(zen) * np.cos(az)
     ky = np.sin(zen) * np.sin(az)
-    ref_delay_ns = (-(1.0 / C_LIGHT_M_NS) * (kx * global_ref_pos[0] + ky * global_ref_pos[1])
-                    if global_ref_pos is not None else 0.0)
-    st_x, st_y = station_abs_pos[0], station_abs_pos[1]
-    st_delay_ns = -(1.0 / C_LIGHT_M_NS) * (kx * st_x + ky * st_y)
-
-    if global_ref_time is not None:
-        local_roi_center = global_ref_time + (st_delay_ns - ref_delay_ns)
-    else:
-        local_roi_center = beamformed_time_ns
+    ref_delay_nuradio = (
+        -(1.0 / C_LIGHT_NURADIO) * (kx * global_ref_pos[0] + ky * global_ref_pos[1])
+        if global_ref_pos is not None else 0.0
+    )
 
     # 2. Per-antenna processing
     antenna_data = []
@@ -568,17 +603,18 @@ def extract_fluence_and_timing_data(
                 continue
 
             ant_x, ant_y = position[0], position[1]
-            ant_delay_ns = -(1.0 / C_LIGHT_M_NS) * (kx * ant_x + ky * ant_y)
+            ant_delay_nuradio = -(1.0 / C_LIGHT_NURADIO) * (kx * ant_x + ky * ant_y)
             if global_ref_time is not None:
-                ant_roi_center = global_ref_time + (ant_delay_ns - ref_delay_ns)
+                ant_roi_center = global_ref_time + (ant_delay_nuradio - ref_delay_nuradio)
             else:
-                ant_roi_center = beamformed_time_ns
+                ant_roi_center = beamformed_time_nuradio
 
             if ant_roi_center is not None:
-                ant_roi_start = ant_roi_center - 500.0
-                ant_roi_end = ant_roi_center + 500.0
+                ant_roi_start = ant_roi_center - 500.0 * units.ns
+                ant_roi_end = ant_roi_center + 500.0 * units.ns
             else:
-                ant_roi_start, ant_roi_end = ROI_START_NS, ROI_END_NS
+                ant_roi_start = ROI_START_NS * units.ns
+                ant_roi_end = ROI_END_NS * units.ns
 
             time_mask = (full_voltage_times >= ant_roi_start) & (full_voltage_times <= ant_roi_end)
             if not np.any(time_mask):
@@ -589,23 +625,23 @@ def extract_fluence_and_timing_data(
             efield_trace = ef.get_trace()
             efield_times = ef.get_times()
 
-            max_time_ns = None
+            max_time_nuradio = None
             current_max_snr = 0.0
             h_time, h_snr = simple_hilbert_finder(cut_v_traces, cut_v_times)
             p_time, p_snr = power_peak_finder(cut_v_traces, cut_v_times)
             current_max_snr = max(h_snr, p_snr)
             if h_time is not None and h_snr >= SNR_CUT:
-                max_time_ns = h_time
+                max_time_nuradio = h_time
             elif p_time is not None and p_snr >= SNR_CUT:
-                max_time_ns = p_time
+                max_time_nuradio = p_time
             else:
                 t_time, t_score = template_match_finder(cut_v_traces, cut_v_times, _TEMPLATE_LIBRARY)
                 if t_time is not None and t_score >= TEMPLATE_CORR_THRESHOLD:
-                    max_time_ns = t_time
+                    max_time_nuradio = t_time
                     current_max_snr = max(current_max_snr, t_score)
 
             antenna_data.append({
-                'position': position, 'max_time_ns': max_time_ns,
+                'position': position, 'max_time_nuradio': max_time_nuradio,
                 'current_max_snr': current_max_snr, 'efield_trace': efield_trace,
                 'efield_times': efield_times,
             })
@@ -615,23 +651,25 @@ def extract_fluence_and_timing_data(
     # Pass 2: compute fluences
     for ant in antenna_data:
         position = ant['position']
-        max_time_ns = ant['max_time_ns']
+        max_time_nuradio = ant['max_time_nuradio']
         current_max_snr = ant['current_max_snr']
         efield_trace = ant['efield_trace']
         efield_times = ant['efield_times']
 
-        if max_time_ns is not None:
-            sig_mask = ((efield_times >= max_time_ns - fluence_window_ns / 2.0)
-                        & (efield_times <= max_time_ns + fluence_window_ns / 2.0))
+        if max_time_nuradio is not None:
+            sig_mask = ((efield_times >= max_time_nuradio - fluence_window_nuradio / 2.0)
+                        & (efield_times <= max_time_nuradio + fluence_window_nuradio / 2.0))
             fl = (np.sum(get_electric_field_energy_fluence(efield_trace[:, sig_mask], efield_times[sig_mask]))
                   if np.any(sig_mask) else 0.0)
             posx.append(position[0])
             posy.append(position[1])
             fluences.append(fl)
-            max_times.append(max_time_ns * 1e-9)
+            max_times.append(max_time_nuradio / units.s)
             is_signal.append(True)
             snr_values.append(current_max_snr)
-            noise_fluences.extend(_noise_fluence_windows(efield_trace, efield_times, max_time_ns, fluence_window_ns))
+            noise_fluences.extend(_noise_fluence_windows(
+                efield_trace, efield_times, max_time_nuradio, fluence_window_ns
+            ))
 
     return (*_observable_arrays(posx, posy, fluences, max_times, is_signal, noise_fluences, snr_values),
             best_direction)
@@ -654,31 +692,36 @@ def _station_roi_from_beamforming(station, detector, station_id, station_abs_pos
             continue
 
     if not bf_traces:
-        return ROI_START_NS, ROI_END_NS
+        return ROI_START_NS * units.ns, ROI_END_NS * units.ns
 
     azimuth_guess, zenith_guess = shower_direction
-    beamformed_time_ns, beamformed_snr, _ = station_beamform_pulse_finder(
+    beamformed_time_nuradio, beamformed_snr, _ = station_beamform_pulse_finder(
         bf_traces, bf_times_list, np.array(bf_pos_list), zenith_guess, azimuth_guess)
-    if beamformed_time_ns is None or beamformed_snr <= 3.0:
-        return ROI_START_NS, ROI_END_NS
+    if beamformed_time_nuradio is None or beamformed_snr <= 3.0:
+        return ROI_START_NS * units.ns, ROI_END_NS * units.ns
 
     positions = np.array(bf_pos_list)
     station_span = np.max(np.linalg.norm(positions - np.mean(positions, axis=0), axis=1)) * 2
-    half_window = max(100.0, station_span * np.sin(zenith_guess) / C_LIGHT_M_NS / 2 + 50.0)
-    return beamformed_time_ns - half_window, beamformed_time_ns + half_window
+    half_window_nuradio = max(
+        100.0 * units.ns,
+        station_span * np.sin(zenith_guess) / C_LIGHT_NURADIO / 2 + 50.0 * units.ns,
+    )
+    return (beamformed_time_nuradio - half_window_nuradio,
+            beamformed_time_nuradio + half_window_nuradio)
 
 
 _BANDPASS_EDGE_SAMPLES_START = 20000
 _BANDPASS_EDGE_SAMPLES_END = 45536
 
 
-def _noise_fluence_windows(efield_trace, efield_times, max_time_ns, fluence_window_ns):
+def _noise_fluence_windows(efield_trace, efield_times, max_time_nuradio, fluence_window_ns):
     if len(efield_times) < 2:
         return []
-    time_step_ns = efield_times[1] - efield_times[0]
-    if time_step_ns <= 0:
+    time_step_nuradio = efield_times[1] - efield_times[0]
+    if time_step_nuradio <= 0:
         return []
-    window_length_samples = int(fluence_window_ns / time_step_ns)
+    fluence_window_nuradio = fluence_window_ns * units.ns
+    window_length_samples = int(fluence_window_nuradio / time_step_nuradio)
     if window_length_samples <= 0:
         return []
 
@@ -695,8 +738,8 @@ def _noise_fluence_windows(efield_trace, efield_times, max_time_ns, fluence_wind
             continue
         window_start_time = efield_times[start_index]
         in_signal = not (
-            window_start_time + fluence_window_ns < max_time_ns - fluence_window_ns / 2.0
-            or window_start_time > max_time_ns + fluence_window_ns / 2.0
+            window_start_time + fluence_window_nuradio < max_time_nuradio - fluence_window_nuradio / 2.0
+            or window_start_time > max_time_nuradio + fluence_window_nuradio / 2.0
         )
         if in_signal:
             continue
@@ -705,6 +748,194 @@ def _noise_fluence_windows(efield_trace, efield_times, max_time_ns, fluence_wind
         if len(slice_times) == window_length_samples:
             noise_fluences.append(np.sum(get_electric_field_energy_fluence(slice_trace, slice_times)))
     return noise_fluences
+
+
+def blind_max_signal_finder(voltage_traces, voltage_times,
+                            edge_fraction=MAX_SIGNAL_EDGE_FRACTION):
+    """Find the largest envelope excursion anywhere in an antenna's trace.
+
+    Unlike :func:`simple_hilbert_finder` and :func:`power_peak_finder`, which need
+    a region of interest, this searches the whole trace and normalises with a
+    robust median/MAD estimator, so the SNR is not spoiled by the pulse itself.
+
+    Returns ``(max_time_nuradio, snr)``, or ``(None, 0.0)`` for an unusable trace.
+    The SNR is ``(peak - median) / (1.4826 * MAD)``; see
+    :data:`MAX_SIGNAL_SNR_THRESHOLD` for calibrated values.
+    """
+    traces = np.asarray(voltage_traces, dtype=float)
+    times = np.asarray(voltage_times, dtype=float)
+    if traces.ndim == 1:
+        traces = traces[np.newaxis, :]
+    n_samples = traces.shape[-1]
+    if n_samples < 64 or len(times) != n_samples:
+        return None, 0.0
+
+    edge = int(edge_fraction * n_samples)
+    lo, hi = edge, n_samples - edge
+    if hi - lo < 64:
+        lo, hi = 0, n_samples
+
+    analytic = hilbert(traces[:, lo:hi], axis=-1)
+    envelope = np.sqrt(np.sum(np.abs(analytic) ** 2, axis=0))
+
+    median = np.median(envelope)
+    mad = np.median(np.abs(envelope - median)) * 1.4826
+    if not np.isfinite(mad) or mad <= 0:
+        return None, 0.0
+
+    peak_index = int(np.argmax(envelope))
+    snr = float((envelope[peak_index] - median) / mad)
+    return float(times[lo + peak_index]), snr
+
+
+def plane_wave_consensus_mask(posx, posy, times, shower_direction,
+                              window_ns=MAX_SIGNAL_CONSENSUS_WINDOW_NS):
+    """Keep only arrival times that share one plane-wave arrival plane.
+
+    Subtracts the geometric delay for `shower_direction` (given as
+    ``(azimuth, zenith)`` in radians) from every arrival time and keeps the
+    antennas in the densest ``2 * window_ns`` interval of the residuals. Real
+    pulses pile up in one interval; blind-search noise peaks do not.
+
+    Positions are in internal length units, `times` in seconds. Returns a boolean
+    mask over the input.
+    """
+    posx = np.asarray(posx, dtype=float)
+    posy = np.asarray(posy, dtype=float)
+    times = np.asarray(times, dtype=float)
+    if times.size == 0:
+        return np.zeros(0, dtype=bool)
+
+    azimuth, zenith = shower_direction
+    kx = np.sin(zenith) * np.cos(azimuth)
+    ky = np.sin(zenith) * np.sin(azimuth)
+    # Same convention as the causality cut in iftReconstructor: positions in
+    # internal metres, arrival times in SI seconds.
+    geometric_delay = -(1.0 / scipy.constants.c) * (kx * posx + ky * posy)
+    residual = times - geometric_delay
+
+    half_window = window_ns * units.ns / units.s
+    # Densest interval: for each candidate centre count the residuals within it.
+    counts = np.array([
+        np.sum(np.abs(residual - centre) <= half_window) for centre in residual
+    ])
+    best_centre = residual[int(np.argmax(counts))]
+    return np.abs(residual - best_centre) <= half_window
+
+
+def extract_max_signal_timing_data(
+        event, station_id, detector, shower_direction, fluence_window_ns=None,
+        snr_threshold=MAX_SIGNAL_SNR_THRESHOLD, skip_lba_inner=False):
+    """Blind per-antenna maximum-signal extraction, for events with no beamformer lock.
+
+    A fallback with the same return signature as
+    :func:`extract_fluence_and_timing_data`, for the faintest events where the
+    normal extraction returns nothing. It uses no region of interest and no
+    beamformer: every antenna is searched over its whole trace
+    (:func:`blind_max_signal_finder`), antennas below `snr_threshold` are dropped,
+    and the survivors must agree on one arrival plane
+    (:func:`plane_wave_consensus_mask`). Fewer than
+    :data:`MAX_SIGNAL_MIN_CONSENSUS_ANTENNAS` agreeing gives an empty result.
+    """
+    if fluence_window_ns is None:
+        fluence_window_ns = DEFAULT_FLUENCE_WINDOW_NS
+    fluence_window_nuradio = fluence_window_ns * units.ns
+
+    posx, posy, fluences, max_times, is_signal, noise_fluences, snr_values = \
+        [], [], [], [], [], [], []
+    empty = (*_observable_arrays(posx, posy, fluences, max_times, is_signal,
+                                 noise_fluences, snr_values), shower_direction)
+
+    try:
+        station = event.get_station(station_id)
+    except ValueError:
+        return empty
+
+    station_abs_pos = detector.get_absolute_position(station_id)
+
+    candidates = []
+    for efield in station.get_electric_fields():
+        channel_ids = efield.get_channel_ids()
+        if len(channel_ids) < 2:
+            continue
+        channel_id_even = channel_ids[0]
+        if skip_lba_inner:
+            try:
+                if detector.get_antenna_mode(station_id, channel_id_even) == "LBA_inner":
+                    continue
+            except Exception:
+                pass
+        try:
+            channel_even = station.get_channel(channel_id_even)
+            channel_odd = station.get_channel(channel_id_even + 1)
+            voltage_traces = np.array([channel_even.get_trace(), channel_odd.get_trace()])
+            voltage_times = channel_even.get_times()
+        except Exception:
+            continue
+
+        max_time_nuradio, snr = blind_max_signal_finder(voltage_traces, voltage_times)
+        if max_time_nuradio is None or snr < snr_threshold:
+            continue
+
+        position = detector.get_relative_position(station_id, channel_id_even) + station_abs_pos
+        candidates.append({
+            'position': position,
+            'max_time_nuradio': max_time_nuradio,
+            'snr': snr,
+            'efield_trace': efield.get_trace(),
+            'efield_times': efield.get_times(),
+        })
+
+    if len(candidates) < MAX_SIGNAL_MIN_CONSENSUS_ANTENNAS:
+        logger.info(
+            "Station %s: blind max-signal search found %d antenna(s) above SNR %.1f, "
+            "need %d for a consensus — treating as no signal.",
+            station_id, len(candidates), snr_threshold,
+            MAX_SIGNAL_MIN_CONSENSUS_ANTENNAS)
+        return empty
+
+    keep = plane_wave_consensus_mask(
+        [c['position'][0] for c in candidates],
+        [c['position'][1] for c in candidates],
+        [c['max_time_nuradio'] / units.s for c in candidates],
+        shower_direction,
+    )
+    if int(np.sum(keep)) < MAX_SIGNAL_MIN_CONSENSUS_ANTENNAS:
+        logger.info(
+            "Station %s: blind max-signal search — only %d of %d antennas share an "
+            "arrival plane, need %d — treating as no signal.",
+            station_id, int(np.sum(keep)), len(candidates),
+            MAX_SIGNAL_MIN_CONSENSUS_ANTENNAS)
+        return empty
+
+    for candidate, in_plane in zip(candidates, keep):
+        if not in_plane:
+            continue
+        max_time_nuradio = candidate['max_time_nuradio']
+        efield_trace = candidate['efield_trace']
+        efield_times = candidate['efield_times']
+
+        signal_mask = ((efield_times >= max_time_nuradio - fluence_window_nuradio / 2.0)
+                       & (efield_times <= max_time_nuradio + fluence_window_nuradio / 2.0))
+        fluence = (np.sum(get_electric_field_energy_fluence(
+            efield_trace[:, signal_mask], efield_times[signal_mask]))
+            if np.any(signal_mask) else 0.0)
+
+        posx.append(candidate['position'][0])
+        posy.append(candidate['position'][1])
+        fluences.append(fluence)
+        max_times.append(max_time_nuradio / units.s)
+        is_signal.append(True)
+        snr_values.append(candidate['snr'])
+        noise_fluences.extend(_noise_fluence_windows(
+            efield_trace, efield_times, max_time_nuradio, fluence_window_ns))
+
+    logger.info(
+        "Station %s: blind max-signal search kept %d antenna(s) (of %d above SNR %.1f).",
+        station_id, len(fluences), len(candidates), snr_threshold)
+
+    return (*_observable_arrays(posx, posy, fluences, max_times, is_signal,
+                                noise_fluences, snr_values), shower_direction)
 
 
 def augment_neighbor_fluences(
@@ -754,13 +985,14 @@ def augment_neighbor_fluences(
                 if np.min(cdist([pos_xy], ref_pos_arr)[0]) > max_neighbor_dist_m:
                     continue
 
-                geom_delay = -(1.0 / C_LIGHT) * (kx * pos_xy[0] + ky * pos_xy[1])
-                expected_time_s = reference_t0 + geom_delay
+                geom_delay_s = -(1.0 / scipy.constants.c) * (kx * pos_xy[0] + ky * pos_xy[1])
+                expected_time_s = reference_t0 + geom_delay_s
                 efield_trace = ef.get_trace()
                 efield_times = ef.get_times()
-                t_center_ns = expected_time_s * 1e9
-                mask = ((efield_times >= t_center_ns - fluence_window_ns / 2.0)
-                        & (efield_times <= t_center_ns + fluence_window_ns / 2.0))
+                expected_time_nuradio = expected_time_s * units.s
+                fluence_window_nuradio = fluence_window_ns * units.ns
+                mask = ((efield_times >= expected_time_nuradio - fluence_window_nuradio / 2.0)
+                        & (efield_times <= expected_time_nuradio + fluence_window_nuradio / 2.0))
                 fl = (np.sum(get_electric_field_energy_fluence(efield_trace[:, mask], efield_times[mask]))
                       if np.sum(mask) >= 2 else 0.0)
                 new_data['posx'].append(float(pos_xy[0]))
@@ -799,8 +1031,8 @@ def fit_global_plane_wave(positions, times):
     times = np.asarray(times)
     matrix = np.column_stack([positions[0], positions[1], np.ones(times.size)])
     coeffs, _, _, _ = np.linalg.lstsq(matrix, times, rcond=None)
-    kx = -coeffs[0] * C_LIGHT
-    ky = -coeffs[1] * C_LIGHT
+    kx = -coeffs[0] * scipy.constants.c
+    ky = -coeffs[1] * scipy.constants.c
     horizontal = np.sqrt(kx ** 2 + ky ** 2)
     zenith = np.arcsin(np.clip(horizontal, 0.0, 1.0))
     azimuth = np.arctan2(ky, kx) % (2 * np.pi)
@@ -822,12 +1054,14 @@ def fit_plane_wave(positions, times, weights=None):
     else:
         res, _, _, _ = np.linalg.lstsq(A, times, rcond=None)
     a, b, t0 = res
-    kx = -a * C_LIGHT
-    ky = -b * C_LIGHT
+    kx = -a * scipy.constants.c
+    ky = -b * scipy.constants.c
     k_perp_sq = kx ** 2 + ky ** 2
     if k_perp_sq > 1.0:
         scale = 1.0 / np.sqrt(k_perp_sq)
-        kx *= scale; ky *= scale; k_perp_sq = 1.0
+        kx *= scale
+        ky *= scale
+        k_perp_sq = 1.0
     kz = np.sqrt(1.0 - k_perp_sq)
     return np.arccos(kz), np.arctan2(ky, kx) % (2 * np.pi), t0
 
@@ -854,10 +1088,13 @@ def count_efield_triggered_stations(fluences, station_ids, noise_mean, reconstru
 
 
 def filter_samples_by_trigger(model, samples_list, station_ids, noise_mean, reconstruction_window_ns,
-                               min_stations=TRIGGER_MIN_STATIONS, snr_buffer_frac=TRIGGER_SNR_BUFFER_FRAC):
+                              min_stations=TRIGGER_MIN_STATIONS, snr_buffer_frac=TRIGGER_SNR_BUFFER_FRAC,
+                              return_trigger_counts=False):
     """Retain posterior samples satisfying the LOFAR local trigger criterion.
 
-    Returns (kept_indices, discarded_indices) — lists of integer indices into samples_list.
+    Returns ``(kept_indices, discarded_indices)`` — lists of integer indices
+    into ``samples_list``. With ``return_trigger_counts=True``, also returns a
+    per-sample array with the number of stations satisfying the criterion.
     """
     noise_55ns = noise_mean * (TRIGGER_WINDOW_NS / reconstruction_window_ns)
     threshold_fluence = TRIGGER_SNR_THRESHOLD * (1.0 - snr_buffer_frac) * noise_55ns
@@ -877,7 +1114,7 @@ def filter_samples_by_trigger(model, samples_list, station_ids, noise_mean, reco
         all_fluences = np.array([model(s)[0] for s in samples_list])
 
     unique_stations = np.unique(station_ids)
-    kept_indices, discarded_indices = [], []
+    kept_indices, discarded_indices, trigger_counts = [], [], []
     for i in range(len(samples_list)):
         sample_fluences = all_fluences[i]
         stations_triggered = 0
@@ -888,10 +1125,13 @@ def filter_samples_by_trigger(model, samples_list, station_ids, noise_mean, reco
                 continue
             if (np.sum(st_fluences > threshold_fluence) / len(st_fluences)) >= TRIGGER_ANTENNA_FRACTION:
                 stations_triggered += 1
+        trigger_counts.append(stations_triggered)
         if stations_triggered >= min_stations:
             kept_indices.append(i)
         else:
             discarded_indices.append(i)
+    if return_trigger_counts:
+        return kept_indices, discarded_indices, np.asarray(trigger_counts, dtype=int)
     return kept_indices, discarded_indices
 
 
@@ -899,11 +1139,14 @@ def make_centered_uniform_prior(center, half_width, lower=None, upper=None):
     """Return {"a_min": ..., "a_max": ...} for a UniformPrior centred on `center`."""
     a_min = float(center) - float(half_width)
     a_max = float(center) + float(half_width)
-    if lower is not None: a_min = max(float(lower), a_min)
-    if upper is not None: a_max = min(float(upper), a_max)
+    if lower is not None:
+        a_min = max(float(lower), a_min)
+    if upper is not None:
+        a_max = min(float(upper), a_max)
     if not a_min < a_max:
         eps = max(float(half_width), 1e-3)
-        a_min = float(center) - eps; a_max = float(center) + eps
+        a_min = float(center) - eps
+        a_max = float(center) + eps
     return {"a_min": a_min, "a_max": a_max}
 
 

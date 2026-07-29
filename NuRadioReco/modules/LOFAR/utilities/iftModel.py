@@ -18,9 +18,13 @@ import os
 N_SEA_LEVEL = 2.8e-4
 SCALE_HEIGHT = 8400.0
 
-# --- Energy calibration constnats (E_rad → E_CR) ---
-_ERAD_A = 16.73; _ERAD_B = 2.022; _ERAD_a_CE = 0.159; _ERAD_c_zen = -0.622
-_ERAD_B_ref = 0.24; _ERAD_E_scale = 1e18
+# --- Energy calibration constants (E_rad → E_CR) ---
+_ERAD_A = 16.73
+_ERAD_B = 2.022
+_ERAD_a_CE = 0.159
+_ERAD_c_zen = -0.622
+_ERAD_B_ref = 0.24
+_ERAD_E_scale = 1e18
 
 # Grid Generation Constants
 GRID_PAD = 150.0
@@ -31,7 +35,8 @@ MIN_GRID_DIM = 64
 # Systematic CF parameters
 SYST_CF_ZM = dict(offset_mean=0.00, offset_std=(1e-3, 1e-4))
 SYST_TARGET_SIGMA = 0.05
-SYST_CF_FL = dict(fluctuations=(SYST_TARGET_SIGMA, SYST_TARGET_SIGMA), loglogavgslope=(-5.0, 2.5), flexibility=(0.1, 0.5))
+SYST_CF_FL = dict(fluctuations=(SYST_TARGET_SIGMA, SYST_TARGET_SIGMA),
+                  loglogavgslope=(-5.0, 2.5), flexibility=(0.1, 0.5))
 SYST_MULT_MIN = 0.8
 SYST_MULT_MAX = 1.2
 
@@ -45,18 +50,18 @@ DEFAULT_LDF_RADIATION_ENERGY_SCATTER = 0.036
 DEFAULT_FLUENCE_DXMAX_PRECISION_GPCM2 = 15
 DEFAULT_TIMING_DXMAX_PRECISION_GPCM2 = 30.0
 
-FLUENCE_DXMAX_PRECISION_SLOPE     = 0.004068
+FLUENCE_DXMAX_PRECISION_SLOPE = 0.004068
 FLUENCE_DXMAX_PRECISION_INTERCEPT = 12.4155
 
 # Wavefront fit constants
 WAVEFRONT_B_OFFSET_S = -3e-9
 RHO_POLY_C3 = -5.864929e-05
-RHO_POLY_C2 =  1.313198e-01
+RHO_POLY_C2 = 1.313198e-01
 RHO_POLY_C1 = -9.791198e+01
-RHO_POLY_C0 =  4.748834e+04
-GAMMA_PRIOR_MEAN    = 1.465
-GAMMA_PRIOR_STD     = 0.292
-CONST_RHO_RES_MEAN  = 0.0
+RHO_POLY_C0 = 4.748834e+04
+GAMMA_PRIOR_MEAN = 1.465
+GAMMA_PRIOR_STD = 0.292
+CONST_RHO_RES_MEAN = 0.0
 
 
 def _soft_clip(z, lo, hi, softness):
@@ -71,9 +76,9 @@ class footprintModel(jft.Model):
         self,
         x: npt.NDArray[np.float64],
         y: npt.NDArray[np.float64],
-        magnetic_field_vector = np.array([0.004675, 0.186270, -0.456412]),
+        magnetic_field_vector=np.array([0.004675, 0.186270, -0.456412]),
         params_Erad: dict = {"mean": np.log(1e7), "std": 3.5},
-        params_phi: dict = {"a_min": np.pi, "a_max": 3*np.pi},
+        params_phi: dict = {"a_min": np.pi, "a_max": 3 * np.pi},
         params_theta: dict = {"a_min": 0.0, "a_max": np.pi},
         params_X_max: dict = {"a_min": 500.0, "a_max": 1200.0},
         params_X: dict = {"mean": 0.0, "std": 500.0},
@@ -127,6 +132,11 @@ class footprintModel(jft.Model):
         self.theta = jft.prior.UniformPrior(**params_theta, shape=(1,), name=prefix + "theta")
 
         self.X_max_prior = jft.prior.UniformPrior(**params_X_max, shape=(1,), name=prefix + "X_max")
+        # Decoupled timing Xmax: an independent free parameter over the *same* range as the
+        # overall/fluence Xmax, but with its own latent name so it does not constrain (and is
+        # not constrained by) the fluence or the overall Xmax. Only the timing/wavefront path
+        # uses this; the fluence path and X_max() continue to use X_max_prior.
+        self.X_max_timing_prior = jft.prior.UniformPrior(**params_X_max, shape=(1,), name=prefix + "X_max_timing")
 
         self.X_core = jft.prior.NormalPrior(**params_X, shape=(1,), name=prefix + "X")
         self.Y_core = jft.prior.NormalPrior(**params_Y, shape=(1,), name=prefix + "Y")
@@ -141,7 +151,8 @@ class footprintModel(jft.Model):
         self.noise_mean = jft.prior.LogNormalPrior(**params_noise_mean, shape=(1,), name=prefix + "noise_mean")
 
         # Wavefront priors
-        self.gamma_prior = jft.prior.NormalPrior(mean=GAMMA_PRIOR_MEAN, std=GAMMA_PRIOR_STD, shape=(1,), name=prefix + "gamma")
+        self.gamma_prior = jft.prior.NormalPrior(
+            mean=GAMMA_PRIOR_MEAN, std=GAMMA_PRIOR_STD, shape=(1,), name=prefix + "gamma")
         _const_rho_res = jnp.full((1,), CONST_RHO_RES_MEAN, dtype=jnp.float64)
         self.const_rho_residual = lambda x: _const_rho_res
         self.ldf_energy_scale_prior = (
@@ -181,7 +192,8 @@ class footprintModel(jft.Model):
 
             calc_dim = int(np.ceil(self.extent / TARGET_RESOLUTION))
             calc_dim = max(MIN_GRID_DIM, min(calc_dim, MAX_GRID_DIM))
-            if calc_dim % 2 != 0: calc_dim += 1
+            if calc_dim % 2 != 0:
+                calc_dim += 1
             self.dims = (calc_dim, calc_dim)
             self.distances = self.extent / self.dims[0]
 
@@ -198,7 +210,8 @@ class footprintModel(jft.Model):
         if self.enable_syst_cf:
             cfm_fluence = jft.CorrelatedFieldMaker(prefix + "syst_cf")
             cfm_fluence.set_amplitude_total_offset(**SYST_CF_ZM)
-            cfm_fluence.add_fluctuations(self.dims, distances=self.distances, **SYST_CF_FL, prefix="ax1", non_parametric_kind="power")
+            cfm_fluence.add_fluctuations(self.dims, distances=self.distances, **SYST_CF_FL,
+                                         prefix="ax1", non_parametric_kind="power")
             self.syst_cf_op = cfm_fluence.finalize()
             self.syst_cf_raw = self.syst_cf_op
             cf_initializers.append(self.syst_cf_op.init)
@@ -215,7 +228,8 @@ class footprintModel(jft.Model):
             )
             cfm_timing_2 = jft.CorrelatedFieldMaker(prefix + "timing_cf_2")
             cfm_timing_2.set_amplitude_total_offset(**TIMING_CF_ZM_2)
-            cfm_timing_2.add_fluctuations(self.dims, distances=self.distances, **TIMING_CF_FL_2, prefix="ax1_time_2", non_parametric_kind="power")
+            cfm_timing_2.add_fluctuations(self.dims, distances=self.distances, **TIMING_CF_FL_2,
+                                          prefix="ax1_time_2", non_parametric_kind="power")
             self.timing_cf_op_2 = cfm_timing_2.finalize()
             cf_initializers.append(self.timing_cf_op_2.init)
         else:
@@ -226,6 +240,7 @@ class footprintModel(jft.Model):
 
         # Initialize priors
         init = (self.log_Erad_prior.init | self.phi.init | self.theta.init | self.X_max_prior.init |
+                self.X_max_timing_prior.init |
                 self.X_core.init | self.Y_core.init | self.t0.init | self.noise_mean.init |
                 self.gamma_prior.init)
         if self.ldf_energy_scale_prior is not None:
@@ -257,11 +272,11 @@ class footprintModel(jft.Model):
         b_hat = B_vect / B_mag
         sin_alpha = jnp.clip(jnp.linalg.norm(jnp.cross(s_vec, b_hat)), 0.05, 1.0)
 
-        bc_term  = (B_mag / _ERAD_B_ref) ** 2
-        ce_term  = sin_alpha ** 2 + _ERAD_a_CE ** 2
+        bc_term = (B_mag / _ERAD_B_ref) ** 2
+        ce_term = sin_alpha ** 2 + _ERAD_a_CE ** 2
         zen_term = 1.0 + _ERAD_c_zen * jnp.cos(zenith) ** 2
-        denom    = 1e6 * _ERAD_A * bc_term * ce_term * zen_term
-        E_cr     = _ERAD_E_scale * jnp.power(Erad_eV / denom, 1.0 / _ERAD_B)
+        denom = 1e6 * _ERAD_A * bc_term * ce_term * zen_term
+        E_cr = _ERAD_E_scale * jnp.power(Erad_eV / denom, 1.0 / _ERAD_B)
         return jnp.reshape(E_cr, (1,)) if self.Erad(x).ndim > 0 else E_cr
 
     def X_max(self, x):
@@ -269,7 +284,8 @@ class footprintModel(jft.Model):
         return jnp.reshape(xmax_val, (1,)) if xmax_val.ndim > 0 else xmax_val
 
     def X_max_timing(self, x):
-        return self.X_max(x)
+        xmax_val = self.X_max_timing_prior(x)
+        return jnp.reshape(xmax_val, (1,)) if xmax_val.ndim > 0 else xmax_val
 
     def fluence_dxmax_offset(self, x):
         if self.fluence_dxmax_offset_prior is None:
@@ -366,16 +382,22 @@ class footprintModel(jft.Model):
         z_s = pos_shower_plane[2]
         term1 = (d * jnp.sin(rho)) ** 2
         term2 = (self.speedoflight * self.b_offset_s) ** 2
-        tau_geo = (1 / self.speedoflight) * (jnp.sqrt(term1 + term2) + z_s * jnp.cos(rho) + self.speedoflight * self.b_offset_s)
+        tau_geo = (1 / self.speedoflight) * (jnp.sqrt(term1 + term2) +
+                                             z_s * jnp.cos(rho) + self.speedoflight * self.b_offset_s)
         return t0_val + tau_geo
 
     def get_signal_fluence_without_cf(self, x, include_ldf_energy_scale=True):
         mycstrafo = helper.CStrafoJAX(self.theta(x), self.phi(x), magnetic_field_vector=self.magnetic_field_vector)
-        pos_array = jnp.array([self.x, self.y, 7.6*jnp.ones_like(self.x)])
-        vxvxB_positions = mycstrafo.transform_to_vxB_vxvxB(pos_array, core=[self.X_core(x), self.Y_core(x), 7.6*jnp.ones_like(self.X_core(x))])
+        pos_array = jnp.array([self.x, self.y, 7.6 * jnp.ones_like(self.x)])
+        vxvxB_positions = mycstrafo.transform_to_vxB_vxvxB(
+            pos_array, core=[self.X_core(x), self.Y_core(x), 7.6 * jnp.ones_like(self.X_core(x))])
         dxmax_off = self.fluence_dxmax_offset(x)
         energy_scale = self.ldf_energy_scale_factor(x) if include_ldf_energy_scale else 1.0
-        def single_fluence(x_pos, y_pos): return self.fluence(*(oo(x) for oo in self.ops), x_pos, y_pos, dxmax_off)[0] * energy_scale
+
+        def single_fluence(x_pos, y_pos):
+            op_values = (op(x) for op in self.ops)
+            return self.fluence(*op_values, x_pos, y_pos, dxmax_off)[0] * energy_scale
+
         return vmap(single_fluence)(vxvxB_positions[0, :], vxvxB_positions[1, :]).squeeze()
 
     def get_signal_timing_without_cf(self, x):
@@ -388,7 +410,8 @@ class footprintModel(jft.Model):
         xi = jnp.linspace(0, self.dims[0] - 1, self.dims[0])
         yi = jnp.linspace(0, self.dims[1] - 1, self.dims[1])
         points = jnp.stack([(self.x - self.min_x) / self.distances, (self.y - self.min_y) / self.distances], axis=-1)
-        interp_syst = RegularGridInterpolator((xi, yi), syst_log_grid, method='linear', bounds_error=False, fill_value=0.0)
+        interp_syst = RegularGridInterpolator(
+            (xi, yi), syst_log_grid, method='linear', bounds_error=False, fill_value=0.0)
         syst_log_at_pos = interp_syst(points)
         total_multiplier = jnp.exp(syst_log_at_pos)
         flu_with_cf = flu_signal_scaled * total_multiplier
@@ -399,20 +422,23 @@ class footprintModel(jft.Model):
 
     def __call__(self, x):
         mycstrafo = helper.CStrafoJAX(self.theta(x), self.phi(x), magnetic_field_vector=self.magnetic_field_vector)
-        pos_array = jnp.array([self.x, self.y, 7.6*jnp.ones_like(self.x)])
+        pos_array = jnp.array([self.x, self.y, 7.6 * jnp.ones_like(self.x)])
         vxvxB_positions = mycstrafo.transform_to_vxB_vxvxB(
-            pos_array, core=[self.X_core(x), self.Y_core(x), 7.6*jnp.ones_like(self.X_core(x))]
+            pos_array, core=[self.X_core(x), self.Y_core(x), 7.6 * jnp.ones_like(self.X_core(x))]
         )
         cf_on_grid_log = self.syst_cf(x)
         xi = jnp.linspace(0, self.dims[0] - 1, self.dims[0])
         yi = jnp.linspace(0, self.dims[1] - 1, self.dims[1])
         points = jnp.stack([(self.x - self.min_x) / self.distances, (self.y - self.min_y) / self.distances], axis=-1)
-        interp_sys_fluence = RegularGridInterpolator((xi, yi), cf_on_grid_log, method='linear', bounds_error=False, fill_value=0.0)
+        interp_sys_fluence = RegularGridInterpolator(
+            (xi, yi), cf_on_grid_log, method='linear', bounds_error=False, fill_value=0.0)
         total_multiplier = jnp.exp(interp_sys_fluence(points)) * self.ldf_energy_scale_factor(x)
 
         timing_cf_on_grid_2 = self.timing_cf_op_2(x)
-        interp_sys_timing_2 = RegularGridInterpolator((xi, yi), timing_cf_on_grid_2, method='linear', bounds_error=False, fill_value=0.0)
-        clipped_timing_correction = _soft_clip(interp_sys_timing_2(points), -TIMING_CLIP_NS * 1e-9, TIMING_CLIP_NS * 1e-9, 1e-9)
+        interp_sys_timing_2 = RegularGridInterpolator(
+            (xi, yi), timing_cf_on_grid_2, method='linear', bounds_error=False, fill_value=0.0)
+        clipped_timing_correction = _soft_clip(
+            interp_sys_timing_2(points), -TIMING_CLIP_NS * 1e-9, TIMING_CLIP_NS * 1e-9, 1e-9)
 
         arrival_times = self.get_arrival_time_differences(x) + clipped_timing_correction
         dxmax_off = self.fluence_dxmax_offset(x)

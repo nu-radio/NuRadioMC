@@ -14,12 +14,14 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.LOFAR.utilities import iftDataHelpers
 from NuRadioReco.utilities import units
 
-# Module-level constants used by the IFT reconstructor
+# Module-level constants used by the IFT reconstructor.
+# Timing observables reach the likelihood in SI seconds; the conversion from
+# NuRadioReco's internal units happens in iftDataHelpers. Hence the plain SI
+# speed of light here rather than a unit-system constant.
 _C_LIGHT = 299792458.0
-_FLUENCE_RELATIVE_SYSTEMATIC_ERROR = 0.10
+_FLUENCE_RELATIVE_SYSTEMATIC_ERROR = 0.1
 _LDF_ENERGY_SCALE_STD = 0.04
-_FAR_STATION_FLUENCE_ONLY_SNR = 12.0
-_FAR_STATION_HIGH_SNR_THRESHOLD = 10.0
+_FAR_STATION_FLUENCE_ONLY_SNR = 15.0
 _FAR_STATION_MIN_HIGH_SNR_ANTENNAS = 12
 _FLUENCE_MIN_NOISE_FACTOR = 0.05
 _STATION_SNR_THRESHOLD = 3.0
@@ -27,38 +29,47 @@ _STATION_MIN_ANTENNAS = 10
 _MIN_STATIONS_REQUIRED = 1
 _FALLBACK_ANTENNA_THRESHOLD = 48
 _FALLBACK_SNR_THRESHOLD = 6.0
-_CAUSALITY_CUT_DISTANCE_M = 600.0
-_TIMING_UNCERTAINTY_S = 1.5e-9
-_TIMING_SYST_INFLATION = 1.5
-_TIMING_UNCERT_THRESHOLD = 25e-9
+_CAUSALITY_CUT_DISTANCE_M = 600.0 * units.m
+_TIMING_UNCERTAINTY_S = 1.5 * units.ns / units.s
+_TIMING_SYST_INFLATION = 1.6
+_TIMING_UNCERT_THRESHOLD = 25.0 * units.ns / units.s
 _MIN_TIMING_POINTS = 12
 _MIN_GOOD_TIMING_POINTS_RECO = 0
 _MIN_ABSOLUTE_NEIGHBORS = 8
 _DEFAULT_CORE_PRIOR_STD_M = 120.0
 _FLUENCE_DXMAX_PRECISION_GPCM2 = 16.3
 _TIMING_DXMAX_PRECISION_GPCM2 = 30.0
-_DEFAULT_N_VI_ITERATIONS = 8
-_DEFAULT_N_SAMPLES = 60
+_DEFAULT_N_VI_ITERATIONS = 15
+_DEFAULT_N_SAMPLES = 80
 _DEFAULT_SEED = 27
 _SAMPLING_MODE = "linear_sample"
 _RESAMPLING_MODE = "nonlinear_resample"
 _CONV_PATIENCE = 3
-_CONV_MIN_ITERS = 5
+_CONV_MIN_ITERS = 4
+# Early-abort guards, to stop spending the full VI budget on a fit that is
+# already going nowhere. A converged Xmax posterior sits at 20-40 g/cm2, so 150
+# only catches fits that never localised; real fluences are O(1)-O(1e3) in
+# internal units, so the fluence bound is a blow-up guard (bad calibration,
+# overflow) rather than a physics cut. Pass 0 to the corresponding begin()
+# argument to disable either check.
+_EARLY_ABORT_XMAX_AFTER_ITERS = 2
+_EARLY_ABORT_XMAX_STD_GCM2 = 150.0
+_EARLY_ABORT_MAX_FLUENCE = 1e10
 _CONV_TOL_REDCHISQ = 0.01
 _TRIGGER_SNR_BUFFER_FRAC = 0.05
 _BROAD_SCAN_RANGE_DEG = 10.0
 _BROAD_STEP_DEG = 1.0
 _BROAD_SMOOTHING_NS = 5.0
-_RECO_STAGES = [{"window": 300.0}, {"window": 200.0}, {"window": 100.0}]
+_RECO_STAGES = [{"window": 300.0}, {"window": 100.0}]
 
 # E_rad → E_CR calibration coefficients (zenith-corrected formula, N=3991 events).
 # Formula: E_rad [MeV] = A * (sin²α + a²) * (B/B_ref)² * (E_CR/E_scale)^B * (1 + c·cos²θ)
 # Source: NuRadioReco/utilities/data/LOFAR/ift/erad_calibration.npz, key prefix 'zen_'
-_ERAD_CAL_A      = 16.72578725   # zen_A
-_ERAD_CAL_B      =  2.02195864   # zen_B
-_ERAD_CAL_a_CE   =  0.15889307   # zen_a_CE  (charge-excess contribution)
-_ERAD_CAL_c_zen  = -0.62162961   # zen_c_zen (zenith-angle correction)
-_ERAD_CAL_B_ref  =  0.24         # reference B-field magnitude [Gauss]
+_ERAD_CAL_A = 16.72578725   # zen_A
+_ERAD_CAL_B = 2.02195864   # zen_B
+_ERAD_CAL_a_CE = 0.15889307   # zen_a_CE  (charge-excess contribution)
+_ERAD_CAL_c_zen = -0.62162961   # zen_c_zen (zenith-angle correction)
+_ERAD_CAL_B_ref = 0.24         # reference B-field magnitude [Gauss]
 _ERAD_CAL_E_scale = 1e18         # energy scale [eV]
 
 
@@ -104,6 +115,11 @@ class iftReconstructor:
             sigma_ns=5.0,
             core_prior_std_m=_DEFAULT_CORE_PRIOR_STD_M,
             skip_lba_inner=False,
+            max_signal_fallback=True,
+            max_signal_snr_threshold=iftDataHelpers.MAX_SIGNAL_SNR_THRESHOLD,
+            early_abort_xmax_std_gcm2=_EARLY_ABORT_XMAX_STD_GCM2,
+            early_abort_xmax_after_iters=_EARLY_ABORT_XMAX_AFTER_ITERS,
+            early_abort_max_fluence=_EARLY_ABORT_MAX_FLUENCE,
     ):
         """
         Configure the reconstruction.
@@ -111,6 +127,22 @@ class iftReconstructor:
         ``run_nifty`` is False by default; set to True for the full VI pipeline.
         In smoke mode the correlated fields default to True to match the production
         pipeline; set them False for fast CI smoke tests.
+
+        ``max_signal_fallback`` only takes effect where the reconstruction would
+        otherwise abort outright: if both the standard and the broad direction
+        search return no timing data at all, every channel is searched blind for
+        its largest excursion instead (see
+        :func:`~NuRadioReco.modules.LOFAR.utilities.iftDataHelpers.extract_max_signal_timing_data`).
+        It never changes the result of an event where the normal search found
+        something. Events reconstructed this way are flagged with
+        ``used_max_signal_fallback`` in the exported ``.npz``.
+
+        The ``early_abort_*`` arguments stop an event before the full VI budget is
+        spent on a hopeless fit: ``early_abort_max_fluence`` rejects blown-up input
+        fluences before the atmosphere and model are even built, and
+        ``early_abort_xmax_std_gcm2`` gives up if the Xmax posterior is still wider
+        than that after ``early_abort_xmax_after_iters`` VI iterations. Pass 0 for
+        either threshold to disable that check.
         """
         self.__settings = {
             "fluence_window_ns": fluence_window_ns,
@@ -135,6 +167,11 @@ class iftReconstructor:
             "sigma_ns": sigma_ns,
             "core_prior_std_m": core_prior_std_m,
             "skip_lba_inner": skip_lba_inner,
+            "max_signal_fallback": max_signal_fallback,
+            "max_signal_snr_threshold": max_signal_snr_threshold,
+            "early_abort_xmax_std_gcm2": early_abort_xmax_std_gcm2,
+            "early_abort_xmax_after_iters": early_abort_xmax_after_iters,
+            "early_abort_max_fluence": early_abort_max_fluence,
         }
         self.logger.setLevel(logger_level)
 
@@ -164,16 +201,29 @@ class iftReconstructor:
 
     @staticmethod
     def _get_radio_direction(event):
+        # Only stations the plane-wave fitter actually converged on carry
+        # cr_zenith/cr_azimuth. The plain zenith/azimuth parameters are a weaker
+        # source: the pipeline writes (0, 0) into them as a placeholder for every
+        # station it could not fit, so averaging them in drags the direction
+        # towards the zenith. Use the fitted stations alone whenever there are
+        # any, and drop the exact (0, 0) placeholder otherwise.
         zeniths, azimuths = [], []
         for station in event.get_stations():
             if station.has_parameter(stationParameters.cr_zenith) and \
                     station.has_parameter(stationParameters.cr_azimuth):
                 zeniths.append(station.get_parameter(stationParameters.cr_zenith))
                 azimuths.append(station.get_parameter(stationParameters.cr_azimuth))
-            elif station.has_parameter(stationParameters.zenith) and \
-                    station.has_parameter(stationParameters.azimuth):
-                zeniths.append(station.get_parameter(stationParameters.zenith))
-                azimuths.append(station.get_parameter(stationParameters.azimuth))
+
+        if not zeniths:
+            for station in event.get_stations():
+                if station.has_parameter(stationParameters.zenith) and \
+                        station.has_parameter(stationParameters.azimuth):
+                    zenith = station.get_parameter(stationParameters.zenith)
+                    azimuth = station.get_parameter(stationParameters.azimuth)
+                    if zenith == 0.0 and azimuth == 0.0:
+                        continue  # placeholder, not a measurement
+                    zeniths.append(zenith)
+                    azimuths.append(azimuth)
 
         if not zeniths:
             return None
@@ -193,6 +243,31 @@ class iftReconstructor:
         zenith = np.arccos(np.clip(v[2], -1.0, 1.0))
         azimuth = np.arctan2(v[1], v[0]) % (2 * np.pi)
         return zenith, azimuth
+
+    @staticmethod
+    def _flatten_station_results(station_results):
+        """Concatenate per-station extraction results into flat observable lists.
+
+        ``station_results`` maps a station id onto the 8-tuple returned by
+        :func:`~NuRadioReco.modules.LOFAR.utilities.iftDataHelpers.extract_fluence_and_timing_data`.
+        Stations without any antenna are skipped. Returns
+        ``(posx, posy, fluences, times, is_signal, snrs, noise_fluences, station_ids)``.
+        """
+        posx, posy, fluences, times = [], [], [], []
+        is_signal, snrs, noise_fluences, station_ids = [], [], [], []
+        for station_id, result in station_results.items():
+            px, py, fl, tm, sig, noise, snr, _ = result
+            if len(fl) == 0:
+                continue
+            posx.extend(px)
+            posy.extend(py)
+            fluences.extend(fl)
+            times.extend(tm)
+            is_signal.extend(sig)
+            snrs.extend(snr)
+            noise_fluences.extend(noise)
+            station_ids.extend([station_id] * len(fl))
+        return posx, posy, fluences, times, is_signal, snrs, noise_fluences, station_ids
 
     @staticmethod
     def _get_or_create_radio_shower(event):
@@ -223,7 +298,6 @@ class iftReconstructor:
         from scipy.signal import hilbert as scipy_hilbert
 
         for station in event.get_stations():
-            sid = station.get_id()
             for efield in station.get_electric_fields():
                 if not efield.get_channel_ids():
                     continue
@@ -268,7 +342,7 @@ class iftReconstructor:
         return np.asarray(positions), np.asarray(fluences), np.asarray(station_ids, dtype=int)
 
     def _plot_reconstruction_debug(self, event, positions, fluences, station_ids,
-                                    core, zenith, azimuth):
+                                   core, zenith, azimuth):
         if not self.__settings.get("debug_plots", False):
             return
 
@@ -299,7 +373,7 @@ class iftReconstructor:
                 axd[k].text(0.5, 0.5, "No finite fluences", ha="center", va="center")
 
         axd["footprint"].scatter(core[0] / units.m, core[1] / units.m,
-                                  marker="x", s=100, color="tab:red", label="reco core")
+                                 marker="x", s=100, color="tab:red", label="reco core")
         axd["footprint"].set_aspect("equal", adjustable="box")
         axd["footprint"].set_xlabel("East [m]")
         axd["footprint"].set_ylabel("North [m]")
@@ -351,43 +425,53 @@ class iftReconstructor:
 
         def _calculate_ecr(model, x):
             """E_rad → E_CR using the zenith-corrected calibration (module-level constants)."""
-            zenith  = model.zen_and_az(x)[0]
+            zenith = model.zen_and_az(x)[0]
             azimuth = model.zen_and_az(x)[1]
             Erad_eV = model.Erad(x) / model.get_energy_correction_factor(x)
-            B_vect  = jnp.array(model.magnetic_field_vector).squeeze()
-            B_mag   = jnp.linalg.norm(B_vect)
-            s_vec   = jnp.stack([
+            B_vect = jnp.array(model.magnetic_field_vector).squeeze()
+            B_mag = jnp.linalg.norm(B_vect)
+            s_vec = jnp.stack([
                 jnp.sin(zenith) * jnp.cos(azimuth),
                 jnp.sin(zenith) * jnp.sin(azimuth),
                 jnp.cos(zenith),
             ]).squeeze()
             sin_alpha = jnp.clip(jnp.linalg.norm(jnp.cross(s_vec, B_vect / B_mag)), 0.05, 1.0)
-            bc_term   = (B_mag / _ERAD_CAL_B_ref) ** 2
-            ce_term   = sin_alpha ** 2 + _ERAD_CAL_a_CE ** 2
-            zen_term  = 1.0 + _ERAD_CAL_c_zen * jnp.cos(zenith) ** 2
-            denom     = 1e6 * _ERAD_CAL_A * bc_term * ce_term * zen_term
+            bc_term = (B_mag / _ERAD_CAL_B_ref) ** 2
+            ce_term = sin_alpha ** 2 + _ERAD_CAL_a_CE ** 2
+            zen_term = 1.0 + _ERAD_CAL_c_zen * jnp.cos(zenith) ** 2
+            denom = 1e6 * _ERAD_CAL_A * bc_term * ce_term * zen_term
             return _ERAD_CAL_E_scale * jnp.power(Erad_eV / denom, 1.0 / _ERAD_CAL_B)
 
         pf = iftDataHelpers
         s = self.__settings
-        n_vi         = int(s.get("n_iterations",                  _DEFAULT_N_VI_ITERATIONS))
-        n_samples    = int(s.get("n_samples",                     _DEFAULT_N_SAMPLES))
-        seed         = int(s.get("random_seed",                   _DEFAULT_SEED))
-        fluence_cf   = bool(s.get("enable_fluence_correlated_field", True))
-        timing_cf    = bool(s.get("enable_timing_correlated_field",  True))
-        atm_dir      = s.get("atmosphere_dir")
-        skip_lba     = bool(s.get("skip_lba_inner",               False))
-        scan_range   = float(s.get("scan_range_deg",              5.0))
-        step         = float(s.get("step_deg",                    0.5))
-        sigma        = float(s.get("sigma_ns",                    5.0))
-        core_prior_std = float(s.get("core_prior_std_m",          _DEFAULT_CORE_PRIOR_STD_M))
+        n_vi = int(s.get("n_iterations", _DEFAULT_N_VI_ITERATIONS))
+        n_samples = int(s.get("n_samples", _DEFAULT_N_SAMPLES))
+        seed = int(s.get("random_seed", _DEFAULT_SEED))
+        fluence_cf = bool(s.get("enable_fluence_correlated_field", True))
+        timing_cf = bool(s.get("enable_timing_correlated_field", True))
+        atm_dir = s.get("atmosphere_dir")
+        skip_lba = bool(s.get("skip_lba_inner", False))
+        scan_range = float(s.get("scan_range_deg", 5.0))
+        step = float(s.get("step_deg", 0.5))
+        sigma = float(s.get("sigma_ns", 5.0))
+        core_prior_std = float(s.get("core_prior_std_m", _DEFAULT_CORE_PRIOR_STD_M))
+        max_signal_fallback = bool(s.get("max_signal_fallback", True))
+        max_signal_snr = float(s.get("max_signal_snr_threshold",
+                                     iftDataHelpers.MAX_SIGNAL_SNR_THRESHOLD))
+        used_max_signal_fallback = False
+        abort_xmax_std = float(s.get("early_abort_xmax_std_gcm2",
+                                     _EARLY_ABORT_XMAX_STD_GCM2))
+        abort_xmax_iters = int(s.get("early_abort_xmax_after_iters",
+                                     _EARLY_ABORT_XMAX_AFTER_ITERS))
+        abort_max_fluence = float(s.get("early_abort_max_fluence",
+                                        _EARLY_ABORT_MAX_FLUENCE))
 
         # ---- Priors from LORA or radio direction ----
-        lora      = self._get_lora_prior(event)
+        lora = self._get_lora_prior(event)
         radio_dir = self._get_radio_direction(event)
         if lora is not None:
-            lora_zen  = float(lora["zenith"])
-            lora_az   = float(lora["azimuth"])
+            lora_zen = float(lora["zenith"])
+            lora_az = float(lora["azimuth"])
             lora_core = lora["core"].copy()
         elif radio_dir is not None:
             lora_zen, lora_az = float(radio_dir[0]), float(radio_dir[1])
@@ -396,13 +480,13 @@ class iftReconstructor:
             lora_zen, lora_az = 0.3, 0.0
             lora_core = np.array([0.0, 0.0, 7.6 * units.m])
 
-        lora_az_norm   = lora_az % (2.0 * np.pi)
+        lora_az_norm = lora_az % (2.0 * np.pi)
         shower_dir_guess = (lora_az_norm, lora_zen)
 
         # PRE-SCAN: global reference pulse from 30 closest antennas
         all_ants = []
         for station in event.get_stations():
-            sid     = station.get_id()
+            sid = station.get_id()
             abs_pos = detector.get_absolute_position(sid)
             for ef in station.get_electric_fields():
                 ch_ids = ef.get_channel_ids()
@@ -412,34 +496,35 @@ class iftReconstructor:
                     rel_pos = detector.get_relative_position(sid, ch_ids[0])
                 except Exception:
                     rel_pos = np.zeros(3)
-                pos  = rel_pos + abs_pos
+                pos = rel_pos + abs_pos
                 dist = np.linalg.norm(pos[:2] - lora_core[:2])
                 all_ants.append({"sid": sid, "dist": dist, "ef": ef, "pos": pos})
 
         all_ants.sort(key=lambda a: a["dist"])
         global_ref_time = None
-        global_ref_pos  = None
+        global_ref_pos = None
         best_prescan_snr = 0.0
         for ant in all_ants[:30]:
             try:
                 ef_trace = ant["ef"].get_trace()
                 ef_times = ant["ef"].get_times() - ant["ef"].get_trace_start_time()
-                t, snr   = pf.simple_hilbert_finder(ef_trace, ef_times)
+                t, snr = pf.simple_hilbert_finder(ef_trace, ef_times)
                 if t is not None and snr > best_prescan_snr:
                     best_prescan_snr = snr
-                    global_ref_time  = t
-                    global_ref_pos   = ant["pos"]
+                    global_ref_time = t
+                    global_ref_pos = ant["pos"]
             except Exception:
                 continue
 
         if global_ref_time is not None:
             self.logger.info("Pre-scan: E-field pulse SNR=%.1f at t=%.1f ns",
-                             best_prescan_snr, global_ref_time)
+                             best_prescan_snr, global_ref_time / units.ns)
 
         # TWO-PASS DIRECTION SEARCH
         search_attempts = [
-            {"name": "standard", "scan_range": scan_range,            "step": step,          "sigma": sigma},
-            {"name": "broad",    "scan_range": _BROAD_SCAN_RANGE_DEG, "step": _BROAD_STEP_DEG, "sigma": _BROAD_SMOOTHING_NS},
+            {"name": "standard", "scan_range": scan_range, "step": step, "sigma": sigma},
+            {"name": "broad", "scan_range": _BROAD_SCAN_RANGE_DEG, "step": _BROAD_STEP_DEG,
+             "sigma": _BROAD_SMOOTHING_NS},
         ]
 
         posx_p1 = posy_p1 = tm_p1 = snr_p1 = sid_p1 = fl_p1 = nf_p1 = None
@@ -474,12 +559,13 @@ class iftReconstructor:
 
             # Per-station direction consistency check
             if best_sid is not None:
-                ref_dir  = station_results[best_sid][7]
+                ref_dir = station_results[best_sid][7]
                 best_ant = int(np.argmax(station_results[best_sid][6])) if len(station_results[best_sid][6]) > 0 else 0
-                ref_time = float(station_results[best_sid][3][best_ant]) if len(station_results[best_sid][3]) > 0 else 0.0
-                ref_pos  = (np.array([station_results[best_sid][0][best_ant],
-                                      station_results[best_sid][1][best_ant]])
-                            if len(station_results[best_sid][0]) > 0 else np.zeros(2))
+                ref_time = float(station_results[best_sid][3][best_ant]) if len(
+                    station_results[best_sid][3]) > 0 else 0.0
+                ref_pos = (np.array([station_results[best_sid][0][best_ant],
+                                     station_results[best_sid][1][best_ant]])
+                           if len(station_results[best_sid][0]) > 0 else np.zeros(2))
                 for sid, res in station_results.items():
                     if sid == best_sid:
                         continue
@@ -489,7 +575,7 @@ class iftReconstructor:
                             station_results[sid] = pf.extract_fluence_and_timing_data(
                                 event, sid, detector, ref_dir,
                                 _RECO_STAGES[0]["window"],
-                                ref_time * 1e9, ref_pos,
+                                ref_time * units.s, ref_pos,
                                 scan_range_deg=0.0,
                                 step_deg=attempt["step"],
                                 sigma_ns=attempt["sigma"],
@@ -498,38 +584,72 @@ class iftReconstructor:
                         except Exception:
                             pass
 
-            # Flatten
-            _px, _py, _fl, _tm, _sig, _snr, _nf, _sid = [], [], [], [], [], [], [], []
-            for sid, res in station_results.items():
-                px, py, fl_v, tm_v, is_sig_v, nf, snr_v, _ = res
-                if len(fl_v) > 0:
-                    _px.extend(px);  _py.extend(py);  _fl.extend(fl_v); _tm.extend(tm_v)
-                    _sig.extend(is_sig_v); _snr.extend(snr_v); _nf.extend(nf)
-                    _sid.extend([sid] * len(fl_v))
+            _px, _py, _fl, _tm, _sig, _snr, _nf, _sid = \
+                self._flatten_station_results(station_results)
 
             if not _tm:
                 if attempt["name"] == "standard":
                     self.logger.warning("Standard search: no timing data — retrying with broad scan.")
                     continue
-                else:
+                if not max_signal_fallback:
                     self.logger.error("Both direction searches failed: no timing data extracted.")
                     return event
 
-            posx_p1 = np.array(_px);  posy_p1 = np.array(_py)
-            fl_p1   = np.array(_fl);  tm_p1   = np.array(_tm)
-            sig_p1  = np.array(_sig, dtype=bool)
-            snr_p1  = np.array(_snr); nf_p1  = np.array(_nf)
-            sid_p1  = np.array(_sid)
+                # Last resort for the faintest events: drop the beamformer and the
+                # region of interest entirely and take the largest excursion in
+                # every channel, keeping only antennas that are both well above the
+                # noise and consistent with one plane-wave arrival plane. This
+                # message deliberately avoids the "Both direction searches failed"
+                # wording below, which job scripts grep for: the event has not
+                # failed yet.
+                self.logger.warning(
+                    "No timing data from either direction search — falling back "
+                    "to blind max-signal search (SNR >= %.1f).", max_signal_snr)
+                for station in event.get_stations():
+                    sid = station.get_id()
+                    try:
+                        station_results[sid] = pf.extract_max_signal_timing_data(
+                            event, sid, detector, shower_dir_guess,
+                            _RECO_STAGES[0]["window"],
+                            snr_threshold=max_signal_snr,
+                            skip_lba_inner=skip_lba,
+                        )
+                    except Exception as exc:
+                        self.logger.debug("Station %s max-signal extract failed: %s", sid, exc)
+
+                _px, _py, _fl, _tm, _sig, _snr, _nf, _sid = \
+                    self._flatten_station_results(station_results)
+
+                if not _tm:
+                    self.logger.error(
+                        "Both direction searches failed, and the blind max-signal "
+                        "fallback found nothing either: no timing data extracted.")
+                    return event
+
+                used_max_signal_fallback = True
+                self.logger.warning(
+                    "Blind max-signal fallback recovered %d timing point(s) from "
+                    "%d station(s). Treat this event's reconstruction with care.",
+                    len(_tm), len(set(_sid)))
+
+            posx_p1 = np.array(_px)
+            posy_p1 = np.array(_py)
+            fl_p1 = np.array(_fl)
+            tm_p1 = np.array(_tm)
+            sig_p1 = np.array(_sig, dtype=bool)
+            snr_p1 = np.array(_snr)
+            nf_p1 = np.array(_nf)
+            sid_p1 = np.array(_sid)
 
             # Causality cut + outlier removal + iterative pruning
-            kx_g   = np.sin(lora_zen) * np.cos(lora_az_norm)
-            ky_g   = np.sin(lora_zen) * np.sin(lora_az_norm)
+            kx_g = np.sin(lora_zen) * np.cos(lora_az_norm)
+            ky_g = np.sin(lora_zen) * np.sin(lora_az_norm)
             geom_d = -(1.0 / _C_LIGHT) * (kx_g * posx_p1 + ky_g * posy_p1)
-            t0_g   = float(np.median(tm_p1[sig_p1] - geom_d[sig_p1])) if np.any(sig_p1) else 0.0
-            causality    = np.abs(tm_p1 - t0_g) <= (_CAUSALITY_CUT_DISTANCE_M / _C_LIGHT)
+            t0_g = float(np.median(tm_p1[sig_p1] - geom_d[sig_p1])) if np.any(sig_p1) else 0.0
+            causality = np.abs(tm_p1 - t0_g) <= (_CAUSALITY_CUT_DISTANCE_M / _C_LIGHT)
             use_timing_p1 = sig_p1 & causality
 
-            nm_p1   = float(np.mean(nf_p1)) if nf_p1.size > 0 else 1.0
+            nm_p1 = float(np.mean(nf_p1)) if nf_p1.size > 0 else 1.0
             snr_fl_p1 = fl_p1 / nm_p1 if nm_p1 > 0 else np.zeros_like(fl_p1)
 
             if np.sum(use_timing_p1) > _MIN_ABSOLUTE_NEIGHBORS:
@@ -566,13 +686,13 @@ class iftReconstructor:
         )
         if radio_zen is not None:
             global_fit_zen = radio_zen
-            global_fit_az  = radio_az
+            global_fit_az = radio_az
             self.logger.info("Radio plane-wave fit: zen=%.1f°, az=%.1f°",
                              np.rad2deg(radio_zen), np.rad2deg(radio_az))
         else:
             self.logger.warning("Plane-wave fit failed — falling back to LORA direction.")
             global_fit_zen = lora_zen
-            global_fit_az  = lora_az_norm
+            global_fit_az = lora_az_norm
 
         shower_direction = (global_fit_az, global_fit_zen)
 
@@ -584,7 +704,7 @@ class iftReconstructor:
             v2e = voltageToEfieldConverterPerChannelGroup()
             v2e.begin(use_MC_direction=False)
             for station in event.get_stations():
-                station.set_parameter(stationParameters.zenith,  global_fit_zen)
+                station.set_parameter(stationParameters.zenith, global_fit_zen)
                 station.set_parameter(stationParameters.azimuth, global_fit_az)
                 try:
                     v2e.run(event, station, detector)
@@ -596,8 +716,8 @@ class iftReconstructor:
             self.logger.warning("voltageToEfieldConverterPerChannelGroup not available — skipping re-conversion.")
 
         # RECO_STAGES: select best fluence extraction window
-        best_res   = None
-        sel_win    = 0.0
+        best_res = None
+        sel_win = 0.0
         noise_mean = 1.0
         noise_level = 1.0
         nf_by_station = {}
@@ -620,8 +740,13 @@ class iftReconstructor:
                     self.logger.debug("Stage %d extract failed for station %s: %s", i_stage, sid, exc)
                     continue
                 if len(fl_v) > 0:
-                    px_l.extend(px);  py_l.extend(py);  fl_l.extend(fl_v); tm_l.extend(tm_v)
-                    sig_l.extend(is_sig_v); snr_l.extend(snr_v); nf_l.extend(nf)
+                    px_l.extend(px)
+                    py_l.extend(py)
+                    fl_l.extend(fl_v)
+                    tm_l.extend(tm_v)
+                    sig_l.extend(is_sig_v)
+                    snr_l.extend(snr_v)
+                    nf_l.extend(nf)
                     sid_l.extend([int(sid)] * len(fl_v))
                     if len(nf) > 0:
                         _nf_by_station[int(sid)] = list(nf)
@@ -643,7 +768,7 @@ class iftReconstructor:
                     np.array(sig_l, dtype=bool), np.array(snr_l),
                     np.array(nf_l), np.array(sid_l),
                 )
-                sel_win    = stg["window"]
+                sel_win = stg["window"]
                 noise_mean = stage_nm
                 noise_level = stage_ns
                 nf_by_station = _nf_by_station
@@ -669,8 +794,8 @@ class iftReconstructor:
         # NEIGHBOUR AUGMENTATION
         if np.sum(is_sig) > 0:
             try:
-                kx_a   = np.sin(global_fit_zen) * np.cos(global_fit_az)
-                ky_a   = np.sin(global_fit_zen) * np.sin(global_fit_az)
+                kx_a = np.sin(global_fit_zen) * np.cos(global_fit_az)
+                ky_a = np.sin(global_fit_zen) * np.sin(global_fit_az)
                 geom_a = -(1.0 / _C_LIGHT) * (kx_a * posx[is_sig] + ky_a * posy[is_sig])
                 t0_aug = float(np.median(tm[is_sig] - geom_a))
                 known_set = {(round(float(posx[i]), 1), round(float(posy[i]), 1)) for i in range(len(posx))}
@@ -683,13 +808,13 @@ class iftReconstructor:
                 )
                 if aug["fluences"]:
                     self.logger.info("Neighbour augmentation: added %d antenna(s).", len(aug["fluences"]))
-                    posx   = np.append(posx,   aug["posx"])
-                    posy   = np.append(posy,   aug["posy"])
-                    fl     = np.append(fl,     aug["fluences"])
-                    tm     = np.append(tm,     aug["times"])
+                    posx = np.append(posx, aug["posx"])
+                    posy = np.append(posy, aug["posy"])
+                    fl = np.append(fl, aug["fluences"])
+                    tm = np.append(tm, aug["times"])
                     is_sig = np.append(is_sig, np.array(aug["is_signal"], dtype=bool))
-                    snr    = np.append(snr,    aug["snrs"])
-                    sids   = np.append(sids,   np.array(aug["station_ids"], dtype=sids.dtype))
+                    snr = np.append(snr, aug["snrs"])
+                    sids = np.append(sids, np.array(aug["station_ids"], dtype=sids.dtype))
             except Exception as exc:
                 self.logger.warning("Neighbour augmentation failed: %s", exc)
 
@@ -704,17 +829,18 @@ class iftReconstructor:
             stn_max_snr = {int(s_): float(np.max(fl[sids == s_]) / noise_mean)
                            for s_ in unique_sids}
             good_stns = {s_ for s_, n in stn_n_above.items() if n >= _STATION_MIN_ANTENNAS}
-            bad_stns  = set(stn_n_above.keys()) - good_stns
+            bad_stns = set(stn_n_above.keys()) - good_stns
 
             if len(good_stns) < _MIN_STATIONS_REQUIRED:
                 top_n = sorted(stn_max_snr, key=stn_max_snr.get, reverse=True)[:_MIN_STATIONS_REQUIRED]
                 self.logger.warning("Station filter fallback: keeping top-%d stations by SNR.", _MIN_STATIONS_REQUIRED)
                 good_stns = set(top_n)
-                bad_stns  = set(stn_n_above.keys()) - good_stns
+                bad_stns = set(stn_n_above.keys()) - good_stns
 
             if len(good_stns) < _MIN_STATIONS_REQUIRED:
                 self.logger.error(
-                    "Only %d station(s) with signal (need %d) — IFT reconstruction requires more data. Proceeding anyways.",
+                    "Only %d station(s) with signal (need %d) — IFT reconstruction requires "
+                    "more data. Proceeding anyway.",
                     len(good_stns), _MIN_STATIONS_REQUIRED,
                 )
 
@@ -727,25 +853,28 @@ class iftReconstructor:
                             global_ref_time=None, global_ref_pos=None,
                             skip_lba_inner=skip_lba,
                         )
-                        _snr_arr  = np.asarray(_snr_v, dtype=float)
-                        _sig_arr  = np.asarray(_sig_v, dtype=bool)
+                        _snr_arr = np.asarray(_snr_v, dtype=float)
+                        _sig_arr = np.asarray(_sig_v, dtype=bool)
                         _high_msk = _sig_arr & (_snr_arr >= _FAR_STATION_FLUENCE_ONLY_SNR)
-                        _n_high   = int(np.sum(_high_msk))
+                        _n_high = int(np.sum(_high_msk))
                         for i in range(len(_fl_v)):
                             if _sig_v[i] and _snr_v[i] >= _FAR_STATION_FLUENCE_ONLY_SNR:
                                 n_other = _n_high - (1 if _high_msk[i] else 0)
                                 if n_other < _FAR_STATION_MIN_HIGH_SNR_ANTENNAS:
                                     continue
-                                extra_px.append(_px[i]);    extra_py.append(_py[i])
-                                extra_fl_v.append(_fl_v[i]); extra_tm_v.append(_tm_v[i])
-                                extra_snr_v.append(_snr_v[i]); extra_sids_v.append(int(_sid))
+                                extra_px.append(_px[i])
+                                extra_py.append(_py[i])
+                                extra_fl_v.append(_fl_v[i])
+                                extra_tm_v.append(_tm_v[i])
+                                extra_snr_v.append(_snr_v[i])
+                                extra_sids_v.append(int(_sid))
                     except Exception:
                         pass
                 if extra_fl_v:
                     extra_fl_only = {
                         "posx": np.array(extra_px), "posy": np.array(extra_py),
-                        "fl":   np.array(extra_fl_v), "tm":  np.array(extra_tm_v),
-                        "snr":  np.array(extra_snr_v),
+                        "fl": np.array(extra_fl_v), "tm": np.array(extra_tm_v),
+                        "snr": np.array(extra_snr_v),
                         "sids": np.array(extra_sids_v, dtype=int),
                     }
                     self.logger.info("Added %d fluence-only from %d low-signal station(s).",
@@ -758,11 +887,11 @@ class iftReconstructor:
         kx = np.sin(global_fit_zen) * np.cos(global_fit_az)
         ky = np.sin(global_fit_zen) * np.sin(global_fit_az)
         geom_delays = -(1.0 / _C_LIGHT) * (kx * posx + ky * posy)
-        t0_guess    = float(np.median(tm[is_sig] - geom_delays[is_sig])) if np.any(is_sig) else 0.0
+        t0_guess = float(np.median(tm[is_sig] - geom_delays[is_sig])) if np.any(is_sig) else 0.0
 
         causality_mask = np.abs(tm - t0_guess) <= (_CAUSALITY_CUT_DISTANCE_M / _C_LIGHT)
-        use_timing     = is_sig & causality_mask
-        snr_fl         = fl / noise_mean if noise_mean > 0 else np.zeros_like(fl)
+        use_timing = is_sig & causality_mask
+        snr_fl = fl / noise_mean if noise_mean > 0 else np.zeros_like(fl)
 
         if np.sum(use_timing) > _MIN_ABSOLUTE_NEIGHBORS:
             keep_sub = pf.detect_timing_outliers(
@@ -772,9 +901,9 @@ class iftReconstructor:
             idx = np.where(use_timing)[0]
             use_timing[idx[~keep_sub]] = False
 
-        t0_prior   = 20e-9
+        t0_prior = 20.0 * units.ns / units.s
         fit_coeffs = fit_mean_pos = fit_scale = inv_AtA = None
-        final_std  = _TIMING_UNCERT_THRESHOLD
+        final_std = _TIMING_UNCERT_THRESHOLD
         if np.sum(use_timing) > _MIN_TIMING_POINTS:
             use_timing, final_std, fit_coeffs, fit_mean_pos, fit_scale, inv_AtA = \
                 pf.iterative_timing_pruning(
@@ -784,35 +913,39 @@ class iftReconstructor:
             if final_std > _TIMING_UNCERT_THRESHOLD or np.sum(use_timing) < _MIN_TIMING_POINTS:
                 self.logger.error(
                     "Timing quality check failed (std=%.2f ns, n=%d) — aborting.",
-                    final_std * 1e9, int(np.sum(use_timing)))
+                    final_std * units.s / units.ns, int(np.sum(use_timing)))
                 return event
 
             self.logger.info("Timing pruning: %d points, residual std=%.2f ns.",
-                             int(np.sum(use_timing)), final_std * 1e9)
+                             int(np.sum(use_timing)), final_std * units.s / units.ns)
 
             # Refine t0 at LORA core
             core_prior_x = float(lora_core[0])
             core_prior_y = float(lora_core[1])
             if fit_coeffs is not None and fit_mean_pos is not None:
-                dx  = core_prior_x - fit_mean_pos[0]
-                dy  = core_prior_y - fit_mean_pos[1]
-                xn  = dx / fit_scale; yn = dy / fit_scale
+                dx = core_prior_x - fit_mean_pos[0]
+                dy = core_prior_y - fit_mean_pos[1]
+                xn = dx / fit_scale
+                yn = dy / fit_scale
                 r2n = xn ** 2 + yn ** 2
                 t0_guess = float(fit_coeffs[0] + fit_coeffs[1] * xn +
                                  fit_coeffs[2] * yn + fit_coeffs[3] * r2n)
                 if inv_AtA is not None:
                     p = np.array([1.0, xn, yn, r2n])
                     extrap_var = float(p.T @ inv_AtA @ p) * (final_std ** 2)
-                    dist_near  = float(np.min(np.sqrt((posx - core_prior_x) ** 2 +
-                                                      (posy - core_prior_y) ** 2)))
-                    dist_unc   = (dist_near / _C_LIGHT) * 0.3
-                    t0_prior   = max(float(np.sqrt(extrap_var)), final_std, dist_unc, 2e-9)
+                    dist_near = float(np.min(np.sqrt((posx - core_prior_x) ** 2 +
+                                                     (posy - core_prior_y) ** 2)))
+                    dist_unc = (dist_near / _C_LIGHT) * 0.3
+                    t0_prior = max(
+                        float(np.sqrt(extrap_var)), final_std, dist_unc,
+                        2.0 * units.ns / units.s,
+                    )
         else:
             self.logger.warning("Not enough timing points — using fallback t0 prior.")
 
         # Local timing uncertainties
-        timing_idx           = np.where(use_timing)[0]
-        per_point_timing_std = np.full(len(posx), 5.0e-9)
+        timing_idx = np.where(use_timing)[0]
+        per_point_timing_std = np.full(len(posx), 5.0 * units.ns / units.s)
         if len(timing_idx) >= 8:
             local_std = pf.get_local_timing_uncertainties(
                 np.array([posx[timing_idx], posy[timing_idx]]),
@@ -820,7 +953,7 @@ class iftReconstructor:
             )
             per_point_timing_std[timing_idx] = local_std
         per_point_timing_std *= _TIMING_SYST_INFLATION
-        inv_var_time            = 1.0 / per_point_timing_std ** 2
+        inv_var_time = 1.0 / per_point_timing_std ** 2
         inv_var_time[~use_timing] = 0.0
 
         # Station multiplicity cut (≥ 2 timing points per station)
@@ -830,11 +963,16 @@ class iftReconstructor:
             _keep = np.isin(sids, list(stns_with_timing))
             if np.sum(_keep) < len(fl):
                 self.logger.info("Station multiplicity cut: %d points dropped.", int(len(fl) - np.sum(_keep)))
-                posx = posx[_keep]; posy = posy[_keep]; fl   = fl[_keep]
-                tm   = tm[_keep];   is_sig = is_sig[_keep]; snr = snr[_keep]
-                sids = sids[_keep]; use_timing = use_timing[_keep]
+                posx = posx[_keep]
+                posy = posy[_keep]
+                fl = fl[_keep]
+                tm = tm[_keep]
+                is_sig = is_sig[_keep]
+                snr = snr[_keep]
+                sids = sids[_keep]
+                use_timing = use_timing[_keep]
                 per_point_timing_std = per_point_timing_std[_keep]
-                inv_var_time         = inv_var_time[_keep]
+                inv_var_time = inv_var_time[_keep]
 
         # Recompute noise from timing-valid stations only
         if stns_with_timing and nf_by_station:
@@ -843,29 +981,43 @@ class iftReconstructor:
             if valid_nf:
                 flat = np.concatenate([np.asarray(w) for w in valid_nf])
                 if flat.size > 0:
-                    noise_mean  = float(np.mean(flat))
+                    noise_mean = float(np.mean(flat))
                     noise_level = float(np.std(flat)) if flat.size > 1 else noise_mean
                     self.logger.info("Noise recomputed: mean=%.3e, std=%.3e", noise_mean, noise_level)
 
         # Append fluence-only from bad stations
         n_extra = len(extra_fl_only["fl"])
         if n_extra > 0:
-            posx   = np.append(posx,   extra_fl_only["posx"])
-            posy   = np.append(posy,   extra_fl_only["posy"])
-            fl     = np.append(fl,     extra_fl_only["fl"])
-            tm     = np.append(tm,     extra_fl_only["tm"])
+            posx = np.append(posx, extra_fl_only["posx"])
+            posy = np.append(posy, extra_fl_only["posy"])
+            fl = np.append(fl, extra_fl_only["fl"])
+            tm = np.append(tm, extra_fl_only["tm"])
             is_sig = np.append(is_sig, np.zeros(n_extra, dtype=bool))
-            snr    = np.append(snr,    extra_fl_only["snr"])
-            sids   = np.append(sids,   extra_fl_only["sids"])
-            use_timing           = np.append(use_timing,
-                                             np.zeros(n_extra, dtype=bool))
+            snr = np.append(snr, extra_fl_only["snr"])
+            sids = np.append(sids, extra_fl_only["sids"])
+            use_timing = np.append(use_timing,
+                                   np.zeros(n_extra, dtype=bool))
             per_point_timing_std = np.append(per_point_timing_std,
-                                             np.full(n_extra, 5.0e-9 * _TIMING_SYST_INFLATION))
-            inv_var_time         = np.append(inv_var_time, np.zeros(n_extra))
+                                             np.full(n_extra, 5.0 * units.ns / units.s
+                                                     * _TIMING_SYST_INFLATION))
+            inv_var_time = np.append(inv_var_time, np.zeros(n_extra))
 
         noise_level = max(noise_level, 1e-3 * noise_mean)
         self.logger.info("Global noise: mean=%.3e, std=%.3e (%d stations)",
                          noise_mean, noise_level, len(np.unique(sids)))
+
+        # EARLY ABORT: pathological input fluences. Checked here, on the final
+        # observable array, so we bail out before the atmosphere download and the
+        # model build rather than after.
+        if abort_max_fluence > 0 and fl.size > 0:
+            bad_fluence = ~np.isfinite(fl) | (fl > abort_max_fluence)
+            if np.any(bad_fluence):
+                self.logger.error(
+                    "Early abort: %d of %d input fluences exceed %.3g or are not "
+                    "finite (max=%.3e) — aborting event.",
+                    int(np.sum(bad_fluence)), fl.size, abort_max_fluence,
+                    float(np.max(fl[np.isfinite(fl)])) if np.any(np.isfinite(fl)) else float("nan"))
+                return event
 
         # ATMOSPHERE PATH
         atm_path = None
@@ -892,66 +1044,72 @@ class iftReconstructor:
         lora_core_x = float(lora_core[0])
         lora_core_y = float(lora_core[1])
 
-        phi_prior     = {"a_min": np.pi,  "a_max": 3.0 * np.pi}
-        theta_prior   = {"a_min": 0.0,    "a_max": np.radians(60.0)}
+        phi_prior = {"a_min": np.pi, "a_max": 3.0 * np.pi}
+        theta_prior = {"a_min": 0.0, "a_max": np.radians(60.0)}
         t0_prior_inflated = t0_prior * 5.0
 
         model_kw = {
-            "params_phi":   phi_prior,
+            "params_phi": phi_prior,
             "params_theta": theta_prior,
             "params_X_max": {"a_min": 400.0, "a_max": 1200.0},
-            "params_X":     {"mean": 0.0, "std": core_prior_std},
-            "params_Y":     {"mean": 0.0, "std": core_prior_std},
-            "noise_mean":   noise_mean,
+            "params_X": {"mean": 0.0, "std": core_prior_std},
+            "params_Y": {"mean": 0.0, "std": core_prior_std},
+            "noise_mean": noise_mean,
             "atmosphere_path": atm_path,
-            "params_t0":    {"mean": t0_guess, "std": t0_prior_inflated},
+            "params_t0": {"mean": t0_guess, "std": t0_prior_inflated},
             "timing_std_s": _TIMING_UNCERTAINTY_S,
-            "enable_syst_cf":   fluence_cf,
+            "enable_syst_cf": fluence_cf,
             "enable_timing_cf": timing_cf,
             "enable_ldf_energy_scale_uncertainty": True,
             "ldf_energy_scale_fractional_std": _LDF_ENERGY_SCALE_STD,
             "enable_fluence_dxmax_precision": True,
-            "fluence_dxmax_precision_gpcm2":  _FLUENCE_DXMAX_PRECISION_GPCM2,
-            "enable_timing_dxmax_precision":  True,
-            "timing_dxmax_precision_gpcm2":   _TIMING_DXMAX_PRECISION_GPCM2,
+            "fluence_dxmax_precision_gpcm2": _FLUENCE_DXMAX_PRECISION_GPCM2,
+            "enable_timing_dxmax_precision": True,
+            "timing_dxmax_precision_gpcm2": _TIMING_DXMAX_PRECISION_GPCM2,
             "syst_mult_min": SYST_MULT_MIN,
             "syst_mult_max": SYST_MULT_MAX,
         }
 
-        b_field       = hp.get_magnetic_field_vector("lofar")
+        b_field = hp.get_magnetic_field_vector("lofar")
         _fl_denom = np.maximum(noise_level ** 2 + (fl * _FLUENCE_RELATIVE_SYSTEMATIC_ERROR) ** 2, 1e-60)
-        inv_fl        = 1.0 / _fl_denom
+        inv_fl = 1.0 / _fl_denom
         noise_cov_inv = jnp.stack([jnp.array(inv_fl), jnp.array(inv_var_time)])
 
         model = footprintModel(posx, posy, b_field, **model_kw)
-        lh    = jft.Gaussian(
+        lh = jft.Gaussian(
             data=jnp.stack([jnp.array(fl), jnp.array(tm)]),
             noise_cov_inv=noise_cov_inv,
         ).amend(model)
 
         # INIT VALUES FROM LORA/RADIO PRIOR
-        key          = random.PRNGKey(seed)
+        key = random.PRNGKey(seed)
         key, k_init, k_opt = random.split(key, 3)
 
-        init_state  = lh.init(k_init)
+        init_state = lh.init(k_init)
         init_values = dict(init_state.tree if hasattr(init_state, "tree") else init_state)
 
         az_wrapped = np.pi + (global_fit_az - np.pi) % (2.0 * np.pi)
-        init_values["phi"]   = pf.uniform_prior_latent(az_wrapped, phi_prior)
+        init_values["phi"] = pf.uniform_prior_latent(az_wrapped, phi_prior)
         init_values["theta"] = pf.uniform_prior_latent(global_fit_zen, theta_prior)
         init_values["X_max"] = jnp.array([0.0])
-        init_values["X"]     = jnp.array([lora_core_x / core_prior_std])
-        init_values["Y"]     = jnp.array([lora_core_y / core_prior_std])
-        init_values["t0"]    = jnp.array([0.0])
+        init_values["X"] = jnp.array([lora_core_x / core_prior_std])
+        init_values["Y"] = jnp.array([lora_core_y / core_prior_std])
+        init_values["t0"] = jnp.array([0.0])
         pos_init = jft.Vector(init_values)
 
         # OptimizeVI LOOP WITH CONVERGENCE CHECK
         n_dof_chisq = max(int(np.asarray(jnp.stack([jnp.array(fl), jnp.array(tm)])).size), 1)
         delta = 1e-7
-        n_samples_sched   = lambda i: n_samples // 2 if i < n_vi // 2 else n_samples
-        sample_mode_sched = lambda iiter: _SAMPLING_MODE if iiter < 2 else _RESAMPLING_MODE
 
-        opt_vi    = jft.OptimizeVI(lh, n_total_iterations=n_vi, kl_map=vmap)
+        def n_samples_sched(i_iter):
+            """Halve the sample count over the first half of the schedule."""
+            return n_samples // 2 if i_iter < n_vi // 2 else n_samples
+
+        def sample_mode_sched(i_iter):
+            """Draw linearly for the first two iterations, then resample non-linearly."""
+            return _SAMPLING_MODE if i_iter < 2 else _RESAMPLING_MODE
+
+        opt_vi = jft.OptimizeVI(lh, n_total_iterations=n_vi, kl_map=vmap)
         opt_state = opt_vi.init_state(
             k_opt,
             n_samples=n_samples_sched,
@@ -964,15 +1122,15 @@ class iftReconstructor:
                 minimize_kwargs=dict(name="SN", xtol=delta, cg_kwargs=dict(name=None), maxiter=25),
             ),
             kl_kwargs=dict(
-                minimize_kwargs=dict(name="M",  xtol=delta, cg_kwargs=dict(name=None), maxiter=40),
+                minimize_kwargs=dict(name="M", xtol=delta, cg_kwargs=dict(name=None), maxiter=40),
             ),
             sample_mode=sample_mode_sched,
         )
         samples_liquid = jft.Samples(pos=pos_init, samples=None, keys=None)
 
         prev_redchisq = None
-        n_stable      = 0
-        is_converged  = False
+        n_stable = 0
+        is_converged = False
         for i_iter in range(n_vi):
             samples_liquid, opt_state = opt_vi.update(samples_liquid, opt_state)
             try:
@@ -980,13 +1138,13 @@ class iftReconstructor:
             except Exception:
                 pass
 
-            chisq     = np.array([2.0 * float(lh(s_)) for s_ in samples_liquid])
+            chisq = np.array([2.0 * float(lh(s_)) for s_ in samples_liquid])
             red_chisq = float(chisq.mean()) / n_dof_chisq
-            mode_now  = sample_mode_sched(opt_state.nit)
+            mode_now = sample_mode_sched(opt_state.nit)
             is_nonlinear = mode_now.startswith("nonlinear")
 
             if prev_redchisq is not None:
-                d_chisq  = abs(red_chisq - prev_redchisq)
+                d_chisq = abs(red_chisq - prev_redchisq)
                 n_stable = n_stable + 1 if (d_chisq < _CONV_TOL_REDCHISQ and is_nonlinear) else 0
                 self.logger.info(
                     "VI iter %d/%d: chi2/dof=%.3f (delta=%.4f, stable=%d/%d)",
@@ -999,49 +1157,78 @@ class iftReconstructor:
                 self.logger.info("VI iter %d/%d: chi2/dof=%.3f", i_iter + 1, n_vi, red_chisq)
             prev_redchisq = red_chisq
 
+            # EARLY ABORT: Xmax posterior has not localised. A healthy fit is at
+            # 20-40 g/cm2 by the end; anything still this wide after a couple of
+            # iterations does not recover, so stop rather than burn the budget.
+            if abort_xmax_std > 0 and (i_iter + 1) == abort_xmax_iters:
+                try:
+                    xmax_now = [float(np.asarray(model.X_max_combined(s_)).squeeze())
+                                for s_ in samples_liquid]
+                except Exception as exc:
+                    self.logger.debug("Early-abort Xmax check skipped: %s", exc)
+                    xmax_now = []
+                if len(xmax_now) >= 2:
+                    xmax_std_now = float(jft.mean_and_std(xmax_now, correct_bias=True)[1])
+                    self.logger.info("VI iter %d: Xmax posterior std=%.1f g/cm2",
+                                     i_iter + 1, xmax_std_now)
+                    if not np.isfinite(xmax_std_now) or xmax_std_now > abort_xmax_std:
+                        self.logger.error(
+                            "Early abort: Xmax posterior still wide after %d iterations "
+                            "(std=%.1f g/cm2 > %.1f) — aborting event.",
+                            i_iter + 1, xmax_std_now, abort_xmax_std)
+                        return event
+
         n_vi_iters_run = i_iter + 1
 
         # TRIGGER FILTER
         samples_list = list(samples_liquid)
         num_efield_triggered = pf.count_efield_triggered_stations(fl, sids, noise_mean, sel_win)
-        unique_s_count   = len(np.unique(sids))
+        unique_s_count = len(np.unique(sids))
         min_trigger_stns = min(max(num_efield_triggered, 1), unique_s_count)
-        kept_idx, _ = pf.filter_samples_by_trigger(
+        kept_idx, discarded_idx, trigger_station_counts = pf.filter_samples_by_trigger(
             model, samples_list, sids, noise_mean, sel_win, min_trigger_stns,
             snr_buffer_frac=_TRIGGER_SNR_BUFFER_FRAC,
+            return_trigger_counts=True,
         )
         n_kept = len(kept_idx)
-        n_discarded = len(samples_list) - n_kept
+        n_discarded = len(discarded_idx)
         self.logger.info("Trigger filter: %d/%d samples passed (min_stations=%d)",
                          n_kept, len(samples_list), min_trigger_stns)
-        filtered_samples = [samples_list[i] for i in kept_idx] if n_kept > 1 else samples_list
+        if n_kept:
+            filtered_samples = [samples_list[i] for i in kept_idx]
+        else:
+            # A posterior summary of an empty selection is impossible. Keep the
+            # fit usable, but make the fallback and all discarded samples explicit
+            # in the log and optional posterior export.
+            self.logger.warning("No posterior samples passed the trigger filter; using the unfiltered posterior.")
+            filtered_samples = samples_list
 
         # POSTERIOR SUMMARY
         def _s(v):
             return float(np.asarray(v).squeeze())
 
-        zen_s  = [_s(np.rad2deg(model.zen_and_az(s_)[0])) for s_ in filtered_samples]
+        zen_s = [_s(np.rad2deg(model.zen_and_az(s_)[0])) for s_ in filtered_samples]
         # Wrap model phi (prior lives in [π, 3π]) to [0, 2π] before averaging
-        az_s   = [_s(model.zen_and_az(s_)[1] % (2 * np.pi)) for s_ in filtered_samples]
-        cx_s   = [_s(model.core(s_)[0])           for s_ in filtered_samples]
-        cy_s   = [_s(model.core(s_)[1])           for s_ in filtered_samples]
-        xmax_s = [_s(model.X_max_combined(s_))    for s_ in filtered_samples]
-        ecr_s  = [_s(_calculate_ecr(model, s_))                                   for s_ in filtered_samples]
-        erad_s = [_s(model.Erad(s_) / model.get_energy_correction_factor(s_))  for s_ in filtered_samples]
+        az_s = [_s(model.zen_and_az(s_)[1] % (2 * np.pi)) for s_ in filtered_samples]
+        cx_s = [_s(model.core(s_)[0]) for s_ in filtered_samples]
+        cy_s = [_s(model.core(s_)[1]) for s_ in filtered_samples]
+        xmax_s = [_s(model.X_max_combined(s_)) for s_ in filtered_samples]
+        ecr_s = [_s(_calculate_ecr(model, s_)) for s_ in filtered_samples]
+        erad_s = [_s(model.Erad(s_) / model.get_energy_correction_factor(s_)) for s_ in filtered_samples]
 
-        zen_mean,  zen_std  = (float(v) for v in jft.mean_and_std(zen_s,  correct_bias=True))
-        cx_mean,   cx_std   = (float(v) for v in jft.mean_and_std(cx_s,   correct_bias=True))
-        cy_mean,   cy_std   = (float(v) for v in jft.mean_and_std(cy_s,   correct_bias=True))
+        zen_mean, zen_std = (float(v) for v in jft.mean_and_std(zen_s, correct_bias=True))
+        cx_mean, cx_std = (float(v) for v in jft.mean_and_std(cx_s, correct_bias=True))
+        cy_mean, cy_std = (float(v) for v in jft.mean_and_std(cy_s, correct_bias=True))
         xmax_mean, xmax_std = (float(v) for v in jft.mean_and_std(xmax_s, correct_bias=True))
-        ecr_mean,  ecr_std  = (float(v) for v in jft.mean_and_std(ecr_s,  correct_bias=True))
+        ecr_mean, ecr_std = (float(v) for v in jft.mean_and_std(ecr_s, correct_bias=True))
         erad_mean, erad_std = (float(v) for v in jft.mean_and_std(erad_s, correct_bias=True))
         # Azimuth needs circular mean/std — arithmetic mean fails near the 0/2π wrap
-        _sin_mean   = np.mean(np.sin(az_s))
-        _cos_mean   = np.mean(np.cos(az_s))
-        _R          = float(np.sqrt(_sin_mean**2 + _cos_mean**2))
+        _sin_mean = np.mean(np.sin(az_s))
+        _cos_mean = np.mean(np.cos(az_s))
+        _R = float(np.sqrt(_sin_mean**2 + _cos_mean**2))
         az_mean_rad = float(np.arctan2(_sin_mean, _cos_mean)) % (2 * np.pi)
-        az_mean     = float(np.rad2deg(az_mean_rad))
-        az_std      = float(np.rad2deg(np.sqrt(-2.0 * np.log(max(_R, 1e-10)))))
+        az_mean = float(np.rad2deg(az_mean_rad))
+        az_std = float(np.rad2deg(np.sqrt(-2.0 * np.log(max(_R, 1e-10)))))
 
         self.logger.info(
             "IFT result: zen=%.2f±%.2f°, az=%.2f±%.2f°, "
@@ -1054,19 +1241,19 @@ class iftReconstructor:
         )
 
         # WRITE TO RADIO SHOWER
-        reco_zen  = np.radians(zen_mean)
-        reco_az   = az_mean_rad
+        reco_zen = np.radians(zen_mean)
+        reco_az = az_mean_rad
         reco_core = np.array([cx_mean * units.m, cy_mean * units.m, 7.6 * units.m])
         reco_energy = ecr_mean * units.eV
-        reco_xmax   = xmax_mean * units.g / units.cm ** 2
-        reco_erad   = erad_mean * units.eV
+        reco_xmax = xmax_mean * units.g / units.cm ** 2
+        reco_erad = erad_mean * units.eV
 
         shower = self._get_or_create_radio_shower(event)
-        shower.set_parameter(showerParameters.zenith,           reco_zen)
-        shower.set_parameter(showerParameters.azimuth,          reco_az)
-        shower.set_parameter(showerParameters.core,             reco_core)
-        shower.set_parameter(showerParameters.shower_maximum,   reco_xmax)
-        shower.set_parameter(showerParameters.energy,           reco_energy)
+        shower.set_parameter(showerParameters.zenith, reco_zen)
+        shower.set_parameter(showerParameters.azimuth, reco_az)
+        shower.set_parameter(showerParameters.core, reco_core)
+        shower.set_parameter(showerParameters.shower_maximum, reco_xmax)
+        shower.set_parameter(showerParameters.energy, reco_energy)
         shower.set_parameter(showerParameters.radiation_energy, reco_erad)
         shower.set_parameter(showerParameters.magnetic_field_vector, b_field)
         shower.set_parameter(showerParameters.observation_level, 760 * units.cm)
@@ -1074,8 +1261,8 @@ class iftReconstructor:
         for station in event.get_stations():
             station.set_parameter(stationParameters.cr_zenith, reco_zen)
             station.set_parameter(stationParameters.cr_azimuth, reco_az)
-            station.set_parameter(stationParameters.cr_energy,  reco_energy)
-            station.set_parameter(stationParameters.cr_xmax,    reco_xmax)
+            station.set_parameter(stationParameters.cr_energy, reco_energy)
+            station.set_parameter(stationParameters.cr_xmax, reco_xmax)
 
         dist_m = self._distance_to_shower_maximum(xmax_mean, reco_zen, gdas_file=atm_path)
         shower.set_parameter(showerParameters.distance_shower_maximum_geometric, dist_m * units.m)
@@ -1105,14 +1292,14 @@ class iftReconstructor:
         try:
             cf_stats = None
             if model.enable_syst_cf or model.enable_timing_cf:
-                _syst  = [np.asarray(model.syst_cf(s_)) for s_ in filtered_samples]
-                _tmcf  = [np.clip(np.asarray(model.timing_cf_op_2(s_)) * 1e9,
-                                  -15.0, 15.0) for s_ in filtered_samples]
+                _syst = [np.asarray(model.syst_cf(s_)) for s_ in filtered_samples]
+                _tmcf = [np.clip(np.asarray(model.timing_cf_op_2(s_)) * units.s / units.ns,
+                                 -15.0, 15.0) for s_ in filtered_samples]
                 cf_stats = {
-                    "syst_mean":   np.mean([np.exp(f) for f in _syst], axis=0),
-                    "syst_std":    np.std([np.exp(f)  for f in _syst], axis=0),
+                    "syst_mean": np.mean([np.exp(f) for f in _syst], axis=0),
+                    "syst_std": np.std([np.exp(f) for f in _syst], axis=0),
                     "timing_mean": np.mean(_tmcf, axis=0),
-                    "timing_std":  np.std(_tmcf,  axis=0),
+                    "timing_std": np.std(_tmcf, axis=0),
                 }
 
             from NuRadioReco.modules.LOFAR.utilities import iftOutput
@@ -1122,10 +1309,10 @@ class iftReconstructor:
                 'is_signal': use_timing,
             }
             ref_params_plot = {
-                'zenith':  lora_zen,
+                'zenith': lora_zen,
                 'azimuth': lora_az,
-                'core':    np.asarray(lora_core[:2], dtype=float),
-                'energy':  float(lora.get('energy', 0.0)) if lora is not None else 0.0,
+                'core': np.asarray(lora_core[:2], dtype=float),
+                'energy': float(lora.get('energy', 0.0)) if lora is not None else 0.0,
             }
             iftOutput.generate_reco_plot(
                 filtered_samples, ecr_s, all_data_plot, _out_dir, event.get_id(),
@@ -1143,17 +1330,41 @@ class iftReconstructor:
         if s.get("export_posterior_samples", False):
             out_dir = s.get("output_directory") or os.getcwd()
             os.makedirs(out_dir, exist_ok=True)
+            posterior_data = {
+                "posterior_sample_indices": np.arange(len(samples_list), dtype=int),
+                "posterior_kept_indices": np.asarray(kept_idx, dtype=int),
+                "posterior_discarded_indices": np.asarray(discarded_idx, dtype=int),
+                "posterior_trigger_station_counts": trigger_station_counts,
+                "posterior_trigger_min_stations": min_trigger_stns,
+            }
+            try:
+                # Samples are JAX pytrees. Store every leaf stacked over samples,
+                # together with its path, so both accepted and discarded samples
+                # can be inspected without pickle/object-array loading.
+                from jax import tree_util as jtu
+                stacked_samples = jtu.tree_map(
+                    lambda *parts: np.stack([np.asarray(part) for part in parts]), *samples_list)
+                path_leaves, tree_def = jtu.tree_flatten_with_path(stacked_samples)
+                posterior_data["posterior_sample_tree"] = np.asarray(str(tree_def))
+                posterior_data["posterior_leaf_paths"] = np.asarray(
+                    [str(path) for path, _ in path_leaves])
+                posterior_data.update({
+                    f"posterior_leaf_{i}": np.asarray(leaf)
+                    for i, (_, leaf) in enumerate(path_leaves)
+                })
+            except Exception as exc:
+                self.logger.warning("Could not serialize raw posterior samples: %s", exc)
             np.savez(
                 os.path.join(out_dir, f"{event.get_id()}.npz"),
                 event_id=event.get_id(),
                 zenith=reco_zen, azimuth=reco_az, core=reco_core,
                 energy=reco_energy, xmax=reco_xmax, radiation_energy=reco_erad,
                 zen_mean=zen_mean, zen_std=zen_std,
-                az_mean=az_mean,   az_std=az_std,
+                az_mean=az_mean, az_std=az_std,
                 core_x_mean=cx_mean, core_x_std=cx_std,
                 core_y_mean=cy_mean, core_y_std=cy_std,
                 xmax_mean=xmax_mean, xmax_std=xmax_std,
-                ecr_mean=ecr_mean,   ecr_std=ecr_std,
+                ecr_mean=ecr_mean, ecr_std=ecr_std,
                 erad_mean=erad_mean, erad_std=erad_std,
                 red_chisq=red_chisq, n_dof=n_dof_chisq,
                 is_converged=is_converged,
@@ -1163,9 +1374,11 @@ class iftReconstructor:
                 n_efield_triggered=num_efield_triggered,
                 min_trigger_stations=min_trigger_stns,
                 n_antennas=len(fl), n_timing=int(np.sum(use_timing)),
+                used_max_signal_fallback=used_max_signal_fallback,
                 noise_mean=noise_mean, sel_win=sel_win,
                 fluences=fl, pos_x=posx, pos_y=posy, times=tm,
                 is_signal=is_sig, use_timing=use_timing, sids=sids,
+                **posterior_data,
             )
 
         return event
@@ -1175,44 +1388,44 @@ class iftReconstructor:
         if self.__settings.get("run_nifty", False):
             return self._run_nifty(event, detector)
 
-        prior           = self._get_lora_prior(event)
+        prior = self._get_lora_prior(event)
         radio_direction = self._get_radio_direction(event)
 
         if prior is not None:
-            zenith  = prior["zenith"]
+            zenith = prior["zenith"]
             azimuth = prior["azimuth"]
-            core    = prior["core"].copy()
-            energy  = prior.get("energy", 1e17 * units.eV)
+            core = prior["core"].copy()
+            energy = prior.get("energy", 1e17 * units.eV)
         elif radio_direction is not None:
             zenith, azimuth = radio_direction
-            core   = np.array([0.0, 0.0, 7.6 * units.m])
+            core = np.array([0.0, 0.0, 7.6 * units.m])
             energy = 1e17 * units.eV
         else:
-            zenith  = 0.0 * units.radian
+            zenith = 0.0 * units.radian
             azimuth = 0.0 * units.radian
-            core    = np.array([0.0, 0.0, 7.6 * units.m])
-            energy  = 1e17 * units.eV
+            core = np.array([0.0, 0.0, 7.6 * units.m])
+            energy = 1e17 * units.eV
 
         positions, fluences, station_ids = self._collect_observables(event, detector)
         finite = np.isfinite(fluences) & (fluences > 0)
 
         if prior is None and np.any(finite):
-            weights      = fluences[finite]
+            weights = fluences[finite]
             weighted_core = np.average(positions[finite, :2], weights=weights, axis=0)
-            core[:2]     = weighted_core
+            core[:2] = weighted_core
 
         shower = self._get_or_create_radio_shower(event)
-        shower.set_parameter(showerParameters.zenith,           zenith)
-        shower.set_parameter(showerParameters.azimuth,          azimuth)
-        shower.set_parameter(showerParameters.core,             core)
-        shower.set_parameter(showerParameters.energy,           energy)
+        shower.set_parameter(showerParameters.zenith, zenith)
+        shower.set_parameter(showerParameters.azimuth, azimuth)
+        shower.set_parameter(showerParameters.core, core)
+        shower.set_parameter(showerParameters.energy, energy)
         shower.set_parameter(showerParameters.magnetic_field_vector, hp.get_magnetic_field_vector("lofar"))
         shower.set_parameter(showerParameters.observation_level, 760 * units.cm)
 
         for station in event.get_stations():
             station.set_parameter(stationParameters.cr_zenith, zenith)
             station.set_parameter(stationParameters.cr_azimuth, azimuth)
-            station.set_parameter(stationParameters.cr_energy,  energy)
+            station.set_parameter(stationParameters.cr_energy, energy)
 
         self._set_efield_parameters(event, detector, float(zenith), float(azimuth))
 

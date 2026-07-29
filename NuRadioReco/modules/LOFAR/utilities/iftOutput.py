@@ -2,7 +2,7 @@
 """
 iftOutput.py — reconstruction diagnostic plot for the NuRadioReco LOFAR IFT pipeline.
 
-Produces a multi-panel fancy summary figure showing the lateral distribution function,
+Produces a multi-panel summary figure showing the lateral distribution function,
 timing residuals, and posterior parameter distributions from the IFT reconstruction.
 
 .. moduleauthor:: Karen Terveer <karen.terveer@fau.de>
@@ -11,12 +11,18 @@ import logging
 import os
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import matplotlib.colors as mcolors
 
-import jax.numpy as jnp
+# The backend must be selected before pyplot is imported, so the imports below
+# deliberately do not sit at the top of the file (PEP 8 E402).
+matplotlib.use('Agg')
+
+import matplotlib.pyplot as plt  # noqa: E402
+import matplotlib.gridspec as gridspec  # noqa: E402
+import matplotlib.colors as mcolors  # noqa: E402
+
+import jax.numpy as jnp  # noqa: E402
+
+from NuRadioReco.utilities import units  # noqa: E402
 
 logger = logging.getLogger("NuRadioReco.LOFAR.iftOutput")
 
@@ -43,26 +49,39 @@ PLOT_PARAMS = {
 def _setup_ax_fancy(ax, title, extent, xlabel="Easting [m]", ylabel="Northing [m]",
                     show_xlabel=True, show_ylabel=True):
     ax.set_aspect('equal')
-    if title: ax.set_title(title)
-    ax.set_xlim(extent[0], extent[1]); ax.set_ylim(extent[2], extent[3])
-    if show_ylabel: ax.set_ylabel(ylabel)
-    else: ax.tick_params(labelleft=False); ax.set_ylabel("")
-    if show_xlabel: ax.set_xlabel(xlabel)
-    else: ax.tick_params(labelbottom=False); ax.set_xlabel("")
+    if title:
+        ax.set_title(title)
+    ax.set_xlim(extent[0], extent[1])
+    ax.set_ylim(extent[2], extent[3])
+    if show_ylabel:
+        ax.set_ylabel(ylabel)
+    else:
+        ax.tick_params(labelleft=False)
+        ax.set_ylabel("")
+    if show_xlabel:
+        ax.set_xlabel(xlabel)
+    else:
+        ax.tick_params(labelbottom=False)
+        ax.set_xlabel("")
 
 
 def _plot_kde_fancy(ax, data, label, truth_mean=None, truth_std=None):
     from scipy.stats import gaussian_kde, norm as sp_norm
-    data = np.asarray(data).flatten(); data = data[np.isfinite(data)]
+    data = np.asarray(data).flatten()
+    data = data[np.isfinite(data)]
     if len(data) < 3:
         ax.text(0.5, 0.5, 'Insufficient Data', ha='center', va='center', transform=ax.transAxes)
         return
     try:
-        kde = gaussian_kde(data); mu = np.mean(data); sigma = np.std(data)
+        kde = gaussian_kde(data)
+        mu = np.mean(data)
+        sigma = np.std(data)
         x_min, x_max = np.min(data), np.max(data)
         if truth_mean is not None and truth_std is not None:
-            x_min = min(x_min, truth_mean - 4*truth_std); x_max = max(x_max, truth_mean + 4*truth_std)
-        span = x_max - x_min; x_grid = np.linspace(x_min - 0.2*span, x_max + 0.2*span, 500)
+            x_min = min(x_min, truth_mean - 4 * truth_std)
+            x_max = max(x_max, truth_mean + 4 * truth_std)
+        span = x_max - x_min
+        x_grid = np.linspace(x_min - 0.2 * span, x_max + 0.2 * span, 500)
         y_kde = kde(x_grid)
         ax.plot(x_grid, y_kde, color=PLOT_PARAMS['fg_edge'], lw=3.0,
                 label=f"{label}: {mu:.2f} ± {sigma:.2f}")
@@ -73,10 +92,12 @@ def _plot_kde_fancy(ax, data, label, truth_mean=None, truth_std=None):
             ax.plot(x_grid, y_truth, color=PLOT_PARAMS['old_color'], linestyle=':', lw=3.0,
                     label=f"LORA: {truth_mean:.2f} ± {truth_std:.2f}")
             ax.fill_between(x_grid, y_truth, color=PLOT_PARAMS['old_color'], alpha=0.1)
-        ax.set_ylim(bottom=0); ax.legend(loc='upper right', fontsize=18, frameon=False)
+        ax.set_ylim(bottom=0)
+        ax.legend(loc='upper right', fontsize=18, frameon=False)
     except Exception as e:
         logger.warning(f"KDE plot failed: {e}")
-    ax.set_yticks([]); ax.set_ylim(bottom=0)
+    ax.set_yticks([])
+    ax.set_ylim(bottom=0)
 
 
 def _plot_2d_contour_fancy(ax, x_data, y_data, old_point=None, x_label='', y_label='', title=''):
@@ -84,25 +105,29 @@ def _plot_2d_contour_fancy(ax, x_data, y_data, old_point=None, x_label='', y_lab
     from matplotlib.colors import LinearSegmentedColormap
     LOFAR_GREEN = '#405d3a'
     LOFAR_CMAP = LinearSegmentedColormap.from_list("LofarGreen", ["white", LOFAR_GREEN])
-    x_data = np.asarray(x_data).flatten(); y_data = np.asarray(y_data).flatten()
+    x_data = np.asarray(x_data).flatten()
+    y_data = np.asarray(y_data).flatten()
     valid = np.isfinite(x_data) & np.isfinite(y_data)
     x_data, y_data = x_data[valid], y_data[valid]
     if len(x_data) < 5:
         ax.text(0.5, 0.5, 'Insufficient Data', ha='center', va='center', transform=ax.transAxes)
     else:
         try:
-            xy = np.vstack([x_data, y_data]); kde = gaussian_kde(xy)
+            xy = np.vstack([x_data, y_data])
+            kde = gaussian_kde(xy)
             x_min, x_max = np.min(x_data), np.max(x_data)
             y_min, y_max = np.min(y_data), np.max(y_data)
-            x_std = max(np.std(x_data), 1e-9); y_std = max(np.std(y_data), 1e-9)
-            x_pad = max(0.5*(x_max-x_min), 4.0*x_std) if x_max != x_min else 1.0
-            y_pad = max(0.5*(y_max-y_min), 4.0*y_std) if y_max != y_min else 1.0
-            x_grid = np.linspace(x_min-x_pad, x_max+x_pad, 200)
-            y_grid = np.linspace(y_min-y_pad, y_max+y_pad, 200)
+            x_std = max(np.std(x_data), 1e-9)
+            y_std = max(np.std(y_data), 1e-9)
+            x_pad = max(0.5 * (x_max - x_min), 4.0 * x_std) if x_max != x_min else 1.0
+            y_pad = max(0.5 * (y_max - y_min), 4.0 * y_std) if y_max != y_min else 1.0
+            x_grid = np.linspace(x_min - x_pad, x_max + x_pad, 200)
+            y_grid = np.linspace(y_min - y_pad, y_max + y_pad, 200)
             X, Y = np.meshgrid(x_grid, y_grid)
             Z = kde(np.vstack([X.ravel(), Y.ravel()])).reshape(X.shape)
             Z_sorted = np.sort(Z.flatten())[::-1]
-            Z_cum = np.cumsum(Z_sorted); Z_cum /= Z_cum[-1]
+            Z_cum = np.cumsum(Z_sorted)
+            Z_cum /= Z_cum[-1]
             level_1sig = Z_sorted[np.searchsorted(Z_cum, 0.6827)]
             level_2sig = Z_sorted[np.searchsorted(Z_cum, 0.9545)]
             level_3sig = Z_sorted[np.searchsorted(Z_cum, 0.9973)]
@@ -116,7 +141,9 @@ def _plot_2d_contour_fancy(ax, x_data, y_data, old_point=None, x_label='', y_lab
                    zorder=10, label='LORA')
     ax.scatter(np.mean(x_data), np.mean(y_data), marker='+', s=120, c='#405d3a',
                linewidth=2.0, zorder=9, label='IFT Mean')
-    ax.set_xlabel(x_label); ax.set_ylabel(y_label); ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_title(title)
     ax.legend(loc='upper right', fontsize=20, frameon=False)
 
 
@@ -209,12 +236,6 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
         except Exception:
             nm_acc += noise_mean
 
-    zenith_mean  = float(np.mean([np.asarray(signal_response.zen_and_az(s)[0]).item() for s in samples]))
-    azimuth_mean = float(np.mean([np.asarray(signal_response.zen_and_az(s)[1]).item() for s in samples]))
-    xmax_mean    = float(np.mean([np.asarray(signal_response.X_max_combined(s)).item() for s in samples]))
-    core_x_mean  = float(np.mean([np.asarray(signal_response.core(s)[0]).item() for s in samples]))
-    core_y_mean  = float(np.mean([np.asarray(signal_response.core(s)[1]).item() for s in samples]))
-
     noise_mean_model = nm_acc / len(samples)
     if grid_model is not None:
         map_fl_raw = (fl_acc / len(samples)).reshape(GX.shape).T
@@ -236,7 +257,7 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
     pred_fl_with_cf = fl_pred_acc / len(samples)
     pred_tm_with_cf = tm_pred_acc / len(samples)
 
-    res_tm_ns = (times - pred_tm_with_cf) * 1e9
+    res_tm_ns = (times - pred_tm_with_cf) * units.s / units.ns
     _noise_sigma = noise_level if noise_level is not None else noise_mean
     sigma_fl = np.sqrt(_noise_sigma ** 2 +
                        (fluences * _FLUENCE_RELATIVE_SYSTEMATIC_ERROR) ** 2)
@@ -246,8 +267,8 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
         t0_reference = np.median(pred_tm_with_cf[is_sig])
     else:
         t0_reference = np.median(pred_tm_with_cf)
-    map_tm = (map_tm_raw - t0_reference) * 1e9
-    tm_pts_vis_centered = (times - t0_reference) * 1e9
+    map_tm = (map_tm_raw - t0_reference) * units.s / units.ns
+    tm_pts_vis_centered = (times - t0_reference) * units.s / units.ns
 
     vmax_fl = max(
         np.nanmax(map_fl) if not np.all(np.isnan(map_fl)) else 1.0,
@@ -285,7 +306,7 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
     else:
         vm_fl = 1.0
     sc_f1 = ax_f1.scatter(pos[0], pos[1], c=res_fl, cmap=PLOT_PARAMS['cmap_fl_res'],
-                           s=size, vmin=-vm_fl, vmax=vm_fl, edgecolors='none')
+                          s=size, vmin=-vm_fl, vmax=vm_fl, edgecolors='none')
     _setup_ax_fancy(ax_f1, "Fluence Residuals", extent, show_xlabel=False)
     fig.colorbar(sc_f1, ax=ax_f1, label=r"(Obs$-$Pred)/$\sigma$")
 
@@ -293,7 +314,7 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
     from matplotlib.ticker import ScalarFormatter
     if cf_stats and 'syst_mean' in cf_stats:
         im_f2 = ax_f2.imshow(cf_stats['syst_mean'].T, origin='lower', extent=extent,
-                              cmap=PLOT_PARAMS['cmap_fl_cf_mean'])
+                             cmap=PLOT_PARAMS['cmap_fl_cf_mean'])
         cb_f2 = fig.colorbar(im_f2, ax=ax_f2, label="Multiplier")
         cb_f2.ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
         cb_f2.ax.ticklabel_format(style='sci', scilimits=(-2, 2))
@@ -305,7 +326,7 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
     ax_f3 = fig.add_subplot(gs[3, 0], sharex=ax_f0, sharey=ax_f0)
     if cf_stats and 'syst_std' in cf_stats:
         im_f3 = ax_f3.imshow(cf_stats['syst_std'].T, origin='lower', extent=extent,
-                              cmap=PLOT_PARAMS['cmap_fl_cf_std'])
+                             cmap=PLOT_PARAMS['cmap_fl_cf_std'])
         cb_f3 = fig.colorbar(im_f3, ax=ax_f3, label="Std")
         cb_f3.ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
         cb_f3.ax.ticklabel_format(style='sci', scilimits=(-2, 2))
@@ -332,8 +353,8 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
         valid_res = res_tm_ns[is_sig]
         vm_tm = max(abs(np.nanpercentile(valid_res, 5)), abs(np.nanpercentile(valid_res, 95)), 5)
         sc_t1 = ax_t1.scatter(pos[0][is_sig], pos[1][is_sig], c=valid_res,
-                               cmap=PLOT_PARAMS['cmap_tm_res'], s=size,
-                               vmin=-vm_tm, vmax=vm_tm, edgecolors='none')
+                              cmap=PLOT_PARAMS['cmap_tm_res'], s=size,
+                              vmin=-vm_tm, vmax=vm_tm, edgecolors='none')
         ax_t1.scatter(pos[0][~is_sig], pos[1][~is_sig],
                       marker='x', color='gray', s=15, alpha=0.5)
         fig.colorbar(sc_t1, ax=ax_t1, label="Obs$-$Pred [ns]")
@@ -344,8 +365,8 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
         t_map = cf_stats['timing_mean']
         t_vlim = max(abs(np.nanmin(t_map)), abs(np.nanmax(t_map)), 1.0) if t_map.size > 0 else 1.0
         im_t2 = ax_t2.imshow(t_map.T, origin='lower', extent=extent,
-                              cmap=PLOT_PARAMS['cmap_tm_cf_mean'],
-                              vmin=-t_vlim, vmax=t_vlim)
+                             cmap=PLOT_PARAMS['cmap_tm_cf_mean'],
+                             vmin=-t_vlim, vmax=t_vlim)
         fig.colorbar(im_t2, ax=ax_t2, label="Correction [ns]")
     else:
         ax_t2.text(0.5, 0.5, "No CF", ha='center', va='center',
@@ -355,7 +376,7 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
     ax_t3 = fig.add_subplot(gs[3, 1], sharex=ax_f0, sharey=ax_f0)
     if cf_stats and 'timing_std' in cf_stats:
         im_t3 = ax_t3.imshow(cf_stats['timing_std'].T, origin='lower', extent=extent,
-                              cmap=PLOT_PARAMS['cmap_tm_cf_std'])
+                             cmap=PLOT_PARAMS['cmap_tm_cf_std'])
         fig.colorbar(im_t3, ax=ax_t3, label="Std [ns]")
     else:
         ax_t3.text(0.5, 0.5, "No CF", ha='center', va='center',
@@ -392,9 +413,9 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
 
     ax_dir = fig.add_subplot(gs[3, 2])
     az_samples = (np.rad2deg([float(np.asarray(signal_response.zen_and_az(s)[1]).item())
-                               for s in samples]) % 360.0)
+                              for s in samples]) % 360.0)
     zen_samples = np.rad2deg([float(np.asarray(signal_response.zen_and_az(s)[0]).item())
-                               for s in samples])
+                              for s in samples])
     _plot_2d_contour_fancy(ax_dir, az_samples, zen_samples,
                            old_point=(cmp_azimuth_deg, cmp_zenith_deg),
                            x_label='Azimuth [deg]', y_label='Zenith [deg]',

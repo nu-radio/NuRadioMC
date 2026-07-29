@@ -10,25 +10,32 @@ import logging
 import os
 
 import jax
+
+# Double precision has to be enabled before any other module creates a JAX array,
+# so the imports below deliberately do not sit at the top of the file (PEP 8 E402).
 jax.config.update("jax_enable_x64", True)
 
-import numpy as np
+import numpy as np  # noqa: E402
 
-import NuRadioReco.detector.detector
-import NuRadioReco.modules.eventTypeIdentifier
-import NuRadioReco.modules.io.eventWriter
-from NuRadioReco.framework.parameters import stationParameters, showerParameters
-from NuRadioReco.modules import channelBandPassFilter
-from NuRadioReco.modules import voltageToEfieldConverter
-from NuRadioReco.modules.LOFAR import iftReconstructor
-from NuRadioReco.modules.LOFAR import planeWaveDirectionFitter_LOFAR
-from NuRadioReco.modules.LOFAR import pipelineVisualizer_LOFAR
-from NuRadioReco.modules.LOFAR import stationGalacticCalibrator
-from NuRadioReco.modules.LOFAR import stationPulseFinder
-from NuRadioReco.modules.LOFAR import stationRFIFilter
-from NuRadioReco.modules.LOFAR.iftReconstructor import _DEFAULT_N_VI_ITERATIONS, _DEFAULT_N_SAMPLES
-from NuRadioReco.modules.io.LOFAR import readLOFARData
-from NuRadioReco.utilities import units
+import NuRadioReco.detector.detector  # noqa: E402
+import NuRadioReco.modules.eventTypeIdentifier  # noqa: E402
+import NuRadioReco.modules.io.eventWriter  # noqa: E402
+from NuRadioReco.framework.parameters import stationParameters, showerParameters  # noqa: E402
+from NuRadioReco.modules import channelBandPassFilter  # noqa: E402
+from NuRadioReco.modules import voltageToEfieldConverter  # noqa: E402
+from NuRadioReco.modules.LOFAR import planeWaveDirectionFitter_LOFAR  # noqa: E402
+from NuRadioReco.modules.LOFAR import pipelineVisualizer_LOFAR  # noqa: E402
+from NuRadioReco.modules.LOFAR import stationGalacticCalibrator  # noqa: E402
+from NuRadioReco.modules.LOFAR import stationPulseFinder  # noqa: E402
+from NuRadioReco.modules.LOFAR import stationRFIFilter  # noqa: E402
+from NuRadioReco.modules.LOFAR import iftReconstructor  # noqa: E402
+from NuRadioReco.modules.LOFAR.iftReconstructor import (  # noqa: E402
+    _DEFAULT_N_VI_ITERATIONS, _DEFAULT_N_SAMPLES,
+    _EARLY_ABORT_XMAX_STD_GCM2, _EARLY_ABORT_XMAX_AFTER_ITERS, _EARLY_ABORT_MAX_FLUENCE,
+)
+from NuRadioReco.modules.LOFAR.utilities.iftDataHelpers import MAX_SIGNAL_SNR_THRESHOLD  # noqa: E402
+from NuRadioReco.modules.io.LOFAR import readLOFARData  # noqa: E402
+from NuRadioReco.utilities import units  # noqa: E402
 
 
 LOGGER = logging.getLogger("NuRadioReco.LOFAR.pipeline")
@@ -38,7 +45,6 @@ DEFAULT_STATIONS = [
     "CS001", "CS002", "CS003", "CS004", "CS005", "CS006", "CS007",
     "CS011", "CS013", "CS017",
 ]
-
 
 
 def _convert_voltage_to_efield(event, detector):
@@ -233,6 +239,10 @@ def run_pipeline(args):
             step_deg=1.0,
             atmosphere_dir=args.atmosphere_dir,
             gdas_cache_dir=args.gdas_cache_dir,
+            max_signal_fallback=args.max_signal_fallback,
+            max_signal_snr_threshold=args.max_signal_snr,
+            early_abort_xmax_std_gcm2=args.early_abort_xmax_std,
+            early_abort_max_fluence=args.early_abort_max_fluence,
         )
         if args.ift_iterations is not None:
             recon_kwargs["n_iterations"] = args.ift_iterations
@@ -281,13 +291,34 @@ def build_arg_parser():
                         action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--enable-timing-correlated-field",
                         action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--max-signal-fallback",
+                        action=argparse.BooleanOptionalAction, default=True,
+                        help="When both direction searches find no timing data at all, "
+                             "search every channel blind for its largest excursion "
+                             "instead of aborting. Only ever runs where the pipeline "
+                             "would otherwise produce nothing.")
+    parser.add_argument("--max-signal-snr", type=float,
+                        default=MAX_SIGNAL_SNR_THRESHOLD,
+                        help="Per-antenna envelope SNR floor for the blind max-signal "
+                             "fallback (default: %(default)s, calibrated so that ~1.5%% "
+                             "of pure-noise antennas pass).")
+
+    parser.add_argument("--early-abort-xmax-std", type=float,
+                        default=_EARLY_ABORT_XMAX_STD_GCM2,
+                        help="Abort the event if the Xmax posterior is still wider than "
+                             "this (g/cm2) after %d VI iterations (default: %%(default)s). "
+                             "0 disables the check." % _EARLY_ABORT_XMAX_AFTER_ITERS)
+    parser.add_argument("--early-abort-max-fluence", type=float,
+                        default=_EARLY_ABORT_MAX_FLUENCE,
+                        help="Abort the event if any input fluence exceeds this or is "
+                             "not finite (default: %(default)s). 0 disables the check.")
 
     parser.add_argument("--output-dir", default=os.getcwd(),
                         help="Directory for output files and debug plots")
     parser.add_argument("--output-nur", default=None,
                         help="Write the processed event to this .nur file")
     parser.add_argument("--export-posterior-samples", action="store_true",
-                        help="Save IFT posterior samples to a .npz file in --output-dir")
+                        help="Save all IFT posterior samples, trigger decisions, and summary to a .npz file")
 
     parser.add_argument("--atmosphere-dir",
                         default="/vol/astro7/lofar/sim/pipeline/atmosphere_files",

@@ -188,6 +188,10 @@ def parse_block_number_file(block_number_file):
 
 _BLOCK_ROW_TOLERANCE_S = 2
 
+# NRR channel IDs that are always dropped at read-in, regardless of the flagging
+# done by the reader. 3002019 is a permanently broken dipole of CS003.
+_ALWAYS_REMOVED_CHANNEL_IDS = (3002019,)
+
 
 def _find_block_row_nearest(rows, event_id, tolerance=_BLOCK_ROW_TOLERANCE_S):
     """
@@ -1026,10 +1030,16 @@ class readLOFARData:
                     # The channel_group_id not longer present in the station
                     self.logger.debug(f"Both channels of group ID {channel_group_id} were already removed "
                                       f"from station {station_name}")
-
             for channel in channels_to_remove:
                 station.remove_channel(channel)
                 flagged_nrr_channel_ids[channel.get_id()].append("reader_removed_group_id")
+
+            for channel_id in _ALWAYS_REMOVED_CHANNEL_IDS:
+                if station.has_channel(channel_id):
+                    self.logger.status(f"Removing known-bad channel {channel_id} "
+                                       f"from station {station_name}")
+                    station.remove_channel(station.get_channel(channel_id))
+                    flagged_nrr_channel_ids[channel_id].append("reader_known_bad_channel")
 
             # store set of flagged nrr channel ids as station parameter
             station.set_parameter(stationParameters.flagged_channels, flagged_nrr_channel_ids)
