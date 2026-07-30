@@ -22,14 +22,16 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import matplotlib as mpl
-mpl.rcParams.update(mpl.rcParamsDefault)
-mpl.rcParams.update({
-    "axes.titlesize": 16,
-    "axes.labelsize": 14,
-    "xtick.labelsize": 12,
-    "ytick.labelsize": 12,
-    "legend.fontsize": 12,
-})
+
+if __name__ == "__main__":
+    mpl.rcParams.update(mpl.rcParamsDefault)
+    mpl.rcParams.update({
+        "axes.titlesize": 16,
+        "axes.labelsize": 14,
+        "xtick.labelsize": 12,
+        "ytick.labelsize": 12,
+        "legend.fontsize": 12,
+    })
 
 
 from NuRadioReco.detector.RNO_G.db_mongo_read import Database
