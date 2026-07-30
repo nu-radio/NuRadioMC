@@ -2,8 +2,8 @@
 Visualize the detector-configuration periods of one or more RNO-G stations.
 
 A station's detector description changes whenever the station itself, one of
-its channels, or a calibration is (de)commissioned. `Database.
-query_modification_timestamps_per_station` (see `db_mongo_read.py`) returns,
+its channels, or a calibration is (de)commissioned. `Database.query_modification_timestamps_per_station`
+(see `db_mongo_read.py`) returns,
 per station, the sorted set of all such timestamps ("modification_timestamps")
 plus the station-level (de)commission timestamps. Between two consecutive
 modification timestamps the full detector description is constant - this
