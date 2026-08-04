@@ -891,8 +891,8 @@ class IceModelExpLayers(IceModel):
             Layer definitions (see class docstring).
         """
         
-        #self.z_air_boundary = z_air_boundary
-        #self.z_shift = z_shift
+        self.z_air_boundary = z_air_boundary
+        self.z_shift = z_shift
         self.layers = sorted(layers, key=lambda L: L["z_min"],reverse = True)
         self._validate_layers()
 
@@ -1149,11 +1149,11 @@ class IceModelExpLayers(IceModel):
 
     @property
     def z_air_boundary(self):
-        return 0.0
+        return self._z_air_boundary
 
-    @property
-    def z_shift(self):
-        return 0.0
+    @z_air_boundary.setter
+    def z_air_boundary(self, value):
+        self._z_air_boundary = value
 
 class IceModelContinuousExpLayers(IceModelExpLayers):
 

@@ -153,15 +153,13 @@ class ray_tracing(ray_tracing_base):
 
         # `z_air_boundary`/`z_shift` describe the single, flat ice-air interface `IceModelSimple`
         # assumes; `IceModelExpLayers` has no such single interface (its `z_air_boundary`/`z_shift`
-        # properties are only kept for backwards compatibility and don't carry the same meaning),
-        # so these checks don't apply to the multilayer raytracer.
+        # properties are only kept for backwards compatibility and don't carry the same meaning)
 
-        if isinstance(medium, IceModelSimple):
-            if self._medium.z_air_boundary != 0:
-                raise ValueError(f"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!")
+        if hasattr(self._medium, "z_air_boundary") and self._medium.z_air_boundary != 0:
+            raise ValueError(f"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!")
 
-            if hasattr(self._medium, "z_shift") and self._medium.z_shift != 0:
-                raise ValueError(f"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!")
+        if hasattr(self._medium, "z_shift") and self._medium.z_shift != 0:
+            raise ValueError(f"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!")
 
         self._swap = None
         self._dPhi = None
