@@ -7,7 +7,7 @@ CPP version, a python version with numba and a python version without numba, the
 The CPP version is the default if available, otherwise the python version with numba is used if available,
 otherwise the python version without numba is used.
 
-Implementations are in NuRadioMC/SignalProp/AnalyticRayTracingImpl/
+Implementations are in NuRadioMC/SignalProp/AnalyticRayTracing/
 """
 
 from NuRadioReco.utilities import units, geometryUtilities
@@ -155,11 +155,13 @@ class ray_tracing(ray_tracing_base):
         # assumes; `IceModelExpLayers` has no such single interface (its `z_air_boundary`/`z_shift`
         # properties are only kept for backwards compatibility and don't carry the same meaning),
         # so these checks don't apply to the multilayer raytracer.
-        if self._medium.z_air_boundary != 0:
-            raise ValueError(f"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!")
 
-        if hasattr(self._medium, "z_shift") and self._medium.z_shift != 0:
-            raise ValueError(f"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!")
+        if isinstance(medium, IceModelSimple):
+            if self._medium.z_air_boundary != 0:
+                raise ValueError(f"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!")
+
+            if hasattr(self._medium, "z_shift") and self._medium.z_shift != 0:
+                raise ValueError(f"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!")
 
         self._swap = None
         self._dPhi = None

@@ -388,6 +388,42 @@ def get_ice_model(name):
     else:
         return globals()[name]()
 
+class greenland_simple_layered_test(medium_base.IceModelExpLayers):
+    """
+    Single layer refractive index model.
+    
+    greenland_simple model adapted to match the expected medium definition needed for the multi layer analytic raytracer. Used as a comparison to the single layer analytic raytracer.
+    """
+    def __init__(self):
+
+        z_bottom = -3000*units.meter
+        n_ice = 1.78
+        z_0 = 37.25*units.meter
+        delta_n = 0.51
+
+        layers = [
+            {
+            "z_min": 0.0,
+            "z_max": np.inf,
+            "n_ice": 1.00001,
+            "delta_n": 1e-6,
+            "z_0": -8000,
+            "region": "air",
+            "region_name": "Air"
+        },
+            {
+            "z_min": -3000.0,
+            "z_max": 0.0,
+            "n_ice": 1.781,
+            "delta_n": 0.51,
+            "z_0": 37.25,
+            "region": "single",
+            "region_name": "SingleModel"
+        }]
+
+        super().__init__(
+            layers=layers
+        )
 
 class greenland_simple_layered(medium_base.IceModelExpLayers):
     """
@@ -425,6 +461,8 @@ class greenland_simple_layered(medium_base.IceModelExpLayers):
         super().__init__(
             layers=layers
         )
+
+        
 
 
 class greenland_simple_nils_layered(medium_base.IceModelExpLayers):

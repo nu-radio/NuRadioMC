@@ -1,6 +1,5 @@
 from NuRadioReco.utilities import units
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays
 
 from scipy import interpolate, integrate, linalg
 import numpy as np
