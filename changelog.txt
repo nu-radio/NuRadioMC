@@ -24,6 +24,8 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 bugfixes:
 - Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.
   This is only relevant when simulating primaries and large detector arrays.
+- Fix bug in the readRNOGDataMattak where the trigger dependend readout delays were applied with the
+  the wrong sign to the trace_start_time
 
 deprecations:
 - Remove default values for `use_channels` and `bandpass` in voltageToAnalyticEfieldConverter.py and voltageToEfieldConverter.py which were suitable for ARIANNA.
