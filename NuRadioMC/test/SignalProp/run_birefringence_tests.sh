@@ -13,7 +13,7 @@ rm emitter_sim_test/test_output.hdf5
 rm emitter_sim_test/test_output.nur
 
 
-cd ../../SignalProp/examples/birefringence_examples
+cd ../../examples/SignalProp/birefringence_examples
 python3 01_simple_propagation.py
 rm 01_simple_propagation_plot.png
 
