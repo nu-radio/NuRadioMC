@@ -17,12 +17,11 @@
       <script src="../../_static/documentation_options.js?v=596fb6d1"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="NuRadioMC.SignalProp.directRayTracing module" href="NuRadioMC.SignalProp.directRayTracing.html" />
-    <link rel="prev" title="NuRadioMC.SignalProp package" href="NuRadioMC.SignalProp.html" /> 
+    <link rel="prev" title="NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer module" href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -479,6 +478,10 @@
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.html">NuRadioMC.SignalProp.AnalyticRayTracingImpl package</a></li>
+</ul>
+</li>
 <li class="toctree-l4 current"><a class="reference internal" href="NuRadioMC.SignalProp.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioMC.SignalProp.analyticraytracing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.SignalProp.directRayTracing.html">NuRadioMC.SignalProp.directRayTracing module</a></li>
@@ -502,6 +505,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.Veff.html">NuRadioMC.utilities.Veff module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.attenuation.html">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.birefringence.html">NuRadioMC.utilities.birefringence module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.cross_sections.html">NuRadioMC.utilities.cross_sections module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.dump_hdf5.html">NuRadioMC.utilities.dump_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.earth_attenuation.html">NuRadioMC.utilities.earth_attenuation module</a></li>
@@ -653,967 +657,6 @@
              
   <section id="module-NuRadioMC.SignalProp.analyticraytracing">
 <span id="nuradiomc-signalprop-analyticraytracing-module"></span><h1>NuRadioMC.SignalProp.analyticraytracing module<a class="headerlink" href="#module-NuRadioMC.SignalProp.analyticraytracing" title="Link to this heading"></a></h1>
-<dl class="py data">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.N_AIR">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">N_AIR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.N_AIR" title="Link to this definition"></a></dt>
-<dd><p>Models in the following list will use the speed-optimized algorithm to calculate the attenuation along the path.
-Can be overwritten by init.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">ray_tracing_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_optimized_start_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_speedup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cpp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compile_numba</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base" title="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ray_tracing_base</span></code></a></p>
-<p>Initialize 2D analytic ray tracing class</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>medium: NuRadioMC.utilities.medium class</strong></dt><dd><p>Details of the medium</p>
-</dd>
-<dt><strong>attenuation_model: string</strong></dt><dd><p>Specifies which attenuation model to use
-(default: None -&gt; ‘SP1’). Unlike <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ray_tracing</span></code></a>, this class does not call
-<code class="docutils literal notranslate"><span class="pre">ray_tracing_base._set_arguments</span></code> and has no config-file support - the default is
-applied directly here.</p>
-</dd>
-<dt><strong>log_level: logging.loglevel object</strong></dt><dd><p>Overrides verbosity (default NOTSET)</p>
-</dd>
-<dt><strong>n_frequencies_integration: int</strong></dt><dd><p>Specifies for how many frequencies the signal attenuation is being calculated
-(default: None -&gt; 100). Unlike <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ray_tracing</span></code></a>, this class does not call
-<code class="docutils literal notranslate"><span class="pre">ray_tracing_base._set_arguments</span></code> and has no config-file support - the default is
-applied directly here.</p>
-</dd>
-<dt><strong>use_optimized_start_value: bool</strong></dt><dd><p>If True, the initial C_0 paramter (launch angle) is set to the ray that skims the surface
-(default: False)</p>
-</dd>
-<dt><strong>overwrite_speedup: bool</strong></dt><dd><p>The signal attenuation is calculated using a numerical integration
-along the ray path. This calculation can be computational inefficient depending on the details of
-the ice model. An optimization is implemented approximating the integral with a discrete sum with the loss
-of some accuracy, See PR #507. This optimization is used for all ice models listed in
-speedup_attenuation_models (i.e., “GL3”). With this argument you can explicitly activate or deactivate
-(True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
-listed in speedup_attenuation_models)</p>
-</dd>
-<dt><strong>use_cpp: bool (default: None)</strong></dt><dd><p>If True, use the CPP implementation of the ray tracer; if explicitly set to True but
-the CPP version is not available, a RuntimeError is raised.
-If None, the CPP version is used whenever it is available.</p>
-</dd>
-<dt><strong>compile_numba: bool (default: False)</strong></dt><dd><p>If True, numba-compile the standalone python functions used as a fallback when not
-using the CPP backend. Only relevant if <em class="xref py py-obj">use_cpp</em> is (or resolves to) False.
-If None, numba is used whenever it is available. Unlike <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ray_tracing</span></code></a>, this defaults
-to False (rather than None) so that constructing a <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ray_tracing_2D</span></code></a> directly does not
-trigger a jit-compilation unless explicitly requested.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.angular_diff" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.angular_diff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">angular_diff</span></code></a>(x_refl, z_refl, pulser_pos, ...)</p></td>
-<td><p>This is a helper function to find a ray that is subject to specular reflection (no transmission) at the ice-water interface, e.g. for Moore's Bay.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.apply_propagation_effects" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.apply_propagation_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_propagation_effects</span></code></a>(efield, i_solution)</p></td>
-<td><p>Apply propagation effects to the electric field Note that the 1/r weakening of the electric field is already accounted for in the signal generation</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.determine_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.determine_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">determine_solution_type</span></code></a>(x1, x2, C_0)</p></td>
-<td><p>Returns the type of the solution</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.ds" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.ds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ds</span></code></a>(t, C_0)</p></td>
-<td><p>Helper to calculate line integral</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.find_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.find_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_solutions</span></code></a>(x1, x2[, plot, reflection, ...])</p></td>
-<td><p>This function finds all ray tracing solutions</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_0_from_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_0_from_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_C_0_from_angle</span></code></a>(anglaunch, z_pos[, in_air])</p></td>
-<td><p>Find parameter C0 corresponding to a given launch angle and z-position of a ray.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_1" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_C_1</span></code></a>(x1, C_0)</p></td>
-<td><p>Calculates constant C_1 for a given C_0 and start point x1</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_angle</span></code></a>(x, x_start, C_0[, reflection, ...])</p></td>
-<td><p>Calculates the angle with respect to the positive z-axis of the ray path at position x</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle_from_logC_0" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle_from_logC_0"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_angle_from_logC_0</span></code></a>(logC_0, z_pos[, ...])</p></td>
-<td><p>Argument angoff is provided so that the function can be used for minimization in get_C_0_from_angle(), in which case angoff is the angle for which the C_0 is sought and zero is returned when it is found.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_attenuation" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_attenuation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_attenuation</span></code></a>(iS, frequency[, ...])</p></td>
-<td><p>calculates the signal attenuation due to attenuation in the medium (ice)</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_config</span></code></a>()</p></td>
-<td><p>Function that returns the configuration currently used by the raytracer</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_focusing_analytic" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_focusing_analytic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_focusing_analytic</span></code></a>(x1, x2, C_0[, ...])</p></td>
-<td><p>Analytic solution to calculate the focusing factor</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_launch_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_launch_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_launch_vector</span></code></a>(iS)</p></td>
-<td><p>calculates the launch vector (in 3D) of solution iS</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_number_of_raytracing_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_number_of_raytracing_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_raytracing_solutions</span></code></a>()</p></td>
-<td><p>Function that returns the maximum number of raytracing solutions that can exist between each given pair of start and end points</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_number_of_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_number_of_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_solutions</span></code></a>()</p></td>
-<td><p>returns the number of solutions</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_output_parameters" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_output_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_parameters</span></code></a>()</p></td>
-<td><p>Returns a list with information about parameters to include in the output data structure that are specific to this raytracer</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(x1, x2, C_0[, n_points])</p></td>
-<td><p>For plotting purposes only, returns the ray tracing path between x1 and x2</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_length</span></code></a>(x1, x2, C_0[, reflection, ...])</p></td>
-<td><p>calculates the path length of solution iS</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length_analytic" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length_analytic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_length_analytic</span></code></a>(x1, x2, C_0[, ...])</p></td>
-<td><p>Analytic solution for the path length</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_reflections" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_reflections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_reflections</span></code></a>(x1, x2, C_0[, ...])</p></td>
-<td><p>Calculates the ray path in the presence of reflections at the bottom The full path is constructed by multiple calls to the <em class="xref py py-obj">get_path()</em> function to put together the full path</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_segments" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_segments</span></code></a>(x1, x2, C_0[, reflection, ...])</p></td>
-<td><p>Calculates the different segments of the path that makes up the full ray tracing path One segment per bottom reflection.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_raytracing_output" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_raytracing_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raytracing_output</span></code></a>(i_solution)</p></td>
-<td><p>Write parameters that are specific to this raytracer into the output data.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_receive_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_receive_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_receive_vector</span></code></a>(iS)</p></td>
-<td><p>calculates the receive vector (in 3D) of solution iS</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_reflection_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_reflection_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reflection_angle</span></code></a>(x1, x2, C_0[, ...])</p></td>
-<td><p>Calculates the angle under which the ray reflects off the (ice-air) surface.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solution_type</span></code></a>(iS)</p></td>
-<td><p>returns the type of the solution</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surf_skim_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surf_skim_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_surf_skim_angle</span></code></a>(x1)</p></td>
-<td><p>For a given position x1 = [x,z] and depth profile self.n(), find the angle at which a beam must be emitted to &quot;skim the surface&quot;, i.e. arrive horizontally (angle = 90 deg) at the surface; This is used to find the refraction zone.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surface_pulse" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surface_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_surface_pulse</span></code></a>(x1, x2[, infirn, angle, ...])</p></td>
-<td><p>Calculate the time for a ray to travel from x1 to the surface and arriving at the surface with (a) critical angle or (b) Brewster angle, propagating in a straight line along the surface in air (n=1) in the firn at z=0 (n=n(0, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)) and then reaching the receiver by returning into the firn just at the point to reach the receiver at x2, entering the firn at the surface at the same angle it reached the surface from x1..</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_tof_for_straight_line" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_tof_for_straight_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_tof_for_straight_line</span></code></a>(x1, x2)</p></td>
-<td><p>Calculate the time of flight for a hypothatical ray travelling from x1 to x2 in a straight line.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(x1, x2, C_0[, reflection, ...])</p></td>
-<td><p>calculates the travel time of solution iS</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time_analytic" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time_analytic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time_analytic</span></code></a>(x1, x2, C_0[, ...])</p></td>
-<td><p>Analytic solution for the travel time</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_from_n" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_from_n"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_z_from_n</span></code></a>(n)</p></td>
-<td><p>Get z from given n - equation from get_n solved for z</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_mirrored" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_mirrored"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_z_mirrored</span></code></a>(x1, x2, C_0)</p></td>
-<td><p>Calculates the mirrored x2 position so that y(z) can be used as a continuous function</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
-<td><p>checks if ray tracing solution exists</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.is_in_refraction_zone" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.is_in_refraction_zone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_in_refraction_zone</span></code></a>(x1, x2[, C0crit, plot])</p></td>
-<td><p>Find if receiver at x2 is in the refraction zone of emitter at x1.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.obj_delta_y" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.obj_delta_y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obj_delta_y</span></code></a>(logC_0, x1, x2[, reflection, ...])</p></td>
-<td><p>Function to find solution for C0, returns distance in y between function and x2 position result is signed! (important to use a root finder)</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.plot_result" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.plot_result"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_result</span></code></a>(x1, x2, C_0, ax)</p></td>
-<td><p>Helper function to visualize results</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_config</span></code></a>(config)</p></td>
-<td><p>Function to change the configuration file used by the raytracer</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_start_and_end_point" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_start_and_end_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point</span></code></a>(x1, x2)</p></td>
-<td><p>Set the start and end points between which raytracing solutions shall be found.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.use_optional_function" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.use_optional_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_optional_function</span></code></a>(function_name, *args, ...)</p></td>
-<td><p>Use optional function which may be different for each ray tracer.</p></td>
-</tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><strong>get_angle_from_C_0</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_attenuation_along_path</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_c</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_launch_angle</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_receive_angle</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_results</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>reset_solutions</strong></p></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_1">
-<span class="sig-name descname"><span class="pre">get_C_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_C_1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_1" title="Link to this definition"></a></dt>
-<dd><p>Calculates constant C_1 for a given C_0 and start point x1</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_c">
-<span class="sig-name descname"><span class="pre">get_c</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_c"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_c" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_mirrored">
-<span class="sig-name descname"><span class="pre">get_z_mirrored</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_z_mirrored"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_mirrored" title="Link to this definition"></a></dt>
-<dd><p>Calculates the mirrored x2 position so that y(z) can be used as a continuous function</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.ds">
-<span class="sig-name descname"><span class="pre">ds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.ds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.ds" title="Link to this definition"></a></dt>
-<dd><p>Helper to calculate line integral</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length">
-<span class="sig-name descname"><span class="pre">get_path_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_path_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length" title="Link to this definition"></a></dt>
-<dd><p>calculates the path length of solution iS</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
-starts at zero</p>
-</dd>
-<dt><strong>analytic: bool</strong></dt><dd><p>If True the analytic solution is used. If False, a numerical integration is used. (default: True)</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>distance: float</dt><dd><p>distance from x1 to x2 along the ray path</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time">
-<span class="sig-name descname"><span class="pre">get_travel_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_travel_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time" title="Link to this definition"></a></dt>
-<dd><p>calculates the travel time of solution iS</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
-starts at zero</p>
-</dd>
-<dt><strong>analytic: bool</strong></dt><dd><p>If True the analytic solution is used. If False, a numerical integration is used. (default: True)</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>time: float</dt><dd><p>travel time</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length_analytic">
-<span class="sig-name descname"><span class="pre">get_path_length_analytic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_path_length_analytic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length_analytic" title="Link to this definition"></a></dt>
-<dd><p>Analytic solution for the path length</p>
-<p class="rubric">Notes</p>
-<p>Based on the equation in Sjoerd Bouma’s PhD thesis, reproduced below.
-For an analytic ice model <span class="math notranslate nohighlight">\(n(z) = n_\mathrm{ice} - \Delta n e^{z/z_0}\)</span>,
-a ray launched from depth <span class="math notranslate nohighlight">\(z_s\)</span> at angle <span class="math notranslate nohighlight">\(\theta_s\)</span>, and using the notation</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\beta &amp;= n(z_s) \sin \theta_s, \\
-    \alpha &amp;= n^2_\mathrm{ice} - \beta^2,\\
-    \gamma(z) &amp;= n(z)^2 - \beta^2, \\
-    k_1(z) &amp;= \sqrt{\alpha\gamma(z)} + n_\mathrm{ice} n(z) - \beta^2,\end{split}\]</div>
-<p>the path length for one segment is given by</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}s &amp;= \int \frac{dz}{\cos{\theta}} = \int dz \sec\left[\arcsin\left(\frac{\beta}{n(z)}\right)\right] \\
-    &amp;= \frac{n_\mathrm{ice}}{\sqrt{\alpha}} \left[z - z_0 \log \left(k_1(z)\right)\right] + z_0 \log \left(\sqrt{\gamma(z)} + n(z)\right) + C.\end{split}\]</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time_analytic">
-<span class="sig-name descname"><span class="pre">get_travel_time_analytic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_travel_time_analytic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time_analytic" title="Link to this definition"></a></dt>
-<dd><p>Analytic solution for the travel time</p>
-<p class="rubric">Notes</p>
-<p>Based on the equation in Sjoerd Bouma’s PhD thesis, reproduced below.
-For an analytic ice model <span class="math notranslate nohighlight">\(n(z) = n_\mathrm{ice} - \Delta n e^{z/z_0}\)</span>,
-a ray launched from depth <span class="math notranslate nohighlight">\(z_s\)</span> at angle <span class="math notranslate nohighlight">\(\theta_s\)</span>, and using the notation</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\beta &amp;= n(z_s) \sin \theta_s, \\
-    \alpha &amp;= n^2_\mathrm{ice} - \beta^2,\\
-    \gamma(z) &amp;= n(z)^2 - \beta^2, \\
-    k_1(z) &amp;= \sqrt{\alpha\gamma(z)} + n_\mathrm{ice} n(z) - \beta^2,\end{split}\]</div>
-<p>the propagation time along one ray segment is given by:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}ct &amp;= \int \frac{n(z)dz}{\cos{\theta}} \\
-&amp;= \frac{n_\mathrm{ice}^2}{\sqrt{\alpha}} \left[z - z_0 \log \left(k_1(z)\right) \right]
-+ z_0 \left[\sqrt{\gamma(z)} + n_\mathrm{ice} \log\left(\sqrt{\gamma(z)} + n(z) \right)\right] + C'.\end{split}\]</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_focusing_analytic">
-<span class="sig-name descname"><span class="pre">get_focusing_analytic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_focusing_analytic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_focusing_analytic" title="Link to this definition"></a></dt>
-<dd><p>Analytic solution to calculate the focusing factor</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Note that this solution is unstable for a refracted ray trajectory
-as the focusing integral diverges when the ray trajectory becomes horizontal!</p>
-</div>
-<p>Based on the appendix of Sjoerd Bouma’s PhD thesis.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_attenuation_along_path">
-<span class="sig-name descname"><span class="pre">get_attenuation_along_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_detector_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_attenuation_along_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_attenuation_along_path" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_segments">
-<span class="sig-name descname"><span class="pre">get_path_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_path_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_segments" title="Link to this definition"></a></dt>
-<dd><p>Calculates the different segments of the path that makes up the full ray tracing path
-One segment per bottom reflection.</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>x1: tuple</strong></dt><dd><p>(y, z) coordinate of start value</p>
-</dd>
-<dt><strong>x2: tuple</strong></dt><dd><p>(y, z) coordinate of stop value</p>
-</dd>
-<dt><strong>C_0: float</strong></dt><dd><p>C_0 parameter of analytic ray path function</p>
-</dd>
-<dt><strong>reflection: int (default 0)</strong></dt><dd><p>The number of bottom reflections to consider</p>
-</dd>
-<dt><strong>reflection_case: int (default 1)</strong></dt><dd><p>Only relevant if <em class="xref py py-obj">reflection</em> is larger than 0</p>
-<ul class="simple">
-<li><p>1: rays start upwards</p></li>
-<li><p>2: rays start downwards</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl>
-<dt>segments: list</dt><dd><p>list of segments, each segment is a list with the following elements:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>x1: original x1</p></li>
-<li><p>x1 of path segment</p></li>
-<li><p>x2: original x2</p></li>
-<li><p>x2 of path segment</p></li>
-<li><p>C_0: C_0 of path segment</p></li>
-<li><p>C_1: C_1 of path segment</p></li>
-</ul>
-</div></blockquote>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle">
-<span class="sig-name descname"><span class="pre">get_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle" title="Link to this definition"></a></dt>
-<dd><p>Calculates the angle with respect to the positive z-axis of the ray path at position x</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>x: tuple</strong></dt><dd><p>(y, z) coordinate to calculate the angle</p>
-</dd>
-<dt><strong>x_start: tuple</strong></dt><dd><p>(y, z) start position of the ray</p>
-</dd>
-<dt><strong>C_0: float</strong></dt><dd><p>C_0 parameter of analytic ray path function</p>
-</dd>
-<dt><strong>reflection: int (default 0)</strong></dt><dd><p>The number of bottom reflections to consider</p>
-</dd>
-<dt><strong>reflection_case: int (default 1)</strong></dt><dd><p>Only relevant if <em class="xref py py-obj">reflection</em> is larger than 0</p>
-<ul class="simple">
-<li><p>1: rays start upwards</p></li>
-<li><p>2: rays start downwards</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_launch_angle">
-<span class="sig-name descname"><span class="pre">get_launch_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_launch_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_launch_angle" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_receive_angle">
-<span class="sig-name descname"><span class="pre">get_receive_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_receive_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_receive_angle" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_reflection_angle">
-<span class="sig-name descname"><span class="pre">get_reflection_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_reflection_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_reflection_angle" title="Link to this definition"></a></dt>
-<dd><p>Calculates the angle under which the ray reflects off the (ice-air) surface. If not reflection occurs, None is returned</p>
-<p>If reflections off the bottom (e.g. Moore’s Bay) are simulated, an array with reflection angles (one for
-each track segment) is returned (still only for reflections at the ice-air boundary).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>x1: tuple</strong></dt><dd><p>Start position (y, z) of the ray</p>
-</dd>
-<dt><strong>x2: tuple</strong></dt><dd><p>Stop position (y, z) of the ray</p>
-</dd>
-<dt><strong>C_0: float</strong></dt><dd><p>C_0 parameter of analytic ray path function</p>
-</dd>
-<dt><strong>reflection: int (default 0)</strong></dt><dd><p>The number of bottom reflections to consider</p>
-</dd>
-<dt><strong>reflection_case: int (default 1)</strong></dt><dd><p>Only relevant if <em class="xref py py-obj">reflection</em> is larger than 0
-* 1: Rays start upwards
-* 2: Rays start downwards</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path">
-<span class="sig-name descname"><span class="pre">get_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path" title="Link to this definition"></a></dt>
-<dd><p>For plotting purposes only, returns the ray tracing path between x1 and x2</p>
-<p>the result is only valid if C_0 is a solution to the ray tracing problem</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>x1: array</strong></dt><dd><p>Start position (y, z)</p>
-</dd>
-<dt><strong>x2: array</strong></dt><dd><p>Stop position (y, z)</p>
-</dd>
-<dt><strong>C_0: (float)</strong></dt><dd><p>First parameter</p>
-</dd>
-<dt><strong>n_points: integer (optional)</strong></dt><dd><p>The number of coordinates to calculate</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>yy: array</dt><dd><p>the y coordinates of the ray tracing path</p>
-</dd>
-<dt>zz: array</dt><dd><p>the z coordinates of the ray tracing path</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_reflections">
-<span class="sig-name descname"><span class="pre">get_path_reflections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_path_reflections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_reflections" title="Link to this definition"></a></dt>
-<dd><p>Calculates the ray path in the presence of reflections at the bottom
-The full path is constructed by multiple calls to the <em class="xref py py-obj">get_path()</em> function to put together the full path</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>x1: tuple</strong></dt><dd><p>(y, z) coordinate of start value</p>
-</dd>
-<dt><strong>x2: tuple</strong></dt><dd><p>(y, z) coordinate of stop value</p>
-</dd>
-<dt><strong>C_0: float</strong></dt><dd><p>C_0 parameter of analytic ray path function</p>
-</dd>
-<dt><strong>n_points: int (default 1000)</strong></dt><dd><p>The number of points of the numeric path</p>
-</dd>
-<dt><strong>reflection: int (default 0)</strong></dt><dd><p>The number of bottom reflections to consider</p>
-</dd>
-<dt><strong>reflection_case: int (default 1)</strong></dt><dd><p>Only relevant if <em class="xref py py-obj">reflection</em> is larger than 0</p>
-<ul class="simple">
-<li><p>1: rays start upwards</p></li>
-<li><p>2: rays start downwards</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>yy: array</dt><dd><p>the y coordinates of the ray tracing path</p>
-</dd>
-<dt>zz: array</dt><dd><p>the z coordinates of the ray tracing path</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.obj_delta_y">
-<span class="sig-name descname"><span class="pre">obj_delta_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logC_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.obj_delta_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.obj_delta_y" title="Link to this definition"></a></dt>
-<dd><p>Function to find solution for C0, returns distance in y between function and x2 position
-result is signed! (important to use a root finder)</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.determine_solution_type">
-<span class="sig-name descname"><span class="pre">determine_solution_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.determine_solution_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.determine_solution_type" title="Link to this definition"></a></dt>
-<dd><p>Returns the type of the solution</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>x1: 2dim np.array</strong></dt><dd><p>Start position</p>
-</dd>
-<dt><strong>x2: 2dim np.array</strong></dt><dd><p>Stop position</p>
-</dd>
-<dt><strong>C_0: float</strong></dt><dd><p>C_0 value of ray tracing solution</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>solution_type: int</dt><dd><ul class="simple">
-<li><p>1: ‘direct’</p></li>
-<li><p>2: ‘refracted’</p></li>
-<li><p>3: ‘reflected</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.find_solutions">
-<span class="sig-name descname"><span class="pre">find_solutions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reflection_case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.find_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.find_solutions" title="Link to this definition"></a></dt>
-<dd><p>This function finds all ray tracing solutions</p>
-<p>prerequesite is that x2 is above and to the right of x1, this is not a violation of universality
-because this requirement can be achieved with a simple coordinate transformation</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>x1: tuple</strong></dt><dd><p>(y,z) coordinate of start point</p>
-</dd>
-<dt><strong>x2: tuple</strong></dt><dd><p>(y,z) coordinate of stop point</p>
-</dd>
-<dt><strong>reflection: int (default 0)</strong></dt><dd><p>How many reflections off the reflective layer (bottom of ice shelf) should be simulated</p>
-</dd>
-<dt><strong>returns an array of the C_0 paramters of the solutions (the array might be empty)</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.plot_result">
-<span class="sig-name descname"><span class="pre">plot_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.plot_result"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.plot_result" title="Link to this definition"></a></dt>
-<dd><p>Helper function to visualize results</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle_from_C_0">
-<span class="sig-name descname"><span class="pre">get_angle_from_C_0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_angle_from_C_0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle_from_C_0" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle_from_logC_0">
-<span class="sig-name descname"><span class="pre">get_angle_from_logC_0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logC_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_angle_from_logC_0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_angle_from_logC_0" title="Link to this definition"></a></dt>
-<dd><p>Argument angoff is provided so that the function can be used for minimization in get_C_0_from_angle(),
-in which case angoff is the angle for which the C_0 is sought and zero is returned when it is found.</p>
-<p>C_0 has a smallest possible value at 1./self.medium.n_ice . When it approaches this value, very
-small changes in C_0 correspond to a given change in the angle. In order to prevent the root finding
-algorithm from crossing into the invalid range of C_0 at values smaller than 1./self.medium.n_ice,
-the root finding is done with the parameter logC_0 = np.log(C_0 - 1. / self.medium.n_ice), so it is
-not exactly the log of C_0 as the nome of this method implies.
-This is the same parameter transformation that is done for find_solutions()</p>
-<dl class="simple">
-<dt>input:</dt><dd><p>logC_0 = np.log(C_0 - 1. / self.medium.n_ice)
-angoff = angular offset
-z_pos  = z-position from where ray is emitted</p>
-</dd>
-<dt>output:</dt><dd><p>angle corresponding to C_0, minus offset angoff</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_0_from_angle">
-<span class="sig-name descname"><span class="pre">get_C_0_from_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">anglaunch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_C_0_from_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_C_0_from_angle" title="Link to this definition"></a></dt>
-<dd><p>Find parameter C0 corresponding to a given launch angle and z-position of a ray.
-The parameter is found by means of a root finding procedure</p>
-<dl class="simple">
-<dt>output:</dt><dd><p>Complete output of optimisation procedure
-(result.x[0] is the C0 value found by optimisation procedure)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_from_n">
-<span class="sig-name descname"><span class="pre">get_z_from_n</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_z_from_n"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_z_from_n" title="Link to this definition"></a></dt>
-<dd><p>Get z from given n - equation from get_n solved for z</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surf_skim_angle">
-<span class="sig-name descname"><span class="pre">get_surf_skim_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_surf_skim_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surf_skim_angle" title="Link to this definition"></a></dt>
-<dd><p>For a given position x1 = [x,z] and depth profile self.n(), find the angle at which a beam must be
-emitted to “skim the surface”, i.e. arrive horizontally (angle = 90 deg) at the surface;
-This is used to find the refraction zone.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>C0crit: float</dt><dd><p>C0 of critical angle</p>
-</dd>
-<dt>thcrit: float</dt><dd><p>critical angle</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.is_in_refraction_zone">
-<span class="sig-name descname"><span class="pre">is_in_refraction_zone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C0crit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.is_in_refraction_zone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.is_in_refraction_zone" title="Link to this definition"></a></dt>
-<dd><p>Find if receiver at x2 is in the refraction zone of emitter at x1. The refraction zone
-is the oposite of the shadow zone.</p>
-<p>If the C0 of the critical angle, C0crit, is provided, it will not be calculated. This is useful
-in case find_solutions() is called and C0crit is calculated in the process of determining the
-initial value for the minimization procedure.</p>
-<p>Returns True if x2 is in the refraction zone of x1 - note that the inverse statement is not
-necessarily true, i.e. when False is returned, it is possible that x2 is in the refraction
-zone nonetheless</p>
-<p>TODO:
-Why does the reference point not seem to lie exactly on the mirrored path?
-Instead of returning True/False, it might be useful to return  ycheck - x2[0] (in case x2[0]&gt;ycrit),
-which gives some idea of how close the receiver is to the refraction zone. This could be used to
-define a “gray zone’ and a ‘far zone’, in which the receiver is most definitely in the shadow zone</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_tof_for_straight_line">
-<span class="sig-name descname"><span class="pre">get_tof_for_straight_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_tof_for_straight_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_tof_for_straight_line" title="Link to this definition"></a></dt>
-<dd><p>Calculate the time of flight for a hypothatical ray travelling from x1 to x2 in a straight line.
-Such an array in general is not a solution consistant with Fermat’s principle. It is however
-useful as a reference time or approximation for signals not explicable with geometric optics.</p>
-<dl class="simple">
-<dt>output:</dt><dd><p>time of flight for a ray travelling straight from x1 to x2</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surface_pulse">
-<span class="sig-name descname"><span class="pre">get_surface_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infirn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'critical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chdraw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.get_surface_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_surface_pulse" title="Link to this definition"></a></dt>
-<dd><p>Calculate the time for a ray to travel from x1 to the surface and arriving at the surface
-with (a) critical angle or (b) Brewster angle, propagating in a straight line along the surface
-in air (n=1) in the firn at z=0 (n=n(0, self.medium.n_ice, self.medium.delta_n, self.medium.z_0)) and then reaching the receiver by returning into the
-firn just at the point to reach the receiver at x2, entering the firn at the surface at the same
-angle it reached the surface from x1..</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>x1, x2: arrays</strong></dt><dd><p>Arrays with x and z positions of emitter x1 and receiver x2</p>
-</dd>
-<dt><strong>infirn: Boolean.</strong></dt><dd><p>Set to True if surface ray travels in the firn, set to False (default) if it travels
-in air.</p>
-</dd>
-<dt><strong>angle:  String</strong></dt><dd><p>Specifying angle at which ray reaches/leaves the surface. Can be ‘Brewster’ or ‘critical’
-If neither of these is chosen, a warning is printed and angle is set to ‘critical’</p>
-</dd>
-<dt><strong>chdraw: string or None</strong></dt><dd><p>If None, do not draw the path of the ray. If the ray should be drawn, a string consistent with
-the matplotlib.pyplot library has to be specified, e.g. ‘r:’ to draw a dotted red line.
-It is assumed that an appropriate figure on which to draw the ray has been created and set as
-current figure by the user before calling this method.</p>
-</dd>
-<dt><strong>label:  Label for plot</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.angular_diff">
-<span class="sig-name descname"><span class="pre">angular_diff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_refl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_refl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pulser_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receiver_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ipulssol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">irxsol</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D.angular_diff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.angular_diff" title="Link to this definition"></a></dt>
-<dd><p>This is a helper function to find a ray that is subject to specular reflection (no transmission) at the
-ice-water interface, e.g. for Moore’s Bay. For a (virtual) emitter positioned at [x_refl,z_refl], it finds the
-emission angles such that the rays hit positions pulser_pos and receiver_pos. ipulssol = 0 or 1, respectively
-means that pulser_pos is hit directly or by means of reflection at the surface, respectively.
-irxsol is the equivalent parameter for receiver_pos.</p>
-<p>angular_diff can be used as the function to find a root of in the following fashion:</p>
-<p>result = optimize.root(raytr.angular_diff, x0=x_refl_start, args=(z_refl,pulser_pos,receiver_pos,ipulssol,irxsol))</p>
-<p>Then get the final value by x_refl = result.x[0] (z_refl is fixed)</p>
-<p>The idea is to treat the reflection point as a virtual emitter and then find the x-position at the predefined
-depth z_refl, for which the emisssion angles to pulser_pos and receiver_pos are the same (i.e. the output
-of angular_diff is zero). The x-position would be output “result” ofoptimize.root() above.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>result: float</dt><dd><p>Is zero if the angles (w.r.t. the vertical) of rays emitted from [x_refl,z_refl] to
-positions pulser_pos and receiver_pos are the same or greater than zero, if this is not the case.
-For exact defintion, see “result” in code below</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.apply_propagation_effects">
-<span class="sig-name descname"><span class="pre">apply_propagation_effects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">efield</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.apply_propagation_effects" title="Link to this definition"></a></dt>
-<dd><p>Apply propagation effects to the electric field
-Note that the 1/r weakening of the electric field is already accounted for in the signal generation</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>efield: ElectricField object</strong></dt><dd><p>The electric field that the effects should be applied to</p>
-</dd>
-<dt><strong>i_solution: int</strong></dt><dd><p>Index of the raytracing solution the propagation effects should be based on</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>efield: ElectricField object</dt><dd><p>The modified ElectricField object</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_attenuation">
-<span class="sig-name descname"><span class="pre">get_attenuation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_detector_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_attenuation" title="Link to this definition"></a></dt>
-<dd><p>calculates the signal attenuation due to attenuation in the medium (ice)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
-starts at zero</p>
-</dd>
-<dt><strong>frequency: array of floats</strong></dt><dd><p>the frequencies for which the attenuation is calculated</p>
-</dd>
-<dt><strong>max_detector_freq: float or None</strong></dt><dd><p>the maximum frequency of the final detector sampling
-(the simulation is internally run with a higher sampling rate, but the relevant part of the attenuation length
-calculation is the frequency interval visible by the detector, hence a finer calculation is more important)</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>attenuation: array of floats</dt><dd><p>the fraction of the signal that reaches the observer
-(only ice attenuation, the 1/R signal falloff not considered here)</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_config">
-<span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_config" title="Link to this definition"></a></dt>
-<dd><p>Function that returns the configuration currently used by the raytracer</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_launch_vector">
-<span class="sig-name descname"><span class="pre">get_launch_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_launch_vector" title="Link to this definition"></a></dt>
-<dd><p>calculates the launch vector (in 3D) of solution iS</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
-starts at zero</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>launch_vector: 3dim np.array</dt><dd><p>the launch vector</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_number_of_raytracing_solutions">
-<span class="sig-name descname"><span class="pre">get_number_of_raytracing_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_number_of_raytracing_solutions" title="Link to this definition"></a></dt>
-<dd><p>Function that returns the maximum number of raytracing solutions that can exist between each given
-pair of start and end points</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_number_of_solutions">
-<span class="sig-name descname"><span class="pre">get_number_of_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_number_of_solutions" title="Link to this definition"></a></dt>
-<dd><p>returns the number of solutions</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_output_parameters">
-<span class="sig-name descname"><span class="pre">get_output_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_output_parameters" title="Link to this definition"></a></dt>
-<dd><p>Returns a list with information about parameters to include in the output data structure that are specific
-to this raytracer</p>
-<p>! be sure that the first entry is specific to your raytracer !</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>list with entries of form [{‘name’: str, ‘ndim’: int}]</dt><dd><p>! be sure that the first entry is specific to your raytracer !
-‘name’: Name of the new parameter to include in the data structure
-‘ndim’: Dimension of the data structure for the parameter</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_raytracing_output">
-<span class="sig-name descname"><span class="pre">get_raytracing_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_raytracing_output" title="Link to this definition"></a></dt>
-<dd><p>Write parameters that are specific to this raytracer into the output data.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>i_solution: int</strong></dt><dd><p>The index of the raytracing solution</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>dictionary with the keys matching the parameter names specified in get_output_parameters and the values being</dt><dd></dd>
-<dt>the results from the raytracing</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_receive_vector">
-<span class="sig-name descname"><span class="pre">get_receive_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_receive_vector" title="Link to this definition"></a></dt>
-<dd><p>calculates the receive vector (in 3D) of solution iS</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
-starts at zero</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>receive_vector: 3dim np.array</dt><dd><p>the receive vector</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_results">
-<span class="sig-name descname"><span class="pre">get_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_results" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_solution_type">
-<span class="sig-name descname"><span class="pre">get_solution_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_solution_type" title="Link to this definition"></a></dt>
-<dd><p>returns the type of the solution</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
-starts at zero</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>solution_type: int</dt><dd><p>integer corresponding to the types in the dictionary solution_types</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.has_solution">
-<span class="sig-name descname"><span class="pre">has_solution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.has_solution" title="Link to this definition"></a></dt>
-<dd><p>checks if ray tracing solution exists</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.reset_solutions">
-<span class="sig-name descname"><span class="pre">reset_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.reset_solutions" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_config">
-<span class="sig-name descname"><span class="pre">set_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_config" title="Link to this definition"></a></dt>
-<dd><p>Function to change the configuration file used by the raytracer</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>config: dict</strong></dt><dd><p>The new configuration settings</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_start_and_end_point">
-<span class="sig-name descname"><span class="pre">set_start_and_end_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.set_start_and_end_point" title="Link to this definition"></a></dt>
-<dd><p>Set the start and end points between which raytracing solutions shall be found.</p>
-<p>If the start and end points are identical to those of the previous ray tracing,
-the existing solutions are kept and <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.find_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.find_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_solutions</span></code></a> will not recalculate them
-(relevant e.g. if several showers are simulated at the same position).
-Call <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a> before this function to force a recalculation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>x1: np.array of shape (3,), default unit</strong></dt><dd><p>start point of the ray</p>
-</dd>
-<dt><strong>x2: np.array of shape (3,), default unit</strong></dt><dd><p>stop point of the ray</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>geometry_changed: bool</dt><dd><p>False if the start and end points are unchanged with respect to the previous
-ray tracing (in which case the existing solutions are kept), True otherwise.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.use_optional_function">
-<span class="sig-name descname"><span class="pre">use_optional_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.use_optional_function" title="Link to this definition"></a></dt>
-<dd><p>Use optional function which may be different for each ray tracer.
-If the name of the function is not present for the ray tracer this function does nothing.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>function_name: string</strong></dt><dd><p>name of the function to use</p>
-</dd>
-<dt><strong>*args: type of the argument required by function</strong></dt><dd><p>all the neseccary arguments for the function separated by a comma</p>
-</dd>
-<dt><strong>**kwargs: type of keyword argument of function</strong></dt><dd><p>all all the neseccary keyword arguments for the function in the
-form of key=argument and separated by a comma</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use_optional_function</span><span class="p">(</span><span class="s1">&#39;set_shower_axis&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span>
-<span class="n">use_optional_function</span><span class="p">(</span><span class="s1">&#39;set_iterative_sphere_sizes&#39;</span><span class="p">,</span><span class="n">sphere_sizes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">aray</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">.5</span><span class="p">]))</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">ray_tracing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reflections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_tracing_2D_kwards</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cpp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compile_numba</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing" title="Link to this definition"></a></dt>
@@ -1635,65 +678,53 @@ ray tracing solutions in 3D for two arbitrary points x1 and x2</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_config</span></code></a>()</p></td>
 <td><p>Function that returns the configuration currently used by the raytracer</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_effective_index_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_effective_index_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_effective_index_birefringence</span></code></a>(direction, ...)</p></td>
-<td><p>Function to find the analytical solutions for the effective refractive indices.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_focusing</span></code></a>(iS[, dz, limit, analytic])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_focusing</span></code></a>(iS[, dz, limit, analytic])</p></td>
 <td><p>Calculate the focusing effect in the medium</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fresnel_coefficients</span></code></a>(iS)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fresnel_coefficients</span></code></a>(iS)</p></td>
 <td><p>Calculates the fresnel coefficients for all interactions with the ice-air surface of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_launch_vector</span></code></a>(iS)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_launch_vector</span></code></a>(iS)</p></td>
 <td><p>Calculates the launch vector (in 3D) of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_raytracing_solutions</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_raytracing_solutions</span></code></a>()</p></td>
 <td><p>Function that returns the maximum number of raytracing solutions that can exist between each given pair of start and end points</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_solutions</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_solutions</span></code></a>()</p></td>
 <td><p>returns the number of solutions</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_parameters</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_parameters</span></code></a>()</p></td>
 <td><p>Returns a list with information about parameters to include in the output data structure that are specific to this raytracer</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(iS[, n_points])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(iS[, n_points])</p></td>
 <td><p>helper function that returns the 3D ray tracing path of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_length</span></code></a>(iS[, analytic])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_length</span></code></a>(iS[, analytic])</p></td>
 <td><p>Calculates the path length of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_properties_birefringence</span></code></a>(i_solution)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_properties_birefringence</span></code></a>(i_solution)</p></td>
 <td><p>Function to extract important information about the birefringent propagation along the path.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_polarization_birefringence</span></code></a>(N1, N2, ...)</p></td>
-<td><p>Function for the normalized e-field vector of a wave for the direction of propagation in spherical coordinates with special cases.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence_simple" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence_simple"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_polarization_birefringence_simple</span></code></a>(n, ...)</p></td>
-<td><p>Function for the normalized e-field vector of a wave for the direction of propagation in cartesian coordinates without special cases.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pulse_propagation_birefringence</span></code></a>(pulse, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pulse_propagation_birefringence</span></code></a>(pulse, ...)</p></td>
 <td><p>Function for the time trace propagation according to the polarization change due to birefringence.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raytracing_output</span></code></a>(i_solution)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raytracing_output</span></code></a>(i_solution)</p></td>
 <td><p>Get the output of the ray tracing for a specific solution</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_receive_vector</span></code></a>(iS)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_receive_vector</span></code></a>(iS)</p></td>
 <td><p>Calculates the receive vector (in 3D) of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reflection_angle</span></code></a>(iS)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reflection_angle</span></code></a>(iS)</p></td>
 <td><p>Calculates the angle of reflection at the surface (in case of a reflected ray)</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solution_type</span></code></a>(iS)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solution_type</span></code></a>(iS)</p></td>
 <td><p>Returns the type of the solution</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
 <td><p>Calculates the travel time of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
 <td><p>checks if ray tracing solution exists</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.on_sky_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.on_sky_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_sky_birefringence</span></code></a>(theta, phi, polarization)</p></td>
-<td><p>Function for the normalized e-field vector from cartesian to spherical coordinates.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a>()</p></td>
 <td><p>Resets the raytracing solutions back to None.</p></td>
@@ -1791,65 +822,53 @@ If None, numba is used whenever it is available.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_config</span></code></a>()</p></td>
 <td><p>Function that returns the configuration currently used by the raytracer</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_effective_index_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_effective_index_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_effective_index_birefringence</span></code></a>(direction, ...)</p></td>
-<td><p>Function to find the analytical solutions for the effective refractive indices.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_focusing</span></code></a>(iS[, dz, limit, analytic])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_focusing</span></code></a>(iS[, dz, limit, analytic])</p></td>
 <td><p>Calculate the focusing effect in the medium</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fresnel_coefficients</span></code></a>(iS)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fresnel_coefficients</span></code></a>(iS)</p></td>
 <td><p>Calculates the fresnel coefficients for all interactions with the ice-air surface of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_launch_vector</span></code></a>(iS)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_launch_vector</span></code></a>(iS)</p></td>
 <td><p>Calculates the launch vector (in 3D) of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_raytracing_solutions</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_raytracing_solutions</span></code></a>()</p></td>
 <td><p>Function that returns the maximum number of raytracing solutions that can exist between each given pair of start and end points</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_solutions</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_solutions</span></code></a>()</p></td>
 <td><p>returns the number of solutions</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_parameters</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_parameters</span></code></a>()</p></td>
 <td><p>Returns a list with information about parameters to include in the output data structure that are specific to this raytracer</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(iS[, n_points])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(iS[, n_points])</p></td>
 <td><p>helper function that returns the 3D ray tracing path of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_length</span></code></a>(iS[, analytic])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_length</span></code></a>(iS[, analytic])</p></td>
 <td><p>Calculates the path length of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_properties_birefringence</span></code></a>(i_solution)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_properties_birefringence</span></code></a>(i_solution)</p></td>
 <td><p>Function to extract important information about the birefringent propagation along the path.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_polarization_birefringence</span></code></a>(N1, N2, ...)</p></td>
-<td><p>Function for the normalized e-field vector of a wave for the direction of propagation in spherical coordinates with special cases.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence_simple" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence_simple"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_polarization_birefringence_simple</span></code></a>(n, ...)</p></td>
-<td><p>Function for the normalized e-field vector of a wave for the direction of propagation in cartesian coordinates without special cases.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pulse_propagation_birefringence</span></code></a>(pulse, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pulse_propagation_birefringence</span></code></a>(pulse, ...)</p></td>
 <td><p>Function for the time trace propagation according to the polarization change due to birefringence.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raytracing_output</span></code></a>(i_solution)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raytracing_output</span></code></a>(i_solution)</p></td>
 <td><p>Get the output of the ray tracing for a specific solution</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_receive_vector</span></code></a>(iS)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_receive_vector</span></code></a>(iS)</p></td>
 <td><p>Calculates the receive vector (in 3D) of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reflection_angle</span></code></a>(iS)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reflection_angle</span></code></a>(iS)</p></td>
 <td><p>Calculates the angle of reflection at the surface (in case of a reflected ray)</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solution_type</span></code></a>(iS)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solution_type</span></code></a>(iS)</p></td>
 <td><p>Returns the type of the solution</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
 <td><p>Calculates the travel time of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
 <td><p>checks if ray tracing solution exists</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.on_sky_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.on_sky_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_sky_birefringence</span></code></a>(theta, phi, polarization)</p></td>
-<td><p>Function for the normalized e-field vector from cartesian to spherical coordinates.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a>()</p></td>
 <td><p>Resets the raytracing solutions back to None.</p></td>
@@ -1965,124 +984,6 @@ starts at zero</p>
 <dt><strong>iS: int</strong></dt><dd><p>ray tracing solution</p>
 </dd>
 <dt><strong>n_points: int</strong></dt><dd><p>number of points of path</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_effective_index_birefringence">
-<span class="sig-name descname"><span class="pre">get_effective_index_birefringence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_effective_index_birefringence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_effective_index_birefringence" title="Link to this definition"></a></dt>
-<dd><p>Function to find the analytical solutions for the effective refractive indices.
-The calculations are described here: <a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y">https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>direction: numpy.array</strong></dt><dd><p>Propagation direction of the wave</p>
-</dd>
-<dt><strong>nx: float</strong></dt><dd><p>The index of refraction in the x-direction</p>
-</dd>
-<dt><strong>ny: float</strong></dt><dd><p>The index of refraction in the y-direction</p>
-</dd>
-<dt><strong>nz: float</strong></dt><dd><p>The index of refraction in the z-direction</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>output format: np.array([n1, n2])</dt><dd></dd>
-<dt>meaning: effective refractive indices</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence_simple">
-<span class="sig-name descname"><span class="pre">get_polarization_birefringence_simple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_polarization_birefringence_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence_simple" title="Link to this definition"></a></dt>
-<dd><p>Function for the normalized e-field vector of a wave for the direction of propagation in cartesian coordinates without special cases.
-For the function with special cases see get_polarization_birefringence.
-For a birefringent medium, the e-field vector is calculated from the diagonalized dielectric tensor and the propagation direction.
-The calculations are described here: <a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y">https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>n: float</strong></dt><dd><p>The effective index of refraction in the propagation direction calculated by get_effective_index_birefringence</p>
-</dd>
-<dt><strong>direction: numpy.array</strong></dt><dd><p>Propagation direction of the wave</p>
-</dd>
-<dt><strong>nx: float</strong></dt><dd><p>The index of refraction in the x-direction</p>
-</dd>
-<dt><strong>ny: float</strong></dt><dd><p>The index of refraction in the y-direction</p>
-</dd>
-<dt><strong>nz: float</strong></dt><dd><p>The index of refraction in the z-direction</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>efield</strong><span class="classifier">np.ndarray of shape (3,)</span></dt><dd><p>normalized e-field vector in cartesian coordinates</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence">
-<span class="sig-name descname"><span class="pre">get_polarization_birefringence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">N1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_polarization_birefringence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_polarization_birefringence" title="Link to this definition"></a></dt>
-<dd><p>Function for the normalized e-field vector of a wave for the direction of propagation in spherical coordinates with special cases.
-For a birefringent medium, the e-field vector is calculated from the diagonalized dielectric tensor and the propagation direction.
-The calculations are described here: <a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y">https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>N1: float</strong></dt><dd><p>The first effective index of refraction in the propagation direction calculated by get_effective_index_birefringence</p>
-</dd>
-<dt><strong>N2: float</strong></dt><dd><p>The second effective index of refraction in the propagation direction calculated by get_effective_index_birefringence</p>
-</dd>
-<dt><strong>direction: numpy.array</strong></dt><dd><p>Propagation direction of the wave</p>
-</dd>
-<dt><strong>nx: float</strong></dt><dd><p>The index of refraction in the x-direction</p>
-</dd>
-<dt><strong>ny: float</strong></dt><dd><p>The index of refraction in the y-direction</p>
-</dd>
-<dt><strong>nz: float</strong></dt><dd><p>The index of refraction in the z-direction</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>efield</strong><span class="classifier">np.ndarray of shape (2, 3)</span></dt><dd><p>normalized e-field vector in spherical coordinates for both birefringence solutions</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.on_sky_birefringence">
-<span class="sig-name descname"><span class="pre">on_sky_birefringence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polarization</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.on_sky_birefringence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.on_sky_birefringence" title="Link to this definition"></a></dt>
-<dd><p>Function for the normalized e-field vector from cartesian to spherical coordinates.
-The function does the same as the following radiotool functions, only faster:
-from radiotools import coordinatesystems
-cs = coordinatesystems.cstrafo(theta, phi)
-sky = cs.transform_from_ground_to_onsky(p)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>theta: float</strong></dt><dd><p>Zenith angle of the propagation direction</p>
-</dd>
-<dt><strong>phi: float</strong></dt><dd><p>Azimuth angle of the propagation direction</p>
-</dd>
-<dt><strong>polarization: np.array([px, py, pz])</strong></dt><dd><p>Normalized e-field vector in cartesian coordinates</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>efield</strong><span class="classifier">np.ndarray of shape (3,)</span></dt><dd><p>normalized e-field vector in spherical coordinates</p>
 </dd>
 </dl>
 </dd>
@@ -2276,7 +1177,7 @@ starts at zero</p>
 </dl>
 <p class="rubric">Notes</p>
 <p>The analytic solution is based on the equation in the appendix of Sjoerd Bouma’s PhD thesis.
-For more details, see there, or see the notes of <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length_analytic" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_path_length_analytic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ray_tracing_2D.get_path_length_analytic</span></code></a>.</p>
+For more details, see there, or see the notes of <code class="docutils literal notranslate"><span class="pre">ray_tracing_2D.get_path_length_analytic</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2302,7 +1203,7 @@ starts at zero</p>
 </dl>
 <p class="rubric">Notes</p>
 <p>The analytic solution is based on the equation in the appendix of Sjoerd Bouma’s PhD thesis.
-For more details, see there, or see the notes of <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time_analytic" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.get_travel_time_analytic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ray_tracing_2D.get_travel_time_analytic</span></code></a>.</p>
+For more details, see there, or see the notes of <code class="docutils literal notranslate"><span class="pre">ray_tracing_2D.get_travel_time_analytic</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2379,64 +1280,9 @@ for air-to-ice trajectories.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config">
-<span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config" title="Link to this definition"></a></dt>
-<dd><p>Function that returns the configuration currently used by the raytracer</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions">
-<span class="sig-name descname"><span class="pre">get_number_of_raytracing_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="Link to this definition"></a></dt>
-<dd><p>Function that returns the maximum number of raytracing solutions that can exist between each given
-pair of start and end points</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions">
-<span class="sig-name descname"><span class="pre">get_number_of_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="Link to this definition"></a></dt>
-<dd><p>returns the number of solutions</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_ray_path">
 <span class="sig-name descname"><span class="pre">get_ray_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_ray_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_ray_path" title="Link to this definition"></a></dt>
 <dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_results">
-<span class="sig-name descname"><span class="pre">get_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_results" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution">
-<span class="sig-name descname"><span class="pre">has_solution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="Link to this definition"></a></dt>
-<dd><p>checks if ray tracing solution exists</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function">
-<span class="sig-name descname"><span class="pre">use_optional_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="Link to this definition"></a></dt>
-<dd><p>Use optional function which may be different for each ray tracer.
-If the name of the function is not present for the ray tracer this function does nothing.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>function_name: string</strong></dt><dd><p>name of the function to use</p>
-</dd>
-<dt><strong>*args: type of the argument required by function</strong></dt><dd><p>all the neseccary arguments for the function separated by a comma</p>
-</dd>
-<dt><strong>**kwargs: type of keyword argument of function</strong></dt><dd><p>all all the neseccary keyword arguments for the function in the
-form of key=argument and separated by a comma</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use_optional_function</span><span class="p">(</span><span class="s1">&#39;set_shower_axis&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span>
-<span class="n">use_optional_function</span><span class="p">(</span><span class="s1">&#39;set_iterative_sphere_sizes&#39;</span><span class="p">,</span><span class="n">sphere_sizes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">aray</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">.5</span><span class="p">]))</span>
-</pre></div>
-</div>
-</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters">
@@ -2523,6 +1369,61 @@ If None, the default config settings will be applied</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config">
+<span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config" title="Link to this definition"></a></dt>
+<dd><p>Function that returns the configuration currently used by the raytracer</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions">
+<span class="sig-name descname"><span class="pre">get_number_of_raytracing_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="Link to this definition"></a></dt>
+<dd><p>Function that returns the maximum number of raytracing solutions that can exist between each given
+pair of start and end points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions">
+<span class="sig-name descname"><span class="pre">get_number_of_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="Link to this definition"></a></dt>
+<dd><p>returns the number of solutions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_results">
+<span class="sig-name descname"><span class="pre">get_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_results" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution">
+<span class="sig-name descname"><span class="pre">has_solution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="Link to this definition"></a></dt>
+<dd><p>checks if ray tracing solution exists</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function">
+<span class="sig-name descname"><span class="pre">use_optional_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="Link to this definition"></a></dt>
+<dd><p>Use optional function which may be different for each ray tracer.
+If the name of the function is not present for the ray tracer this function does nothing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>function_name: string</strong></dt><dd><p>name of the function to use</p>
+</dd>
+<dt><strong>*args: type of the argument required by function</strong></dt><dd><p>all the neseccary arguments for the function separated by a comma</p>
+</dd>
+<dt><strong>**kwargs: type of keyword argument of function</strong></dt><dd><p>all all the neseccary keyword arguments for the function in the
+form of key=argument and separated by a comma</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use_optional_function</span><span class="p">(</span><span class="s1">&#39;set_shower_axis&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span>
+<span class="n">use_optional_function</span><span class="p">(</span><span class="s1">&#39;set_iterative_sphere_sizes&#39;</span><span class="p">,</span><span class="n">sphere_sizes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">aray</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">.5</span><span class="p">]))</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -2531,7 +1432,7 @@ If None, the default config settings will be applied</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioMC.SignalProp.html" class="btn btn-neutral float-left" title="NuRadioMC.SignalProp package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer.html" class="btn btn-neutral float-left" title="NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="NuRadioMC.SignalProp.directRayTracing.html" class="btn btn-neutral float-right" title="NuRadioMC.SignalProp.directRayTracing module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

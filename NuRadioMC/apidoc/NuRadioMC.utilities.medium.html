@@ -478,6 +478,10 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.html">NuRadioMC.SignalProp.AnalyticRayTracingImpl package</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.SignalProp.analyticraytracing.html">NuRadioMC.SignalProp.analyticraytracing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.SignalProp.directRayTracing.html">NuRadioMC.SignalProp.directRayTracing module</a></li>
@@ -501,6 +505,7 @@
 <li class="toctree-l4 current"><a class="reference internal" href="NuRadioMC.utilities.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.Veff.html">NuRadioMC.utilities.Veff module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.attenuation.html">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.birefringence.html">NuRadioMC.utilities.birefringence module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.cross_sections.html">NuRadioMC.utilities.cross_sections module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.dump_hdf5.html">NuRadioMC.utilities.dump_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.earth_attenuation.html">NuRadioMC.utilities.earth_attenuation module</a></li>
@@ -1363,13 +1368,21 @@ ice model used for RadioPropa.</p>
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.birefringence_medium">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">birefringence_medium</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bir_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'southpole_A'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#birefringence_medium"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.birefringence_medium" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence" title="NuRadioMC.utilities.medium_base.IceModelBirefringence"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelBirefringence</span></code></a></p>
-<p>initiaion of a birefringent ice model with an interpolation of the data as described in:
-<a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y">https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</a></p>
+<p>Birefringent medium</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>bire_model: string</strong></dt><dd><p>choose the interpolation to fit the measured refractive index data
-options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description</p>
+<dt><strong>bir_model</strong><span class="classifier">str</span></dt><dd><p>Which birefringent medium to use. Options are:</p>
+<ul class="simple">
+<li><p>southpole_A - assumes a constant index of refraction at shallow and deep depths</p></li>
+<li><p>southpole_B - assumes a converging index of refraction at shallow depths</p></li>
+<li><p>southpole_C - no birefringence as nx = ny = nz</p></li>
+<li><p>southpole_D - assumes a constant average over all depths</p></li>
+<li><p>southpole_E - assumes ny and nz to be the same value at the average of the two</p></li>
+<li><p>greenland_A - most reasonable interpolation</p></li>
+<li><p>greenland_B - assumes ny and nx to be the same value at the average of the two</p></li>
+<li><p>greenland_C - assumes ny and nx to diverge more than the data indicates</p></li>
+</ul>
 </dd>
 </dl>
 </dd>
@@ -1400,6 +1413,18 @@ options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadi
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>The southpole models A, B, D, E were presented in the paper: N. Heyer and C. Glaser,
+First-principle calculation of birefringence effects for in-ice
+radio detection of neutrinos, eprint: 2205.06169.</p>
+<p>The Greenland ice models are based on the data in Aguilar, J. A. and others,
+Radiofrequency Ice Dielectric Measurements at Summit Station, Greenland, eprint: 2212.10285</p>
+<p>In order to use the data, spline interpolated functions were fitted to the data points.
+As the data only cover a certain depth range there is room for interpretation on
+how to extrapolate the data to more shallow and deeper depth regions.
+The file IceModel_interpolation.py can be used to adjust the interpolation method and come up with new ice models.
+As the data was taken at the South Pole, the models created with this data set should be called
+“birefringence_southpole_X.npy”, where the X marks the model identifier.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.birefringence_medium.add_reflective_bottom">
 <span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.birefringence_medium.add_reflective_bottom" title="Link to this definition"></a></dt>

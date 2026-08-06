@@ -14,6 +14,7 @@ Submodules
 
    NuRadioMC.utilities.Veff
    NuRadioMC.utilities.attenuation
+   NuRadioMC.utilities.birefringence
    NuRadioMC.utilities.cross_sections
    NuRadioMC.utilities.dump_hdf5
    NuRadioMC.utilities.earth_attenuation

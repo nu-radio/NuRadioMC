@@ -479,6 +479,10 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.AnalyticRayTracingImpl.html">NuRadioMC.SignalProp.AnalyticRayTracingImpl package</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.analyticraytracing.html">NuRadioMC.SignalProp.analyticraytracing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.directRayTracing.html">NuRadioMC.SignalProp.directRayTracing module</a></li>
@@ -502,6 +506,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.Veff.html">NuRadioMC.utilities.Veff module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.attenuation.html">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.birefringence.html">NuRadioMC.utilities.birefringence module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.cross_sections.html">NuRadioMC.utilities.cross_sections module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.dump_hdf5.html">NuRadioMC.utilities.dump_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.earth_attenuation.html">NuRadioMC.utilities.earth_attenuation module</a></li>
@@ -718,13 +723,13 @@ with an exponential refractive index can be calculated analytically using the op
 </pre></div>
 </div>
 </div></blockquote>
-<p>Once GSLDIR is configured, the user can also compile it by hand executing the following instruction in the SignalProp/CPPAnalyticRayTracing folder:</p>
+<p>Once GSLDIR is configured, the user can also compile it by hand executing the following instruction in the SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing folder:</p>
 <blockquote>
 <div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>setup.py<span class="w"> </span>build_ext<span class="w"> </span>--inplace
 </pre></div>
 </div>
 </div></blockquote>
-<p>The C++ analytic ray tracer can also be used standalone, using the <code class="docutils literal notranslate"><span class="pre">MakeFile</span></code> included. For instructions, please refer to the <code class="docutils literal notranslate"><span class="pre">README</span></code> included in the <code class="docutils literal notranslate"><span class="pre">NuRadioMC/SignalProp/CPPAnalyticRayTracing</span></code> directory.</p>
+<p>The C++ analytic ray tracer can also be used standalone, using the <code class="docutils literal notranslate"><span class="pre">MakeFile</span></code> included. For instructions, please refer to the <code class="docutils literal notranslate"><span class="pre">README</span></code> included in the <code class="docutils literal notranslate"><span class="pre">NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing</span></code> directory.</p>
 </section>
 </section>
 <section id="radiopropa-numerical-ray-tracer-in-development">
@@ -747,7 +752,8 @@ with an exponential refractive index can be calculated analytically using the op
 <p>The following code shows how to perform a analytic ray tracing and extract information on the solutions, such as trajectory, travel time, or attenuation.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp</span><span class="w"> </span><span class="kn">import</span> <span class="n">propagation</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.analyticraytracing</span><span class="w"> </span><span class="kn">import</span> <span class="n">solution_types</span><span class="p">,</span> <span class="n">ray_tracing_2D</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.propagation</span><span class="w"> </span><span class="kn">import</span> <span class="n">solution_types</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.analyticraytracing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ray_tracing_2D</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">medium</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>

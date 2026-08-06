@@ -479,6 +479,10 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.html">NuRadioMC.SignalProp.AnalyticRayTracingImpl package</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioMC.SignalProp.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.SignalProp.analyticraytracing.html">NuRadioMC.SignalProp.analyticraytracing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.SignalProp.directRayTracing.html">NuRadioMC.SignalProp.directRayTracing module</a></li>
@@ -502,6 +506,7 @@
 <li class="toctree-l4 current"><a class="reference internal" href="NuRadioMC.utilities.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.Veff.html">NuRadioMC.utilities.Veff module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.attenuation.html">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.birefringence.html">NuRadioMC.utilities.birefringence module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.cross_sections.html">NuRadioMC.utilities.cross_sections module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.dump_hdf5.html">NuRadioMC.utilities.dump_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.earth_attenuation.html">NuRadioMC.utilities.earth_attenuation module</a></li>
@@ -1042,7 +1047,7 @@ ice model used for RadioPropa.</p>
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelBirefringence">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">IceModelBirefringence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bir_model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelBirefringence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelBirefringence" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
-<p>predefined birefringence ice model (to inherit from) including different indieces of refraction for differnt directions</p>
+<p>predefined birefringence ice model (to inherit from) including different indices of refraction for different directions</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -1069,13 +1074,15 @@ ice model used for RadioPropa.</p>
 </tr>
 </tbody>
 </table>
-<p>initiaion of a birefringent ice model with an interpolation of the data as described in:
-<a class="reference external" href="https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y">https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</a></p>
+<p>Initialize birefringent ice model from data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>bire_model: string</strong></dt><dd><p>choose the interpolation to fit the measured refractive index data
-options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description</p>
+<dt><strong>bir_model</strong><span class="classifier">array</span></dt><dd><p>(3, 3)-shaped array, where the first axis iterates over the three orthogonal directions,
+and the second axis contains the ‘t, c and k’ (knots, coefficients and degree)
+of the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.UnivariateSpline.html#scipy.interpolate.UnivariateSpline" title="(in SciPy v1.18.0)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.interpolate.UnivariateSpline</span></code></a> object for each direction. See the
+<a class="reference internal" href="../pages/Manuals/icemodels.html#birefringence-ice-models"><span class="std std-ref">birefringent ice models manual</span></a>
+for more details.</p>
 </dd>
 </dl>
 </dd>

@@ -6,6 +6,14 @@ NuRadioMC.SignalProp package
    :undoc-members:
    :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   NuRadioMC.SignalProp.AnalyticRayTracingImpl
+
 Submodules
 ----------
 

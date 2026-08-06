@@ -475,6 +475,10 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.AnalyticRayTracingImpl.html">NuRadioMC.SignalProp.AnalyticRayTracingImpl package</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html">NuRadioMC.SignalProp.analyticraytracing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.directRayTracing.html">NuRadioMC.SignalProp.directRayTracing module</a></li>
@@ -498,6 +502,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.Veff.html">NuRadioMC.utilities.Veff module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.birefringence.html">NuRadioMC.utilities.birefringence module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html">NuRadioMC.utilities.cross_sections module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.dump_hdf5.html">NuRadioMC.utilities.dump_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html">NuRadioMC.utilities.earth_attenuation module</a></li>
@@ -817,7 +822,7 @@
         <span class="k">if</span> <span class="n">use_cpp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">cpp_available</span><span class="p">:</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;C++ raytracer was explicitly requested, but is not available (i.e. on-the-fly compilation failed). &#39;</span>
                    <span class="s1">&#39;Abort.... ! Either fix the compilation or set use_cpp to False. &#39;</span>
-                   <span class="s1">&#39;For compilation see NuRadioMC/SignalProp/install.sh resp. NuRadioMC/SignalProp/CPPAnalyticRayTracing.&#39;</span><span class="p">)</span>
+                   <span class="s1">&#39;For compilation see NuRadioMC/SignalProp/AnalyticRayTracingImpl/install.sh resp. NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing.&#39;</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 

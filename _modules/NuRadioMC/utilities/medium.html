@@ -475,6 +475,10 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.AnalyticRayTracingImpl.html">NuRadioMC.SignalProp.AnalyticRayTracingImpl package</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html">NuRadioMC.SignalProp.analyticraytracing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.directRayTracing.html">NuRadioMC.SignalProp.directRayTracing module</a></li>
@@ -498,6 +502,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.Veff.html">NuRadioMC.utilities.Veff module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.birefringence.html">NuRadioMC.utilities.birefringence module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html">NuRadioMC.utilities.cross_sections module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.dump_hdf5.html">NuRadioMC.utilities.dump_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html">NuRadioMC.utilities.earth_attenuation module</a></li>
@@ -658,6 +663,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+
 <span class="n">logger</span> <span class="o">=</span> <span class="n">medium_base</span><span class="o">.</span><span class="n">logger</span>
 
 <span class="k">try</span><span class="p">:</span>
@@ -764,9 +771,48 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">birefringence_medium</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelBirefringence</span><span class="p">):</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bir_model</span><span class="o">=</span><span class="s1">&#39;southpole_A&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Birefringent medium</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bir_model : str</span>
+<span class="sd">            Which birefringent medium to use. Options are:</span>
+
+<span class="sd">            * southpole_A - assumes a constant index of refraction at shallow and deep depths</span>
+<span class="sd">            * southpole_B - assumes a converging index of refraction at shallow depths</span>
+<span class="sd">            * southpole_C - no birefringence as nx = ny = nz</span>
+<span class="sd">            * southpole_D - assumes a constant average over all depths</span>
+<span class="sd">            * southpole_E - assumes ny and nz to be the same value at the average of the two</span>
+<span class="sd">            * greenland_A - most reasonable interpolation</span>
+<span class="sd">            * greenland_B - assumes ny and nx to be the same value at the average of the two</span>
+<span class="sd">            * greenland_C - assumes ny and nx to diverge more than the data indicates</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The southpole models A, B, D, E were presented in the paper: N. Heyer and C. Glaser,</span>
+<span class="sd">        First-principle calculation of birefringence effects for in-ice</span>
+<span class="sd">        radio detection of neutrinos, eprint: 2205.06169.</span>
+
+<span class="sd">        The Greenland ice models are based on the data in Aguilar, J. A. and others,</span>
+<span class="sd">        Radiofrequency Ice Dielectric Measurements at Summit Station, Greenland, eprint: 2212.10285</span>
+
+<span class="sd">        In order to use the data, spline interpolated functions were fitted to the data points.</span>
+<span class="sd">        As the data only cover a certain depth range there is room for interpretation on</span>
+<span class="sd">        how to extrapolate the data to more shallow and deeper depth regions.</span>
+<span class="sd">        The file IceModel_interpolation.py can be used to adjust the interpolation method and come up with new ice models.</span>
+<span class="sd">        As the data was taken at the South Pole, the models created with this data set should be called</span>
+<span class="sd">        &quot;birefringence_southpole_X.npy&quot;, where the X marks the model identifier.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_binary_data</span><span class="p">(</span><span class="n">bir_model</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">bir_model</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_binary_data</span><span class="p">(</span><span class="n">bir_model</span><span class="p">):</span>
         <span class="c1"># from https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</span>
         <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;/birefringence_models/birefringence_&#39;</span> <span class="o">+</span> <span class="n">bir_model</span> <span class="o">+</span> <span class="s1">&#39;.npy&#39;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">bir_model</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
 
@@ -980,7 +1026,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">greenland_firn</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">discontinuity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">discontinuity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Computes a default object holding the radiopropa scalarfield and necessary radiopropa</span>
 <span class="sd">        moduldes that define the medium in radiopropa. It uses the parameters of the medium</span>

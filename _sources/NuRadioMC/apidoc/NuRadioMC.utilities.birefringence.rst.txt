@@ -1,0 +1,7 @@
+NuRadioMC.utilities.birefringence module
+========================================
+
+.. automodule:: NuRadioMC.utilities.birefringence
+   :members:
+   :undoc-members:
+   :show-inheritance:

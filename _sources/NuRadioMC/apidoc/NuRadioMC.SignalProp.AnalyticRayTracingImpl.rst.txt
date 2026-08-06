@@ -1,0 +1,15 @@
+NuRadioMC.SignalProp.AnalyticRayTracingImpl package
+===================================================
+
+.. automodule:: NuRadioMC.SignalProp.AnalyticRayTracingImpl
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer
