@@ -377,20 +377,29 @@ class IceModelSimple(IceModel):
 
 class IceModelBirefringence(IceModelSimple):
     """
-    predefined birefringence ice model (to inherit from) including different indieces of refraction for differnt directions
+    predefined birefringence ice model (to inherit from) including different indices of refraction for different directions
     """
     def __init__(self, bir_model):
-
         """
-        initiaion of a birefringent ice model with an interpolation of the data as described in:
-        https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+        Initialize birefringent ice model from data
 
         Parameters
         ----------
-        bire_model: string
-            choose the interpolation to fit the measured refractive index data
-            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
+        bir_model : array
+            (3, 3)-shaped array, where the first axis iterates over the three orthogonal directions,
+            and the second axis contains the 't, c and k' (knots, coefficients and degree)
+            of the `scipy.interpolate.UnivariateSpline` object for each direction. See the
+            :ref:`birefringent ice models manual <NuRadioMC/pages/Manuals/icemodels:birefringence ice models>`
+            for more details.
 
+        """
+        self._load_birefringence_model(bir_model)
+
+    def _load_birefringence_model(self, bir_model):
+
+        """
+        Function to load a birefringent ice model with an interpolation of the data as described in:
+        https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
         """
 
         self.f1 = interpolate.UnivariateSpline._from_tck(bir_model[0])
