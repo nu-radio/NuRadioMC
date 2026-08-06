@@ -1,8 +1,5 @@
 # NuRadioMC and NuRadioReco
 [![Coverage badge](https://raw.githubusercontent.com/nu-radio/NuRadioMC/python-coverage-comment-action-data/badge.svg)](https://github.com/nu-radio/NuRadioMC/tree/python-coverage-comment-action-data)
-### [Quickstart](https://nu-radio.github.io/NuRadioMC/Introduction/pages/quickstart.html)
-### [Documentation](https://nu-radio.github.io/NuRadioMC/main.html)
-### [Contributing](https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html)
 
 **NuRadioMC**: A Monte Carlo simulation package for radio neutrino detectors.
 
@@ -10,23 +7,44 @@
 and used by NuRadioMC for the detector and trigger simulation. To simplify the development and continuous integration testing, both codes are developed
 in the same github repository.)
 
-## Documentation and Installation
+## Installation and quickstart
 
-The documentation, including detailed installation instructions, can be found at https://nu-radio.github.io/NuRadioMC/main.html.
+The stable release can be installed directly from pypi with `pip install NuRadioMC`. Developers should instead clone
+this repository and install it in editable mode:
 
-The stable pip release can be installed directly from pypi:
-```
-pip install NuRadioMC
-```
-
-Developers should clone the git repository and run:
-```
-pip install -e .[dev]  # zsh user might have to wrap the argument in quotes: -e '.[dev]'
+```bash
+pip install -e .[dev]  # zsh users have to wrap the argument in quotes: -e '.[dev]'
 pre-commit install
 ```
 
-Additional optional dependencies are `[rno-g,proposal,galacticnoise,cr_interpolator]`, and can be installed by adding the desired option inside the
-square brackets, i.e. `pip install -e .[dev,proposal]`. To install all optional dependencies, use `[all]`.
+See the [installation instructions](https://nu-radio.github.io/NuRadioMC/Introduction/pages/installation.html) for
+the details and for the optional dependencies. New to NuRadio? Our
+[quickstart guide](https://nu-radio.github.io/NuRadioMC/Introduction/pages/quickstart.html) then walks you through
+your first simulation and reconstruction.
+
+## Documentation
+
+The full documentation — an introduction to the framework, example scripts and the complete code reference — lives at
+[nu-radio.github.io/NuRadioMC](https://nu-radio.github.io/NuRadioMC/main.html).
+
+## Contributing
+
+**Every contribution is welcome!** Whether you found a bug, are missing a feature, want to improve the
+documentation or have written a new module — we are happy to hear from you. In short: the best thing to do is to
+open a new [issue](https://github.com/nu-radio/NuRadioMC/issues) or [pull request](https://github.com/nu-radio/NuRadioMC/pulls).
+We work with pull requests only, which are merged after review.
+
+Our full workflow, a few best-practice guidelines and our coding conventions are described in the
+[contributing documentation](https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html).
+If you would like to work on NuRadioMC directly, please contact @cg-laser, @anelles, @fschlueter or @sjoerd-bouma
+for permission.
+
+## Stay up to date
+
+If you want to keep up to date, consider signing up to the following email lists:
+
+* [user email list](https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc): used to announce new versions and major improvements etc.
+* [developer email list](https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc-dev): used to discuss the future development of NuRadioMC/Reco
 
 ## Cite
 
@@ -52,10 +70,6 @@ NuRadioMC is continuously improved and new features are being added. The followi
 * C. Glaser D. García-Fernández and A. Nelles, "Prospects for neutrino-flavor physics with in-ice radio detectors", [PoS(ICRC2021)1231](https://doi.org/10.22323/1.395.1231) (generalizes NuRadioMC to simulate the radio emission from any number of in-ice showers including their interference)
 
 * D. García-Fernández, C. Glaser and A. Nelles, “The signatures of secondary leptons in radio-neutrino detectors in ice”, [Phys. Rev. D 102, 083011](https://dx.doi.org/10.1103/PhysRevD.102.083011), [arXiv:2003.13442](https://arxiv.org/abs/2003.13442) (addition of secondary interactions of muons and taus)
-
-
-If you would like to contribute, please contact @cg-laser or @anelles for permission to work on NuRadioMC. We work with pull requests only that can be merged after review.
-Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html for details on our workflow and coding conventions.
 
 
 ## Publications using NuRadioMC/Reco
@@ -107,8 +121,3 @@ NuRadioMC is used in an increasing number of studies. To get an overview of what
 * C. Glaser, S. Barwick, "An improved trigger for Askaryan radio detectors", [JINST 16 (2021) 05, T05001](https://doi.org/10.1088/1748-0221/16/05/T05001), [arXiv:2011.12997](https://arxiv.org/abs/2011.12997)
 * RNO-G collaboration, "Design and Sensitivity of the Radio Neutrino Observatory in Greenland (RNO-G)", [JINST 16 (2021) 03, P03025](https://doi.org/10.1088/1748-0221/16/03/P03025) [arXiv:2010.12279](https://arxiv.org/abs/2010.12279)
 * ARIANNA collaboration, "Probing the angular and polarization reconstruction of the ARIANNA detector at the South Pole", [JINST 15 (2020) 09, P09039](https://doi.org/10.1088/1748-0221/15/09/P09039), [arXiv:2006.03027](https://arxiv.org/abs/2006.03027)
-
-
-If you want to keep up to date, consider signing up to the following email lists:
- * user email list, will be used to announce new versions and major improvements etc. Subscribe via https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc
- * developer email list, will be used to discuss the future development of NuRadioMC/Reco. Subscribe via: https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc-dev
