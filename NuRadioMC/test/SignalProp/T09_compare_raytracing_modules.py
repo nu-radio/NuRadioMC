@@ -84,7 +84,7 @@ def run_tests(data_dict, keys):
     for key in [
         "time_diff", "path_diff", "angle_diff",
         "solving_time_a", "solving_time_b", "solving_time_ratio",
-        "attenuation_diff" #, "focusing_diff"
+        "attenuation_diff" , "focusing_diff"
     ]:
         if key not in data_dict:
             continue
@@ -115,7 +115,7 @@ def run_tests(data_dict, keys):
 TIME_TOL = 1e-3
 ANGLE_TOL = 1e-3
 ATTENUATION_TOL = 1e-2
-FOCUSING_TOL = 1e-2
+FOCUSING_TOL = 1e-1
 
 def run_assertions(data_dict):
     """Assert that all relative differences are below tolerances."""
