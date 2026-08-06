@@ -5,6 +5,7 @@ speedup:
   delta_C_cut: 0.698  # 40 degree
 propagation:
   ice_model: greenland_simple
+  focusing: True
   attenuation_model: GL1
 signal:
   model: ARZ2020

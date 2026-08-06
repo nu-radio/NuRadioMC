@@ -12,7 +12,7 @@ class ray_tracing_base:
     """
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
-                 detector=None, ray_tracing_2D_kwards={}):
+                 detector=None, ray_tracing_2D_kwards={}, use_cpp=None):
         """
         class initilization
 
@@ -51,6 +51,8 @@ class ray_tracing_base:
         detector: detector object
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
+        use_cpp: bool
+            Not used here. For compatibility with analytic ray tracer.
         """
         self.__logger = logging.getLogger('NuRadioMC.SignalProp.ray_tracing_base')
         self.__logger.setLevel(log_level)
@@ -79,6 +81,8 @@ class ray_tracing_base:
 
         self._X1 = None
         self._X2 = None
+        self._X1_input = None  # used for caching
+        self._X2_input = None
         self._results = None
 
     def _set_arguments(self, n_frequencies_integration, n_reflections, attenuation_model):
@@ -130,16 +134,74 @@ class ray_tracing_base:
                     "not have any reflective layer, setting number of reflections to zero.")
                 self._n_reflections = 0
 
+    @staticmethod
+    def _resolve_use_cpp_and_numba(use_cpp, compile_numba, cpp_available, numba_available, logger):
+        """
+        Decides whether the CPP or the numba-accelerated python backend should be used, given what
+        the caller requested and what is actually available, and logs the resolved choice.
+
+        This is shared so that ray tracers offering a CPP/numba backend (e.g. the analytic ray
+        tracer's `ray_tracing` and `ray_tracing_2D`) don't each have to duplicate this decision.
+
+        Parameters
+        ----------
+        use_cpp: bool or None
+            backend explicitly requested by the caller. If None, CPP is used whenever available.
+        compile_numba: bool or None
+            whether to numba-compile the python fallback backend. Only relevant if `use_cpp`
+            (after resolution) is False. If None, numba is used whenever available.
+        cpp_available: bool
+            whether the CPP extension could be imported (or compiled on the fly)
+        numba_available: bool
+            whether the numba package is available
+        logger: logging.Logger
+            logger used to announce the resolved backend / raise warnings
+
+        Returns
+        -------
+        use_cpp: bool
+        compile_numba: bool
+        """
+        if use_cpp is None:
+            use_cpp = cpp_available
+
+        if use_cpp and not cpp_available:
+            msg = ('C++ raytracer was explicitly requested, but is not available (i.e. on-the-fly compilation failed). '
+                   'Abort.... ! Either fix the compilation or set use_cpp to False. '
+                   'For compilation see NuRadioMC/SignalProp/install.sh resp. NuRadioMC/SignalProp/CPPAnalyticRayTracing.')
+            logger.error(msg)
+            raise RuntimeError(msg)
+
+        if use_cpp:
+            logger.status("Using CPP version of ray tracer")
+            return True, False  # compile_numba is irrelevant when using the CPP backend
+
+        if cpp_available:
+            logger.info('C++ raytracer is available, but Python raytracer was requested. Using Python raytracer')
+
+        compile_numba = numba_available if compile_numba is None else (compile_numba and numba_available)
+        if compile_numba:
+            logger.status("Using python with numba version of ray tracer")
+        else:
+            logger.status("Using python without numba version of ray tracer")
+
+        return False, compile_numba
+
     def reset_solutions(self):
         self._X1 = None
         self._X2 = None
+        self._X1_input = None
+        self._X2_input = None
         self._results = None
 
     def set_start_and_end_point(self, x1, x2):
         """
-        Set the start and end points between which raytracing solutions shall be found
-        It is recommended to also reset the solutions from any previous raytracing to avoid
-        confusing them with the current solution
+        Set the start and end points between which raytracing solutions shall be found.
+
+        If the start and end points are identical to those of the previous ray tracing,
+        the existing solutions are kept and `find_solutions` will not recalculate them
+        (relevant e.g. if several showers are simulated at the same position).
+        Call `reset_solutions` before this function to force a recalculation.
 
         Parameters
         ----------
@@ -147,16 +209,35 @@ class ray_tracing_base:
             start point of the ray
         x2: np.array of shape (3,), default unit
             stop point of the ray
+
+        Returns
+        -------
+        geometry_changed: bool
+            False if the start and end points are unchanged with respect to the previous
+            ray tracing (in which case the existing solutions are kept), True otherwise.
         """
+        x1 = np.array(x1, dtype=float)
+        x2 = np.array(x2, dtype=float)
+        if (self._results is not None and self._X1_input is not None
+                and np.array_equal(x1, self._X1_input) and np.array_equal(x2, self._X2_input)):
+            self.__logger.debug("start and end points are unchanged, keeping existing ray tracing solutions")
+            return False
+
         self.reset_solutions()
-        self._X1 = np.array(x1, dtype =float)
-        self._X2 = np.array(x2, dtype = float)
+        # keep a copy of the unmodified input points to detect geometry changes
+        # (subclasses may modify self._X1/self._X2, e.g., swap them)
+        self._X1_input = x1
+        self._X2_input = x2
+        self._X1 = np.copy(x1)
+        self._X2 = np.copy(x2)
         if (self._n_reflections):
             if (self._X1[2] < self._medium.reflection or self._X2[2] < self._medium.reflection):
                 self.__logger.error("start or stop point is below the reflective bottom layer at {:.1f}m".format(
                     self._medium.reflection / units.m))
                 raise AttributeError("start or stop point is below the reflective bottom layer at {:.1f}m".format(
                     self._medium.reflection / units.m))
+
+        return True
 
     def use_optional_function(self, function_name, *args, **kwargs):
         """

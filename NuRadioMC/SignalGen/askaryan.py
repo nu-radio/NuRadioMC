@@ -3,6 +3,7 @@ import numpy as np
 from NuRadioReco.utilities import units, fft
 from NuRadioMC.SignalGen import parametrizations as par
 import logging
+
 logger = logging.getLogger("NuRadioMC.SignalGen.askaryan")
 
 
@@ -124,8 +125,11 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
 
         if(interp_factor2 is not None):
             gARZ.set_interpolation_factor2(interp_factor2)
-        trace = gARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower, **kwargs)[1]
+        trace, profile_depth, profile_ce = gARZ.get_time_trace(energy, theta, N, dt, shower_type, n_index, R, same_shower=same_shower, output_mode="full", **kwargs)
+        trace = trace[1] # return the theta component; the ARZ class uses a fixed geometry where this is the only non-zero component
         additional_output['iN'] = gARZ.get_last_shower_profile_id()[shower_type]
+        additional_output['profile_depth'] = profile_depth
+        additional_output['profile_ce'] = profile_ce
 
     elif(model == 'spherical'):
         amplitude = 1. * energy / R

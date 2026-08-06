@@ -1,34 +1,28 @@
 name: Deploy Documentation
 
-on: [push, pull_request, workflow_dispatch]
+on: [workflow_dispatch, workflow_call]
+
+concurrency: # run only one instance of the tests per branch
+  group: documentation-${{ github.ref }}
+  cancel-in-progress: true # cancel currently running checks on a new push
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-
 
     steps:
-      - uses: actions/checkout@v4 # get the develop branch
+      - uses: actions/checkout@v6 # get the develop branch
         with:
           ref: 'refs/heads/develop'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Python 3.10
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
+          cache: 'pip'
 
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          # This path is specific to Ubuntu
-          path: ~/.cache/pip
-          # Look to see if there is a cache hit for the corresponding requirements file
-          key: ${{ runner.os }}-pip-${{ hashFiles('NuRadioMC/test/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
       - name: Install dependencies
+        timeout-minutes: 20
         run: |
           sudo apt-get install libgsl-dev
           python -m pip install --upgrade pip

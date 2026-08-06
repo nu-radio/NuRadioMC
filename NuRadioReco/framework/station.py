@@ -301,3 +301,81 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
             self.add_channel(channel)
 
         self.__reference_reconstruction = data['__reference_reconstruction']
+
+    def show(
+            self, show_parameters=0, show_channels=True,
+            show_efields=True, show_triggers=True, print_stdout=True, **kwargs):
+        """
+        Print an overview of the structure of the Station.
+
+        Parameters
+        ----------
+        show_parameters : int, default: 0
+
+            * If > 0, print the parameters stored in the Station.
+            * If > 1, also recursively print the parameters of objects stored
+              inside the Station (e.g. Channels, Triggers, ...). The value of `show_parameters`
+              indicates the maximum number of recursions
+
+        show_channels : bool, optional
+            If `True` (default), also show the `Channel` objects stored in the Station
+        show_efields : bool, optional
+            If `True` (default), also show the `ElectricField` objects stored in the Station
+        show_triggers : bool, optional
+            If `True` (default), also show the `Trigger` objects stored in the Station
+
+        Other Parameters
+        ----------------
+        print_stdout : bool, optional
+            If `True` (default), print the Station structure to stdout.
+            Otherwise, return the string representation
+        **kwargs : keyword arguments, optional
+            keyword arguments passed on to `.show()` method of
+            objects stored inside `Station`.
+
+        Returns
+        -------
+        str_output : str, optional
+            A string representation of the Station structure.
+
+        """
+        n_channels = len(self.get_channel_ids())
+        n_efields = len(self.get_electric_field_ids())
+        n_triggers = len(self.get_triggers())
+
+        self_string = [
+            f'Station({self.get_id()}) ('
+            + (f'{n_channels} Channels, ' if n_channels else '')
+            + (f'{n_efields} Efields, ' if n_efields else '')
+            + (f'{n_triggers} Triggers, ' if n_triggers else '')
+            + ('SimStation' if self.has_sim_station() else '')
+            + ')'
+        ]
+
+        if show_parameters > 0:
+            self_string += ['    Parameters']
+            par_string = [f'      {par.name:16s}: {val}'
+                for par, val in self.get_parameters().items()]
+            self_string += par_string
+
+        iterators = []
+        if show_channels:
+            iterators.append(self.iter_channels)
+        if show_efields:
+            iterators.append(self.get_electric_fields)
+        if show_triggers:
+            iterators.append(self.get_triggers().values)
+
+        for iterator in iterators:
+            for item in iterator():
+                self_string += [
+                    ('    ' + k)
+                    for k in item.show(show_parameters=show_parameters-1, print_stdout=False, **kwargs).split('\n')
+                ]
+
+        output = '\n'.join(self_string)
+        if print_stdout:
+            print(output)
+            return
+
+        return output

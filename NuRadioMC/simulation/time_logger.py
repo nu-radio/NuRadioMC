@@ -1,4 +1,5 @@
-import astropy.time
+import time
+from collections import defaultdict
 
 def pretty_time_delta(seconds):
     """
@@ -51,7 +52,7 @@ class timeLogger:
         The logger object used for logging.
     update_interval : int, optional
         The time interval (in seconds) at which the logger should be updated.
-        Default is 5 seconds.
+        Default is 20 seconds.
 
     Methods
     -------
@@ -63,11 +64,11 @@ class timeLogger:
         Stop the timer for the specified category.
     pretty_time_delta(seconds)
         Convert a time duration in seconds to a human-readable format.
-    show_time(n_event_groups, i_event_group)
+    show_time(n_event_groups, i_event_group, other_threshold=2, num_triggers=None)
         Display the progress information of a simulation run.
     """
 
-    def __init__(self, logger, update_interval=5):
+    def __init__(self, logger, update_interval=20):
         """
         Initialize the TimeLogger object.
 
@@ -77,14 +78,14 @@ class timeLogger:
             The logger object used for logging.
         update_interval : int, optional
             The time interval (in seconds) at which the logger should be updated.
-            Default is 5 seconds.
+            Default is 20 seconds.
         """
-        self.__times = {}
+        self.__times = defaultdict(float)
         self.__total_start_time = None
         self.__start_times = {}
         self.__last_update = None
         self.__logger = logger
-        self.__update_interval = astropy.time.TimeDelta(update_interval, format='sec')
+        self.__update_interval = update_interval  # sec
 
     def reset_times(self, categories=None):
         """
@@ -111,12 +112,11 @@ class timeLogger:
         >>> logger.reset_times()  # Reset all categories
         >>> logger.reset_times(['category1', 'category2'])  # Reset specific categories
         """
-        self.__times = {}
-        self.__total_start_time = astropy.time.Time.now()
-        self.__last_update = astropy.time.Time.now()
+        self.__total_start_time = time.monotonic()
+        self.__last_update = time.monotonic()
+
         if categories is None:
-            for key in self.__times:
-                self.__times[key] = 0
+            self.__times = defaultdict(float)
         else:
             for category in categories:
                 self.__times[category] = 0
@@ -132,7 +132,7 @@ class timeLogger:
 
         Notes
         -----
-        This method starts the timer for the specified category by recording the current time using `astropy.time.Time.now()`.
+        This method starts the timer for the specified category by recording the current time using `time.monotonic()`.
 
         If the category does not exist in the time log, it will be added and the timer will be reset to zero.
 
@@ -141,10 +141,7 @@ class timeLogger:
         >>> logger = TimeLogger()
         >>> logger.start_time('simulation')
         """
-        if category not in self.__times:
-            self.__times[category] = 0
-            self.__logger.info(f"Time category {category} not found. Adding category and resetting time to zero.")
-        self.__start_times[category] = astropy.time.Time.now()
+        self.__start_times[category] = time.monotonic()
 
     def stop_time(self, category):
         """
@@ -157,47 +154,79 @@ class timeLogger:
 
         Raises
         ------
-        KeyError
-            If the specified category is not found in the time logger.
         RuntimeError
             If the timer for the specified category was not started before stopping it.
         """
-        if category not in self.__times:
-            raise KeyError('Time category {} not found. Did you reset times?'.format(category))
         if category not in self.__start_times.keys() or self.__start_times[category] is None:
             raise RuntimeError('It looks like you stopped taking time for {} before starting it.'.format(category))
-        self.__times[category] += (astropy.time.Time.now() - self.__start_times[category]).sec
+
+        self.__times[category] += time.monotonic() - self.__start_times[category]
         self.__start_times[category] = None
 
-    def show_time(self, n_event_groups, i_event_group):
+    def show_time(self, n_event_groups, i_event_group, other_threshold=2, num_triggers=None, force=False):
         """
         Display the progress information of a simulation run.
 
-        Parameters:
-            n_event_groups (int): Total number of event groups.
-            i_event_group (int): Index of the current event group.
+        Parameters
+        ----------
+        n_event_groups : int
+            Total number of event groups.
+        i_event_group : int
+            Index of the current event group.
+        other_threshold : float, optional
+            Categories that account for less than this percentage of the
+            elapsed time are grouped together into a single 'others' column
+            instead of being shown individually. Default is 2%.
+        num_triggers : int, optional
+            The number of triggered events so far. If provided, it is
+            included in the status message.
+        force : bool, optional
+            Print regardless of interval. (Default: False)
 
-        Returns:
-            None
-
-        Raises:
-            None
+        Returns
+        -------
+        None
         """
-        if astropy.time.Time.now() - self.__last_update > self.__update_interval:
-            self.__last_update = astropy.time.Time.now()
-            elapsed_time = astropy.time.Time.now() - self.__total_start_time
+        if time.monotonic() - self.__last_update > self.__update_interval or force:
+            self.__last_update = time.monotonic()
+            elapsed_time = time.monotonic() - self.__total_start_time
             projected_time = elapsed_time * (n_event_groups - i_event_group - 1) / (i_event_group + 1)
-            total_accounted_time = 0
-            time_account_string = ''
-            for category in self.__times:
-                total_accounted_time += self.__times[category]
-                time_account_string = time_account_string + '{} = {:.0f}%, '.format(category, self.__times[category] / elapsed_time.sec * 100)
-            time_account_string = time_account_string + 'unaccounted: {:.0f}%'.format((elapsed_time.sec - total_accounted_time) / elapsed_time.sec * 100)
+            total_accounted_time = sum(self.__times.values())
+
+            names = []
+            percentages = []
+            other_time = 0
+            for category, category_time in self.__times.items():
+                percentage = category_time / elapsed_time * 100
+                if percentage < other_threshold:
+                    other_time += category_time
+                else:
+                    names.append(category)
+                    percentages.append('{:.0f}%'.format(percentage))
+
+            if other_time > 0:
+                names.append('others')
+                percentages.append('{:.0f}%'.format(other_time / elapsed_time * 100))
+
+            names.append('unaccounted')
+            percentages.append('{:.0f}%'.format((elapsed_time - total_accounted_time) / elapsed_time * 100))
+
+            widths = [max(len(name), len(pct)) for name, pct in zip(names, percentages)]
+            header_row = ' | '.join(name.center(width) for name, width in zip(names, widths))
+            value_row = ' | '.join(pct.center(width) for pct, width in zip(percentages, widths))
+            time_account_string = '{}\n{}'.format(header_row, value_row)
+
+            num_trigger_str = ''
+            if num_triggers is not None:
+                num_trigger_str = f" ({num_triggers} triggered events)"
+
             self.__logger.status(
-                'Processing event group {}/{}. ETA: {}, time consumption: {}'.format(
+                'Processing event group {} / {}{}. Duration: {}, ETA: {}. \n{}'.format(
                     i_event_group,
                     n_event_groups,
-                    pretty_time_delta(projected_time.sec),
+                    num_trigger_str,
+                    pretty_time_delta(elapsed_time),
+                    pretty_time_delta(projected_time),
                     time_account_string
                 )
             )
