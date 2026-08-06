@@ -105,11 +105,45 @@ class ARA_2022(medium_base.IceModelSimple):
 class birefringence_medium(medium_base.IceModelBirefringence):
 
     def __init__(self, bir_model='southpole_A'):
-        f = self._load_binary_data(bir_model)
-        self.load_birefringence_model(bir_model=f)
+        """
+        Birefringent medium
 
+        Parameters
+        ----------
+        bir_model : str
+            Which birefringent medium to use. Options are:
+
+            * southpole_A - assumes a constant index of refraction at shallow and deep depths
+            * southpole_B - assumes a converging index of refraction at shallow depths
+            * southpole_C - no birefringence as nx = ny = nz
+            * southpole_D - assumes a constant average over all depths
+            * southpole_E - assumes ny and nz to be the same value at the average of the two
+            * greenland_A - most reasonable interpolation
+            * greenland_B - assumes ny and nx to be the same value at the average of the two
+            * greenland_C - assumes ny and nx to diverge more than the data indicates
+
+        Notes
+        -----
+        The southpole models A, B, D, E were presented in the paper: N. Heyer and C. Glaser,
+        First-principle calculation of birefringence effects for in-ice
+        radio detection of neutrinos, eprint: 2205.06169.
+
+        The Greenland ice models are based on the data in Aguilar, J. A. and others,
+        Radiofrequency Ice Dielectric Measurements at Summit Station, Greenland, eprint: 2212.10285
+
+        In order to use the data, spline interpolated functions were fitted to the data points.
+        As the data only cover a certain depth range there is room for interpretation on
+        how to extrapolate the data to more shallow and deeper depth regions.
+        The file IceModel_interpolation.py can be used to adjust the interpolation method and come up with new ice models.
+        As the data was taken at the South Pole, the models created with this data set should be called
+        "birefringence_southpole_X.npy", where the X marks the model identifier.
+        """
+        f = self._load_binary_data(bir_model)
+        super().__init__(bir_model=f)
+
+    @staticmethod
     @functools.lru_cache(maxsize=8)
-    def _load_binary_data(self, bir_model):
+    def _load_binary_data(bir_model):
         # from https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
         filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/birefringence_' + bir_model + '.npy'
         return np.load(filepath, allow_pickle=True)

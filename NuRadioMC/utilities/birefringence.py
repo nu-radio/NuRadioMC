@@ -1,6 +1,7 @@
 """
-This module contains helper functions to calculate the effective refractive
-indices and the polarization vectors for a birefringent medium.
+Helper functions to calculate the effective refractive indices and the polarization vectors for a birefringent medium.
+
+Birefringence describes the phenomena when the refractive index of a medium depends on the signal polarization.
 The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
 """
 import numpy as np
