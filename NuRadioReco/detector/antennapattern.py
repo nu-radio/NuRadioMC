@@ -1809,17 +1809,33 @@ class AntennaPatternProvider(object):
             documentation of this class for further information)
         """
         if name in self._antenna_model_replacements:
-            if self._antenna_model_replacements[name] not in self._open_antenna_patterns:
+            replacement = self._antenna_model_replacements[name]
+            if not self._is_buffered(replacement):
                 logger.status("local replacement of antenna model requsted: replacing {} with {}".format(
-                    name, self._antenna_model_replacements[name]))
+                    name, replacement))
 
-            name = self._antenna_model_replacements[name]
+            name = replacement
 
-        if name not in self._open_antenna_patterns:
+        # the keyword arguments are part of the identity of a pattern: a model requested
+        # with different arguments is a different antenna and must not be served from the buffer
+        key = (name,) + tuple(sorted((k, repr(v)) for k, v in kwargs.items()))
+
+        if key not in self._open_antenna_patterns:
+            if self._is_buffered(name):
+                logger.warning(
+                    "antenna model {} is already buffered with different arguments, "
+                    "loading a second copy for {}".format(name, kwargs))
+
             if name.startswith("analytic"):
-                self._open_antenna_patterns[name] = AntennaPatternAnalytic(name, **kwargs)
+                self._open_antenna_patterns[key] = AntennaPatternAnalytic(name, **kwargs)
                 logger.info("loading analytic antenna model {}".format(name))
             else:
-                self._open_antenna_patterns[name] = AntennaPattern(name, **kwargs)
+                self._open_antenna_patterns[key] = AntennaPattern(name, **kwargs)
 
-        return self._open_antenna_patterns[name]
+        return self._open_antenna_patterns[key]
+
+    def _is_buffered(self, name):
+        """
+        Check whether any variant of the antenna model ``name`` is already buffered
+        """
+        return any(key[0] == name for key in self._open_antenna_patterns)

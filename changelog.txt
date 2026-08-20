@@ -29,6 +29,9 @@ bugfixes:
   This is only relevant when simulating primaries and large detector arrays.
 - `AntennaPatternProvider` no longer discards its buffer of loaded antenna models when it is instantiated a second time,
   which caused the (large) antenna model files to be read from disk again.
+- `AntennaPatternProvider.load_antenna_pattern` no longer ignores the keyword arguments (e.g. interpolation_method, max_VEL)
+  when the antenna model is already buffered, i.e. it returned a pattern configured differently than requested. The arguments
+  are now part of the buffer key and loading a second variant of the same model is logged.
 - Fixing the 'magphase' interpolation of the antenna response, which unwrapped the phase along the frequency axis instead
   of between the two data points that are interpolated. The default 'complex' interpolation is unaffected.
 - Fixing the interpolation of antenna models which are not sampled on an equally spaced grid. The node indices were calculated
