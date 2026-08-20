@@ -24,6 +24,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 bugfixes:
 - Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.
   This is only relevant when simulating primaries and large detector arrays.
+- Fixing the interpolation of antenna models which are not sampled on an equally spaced grid. The node indices were calculated
+  from the grid boundaries, which silently picked the wrong nodes and extrapolated. Only RNOG_vpol_4inch_center_n1.73 (used in all
+  RNO_G detector descriptions) is affected, where the vector effective length was off by up to 70% at some zenith angles.
 
 deprecations:
 - Remove default values for `use_channels` and `bandpass` in voltageToAnalyticEfieldConverter.py and voltageToEfieldConverter.py which were suitable for ARIANNA.
