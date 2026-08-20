@@ -10,7 +10,8 @@ discontinuities of up to 70 % in the vector effective length.
 """
 import numpy as np
 
-from NuRadioReco.detector.antennapattern import AntennaPatternProvider, get_bracketing_indices
+from NuRadioReco.detector.antennapattern import (
+    AntennaPatternProvider, get_bracketing_indices, is_equidistant)
 from NuRadioReco.utilities import units
 
 
@@ -39,6 +40,19 @@ def test_get_bracketing_indices():
     assert np.all(i_lower == 0) and np.all(i_upper == 0)
 
 
+def test_equidistant_shortcut():
+    """On an equally spaced grid the fast index calculation must match the lookup"""
+    assert not is_equidistant(np.array([0., 30., 60., 70., 80., 90., 100., 110., 120., 150., 180.]))
+    assert is_equidistant(np.arange(0., 181., 5.))
+    assert is_equidistant(np.arange(0., 181., 5.) + 1e-6 * np.arange(37))  # rounding of the raw file
+
+    grid = np.arange(0., 181., 5.)
+    x = np.concatenate([np.linspace(0, 180, 1001), grid])
+    for i_slow, i_fast in zip(get_bracketing_indices(x, grid),
+                              get_bracketing_indices(x, grid, equidistant=True)):
+        assert np.all(grid[i_slow] == grid[i_fast])
+
+
 def test_vel_is_continuous():
     """The interpolated VEL must not jump between two adjacent zenith angles"""
     provider = AntennaPatternProvider()
@@ -63,5 +77,6 @@ def test_vel_is_continuous():
 
 if __name__ == "__main__":
     test_get_bracketing_indices()
+    test_equidistant_shortcut()
     test_vel_is_continuous()
     print("Antenna pattern tests passed")

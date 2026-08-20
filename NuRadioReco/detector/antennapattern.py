@@ -86,7 +86,18 @@ def interpolate_linear_vectorized(x, x0, x1, y0, y1, interpolation_method='compl
     return result
 
 
-def get_bracketing_indices(x, nodes):
+def is_equidistant(nodes, rtol=1e-4):
+    """
+    Check whether the grid nodes are equally spaced (within ``rtol`` of the spacing)
+    """
+    if len(nodes) < 3:
+        return True
+
+    spacing = np.diff(nodes)
+    return bool(np.ptp(spacing) < rtol * np.abs(np.mean(spacing)))
+
+
+def get_bracketing_indices(x, nodes, equidistant=False):
     """
     Find the indices of the two grid nodes bracketing the requested position(s)
 
@@ -100,6 +111,10 @@ def get_bracketing_indices(x, nodes):
         the requested position(s)
     nodes: array of floats
         the (sorted) grid nodes
+    equidistant: bool (default: False)
+        if True the indices are calculated from the grid boundaries instead of looked up.
+        This is much faster for large ``x`` but only correct for equally spaced nodes
+        (cf. `is_equidistant`).
 
     Returns
     -------
@@ -112,7 +127,12 @@ def get_bracketing_indices(x, nodes):
         zero = np.zeros_like(x, dtype=int)
         return zero, zero
 
-    i_upper = np.array(np.clip(np.searchsorted(nodes, x, side='left'), 1, n - 1), dtype=int)
+    if equidistant:
+        i_upper = np.ceil((x - nodes[0]) / (nodes[-1] - nodes[0]) * (n - 1))
+    else:
+        i_upper = np.searchsorted(nodes, x, side='left')
+
+    i_upper = np.array(np.clip(i_upper, 1, n - 1), dtype=int)
     return i_upper - 1, i_upper
 
 
@@ -1420,6 +1440,11 @@ class AntennaPattern(AntennaPatternBase):
         self.n_theta = len(self.theta_angles)
         self.n_phi = len(self.phi_angles)
 
+        # allows the faster index calculation in `get_bracketing_indices`
+        self._equidistant_freqs = is_equidistant(self.frequencies)
+        self._equidistant_theta = is_equidistant(self.theta_angles)
+        self._equidistant_phi = is_equidistant(self.phi_angles)
+
         self.VEL_phi = H_phi
         self.VEL_theta = H_theta
 
@@ -1478,15 +1503,18 @@ class AntennaPattern(AntennaPatternBase):
         # the angular and frequency grids are not necessarily equally spaced (e.g. the
         # theta grid of RNOG_vpol_4inch_center_n1.73), hence look up the bracketing
         # nodes instead of calculating their indices from the grid boundaries
-        iTheta_lower, iTheta_upper = get_bracketing_indices(theta, self.theta_angles)
+        iTheta_lower, iTheta_upper = get_bracketing_indices(
+            theta, self.theta_angles, self._equidistant_theta)
         theta_lower = self.theta_angles[iTheta_lower]
         theta_upper = self.theta_angles[iTheta_upper]
 
-        iPhi_lower, iPhi_upper = get_bracketing_indices(phi, self.phi_angles)
+        iPhi_lower, iPhi_upper = get_bracketing_indices(
+            phi, self.phi_angles, self._equidistant_phi)
         phi_lower = self.phi_angles[iPhi_lower]
         phi_upper = self.phi_angles[iPhi_upper]
 
-        iFrequency_lower, iFrequency_upper = get_bracketing_indices(freq, self.frequencies)
+        iFrequency_lower, iFrequency_upper = get_bracketing_indices(
+            freq, self.frequencies, self._equidistant_freqs)
         # handling frequency out of bound cases properly
         out_of_bound_freqs_low = freq < self.frequency_lower_bound
         out_of_bound_freqs_high = freq > self.frequency_upper_bound
