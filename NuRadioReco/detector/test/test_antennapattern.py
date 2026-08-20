@@ -240,9 +240,8 @@ def test_provider_buffering():
     # `__init__` resets the buffer on every instantiation, so the pattern is loaded again
     expect_known_issue(buffer_survives_reinstantiation,
                        "AntennaPatternProvider() empties the buffer of the singleton")
-    # kwargs are ignored as soon as the model is buffered
-    expect_known_issue(kwargs_are_honoured,
-                       "load_antenna_pattern ignores kwargs for an already buffered model")
+
+    kwargs_are_honoured()
 
 
 # --------------------------------------------------------------------------------------
