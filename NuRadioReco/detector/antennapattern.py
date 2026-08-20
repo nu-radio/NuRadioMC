@@ -1215,7 +1215,7 @@ def get_onsky_rotation(zenith, azimuth):
     """
     Rotation matrix from the ground (x, y, z) into the on-sky (eR, eTheta, ePhi) system
 
-    Equivalent to `radiotools.coordinatesystems.cstrafo` but constructs only the
+    Equivalent to ``radiotools.coordinatesystems.cstrafo`` but constructs only the
     transformation needed here. The matrix is orthonormal, i.e. its transpose describes
     the inverse transformation.
 
