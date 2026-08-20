@@ -61,6 +61,9 @@ def _check_detector_time(method):
         return method(self, *method_args, **method_kwargs)
     return _impl
 
+def _format_t(t, f="%Y-%m-%d %H:%M:%S"):
+    return t.strftime(f)
+
 
 class Detector():
     def __init__(self, database_connection='RNOG_public', log_level=logging.NOTSET, over_write_handset_values=None,
@@ -140,7 +143,9 @@ class Detector():
             select_stations = [select_stations]
 
         self.selected_stations = select_stations
-        self.logger.info(f"Select the following stations (if possible): {select_stations}")
+        if self.selected_stations is not None:
+            self.logger.info(f"Select the following stations (if possible): {select_stations}")
+
         self.__db = None
         if detector_file is None:
             self._det_imported_from_file = False
@@ -152,9 +157,10 @@ class Detector():
             if database_time is not None:
                 self.__db.set_database_time(database_time)
 
-            self.logger.info(
+            self.logger.debug(
                 "Collect time periods of station commission/decommission ...")
             self._time_periods_per_station = self.__db.query_modification_timestamps_per_station()
+
             self.logger.info(
                 f"Found the following stations in the database: {list(self._time_periods_per_station.keys())}")
 
@@ -167,7 +173,7 @@ class Detector():
 
             self.logger.debug("Register the following modification periods:")
             for key, value in self._time_periods_per_station.items():
-                self.logger.debug(f'{key}: {value}["modification_timestamps"]')
+                self.logger.debug(f'{key}: {value["modification_timestamps"]}')
 
             # Used to keep track which time period is buffered. Index of 0, not buffered jet.
             self._time_period_index_per_station = collections.defaultdict(int)
@@ -189,7 +195,10 @@ class Detector():
         over_write_handset_values = over_write_handset_values or {}
         self.__default_values.update(over_write_handset_values)
 
-        info = f"Query entire detector description at once: {self._query_all}"
+        if not self._det_imported_from_file:
+            info = f"Query entire detector description at once: {self._query_all}"
+        else:
+            info = ""
 
         info += "\nUsing the following hand-set values:"
         n = np.amax([len(key) for key in self.__default_values.keys()]) + 3
@@ -365,6 +374,8 @@ class Detector():
                 station_data["devices"] = {int(device_id): device_data for device_id, device_data in station_data["devices"].items()}
                 self.__buffered_stations[int(station_id)] = station_data
 
+            self.logger.info(f"Imported the following stations from file: {', '.join([str(st) for st in self.__buffered_stations])}")
+
             # need to convert modification_timestamps back to datetime objects
             self._time_periods_per_station = {
                 int(station_id): {"modification_timestamps":
@@ -379,6 +390,19 @@ class Detector():
                 self._time_periods_per_station[station_id]["station_commission_timestamps"] = [modification_timestamps[0]]
                 self._time_periods_per_station[station_id]["station_decommission_timestamps"] = [modification_timestamps[-1]]
 
+            table_rows = [
+                (str(station_id), value["station_commission_timestamps"][0].date().isoformat(),
+                 value["station_decommission_timestamps"][0].date().isoformat())
+                for station_id, value in self._time_periods_per_station.items()
+            ]
+            header = ("Station", "Commissioned", "Decommissioned")
+            col_widths = [max(len(row[i]) for row in [header] + table_rows) for i in range(3)]
+            table_str = "\n".join(
+                " | ".join(col.center(col_widths[i]) for i, col in enumerate(row))
+                for row in [header] + table_rows
+            )
+            self.logger.info(f"De/commission timestamps per station:\n{table_str}")
+
             self._time_period_index_per_station = {
                 st_id: 1 for st_id in self.__buffered_stations}
             self.__default_values = import_dict["default_values"]
@@ -387,7 +411,7 @@ class Detector():
             raise ReferenceError(f"{detector_file} with unknown version.")
 
         # print any potential comment present in this detector description
-        if self.comment is not None:
+        if self.comment is not None and self.comment != "":
             self.logger.info("\n".join(["Loaded detector description with comment:", self.comment]))
 
     def _check_update_buffer(self):
@@ -443,13 +467,28 @@ class Detector():
                 "Set invalid time for detector. Time has to be of type `datetime.datetime`")
             raise TypeError(
                 "Set invalid time for detector. Time has to be of type `datetime.datetime`")
+
+        # FS: The database does not import the timestamps with time zones. Once this is fixed the following
+        # block can be uncommented.
+        # if time.tzinfo is None:
+        #     self.logger.warning(f"The detector time object has not time zone, assuming UTC ...")
+        #     time = time.replace(tzinfo=datetime.timezone.utc)
+
         self.__detector_time = time
 
+        if not self._det_imported_from_file:
+            if self.__db is None:
+                self.logger.error("Database is None.")
+                raise ValueError("Database is None.")
+
+            self.__db.set_detector_time(time)
+
+
     def get_detector_time(self):
-        """
+        """ Return current detector time
+
         Returns
         -------
-
         time: `datetime.datetime`
             Detector time
         """
@@ -489,25 +528,36 @@ class Detector():
         if isinstance(time, astropy.time.Time):
             time = _convert_astro_time_to_datetime(time)
 
-        if self.__detector_time is None:
-            self.logger.info(f"Update detector to {time}")
-
         self.__set_detector_time(time)
-        if not self._det_imported_from_file:
-            self.__db.set_detector_time(time)
 
         update_buffer_for_station = self._check_update_buffer()
         any_update = bool(np.any([v for v in update_buffer_for_station.values()]))
 
         if self._det_imported_from_file and any_update:
-            self.logger.warning(f"Update detector to {time}")
-            self.logger.error(
-                "You have imported the detector description from a pickle/json file but it is not valid anymore. Full stop!")
-            raise ValueError(
-                "You have imported the detector description from a pickle/json file but it is not valid anymore. Full stop!")
+            for station_id, need_update in update_buffer_for_station.items():
+                if need_update:
+                    self.logger.warning(
+                        f"Station {station_id} is not valid anymore at {_format_t(time)} but the detector description "
+                        "was imported from a pickle/json file and can not be updated. Dropping this "
+                        "station's description entirely.")
+                    # remove everything (could be handled smarter ...)
+                    self.__buffered_stations[station_id] = {}
 
-        if any_update:
-            self.logger.info(f"Update detector to {time}")
+            if not any(self.__buffered_stations.values()):
+                self.logger.error(
+                    "You have imported the detector description from a json file but none of the "
+                    f"stations' description are valid anymore for {_format_t(time)}. Change the detector time by "
+                    "calling `det.update(...)`. Full stop!")
+                raise ValueError(
+                    "You have imported the detector description from a json file but none of the "
+                    f"stations' description are valid anymore for {_format_t(time)}. Change the detector time by "
+                    "calling `det.update(...)`. Full stop!")
+
+        elif any_update:
+            self.logger.info(
+                "Update description of station(s) "
+                f"{', '.join(str(st) for st, up in update_buffer_for_station.items() if up)} to {_format_t(time)}")
+
             for key in self.__buffered_stations:
                 if update_buffer_for_station[key]:
                     # remove everything (could be handled smarter ...)
@@ -590,7 +640,7 @@ class Detector():
     def _query_station_information(self, station_id, query_all_information):
         """
         Query information about a specific station from the database via the db_mongo_read interface.
-        You can query only information from the station_list collection (query_all_information=False) 
+        You can query only information from the station_list collection (query_all_information=False)
         or the complete information of the station (query_all_information=True).
 
         Parameters
@@ -608,7 +658,7 @@ class Detector():
             raise ValueError(
                 f"Query information for station {station_id} which is still in buffer.")
 
-        self.logger.info(
+        self.logger.debug(
             f"Query information for station {station_id} at {self.get_detector_time()}")
 
         if query_all_information:
@@ -1001,11 +1051,6 @@ class Detector():
                     y_units = component_entry["y-axis_units"]
                     frequencies = component_entry["frequencies"]
 
-                    if "weight" not in component_entry.keys():
-                        self.logger.warning(
-                            f"Component {component_entry['collection']} with the name {component_entry['name']} "
-                            "does not have a weight. Assume a weight of 1 ...")
-
                     weight = component_entry.get("weight", 1) # returns 1 as the default if weight is not included
                     attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
 
@@ -1026,6 +1071,7 @@ class Detector():
                             ydata[0] = np.asarray(ydata[0]) * 10 ** (attenuator / 20)
                         else:
                             raise KeyError
+
                 response = Response(
                     frequencies, ydata, y_units,
                     time_delay=time_delay, weight=weight,
