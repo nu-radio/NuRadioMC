@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for NuRadioMC/SignalProp/CPPAnalyticRayTracing/setup.py: 0%</title>
+    <title>Coverage for NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing/setup.py: 0%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_4667309f.css" type="text/css">
     <script src="coverage_html_cb_dd2e7eb5.js" defer></script>
@@ -11,7 +11,7 @@
 <header>
     <div class="content">
         <h1>
-            <span class="text">Coverage for </span><b>NuRadioMC<span class="sep">/</span>SignalProp<span class="sep">/</span>CPPAnalyticRayTracing<span class="sep">/</span>setup.py</b>:
+            <span class="text">Coverage for </span><b>NuRadioMC<span class="sep">/</span>SignalProp<span class="sep">/</span>AnalyticRayTracingImpl<span class="sep">/</span>CPPAnalyticRayTracing<span class="sep">/</span>setup.py</b>:
             <span class="pc_cov">0%</span>
         </h1>
         <aside id="help_panel_wrapper">
@@ -62,10 +62,10 @@
         <p class="text">
             <a id="prevFileLink" class="nav" href="z_29957eda1e4dfd03_parametrizations_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a id="nextFileLink" class="nav" href="z_8f63023e2379b4c2_analyticraytracing_py.html">&#xbb; next</a>
+            <a id="nextFileLink" class="nav" href="z_bf1ff6d157982610_single_layer_analytic_raytracer_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.14.3">coverage.py v7.14.3</a>,
-            created at 2026-07-22 14:30 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.15.4">coverage.py v7.15.4</a>,
+            created at 2026-08-20 10:51 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -88,27 +88,27 @@
     <p class="mis show_mis"><span class="n"><a id="t6" href="#t6">6</a></span><span class="t"><span class="key">import</span> <span class="nam">os</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t7" href="#t7">7</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t8" href="#t8">8</a></span><span class="t"><span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t9" href="#t9">9</a></span><span class="t">    <span class="nam">print</span><span class="op">(</span><span class="str">'Your $GSLDIR = '</span> <span class="op">+</span> <span class="nam">str</span><span class="op">(</span><span class="nam">os</span><span class="op">.</span><span class="nam">environ</span><span class="op">[</span><span class="str">'GSLDIR'</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t9" href="#t9">9</a></span><span class="t">    <span class="nam">print</span><span class="op">(</span><span class="str">&#x27;Your $GSLDIR = &#x27;</span> <span class="op">+</span> <span class="nam">str</span><span class="op">(</span><span class="nam">os</span><span class="op">.</span><span class="nam">environ</span><span class="op">[</span><span class="str">&#x27;GSLDIR&#x27;</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t10" href="#t10">10</a></span><span class="t"><span class="key">except</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t">    <span class="nam">print</span><span class="op">(</span><span class="str">'You have either not installed GSL or have not set the system variable $GSLDIR.\</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t"><span class="str">           See NuRadioMC wiki for further GSL details. '</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t">    <span class="nam">print</span><span class="op">(</span><span class="str">&#x27;You have either not installed GSL or have not set the system variable $GSLDIR.\</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t"><span class="str">           See NuRadioMC wiki for further GSL details. &#x27;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="key">if</span> <span class="nam">__name__</span> <span class="op">==</span> <span class="str">"__main__"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="key">if</span> <span class="nam">__name__</span> <span class="op">==</span> <span class="str">&quot;__main__&quot;</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t">    <span class="nam">extensions</span> <span class="op">=</span> <span class="op">[</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t">        <span class="nam">Extension</span><span class="op">(</span><span class="str">'wrapper'</span><span class="op">,</span> <span class="op">[</span><span class="str">'wrapper.pyx'</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t">                <span class="nam">include_dirs</span><span class="op">=</span><span class="op">[</span><span class="nam">numpy</span><span class="op">.</span><span class="nam">get_include</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="str">'../../utilities/'</span><span class="op">,</span> <span class="nam">str</span><span class="op">(</span><span class="nam">os</span><span class="op">.</span><span class="nam">environ</span><span class="op">[</span><span class="str">'GSLDIR'</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="str">'/include/'</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t">                <span class="nam">library_dirs</span><span class="op">=</span><span class="op">[</span><span class="nam">str</span><span class="op">(</span><span class="nam">os</span><span class="op">.</span><span class="nam">environ</span><span class="op">[</span><span class="str">'GSLDIR'</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="str">'/lib/'</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t">                <span class="nam">extra_compile_args</span><span class="op">=</span><span class="op">[</span><span class="str">'-O3'</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t">                <span class="nam">define_macros</span> <span class="op">=</span> <span class="op">[</span><span class="op">(</span><span class="str">'NPY_NO_DEPRECATED_API'</span><span class="op">,</span> <span class="str">'NPY_1_7_API_VERSION'</span><span class="op">)</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t">                <span class="nam">libraries</span><span class="op">=</span><span class="op">[</span><span class="str">'gsl'</span><span class="op">,</span> <span class="str">'gslcblas'</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t22" href="#t22">22</a></span><span class="t">                <span class="nam">language</span><span class="op">=</span><span class="str">'c++'</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t">        <span class="nam">Extension</span><span class="op">(</span><span class="str">&#x27;wrapper&#x27;</span><span class="op">,</span> <span class="op">[</span><span class="str">&#x27;wrapper.pyx&#x27;</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t">                <span class="nam">include_dirs</span><span class="op">=</span><span class="op">[</span><span class="nam">numpy</span><span class="op">.</span><span class="nam">get_include</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="str">&#x27;../../../utilities/&#x27;</span><span class="op">,</span> <span class="nam">str</span><span class="op">(</span><span class="nam">os</span><span class="op">.</span><span class="nam">environ</span><span class="op">[</span><span class="str">&#x27;GSLDIR&#x27;</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="str">&#x27;/include/&#x27;</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t">                <span class="nam">library_dirs</span><span class="op">=</span><span class="op">[</span><span class="nam">str</span><span class="op">(</span><span class="nam">os</span><span class="op">.</span><span class="nam">environ</span><span class="op">[</span><span class="str">&#x27;GSLDIR&#x27;</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="str">&#x27;/lib/&#x27;</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t">                <span class="nam">extra_compile_args</span><span class="op">=</span><span class="op">[</span><span class="str">&#x27;-O3&#x27;</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t">                <span class="nam">define_macros</span> <span class="op">=</span> <span class="op">[</span><span class="op">(</span><span class="str">&#x27;NPY_NO_DEPRECATED_API&#x27;</span><span class="op">,</span> <span class="str">&#x27;NPY_1_7_API_VERSION&#x27;</span><span class="op">)</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t">                <span class="nam">libraries</span><span class="op">=</span><span class="op">[</span><span class="str">&#x27;gsl&#x27;</span><span class="op">,</span> <span class="str">&#x27;gslcblas&#x27;</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t22" href="#t22">22</a></span><span class="t">                <span class="nam">language</span><span class="op">=</span><span class="str">&#x27;c++&#x27;</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis mis2 show_mis"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t">                <span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis mis2 show_mis"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t">    <span class="op">]</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t">    <span class="nam">setup</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis mis2 show_mis"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">        <span class="nam">ext_modules</span><span class="op">=</span><span class="nam">cythonize</span><span class="op">(</span><span class="nam">extensions</span><span class="op">,</span> <span class="nam">language_level</span><span class="op">=</span><span class="num">3</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">        <span class="nam">cmdclass</span> <span class="op">=</span> <span class="op">{</span><span class="str">'build_ext'</span><span class="op">:</span> <span class="nam">build_ext</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t">    <span class="com"># extra_compile_args=["-mfpmath=sse"]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">        <span class="nam">cmdclass</span> <span class="op">=</span> <span class="op">{</span><span class="str">&#x27;build_ext&#x27;</span><span class="op">:</span> <span class="nam">build_ext</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t">    <span class="com"># extra_compile_args=[&quot;-mfpmath=sse&quot;]</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis mis2 show_mis"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
@@ -116,10 +116,10 @@
         <p>
             <a class="nav" href="z_29957eda1e4dfd03_parametrizations_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a class="nav" href="z_8f63023e2379b4c2_analyticraytracing_py.html">&#xbb; next</a>
+            <a class="nav" href="z_bf1ff6d157982610_single_layer_analytic_raytracer_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.14.3">coverage.py v7.14.3</a>,
-            created at 2026-07-22 14:30 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.15.4">coverage.py v7.15.4</a>,
+            created at 2026-08-20 10:51 +0000
         </p>
     </div>
 </footer>
