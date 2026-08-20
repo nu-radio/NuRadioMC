@@ -22,23 +22,6 @@ from NuRadioReco.utilities import units
 TEST_MODEL = "RNOG_vpol_4inch_center_n1.73"
 
 
-def expect_known_issue(func, description):
-    """
-    Run a check which documents a known defect, i.e. which is expected to fail
-
-    Raises if the check passes, which is the signal that the defect was fixed and that
-    the check should be turned into a regular assertion.
-    """
-    try:
-        func()
-    except AssertionError:
-        print("  known issue (still present): {}".format(description))
-        return
-
-    raise AssertionError(
-        "'{}' does not reproduce anymore, please turn it into a regular test".format(description))
-
-
 # --------------------------------------------------------------------------------------
 # interpolation helpers
 # --------------------------------------------------------------------------------------
@@ -225,24 +208,16 @@ def test_provider_buffering():
     # names starting with "analytic" are dispatched to the analytic implementation
     assert isinstance(antenna, AntennaPatternAnalytic)
 
-    def buffer_survives_reinstantiation():
-        provider = AntennaPatternProvider()
-        antenna = provider.load_antenna_pattern("analytic_LPDA")
-        AntennaPatternProvider()  # __init__ runs again on the singleton
-        assert provider.load_antenna_pattern("analytic_LPDA") is antenna
+    # instantiating the provider again must not throw away the buffered patterns
+    AntennaPatternProvider()
+    assert provider.load_antenna_pattern("analytic_LPDA") is antenna
 
-    def kwargs_are_honoured():
-        provider = AntennaPatternProvider()
-        provider.load_antenna_pattern("analytic_LPDA")
-        antenna = provider.load_antenna_pattern("analytic_LPDA", max_VEL=1 * units.m)
-        assert antenna._max_VEL == 1 * units.m
-
-    # `__init__` resets the buffer on every instantiation, so the pattern is loaded again
-    expect_known_issue(buffer_survives_reinstantiation,
-                       "AntennaPatternProvider() empties the buffer of the singleton")
-    # kwargs are ignored as soon as the model is buffered
-    expect_known_issue(kwargs_are_honoured,
-                       "load_antenna_pattern ignores kwargs for an already buffered model")
+    # kwargs are part of the identity of a pattern and must not be served from the buffer
+    configured = provider.load_antenna_pattern("analytic_LPDA", max_VEL=1 * units.m)
+    assert configured._max_VEL == 1 * units.m
+    assert configured is not antenna
+    assert provider.load_antenna_pattern("analytic_LPDA", max_VEL=1 * units.m) is configured
+    assert provider.load_antenna_pattern("analytic_LPDA") is antenna
 
 
 # --------------------------------------------------------------------------------------
@@ -305,13 +280,14 @@ def test_out_of_range():
     vel = antenna._get_antenna_response_vectorized_raw(freqs, 200 * units.deg, 0.)
     assert np.all(np.array(vel) == 0)
 
-    def shape_matches_frequencies():
-        vel = antenna._get_antenna_response_vectorized_raw(freqs, 200 * units.deg, 0.)
-        assert np.shape(vel)[1] == len(freqs)
+    # zeros still have to be returned per frequency, just like the in-range path
+    assert np.shape(vel) == (2, len(freqs))
 
-    # the in-range path returns one value per frequency, the out-of-range path a single one
-    expect_known_issue(shape_matches_frequencies,
-                       "out-of-range directions return shape (2, 1) instead of (2, n_freqs)")
+    # this model covers the full sphere, so the public method cannot reach the branch above
+    # (a zenith of 200 deg maps to theta = 160 deg, which is tabulated)
+    vel = antenna.get_antenna_response_vectorized(
+        freqs, 200 * units.deg, 0., 0, 0, np.pi / 2, np.pi / 2)
+    assert np.shape(vel["theta"]) == (len(freqs),)
 
 
 def test_vel_is_continuous():
