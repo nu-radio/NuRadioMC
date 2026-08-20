@@ -147,19 +147,24 @@ def get_fancy_formatter():
             red = "\033[31;1m"
             reset = "\033[0m"
 
+            # One formatter per level, built once: constructing them in format() would
+            # drop `datefmt` and allocate a Formatter per record.
             self.FORMATS = {
-                logging.DEBUG: grey + "%(levelname)s - " + reset + format,
-                logging.INFO: green + "%(levelname)s - " + reset + format,
-                LOGGING_STATUS: yellow + "%(levelname)s - " + reset + format,
-                logging.WARNING: purple + "%(levelname)s - " + reset + format,
-                logging.ERROR: red + "%(levelname)s - " + reset + format,
-                logging.CRITICAL: red + "%(levelname)s - " + reset + format
+                level: logging.Formatter(color + "%(levelname)s - " + reset + format, datefmt=datefmt)
+                for level, color in [
+                    (logging.DEBUG, grey),
+                    (logging.INFO, green),
+                    (LOGGING_STATUS, yellow),
+                    (logging.WARNING, purple),
+                    (logging.ERROR, red),
+                    (logging.CRITICAL, red),
+                ]
             }
+            # Used for levels which have no color assigned
+            self.default_format = logging.Formatter(format, datefmt=datefmt)
 
         def format(self, record):
-            log_fmt = self.FORMATS.get(record.levelno)
-            formatter = logging.Formatter(log_fmt)
-            return formatter.format(record)
+            return self.FORMATS.get(record.levelno, self.default_format).format(record)
 
 
     formatter = CustomFormatter(
