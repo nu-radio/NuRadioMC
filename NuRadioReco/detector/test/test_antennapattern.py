@@ -225,23 +225,16 @@ def test_provider_buffering():
     # names starting with "analytic" are dispatched to the analytic implementation
     assert isinstance(antenna, AntennaPatternAnalytic)
 
-    def buffer_survives_reinstantiation():
-        provider = AntennaPatternProvider()
-        antenna = provider.load_antenna_pattern("analytic_LPDA")
-        AntennaPatternProvider()  # __init__ runs again on the singleton
-        assert provider.load_antenna_pattern("analytic_LPDA") is antenna
+    provider = AntennaPatternProvider()
+    antenna = provider.load_antenna_pattern("analytic_LPDA")
+    AntennaPatternProvider()  # __init__ runs again on the singleton
+    assert provider.load_antenna_pattern("analytic_LPDA") is antenna
 
-    def kwargs_are_honoured():
-        provider = AntennaPatternProvider()
-        provider.load_antenna_pattern("analytic_LPDA")
-        antenna = provider.load_antenna_pattern("analytic_LPDA", max_VEL=1 * units.m)
-        assert antenna._max_VEL == 1 * units.m
+    provider = AntennaPatternProvider()
+    provider.load_antenna_pattern("analytic_LPDA")
+    antenna = provider.load_antenna_pattern("analytic_LPDA", max_VEL=1 * units.m)
+    assert antenna._max_VEL == 1 * units.m
 
-    # `__init__` resets the buffer on every instantiation, so the pattern is loaded again
-    expect_known_issue(buffer_survives_reinstantiation,
-                       "AntennaPatternProvider() empties the buffer of the singleton")
-
-    kwargs_are_honoured()
 
 
 # --------------------------------------------------------------------------------------
